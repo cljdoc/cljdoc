@@ -17,5 +17,5 @@ boot build-docs --project org.martinklepsch/derivatives --version 0.2.0
 - [ ] figure out what other metadata should be imported
 
 #### LONG SHOTS
+- [ ] think about discovery of projects with same group-id
 - [ ] think about how something like dynadoc (interactive docs) could be integrated
-
