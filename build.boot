@@ -51,3 +51,6 @@
 ;; - clone repo, copy `doc` directory, provide to codox
 ;; - derive source-uri (probably needs parsing of project.clj or build.boot or perhaps we can derive source locations by overlaying jar contents)
 ;; - figure out what other metadata should be imported
+
+;; LONG SHOTS
+;; - think about how something like dynadoc (interactive docs) could be integrated
