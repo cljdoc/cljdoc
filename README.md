@@ -6,9 +6,12 @@ about a central documentation hub for Clojure similar to Elixir's https://hexdoc
 
 You can run what's inside by running
 
+```sh
+boot -vv build-docs --project sparkledriver --version 0.2.2 target
+open target/codox-docs/index.html
 ```
-boot build-docs --project org.martinklepsch/derivatives --version 0.2.0
-```
+
+After that `target/` will contain a codox build for the project at the given version.
 
 ## Progress
 
@@ -21,6 +24,7 @@ boot build-docs --project org.martinklepsch/derivatives --version 0.2.0
 
 - [x] read Github URL from pom.xml or Clojars
 - [x] clone repo, copy `doc` directory, provide to codox
+- [ ] try to check out Git repo at specific tag for `doc/` stuff; warn if no tags
 - [ ] derive source-uri (probably needs parsing of project.clj or build.boot or perhaps we can derive source locations by overlaying jar contents)
 - [ ] figure out what other metadata should be imported
 - [ ] Figure out how to deal with changes between tagged releases
