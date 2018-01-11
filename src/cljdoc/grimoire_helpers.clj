@@ -226,12 +226,11 @@
              identity])
 
     (doseq [e (cp/classpath)]
-      (if (re-matches pattern (str e))
+      (when (re-matches pattern (str e))
         (doseq [ns (tns.f/find-namespaces [e])]
           (when-not (= ns 'clojure.parallel) ;; FIXME: get out nobody likes you
             (require ns)
-            (write-docs-for-ns config ns)))
-        (println "Did not find" pattern "in\n" (str e))))
+            (write-docs-for-ns config ns)))))
 
     #_(when ?special-file
       (write-docs-for-specials config ?special-file))))
