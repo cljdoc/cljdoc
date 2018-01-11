@@ -29,6 +29,7 @@ If you want to know more, open an issue or contact me elsewhere.
 #### SERVICE + ISOLATION
 
 - [ ] create Docker setup to run `build-docs`
+  - starting point `sudo docker run -it adzerk/boot-clj repl`
 - [ ] create an API server that runs the Docker setup
 - [ ] copy created files to host, upload to S3 (so that AWS keys are not exposed in Docker env)
 
@@ -40,15 +41,22 @@ If you want to know more, open an issue or contact me elsewhere.
   - Grimoire data contains source so perhaps source URI becomes less important
   - still would be nice to jump to the entire source file
 - [x] give grimoire and related tools a go
-  - Grimoire notes / questions
-    - :construction: Grimoire currently does not support `cljs` or `cljc`
-    - Building docs from jar vs src — what are the tradeoffs?
-    - Are there any fundamental issues with grimoire that could become problematic later?
-    - How do you build docs for a [prj v] when another version is already on the classpath? (e.g. grimoire itself)
 - [ ] Build Codox style index page based on grimoire info
-- [ ] throw an error or something if grimoire does not find *anything*
 - [ ] think about how different platforms can be combined in API docs
 - [ ] build static site generator or SPA that runs on top of grimoire data
+
+#### GRIMOIRE
+
+- :construction: Grimoire currently does not support `cljs` or `cljc`
+    - [lib-grimoire #29](https://github.com/clojure-grimoire/lib-grimoire/issues/29) & [lib-grimoire #30](https://github.com/clojure-grimoire/lib-grimoire/issues/30)
+    - [ ] codox [has support for clojurescript](https://github.com/weavejester/codox/blob/56066f4b86dd9d879845bcfc6a46ed3ae5151117/codox/src/codox/main.clj) - could this code be shared?
+    - [ ] maybe put this into a shared library that grimoire and codox can use
+    - `lib-grimoire` doesn't actually analyse namespaces, it's done in [lein-grim](https://github.com/clojure-grimoire/lein-grim/blob/master/src/grimoire/doc.clj)
+    - [ ] look into replacing the code I copied from lein-grim with something similar to codox' implementation
+- [ ] throw an error or something if grimoire does not find *anything*
+- Building docs from jar vs src — what are the tradeoffs?
+- Are there any fundamental issues with grimoire that could become problematic later?
+- How do you build docs for a [prj v] when another version is already on the classpath? (e.g. grimoire itself)
 
 #### GITHUB + NON-API DOCS
 
