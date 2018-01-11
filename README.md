@@ -20,6 +20,11 @@ After that `target/` will contain a codox build for the project at the given ver
 - [ ] setup s3 bucket / static website
 - [ ] run the build-docs stuff in a container which syncs files to S3 (or similar)
 
+#### SERVICE + ISOLATION
+
+- [ ] create Docker setup to run `build-docs`
+- [ ] copy created files to host, upload to S3
+
 #### GITHUB + NON-API DOCS
 
 - [x] read Github URL from pom.xml or Clojars
