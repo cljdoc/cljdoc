@@ -38,10 +38,14 @@
         group    (or (namespace project) artifact)]
     (str "META-INF/maven/" group "/" artifact "/pom.xml")))
 
+(defn group-id [project]
+  (or (namespace project) (name project)))
+
+(defn artifact-id [project]
+  (name project))
+
 (defn docs-path [project version]
-  (let [artifact (name project)
-        group    (or (namespace project) artifact)]
-    (str "" group "/" artifact "/" version "/")))
+  (str "" (group-id project) "/" (artifact-id project) "/" version "/"))
 
 (defn scm-url [pom-map]
   (cond (.contains (:url (:scm pom-map)) "github")
@@ -109,7 +113,7 @@
   (with-pre-wrap fs
     (let [tempd     (tmp-dir!)
           pom-map   (find-pom-map fs project)
-          codox-dir (io/file tempd (docs-path project version))
+          codox-dir (io/file tempd "codox-docs/")
           jar-contents-fileset-dir (->> (output-files fs)
                                         (by-re [#"^jar-contents/"])
                                         first
@@ -165,8 +169,8 @@
   (let [doc-path (docs-path project version)]
     (assert (.endsWith doc-path "/"))
     (comp (build-docs :project project :version version)
-          (sift :include #{(re-pattern doc-path)})
-          ;; (sift :move {#"^codox-docs/(.*)" (str doc-path "$1")})
+          (sift :include #{#"^codox-docs"})
+          (sift :move {#"^codox-docs/(.*)" (str doc-path "$1")})
           (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
                                 ;; also invalidates root path (also cheaper)
                                 :invalidation-paths [(str "/" doc-path "*")])
