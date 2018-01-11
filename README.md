@@ -15,6 +15,9 @@ After that `target/` will contain a codox build for the project at the given ver
 
 ## Progress
 
+<!-- I'm using parts of Boot for the first prototypes of this,  -->
+<!-- it's not set in stone that it uses Boot in the end. -->
+
 #### HOSTING
 
 - [x] setup s3 bucket / static website using [Confetti](https://github.com/confetti-clj/confetti)
@@ -37,8 +40,8 @@ After that `target/` will contain a codox build for the project at the given ver
   - Grimoire notes / questions
     - Building docs from jar vs src — what are the tradeoffs?
     - Are there any fundamental issues with grimoire that could become problematic later?
-    - How do you build docs for a [prj v] when another version is already on the classpath?
-    - What's the benefit of the tagged values system grimoire uses?
+    - How do you build docs for a [prj v] when another version is already on the classpath? (e.g. grimoire itself)
+- [ ] Build Codox style index page based on grimoire info
 - [ ] throw an error or something if grimoire does not find *anything*
 - [ ] think about how different platforms can be combined in API docs
 - [ ] build static site generator or SPA that runs on top of grimoire data
@@ -65,4 +68,5 @@ After that `target/` will contain a codox build for the project at the given ver
 #### BOT
 
 - [ ] notify people that there are api docs available for a jar they just published 
-- [ ] nag them to add some plain text documentation/guides
+- [ ] suggest to add some plain text documentation/guides + provide templates
+- [ ]
