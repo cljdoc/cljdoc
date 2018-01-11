@@ -1,6 +1,6 @@
 ### What is this
 
-See this [ClojureVerse thread](https://clojureverse.org/t/creating-a-central-documentation-repository-website-codox-complications/1287/) 
+See this [ClojureVerse thread](https://clojureverse.org/t/creating-a-central-documentation-repository-website-codox-complications/1287/)
 about a central documentation hub for Clojure similar to Elixir's https://hexdocs.pm/.
 
 
@@ -12,6 +12,17 @@ open target/codox-docs/index.html
 ```
 
 After that `target/` will contain a codox build for the project at the given version.
+
+## Design (wip)
+
+- build an ecosystem-encompassing Grimoire store
+- build various tools around that store, ideas:
+  - static html API docs + guides
+  - single page app to browse documentation
+  - API
+  - machine readable doc-bundles
+  - [Docsets](https://kapeli.com/docsets) for documentation browsing apps
+- build tools to raise overall quality of documentation (Github bots, Doc templates, etc)
 
 ## Progress
 
@@ -31,7 +42,7 @@ After that `target/` will contain a codox build for the project at the given ver
 
 #### API DOCS
 
-- [ ] derive source-uri 
+- [ ] derive source-uri
   - probably needs parsing of project.clj or build.boot or perhaps we can derive source locations by overlaying jar contents
   - :face_with_head_bandage: from quick testing it seems that getting this to work with codox could be hard
   - Grimoire data contains source so perhaps source URI becomes less important
@@ -67,6 +78,6 @@ After that `target/` will contain a codox build for the project at the given ver
 
 #### BOT
 
-- [ ] notify people that there are api docs available for a jar they just published 
+- [ ] notify people that there are api docs available for a jar they just published
 - [ ] suggest to add some plain text documentation/guides + provide templates
 - [ ]
