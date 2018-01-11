@@ -177,16 +177,3 @@
           (with-pass-thru _
             (let [base-uri "https://cljdoc.martinklepsch.org"]
               (util/info "\nDocumentation can be viewed at:\n\n    %s/%s\n\n" base-uri doc-path))))))
-
-
-;; Example invocation:
-;; boot build-docs --project org.martinklepsch/derivatives --version 0.2.0
-
-;; NEXT STEPS (mostly getting more information from Git repo)
-;; - read Github URL from pom.xml or Clojars
-;; - clone repo, copy `doc` directory, provide to codox
-;; - derive source-uri (probably needs parsing of project.clj or build.boot or perhaps we can derive source locations by overlaying jar contents)
-;; - figure out what other metadata should be imported
-
-;; LONG SHOTS
-;; - think about how something like dynadoc (interactive docs) could be integrated
