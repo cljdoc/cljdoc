@@ -24,7 +24,7 @@ After that `target/` will contain a codox build for the project at the given ver
 
 - [x] read Github URL from pom.xml or Clojars
 - [x] clone repo, copy `doc` directory, provide to codox
-- [ ] try to check out Git repo at specific tag for `doc/` stuff; warn if no tags
+- [x] try to check out Git repo at specific tag for `doc/` stuff; warn if no tags
 - [ ] derive source-uri (probably needs parsing of project.clj or build.boot or perhaps we can derive source locations by overlaying jar contents)
 - [ ] figure out what other metadata should be imported
 - [ ] Figure out how to deal with changes between tagged releases
