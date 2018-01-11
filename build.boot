@@ -48,7 +48,6 @@
   (str "" (group-id project) "/" (artifact-id project) "/" version "/"))
 
 (defn scm-url [pom-map]
-  (prn 'pom-map pom-map)
   (clojure.string/replace
    (cond (.contains (:url (:scm pom-map)) "github")
          (:url (:scm pom-map))

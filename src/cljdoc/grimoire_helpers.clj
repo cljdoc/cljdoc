@@ -195,7 +195,6 @@
     nil))
 
 (defn build-grim [groupid artifactid version dst]
-  (prn 'dst dst)
   (let [;; _        (assert ?platform "Platform missing!")
         platform (grimoire.util/normalize-platform :clj #_?platform)
         _        (assert platform "Unknown platform!")
