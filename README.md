@@ -3,15 +3,7 @@
 See this [ClojureVerse thread](https://clojureverse.org/t/creating-a-central-documentation-repository-website-codox-complications/1287/)
 about a central documentation hub for Clojure similar to Elixir's https://hexdocs.pm/.
 
-
-You can run what's inside by running
-
-```sh
-boot -vv build-docs --project sparkledriver --version 0.2.2 target
-open target/codox-docs/index.html
-```
-
-After that `target/` will contain a codox build for the project at the given version.
+If you want to know more, open an issue or contact me elsewhere.
 
 ## Design (wip)
 
