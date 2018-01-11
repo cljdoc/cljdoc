@@ -193,3 +193,7 @@
           (with-pass-thru _
             (let [base-uri "https://cljdoc.martinklepsch.org"]
               (util/info "\nDocumentation can be viewed at:\n\n    %s/%s\n\n" base-uri doc-path))))))
+
+(deftask update-site []
+  (set-env! :resource-paths #{"site"})
+  (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"))
