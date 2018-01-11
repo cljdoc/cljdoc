@@ -28,11 +28,18 @@ After that `target/` will contain a codox build for the project at the given ver
 
 #### API DOCS
 
-- [ ] derive source-uri (probably needs parsing of project.clj or build.boot or perhaps we can derive source locations by overlaying jar contents)
+- [ ] derive source-uri 
+  - probably needs parsing of project.clj or build.boot or perhaps we can derive source locations by overlaying jar contents
   - :face_with_head_bandage: from quick testing it seems that getting this to work with codox could be hard
-- [ ] give grimoire and related tools a go
-  - Grimoire notes
+  - Grimoire data contains source so perhaps source URI becomes less important
+  - still would be nice to jump to the entire source file
+- [x] give grimoire and related tools a go
+  - Grimoire notes / questions
     - Building docs from jar vs src — what are the tradeoffs?
+    - Are there any fundamental issues with grimoire that could become problematic later?
+    - How do you build docs for a [prj v] when another version is already on the classpath?
+- [ ] think about how different platforms can be combined in API docs
+- [ ] build static site generator or SPA that runs on top of grimoire data
 
 #### GITHUB + NON-API DOCS
 
