@@ -50,10 +50,14 @@
   (str "" (group-id project) "/" (artifact-id project) "/" version "/"))
 
 (defn scm-url [pom-map]
-  (cond (.contains (:url (:scm pom-map)) "github")
-        (:url (:scm pom-map))
-        (.contains (:url pom-map) "github")
-        (:url pom-map)))
+  (prn 'pom-map pom-map)
+  (clojure.string/replace
+   (cond (.contains (:url (:scm pom-map)) "github")
+         (:url (:scm pom-map))
+         (.contains (:url pom-map) "github")
+         (:url pom-map))
+   #"^http://"
+   "https://")) ;; TODO HACK
 
 (defn clone-repo [uri target-dir]
   (util/info "Cloning repo %s\n" uri)
