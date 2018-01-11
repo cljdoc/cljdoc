@@ -1,7 +1,6 @@
 (ns boot.user)
 
 (set-env!
- :source-paths #{"src"}
  :dependencies '[[org.clojure/clojure "1.8.0"]
                  [org.clojure-grimoire/lib-grimoire "0.10.9"]
                  [me.arrdem/detritus "0.3.0"]
@@ -16,8 +15,7 @@
          '[boot.util :as util]
          '[clojure.java.io :as io]
          '[clj-jgit.porcelain :as git]
-         '[confetti.boot-confetti :as confetti]
-         '[cljdoc.grimoire-helpers :as grimoire-helpers])
+         '[confetti.boot-confetti :as confetti])
 
 (defn jar-file [coordinate]
   ;; (jar-file '[org.martinklepsch/derivatives "0.2.0"])
@@ -72,8 +70,6 @@
        (.tagList)
        (.call)
        (map #(->> % .getName (re-matches #"refs/tags/(.*)") second))))
-
-;; known sparkledriver commit ce2f37e
 
 (defn version-tag? [pom-version tag]
   (or (= pom-version tag)
@@ -167,12 +163,21 @@
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
     (let [tempd        (tmp-dir!)
-          grimoire-dir (io/file tempd "grimoire")]
+          grimoire-dir (io/file tempd "grimoire")
+          grimoire-pod (pod/make-pod {:directories #{"src"}
+                                      :dependencies [[project version]
+                                                     ['org.clojure-grimoire/lib-grimoire "0.10.9"]
+                                                     ['me.arrdem/detritus "0.3.0"]
+                                                     ['org.clojure/java.classpath "0.2.2"]
+                                                     ['org.clojure/tools.namespace "0.2.7"]]})]
       (util/info "Generating Grimoire store for %s\n" project)
-      (grimoire-helpers/build-grim (group-id project)
-                                   (artifact-id project)
-                                   version
-                                   (.getPath grimoire-dir))
+      (pod/with-eval-in grimoire-pod
+        (require 'cljdoc.grimoire-helpers)
+        (cljdoc.grimoire-helpers/build-grim
+         ~(group-id project)
+         ~(artifact-id project)
+         ~version
+         ~(.getPath grimoire-dir)))
       (-> fs (add-resource tempd) commit!))))
 
 (deftask build-docs
