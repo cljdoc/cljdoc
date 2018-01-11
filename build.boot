@@ -1,4 +1,5 @@
 (set-env! :dependencies '[[org.clojure/clojure "1.8.0"]
+                          [confetti "0.2.0"]
                           [org.slf4j/slf4j-nop "1.7.25"]
                           [clj-jgit "0.8.10"]])
 
@@ -27,6 +28,11 @@
   (let [artifact (name project)
         group    (or (namespace project) artifact)]
     (str "META-INF/maven/" group "/" artifact "/pom.xml")))
+
+(defn docs-path [project version]
+  (let [artifact (name project)
+        group    (or (namespace project) artifact)]
+    (str "" group "/" artifact "/" version "/")))
 
 (defn scm-url [pom-map]
   (cond (.contains (:url (:scm pom-map)) "github")
@@ -81,7 +87,8 @@
             (.mkdir git-dir)
             (clone-repo scm git-dir)
             (if-let [version-tag (->> (git-tags git-dir)
-                                      (some #(version-tag? version %)))]
+                                      (filter #(version-tag? version %))
+                                      first)]
               (git-checkout-repo git-dir version-tag)
               (util/warn "No version tag found for version %s in %s\n" version scm)))
         (util/warn "Could not determine project repository for %s\n" project))
@@ -93,7 +100,7 @@
   (with-pre-wrap fs
     (let [tempd     (tmp-dir!)
           pom-map   (find-pom-map fs project)
-          codox-dir (io/file tempd "codox-docs")
+          codox-dir (io/file tempd (docs-path project version))
           jar-contents-fileset-dir (->> (output-files fs)
                                         (by-re [#"^jar-contents/"])
                                         first
@@ -116,10 +123,14 @@
           (boot.util/dbug "Codox pod env: %s\n" boot.pod/env)
           (->> {:name         ~(name project)
                 :version      ~version
+                ;; It seems :project is only intended for overrides
+                ;; :project      {:name ~(name project), :version ~version, :description ~(:description pom-map)}
                 :description  ~(:description pom-map)
                 :source-paths [~jar-contents-dir]
                 :output-path  ~(.getPath codox-dir)
-                :source-uri   nil
+                ;; Codox' way of determining :source-uri is tricky since it depends working on
+                ;; the repository while we are not giving it the repository information but jar-contents
+                ;; :source-uri   ~(str (scm-url pom-map) "/blob/{version}/{filepath}#L{line}")
                 :doc-paths    [~docs-dir]
                 :language     nil
                 :namespaces   nil
@@ -138,6 +149,22 @@
   (comp (copy-jar-contents :jar (jar-file [project version]))
         (import-repo :project project :version version)
         (codox :project project :version version)))
+
+(deftask deploy-docs
+  [p project PROJECT sym "Project to build documentation for"
+   v version VERSION str "Version of project to build documentation for"]
+  (let [doc-path (docs-path project version)]
+    (assert (.endsWith doc-path "/"))
+    (comp (build-docs :project project :version version)
+          (sift :include #{(re-pattern doc-path)})
+          ;; (sift :move {#"^codox-docs/(.*)" (str doc-path "$1")})
+          (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
+                                ;; also invalidates root path (also cheaper)
+                                :invalidation-paths [(str "/" doc-path "*")])
+          (with-pass-thru _
+            (let [base-uri "https://cljdoc.martinklepsch.org"]
+              (util/info "\nDocumentation can be viewed at:\n\n    %s/%s\n\n" base-uri doc-path))))))
+
 
 ;; Example invocation:
 ;; boot build-docs --project org.martinklepsch/derivatives --version 0.2.0
