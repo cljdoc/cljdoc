@@ -1,21 +1,23 @@
-(set-env! :dependencies '[[org.clojure/clojure "1.8.0"]
-                          [org.clojure-grimoire/lib-grimoire "0.10.9"]
-                          [confetti "0.2.0"]
-                          [org.slf4j/slf4j-nop "1.7.25"]
-                          [clj-jgit "0.8.10"]])
+(ns boot.user)
+
+(set-env!
+ :source-paths #{"src"}
+ :dependencies '[[org.clojure/clojure "1.8.0"]
+                 [org.clojure-grimoire/lib-grimoire "0.10.9"]
+                 [me.arrdem/detritus "0.3.0"]
+                 [org.clojure/java.classpath "0.2.2"]
+                 [org.clojure/tools.namespace "0.2.7"]
+                 [confetti "0.2.0"]
+                 [sparkledriver "0.2.2"]
+                 [org.slf4j/slf4j-nop "1.7.25"]
+                 [clj-jgit "0.8.10"]])
 
 (require '[boot.pod :as pod]
          '[boot.util :as util]
          '[clojure.java.io :as io]
          '[clj-jgit.porcelain :as git]
          '[confetti.boot-confetti :as confetti]
-         '[grimoire.api]
-         '[grimoire.api.fs]
-         '[grimoire.api.fs.write]
-         '[grimoire.api.fs.read]
-         '[grimoire.things]
-         '[grimoire.util]
-         '[grimoire.either])
+         '[cljdoc.grimoire-helpers :as grimoire-helpers])
 
 (defn jar-file [coordinate]
   ;; (jar-file '[org.martinklepsch/derivatives "0.2.0"])
@@ -156,11 +158,25 @@
                (codox.main/generate-docs))))
       (-> fs (add-resource tempd) commit!))))
 
+(deftask grimoire
+  [p project PROJECT sym "Project to build documentation for"
+   v version VERSION str "Version of project to build documentation for"]
+  (with-pre-wrap fs
+    (let [tempd        (tmp-dir!)
+          grimoire-dir (io/file tempd "grimoire")]
+      (util/info "Generating Grimoire store for %s\n" project)
+      (grimoire-helpers/build-grim (group-id project)
+                                   (artifact-id project)
+                                   version
+                                   (.getPath grimoire-dir))
+      (-> fs (add-resource tempd) commit!))))
+
 (deftask build-docs
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (comp (copy-jar-contents :jar (jar-file [project version]))
         (import-repo :project project :version version)
+        (grimoire :project project :version version)
         (codox :project project :version version)))
 
 (deftask deploy-docs
