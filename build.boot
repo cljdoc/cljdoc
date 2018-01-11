@@ -17,10 +17,11 @@
 (deftask copy-jar-contents
   "Copy the contents of the given jar into the fileset"
   [j jar     PATH  str      "The path of the jar file."]
-  (boot.core/with-pre-wrap fileset
+  (with-pre-wrap fileset
     (let [d (tmp-dir!)]
+      (util/info "Unpacking %s\n" jar)
       (pod/unpack-jar jar (io/file d "jar-contents/"))
-      (-> fileset (boot.core/add-resource d) commit!))))
+      (-> fileset (add-resource d) commit!))))
 
 (defn pom-path [project]
   (let [artifact (name project)
