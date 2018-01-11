@@ -41,6 +41,7 @@ If you want to know more, open an issue or contact me elsewhere.
   - still would be nice to jump to the entire source file
 - [x] give grimoire and related tools a go
   - Grimoire notes / questions
+    - :construction: Grimoire currently does not support `cljs` or `cljc`
     - Building docs from jar vs src — what are the tradeoffs?
     - Are there any fundamental issues with grimoire that could become problematic later?
     - How do you build docs for a [prj v] when another version is already on the classpath? (e.g. grimoire itself)
