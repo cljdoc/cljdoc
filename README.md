@@ -38,6 +38,7 @@ After that `target/` will contain a codox build for the project at the given ver
     - Building docs from jar vs src — what are the tradeoffs?
     - Are there any fundamental issues with grimoire that could become problematic later?
     - How do you build docs for a [prj v] when another version is already on the classpath?
+    - What's the benefit of the tagged values system grimoire uses?
 - [ ] throw an error or something if grimoire does not find *anything*
 - [ ] think about how different platforms can be combined in API docs
 - [ ] build static site generator or SPA that runs on top of grimoire data
