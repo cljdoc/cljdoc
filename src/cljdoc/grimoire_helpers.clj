@@ -97,35 +97,19 @@
   string naming the input. Intended for use in computing the logical \"name\" of
   the :ns key which could have any of these values."
   [x]
-  (cond (instance? clojure.lang.Namespace x)
-        ,,(name (ns-name x))
-
-        (string? x)
-        ,,x
-
-        (symbol? x)
-        ,,(name x)
-
-        :else
-        ,,(throw
-           (Exception.
-            (str "Don't know how to stringify " x)))))
+  (cond (instance? clojure.lang.Namespace x) (name (ns-name x))
+        (symbol? x)   (name x)
+        (string? x)   x
+        :else         (throw (Exception. (str "Don't know how to stringify " x)))))
 
 (defn name-stringifier
   "Function from something (either a symbol, string or something else) which if
   possible computes the logical \"name\" of the input as via clojure.core/name
   otherwise throws an explicit exception."
   [x]
-  (cond (symbol? x)
-        ,,(name x)
-
-        (string? x)
-        ,,x
-
-        :else
-        ,,(throw
-           (Exception.
-            (str "Don't know how to stringify " x)))))
+  (cond (symbol? x) (name x)
+        (string? x) x
+        :else       (throw (Exception. (str "Don't know how to stringify " x)))))
 
 (defn guarded-write-meta
   "Guard around api/write-meta which checks to make sure that there is _not_
