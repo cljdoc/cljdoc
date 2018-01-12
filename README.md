@@ -47,7 +47,7 @@ If you want to know more, open an issue or contact me elsewhere.
 
 #### GRIMOIRE
 
-- :construction: Grimoire currently does not support `cljs` or `cljc`
+- :white_check_mark: Grimoire currently does not support `cljs` or `cljc`
     - [lib-grimoire #29](https://github.com/clojure-grimoire/lib-grimoire/issues/29) & [lib-grimoire #30](https://github.com/clojure-grimoire/lib-grimoire/issues/30)
     - :tada: Mixing Codox and Grimoire has proven productive
     - [x] codox [has support for clojurescript](https://github.com/weavejester/codox/blob/56066f4b86dd9d879845bcfc6a46ed3ae5151117/codox/src/codox/main.clj) - could this code be shared?
@@ -58,8 +58,10 @@ If you want to know more, open an issue or contact me elsewhere.
       - [x] *not necessary* fork codox, turn into codox-reader export api including [this stuff](https://github.com/weavejester/codox/blob/56066f4b86dd9d879845bcfc6a46ed3ae5151117/codox/src/codox/main.clj#L20-L42) in `codox.reader` namespace
 - [ ] throw an error or something if grimoire does not find *anything*
 - Building docs from jar vs src — what are the tradeoffs?
+  - Not really a grimoire thing
 - Are there any fundamental issues with grimoire that could become problematic later?
 - How do you build docs for a [prj v] when another version is already on the classpath? (e.g. grimoire itself)
+  - This will also apply to other libraries on the classpath for doc generation (codox, tools.namespace, etc)
 
 #### GITHUB + NON-API DOCS
 
