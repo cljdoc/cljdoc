@@ -86,19 +86,14 @@
     (println "Finished" ns)))
 
 (defn build-grim [groupid artifactid version src dst]
-  (let [;; _        (assert ?platform "Platform missing!")
-        platform (grimoire.util/normalize-platform :clojurescript #_?platform)
+  (assert groupid "Groupid missing!")
+  (assert artifactid "Artifactid missing!")
+  (assert version "Version missing!")
+  (assert dst "Doc target dir missing!")
+  ;; (assert ?platform "Platform missing!")
+  (let [platform (grimoire.util/normalize-platform :clojure #_?platform)
         _        (assert platform "Unknown platform!")
-        _        (assert groupid "Groupid missing!")
-        _        (assert artifactid "Artifactid missing!")
-        _        (assert version "Version missing!")
-        _        (assert dst "Doc target dir missing!")
         store    (grimoire.api.fs/->Config dst "" "")
-        pattern  (format ".*?/%s/%s/%s.*"
-                         (clojure.string/replace groupid "." "/")
-                         artifactid
-                         version)
-        pattern  (re-pattern pattern)
         platform (-> (grimoire.things/->Group    groupid)
                      (grimoire.things/->Artifact artifactid)
                      (grimoire.things/->Version  version)
