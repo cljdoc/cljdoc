@@ -38,60 +38,6 @@
           :else
           ,,:var)))
 
-(defn var->thing
-  "Function from a groupid, artifactid, version, platform and a var to the Def
-  Thing representing the given var in the described Artifact."
-  [{:keys [groupid artifactid version platform]} var]
-  {:pre [(string? groupid)
-         (string? artifactid)
-         (string? version)
-         (string? platform)
-         (var? var)]}
-  (-> (grimoire.things/->Group    groupid)
-      (grimoire.things/->Artifact artifactid)
-      (grimoire.things/->Version  version)
-      (grimoire.things/->Platform platform)
-      (grimoire.things/->Ns       (name (detritus.var/var->ns var)))
-      (grimoire.things/->Def      (name (detritus.var/var->sym var)))))
-
-(defn ns->thing
-  "Function from a"
-  [{:keys [groupid artifactid version platform]} ns-symbol]
-  {:pre [(symbol? ns-symbol)
-         (string? groupid)
-         (string? artifactid)
-         (string? version)
-         (string? platform)]}
-  (-> (grimoire.things/->Group    groupid)
-      (grimoire.things/->Artifact artifactid)
-      (grimoire.things/->Version  version)
-      (grimoire.things/->Platform platform)
-      (grimoire.things/->Ns (name ns-symbol))))
-
-#_(defn var->src
-  "Adapted from clojure.repl/source-fn. Returns a string of the source code for
-  the given var, if it can find it. Returns nil if it can't find the source.
-  Example: (var->src #'clojure.core/filter)"
-  [v]
-  {:pre [(var? v)]}
-  (when-let [filepath (:file (meta v))]
-    (when-let [strm (.getResourceAsStream (clojure.lang.RT/baseLoader) filepath)]
-      (with-open [rdr (java.io.LineNumberReader. (java.io.InputStreamReader. strm))]
-        (binding [*ns* (.ns v)]
-          (dotimes [_ (dec (:line (meta v)))]
-            (.readLine rdr))
-          (let [text (StringBuilder.)
-                pbr  (proxy [java.io.PushbackReader] [rdr]
-                       (read [] (let [i (proxy-super read)]
-                                  (.append text (char i))
-                                  i)))]
-            (if (= :unknown *read-eval*)
-              (throw
-               (IllegalStateException.
-                "Unable to read source while *read-eval* is :unknown."))
-              (read (java.io.PushbackReader. pbr)))
-            (str text)))))))
-
 (defn ns-stringifier
   "Function something (either a Namespace instance, a string or a symbol) to a
   string naming the input. Intended for use in computing the logical \"name\" of
@@ -111,24 +57,11 @@
         (string? x) x
         :else       (throw (Exception. (str "Don't know how to stringify " x)))))
 
-(defn guarded-write-meta
-  "Guard around api/write-meta which checks to make sure that there is _not_
-  already metadata in the store for the given Thing and issues a warning if
-  there already _is_ metadata there without overwriting it."
-  [config thing meta]
-  (if (and (not (:clobber config))
-           (grimoire.either/succeed? (grimoire.api/read-meta (:datastore config) thing)))
-    (println
-     (format "Warning: metadata for thing %s already exists! continuing w/o clobbering..."
-             (grimoire.things/thing->path thing)))
-    (do (println (grimoire.things/thing->path thing))
-        (grimoire.api/write-meta (:datastore config) thing meta))))
-
 (defn write-docs-for-var
   "General case of writing documentation for a Var instance with
   metadata. Compute a \"docs\" structure from the var's metadata and then punt
   off to write-meta which does the heavy lifting."
-  [config var]
+  [store def-thing var]
   (let [docs (-> (meta var)
                  (assoc  ;:src  (var->src var)
                          :src  (clojure.repl/source-fn (symbol (subs (str (var bidi.bidi/match-route)) 2)))
@@ -141,38 +74,35 @@
                          :inline-arities))]
     (assert (:name docs) "Var name was nil!")
     (assert (:ns docs) "Var namespace was nil!")
-    (guarded-write-meta config
-                        (var->thing config var)
-                        docs)))
+    (println (grimoire.things/thing->path def-thing))
+    (grimoire.api/write-meta store def-thing docs)))
 
 (defn write-docs-for-ns
   "Function of a configuration and a Namespace which writes namespace metadata
   to the :datastore in config."
-  [config ns]
-  (let [ns-meta (-> ns the-ns meta (or {}))
-        thing (ns->thing config ns)]
-    (grimoire.api/write-meta (:datastore config) thing ns-meta)
+  [store ns-thing ns]
+  (let [ns-meta (-> ns the-ns meta (or {}))]
+    (grimoire.api/write-meta store ns-thing ns-meta)
     (println "Finished" ns)))
 
 (defn build-grim [groupid artifactid version src dst]
   (let [;; _        (assert ?platform "Platform missing!")
-        platform (grimoire.util/normalize-platform :clj #_?platform)
+        platform (grimoire.util/normalize-platform :clojurescript #_?platform)
         _        (assert platform "Unknown platform!")
         _        (assert groupid "Groupid missing!")
         _        (assert artifactid "Artifactid missing!")
         _        (assert version "Version missing!")
         _        (assert dst "Doc target dir missing!")
-        config   {:groupid    groupid
-                  :artifactid artifactid
-                  :version    version
-                  :platform   platform
-                  :datastore  (grimoire.api.fs/->Config dst "" "")
-                  :clobber    true}
+        store    (grimoire.api.fs/->Config dst "" "")
         pattern  (format ".*?/%s/%s/%s.*"
                          (clojure.string/replace groupid "." "/")
                          artifactid
                          version)
-        pattern  (re-pattern pattern)]
+        pattern  (re-pattern pattern)
+        platform (-> (grimoire.things/->Group    groupid)
+                     (grimoire.things/->Artifact artifactid)
+                     (grimoire.things/->Version  version)
+                     (grimoire.things/->Platform platform))]
 
     ;; write placeholder meta
     ;; TODO figure out what this is needed for
@@ -188,20 +118,23 @@
 
     (let [namespaces (#'codox.main/read-namespaces
                       {:language     :clojure
-                       ;; :root-path    (System/getProperty "user.dir")
+                       ;; not sure what :root-path is needed for
+                       :root-path    (System/getProperty "user.dir")
                        :source-paths [src]
                        :namespaces   :all
                        :metadata     {}
                        :exclude-vars #"^(map)?->\p{Upper}"})]
-
       (doseq [ns namespaces
-              :let [publics (:publics ns)]]
-        (prn 'writing-docs-for (:name ns))
-        (write-docs-for-ns config (:name ns))
-        (doseq [public publics]
-          (write-docs-for-var config
-                              (resolve (symbol (-> ns :name str)
-                                               (-> public :name str)))))))))
+              :let [publics  (:publics ns)
+                    ns-thing (grimoire.things/->Ns platform (-> ns :name name))]]
+        (write-docs-for-ns store ns-thing (:name ns))
+        (doseq [public     publics
+                :let [def-thing (grimoire.things/->Def ns-thing (-> public :name name))]]
+          (write-docs-for-var
+           store
+           def-thing
+           (resolve (symbol (-> ns :name name)
+                            (-> public :name name)))))))))
 
 (comment
   (build-grim "sparkledriver" "sparkledriver" "0.2.2" "gggrim")
