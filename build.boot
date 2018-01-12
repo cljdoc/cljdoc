@@ -1,12 +1,20 @@
 (ns boot.user)
 
-(set-env!
+(boot.core/set-env!
+ :source-paths #{"src"}
  :dependencies '[[org.clojure/clojure "1.8.0"]
+
+                 [confetti "0.2.0"]
+                 [bidi "2.1.3"]
+                 [hiccup "2.0.0-alpha1"]
+
+                 ;; Grimoire stuff
+                 [codox "0.10.3"]
                  [org.clojure-grimoire/lib-grimoire "0.10.9"]
                  [me.arrdem/detritus "0.3.0"]
                  [org.clojure/java.classpath "0.2.2"]
                  [org.clojure/tools.namespace "0.2.7"]
-                 [confetti "0.2.0"]
+
                  [sparkledriver "0.2.2"]
                  [org.slf4j/slf4j-nop "1.7.25"]
                  [clj-jgit "0.8.10"]])
@@ -15,6 +23,8 @@
          '[boot.util :as util]
          '[clojure.java.io :as io]
          '[clj-jgit.porcelain :as git]
+         '[cljdoc.html]
+         '[cljdoc.grimoire-helpers]
          '[confetti.boot-confetti :as confetti])
 
 (defn jar-file [coordinate]
@@ -163,20 +173,32 @@
   (with-pre-wrap fs
     (let [tempd        (tmp-dir!)
           grimoire-dir (io/file tempd "grimoire")
-          grimoire-pod (pod/make-pod {:directories #{"src"}
-                                      :dependencies [[project version]
-                                                     ['org.clojure-grimoire/lib-grimoire "0.10.9"]
-                                                     ['me.arrdem/detritus "0.3.0"]
-                                                     ['org.clojure/java.classpath "0.2.2"]
-                                                     ['org.clojure/tools.namespace "0.2.7"]]})]
+          ]
       (util/info "Generating Grimoire store for %s\n" project)
-      (pod/with-eval-in grimoire-pod
-        (require 'cljdoc.grimoire-helpers)
-        (cljdoc.grimoire-helpers/build-grim
-         ~(group-id project)
-         ~(artifact-id project)
-         ~version
-         ~(.getPath grimoire-dir)))
+      (cljdoc.grimoire-helpers/build-grim
+       (group-id project)
+       (artifact-id project)
+       version
+       (.getPath grimoire-dir))
+      (-> fs (add-resource tempd) commit!))))
+
+(deftask grimoire-html
+  [p project PROJECT sym "Project to build documentation for"
+   v version VERSION str "Version of project to build documentation for"]
+  (with-pre-wrap fs
+    (let [tempd             (tmp-dir!)
+          grimoire-dir      (let [boot-dir (->> (output-files fs) (by-re [#"^grimoire/"]) first :dir)]
+                              (assert boot-dir)
+                              (io/file boot-dir "grimoire/"))
+          grimoire-html-dir (io/file tempd "grimoire-html")
+          grimoire-thing    (-> (grimoire.things/->Group (group-id project))
+                                (grimoire.things/->Artifact (artifact-id project))
+                                (grimoire.things/->Version version)
+                                (grimoire.things/->Platform "clj"))
+          grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
+      (util/info "Generating Grimoire HTML for %s\n" project)
+      (.mkdir grimoire-html-dir)
+      (cljdoc.html/write-docs grimoire-store grimoire-thing grimoire-html-dir)
       (-> fs (add-resource tempd) commit!))))
 
 (deftask build-docs
@@ -185,7 +207,8 @@
   (comp (copy-jar-contents :jar (jar-file [project version]))
         (import-repo :project project :version version)
         (grimoire :project project :version version)
-        (codox :project project :version version)))
+        (grimoire-html :project project :version version)
+        #_(codox :project project :version version)))
 
 (deftask deploy-docs
   [p project PROJECT sym "Project to build documentation for"
