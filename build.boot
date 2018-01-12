@@ -118,7 +118,7 @@
         (util/warn "Could not determine project repository for %s\n" project))
       (-> fs (add-resource tempd) commit!))))
 
-(deftask codox
+#_(deftask codox
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
