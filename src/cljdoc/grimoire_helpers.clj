@@ -64,8 +64,12 @@
   [store def-thing var]
   (let [docs (-> (meta var)
                  (assoc  ;:src  (var->src var)
+                         ;; @arrdem Has clojure.repl/source-fn caused issues? Reading the var->src docstring
+                         ;; I didnt really understand what the differences are.
                          :src  (clojure.repl/source-fn (symbol (subs (str (var bidi.bidi/match-route)) 2)))
                          :type (var->type var))
+                 ;; @arrdem meta takes precedence here — are there situations where name and
+                 ;; ns would differe from whatever is encoded in the grimoire/thing?
                  (update :name #(name-stringifier (or %1 (grimoire.things/thing->name var))))
                  (update :ns   #(ns-stringifier (or %1 (grimoire.things/thing->name (grimoire.things/thing->namespace var)))))
                  (dissoc :inline
