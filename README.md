@@ -49,12 +49,13 @@ If you want to know more, open an issue or contact me elsewhere.
 
 - :construction: Grimoire currently does not support `cljs` or `cljc`
     - [lib-grimoire #29](https://github.com/clojure-grimoire/lib-grimoire/issues/29) & [lib-grimoire #30](https://github.com/clojure-grimoire/lib-grimoire/issues/30)
-    - [ ] codox [has support for clojurescript](https://github.com/weavejester/codox/blob/56066f4b86dd9d879845bcfc6a46ed3ae5151117/codox/src/codox/main.clj) - could this code be shared?
-    - [ ] maybe put this into a shared library that grimoire and codox can use
+    - :tada: Mixing Codox and Grimoire has proven productive
+    - [x] codox [has support for clojurescript](https://github.com/weavejester/codox/blob/56066f4b86dd9d879845bcfc6a46ed3ae5151117/codox/src/codox/main.clj) - could this code be shared?
+    - [x] *not necessary* maybe put this into a shared library that grimoire and codox can use
     - `lib-grimoire` doesn't actually analyse namespaces, it's done in [lein-grim](https://github.com/clojure-grimoire/lein-grim/blob/master/src/grimoire/doc.clj)
-    - [ ] look into replacing the code I copied from lein-grim with something similar to codox' implementation
-      - [ ] depend on codox, make sure it's reader implementation can work with grimoire
-      - [ ] fork codox, turn into codox-reader export api including [this stuff](https://github.com/weavejester/codox/blob/56066f4b86dd9d879845bcfc6a46ed3ae5151117/codox/src/codox/main.clj#L20-L42) in `codox.reader` namespace
+    - [x] look into replacing the code I copied from lein-grim with something similar to codox' implementation
+      - [x] depend on codox, make sure it's reader implementation can work with grimoire
+      - [x] *not necessary* fork codox, turn into codox-reader export api including [this stuff](https://github.com/weavejester/codox/blob/56066f4b86dd9d879845bcfc6a46ed3ae5151117/codox/src/codox/main.clj#L20-L42) in `codox.reader` namespace
 - [ ] throw an error or something if grimoire does not find *anything*
 - Building docs from jar vs src — what are the tradeoffs?
 - Are there any fundamental issues with grimoire that could become problematic later?

@@ -13,7 +13,7 @@
                  [org.clojure-grimoire/lib-grimoire "0.10.9"]
                  [me.arrdem/detritus "0.3.0"]
                  [org.clojure/java.classpath "0.2.2"]
-                 [org.clojure/tools.namespace "0.2.7"]
+                 [org.clojure/tools.namespace "0.2.11"]
 
                  [sparkledriver "0.2.2"]
                  [org.slf4j/slf4j-nop "1.7.25"]
@@ -118,7 +118,16 @@
         (util/warn "Could not determine project repository for %s\n" project))
       (-> fs (add-resource tempd) commit!))))
 
-#_(deftask codox
+(defn jar-contents-dir [fileset]
+  (let [jar-contents-fileset-dir (->> (output-files fileset)
+                                      (by-re [#"^jar-contents/"])
+                                      first
+                                      :dir)]
+    (some-> jar-contents-fileset-dir
+            (io/file "jar-contents")
+            (.getPath))))
+
+(deftask codox
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
@@ -172,13 +181,13 @@
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
     (let [tempd        (tmp-dir!)
-          grimoire-dir (io/file tempd "grimoire")
-          ]
+          grimoire-dir (io/file tempd "grimoire")]
       (util/info "Generating Grimoire store for %s\n" project)
       (cljdoc.grimoire-helpers/build-grim
        (group-id project)
        (artifact-id project)
        version
+       (jar-contents-dir fs)
        (.getPath grimoire-dir))
       (-> fs (add-resource tempd) commit!))))
 
@@ -208,7 +217,7 @@
         (import-repo :project project :version version)
         (grimoire :project project :version version)
         (grimoire-html :project project :version version)
-        #_(codox :project project :version version)))
+        (codox :project project :version version)))
 
 (deftask deploy-docs
   [p project PROJECT sym "Project to build documentation for"

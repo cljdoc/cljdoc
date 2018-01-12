@@ -3,6 +3,7 @@
 (ns cljdoc.grimoire-helpers
   (:require [clojure.java.classpath :as cp]
             [clojure.tools.namespace.find :as tns.f]
+            [codox.main]
             [grimoire.api]
             [grimoire.api.fs]
             [grimoire.api.fs.write]
@@ -67,7 +68,7 @@
       (grimoire.things/->Platform platform)
       (grimoire.things/->Ns (name ns-symbol))))
 
-(defn var->src
+#_(defn var->src
   "Adapted from clojure.repl/source-fn. Returns a string of the source code for
   the given var, if it can find it. Returns nil if it can't find the source.
   Example: (var->src #'clojure.core/filter)"
@@ -145,7 +146,8 @@
   off to write-meta which does the heavy lifting."
   [config var]
   (let [docs (-> (meta var)
-                 (assoc  :src  (var->src var)
+                 (assoc  ;:src  (var->src var)
+                         :src  (clojure.repl/source-fn (symbol (subs (str (var bidi.bidi/match-route)) 2)))
                          :type (var->type var))
                  (update :name #(name-stringifier (or %1 (grimoire.things/thing->name var))))
                  (update :ns   #(ns-stringifier (or %1 (grimoire.things/thing->name (grimoire.things/thing->namespace var)))))
@@ -159,42 +161,16 @@
                         (var->thing config var)
                         docs)))
 
-(def var-blacklist
-  #{#'clojure.data/Diff})
-
 (defn write-docs-for-ns
-  "Function of a configuration and a Namespace which traverses the public vars
-  of that namespace, writing documentation for each var as specified by the
-  config.
-  FIXME: currently provides special handling for the case of documenting
-  clojure.core, so that \"special forms\" in core will be documented via the
-  write-docs-for-specials function. This behavior will change and be replaced
-  with fully fledged support for writing documentation for arbitrary non-def
-  symbols via an input datastructure."
+  "Function of a configuration and a Namespace which writes namespace metadata
+  to the :datastore in config."
   [config ns]
-  (let [ns-vars (->> (ns-publics ns) vals (remove var-blacklist))
-        macros  (filter detritus.var/macro? ns-vars)
-        fns     (filter #(and (fn? @%1)
-                              (not (detritus.var/macro? %1)))
-                        ns-vars)
-        vars    (filter #(not (fn? @%1)) ns-vars)
-        ns-meta (-> ns the-ns meta (or {}))]
+  (let [ns-meta (-> ns the-ns meta (or {}))
+        thing (ns->thing config ns)]
+    (grimoire.api/write-meta (:datastore config) thing ns-meta)
+    (println "Finished" ns)))
 
-    (when-not (:skip-wiki ns-meta)
-      ;; Respect ^:skip-wiki from clojure-grimoire/lein-grim#4
-
-      (let [thing (ns->thing config ns)]
-        (grimoire.api/write-meta (:datastore config) thing ns-meta))
-
-      ;; write per symbol docs
-      (doseq [var ns-vars]
-        (write-docs-for-var config var)))
-
-    ;; FIXME: should be a real logging thing
-    (println "Finished" ns)
-    nil))
-
-(defn build-grim [groupid artifactid version dst]
+(defn build-grim [groupid artifactid version src dst]
   (let [;; _        (assert ?platform "Platform missing!")
         platform (grimoire.util/normalize-platform :clj #_?platform)
         _        (assert platform "Unknown platform!")
@@ -215,8 +191,9 @@
         pattern  (re-pattern pattern)]
 
     ;; write placeholder meta
+    ;; TODO figure out what this is needed for
     ;;----------------------------------------
-    (reduce (fn [acc f]
+    #_(reduce (fn [acc f]
               (grimoire.api/write-meta (:datastore config) acc {})
               (f acc))
             (grimoire.things/->Group groupid)
@@ -225,18 +202,44 @@
              #(grimoire.things/->Platform % platform)
              identity])
 
-    (doseq [e (cp/classpath)]
-      (when (re-matches pattern (str e))
-        (doseq [ns (tns.f/find-namespaces [e])]
-          (when-not (= ns 'clojure.parallel) ;; FIXME: get out nobody likes you
-            (require ns)
-            (write-docs-for-ns config ns)))))
+    (let [namespaces (#'codox.main/read-namespaces
+                      {:language     :clojure
+                       ;; :root-path    (System/getProperty "user.dir")
+                       :source-paths [src]
+                       :namespaces   :all
+                       :metadata     {}
+                       :exclude-vars #"^(map)?->\p{Upper}"})]
 
-    #_(when ?special-file
-      (write-docs-for-specials config ?special-file))))
+      (doseq [ns namespaces
+              :let [publics (:publics ns)]]
+        (prn 'writing-docs-for (:name ns))
+        (write-docs-for-ns config (:name ns))
+        (doseq [public publics]
+          (write-docs-for-var config
+                              (resolve (symbol (-> ns :name str)
+                                               (-> public :name str)))))))))
 
 (comment
-  (build-grim "sparkledriver" "sparkledriver" "0.2.2"
-              "gggrim")
+  (build-grim "sparkledriver" "sparkledriver" "0.2.2" "gggrim")
+  (build-grim "bidi" "bidi" "2.1.3" "target/jar-contents/" "target/grim-test")
+
+  (->> (#'codox.main/read-namespaces
+        {:language     :clojure
+         ;; :root-path    (System/getProperty "user.dir")
+         :source-paths ["target/jar-contents/"]
+         :namespaces   :all
+         :metadata     {}
+         :exclude-vars #"^(map)?->\p{Upper}"}))
+
+  (let [c (grimoire.api.fs/->Config "target/grim-test" "" "")]
+    (build-grim "bidi" "bidi" "2.1.3" "target/jar-contents/" "target/grim-test")
+    #_(write-docs-for-var c (var bidi.bidi/match-route)))
+
+  (resolve (symbol "bidi.bidi" "match-route"))
+
+  (var->src (var bidi.bidi/match-route))
+  ;; (symbol (subs (str (var bidi.bidi/match-route)) 2))
+  ;; (clojure.repl/source-fn 'bidi.bidi/match-route)
+  ;; (var (symbol "bidi.bidi/match-route"))
 
   )
