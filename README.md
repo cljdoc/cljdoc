@@ -32,6 +32,7 @@ If you want to know more, open an issue or contact me elsewhere.
   - starting point `sudo docker run -it adzerk/boot-clj repl`
 - [ ] create an API server that runs the Docker setup
 - [ ] copy created files to host, upload to S3 (so that AWS keys are not exposed in Docker env)
+- [ ] How to get notified when new stuff is released on Clojars?
 
 #### API DOCS
 
@@ -86,4 +87,3 @@ If you want to know more, open an issue or contact me elsewhere.
 
 - [ ] notify people that there are api docs available for a jar they just published
 - [ ] suggest to add some plain text documentation/guides + provide templates
-- [ ]
