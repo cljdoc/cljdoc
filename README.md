@@ -62,6 +62,7 @@ If you want to know more, open an issue or contact me elsewhere.
       - [x] depend on codox, make sure it's reader implementation can work with grimoire
       - [x] *not necessary* fork codox, turn into codox-reader export api including [this stuff](https://github.com/weavejester/codox/blob/56066f4b86dd9d879845bcfc6a46ed3ae5151117/codox/src/codox/main.clj#L20-L42) in `codox.reader` namespace
 - [ ] throw an error or something if grimoire does not find *anything*
+- [ ] could grimoire data include information whether a var is a protocol, record etc?
 - Building docs from jar vs src — what are the tradeoffs?
   - Not really a grimoire thing
 - Are there any fundamental issues with grimoire that could become problematic later?
@@ -95,3 +96,13 @@ If you want to know more, open an issue or contact me elsewhere.
 
 - [ ] notify people that there are api docs available for a jar they just published
 - [ ] suggest to add some plain text documentation/guides + provide templates
+
+#### VERSIONING THOUGHTS
+
+- Show version in UI when viewing versioned information (i.e. anything
+  in grimoire) and show "unversioned" with red warning sign when showing 
+  unversioned documentation (i.e. from repo's that have not been tagged)
+- How to version article documentation:
+  - **Problem**: Articles may receive useful updates between tagged releases and thus updates could be useful. Also article documentation seems more stable intuitively.
+  - **Solution**: Show last tagged version with a +N indicator where N is the number of `doc/` revisions since the tagged release
+    - doc/ revisions are counted as the number of different shasums for the contents of the `doc/` directory across all commits since the last tagged release
