@@ -46,6 +46,7 @@ If you want to know more, open an issue or contact me elsewhere.
   - :bulb: Generating pages straight from grimoire info results in pretty tight coupling
   - :bulb: We should probably generate an intermediate format and cache it in Transit
   - :bulb: This cache could be used to generate static and SPA pages alike
+  - :bulb: Spec could be used to validate the cache format / generate sample data
 - [ ] think about how different platforms can be combined in API docs
 - [ ] build static site generator or SPA that runs on top of grimoire data
 
