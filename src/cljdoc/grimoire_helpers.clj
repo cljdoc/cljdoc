@@ -1,5 +1,5 @@
-;; This is a 99% copy of https://github.com/clojure-grimoire/lein-grim/blob/master/src/grimoire/doc.clj
-;; All credit goes to the authors of that file.
+;; Some of this is copied from
+;; github.com/clojure-grimoire/lein-grim/blob/master/src/grimoire/doc.clj
 (ns cljdoc.grimoire-helpers
   (:require [clojure.java.classpath :as cp]
             [clojure.tools.namespace.find :as tns.f]
@@ -24,19 +24,12 @@
   [v]
   {:pre [(var? v)]}
   (let [m (meta v)]
-    (cond (:macro m)
-          ,,:macro
-
+    (cond (:macro m)                            :macro
           (or (:dynamic m)
-              (.isDynamic ^clojure.lang.Var v))
-          ,,:var
-
+              (.isDynamic ^clojure.lang.Var v)) :var
           (or (fn? @v)
-              (instance? clojure.lang.MultiFn @v))
-          ,,:fn
-
-          :else
-          ,,:var)))
+              (instance? clojure.lang.MultiFn @v)) :fn
+          :else :var)))
 
 (defn ns-stringifier
   "Function something (either a Namespace instance, a string or a symbol) to a
