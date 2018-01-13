@@ -42,7 +42,10 @@ If you want to know more, open an issue or contact me elsewhere.
   - Grimoire data contains source so perhaps source URI becomes less important
   - still would be nice to jump to the entire source file
 - [x] give grimoire and related tools a go
-- [ ] Build Codox style index page based on grimoire info
+- [x] Build Codox style index page based on grimoire info
+  - :bulb: Generating pages straight from grimoire info results in pretty tight coupling
+  - :bulb: We should probably generate an intermediate format and cache it in Transit
+  - :bulb: This cache could be used to generate static and SPA pages alike
 - [ ] think about how different platforms can be combined in API docs
 - [ ] build static site generator or SPA that runs on top of grimoire data
 
@@ -63,6 +66,9 @@ If you want to know more, open an issue or contact me elsewhere.
 - Are there any fundamental issues with grimoire that could become problematic later?
 - How do you build docs for a [prj v] when another version is already on the classpath? (e.g. grimoire itself)
   - This will also apply to other libraries on the classpath for doc generation (codox, tools.namespace, etc)
+  - One way could be to "rename" namespaces of the to be documented library and maintain the mapping, although that might show up in the docs in some way?
+  - https://github.com/benedekfazekas/mranderson
+  - :clock10: **While this will be needed eventually it's not necessary for a first version**
 
 #### GITHUB + NON-API DOCS
 
@@ -70,6 +76,7 @@ If you want to know more, open an issue or contact me elsewhere.
 - [x] clone repo, copy `doc` directory, provide to codox
 - [x] try to check out Git repo at specific tag for `doc/` stuff; warn if no tags
 - [ ] figure out what other metadata should be imported
+- [ ] Think about how stuff like https://shadow-cljs.github.io/docs/UsersGuide.html could be accomodated
 - [ ] Figure out how to deal with changes between tagged releases
   - We probably don't want to pick up API changes since people commonly push development progress straight to `master`
   - Picking up changes to `doc/` would be nice and the above problem probably applies a little less
