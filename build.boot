@@ -2,7 +2,10 @@
 
 (boot.core/set-env!
  :source-paths #{"src"}
- :dependencies '[[org.clojure/clojure "1.8.0"]
+ :dependencies '[[org.clojure/clojure "1.9.0"]
+                 [org.clojure/test.check "0.9.0"]
+                 [org.clojure/java.classpath "0.2.2"]
+                 [org.clojure/tools.namespace "0.2.11"]
 
                  [confetti "0.2.0"]
                  [bidi "2.1.3"]
@@ -12,10 +15,7 @@
                  [codox "0.10.3"]
                  [org.clojure-grimoire/lib-grimoire "0.10.9"]
                  [me.arrdem/detritus "0.3.0"]
-                 [org.clojure/java.classpath "0.2.2"]
-                 [org.clojure/tools.namespace "0.2.11"]
 
-                 [sparkledriver "0.2.2"]
                  [org.slf4j/slf4j-nop "1.7.25"]
                  [clj-jgit "0.8.10"]])
 
