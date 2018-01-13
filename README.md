@@ -100,9 +100,27 @@ If you want to know more, open an issue or contact me elsewhere.
 #### VERSIONING THOUGHTS
 
 - Show version in UI when viewing versioned information (i.e. anything
-  in grimoire) and show "unversioned" with red warning sign when showing 
+  in grimoire) and show "unversioned" with red warning sign when showing
   unversioned documentation (i.e. from repo's that have not been tagged)
 - How to version article documentation:
   - **Problem**: Articles may receive useful updates between tagged releases and thus updates could be useful. Also article documentation seems more stable intuitively.
   - **Solution**: Show last tagged version with a +N indicator where N is the number of `doc/` revisions since the tagged release
     - doc/ revisions are counted as the number of different shasums for the contents of the `doc/` directory across all commits since the last tagged release
+
+#### RENDERING EXTENSIBILITY
+
+
+```clojure
+(defprotocol CacheRenderer
+  (render [cache output-config]
+    "Render contents of cache to :file or :dir specified in output-config"))
+```
+
+Intended implementations:
+- Single Transit file
+- Multiple HTML files
+- Single HTML file
+- Single Page Apps
+    - Single HTML file (CLJS app only working with existing data)
+    - Global app (CLJS app with ways out of the current context: other projects, versions etc.)
+    - Both of them could share a lot of code but have slightly different entry points
