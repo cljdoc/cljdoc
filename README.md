@@ -5,6 +5,20 @@ about a central documentation hub for Clojure similar to Elixir's https://hexdoc
 
 If you want to know more, open an issue or contact me elsewhere.
 
+- [Design (wip)](#design-wip)
+- [Progress](#progress)
+    + [Hosting](#hosting)
+    + [Service + Isolation](#service--isolation)
+    + [API docs](#api-docs)
+    + [Grimoire](#grimoire)
+    + [GitHub + Non-API docs](#github--non-api-docs)
+    + [Long Shots](#long-shots)
+    + [Bot](#bot)
+- [Notes](#notes)
+    + [Versioning Thoughts](#versioning-thoughts)
+    + [Change Viewer](#change-viewer)
+    + [Rendering Extensibility](#rendering-extensibility)
+
 ## Design (wip)
 
 - build an ecosystem-encompassing Grimoire store
