@@ -6,6 +6,7 @@
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/java.classpath "0.2.2"]
                  [org.clojure/tools.namespace "0.2.11"]
+                 [com.cognitect/transit-clj "0.8.300"]
 
                  [confetti "0.2.0"]
                  [bidi "2.1.3"]

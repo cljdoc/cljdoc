@@ -57,7 +57,7 @@
     - Single HTML file (CLJS app only working with existing data)
     - Global app (CLJS app with ways out of the current context: other projects, versions etc.)
     - Both of them could share a lot of code but have slightly different entry points"
-  (render [cache output-config]
+  (render [this cache output-config]
     "Render contents of cache to :file or :dir specified in output-config"))
 
 (comment
@@ -74,7 +74,7 @@
   (spec/assert string? 1)
 
 
-  (def c (bundle-docs store vt))
+  (def cache (bundle-docs store vt))
 
   (clojure.pprint/pprint (:cache-id c))
 
