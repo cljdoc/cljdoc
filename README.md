@@ -71,6 +71,10 @@ If you want to know more, open an issue or contact me elsewhere.
   - One way could be to "rename" namespaces of the to be documented library and maintain the mapping, although that might show up in the docs in some way?
   - https://github.com/benedekfazekas/mranderson
   - :clock10: **While this will be needed eventually it's not necessary for a first version**
+- :construction: Getting source of defs
+  - @arrdem mentioned source-fn might have issues with anything that uses ::foo or ::foo/bar keywords
+    - [ ] check if this still applies
+  - [ ] Check how whatever mechanism works for .cljc forms — what forms are emitted, if any?
 
 #### GITHUB + NON-API DOCS
 
