@@ -24,7 +24,6 @@
 (s/def ::group-id string?)
 (s/def ::artifact-id string?)
 (s/def ::version string?)
-(s/def ::scm-url string?)
 
 ;; Entity maps -------------------------------------------------------
 ;; These are basically intended to serve the same purpose as
@@ -65,11 +64,31 @@
 
 ;; Cache specific ----------------------------------------------------
 
+;; Docs-cache: this is intended for
 (s/def ::defs (s/coll-of ::def-full :gen-max 2))
 (s/def ::namespaces (s/coll-of map? :gen-max 2))
 
-(s/def ::cache-contents
+(s/def ::docs-cache
   (s/keys :req-un [::defs ::namespaces]))
+
+;; Versions-cache:
+(s/def ::tag string?)
+(s/def ::sha string?)
+(s/def ::scm-url string?)
+
+(s/def ::version-full
+  (s/keys :req-un [::name ::tag ::sha ::scm-url]))
+
+(s/def ::versions (s/coll-of ::version-full :gen-max 10))
+
+(s/def ::versions-cache
+  (s/keys :req-un [::versions]))
+
+;; Cache bundle (combination of the above cache specs)
+
+(s/def ::cache-contents
+  (s/or :docs ::docs-cache
+        :versions ::versions-cache))
 
 (s/def ::cache-id ::grimoire-entity)
 
@@ -88,6 +107,9 @@
 
   (clojure.pprint/pprint
    (first (gen/sample (s/gen ::cache-bundle))))
+
+  (clojure.pprint/pprint
+   (first (gen/sample (s/gen ::versions-cache))))
 
   (gen/sample (s/gen ::namespace))
   (gen/sample (s/gen ::artifact))
