@@ -58,7 +58,7 @@
 ;; may work with older caches that have been generated with
 ;; a different cache-contents layout.
 
-(defn- cache-contents [store version-t]
+(defn- docs-cache-contents [store version-t]
   (let [platf-things (e/result (grim/list-platforms store version-t))
         platforms    (for [platform  platf-things]
                        (e/result (grim/read-meta store platform)))
@@ -83,10 +83,18 @@
 (defn bundle-docs
   [store version-t]
   (assert (things/version? version-t) "bundle-docs expects a grimoire.things/version argument")
-  (->> {:cache-contents (cache-contents store version-t)
+  (->> {:cache-contents (docs-cache-contents store version-t)
         :cache-id       {:group-id    (-> version-t things/thing->group things/thing->name)
                          :artifact-id (-> version-t things/thing->artifact things/thing->name)
                          :version     (-> version-t things/thing->name)}}
+       (spec/assert :cljdoc.spec/cache-bundle)))
+
+(defn bundle-versions
+  [store artifact-t]
+  (assert (things/artifact? artifact-t) "bundle-versions expects a grimoire.things/artifact argument")
+  (->> {:cache-contents {:versions []} ;TODO
+        :cache-id       {:group-id    (-> artifact-t things/thing->group things/thing->name)
+                         :artifact-id (-> artifact-t things/thing->name)}}
        (spec/assert :cljdoc.spec/cache-bundle)))
 
 (defprotocol ICacheRenderer
@@ -108,17 +116,18 @@
     (def store (grimoire.api.fs/->Config "target/grimoire" "" ""))
     (def pp clojure.pprint/pprint)
 
-    (def vt (-> (things/->Group "bidi")
-                (things/->Artifact "bidi")
-                (things/->Version "2.1.3")))
-    (def pt (-> vt (things/->Platform "clj")))
+    (def gt (things/->Group "bidi"))
+    (def at (things/->Artifact gt "bidi"))
+    (def vt (things/->Version at "2.1.3"))
+    (def pt (things/->Platform vt "clj"))
     (def cache (bundle-docs store vt))
     (defn dev-cache [] (bundle-docs store vt)))
+
+  (bundle-versions store at)
 
   (e/result (grim/list-namespaces store pt))
 
   (def x (grimoire.api/write-meta store vt {:test "s"}))
-  ()
 
   spec/*compile-asserts*
 
