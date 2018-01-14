@@ -9,6 +9,10 @@
   top of Grimoire that will make it easier for other developers to get started
   utilizing the data stored in the Grimoire store.
 
+  In theory the cache should contain all required information to
+  restore the information into a Grimoire store although this is not
+  an explicit goal.
+
   The cache is structured as simple as possible (a list of maps) in order
   to ease understand, avoid complexity and allow people to get started quickly.
   This may result in some duplication which I hope to mitigate by encoding the
