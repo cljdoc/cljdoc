@@ -212,7 +212,7 @@
           grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
       (util/info "Generating Grimoire HTML for %s\n" project)
       (.mkdir grimoire-html-dir)
-      (require 'cljdoc.html 'cljdoc.routes :reload)
+      (require 'cljdoc.html 'cljdoc.routes 'cljdoc.spec :reload)
       (cljdoc.cache/render
        (cljdoc.html/->HTMLRenderer)
        (cljdoc.cache/bundle-docs grimoire-store grimoire-thing)
