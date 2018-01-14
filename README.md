@@ -17,6 +17,7 @@ If you want to know more, open an issue or contact me elsewhere.
     + [Long Shots](#long-shots)
     + [Bot](#bot)
 - [Notes](#notes)
+    + [UI Ideas](#ui-ideas)
     + [Versioning Thoughts](#versioning-thoughts)
     + [Change Viewer](#change-viewer)
     + [Rendering Extensibility](#rendering-extensibility)
@@ -125,6 +126,10 @@ If you want to know more, open an issue or contact me elsewhere.
 - [ ] suggest to add some plain text documentation/guides + provide templates
 
 ## Notes
+
+#### UI IDEAS
+
+- Highlight items with long docstrings as "well-documented" (needs testing)
 
 #### VERSIONING THOUGHTS
 
