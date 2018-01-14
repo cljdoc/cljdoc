@@ -243,6 +243,19 @@
             (let [base-uri "https://cljdoc.martinklepsch.org"]
               (util/info "\nDocumentation can be viewed at:\n\n    %s/%s\n\n" base-uri doc-path))))))
 
+#_(deftask wipe-everything []
+  (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
+                        :prune true))
+
 (deftask update-site []
   (set-env! :resource-paths #{"site"})
   (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"))
+
+(comment
+  (def f
+    (future
+      (boot (watch) (build-docs :project 'bidi :version "2.1.3"))))
+
+  (future-cancel f)
+
+  )
