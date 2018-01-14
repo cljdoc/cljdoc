@@ -107,6 +107,21 @@ If you want to know more, open an issue or contact me elsewhere.
   - **Solution**: Show last tagged version with a +N indicator where N is the number of `doc/` revisions since the tagged release
     - doc/ revisions are counted as the number of different shasums for the contents of the `doc/` directory across all commits since the last tagged release
 
+#### CHANGE VIEWER
+
+- Using caches of different versions a diff could be calculated, it could be used to
+  - show newly added functions
+  - show functions whose arglists have changed
+  - show functions whose source has changed
+  - deduce at which version a function was added (perhaps even at arity level)
+- :wrench: Users may want to configure some priority for changes
+  accross namespaces or maybe even at the function level.
+- Git blame could be used to identify commits that affected a given function's source
+- :small_orange_diamond: Changes to a functions source may affect
+  other upstream functions' API/return values so just knowing changed
+  functions may not be as useful to learn about API breakage.
+  - It could help with other things as well (e.g. understanding how a function evolved)
+
 #### RENDERING EXTENSIBILITY
 
 
