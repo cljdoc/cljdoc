@@ -1,7 +1,7 @@
 (ns cljdoc.spec
   (:require [clojure.spec.alpha :as s]))
 
-;; Basic list of struff that can be found in grimoire
+;; Basic list of struff that can be found in grimoire ----------------
 
 (s/def ::name string?)
 (s/def ::doc (s/nilable string?))
@@ -26,13 +26,47 @@
 (s/def ::version string?)
 (s/def ::scm-url string?)
 
-;; Cache specific
+;; Entity maps -------------------------------------------------------
+;; These are basically intended to serve the same purpose as
+;; grimoire.things but in a plain data, cross platform fashion
+
+(spec/def ::group-entity
+  (spec/keys :req-un [:cljdoc.spec/group-id]))
+
+(spec/def ::artifact-entity
+  (spec/merge ::group-entity
+              (spec/keys :req-un [:cljdoc.spec/artifact-id])))
+
+(spec/def ::version-entity
+  (spec/merge ::artifact-entity
+              (spec/keys :req-un [:cljdoc.spec/version])))
+
+(spec/def ::namespace-entity
+  (spec/merge ::version-entity
+              (spec/keys :req-un [:cljdoc.spec/namespace])))
+
+(spec/def ::def string?)
+(spec/def ::def-entity
+  (spec/merge ::namespace-entity
+              (spec/keys :req-un [:cljdoc.spec/ns])))
+
+(spec/def ::grimoire-entity
+  (spec/or :group ::group-entity
+           :artifact ::artifact-entity
+           :version ::version-entity
+           :namespace ::namespace-entity
+           :def ::def-entity))
+
+
+;; Cache specific ----------------------------------------------------
 
 (s/def ::cache-contents
   (s/coll-of ::def-full :gen-max 2))
 
-(s/def ::cache-id
-  (s/keys :req-un [::group-id ::artifact-id ::version ::scm-url]))
+(s/def ::cache-id ::grimoire-entity
+  ;; TODO figure out where to put scm-url and other metadata that
+  ;; does not directly serve as identifier
+  #_(s/keys :req-un [::group-id ::artifact-id ::version ::scm-url]))
 
 (s/def ::cache-bundle
   ;; Not using 'id' and 'contents' as keys here because

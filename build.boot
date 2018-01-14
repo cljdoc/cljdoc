@@ -206,12 +206,15 @@
           grimoire-html-dir (io/file tempd "grimoire-html")
           grimoire-thing    (-> (grimoire.things/->Group (group-id project))
                                 (grimoire.things/->Artifact (artifact-id project))
-                                (grimoire.things/->Version version)
-                                (grimoire.things/->Platform "clj"))
+                                (grimoire.things/->Version version))
           grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
       (util/info "Generating Grimoire HTML for %s\n" project)
       (.mkdir grimoire-html-dir)
-      (cljdoc.html/write-docs grimoire-store grimoire-thing grimoire-html-dir)
+      (require 'cljdoc.html 'cljdoc.routes :reload)
+      (cljdoc.cache/render
+       (cljdoc.html/->HTMLRenderer)
+       (cljdoc.cache/bundle-docs grimoire-store grimoire-thing)
+       {:dir grimoire-html-dir})
       (-> fs (add-resource tempd) commit!))))
 
 (deftask build-docs
