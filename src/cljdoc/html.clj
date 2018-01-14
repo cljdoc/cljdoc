@@ -1,6 +1,7 @@
 (ns cljdoc.html
   (:require [cljdoc.routes :as r]
             [cljdoc.cache]
+            [cljdoc.spec]
             [hiccup2.core :as hiccup]
             [hiccup.page]
             [clojure.java.io :as io]
@@ -99,14 +100,17 @@
     io/make-parents))
 
 (defn write-docs* [{:keys [cache-contents cache-id]} ^java.io.File out-dir]
-  (let [namespace-emaps (->> (map #(select-keys % [:namespace]) cache-contents)
-                             (map #(merge cache-id %))
+  (let [namespace-emaps (->> (:namespaces cache-contents)
+                             (map :name)
+                             (map #(merge cache-id {:namespace %}))
+                             (map #(spec/assert :cljdoc.spec/namespace-entity %))
                              set)]
     (render-to (index-page cache-id namespace-emaps)
                (file-for out-dir :artifact/version cache-id))
     (doseq [ns-emap namespace-emaps
-            :let [defs (filter #(= (:namespace ns-emap) (:namespace %))
-                               cache-contents)]]
+            :let [defs (filter #(= (:namespace ns-emap)
+                                   (:namespace %))
+                               (:defs cache-contents))]]
       (render-to (namespace-page ns-emap defs)
                  (file-for out-dir :artifact/namespace ns-emap)))))
 
