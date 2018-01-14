@@ -1,7 +1,8 @@
 ;; Some of this is copied from
 ;; github.com/clojure-grimoire/lein-grim/blob/master/src/grimoire/doc.clj
 (ns cljdoc.grimoire-helpers
-  (:require [clojure.java.classpath :as cp]
+  (:require [clojure.spec.alpha :as spec]
+            [clojure.java.classpath :as cp]
             [clojure.tools.namespace.find :as tns.f]
             [codox.main]
             [grimoire.api]
@@ -83,19 +84,16 @@
     (grimoire.api/write-meta store ns-thing ns-meta)
     (println "Finished" ns)))
 
-(defn build-grim [groupid artifactid version src dst]
-  (assert groupid "Groupid missing!")
-  (assert artifactid "Artifactid missing!")
-  (assert version "Version missing!")
-  (assert dst "Doc target dir missing!")
-  ;; (assert ?platform "Platform missing!")
-  (let [platform (grimoire.util/normalize-platform :clojure #_?platform)
-        _        (assert platform "Unknown platform!")
-        store    (grimoire.api.fs/->Config dst "" "")
-        platform (-> (grimoire.things/->Group    groupid)
-                     (grimoire.things/->Artifact artifactid)
-                     (grimoire.things/->Version  version)
-                     (grimoire.things/->Platform platform))]
+;; TODO refactor to receive gimoire-entity map as argument
+(defn build-grim [platf-entity src dst]
+  (spec/assert :cljdoc.spec/platform-entity platf-entity)
+  (assert dst "target dir missing!")
+  (assert src "source dir missing!")
+  (let [store    (grimoire.api.fs/->Config dst "" "")
+        platform (-> (grimoire.things/->Group    (:group-id platf-entity))
+                     (grimoire.things/->Artifact (:artifact-id platf-entity))
+                     (grimoire.things/->Version  (:version platf-entity))
+                     (grimoire.things/->Platform (grimoire.util/normalize-platform (:platform platf-entity))))]
 
     ;; Write metadata for the group, artifact, version & platform
     ;; OLD VERSION
@@ -136,8 +134,11 @@
                             (-> public :name name)))))))))
 
 (comment
-  (build-grim "sparkledriver" "sparkledriver" "0.2.2" "gggrim")
-  (build-grim "bidi" "bidi" "2.1.3" "target/jar-contents/" "target/grim-test")
+  (build-grim {:group-id "bidi"
+               :artifact-id  "bidi"
+               :version "2.1.3"
+               :platform "clj"}
+              "target/jar-contents/" "target/grim-test")
 
   (->> (#'codox.main/read-namespaces
         {:language     :clojure

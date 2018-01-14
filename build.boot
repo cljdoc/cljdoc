@@ -187,12 +187,14 @@
     (let [tempd        (tmp-dir!)
           grimoire-dir (io/file tempd "grimoire")]
       (util/info "Generating Grimoire store for %s\n" project)
-      (cljdoc.grimoire-helpers/build-grim
-       (group-id project)
-       (artifact-id project)
-       version
-       (jar-contents-dir fs)
-       (.getPath grimoire-dir))
+      (doseq [platf ["clj" "cljs"]]
+        (cljdoc.grimoire-helpers/build-grim
+         {:group-id (group-id project)
+          :artifact-id  (artifact-id project)
+          :version version
+          :platform platf}
+         (jar-contents-dir fs)
+         (.getPath grimoire-dir)))
       (-> fs (add-resource tempd) commit!))))
 
 (deftask grimoire-html
