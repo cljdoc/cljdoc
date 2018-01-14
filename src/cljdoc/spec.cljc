@@ -33,25 +33,20 @@
   (s/keys :req-un [::group-id]))
 
 (s/def ::artifact-entity
-  (s/merge ::group-entity
-           (s/keys :req-un [::artifact-id])))
+  (s/merge ::group-entity (s/keys :req-un [::artifact-id])))
 
 (s/def ::version-entity
-  (s/merge ::artifact-entity
-           (s/keys :req-un [::version])))
+  (s/merge ::artifact-entity (s/keys :req-un [::version])))
 
 (s/def ::platform-entity
-  (s/merge ::version-entity
-           (s/keys :req-un [::platform])))
+  (s/merge ::version-entity (s/keys :req-un [::platform])))
 
 (s/def ::namespace-entity
-  (s/merge ::version-entity
-           (s/keys :req-un [::namespace])))
+  (s/merge ::version-entity (s/keys :req-un [::namespace])))
 
 (s/def ::def string?)
 (s/def ::def-entity
-  (s/merge ::namespace-entity
-           (s/keys :req-un [::def])))
+  (s/merge ::namespace-entity (s/keys :req-un [::def])))
 
 (s/def ::grimoire-entity
   (s/or :group ::group-entity
