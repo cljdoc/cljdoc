@@ -75,6 +75,7 @@ If you want to know more, open an issue or contact me elsewhere.
   - @arrdem mentioned source-fn might have issues with anything that uses ::foo or ::foo/bar keywords
     - [ ] check if this still applies
   - [ ] Check how whatever mechanism works for .cljc forms — what forms are emitted, if any?
+- :sparkles: [lib-grimoire #31](https://github.com/clojure-grimoire/lib-grimoire/issues/31) Spec integration
 - What to put in metadata store of:
   - group
   - artifact
@@ -100,6 +101,7 @@ If you want to know more, open an issue or contact me elsewhere.
 - [ ] think about discovery of projects with same group-id
 - [ ] think about how something like dynadoc (interactive docs) could be integrated
 - [ ] think about how stack style REPL examples could be integrated
+  - https://github.com/arrdem/stacks/issues/7
 
 #### BOT
 
