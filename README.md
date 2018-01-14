@@ -130,7 +130,7 @@ If you want to know more, open an issue or contact me elsewhere.
 
 
 ```clojure
-(defprotocol CacheRenderer
+(defprotocol ICacheRenderer
   (render [cache output-config]
     "Render contents of cache to :file or :dir specified in output-config"))
 ```
