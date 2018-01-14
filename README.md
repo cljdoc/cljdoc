@@ -5,6 +5,8 @@ about a central documentation hub for Clojure similar to Elixir's https://hexdoc
 
 If you want to know more, open an issue or contact me elsewhere.
 
+### Contents
+
 - [Design (wip)](#design-wip)
 - [Progress](#progress)
     + [Hosting](#hosting)
