@@ -49,12 +49,13 @@
   (s/merge ::namespace-entity (s/keys :req-un [::def])))
 
 (s/def ::grimoire-entity
-  (s/or :group ::group-entity
-        :artifact ::artifact-entity
-        :version ::version-entity
-        :platform ::platform-entity
-        :namespace ::namespace-entity
-        :def ::def-entity))
+  ;; Ordering matters for conforming
+  (s/or :def        ::def-entity
+        :namespace  ::namespace-entity
+        :platform   ::platform-entity
+        :version    ::version-entity
+        :artifact   ::artifact-entity
+        :group      ::group-entity))
 
 
 ;; Cache specific ----------------------------------------------------
@@ -101,13 +102,18 @@
   (gen/sample (s/gen ::def-full))
 
   (clojure.pprint/pprint
-   (first (gen/sample (s/gen ::cache-bundle))))
+   (s/conform :cljdoc.spec/cache-bundle
+   (first (gen/sample (s/gen ::cache-bundle)))))
+
+  (s/conform :cljdoc.spec/grimoire-entity
+             (first (gen/sample (s/gen ::grimoire-entity))))
 
   (clojure.pprint/pprint
    (first (gen/sample (s/gen ::versions-cache))))
 
   (gen/sample (s/gen ::namespace))
   (gen/sample (s/gen ::artifact))
+
 
   (def x
     {:name "bidi.bidi"
