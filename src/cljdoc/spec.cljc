@@ -10,7 +10,7 @@
 (s/def ::line (s/and int? pos?))
 (s/def ::column (s/and int? pos?))
 
-(s/def ::def
+(s/def ::def-minimal
   (s/keys :req-un [::name ::src ::line ::column]
           :opt-un [::doc ::type])) ;; figure out why these are missing simetimes
 
@@ -18,7 +18,7 @@
 (s/def ::namespace string?)
 
 (s/def ::def-full
-  (s/merge ::def
+  (s/merge ::def-minimal
            (s/keys :req-un [::platform ::namespace])))
 
 (s/def ::group-id string?)
@@ -30,32 +30,32 @@
 ;; These are basically intended to serve the same purpose as
 ;; grimoire.things but in a plain data, cross platform fashion
 
-(spec/def ::group-entity
-  (spec/keys :req-un [:cljdoc.spec/group-id]))
+(s/def ::group-entity
+  (s/keys :req-un [::group-id]))
 
-(spec/def ::artifact-entity
-  (spec/merge ::group-entity
-              (spec/keys :req-un [:cljdoc.spec/artifact-id])))
+(s/def ::artifact-entity
+  (s/merge ::group-entity
+           (s/keys :req-un [::artifact-id])))
 
-(spec/def ::version-entity
-  (spec/merge ::artifact-entity
-              (spec/keys :req-un [:cljdoc.spec/version])))
+(s/def ::version-entity
+  (s/merge ::artifact-entity
+           (s/keys :req-un [::version])))
 
-(spec/def ::namespace-entity
-  (spec/merge ::version-entity
-              (spec/keys :req-un [:cljdoc.spec/namespace])))
+(s/def ::namespace-entity
+  (s/merge ::version-entity
+           (s/keys :req-un [::namespace])))
 
-(spec/def ::def string?)
-(spec/def ::def-entity
-  (spec/merge ::namespace-entity
-              (spec/keys :req-un [:cljdoc.spec/ns])))
+(s/def ::def string?)
+(s/def ::def-entity
+  (s/merge ::namespace-entity
+           (s/keys :req-un [::def])))
 
-(spec/def ::grimoire-entity
-  (spec/or :group ::group-entity
-           :artifact ::artifact-entity
-           :version ::version-entity
-           :namespace ::namespace-entity
-           :def ::def-entity))
+(s/def ::grimoire-entity
+  (s/or :group ::group-entity
+        :artifact ::artifact-entity
+        :version ::version-entity
+        :namespace ::namespace-entity
+        :def ::def-entity))
 
 
 ;; Cache specific ----------------------------------------------------
