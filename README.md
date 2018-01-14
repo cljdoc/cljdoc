@@ -132,6 +132,7 @@ If you want to know more, open an issue or contact me elsewhere.
   in grimoire) and show "unversioned" with red warning sign when showing
   unversioned documentation (i.e. from repo's that have not been tagged)
 - How to version article documentation:
+  - [ ] :speech_balloon: Discuss this with @arrdem
   - **Problem**: Articles may receive useful updates between tagged releases and thus updates could be useful. Also article documentation seems more stable intuitively.
   - **Solution**: Show last tagged version with a +N indicator where N is the number of `doc/` revisions since the tagged release
     - doc/ revisions are counted as the number of different shasums for the contents of the `doc/` directory across all commits since the last tagged release
