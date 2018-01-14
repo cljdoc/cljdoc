@@ -41,6 +41,10 @@
   (s/merge ::artifact-entity
            (s/keys :req-un [::version])))
 
+(s/def ::platform-entity
+  (s/merge ::version-entity
+           (s/keys :req-un [::platform])))
+
 (s/def ::namespace-entity
   (s/merge ::version-entity
            (s/keys :req-un [::namespace])))
@@ -54,6 +58,7 @@
   (s/or :group ::group-entity
         :artifact ::artifact-entity
         :version ::version-entity
+        :platform ::platform-entity
         :namespace ::namespace-entity
         :def ::def-entity))
 
