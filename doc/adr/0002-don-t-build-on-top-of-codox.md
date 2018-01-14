@@ -4,7 +4,7 @@ Date: 2018-01-11
 
 ## Status
 
-Accepted
+Superceded by [4. Utilize codox to read Clojure/Script sources](0004-utilize-codox-to-read-clojure-script-sources.md)
 
 ## Context
 
