@@ -23,10 +23,13 @@
 (require '[boot.pod :as pod]
          '[boot.util :as util]
          '[clojure.java.io :as io]
+         '[clojure.spec.alpha :as spec]
          '[clj-jgit.porcelain :as git]
          '[cljdoc.html]
          '[cljdoc.grimoire-helpers]
          '[confetti.boot-confetti :as confetti])
+
+(spec/check-asserts true)
 
 (defn jar-file [coordinate]
   ;; (jar-file '[org.martinklepsch/derivatives "0.2.0"])
