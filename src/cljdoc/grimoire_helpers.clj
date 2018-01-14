@@ -84,7 +84,6 @@
     (grimoire.api/write-meta store ns-thing ns-meta)
     (println "Finished" ns)))
 
-;; TODO refactor to receive gimoire-entity map as argument
 (defn build-grim [platf-entity src dst]
   (spec/assert :cljdoc.spec/platform-entity platf-entity)
   (assert dst "target dir missing!")
