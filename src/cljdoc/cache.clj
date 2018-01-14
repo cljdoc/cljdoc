@@ -53,24 +53,34 @@
             [grimoire.either :as e]))
 
 (defn- cache-contents [store version-t]
-  (for [platform  (e/result (grim/list-platforms store version-t))
-        namespace (e/result (grim/list-namespaces store platform))
-        def       (e/result (grim/list-defs store namespace))]
-    (let [def-meta (e/result (grim/read-meta store def))]
-      (println "Bundling" (str (:name namespace) "/" (:name def)))
-      (assoc def-meta
-             :platform (things/thing->name platform)
-             :namespace (:name namespace)))))
+  (let [platf-things (e/result (grim/list-platforms store version-t))
+        platforms    (for [platform  platf-things]
+                       (e/result (grim/read-meta store platform)))
+        namespaces   (for [platform  platf-things
+                           namespace (e/result (grim/list-namespaces store platform))]
+                       (assoc (e/result (grim/read-meta store namespace))
+                              :name (things/thing->name namespace)
+                              :platform (things/thing->name platform)))
+        defs         (for [platform  platf-things
+                           namespace (e/result (grim/list-namespaces store platform))
+                           def       (e/result (grim/list-defs store namespace))]
+                       (assoc (e/result (grim/read-meta store def))
+                              :platform (things/thing->name platform)
+                              :namespace (things/thing->name namespace)))]
+    {:version   (e/result (grim/read-meta store version-t))
+     :group     (e/result (grim/read-meta store (things/thing->group version-t)))
+     :artifact  (e/result (grim/read-meta store (things/thing->artifact version-t)))
+     :platforms  platforms
+     :namespaces namespaces
+     :defs       defs}))
 
 (defn bundle-docs
   [store version-t]
   (assert (things/version? version-t) "bundle-docs expects a grimoire.things/version argument")
   (->> {:cache-contents (cache-contents store version-t)
-        :cache-id       {:group-id (-> version-t things/thing->group things/thing->name)
+        :cache-id       {:group-id    (-> version-t things/thing->group things/thing->name)
                          :artifact-id (-> version-t things/thing->artifact things/thing->name)
-                         :version (-> version-t things/thing->name)
-                         :scm-url "" ;; TODO needs to go into grimoire meta
-                         }}
+                         :version     (-> version-t things/thing->name)}}
        (spec/assert :cljdoc.spec/cache-bundle)))
 
 (defprotocol ICacheRenderer
@@ -88,11 +98,21 @@
     "Render contents of cache to :file or :dir specified in output-config"))
 
 (comment
-  (def store (grimoire.api.fs/->Config "target/grimoire" "" ""))
+  (do
+    (def store (grimoire.api.fs/->Config "target/grimoire" "" ""))
+    (def pp clojure.pprint/pprint)
 
-  (def vt (-> (things/->Group "bidi")
-              (things/->Artifact "bidi")
-              (things/->Version "2.1.3")))
+    (def vt (-> (things/->Group "bidi")
+                (things/->Artifact "bidi")
+                (things/->Version "2.1.3")))
+    (def pt (-> vt (things/->Platform "clj")))
+    (def cache (bundle-docs store vt))
+    (defn dev-cache [] (bundle-docs store vt)))
+
+  (e/result (grim/list-namespaces store pt))
+
+  (def x (grimoire.api/write-meta store vt {:test "s"}))
+  ()
 
   spec/*compile-asserts*
 
@@ -103,7 +123,13 @@
 
   (def cache (bundle-docs store vt))
 
-  (clojure.pprint/pprint (:cache-id c))
+  (clojure.pprint/pprint (dev-cache))
 
+  (-> (:cache-contents (dev-cache))
+      (update :defs #(take 1 %))
+      (update :namespaces #(take 2 %))
+      pp)
+
+  (spec/check-asserts true)
 
   )

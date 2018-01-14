@@ -65,11 +65,13 @@
 
 ;; Cache specific ----------------------------------------------------
 
-(s/def ::cache-contents
-  (s/coll-of ::def-full :gen-max 2))
+(s/def ::defs (s/coll-of ::def-full :gen-max 2))
+(s/def ::namespaces (s/coll-of map? :gen-max 2))
 
-(s/def ::cache-id ::grimoire-entity
-  #_(s/keys :req-un [::group-id ::artifact-id ::version ::scm-url]))
+(s/def ::cache-contents
+  (s/keys :req-un [::defs ::namespaces]))
+
+(s/def ::cache-id ::grimoire-entity)
 
 (s/def ::cache-bundle
   ;; Not using 'id' and 'contents' as keys here because
