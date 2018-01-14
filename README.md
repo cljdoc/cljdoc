@@ -75,6 +75,11 @@ If you want to know more, open an issue or contact me elsewhere.
   - @arrdem mentioned source-fn might have issues with anything that uses ::foo or ::foo/bar keywords
     - [ ] check if this still applies
   - [ ] Check how whatever mechanism works for .cljc forms — what forms are emitted, if any?
+- What to put in metadata store of:
+  - group
+  - artifact
+  - version: `scm-url`, `git-tag`, `git-sha`
+  - platform
 
 #### GITHUB + NON-API DOCS
 

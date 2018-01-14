@@ -69,8 +69,6 @@
   (s/coll-of ::def-full :gen-max 2))
 
 (s/def ::cache-id ::grimoire-entity
-  ;; TODO figure out where to put scm-url and other metadata that
-  ;; does not directly serve as identifier
   #_(s/keys :req-un [::group-id ::artifact-id ::version ::scm-url]))
 
 (s/def ::cache-bundle
