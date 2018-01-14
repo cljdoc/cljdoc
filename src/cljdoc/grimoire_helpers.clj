@@ -97,17 +97,23 @@
                      (grimoire.things/->Version  version)
                      (grimoire.things/->Platform platform))]
 
-    ;; write placeholder meta
-    ;; TODO figure out what this is needed for
-    ;;----------------------------------------
-    #_(reduce (fn [acc f]
-              (grimoire.api/write-meta (:datastore config) acc {})
-              (f acc))
-            (grimoire.things/->Group groupid)
-            [#(grimoire.things/->Artifact % artifactid)
-             #(grimoire.things/->Version % version)
-             #(grimoire.things/->Platform % platform)
-             identity])
+    ;; Write metadata for the group, artifact, version & platform
+    ;; OLD VERSION
+    ;; (reduce (fn [acc f]
+    ;;           (grimoire.api/write-meta (:datastore config) acc {})
+    ;;           (f acc))
+    ;;         (grimoire.things/->Group groupid)
+    ;;         [#(grimoire.things/->Artifact % artifactid)
+    ;;          #(grimoire.things/->Version % version)
+    ;;          #(grimoire.things/->Platform % platform)
+    ;;          identity])
+    ;; ----------------------------------------
+    (println "Writing bare meta for"
+             (grimoire.things/thing->path (grimoire.things/thing->version platform)))
+    (grimoire.api/write-meta store (grimoire.things/thing->group platform) {})
+    (grimoire.api/write-meta store (grimoire.things/thing->artifact platform) {})
+    (grimoire.api/write-meta store (grimoire.things/thing->version platform) {})
+    (grimoire.api/write-meta store platform {})
 
     (let [namespaces (#'codox.main/read-namespaces
                       {:language     :clojure
