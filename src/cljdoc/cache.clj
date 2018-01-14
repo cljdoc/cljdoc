@@ -52,6 +52,12 @@
             [grimoire.things :as things]
             [grimoire.either :as e]))
 
+;; NOTE maybe cache contents should be versioned to some degree
+;; so people can figure out which format they should expect?
+;; This could become especially useful in a context where a tool
+;; may work with older caches that have been generated with
+;; a different cache-contents layout.
+
 (defn- cache-contents [store version-t]
   (let [platf-things (e/result (grim/list-platforms store version-t))
         platforms    (for [platform  platf-things]
