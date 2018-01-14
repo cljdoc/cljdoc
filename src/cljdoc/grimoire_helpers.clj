@@ -55,11 +55,12 @@
   metadata. Compute a \"docs\" structure from the var's metadata and then punt
   off to write-meta which does the heavy lifting."
   [store def-thing var]
+  ;; TODO assert def-thing is def-thing
   (let [docs (-> (meta var)
-                 (assoc  ;:src  (var->src var)
-                         ;; @arrdem Has clojure.repl/source-fn caused issues? Reading the var->src docstring
-                         ;; I didnt really understand what the differences are.
-                         :src  (clojure.repl/source-fn (symbol (subs (str (var bidi.bidi/match-route)) 2)))
+                 (assoc  ;; TODO there are issues with source-fn, for details see:
+                         ;; https://github.com/martinklepsch/clj-docs#grimoire
+                         ;; :src  (var->src var)
+                         :src  (clojure.repl/source-fn (symbol (subs (str var) 2)))
                          :type (var->type var))
                  ;; @arrdem meta takes precedence here — are there situations where name and
                  ;; ns would differe from whatever is encoded in the grimoire/thing?
@@ -71,13 +72,13 @@
                          :inline-arities))]
     (assert (:name docs) "Var name was nil!")
     (assert (:ns docs) "Var namespace was nil!")
-    (println (grimoire.things/thing->path def-thing))
     (grimoire.api/write-meta store def-thing docs)))
 
 (defn write-docs-for-ns
   "Function of a configuration and a Namespace which writes namespace metadata
   to the :datastore in config."
   [store ns-thing ns]
+  ;; TODO assert ns-thing is ns-thing
   (let [ns-meta (-> ns the-ns meta (or {}))]
     (grimoire.api/write-meta store ns-thing ns-meta)
     (println "Finished" ns)))
