@@ -6,7 +6,7 @@
 ;; Implement rendering cache to single transit file
 
 (defrecord TransitRenderer []
-  cljdoc.cache/CacheRenderer
+  cljdoc.cache/ICacheRenderer
   (render [_ cache {:keys [file] :as out-cfg}]
     (assert (and (instance? java.io.File file)
                  (nil? (:dir out-cfg))) "TransitRenderer expects file to render to")

@@ -24,16 +24,15 @@
             [grimoire.things :as things]
             [grimoire.either :as e]))
 
-(defn cache-contents [store version-t]
-  (->> (for [platform  (e/result (grim/list-platforms store vt))
-             namespace (e/result (grim/list-namespaces store platform))
-             def       (e/result (grim/list-defs store namespace))]
-         (let [def-meta (e/result (grim/read-meta store def))] 
-           (println "Bundling" (str (:name namespace) "/" (:name def)))
-           (assoc def-meta
-                  :platform (things/thing->name platform)
-                  :namespace (:name namespace))))
-       (spec/assert :cljdoc.spec/cache-contents)))
+(defn- cache-contents [store version-t]
+  (for [platform  (e/result (grim/list-platforms store version-t))
+        namespace (e/result (grim/list-namespaces store platform))
+        def       (e/result (grim/list-defs store namespace))]
+    (let [def-meta (e/result (grim/read-meta store def))]
+      (println "Bundling" (str (:name namespace) "/" (:name def)))
+      (assoc def-meta
+             :platform (things/thing->name platform)
+             :namespace (:name namespace)))))
 
 (defn bundle-docs
   [store version-t]
@@ -46,7 +45,7 @@
                          }}
        (spec/assert :cljdoc.spec/cache-bundle)))
 
-(defprotocol CacheRenderer
+(defprotocol ICacheRenderer
   "This protocol is intended to allow different implementations of renderers.
 
   Intended implementations:
