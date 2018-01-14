@@ -108,6 +108,8 @@ If you want to know more, open an issue or contact me elsewhere.
 - [ ] notify people that there are api docs available for a jar they just published
 - [ ] suggest to add some plain text documentation/guides + provide templates
 
+## Notes
+
 #### VERSIONING THOUGHTS
 
 - Show version in UI when viewing versioned information (i.e. anything
