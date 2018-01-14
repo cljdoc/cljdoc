@@ -1,5 +1,7 @@
 (ns cljdoc.renderers.transit
   (:require [cljdoc.cache]
+            [cljdoc.spec]
+            [clojure.spec.alpha :as spec]
             [clojure.java.io :as io]
             [cognitect.transit :as transit]))
 
@@ -8,6 +10,7 @@
 (defrecord TransitRenderer []
   cljdoc.cache/ICacheRenderer
   (render [_ cache {:keys [file] :as out-cfg}]
+    (spec/assert :cljdoc.spec/cache-bundle cache)
     (assert (and (instance? java.io.File file)
                  (nil? (:dir out-cfg))) "TransitRenderer expects file to render to")
     (-> (io/output-stream file)
