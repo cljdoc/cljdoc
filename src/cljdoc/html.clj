@@ -18,11 +18,13 @@
 
 (defn top-bar [cache-id]
   [:nav.pa3.pa4-ns.bb.b--black-10
-   [:a.link.dim.black.b.f6.dib.mr3 {:href "#"}
+   [:a.link.dim.black.b.f6.dib.mr3 {:href (r/path-for :artifact/version cache-id)}
     (str
      (:artifact-id cache-id) "/"
      (:group-id cache-id))]
-   [:a.link.dim.gray.f6.dib {:href "#"} (:version cache-id)]
+   [:a.link.dim.gray.f6.dib
+    {:href (r/path-for :artifact/index cache-id)}
+    (:version cache-id)]
    [:a.link.dim.gray.f6.dib.fr {:href "#"} "github.com/juxt/bidi"]])
 
 (defn def-block [def-meta]

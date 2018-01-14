@@ -9,7 +9,7 @@
           (branch "/" (param :group-id)
                   (leaf "/" :group/index)
                   (branch "/" (param :artifact-id)
-                          (leaf "/" :artifact-index)
+                          (leaf "/" :artifact/index)
                           (branch "/" (param :version)
                                   (leaf "/" :artifact/version)
                                   (branch "/" (param :namespace)
