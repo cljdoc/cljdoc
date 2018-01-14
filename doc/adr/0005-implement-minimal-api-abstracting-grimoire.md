@@ -26,7 +26,7 @@ This API will have the following properties:
 - files can be regenerated at any time
 
 An initial implementation of this cache can be fund in `cljdoc.cache` (as of
-`1749c22`). A spec has been written in `cljdoc.spec`. The cache follows the basic form of
+`fc3c6b2`). A spec has been written in `cljdoc.spec`. The cache follows the basic form of
 
 ```clojure
 {:cache-id       {,,,}
