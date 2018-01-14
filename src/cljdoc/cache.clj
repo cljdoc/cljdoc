@@ -19,6 +19,30 @@
   cache in the transit format: https://github.com/cognitect/transit-format.
 
   The format of the cache is defined in the spec :cljcdoc.spec/cache-bundle"
+  ;;
+  ;; TODO currently has no support for metadata on namespace or really
+  ;; anything beyond defs. This also plays into the question where to
+  ;; put scm-url. Maybe something like this could work:
+  ;;
+  ;;     {:cache-id 'as-is
+  ;;      :cache-contents {:version    'version-meta
+  ;;                       :artifact   'artifact-meta
+  ;;                       :group      'group-meta
+  ;;                       :platforms  ['platform-meta]
+  ;;                       :namespaces ['namespace-meta]
+  ;;                       :defs       ['def-meta]}}
+  ;;
+  ;; Generate this from a grimoire.thing input. For all sub-nodes that
+  ;; contain multiple children inline the information about their
+  ;; respective parent e.g. at platform and namespace keys to def-meta
+  ;;
+  ;; Probably we don't want to duplicate any data between
+  ;; cache-id and the group/artifact/version meta stuff.
+  ;;
+  ;; IMPORTANT Even if we don't go ahead with something like the above
+  ;; it is very important for future extension to turn `cache-contents`
+  ;; into a map!
+  ;;
   (:require [cljdoc.spec]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]
