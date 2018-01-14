@@ -1,4 +1,4 @@
-# 4. Utilize codox to read Clojure/Script sources
+# 4. Utilize Codox to Read Clojure/Script Sources
 
 Date: 2018-01-14
 
@@ -11,8 +11,7 @@ Supercedes [2. Don't build on top of Codox](0002-don-t-build-on-top-of-codox.md)
 ## Context
 
 I initially thought reading metadata from source files is built into Grimoire but it is not
-and has been implemented separately in projects like [lein-grim](TODO link). The
-implementation in `lein-grim` did not work with `.cljs` or `.cljc` files and so copying that
+and has been implemented separately in projects like [lein-grim](https://github.com/clojure-grimoire/lein-grim). The implementation in `lein-grim` did not work with `.cljs` or `.cljc` files and so copying that
 was not an option.
 
 In a previous ADR I decided not to build on top of codox to generate documentation. I still
