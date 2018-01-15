@@ -3,17 +3,23 @@
             [bidi.verbose :refer [branch leaf param]]
             [clojure.spec.alpha :as spec]))
 
+(def html-routes
+  "This is the routing scheme for rendering static HTML files"
+  (branch "/" (param :group-id)
+          (leaf "/" :group/index)
+          (branch "/" (param :artifact-id)
+                  (leaf "/" :artifact/index)
+                  (branch "/" (param :version)
+                          (leaf "/" :artifact/version)
+                          (branch "/" (param :namespace)
+                                  (leaf "/" :artifact/namespace)
+                                  (branch "#" (param :def)
+                                          (leaf "" :artifact/def)))))))
+
 (def routes
   ;; TODO implement grimoire URIs
   (branch ""
-          (branch "/" (param :group-id)
-                  (leaf "/" :group/index)
-                  (branch "/" (param :artifact-id)
-                          (leaf "/" :artifact/index)
-                          (branch "/" (param :version)
-                                  (leaf "/" :artifact/version)
-                                  (branch "/" (param :namespace)
-                                          (leaf "/" :artifact/namespace)))))))
+          html-routes))
 
 (defn path-for [k params]
   ;; NOTE spec/conform could be used to eliminate key param
