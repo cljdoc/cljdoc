@@ -123,7 +123,10 @@
 
 (defn platform-support-note [[[dominant-platf] :as platf-stats]]
   (if (= 1 (count platf-stats))
-    [:span (str "All forms support " (humanize-supported-platforms dominant-platf :long) ".")]
+    (if (or (= dominant-platf #{"clj"})
+            (= dominant-platf #{"cljs"}))
+      [:span (str (humanize-supported-platforms dominant-platf :long) " only.")]
+      [:span "All platforms support " (str (humanize-supported-platforms dominant-platf :long) ".")])
     [:span (str "Mostly " (humanize-supported-platforms dominant-platf) " forms. Exceptions indicated.")]))
 
 (defn namespace-page [emap defs]
