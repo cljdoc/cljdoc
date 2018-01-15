@@ -20,12 +20,12 @@
   [:nav.pa3.pa4-ns.bb.b--black-10
    [:a.link.dim.black.b.f6.dib.mr3 {:href (r/path-for :artifact/version cache-id)}
     (str
-     (:artifact-id cache-id) "/"
-     (:group-id cache-id))]
+     (:group-id cache-id) "/"
+     (:artifact-id cache-id))]
    [:a.link.dim.gray.f6.dib
     {:href (r/path-for :artifact/index cache-id)}
     (:version cache-id)]
-   [:a.link.dim.gray.f6.dib.fr {:href "#"} "github.com/juxt/bidi"]])
+   [:a.link.dim.gray.f6.dib.fr {:href "#"} "github.com/not-done/yet"]])
 
 (defn def-block [def-meta]
   (spec/assert :cljdoc.spec/def-full def-meta)
@@ -63,38 +63,86 @@
     [:li
      [:a.no-underline.black.dib.pa1 {:href "#"} "Nothing there yet"]]]])
 
-(defn definitions-list [defs]
-  [:div
-   [:ul.list.pl2
-    (for [a-def defs]
-      [:li
-       [:a.link.dim.blue.dib.pa1 {:href (str "/" #_(things/thing->path def-thing) "/")}
-        (:name a-def)]])]])
+(defn humanize-supported-platforms
+  ([supported-platforms]
+   (humanize-supported-platforms supported-platforms :short))
+  ([supported-platforms style]
+   (case style
+     :short (case supported-platforms
+              #{"clj" "cljs"} "CLJ/S"
+              #{"clj"}        "CLJ"
+              #{"cljs"}       "CLJS")
+     :long  (case supported-platforms
+              #{"clj" "cljs"} "Clojure & ClojureScript"
+              #{"clj"}        "Clojure"
+              #{"cljs"}       "ClojureScript"))))
 
-(def sidebar-el
-  :div.fixed.w5.pa3.pa4-ns)
+(defn platform-stats [defs]
+  (let [grouped-by-platform-support (->> defs
+                                         (map #(select-keys % [:name :platform]))
+                                         (group-by :name)
+                                         vals
+                                         (map (fn [[a b]] #{(:platform a) (:platform b)}))
+                                         (group-by identity))
+        counts-by-platform (-> grouped-by-platform-support
+                               (update #{"clj"} count)
+                               (update #{"cljs"} count)
+                               (update #{"clj" "cljs"} count))]
+    (->> counts-by-platform (sort-by val) reverse (filter (comp pos? second)))))
+
+(defn definitions-list [ns-entity defs {:keys [indicate-platforms-other-than]}]
+  [:div.absolute.overflow-scroll.CSS_HACK
+   {:style {:bottom "0px" :top "10rem"}} ; CSS HACK
+   [:div.pb4
+    [:ul.list.pl2
+     (for [[def-name platf-defs] (->> defs
+                                      (group-by :name)
+                                      (sort-by key))]
+       [:li
+        [:a.link.dim.blue.dib.pa1
+         {:href (r/path-for :artifact/def (merge ns-entity {:def def-name}))}
+         def-name]
+        (when-not (= (set (map :platform platf-defs))
+                     indicate-platforms-other-than)
+          [:span.f6.ttu.gray
+           (-> (set (map :platform platf-defs))
+               (humanize-supported-platforms))])])]]])
+
+
+(defn sidebar [& contents]
+  [:div.fixed.w5.pa3.pa4-ns.bottom-0.CSS_HACK
+   {:style {:top "80px"}} ; CSS HACK
+   contents])
 
 (defn index-page [cache-id namespace-emaps]
   [:div
    (top-bar cache-id)
-   [sidebar-el
+   (sidebar
     (article-list [])
-    (namespace-list namespace-emaps)]])
+    (namespace-list namespace-emaps))])
+
+(defn platform-support-note [[[dominant-platf] :as platf-stats]]
+  (if (= 1 (count platf-stats))
+    [:span (str "All forms support " (humanize-supported-platforms dominant-platf :long) ".")]
+    [:span (str "Mostly " (humanize-supported-platforms dominant-platf) " forms. Exceptions indicated.")]))
 
 (defn namespace-page [emap defs]
-  (let [sorted-defs (sort-by :name defs)]
+  (let [sorted-defs                        (sort-by :name defs)
+        [[dominant-platf] :as platf-stats] (platform-stats defs)]
     [:div
      (top-bar emap)
      [:div
-      [sidebar-el
+      (sidebar
        [:a.link.dim.blue.f6 {:href (r/path-for :artifact/version emap)} "All namespaces"]
        [:h3 (:namespace emap)]
-       (definitions-list sorted-defs)]
+       (platform-support-note platf-stats)
+       (definitions-list emap sorted-defs
+         {:indicate-platforms-other-than dominant-platf}))
       [:div.ml7.w-60-ns.pa4-ns.bl.b--black-10
        (map def-block sorted-defs)]]]))
 
 (defn render-to [hiccup ^java.io.File file]
-  (println "Writing" (.getPath file))
+  (println "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
   (->> hiccup page str (spit file)))
 
 (defn file-for [out-dir route-id route-params]
