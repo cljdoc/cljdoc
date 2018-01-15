@@ -4,6 +4,7 @@
   (:require [clojure.spec.alpha :as spec]
             [clojure.java.classpath :as cp]
             [clojure.tools.namespace.find :as tns.f]
+            [clojure.repl]
             [codox.main]
             [grimoire.api]
             [grimoire.api.fs]
