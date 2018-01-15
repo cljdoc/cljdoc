@@ -238,14 +238,24 @@
        {:dir grimoire-html-dir})
       (-> fs (add-resource tempd) commit!))))
 
+(deftask open
+  [p project PROJECT sym "Project to build documentation for"
+   v version VERSION str "Version of project to build documentation for"]
+  (with-pass-thru _
+    (let [uri (format "http://localhost:5000/%s/%s/%s/"
+                      (group-id project) (artifact-id project) version)]
+      (boot.util/info "Opening %s\n" uri)
+      (boot.util/dosh "open" uri))))
+
 (deftask build-docs
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (comp (copy-jar-contents :jar (jar-file [project version]))
-        (import-repo :project project :version version)
+        #_(import-repo :project project :version version)
         (grimoire :project project :version version)
         (grimoire-html :project project :version version)
-        (codox :project project :version version)))
+        (open :project project :version version)
+        #_(codox :project project :version version)))
 
 (deftask deploy-docs
   [p project PROJECT sym "Project to build documentation for"
