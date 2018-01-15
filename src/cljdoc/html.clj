@@ -82,7 +82,8 @@
                                          (map #(select-keys % [:name :platform]))
                                          (group-by :name)
                                          vals
-                                         (map (fn [[a b]] #{(:platform a) (:platform b)}))
+                                         (map (fn [defs]
+                                                (set (map :platform defs))))
                                          (group-by identity))
         counts-by-platform (-> grouped-by-platform-support
                                (update #{"clj"} count)
