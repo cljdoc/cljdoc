@@ -6,13 +6,17 @@
 (s/def ::name string?)
 (s/def ::doc (s/nilable string?))
 (s/def ::src string?)
-(s/def ::type #{:var :fn :macro})
+(s/def ::type #{:var :fn :macro :protocol})
 (s/def ::line (s/and int? pos?))
 (s/def ::column (s/and int? pos?))
 
 (s/def ::def-minimal
-  (s/keys :req-un [::name ::src ::line ::column]
-          :opt-un [::doc ::type])) ;; figure out why these are missing simetimes
+  (s/keys :req-un [::name ::type ::line]
+          ;; figure out why type is missing sometimes
+          ;; also Codox currently does not support :src
+          ;; and with :language :clojurescript it also
+          ;; does not support :column
+          :opt-un [::doc ::src ::column]))
 
 (s/def ::platform #{"clj" "cljs"})
 (s/def ::namespace string?)
