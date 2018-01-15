@@ -263,9 +263,10 @@
    v version VERSION str "Version of project to build documentation for"]
   (let [doc-path (docs-path project version)]
     (assert (.endsWith doc-path "/"))
+    (assert (not (.startsWith doc-path "/")))
     (comp (build-docs :project project :version version)
-          (sift :include #{#"^codox-docs"})
-          (sift :move {#"^codox-docs/(.*)" (str doc-path "$1")})
+          (sift :include #{#"^grimoire-html"})
+          (sift :move {#"^grimoire-html/(.*)" (str "$1")})
           (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
                                 ;; also invalidates root path (also cheaper)
                                 :invalidation-paths [(str "/" doc-path "*")])
@@ -273,7 +274,7 @@
             (let [base-uri "https://cljdoc.martinklepsch.org"]
               (util/info "\nDocumentation can be viewed at:\n\n    %s/%s\n\n" base-uri doc-path))))))
 
-#_(deftask wipe-everything []
+(deftask wipe-s3-bucket []
   (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
                         :prune true))
 
