@@ -47,17 +47,21 @@ If you want to know more, open an issue or contact me elsewhere.
 
 - [ ] create Docker setup to run `build-docs`
   - starting point `sudo docker run -it adzerk/boot-clj repl`
+- [ ] only the grimoire analysis would need to run isolated, everything else operates on top of the grimoire store, which is safe to read
 - [ ] create an API server that runs the Docker setup
 - [ ] copy created files to host, upload to S3 (so that AWS keys are not exposed in Docker env)
 - [ ] How to get notified when new stuff is released on Clojars?
 
 #### API DOCS
 
-- [ ] derive source-uri
-  - probably needs parsing of project.clj or build.boot or perhaps we can derive source locations by overlaying jar contents
-  - :face_with_head_bandage: from quick testing it seems that getting this to work with codox could be hard
+- Linking to source files/lines on GitHub
+  - Potential Approaches
+    - probably needs parsing of project.clj or build.boot or
+    - perhaps we can derive source locations by overlaying jar contents
+    - if the repo is tagged we can try finding the file with the same SHA as the file in the jar and derive it's repo location this way
+      - this information should go into the namespace-meta I believe
   - Grimoire data contains source so perhaps source URI becomes less important
-  - still would be nice to jump to the entire source file
+  - still would be nice to jump to the entire source file on Github
 - [x] give grimoire and related tools a go
 - [x] Build Codox style index page based on grimoire info
   - :bulb: Generating pages straight from grimoire info results in pretty tight coupling
@@ -105,7 +109,7 @@ If you want to know more, open an issue or contact me elsewhere.
 - [x] clone repo, copy `doc` directory, provide to codox
 - [x] try to check out Git repo at specific tag for `doc/` stuff; warn if no tags
 - [ ] figure out what other metadata should be imported
-- [ ] Think about how stuff like https://shadow-cljs.github.io/docs/UsersGuide.html could be accomodated
+- [ ] Think about how stuff like https://shadow-cljs.github.io/docs/UsersGuide.html could be accommodated
 - [ ] Figure out how to deal with changes between tagged releases
   - We probably don't want to pick up API changes since people commonly push development progress straight to `master`
   - Picking up changes to `doc/` would be nice and the above problem probably applies a little less
@@ -174,3 +178,5 @@ Intended implementations:
     - Single HTML file (CLJS app only working with existing data)
     - Global app (CLJS app with ways out of the current context: other projects, versions etc.)
     - Both of them could share a lot of code but have slightly different entry points
+- Docsets for [Dash](https://kapeli.com/docsets#exdoc) and similar apps
+  - Based on HTML, perhaps using [dashing](https://github.com/technosophos/dashing)
