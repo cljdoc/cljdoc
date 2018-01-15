@@ -16,7 +16,7 @@
           ;; also Codox currently does not support :src
           ;; and with :language :clojurescript it also
           ;; does not support :column
-          :opt-un [::doc ::src ::column]))
+          :opt-un [::doc ::src]))
 
 (s/def ::platform #{"clj" "cljs"})
 (s/def ::namespace string?)
