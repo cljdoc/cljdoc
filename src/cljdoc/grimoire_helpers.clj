@@ -54,28 +54,20 @@
         (string? x) x
         :else       (throw (Exception. (str "Don't know how to stringify " x)))))
 
-(defn write-docs-for-var
+(defn write-docs-for-def
   "General case of writing documentation for a Var instance with
   metadata. Compute a \"docs\" structure from the var's metadata and then punt
   off to write-meta which does the heavy lifting."
-  [store def-thing var]
-  ;; TODO assert def-thing is def-thing
-  (let [docs (-> (meta var)
-                 (assoc  ;; TODO there are issues with source-fn, for details see:
-                         ;; https://github.com/martinklepsch/clj-docs#grimoire
-                         ;; :src  (var->src var)
-                         :src  (clojure.repl/source-fn (symbol (subs (str var) 2)))
-                         :type (var->type var))
-                 ;; @arrdem meta takes precedence here — are there situations where name and
-                 ;; ns would differe from whatever is encoded in the grimoire/thing?
-                 (update :name #(name-stringifier (or %1 (grimoire.things/thing->name var))))
-                 (update :ns   #(ns-stringifier (or %1 (grimoire.things/thing->name (grimoire.things/thing->namespace var)))))
-                 (dissoc :inline
-                         :protocol
-                         :inline
-                         :inline-arities))]
+  [store def-thing codox-meta]
+  (assert (grimoire.things/def? def-thing))
+  (let [docs (-> codox-meta
+                 (update :name name))]
+    (when-not (:name docs)
+      (println "Var name missing:" docs))
     (assert (:name docs) "Var name was nil!")
-    (assert (:ns docs) "Var namespace was nil!")
+    (assert (nil? (:namespace docs)) "Namespace should not get written to def-meta")
+    (assert (nil? (:platform docs)) "Platform should not get written to def-meta")
+    (spec/assert :cljdoc.spec/def-minimal docs)
     (grimoire.api/write-meta store def-thing docs)))
 
 (defn write-docs-for-ns
@@ -123,17 +115,14 @@
                        :namespaces   :all
                        :metadata     {}
                        :exclude-vars #"^(map)?->\p{Upper}"})]
+
       (doseq [ns namespaces
               :let [publics  (:publics ns)
                     ns-thing (grimoire.things/->Ns platform (-> ns :name name))]]
         (write-docs-for-ns store ns-thing (:name ns))
         (doseq [public     publics
                 :let [def-thing (grimoire.things/->Def ns-thing (-> public :name name))]]
-          (write-docs-for-var
-           store
-           def-thing
-           (resolve (symbol (-> ns :name name)
-                            (-> public :name name)))))))))
+          (write-docs-for-def store def-thing public))))))
 
 (comment
   (build-grim {:group-id "bidi"
