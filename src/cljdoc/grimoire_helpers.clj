@@ -108,7 +108,9 @@
     (grimoire.api/write-meta store platform {})
 
     (let [namespaces (#'codox.main/read-namespaces
-                      {:language     :clojure
+                      {:language     (get {"clj" :clojure
+                                           "cljs" :clojurescript}
+                                          (grimoire.things/thing->name platform))
                        ;; not sure what :root-path is needed for
                        :root-path    (System/getProperty "user.dir")
                        :source-paths [src]
