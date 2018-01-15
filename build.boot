@@ -1,24 +1,35 @@
 (ns boot.user)
 
+(def analysis-deps
+  '[[org.clojure/clojure "1.9.0"]
+    [org.clojure/test.check "0.9.0"]
+    [org.clojure/java.classpath "0.2.2"]
+    [org.clojure/tools.namespace "0.2.11"]
+    [org.clojure/clojurescript "1.9.946"] ; Codox depends on old CLJS which fails with CLJ 1.9
+
+    [codox "0.10.3"]
+    [org.clojure-grimoire/lib-grimoire "0.10.9"]
+    ;; lib-grimpoire depends on an old core-match
+    ;; which pulls in other old stuff
+    [org.clojure/core.match "0.3.0-alpha5"]
+    [me.arrdem/detritus "0.3.0"]])
+
 (boot.core/set-env!
  :source-paths #{"src"}
- :dependencies '[[org.clojure/clojure "1.9.0"]
-                 [org.clojure/test.check "0.9.0"]
-                 [org.clojure/java.classpath "0.2.2"]
-                 [org.clojure/tools.namespace "0.2.11"]
-                 [com.cognitect/transit-clj "0.8.300"]
+ :dependencies (into analysis-deps
+                     '[[com.cognitect/transit-clj "0.8.300"]
 
-                 [confetti "0.2.0"]
-                 [bidi "2.1.3"]
-                 [hiccup "2.0.0-alpha1"]
+                       [confetti "0.2.0"]
+                       [bidi "2.1.3"]
+                       [hiccup "2.0.0-alpha1"]
 
-                 ;; Grimoire stuff
-                 [codox "0.10.3"]
-                 [org.clojure-grimoire/lib-grimoire "0.10.9"]
-                 [me.arrdem/detritus "0.3.0"]
+                       [org.slf4j/slf4j-nop "1.7.25"]
+                       [clj-jgit "0.8.10"]
 
-                 [org.slf4j/slf4j-nop "1.7.25"]
-                 [clj-jgit "0.8.10"]])
+                       ;; Samples to test with
+                       ;; [org.martinklepsch/derivatives "0.2.0"]
+                       ;; [re-frame "0.10.2"]
+                       ]))
 
 (require '[boot.pod :as pod]
          '[boot.util :as util]
@@ -185,16 +196,24 @@
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
     (let [tempd        (tmp-dir!)
-          grimoire-dir (io/file tempd "grimoire")]
+          grimoire-dir (io/file tempd "grimoire")
+          grimoire-pod (pod/make-pod {:dependencies (conj analysis-deps [project version])
+                                      :directories #{"src"}})]
       (util/info "Generating Grimoire store for %s\n" project)
-      (doseq [platf ["clj" "cljs"]]
-        (cljdoc.grimoire-helpers/build-grim
-         {:group-id (group-id project)
-          :artifact-id  (artifact-id project)
-          :version version
-          :platform platf}
-         (jar-contents-dir fs)
-         (.getPath grimoire-dir)))
+      (pod/with-eval-in grimoire-pod
+        (require 'cljs.util)
+        ;; TODO print versions for Clojure/CLJS and other important deps
+        (boot.util/info "Pod versions: %s\n" (cljs.util/clojurescript-version))
+        (require 'cljdoc.grimoire-helpers)
+        (boot.util/info "Grimoire importer version: %s\n" cljdoc.grimoire-helpers/v)
+        (doseq [platf ["clj" "cljs"]]
+          (cljdoc.grimoire-helpers/build-grim
+           {:group-id     ~(group-id project)
+            :artifact-id  ~(artifact-id project)
+            :version      ~version
+            :platform     platf}
+           ~(jar-contents-dir fs)
+           ~(.getPath grimoire-dir))))
       (-> fs (add-resource tempd) commit!))))
 
 (deftask grimoire-html

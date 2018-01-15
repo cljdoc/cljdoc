@@ -15,6 +15,8 @@
             [grimoire.either]
             [detritus.var]))
 
+(def v "0.1.0")
+
 (defn var->type
   "Function from a var to the type of the var.
   - Vars tagged as dynamic or satisfying the .isDynamic predicate are tagged
