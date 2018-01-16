@@ -92,7 +92,9 @@
 (defn bundle-versions
   [store artifact-t]
   (assert (things/artifact? artifact-t) "bundle-versions expects a grimoire.things/artifact argument")
-  (->> {:cache-contents {:versions []} ;TODO
+  (->> {:cache-contents {:versions (for [version-t (e/result (grim/list-versions store artifact-t))
+                                         :let [version-meta (e/result (grim/read-meta store version-t))]]
+                                     (merge {:name (things/thing->name version-t)} version-meta))}
         :cache-id       {:group-id    (-> artifact-t things/thing->group things/thing->name)
                          :artifact-id (-> artifact-t things/thing->name)}}
        (spec/assert :cljdoc.spec/cache-bundle)))
