@@ -237,11 +237,6 @@
        (cljdoc.html/->HTMLRenderer)
        (cljdoc.cache/bundle-docs grimoire-store grimoire-thing)
        {:dir grimoire-html-dir})
-      ;; TODO we need to import all versions from some remote store first
-      (cljdoc.cache/render
-       (cljdoc.html/->HTMLRenderer)
-       (cljdoc.cache/bundle-versions grimoire-store (grimoire.things/thing->artifact grimoire-thing))
-       {:dir grimoire-html-dir})
       (-> fs (add-resource tempd) commit!))))
 
 (defn open-uri [format-str project version]

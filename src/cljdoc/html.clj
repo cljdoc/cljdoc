@@ -171,35 +171,12 @@
       (render-to (namespace-page ns-emap defs)
                  (file-for out-dir :artifact/namespace ns-emap)))))
 
-(defn versions-page [cache-id version-emaps]
-  [:div.mw7.center
-   [:h2 "Known versions for " (:group-id cache-id) "/" (:artifact-id cache-id)]
-   [:ul.list
-    (for [{:keys [name] :as vm} version-emaps]
-      [:li
-       (println vm)
-       [:a.link.blue.dim
-        {:href (r/path-for :artifact/version (assoc cache-id :version name))}
-        name]])]])
-
-(defn write-versions [cache-bundle ^java.io.File dir]
-  (render-to (versions-page (-> cache-bundle :cache-id)
-                            (-> cache-bundle :cache-contents :versions))
-             (file-for dir :artifact/index (:cache-id cache-bundle))))
-
 (defrecord HTMLRenderer []
   cljdoc.cache/ICacheRenderer
   (render [_ cache-bundle {:keys [dir] :as out-cfg}]
     (spec/assert :cljdoc.spec/cache-bundle cache-bundle)
     (assert (and dir (.isDirectory dir) (nil? (:file out-cfg)) "HTMLRenderer expects output directory"))
-    (let [{:keys [cache-id cache-contents]} (spec/conform :cljdoc.spec/cache-bundle cache-bundle)
-          [cache-entity  cache-id]          cache-id
-          [contents-type cache-contents]    cache-contents]
-      ;; (prn 'cache-entity cache-entity)
-      ;; (prn 'contents-type contents-type)
-      (case contents-type
-        :docs     (write-docs* cache-bundle dir)
-        :versions (write-versions cache-bundle dir)))))
+    (write-docs* cache-bundle dir)))
 
 (comment
 
