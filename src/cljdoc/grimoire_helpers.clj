@@ -15,6 +15,17 @@
             [grimoire.either]
             [detritus.var]))
 
+(defn sanitize-cdx [cdx-namespace]
+  ;; :publics contain a field path which is a
+  ;; file, this cannot be serialized accross
+  ;; pod boundaries by default
+  (let [clean-public #(update % :path (fn [file] (.getPath file)))
+        remove-unneeded #(dissoc % :path :members)  ; TODO what are members?
+        stringify-name #(update % :name name)]
+    (-> cdx-namespace
+        (update :name name)
+        (update :publics #(map (comp stringify-name remove-unneeded) %)))))
+
 (def v "0.1.0")
 
 (defn var->type
@@ -73,33 +84,21 @@
 (defn write-docs-for-ns
   "Function of a configuration and a Namespace which writes namespace metadata
   to the :datastore in config."
-  [store ns-thing ns]
-  ;; TODO assert ns-thing is ns-thing
-  (let [ns-meta (-> ns the-ns meta (or {}))]
-    (grimoire.api/write-meta store ns-thing ns-meta)
-    (println "Finished" ns)))
+  [store ns-thing ns-meta]
+  (assert (grimoire.things/namespace? ns-thing))
+  (grimoire.api/write-meta store ns-thing ns-meta)
+  (println "Finished namespace" (:name ns-meta)))
 
-(defn build-grim [platf-entity src dst]
+(defn build-grim [platf-entity codox-namespaces dst]
   (spec/assert :cljdoc.spec/platform-entity platf-entity)
   (assert dst "target dir missing!")
-  (assert src "source dir missing!")
+  (assert (coll? codox-namespaces) "codox-namespaces malformed")
   (let [store    (grimoire.api.fs/->Config dst "" "")
         platform (-> (grimoire.things/->Group    (:group-id platf-entity))
                      (grimoire.things/->Artifact (:artifact-id platf-entity))
                      (grimoire.things/->Version  (:version platf-entity))
                      (grimoire.things/->Platform (grimoire.util/normalize-platform (:platform platf-entity))))]
 
-    ;; Write metadata for the group, artifact, version & platform
-    ;; OLD VERSION
-    ;; (reduce (fn [acc f]
-    ;;           (grimoire.api/write-meta (:datastore config) acc {})
-    ;;           (f acc))
-    ;;         (grimoire.things/->Group groupid)
-    ;;         [#(grimoire.things/->Artifact % artifactid)
-    ;;          #(grimoire.things/->Version % version)
-    ;;          #(grimoire.things/->Platform % platform)
-    ;;          identity])
-    ;; ----------------------------------------
     (println "Writing bare meta for"
              (grimoire.things/thing->path (grimoire.things/thing->version platform)))
     (grimoire.api/write-meta store (grimoire.things/thing->group platform) {})
@@ -107,24 +106,20 @@
     (grimoire.api/write-meta store (grimoire.things/thing->version platform) {})
     (grimoire.api/write-meta store platform {})
 
-    (let [namespaces (#'codox.main/read-namespaces
-                      {:language     (get {"clj" :clojure
-                                           "cljs" :clojurescript}
-                                          (grimoire.things/thing->name platform))
-                       ;; not sure what :root-path is needed for
-                       :root-path    (System/getProperty "user.dir")
-                       :source-paths [src]
-                       :namespaces   :all
-                       :metadata     {}
-                       :exclude-vars #"^(map)?->\p{Upper}"})]
-
+    (let [namespaces codox-namespaces]
       (doseq [ns namespaces
               :let [publics  (:publics ns)
                     ns-thing (grimoire.things/->Ns platform (-> ns :name name))]]
-        (write-docs-for-ns store ns-thing (:name ns))
-        (doseq [public     publics
-                :let [def-thing (grimoire.things/->Def ns-thing (-> public :name name))]]
-          (write-docs-for-def store def-thing public))))))
+        (write-docs-for-ns store ns-thing (dissoc ns :publics))
+        (doseq [public publics]
+          (try
+            (write-docs-for-def store
+                                (grimoire.things/->Def ns-thing (-> public :name name))
+                                public)
+            (catch Throwable e
+              (throw (ex-info "Failed to write docs for def"
+                              {:codox/public public}
+                              e)))))))))
 
 (comment
   (build-grim {:group-id "bidi"
