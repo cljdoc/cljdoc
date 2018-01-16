@@ -37,6 +37,7 @@
          '[clojure.spec.alpha :as spec]
          '[clj-jgit.porcelain :as git]
          '[cljdoc.html]
+         '[cljdoc.renderers.transit]
          '[cljdoc.grimoire-helpers]
          '[confetti.boot-confetti :as confetti])
 
@@ -257,6 +258,31 @@
        {:dir grimoire-html-dir})
       (-> fs (add-resource tempd) commit!))))
 
+(deftask transit-cache
+  [p project PROJECT sym "Project to build transit cache for"
+   v version VERSION str "Version of project to build transit cache for"]
+  (with-pre-wrap fs
+    (let [tempd             (tmp-dir!)
+          grimoire-dir      (let [boot-dir (->> (output-files fs) (by-re [#"^grimoire/"]) first :dir)]
+                              (assert boot-dir)
+                              (io/file boot-dir "grimoire/"))
+          grimoire-thing    (-> (grimoire.things/->Group (group-id project))
+                                (grimoire.things/->Artifact (artifact-id project))
+                                (grimoire.things/->Version version))
+          transit-cache     (io/file tempd "transit-cache"
+                                     (group-id project)
+                                     (artifact-id project)
+                                     (str version ".transit"))
+          grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
+      (util/info "Generating Grimoire Transit cache for %s\n" project)
+      (io/make-parents transit-cache)
+      (require 'cljdoc.renderers.transit 'cljdoc.routes 'cljdoc.spec :reload)
+      (cljdoc.cache/render
+       (cljdoc.renderers.transit/->TransitRenderer)
+       (cljdoc.cache/bundle-docs grimoire-store grimoire-thing)
+       {:file transit-cache})
+      (-> fs (add-resource tempd) commit!))))
+
 (defn open-uri [format-str project version]
   (let [uri (format format-str (group-id project) (artifact-id project) version)]
     (boot.util/info "Opening %s\n" uri)
@@ -267,24 +293,13 @@
    v version VERSION str "Version of project to build documentation for"]
   (with-pass-thru _ (open-uri "http://localhost:5000/%s/%s/%s/" project version)))
 
-(deftask build-docs
-  [p project PROJECT sym "Project to build documentation for"
-   v version VERSION str "Version of project to build documentation for"]
-  (comp (copy-jar-contents :jar (jar-file [project version]))
-        #_(import-repo :project project :version version)
-        (grimoire :project project :version version)
-        (grimoire-html :project project :version version)
-        (open :project project :version version)
-        #_(codox :project project :version version)))
-
 (deftask deploy-docs
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (let [doc-path (docs-path project version)]
     (assert (.endsWith doc-path "/"))
     (assert (not (.startsWith doc-path "/")))
-    (comp (build-docs :project project :version version)
-          (sift :include #{#"^grimoire-html"})
+    (comp (sift :include #{#"^grimoire-html"})
           (sift :move {#"^grimoire-html/(.*)" (str "$1")})
           (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
                                 ;; also invalidates root path (also cheaper)
@@ -292,6 +307,23 @@
           (with-pass-thru _
             (let [base-uri "https://cljdoc.martinklepsch.org"]
               (util/info "\nDocumentation can be viewed at:\n\n    %s/%s\n\n" base-uri doc-path))))))
+
+(defmacro when-task [test task-form]
+  `(if ~test ~task-form identity))
+
+(deftask build-docs
+  [p project PROJECT sym "Project to build documentation for"
+   v version VERSION str "Version of project to build documentation for"
+   d deploy          bool "Also deploy newly built docs to S3?"]
+  (comp (copy-jar-contents :jar (jar-file [project version]))
+        #_(import-repo :project project :version version)
+        (grimoire :project project :version version)
+        (grimoire-html :project project :version version)
+        (transit-cache :project project :version version)
+        (when-task deploy
+          (deploy-docs :project project :version version))
+        #_(open :project project :version version)
+        #_(codox :project project :version version)))
 
 (deftask wipe-s3-bucket []
   (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
