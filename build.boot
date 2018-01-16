@@ -269,18 +269,15 @@
           grimoire-thing    (-> (grimoire.things/->Group (group-id project))
                                 (grimoire.things/->Artifact (artifact-id project))
                                 (grimoire.things/->Version version))
-          transit-cache     (io/file tempd "transit-cache"
-                                     (group-id project)
-                                     (artifact-id project)
-                                     (str version ".transit"))
+          transit-cache-dir (io/file tempd "transit-cache")
           grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
       (util/info "Generating Grimoire Transit cache for %s\n" project)
-      (io/make-parents transit-cache)
+      (.mkdir transit-cache-dir)
       (require 'cljdoc.renderers.transit 'cljdoc.routes 'cljdoc.spec :reload)
       (cljdoc.cache/render
        (cljdoc.renderers.transit/->TransitRenderer)
        (cljdoc.cache/bundle-docs grimoire-store grimoire-thing)
-       {:file transit-cache})
+       {:dir transit-cache-dir})
       (-> fs (add-resource tempd) commit!))))
 
 (defn open-uri [format-str project version]

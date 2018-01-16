@@ -16,9 +16,19 @@
                                   (branch "#" (param :def)
                                           (leaf "" :artifact/def)))))))
 
+(def transit-cache-routes
+  "This is the routing scheme for rendering static HTML files"
+  (branch "/" (param :group-id)
+          (leaf "/" :transit/group-index)
+          (branch "/" (param :artifact-id)
+                  (leaf "/" :transit/artifact-index)
+                  (branch "/" (param :version)
+                          (leaf ".transit" :transit/version)))))
+
 (def routes
   ;; TODO implement grimoire URIs
   (branch ""
+          transit-cache-routes
           html-routes))
 
 (defn path-for [k params]
