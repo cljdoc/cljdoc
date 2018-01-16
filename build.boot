@@ -153,9 +153,9 @@
                                         (by-re [#"^jar-contents/"])
                                         first
                                         :dir)
-          cdx-pod (pod/make-pod {:dependencies [[project version]
-                                                '[codox-theme-rdash "0.1.2"]
-                                                '[codox "0.10.3"]]})]
+          cdx-pod (pod/make-pod {:dependencies (into analysis-deps
+                                                     [[project version]
+                                                      '[codox-theme-rdash "0.1.2"]])})]
       (util/info "Generating codox documentation for %s\n" project)
       (assert jar-contents-fileset-dir "Could not find jar-contents directory in fileset")
       (let [jar-contents-dir (-> jar-contents-fileset-dir
@@ -195,6 +195,7 @@
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
+    (boot.util/info "Creating analysis pod ...\n")
     (let [tempd        (tmp-dir!)
           grimoire-dir (io/file tempd "grimoire")
           grimoire-pod (pod/make-pod {:dependencies (conj analysis-deps [project version])
