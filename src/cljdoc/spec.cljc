@@ -76,10 +76,14 @@
 (s/def ::sha string?)
 (s/def ::scm-url string?)
 
-(s/def ::version-full
-  (s/keys :req-un [::name ::tag ::sha ::scm-url]))
+(s/def ::version-minimal
+  (s/keys :req-un [::name]))
 
-(s/def ::versions (s/coll-of ::version-full :gen-max 10))
+(s/def ::version-full
+  (s/merge ::version-minimal (s/keys ::req-un [::tag ::sha ::scm-url])))
+
+(s/def ::versions
+  (s/coll-of ::version-minimal :gen-max 10))
 
 (s/def ::versions-cache
   (s/keys :req-un [::versions]))
