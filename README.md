@@ -68,7 +68,9 @@ If you want to know more, open an issue or contact me elsewhere.
   - :bulb: We should probably generate an intermediate format and cache it in Transit
   - :bulb: This cache could be used to generate static and SPA pages alike
   - :bulb: Spec could be used to validate the cache format / generate sample data
-- [ ] think about how different platforms can be combined in API docs
+- [x] think about how different platforms can be combined in API docs
+  - def list should only show one name with appropriate indication
+  - clj-only, cljs-only, both — maybe `CLJ`, `CLJS`, `CLJ/S`
 - [ ] build static site generator or SPA that runs on top of grimoire data
 
 #### GRIMOIRE
