@@ -11,12 +11,15 @@
 (s/def ::column (s/and int? pos?))
 
 (s/def ::def-minimal
-  (s/keys :req-un [::name ::type ::line]
+  (s/keys :req-un [::name ::type]
           ;; figure out why type is missing sometimes
           ;; also Codox currently does not support :src
           ;; and with :language :clojurescript it also
           ;; does not support :column
-          :opt-un [::doc ::src]))
+          :opt-un [::doc
+                   ::src
+                   ::line ; may not be present in vars that have been defined dynamically
+                   ]))
 
 (s/def ::platform #{"clj" "cljs"})
 (s/def ::namespace string?)
