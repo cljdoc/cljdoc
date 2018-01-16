@@ -28,6 +28,9 @@
 (s/def ::group-id string?)
 (s/def ::artifact-id string?)
 (s/def ::version string?)
+(s/def ::git-tag string?)
+(s/def ::git-sha string?)
+(s/def ::scm-url string?)
 
 ;; Entity maps -------------------------------------------------------
 ;; These are basically intended to serve the same purpose as
@@ -71,28 +74,10 @@
 (s/def ::docs-cache
   (s/keys :req-un [::defs ::namespaces]))
 
-;; Versions-cache:
-(s/def ::tag string?)
-(s/def ::sha string?)
-(s/def ::scm-url string?)
-
-(s/def ::version-minimal
-  (s/keys :req-un [::name]))
-
-(s/def ::version-full
-  (s/merge ::version-minimal (s/keys ::req-un [::tag ::sha ::scm-url])))
-
-(s/def ::versions
-  (s/coll-of ::version-minimal :gen-max 10))
-
-(s/def ::versions-cache
-  (s/keys :req-un [::versions]))
-
 ;; Cache bundle (combination of the above cache specs)
 
 (s/def ::cache-contents
-  (s/or :docs ::docs-cache
-        :versions ::versions-cache))
+  (s/or :docs ::docs-cache))
 
 (s/def ::cache-id ::grimoire-entity)
 

@@ -89,14 +89,6 @@
                          :version     (-> version-t things/thing->name)}}
        (spec/assert :cljdoc.spec/cache-bundle)))
 
-(defn bundle-versions
-  [store artifact-t]
-  (assert (things/artifact? artifact-t) "bundle-versions expects a grimoire.things/artifact argument")
-  (->> {:cache-contents {:versions []} ;TODO
-        :cache-id       {:group-id    (-> artifact-t things/thing->group things/thing->name)
-                         :artifact-id (-> artifact-t things/thing->name)}}
-       (spec/assert :cljdoc.spec/cache-bundle)))
-
 (defprotocol ICacheRenderer
   "This protocol is intended to allow different implementations of renderers.
 
@@ -122,8 +114,6 @@
     (def pt (things/->Platform vt "clj"))
     (def cache (bundle-docs store vt))
     (defn dev-cache [] (bundle-docs store vt)))
-
-  (bundle-versions store at)
 
   (e/result (grim/list-namespaces store pt))
 
