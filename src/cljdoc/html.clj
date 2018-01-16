@@ -40,7 +40,10 @@
    [:div
     (for [argv (sort-by count (:arglists def-meta))]
       [:pre (str "(" (:name def-meta) " " (clojure.string/join " " argv) ")")])]
-   [:p.lh-copy.w8 (:doc def-meta)]
+   (when (:doc def-meta)
+     (if (.contains (:doc def-meta) "{")
+       [:pre.w8 (:doc def-meta)]
+       [:p.lh-copy.w8 (:doc def-meta)]))
    ;; source-fn really is broken
    ;; [:pre.pa3.bg-black-05.br2.overflow-scroll (:src def-meta)]
    ;; [:pre (with-out-str (clojure.pprint/pprint def-meta))]
