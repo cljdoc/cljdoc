@@ -15,7 +15,7 @@ And will allow us to build various tools on top, including: static HTML pages (s
 
 I've also had a very productive chat with Reid McKenzie  (@arrdem, author of Grimoire) about how we could extend the Grimoire data model to accommodate non-API documentation. This is something Reid has been thinking about for a long time and so the discussion with him has been invaluable. I'd really like to see this done for a v1 of this project.
 
-In the last 6 days I authored 116 commits and [wrote five Architecture Decision Records](https://github.com/martinklepsch/clj-docs/tree/master/doc/adr)  ([?](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions)) hoping that this may make it easier for others to trace my decision making. The repo is two weeks old but most of the work has been done in the last week.
+In the last 6 days I authored 116 commits and [wrote five Architecture Decision Records](https://github.com/martinklepsch/cljdoc/tree/master/doc/adr)  ([?](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions)) hoping that this may make it easier for others to trace my decision making. The repo is two weeks old but most of the work has been done in the last week.
 
 I also talked to Daniel Compton who is part of the Clojars team and he outlined the possibility of transitioning this project into the Clojars organisation to ensure it's longevity (yay!). Nothing is set in stone and there's still a lot more work to do though.
 
