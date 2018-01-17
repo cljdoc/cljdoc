@@ -1,35 +1,39 @@
 (ns boot.user)
 
-(def analysis-deps
+(def sandbox-analysis-deps
+  "This is what is being loaded in the pod that is used for analysis.
+  It is also the stuff that we cannot generate documentation for in versions
+  other than the ones listed below. (See CONTRIBUTING for details.)"
   '[[org.clojure/clojure "1.9.0"]
-    [org.clojure/test.check "0.9.0"]
     [org.clojure/java.classpath "0.2.2"]
     [org.clojure/tools.namespace "0.2.11"]
     [org.clojure/clojurescript "1.9.946"] ; Codox depends on old CLJS which fails with CLJ 1.9
+    [codox "0.10.3"]])
 
-    [codox "0.10.3"]
+(def application-deps
+  "These are dependencies we can use regardless of what we're analyzing.
+  All code using these dependencies does not operate on Clojure source
+  files but the Grimoire store and project repo instead."
+  '[[org.clojure/clojure "1.9.0"]
+    [org.clojure/test.check "0.9.0"]
+    [com.cognitect/transit-clj "0.8.300"]
+
+    [confetti "0.2.0"]
+    [bidi "2.1.3"]
+    [hiccup "2.0.0-alpha1"]
+
+    [org.slf4j/slf4j-nop "1.7.25"]
+    [clj-jgit "0.8.10"]
+    [org.eclipse.jgit "4.10.0.201712302008-r"]
+
     [org.clojure-grimoire/lib-grimoire "0.10.9"]
     ;; lib-grimpoire depends on an old core-match
     ;; which pulls in other old stuff
-    [org.clojure/core.match "0.3.0-alpha5"]
-    [me.arrdem/detritus "0.3.0"]])
+    [org.clojure/core.match "0.3.0-alpha5"]])
 
-(boot.core/set-env!
- :source-paths #{"src"}
- :dependencies (into analysis-deps
-                     '[[com.cognitect/transit-clj "0.8.300"]
 
-                       [confetti "0.2.0"]
-                       [bidi "2.1.3"]
-                       [hiccup "2.0.0-alpha1"]
-
-                       [org.slf4j/slf4j-nop "1.7.25"]
-                       [clj-jgit "0.8.10"]
-
-                       ;; Samples to test with
-                       ;; [org.martinklepsch/derivatives "0.2.0"]
-                       ;; [re-frame "0.10.2"]
-                       ]))
+(boot.core/set-env! :source-paths #{"src"}
+                    :dependencies application-deps)
 
 (require '[boot.pod :as pod]
          '[boot.util :as util]
@@ -154,7 +158,7 @@
     (let [tempd     (tmp-dir!)
           pom-map   (find-pom-map fs project)
           codox-dir (io/file tempd "codox-docs/")
-          cdx-pod (pod/make-pod {:dependencies (into analysis-deps
+          cdx-pod (pod/make-pod {:dependencies (into sandbox-analysis-deps
                                                      [[project version]
                                                       '[codox-theme-rdash "0.1.2"]])})]
       (util/info "Generating codox documentation for %s\n" project)
@@ -194,7 +198,7 @@
     (boot.util/info "Creating analysis pod ...\n")
     (let [tempd        (tmp-dir!)
           grimoire-dir (io/file tempd "grimoire")
-          grimoire-pod (pod/make-pod {:dependencies (conj analysis-deps [project version])
+          grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                       :directories #{"src"}})
           jar-contents-path (jar-contents-dir fs)
           build-cdx      (fn [jar-contents-path platf]

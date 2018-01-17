@@ -1,19 +1,12 @@
-;; Some of this is copied from
-;; github.com/clojure-grimoire/lein-grim/blob/master/src/grimoire/doc.clj
 (ns cljdoc.grimoire-helpers
   (:require [clojure.spec.alpha :as spec]
-            [clojure.java.classpath :as cp]
-            [clojure.tools.namespace.find :as tns.f]
-            [clojure.repl]
-            [codox.main]
             [grimoire.api]
             [grimoire.api.fs]
             [grimoire.api.fs.write]
             [grimoire.api.fs.read]
             [grimoire.things]
             [grimoire.util]
-            [grimoire.either]
-            [detritus.var]))
+            [grimoire.either]))
 
 (def v "0.1.0")
 
