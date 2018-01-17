@@ -27,6 +27,7 @@
 (defn codox-namespaces [jar-contents-path platf]
   (let [config (codox-config jar-contents-path platf)]
     ;; TODO print versions for Clojure/CLJS and other important deps
+    (boot.util/info "Analysing sources for platform %s\n" (pr-str platf))
     (boot.util/dbug "ClojureScript version %s\n" (cljs.util/clojurescript-version))
     (boot.util/dbug "Codox opts: %s\n" config)
     (->> (#'codox.main/read-namespaces config)
