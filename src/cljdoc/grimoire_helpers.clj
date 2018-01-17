@@ -15,17 +15,6 @@
             [grimoire.either]
             [detritus.var]))
 
-(defn sanitize-cdx [cdx-namespace]
-  ;; :publics contain a field path which is a
-  ;; file, this cannot be serialized accross
-  ;; pod boundaries by default
-  (let [clean-public #(update % :path (fn [file] (.getPath file)))
-        remove-unneeded #(dissoc % :path :members)  ; TODO what are members?
-        stringify-name #(update % :name name)]
-    (-> cdx-namespace
-        (update :name name)
-        (update :publics #(map (comp stringify-name remove-unneeded) %)))))
-
 (def v "0.1.0")
 
 (defn var->type
