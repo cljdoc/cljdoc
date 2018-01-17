@@ -27,27 +27,29 @@
     (:version cache-id)]
    [:a.link.dim.gray.f6.dib.fr {:href "#"} "github.com/not-done/yet"]])
 
-(defn def-block [def-meta]
-  (spec/assert :cljdoc.spec/def-full def-meta)
-  (assert (map? def-meta) "def meta is not a map")
-  [:div
-   [:h4
-    {:name (:name def-meta) :id (:name def-meta) }
-    (:name def-meta)
-    [:span.f5.gray.ml2 (:type def-meta)]
-    (when (:deprecated def-meta) [:span.f6.light-red.ml2.ttu "deprecated"])
-    ]
-   [:div
-    (for [argv (sort-by count (:arglists def-meta))]
-      [:pre (str "(" (:name def-meta) " " (clojure.string/join " " argv) ")")])]
-   (when (:doc def-meta)
-     (if (.contains (:doc def-meta) "{")
-       [:pre.w8 (:doc def-meta)]
-       [:p.lh-copy.w8 (:doc def-meta)]))
-   ;; source-fn really is broken
-   ;; [:pre.pa3.bg-black-05.br2.overflow-scroll (:src def-meta)]
-   ;; [:pre (with-out-str (clojure.pprint/pprint def-meta))]
-   [:hr.b--black-10]])
+(defn def-block [platforms]
+  (assert (coll? platforms) "def meta is not a map")
+  ;; Currently we just render any platform, this obviously
+  ;; isn't the best we can do
+  (let [def-meta (first (sort-by :platform platforms))]
+    (spec/assert :cljdoc.spec/def-full def-meta)
+    [:div
+     [:h4
+      {:name (:name def-meta), :id (:name def-meta)}
+      (:name def-meta)
+      [:span.f5.gray.ml2 (:type def-meta)]
+      (when (:deprecated def-meta) [:span.fw3.f6.light-red.ml2 "deprecated"])]
+     [:div
+      (for [argv (sort-by count (:arglists def-meta))]
+        [:pre (str "(" (:name def-meta) " " (clojure.string/join " " argv) ")")])]
+     (when (:doc def-meta)
+       (if (.contains (:doc def-meta) "{")
+         [:pre.w8 (:doc def-meta)]
+         [:p.lh-copy.w8 (:doc def-meta)]))
+     ;; source-fn really is broken
+     ;; [:pre.pa3.bg-black-05.br2.overflow-scroll (:src def-meta)]
+     ;; [:pre (with-out-str (clojure.pprint/pprint def-meta))]
+     [:hr.b--black-10]]))
 
 (defn namespace-list [namespaces]
   [:div
@@ -146,7 +148,10 @@
        (definitions-list emap sorted-defs
          {:indicate-platforms-other-than dominant-platf}))
       [:div.ml7.w-60-ns.pa4-ns.bl.b--black-10
-       (map def-block sorted-defs)]]]))
+       (for [[def-name platf-defs] (->> defs
+                                        (group-by :name)
+                                        (sort-by key))]
+         (def-block platf-defs))]]]))
 
 (defn render-to [hiccup ^java.io.File file]
   (println "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
