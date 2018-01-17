@@ -134,14 +134,18 @@
         (util/warn "Could not determine project repository for %s\n" project))
       (-> fs (add-resource tempd) commit!))))
 
+(defn boot-tmpd-containing [fs re-ptn]
+  (->> (output-files fs) (by-re [re-ptn]) first :dir))
+
 (defn jar-contents-dir [fileset]
-  (let [jar-contents-fileset-dir (->> (output-files fileset)
-                                      (by-re [#"^jar-contents/"])
-                                      first
-                                      :dir)]
-    (some-> jar-contents-fileset-dir
-            (io/file "jar-contents")
-            (.getPath))))
+  (some-> (boot-tmpd-containing fileset #"^jar-contents/")
+          (io/file "jar-contents")
+          (.getPath)))
+
+(defn git-repo-dir [fileset]
+  (some-> (boot-tmpd-containing fileset #"^git-repo/")
+          (io/file "git-repo")
+          (.getPath)))
 
 (deftask codox
   [p project PROJECT sym "Project to build documentation for"
@@ -150,22 +154,13 @@
     (let [tempd     (tmp-dir!)
           pom-map   (find-pom-map fs project)
           codox-dir (io/file tempd "codox-docs/")
-          jar-contents-fileset-dir (->> (output-files fs)
-                                        (by-re [#"^jar-contents/"])
-                                        first
-                                        :dir)
           cdx-pod (pod/make-pod {:dependencies (into analysis-deps
                                                      [[project version]
                                                       '[codox-theme-rdash "0.1.2"]])})]
       (util/info "Generating codox documentation for %s\n" project)
-      (assert jar-contents-fileset-dir "Could not find jar-contents directory in fileset")
-      (let [jar-contents-dir (-> jar-contents-fileset-dir
-                                 (io/file "jar-contents")
-                                 (.getPath))
-            docs-dir (-> jar-contents-fileset-dir
+      (let [docs-dir (-> (boot-tmpd-containing fs #"^jar-contents/")
                          (io/file "git-repo" "doc")
                          (.getPath))]
-        (boot.util/dbug "Codox source-paths %s\n" [jar-contents-dir])
         (boot.util/dbug "Codox doc-paths %s\n" [docs-dir])
         (pod/with-eval-in cdx-pod
           (require 'codox.main)
@@ -175,7 +170,7 @@
                 ;; It seems :project is only intended for overrides
                 ;; :project      {:name ~(name project), :version ~version, :description ~(:description pom-map)}
                 :description  ~(:description pom-map)
-                :source-paths [~jar-contents-dir]
+                :source-paths [~(jar-contents-dir fs)]
                 :output-path  ~(.getPath codox-dir)
                 ;; Codox' way of determining :source-uri is tricky since it depends working on
                 ;; the repository while we are not giving it the repository information but jar-contents
