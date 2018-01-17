@@ -289,16 +289,18 @@
 (deftask build-docs
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
-   d deploy          bool "Also deploy newly built docs to S3?"]
+   d deploy          bool "Also deploy newly built docs to S3?"
+   c run-codox       bool "Also generate codox documentation"]
   (comp (copy-jar-contents :jar (jar-file [project version]))
-        #_(import-repo :project project :version version)
+        (import-repo :project project :version version)
         (grimoire :project project :version version)
         (grimoire-html :project project :version version)
         (transit-cache :project project :version version)
         (when-task deploy
           (deploy-docs :project project :version version))
-        #_(open :project project :version version)
-        #_(codox :project project :version version)))
+        (when-task run-codox
+          (codox :project project :version version))
+        #_(open :project project :version version)))
 
 (deftask wipe-s3-bucket []
   (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
