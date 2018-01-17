@@ -202,29 +202,12 @@
           grimoire-pod (pod/make-pod {:dependencies (conj analysis-deps [project version])
                                       :directories #{"src"}})
           jar-contents-path (jar-contents-dir fs)
-          ->cdx-config (fn [jar-contents-path platf]
-                           (assert (string? jar-contents-path) (str "was: " jar-contents-path))
-                           {:language     (get {"clj" :clojure, "cljs" :clojurescript} platf)
-                            ;; not sure what :root-path is needed for
-                            :root-path    (System/getProperty "user.dir")
-                            :source-paths [jar-contents-path]
-                            :namespaces   :all
-                            :metadata     {}
-                            ;; https://github.com/boot-clj/boot/pull/684
-                            :exclude-vars #"^(map)?->\p{Upper}"})
-          build-cdx      (fn [cdx-config]
+          build-cdx      (fn [jar-contents-path platf]
                            (pod/with-eval-in grimoire-pod
-                             ;; TODO print versions for Clojure/CLJS and other important deps
-                             ;; (require 'cljs.util)
-                             ;; (boot.util/info "Pod versions: %s\n" (cljs.util/clojurescript-version))
-                             (require 'codox.main)
-                             (require 'cljdoc.grimoire-helpers)
-                             (boot.util/info "codox.main successfully required\n")
-                             (boot.util/dbug "Codox opts: %s\n" ~cdx-config)
-                             (->> (#'codox.main/read-namespaces ~cdx-config)
-                                  (mapv cljdoc.grimoire-helpers/sanitize-cdx))))
-          cdx-namespaces {"clj"  (build-cdx (->cdx-config jar-contents-path "clj"))
-                          "cljs" (build-cdx (->cdx-config jar-contents-path "cljs"))}]
+                             (require 'cljdoc.analysis)
+                             (cljdoc.analysis/codox-namespaces ~jar-contents-path ~platf)))
+          cdx-namespaces {"clj"  (build-cdx jar-contents-path "clj")
+                          "cljs" (build-cdx jar-contents-path "cljs")}]
       (util/info "Generating Grimoire store for %s\n" project)
       (doseq [platf ["clj" "cljs"]]
         (cljdoc.grimoire-helpers/build-grim
