@@ -17,43 +17,6 @@
 
 (def v "0.1.0")
 
-(defn var->type
-  "Function from a var to the type of the var.
-  - Vars tagged as dynamic or satisfying the .isDynamic predicate are tagged
-    as :var values.
-  - Vars tagged as macros (as required by the macro contract) are tagged
-    as :macro values.
-  - Vars with fn? or MultiFn values are tagged as :fn values.
-  - All other vars are simply tagged as :var."
-  [v]
-  {:pre [(var? v)]}
-  (let [m (meta v)]
-    (cond (:macro m)                            :macro
-          (or (:dynamic m)
-              (.isDynamic ^clojure.lang.Var v)) :var
-          (or (fn? @v)
-              (instance? clojure.lang.MultiFn @v)) :fn
-          :else :var)))
-
-(defn ns-stringifier
-  "Function something (either a Namespace instance, a string or a symbol) to a
-  string naming the input. Intended for use in computing the logical \"name\" of
-  the :ns key which could have any of these values."
-  [x]
-  (cond (instance? clojure.lang.Namespace x) (name (ns-name x))
-        (symbol? x)   (name x)
-        (string? x)   x
-        :else         (throw (Exception. (str "Don't know how to stringify " x)))))
-
-(defn name-stringifier
-  "Function from something (either a symbol, string or something else) which if
-  possible computes the logical \"name\" of the input as via clojure.core/name
-  otherwise throws an explicit exception."
-  [x]
-  (cond (symbol? x) (name x)
-        (string? x) x
-        :else       (throw (Exception. (str "Don't know how to stringify " x)))))
-
 (defn write-docs-for-def
   "General case of writing documentation for a Var instance with
   metadata. Compute a \"docs\" structure from the var's metadata and then punt
