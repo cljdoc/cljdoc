@@ -5,6 +5,7 @@
 An effort to create a central documentation hub for the Clojure & ClojureScript ecosystem.
 
 - An update (read this first): [Hello everyone :wave:](https://github.com/martinklepsch/cljdoc/blob/master/doc/updates/0001-hello-everyone.md)
+- The old README can be found under [`doc/OLD_NOTES_MARTIN.md`](doc/OLD_NOTES_MARTIN.md)
 
 ## Rationale
 
