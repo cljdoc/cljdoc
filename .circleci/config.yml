@@ -31,4 +31,4 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "build.boot" }}
 
-      - run: boot repl -e "(do (println :test) (System/exit 0))"
+      - run: boot build-docs --project bidi --version 2.1.3
