@@ -1,4 +1,4 @@
-(ns cljdoc.html
+(ns cljdoc.renderers.html
   (:require [cljdoc.routes :as r]
             [cljdoc.cache]
             [cljdoc.spec]

@@ -36,7 +36,7 @@
          '[clojure.java.io :as io]
          '[clojure.spec.alpha :as spec]
          '[clj-jgit.porcelain :as git]
-         '[cljdoc.html]
+         '[cljdoc.renderers.html]
          '[cljdoc.renderers.transit]
          '[cljdoc.grimoire-helpers]
          '[confetti.boot-confetti :as confetti])
@@ -234,9 +234,9 @@
           grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
       (util/info "Generating Grimoire HTML for %s\n" project)
       (.mkdir grimoire-html-dir)
-      (require 'cljdoc.html 'cljdoc.routes 'cljdoc.spec :reload)
+      (require 'cljdoc.renderers.html 'cljdoc.routes 'cljdoc.spec :reload)
       (cljdoc.cache/render
-       (cljdoc.html/->HTMLRenderer)
+       (cljdoc.renderers.html/->HTMLRenderer)
        (cljdoc.cache/bundle-docs grimoire-store grimoire-thing)
        {:dir grimoire-html-dir})
       (-> fs (add-resource tempd) commit!))))
