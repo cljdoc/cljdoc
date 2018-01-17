@@ -1,5 +1,7 @@
 # cljdoc
 
+[![CircleCI](https://circleci.com/gh/martinklepsch/cljdoc.svg?style=svg)](https://circleci.com/gh/martinklepsch/cljdoc)
+
 An effort to create a central documentation hub for the Clojure & ClojureScript ecosystem.
 
 - An update (read this first): [Hello everyone :wave:](https://github.com/martinklepsch/cljdoc/blob/master/doc/updates/0001-hello-everyone.md)
