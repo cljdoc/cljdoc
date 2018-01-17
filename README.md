@@ -23,9 +23,9 @@ I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blo
 
 - `build.boot` contains various entry points into the code, most interesting is probably `build-docs` which you can run with
 
-      boot build-docs --project bidi --version 2.1.3
-  There are various sub-tasks that address different aspects of building documentation.  I hope reading `build-docs` will
-  give you a quick overview about all the things going on.
+      boot build-docs --project bidi --version 2.1.3 target
+  - After that there will be a bunch of stuff in `target/` which you may want to look at.
+  - There are various sub-tasks that address different aspects of building documentation.  I hope reading `build-docs` will give you a quick overview about all the things going on.
 - There are various specs defined in `cljdoc.spec`.
 - Code that needs to be loaded for analysis is in `cljdoc.analysis`.
 - The cache that serves as input to renderers is defined in `cljdoc.cache`
