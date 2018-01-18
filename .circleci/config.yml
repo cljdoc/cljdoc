@@ -29,6 +29,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
+            - ~/.boot
           key: v1-dependencies-{{ checksum "build.boot" }}
 
       - run: boot build-docs --project bidi --version 2.1.3
