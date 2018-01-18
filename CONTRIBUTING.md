@@ -14,6 +14,12 @@ Analyzing Clojure/Script code means loading it, loading it means it may do anyth
 - **Docker** is what I thought of first, but it would require us to run and maintain a server which is something I don't really want to do.
 - **AWS Lambda** was mentioned by Daniel Compton. We may fit into their free tier which would make it, well, free. :slightly_smiling_face:
 
+With all of these options there will still be issues that need consideration
+- People could use our sandbox to "steal compute", e.g. mining Bitcoin etc.
+- Any more issues to think about?
+
+---
+
 Besides this kind of process isolation there also is the problem of **Classpath isolation**. Right now we cannot build API docs for Codox or any of it's dependencies in different versions than what is already on the classpath. This could be solved by either anonymizing our or the dependencies' namespaces using something like [mranderson](https://github.com/benedekfazekas/mranderson). Both variants have their own tradeoffs. This is low priority but if it excites someone... :rocket:
 
 ## Github Bot
