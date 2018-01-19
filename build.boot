@@ -201,7 +201,7 @@
           :version      version
           :platform     platf}
          (get cdx-namespaces platf)
-         (.getPath grimoire-dir)))
+         {:dst (.getPath grimoire-dir)}))
       (-> fs (add-resource tempd) commit!))))
 
 (deftask grimoire-html
@@ -266,6 +266,8 @@
     (assert (not (.startsWith doc-path "/")))
     (comp (sift :include #{#"^grimoire-html"})
           (sift :move {#"^grimoire-html/(.*)" (str "$1")})
+          ;; TODO find common prefix of all files in the fileset, pass as :invalidation-paths
+          ;; TODO remove all uses of `docs-path`
           (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
                                 ;; also invalidates root path (also cheaper)
                                 :invalidation-paths [(str "/" doc-path "*")])

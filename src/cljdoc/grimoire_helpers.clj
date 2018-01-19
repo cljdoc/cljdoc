@@ -34,7 +34,7 @@
   (grimoire.api/write-meta store ns-thing ns-meta)
   (println "Finished namespace" (:name ns-meta)))
 
-(defn build-grim [platf-entity codox-namespaces dst]
+(defn build-grim [platf-entity codox-namespaces {:keys [dst git-repo-dir]}]
   (spec/assert :cljdoc.spec/platform-entity platf-entity)
   (assert dst "target dir missing!")
   (assert (coll? codox-namespaces) "codox-namespaces malformed")
