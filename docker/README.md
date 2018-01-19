@@ -1,27 +1,37 @@
-# clj-docs in docker
+# cljdoc in docker
 
 This dockerfile allows us to generate docs for a jar in isolation, evaluating
 untrusted code in a contained environment.
 
 ## Building
 
-To build this container, run:
+To build this container, run the following **from the root of this repository**:
 
-`$ docker build -t clj-docs:latest -f docker/Dockerfile .`
+```sh
+$ docker build -t cljdoc:latest -f docker/Dockerfile .
+```
 
 ## Running
 
-To generate documents for a jar, run:
+To generate documents for a `[bidi "2.1.3"]`, run:
 
-`$ docker run -it clj-docs:latest -p {clojure-project-name} -v {clojure-project-version} target`
+```sh
+$ docker run -it cljdoc:latest build-docs --project bidi --version 2.1.3 target
+```
 
-The clojure project name is `{project-group-id}/{project-name}`, for example: `org.clojure/clojure`
-
-The clojure project version is a clojure project version string, for example `1.0.0`
+**TODO** Running docker images causes a lot of stopped containers to
+stick around. Stopped containers prevent deletion of images and we probably
+don't need them anyway. Document how we can run an image and delete
+the container right after it finished running.
 
 ## Accessing Generated Docs
 
 This mounts a directory on the host machine into the docker container, where generated
 files will be placed. This can be done by running the following
 
-`$ docker run --mount type=bind,source={directory-to-mount},destination=/clj-docs/target clj-docs:latest -p {clojure-project-name} -v {clojure-project-version} target`
+```sh
+$ mkdir -p docker/docker-target
+$ export DOCKER_TARGET=$(pwd)/docker/docker-target
+$ docker run --mount type=bind,source=$DOCKER_TARGET,destination=/cljdoc/target \
+      cljdoc:latest build-docs --project bidi --version 2.1.3 target
+```

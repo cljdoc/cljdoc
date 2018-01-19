@@ -1,7 +1,8 @@
 FROM adzerk/boot-clj:latest
-ADD ./ /clj-docs
-WORKDIR /clj-docs
+ADD ./ /cljdoc
+WORKDIR /cljdoc
 # Pull deps in the build phase, this takes awhile
 RUN boot show -d
-VOLUME ["/clj-docs/target"]
+RUN boot analysis-deps show -d
+VOLUME ["/cljdoc/target"]
 ENTRYPOINT ["/usr/bin/boot"]

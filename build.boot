@@ -302,6 +302,10 @@
   (set-env! :resource-paths #{"site"})
   (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"))
 
+(deftask analysis-deps []
+  (set-env! :dependencies sandbox-analysis-deps)
+  identity)
+
 (comment
   (def f
     (future
