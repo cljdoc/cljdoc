@@ -23,7 +23,6 @@
     [hiccup "2.0.0-alpha1"]
 
     [org.slf4j/slf4j-nop "1.7.25"]
-    [clj-jgit "0.8.10"]
     [org.eclipse.jgit "4.10.0.201712302008-r"]
 
     [org.clojure-grimoire/lib-grimoire "0.10.9"]
@@ -39,7 +38,7 @@
          '[boot.util :as util]
          '[clojure.java.io :as io]
          '[clojure.spec.alpha :as spec]
-         '[clj-jgit.porcelain :as git]
+         '[cljdoc.git-repo :as gr]
          '[cljdoc.renderers.html]
          '[cljdoc.renderers.transit]
          '[cljdoc.grimoire-helpers]
@@ -86,20 +85,6 @@
    #"^http://"
    "https://")) ;; TODO HACK
 
-(defn clone-repo [uri target-dir]
-  (util/info "Cloning repo %s\n" uri)
-  (git/git-clone uri target-dir))
-
-(defn git-checkout-repo [dir rev]
-  (util/info "Checking out revision %s\n" rev)
-  (git/git-checkout (git/load-repo dir) rev))
-
-(defn git-tags [dir]
-  (->> (git/load-repo dir)
-       (.tagList)
-       (.call)
-       (map #(->> % .getName (re-matches #"refs/tags/(.*)") second))))
-
 (defn version-tag? [pom-version tag]
   (or (= pom-version tag)
       (= (str "v" pom-version) tag)))
@@ -129,12 +114,13 @@
       (if-let [scm (scm-url pom-map)]
         (do (util/info "Identified project repository %s\n" scm)
             (.mkdir git-dir)
-            (clone-repo scm git-dir)
-            (if-let [version-tag (->> (git-tags git-dir)
-                                      (filter #(version-tag? version %))
-                                      first)]
-              (git-checkout-repo git-dir version-tag)
-              (util/warn "No version tag found for version %s in %s\n" version scm)))
+            (gr/clone scm git-dir)
+            (let [repo (gr/->repo git-dir)]
+              (if-let [version-tag (->> (gr/git-tag-names repo)
+                                        (filter #(version-tag? version %))
+                                        first)]
+                (gr/git-checkout-repo repo version-tag)
+                (util/warn "No version tag found for version %s in %s\n" version scm))))
         (util/warn "Could not determine project repository for %s\n" project))
       (-> fs (add-resource tempd) commit!))))
 
