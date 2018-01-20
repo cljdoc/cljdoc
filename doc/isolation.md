@@ -26,6 +26,8 @@ Besides this kind of process isolation there also is the problem of **Classpath 
 - This may work especially well in the beginning when we only operate on a few selected projects.
 - We should look into how Juho did this kind of stuff for CLJSJS
 
+CircleCI provides [an API to trigger jobs](https://circleci.com/docs/2.0/api-job-trigger/). I imagine we could use that quite easily.
+
 ##### Open Questions with CircleCI
 
 - How do we trigger new builds and influence what jar is analysed?
