@@ -1,5 +1,6 @@
 (ns cljdoc.grimoire-helpers
   (:require [clojure.spec.alpha :as spec]
+            [cljdoc.git-repo :as git]
             [grimoire.api]
             [grimoire.api.fs]
             [grimoire.api.fs.write]
@@ -34,7 +35,7 @@
   (grimoire.api/write-meta store ns-thing ns-meta)
   (println "Finished namespace" (:name ns-meta)))
 
-(defn build-grim [platf-entity codox-namespaces {:keys [dst git-repo-dir]}]
+(defn build-grim [platf-entity codox-namespaces {:keys [dst ^Git git-repo]}]
   (spec/assert :cljdoc.spec/platform-entity platf-entity)
   (assert dst "target dir missing!")
   (assert (coll? codox-namespaces) "codox-namespaces malformed")
@@ -46,10 +47,12 @@
 
     (println "Writing bare meta for"
              (grimoire.things/thing->path (grimoire.things/thing->version platform)))
-    (grimoire.api/write-meta store (grimoire.things/thing->group platform) {})
-    (grimoire.api/write-meta store (grimoire.things/thing->artifact platform) {})
-    (grimoire.api/write-meta store (grimoire.things/thing->version platform) {})
-    (grimoire.api/write-meta store platform {})
+    (doto store
+      (grimoire.api/write-meta (grimoire.things/thing->group platform) {})
+      (grimoire.api/write-meta (grimoire.things/thing->artifact platform) {})
+      (grimoire.api/write-meta (grimoire.things/thing->version platform)
+                               (git/read-repo-meta git-repo (:version platf-entity)))
+      (grimoire.api/write-meta platform {}))
 
     (let [namespaces codox-namespaces]
       (doseq [ns namespaces

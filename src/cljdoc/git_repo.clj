@@ -58,10 +58,12 @@
 (defn read-repo-meta [^Git repo version-str]
   (let [tag-obj (or (find-tag repo version-str)
                     (find-tag repo (str "v" version-str)))]
+    (assert tag-obj (format "No tag found for version-str: %s" version-str))
     {:scm-url (read-origin repo)
-     :sha     (.. tag-obj getObjectId getName)
-     :tag     (-> (.. tag-obj getName)
-                  (string/replace #"^refs/tags/" ""))}))
+     :commit  (.. tag-obj getPeeledObjectId getName)
+     :tag     {:name (-> (.. tag-obj getName)
+                         (string/replace #"^refs/tags/" ""))
+               :sha  (.. tag-obj getObjectId getName)}}))
 
 (defn patch-level-info
   ;; Non API documentation should be updated with new Git revisions,
@@ -88,24 +90,11 @@
 (comment
   (def r (->repo (io/file "target/git-repo")))
 
-  (->> (.. r tagList call)
-       (map #(println (.getName %)))
-       )
-
-  (.getName (.getObjectId (find-tag r "2.1.3")))
-
-  (read-repo-meta r "2.1.3")
+  (clojure.pprint/pprint
+   (read-repo-meta r "2.1.3"))
 
   (read-origin r)
   (list-tags r)
-
-  (->> (.. r tagList call)
-       (map (fn [t] [(.getName t) (.getObjectId t)]))
-       (into {})
-       clojure.pprint/pprint)
-
-
-
 
   )
 
