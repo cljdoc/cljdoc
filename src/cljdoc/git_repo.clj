@@ -16,12 +16,18 @@
   [^Git git-repo]
   {:post [(.startsWith % "https://")
           (not (.endsWith % ".git"))]}
-  (->> (.. git-repo remoteList call)
-       (map (fn [remote]
-              [(keyword (.getName remote))
-               (.toString (first (.getURIs remote)))]))
-       (into {})
-       :origin))
+  (let [remotes (->> (.. git-repo remoteList call)
+                     (map (fn [remote]
+                            [(keyword (.getName remote))
+                             (.toString (first (.getURIs remote)))]))
+                     (into {}))]
+    ;; TODO for some reason on Circle CI the ssh:// protocol is used
+    ;; despite us explicitly providing the http URI. Probably we should
+    ;; extend this to return a map like:
+    ;; {:github "some/thing"}
+    ;; This would also make things more extensible for stuff like bitbucket
+    ;; although admittedly I don't care about that much at this point
+    (string/replace (:origin remotes) #"ssh://git@" "https://")))
 
 (defn ->repo [^java.io.File d]
   {:pre [(.isDirectory d)]}
