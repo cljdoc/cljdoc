@@ -129,13 +129,11 @@
 
 (defn jar-contents-dir [fileset]
   (some-> (boot-tmpd-containing fileset #"^jar-contents/")
-          (io/file "jar-contents")
-          (.getPath)))
+          (io/file "jar-contents")))
 
 (defn git-repo-dir [fileset]
   (some-> (boot-tmpd-containing fileset #"^git-repo/")
-          (io/file "git-repo")
-          (.getPath)))
+          (io/file "git-repo")))
 
 (deftask codox
   [p project PROJECT sym "Project to build documentation for"
@@ -160,7 +158,7 @@
                 ;; It seems :project is only intended for overrides
                 ;; :project      {:name ~(name project), :version ~version, :description ~(:description pom-map)}
                 :description  ~(:description pom-map)
-                :source-paths [~(jar-contents-dir fs)]
+                :source-paths [~(.getPath (jar-contents-dir fs))]
                 :output-path  ~(.getPath codox-dir)
                 ;; Codox' way of determining :source-uri is tricky since it depends working on
                 ;; the repository while we are not giving it the repository information but jar-contents
@@ -186,13 +184,12 @@
           grimoire-dir (io/file tempd "grimoire")
           grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                       :directories #{"src"}})
-          jar-contents-path (jar-contents-dir fs)
           build-cdx      (fn [jar-contents-path platf]
                            (pod/with-eval-in grimoire-pod
                              (require 'cljdoc.analysis)
                              (cljdoc.analysis/codox-namespaces ~jar-contents-path ~platf)))
-          cdx-namespaces {"clj"  (build-cdx jar-contents-path "clj")
-                          "cljs" (build-cdx jar-contents-path "cljs")}]
+          cdx-namespaces {"clj"  (build-cdx (.getPath (jar-contents-dir fs)) "clj")
+                          "cljs" (build-cdx (.getPath (jar-contents-dir fs)) "cljs")}]
       (util/info "Generating Grimoire store for %s\n" project)
       (doseq [platf ["clj" "cljs"]]
         (cljdoc.grimoire-helpers/build-grim
@@ -201,7 +198,8 @@
           :version      version
           :platform     platf}
          (get cdx-namespaces platf)
-         {:dst (.getPath grimoire-dir)}))
+         {:dst      (.getPath grimoire-dir)
+          :git-repo (gr/->repo (git-repo-dir fs))}))
       (-> fs (add-resource tempd) commit!))))
 
 (deftask grimoire-html
