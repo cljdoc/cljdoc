@@ -16,7 +16,7 @@
                 [:div.sans-serif
                  contents]]))
 
-(defn top-bar [cache-id]
+(defn top-bar [cache-id version-meta]
   [:nav.pa3.pa4-ns.bb.b--black-10
    [:a.link.dim.black.b.f6.dib.mr3 {:href (r/path-for :artifact/version cache-id)}
     (str
@@ -25,7 +25,9 @@
    [:a.link.dim.gray.f6.dib
     {:href (r/path-for :artifact/index cache-id)}
     (:version cache-id)]
-   [:a.link.dim.gray.f6.dib.fr {:href "#"} "github.com/not-done/yet"]])
+   [:a.link.dim.gray.f6.dib.fr
+    {:href (:scm-url version-meta)}
+    (subs (:scm-url version-meta) 8)]])
 
 (defn def-block [platforms]
   (assert (coll? platforms) "def meta is not a map")
@@ -120,12 +122,12 @@
    {:style {:top "80px"}} ; CSS HACK
    contents])
 
-(defn index-page [cache-id namespace-emaps]
+(defn index-page [{:keys [top-bar-component namespaces]}]
   [:div
-   (top-bar cache-id)
+   top-bar-component
    (sidebar
     (article-list [])
-    (namespace-list namespace-emaps))])
+    (namespace-list namespaces))])
 
 (defn platform-support-note [[[dominant-platf] :as platf-stats]]
   (if (= 1 (count platf-stats))
@@ -135,17 +137,18 @@
       [:span "All forms support " (str (humanize-supported-platforms dominant-platf :long) ".")])
     [:span (str "Mostly " (humanize-supported-platforms dominant-platf) " forms. Exceptions indicated.")]))
 
-(defn namespace-page [emap defs]
+(defn namespace-page [{:keys [namespace defs top-bar-component]}]
+  (spec/assert :cljdoc.spec/namespace-entity namespace)
   (let [sorted-defs                        (sort-by :name defs)
         [[dominant-platf] :as platf-stats] (platform-stats defs)]
     [:div
-     (top-bar emap)
+     top-bar-component
      [:div
       (sidebar
-       [:a.link.dim.blue.f6 {:href (r/path-for :artifact/version emap)} "All namespaces"]
-       [:h3 (:namespace emap)]
+       [:a.link.dim.blue.f6 {:href (r/path-for :artifact/version namespace)} "All namespaces"]
+       [:h3 (:namespace namespace)]
        (platform-support-note platf-stats)
-       (definitions-list emap sorted-defs
+       (definitions-list namespace sorted-defs
          {:indicate-platforms-other-than dominant-platf}))
       [:div.ml7.w-60-ns.pa4-ns.bl.b--black-10
        (for [[def-name platf-defs] (->> defs
@@ -166,14 +169,18 @@
                              (map :name)
                              (map #(merge cache-id {:namespace %}))
                              (map #(spec/assert :cljdoc.spec/namespace-entity %))
-                             set)]
-    (render-to (index-page cache-id namespace-emaps)
+                             set)
+        top-bar-comp (top-bar cache-id (:version cache-contents))]
+    (render-to (index-page {:top-bar-component top-bar-comp
+                            :namespaces namespace-emaps})
                (file-for out-dir :artifact/version cache-id))
     (doseq [ns-emap namespace-emaps
             :let [defs (filter #(= (:namespace ns-emap)
                                    (:namespace %))
                                (:defs cache-contents))]]
-      (render-to (namespace-page ns-emap defs)
+      (render-to (namespace-page {:top-bar-component top-bar-comp
+                                  :namespace ns-emap
+                                  :defs defs})
                  (file-for out-dir :artifact/namespace ns-emap)))))
 
 (defrecord HTMLRenderer []
