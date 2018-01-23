@@ -77,13 +77,12 @@
   (str "" (group-id project) "/" (artifact-id project) "/" version "/"))
 
 (defn scm-url [pom-map]
-  (clojure.string/replace
-   (cond (.contains (:url (:scm pom-map)) "github")
+  (some->
+   (cond (some-> pom-map :scm :url (.contains "github"))
          (:url (:scm pom-map))
-         (.contains (:url pom-map) "github")
+         (some-> pom-map :url (.contains "github"))
          (:url pom-map))
-   #"^http://"
-   "https://")) ;; TODO HACK
+   (clojure.string/replace #"^http://" "https://"))) ;; TODO HACK
 
 (defn version-tag? [pom-version tag]
   (or (= pom-version tag)
