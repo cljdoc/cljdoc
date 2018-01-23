@@ -99,30 +99,40 @@
       (require 'boot.pom)
       (boot.pom/pom-xml-parse-string ~(slurp pom)))))
 
+(def known-gh ;HACK
+  {'yada "https://github.com/juxt/yada"})
+
 (deftask import-repo
   "Scans the fileset for a pom.xml for the specified project,
    detects the referenced Github/SCM repo and clones it into
    a git-repo/ subdirectory in the fileset."
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
-  (with-pre-wrap fs
-    (let [pom-map (find-pom-map fs project)
-          tempd   (tmp-dir!)
-          git-dir (io/file tempd "git-repo")]
-      (when-not pom-map
-        (util/warn "Could not find pom.xml for %s in fileset\n" project))
-      (if-let [scm (scm-url pom-map)]
-        (do (util/info "Identified project repository %s\n" scm)
-            (.mkdir git-dir)
-            (gr/clone scm git-dir)
-            (let [repo (gr/->repo git-dir)]
-              (if-let [version-tag (->> (gr/git-tag-names repo)
-                                        (filter #(version-tag? version %))
-                                        first)]
-                (gr/git-checkout-repo repo version-tag)
-                (util/warn "No version tag found for version %s in %s\n" version scm))))
-        (util/warn "Could not determine project repository for %s\n" project))
-      (-> fs (add-resource tempd) commit!))))
+  (let [repo-container-dir (atom nil)]
+    (with-pre-wrap fs
+      (let [pom-map (find-pom-map fs project)
+            tempd   (or @repo-container-dir (tmp-dir!))
+            git-dir (io/file tempd "git-repo")]
+        (when-not pom-map
+          (util/warn "Could not find pom.xml for %s in fileset\n" project))
+        (if-let [scm (or (scm-url pom-map) (get known-gh project))]
+          (do (if @repo-container-dir
+                (util/info "Repository for %s already cloned\n" project)
+                (util/info "Identified project repository %s\n" scm))
+              (.mkdir git-dir)
+              (when-not @repo-container-dir
+                (gr/clone scm git-dir)
+                (reset! repo-container-dir tempd))
+              (let [repo (gr/->repo git-dir)]
+                (if-let [version-tag (->> (gr/git-tag-names repo)
+                                          (filter #(version-tag? version %))
+                                          first)]
+                  (gr/git-checkout-repo repo version-tag)
+                  (util/warn "No version tag found for version %s in %s\n" version scm))))
+          (throw (ex-info "Could not determine project repository"
+                          {:project project :version version
+                           :pom-map pom-map})))
+        (-> fs (add-resource tempd) commit!)))))
 
 (defn boot-tmpd-containing [fs re-ptn]
   (->> (output-files fs) (by-re [re-ptn]) first :dir))
