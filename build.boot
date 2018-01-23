@@ -184,21 +184,51 @@
                (codox.main/generate-docs))))
       (-> fs (add-resource tempd) commit!))))
 
+(defn digest-dir [dir]
+  (->> (file-seq dir)
+       (filter #(.isFile %))
+       (map #(boot.from.digest/digest "md5" %))
+       (apply str)
+       (boot.from.digest/digest "md5")))
+
+(defn codox-edn [project version]
+  (str "codox-edn/" project "/" version "/codox.edn"))
+
+(deftask analyze
+  [p project PROJECT sym "Project to build documentation for"
+   v version VERSION str "Version of project to build documentation for"]
+  (let [jar-contents-md5 (atom nil)
+        prev-tmp-dir     (atom nil)]
+    (with-pre-wrap fs
+      (if (= @jar-contents-md5 (digest-dir (jar-contents-dir fs)))
+        (-> fs (add-resource @prev-tmp-dir) commit!)
+        (do
+          (boot.util/info "Creating analysis pod ...\n")
+          (let [tempd        (tmp-dir!)
+                grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
+                                            :directories #{"src"}})
+                build-cdx      (fn [jar-contents-path platf]
+                                 (pod/with-eval-in grimoire-pod
+                                   (require 'cljdoc.analysis)
+                                   (cljdoc.analysis/codox-namespaces ~jar-contents-path ~platf)))
+                cdx-namespaces {"clj"  (build-cdx (.getPath (jar-contents-dir fs)) "clj")
+                                "cljs" (build-cdx (.getPath (jar-contents-dir fs)) "cljs")}]
+            (doto (io/file tempd (codox-edn project version))
+              (io/make-parents)
+              (spit (pr-str cdx-namespaces)))
+            (reset! jar-contents-md5 (digest-dir (jar-contents-dir fs)))
+            (reset! prev-tmp-dir tempd)
+            (-> fs (add-resource tempd) commit!)))))))
+
 (deftask grimoire
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
     (boot.util/info "Creating analysis pod ...\n")
-    (let [tempd        (tmp-dir!)
-          grimoire-dir (io/file tempd "grimoire")
-          grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
-                                      :directories #{"src"}})
-          build-cdx      (fn [jar-contents-path platf]
-                           (pod/with-eval-in grimoire-pod
-                             (require 'cljdoc.analysis)
-                             (cljdoc.analysis/codox-namespaces ~jar-contents-path ~platf)))
-          cdx-namespaces {"clj"  (build-cdx (.getPath (jar-contents-dir fs)) "clj")
-                          "cljs" (build-cdx (.getPath (jar-contents-dir fs)) "cljs")}]
+    (let [tempd          (tmp-dir!)
+          grimoire-dir   (io/file tempd "grimoire")
+          cdx-namespaces (-> (codox-edn project version)
+                             io/resource slurp read-string)]
       (util/info "Generating Grimoire store for %s\n" project)
       (doseq [platf ["clj" "cljs"]]
         (cljdoc.grimoire-helpers/build-grim
@@ -289,12 +319,15 @@
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
    d deploy          bool "Also deploy newly built docs to S3?"
-   c run-codox       bool "Also generate codox documentation"]
+   c run-codox       bool "Also generate codox documentation"
+   t transit         bool "Also generate transit cache"]
   (comp (copy-jar-contents :jar (jar-file [project version]))
         (import-repo :project project :version version)
+        (analyze :project project :version version)
         (grimoire :project project :version version)
         (grimoire-html :project project :version version)
-        (transit-cache :project project :version version)
+        (when-task transit
+          (transit-cache :project project :version version))
         (when-task deploy
           (deploy-docs :project project :version version))
         (when-task run-codox
