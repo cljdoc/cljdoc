@@ -6,7 +6,7 @@
 (s/def ::name string?)
 (s/def ::doc (s/nilable string?))
 (s/def ::src string?)
-(s/def ::type #{:var :fn :macro :protocol})
+(s/def ::type #{:var :fn :macro :protocol :multimethod})
 (s/def ::line (s/and int? pos?))
 (s/def ::column (s/and int? pos?))
 
