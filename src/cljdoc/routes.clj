@@ -11,8 +11,10 @@
                   (leaf "/" :artifact/index)
                   (branch "/" (param :version)
                           (leaf "/" :artifact/version)
-                          (branch "/" (param :namespace)
-                                  (leaf "/" :artifact/namespace)
+                          (branch "/doc/" (param :doc-page)
+                                  (leaf "/" :artifact/doc))
+                          (branch "/api/" (param [ #"[\w\.]+" :namespace ])
+                                  (leaf "" :artifact/namespace)
                                   (branch "#" (param :def)
                                           (leaf "" :artifact/def)))))))
 
@@ -39,12 +41,22 @@
   (apply bidi/path-for routes k (apply concat params))) ;; *shakes head*
 
 (comment
-  (path-for :artifact/version
-            {:group-id ":group"
-             :artifact-id ":artifact"
-             :version ":version"})
+  (->> {:group-id "group" :artifact-id "artifact" :version "version" :namespace "some.ns" :def "def"}
+       (path-for :artifact/def)
+       #_(bidi/match-route routes)) ; TODO figoure out why route matching does not work
 
-  (bidi/match-route routes "/org.clojure/clojure/1.1/")
+  (->> {:group-id "yada", :artifact-id "yada", :version "1.2.10", :doc-page "preface"}
+       (path-for :artifact/doc)
+       #_(bidi/match-route html-routes)) ; TODO figoure out why route matching does not work
+
+  (bidi/match-route routes p)
+
+  (bidi/match-route routes "/org.clojure/clojure/1.1/doc/asd/")
+  (bidi/match-route routes "/org.clojure/clojure/1.1/api/some.namespace/")
+
+  (bidi/match-route routes "/org.clojure/clojure/1.1/some.namespace/#def")
+
+  (bidi/match-route routes "/org.clojure/clojure/1.1/some.ns/")
 
   (bidi/match-route routes "/org.clojure/")
 
