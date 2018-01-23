@@ -1,6 +1,6 @@
-# 7. Introduce DocBundles for Non-API Docs
+# 7. Introduce DocTrees to describe Non-API Docs
 
-Date: 2018-01-21
+Date: 2018-01-23
 
 ## Status
 
@@ -9,9 +9,9 @@ Proposed
 ## Context
 
 Non API documentation such as articles and guides are just as
-important—if not more important—as API documentation. We want to
+important—if not more important—as API documentation. **We want to
 provide an easy way for projects to publish a collection of articles
-in a hierarchy that makes sense for the project.
+in a hierarchy that makes sense for the project.**
 
 Yada does an [exemplary job](https://juxt.pro/yada/manual/index.html)
 at providing this kind of documentation and it's documentation may
@@ -42,52 +42,36 @@ A few challenges arise:
 
 ## Decision
 
-We introduce a *DocBundle* Thing into the Grimoire hierarchy that can contain
-multiple documentation pages and describe their hierarchy. Nesting will be supported
-in a limited fashion to keep things simple.
-
-*DocBundles* are attached to the Version entity in the Grimoire store and their
-contents are largely decoupled from other nodes in the store. 
-
-*DocBundles* may contain the entirety of text required to render the documentation
-or pointers to others sources required to render documentation (URIs etc.). An Example:
+We introduce a way for library authors to specify a hierarchy of
+various documentation files they store in their Git repository. This
+hierarchy can be encoded in familiar, hiccup-style vectors. A
+simplified example, assuming some Markdown files in `doc/`:
 
 ```clojure
-[["Some Markdown" {:markdown "# Some markdown"}
-  ["Some Remote Markdown" {:markdown-uri "https://markdown.com/some-file.md"}]]
- ["Some Asciidoc" {:asciidoc "= Some Asciidoc"}
-  ["Some Remote Asciidoc" {:asciidoc-uri "https://some-asiicdoc.com/test.adoc"}]]]
+[["Getting Started" {:file "doc/getting-started.md"}]
+ ["Guides" {}
+  ["Integrating Authentication" {:file "doc/integrating-auth.md"}]
+  ["Websockets" {:file "doc/websockets.md"}]]]
 ```
 
-This already encodes some hierarchy which is further discribed in [DocBundle Hierarchy](#docbundle-hierarchy)
+This information can then be used by cljdoc to create a manual or
+book-like experience. This approach is partly inspired by [Sphinx' TOC trees](http://www.sphinx-doc.org/en/stable/markup/toctree.html).
 
-- Some Markdown
-  - Some Remote Markdown
-- Some Asciidoc
-  - Some Remote Asciidoc
+Because Grimoire's support for articles is still in development
+this ADR does not contain a decision on how to store the information
+that cljdoc pulls out of projects using DocTrees.
 
-> Generally copying information from the repo to some storage under our
-> control seems preferable to not rely on services like Github. That
-> decision however is not part of this ADR and the maps describing how
-> to retrieve the content are intended to be an open system so that such
-> decision may be made at a later point.
+#### More Details on DocTrees
 
-#### DocBundle Hierarchy
-
-A data structure may describe their hierarchy in the following way:
+A data structure may describe documentation hierarchy in the following way:
 
 - ordered vector of vectors, somewhat hiccup inspired
 - an attribute-map describes how the content of the given page can be
   retrieved from the Git repository
 - elements after attribute-map are interpreted as children
 
-This data structure may be specified by library authors through 
+This data structure may be specified by library authors through
 a configuration file or derived from the repository structure.
-
-> **Note:** The maps from the above section provide information where
-> to find some document regardless of any context such as the repository.
-> The datastructure defining the hierarchy, i.e. what you see below,
-> should always refer to filepaths in the repository.
 
 ```clojure
 ;; README only, perhaps derived
@@ -95,7 +79,7 @@ a configuration file or derived from the repository structure.
 ```
 
 ```clojure
-;; Simple markdown files in doc/
+;; Simple markdown files in doc/ — same as above
 [["Getting Started" {:file "doc/getting-started.md"}]
  ["Guides" {}
   ["Integrating Authentication" {:file "doc/integrating-auth.md"}]
@@ -112,39 +96,63 @@ a configuration file or derived from the repository structure.
 
 ## Consequences
 
-#### Versioning
+#### Monolithic Documentation
 
-Attaching *DocBundles* to a Version Thing ties documentation to a
-version of an Artifact.  This is generally desirable but it is worth
-noting that documentation may receive useful updates after a release
-has been made.
+Projects like
+[Fulcro](https://github.com/fulcrologic/fulcro/blob/develop/DevelopersGuide.adoc)
+have one big file which contains all documentation. It would therefore
+not be possible for Fulcro to describe a DocTree with items pointing
+to individual files. Potential solutions include:
+- splitting the file (change on side of Fulco)
+- and parsing big files to derive a DocTree (change on side of cljdoc).
 
-An approach here may be that one Version Thing can have mulitple
-*DocBundles*, each with a `:patch-level` key indicating how many commits
-lay between the tagged release and the commit that served as foundation
-for the generation of the *DocBundle*.
+## Appendix
 
-While this will probably not be very common this kind of approach will
-fail if bigger refactorings and documentation updates are done in the
-main branch of a repository.
+Below are some doc trees for projects with extensive documentation.
 
-#### Linking
+#### DocTree for [Yada manual](https://github.com/juxt/yada/blob/master/doc/yada-manual.adoc)
 
-Since documents in the *DocBundle* are decoupled from other nodes in the Grimoire store
-there is no obvious way of allowing documentation authors to link to a namespace or function
-at the same version of the viewed documentation.
+```clojure
+[["Preface" {:file "doc/preface.adoc"}]
+ ["Basics" {}
+  ["Introduction" {:file "doc/intro.adoc"}]
+  ["Getting Started" {:file "doc/getting-started.adoc"}]
+  ["Hello World" {:file "doc/hello.adoc"}]
+  ["Installation" {:file "doc/install.adoc"}]
+  ["Resources" {:file "doc/install.adoc"}]
+  ["Parameters" {:file "doc/parameters.adoc"}]
+  ["Properties" {:file "doc/properties.adoc"}]
+  ["Methods" {:file "doc/methods.adoc"}]
+  ["Representations" {:file "doc/representations.adoc"}]
+  ["Responses" {:file "doc/responses.adoc"}]
+  ["Security" {:file "doc/security.adoc"}]
+  ["Routing" {:file "doc/routing.adoc"}]
+  ["Phonebook" {:file "doc/phonebook.adoc"}]
+  ["Swagger" {:file "doc/swagger.adoc"}]]
+ ["Advanced Topics" {}
+  ["Async" {:file "doc/async.adoc"}]
+  ["Search Engine" {:file "doc/searchengine.adoc"}]
+  ["Server Sent Events" {:file "doc/sse.adoc"}]
+  ["Server Sent Events" {:file "doc/sse.adoc"}]
+  ["Chat Server" {:file "doc/chatserver.adoc"}]
+  ["Handling Request Bodies" {:file "doc/requestbodies.adoc"}]
+  ["Selfie Uploader" {:file "doc/selfieuploader.adoc"}]
+  ["Handlers" {:file "doc/handlers.adoc"}]
+  ["Request Context" {:file "doc/requestcontext.adoc"}]
+  ["Interceptors" {:file "doc/interceptors.adoc"}]
+  ["Subresources" {:file "doc/subresources.adoc"}]
+  ["Fileserver" {:file "doc/fileserver.adoc"}]
+  ["Testing" {:file "doc/testing.adoc"}]]
+ ["Reference" {}
+  ["Glossary" {:file doc/glossary.adoc}]
+  ["Reference" {:file doc/reference.adoc}]
+  ["Colophon" {:file doc/colophon.adoc}]]]
+```
 
-An approach to this issue may be to allow users to use a specific
-protocol like `grimoire://namespace/bidi.ring` and
-`grimoire://def/bidi.ring/archive` but using these special protocol
-will effectively make their source files less useful when viewed in a
-standard Markdown renderer or similar.
+#### Notes on [Lacinia](https://github.com/walmartlabs/lacinia/tree/master/docs)
 
-Another option may be links that work under both situations and can be
-specially treated, e.g. `cljdoc.com/bidi/bidi/CURRENT/bidi.ring/archive`. 
-Opening that link in a browser could redirect to the latest version
-while in our docs rendering we could replace `CURRENT` with the
-current version.
+Published to [readthedocs.io](http://lacinia.readthedocs.io)
 
-This certainly needs more thought but the issue of linking in multiple contexts
-is tricky and there probably won't be a perfect solution anyways.
+Writing out the DocTree isn't an issue here but the Lacinia docs use several
+[ReStructuredText](https://en.wikipedia.org/wiki/ReStructuredText) features like
+inlining contents of other files.
