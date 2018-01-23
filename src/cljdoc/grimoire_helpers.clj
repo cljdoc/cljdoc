@@ -51,7 +51,7 @@
       (grimoire.api/write-meta (grimoire.things/thing->group platform) {})
       (grimoire.api/write-meta (grimoire.things/thing->artifact platform) {})
       (grimoire.api/write-meta (grimoire.things/thing->version platform)
-                               (git/read-repo-meta git-repo (:version platf-entity)))
+                               {:scm (git/read-repo-meta git-repo (:version platf-entity))})
       (grimoire.api/write-meta platform {}))
 
     (let [namespaces codox-namespaces]

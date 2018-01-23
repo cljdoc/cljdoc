@@ -65,7 +65,7 @@
   (let [tag-obj (or (find-tag repo version-str)
                     (find-tag repo (str "v" version-str)))]
     (assert tag-obj (format "No tag found for version-str: %s" version-str))
-    {:scm-url (read-origin repo)
+    {:url     (read-origin repo)
      :commit  (.. tag-obj getPeeledObjectId getName)
      :tag     {:name (-> (.. tag-obj getName)
                          (string/replace #"^refs/tags/" ""))

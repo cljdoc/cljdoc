@@ -26,8 +26,8 @@
     {:href (r/path-for :artifact/index cache-id)}
     (:version cache-id)]
    [:a.link.dim.gray.f6.dib.fr
-    {:href (:scm-url version-meta)}
-    (subs (:scm-url version-meta) 8)]])
+    {:href (-> version-meta :scm :url)}
+    (subs (-> version-meta :scm :url) 8)]])
 
 (defn def-block [platforms]
   (assert (coll? platforms) "def meta is not a map")
