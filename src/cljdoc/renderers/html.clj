@@ -45,6 +45,7 @@
    [:a.link.dim.gray.f6.dib.mr3
     {:href (r/path-for :artifact/index cache-id)}
     (:version cache-id)]
+   [:span.dib.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "Non official"]
    [:a.link.dim.gray.f6.dib.fr
     {:href (-> version-meta :scm :url)}
     [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
