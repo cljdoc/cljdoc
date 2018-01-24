@@ -96,7 +96,7 @@
                            (map #(.getName %))
                            (filter #(.startsWith (.toLowerCase %) "readme"))
                            first)]
-      (process-toc dir [["Readme" {:file readme}]]))))
+      [["Readme" {:file readme}]])))
 
 (comment
 
