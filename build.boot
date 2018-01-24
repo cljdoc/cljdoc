@@ -18,7 +18,7 @@
     [org.clojure/test.check "0.9.0"]
     [com.cognitect/transit-clj "0.8.300"]
 
-    [confetti "0.2.0"]
+    [confetti "0.2.1"]
     [bidi "2.1.3"]
     [hiccup "2.0.0-alpha1"]
     [org.asciidoctor/asciidoctorj "1.5.6"]
