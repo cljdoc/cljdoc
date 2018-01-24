@@ -1,24 +1,13 @@
 (ns cljdoc.renderers.html
   (:require [cljdoc.routes :as r]
             [cljdoc.doc-tree :as doctree]
+            [cljdoc.renderers.markup :as markup]
             [cljdoc.cache]
             [cljdoc.spec]
             [hiccup2.core :as hiccup]
             [hiccup.page]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as spec])
-  (:import [org.asciidoctor Asciidoctor Asciidoctor$Factory OptionsBuilder Attributes]))
-
-
-(def adoc-container
-  (Asciidoctor$Factory/create ""))
-
-;; (doto (java.util.HashMap.)
-;;   (.put "attributes" (doto (java.util.HashMap.)
-;;                        (.put "source-highlighter" "pygments"))))
-
-(defn asciidoctor-to-html [file-content]
-  (.convert adoc-container file-content {}))
+            [clojure.spec.alpha :as spec]))
 
 (defn page [contents]
   (hiccup/html {:mode :html}
@@ -219,9 +208,11 @@
     namespace-list-component)
    (main-container
     [:div.mw7.center
-     (or (some-> doc-page :attrs :cljdoc/markdown)
-         [:div.asciidoc.lh-copy.pv4
-          (some-> doc-page :attrs :cljdoc/asciidoc asciidoctor-to-html hiccup/raw)]
+     ;; TODO dispatch on a type parameter that becomes part of the attrs map
+     (or (when-let [md (some-> doc-page :attrs :cljdoc/markdown)]
+           [:div.markdown.lh-copy.pv4 (-> md markup/markdown-to-html hiccup/raw)])
+         (when-let [adoc (some-> doc-page :attrs :cljdoc/asciidoc)]
+           [:div.asciidoc.lh-copy.pv4 (-> adoc markup/asciidoc-to-html hiccup/raw)])
          [:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))])])])
 
 (defn render-to [hiccup ^java.io.File file]
