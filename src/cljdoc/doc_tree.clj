@@ -54,7 +54,8 @@
 
 (def known-for-testing
   {"yada" {:dir (io/file "/Users/martin/code/02-oss/yada/")
-           :toc [["Preface" {:file "doc/preface.adoc"}]
+           :toc [["Readme" {:file "README.md"}]
+                 ["Preface" {:file "doc/preface.adoc"}]
                  ["Basics" {}
                   ["Introduction" {:file "doc/intro.adoc"}]
                   ["Getting Started" {:file "doc/getting-started.adoc"}]

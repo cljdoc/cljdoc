@@ -15,3 +15,11 @@
 .asciidoc .listingblock pre {
   margin: 0
 }
+
+/** Markdown ------------------------------------------------ **/
+
+.markdown pre {
+  padding: 1rem;
+  background-color: rgb(246, 248, 250);
+  border-radius: 3px
+}
