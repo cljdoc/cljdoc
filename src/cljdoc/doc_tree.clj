@@ -60,7 +60,7 @@
                   ["Getting Started" {:file "doc/getting-started.adoc"}]
                   ["Hello World" {:file "doc/hello.adoc"}]
                   ["Installation" {:file "doc/install.adoc"}]
-                  ["Resources" {:file "doc/install.adoc"}]
+                  ["Resources" {:file "doc/resources.adoc"}]
                   ["Parameters" {:file "doc/parameters.adoc"}]
                   ["Properties" {:file "doc/properties.adoc"}]
                   ["Methods" {:file "doc/methods.adoc"}]
