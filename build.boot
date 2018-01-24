@@ -307,7 +307,10 @@
           (sift :move {#"^grimoire-html/(.*)" (str "$1")})
           ;; TODO find common prefix of all files in the fileset, pass as :invalidation-paths
           ;; TODO remove all uses of `docs-path`
-          (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"
+          (confetti/sync-bucket :access-key (System/getenv "AWS_ACCESS_KEY")
+                                :secret-key (System/getenv "AWS_SECRET_KEY")
+                                :cloudfront-id (System/getenv "CLOUDFRONT_ID")
+                                :bucket (System/getenv "S3_BUCKET_NAME")
                                 ;; also invalidates root path (also cheaper)
                                 :invalidation-paths [(str "/" doc-path "*")])
           (with-pass-thru _
