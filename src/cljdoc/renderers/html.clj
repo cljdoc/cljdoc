@@ -33,13 +33,16 @@
 (defn sidebar-title [title]
   [:h4.ttu.f7.fw5.tracked.gray title])
 
+(defn clojars-id [{:keys [group-id artifact-id] :as cache-id}]
+  (if (= group-id artifact-id)
+    artifact-id
+    (str group-id "/" artifact-id)))
+
 (defn top-bar [cache-id version-meta]
   [:nav.pa3.pa4-ns.bb.b--black-10
    [:a.link.dim.black.b.f6.dib.mr3 {:href (r/path-for :artifact/version cache-id)}
-    (str
-     (:group-id cache-id) "/"
-     (:artifact-id cache-id))]
-   [:a.link.dim.gray.f6.dib
+    (clojars-id cache-id)]
+   [:a.link.dim.gray.f6.dib.mr3
     {:href (r/path-for :artifact/index cache-id)}
     (:version cache-id)]
    [:a.link.dim.gray.f6.dib.fr
