@@ -88,6 +88,15 @@
                   ["Reference" {:file "doc/reference.adoc"}]
                   ["Colophon" {:file "doc/colophon.adoc"}]]]}})
 
+(defn derive-toc [artifact-id dir]
+  (case artifact-id
+    "yada" (get-in known-for-testing ["yada" :toc])
+    (when-let [readme (->> (.listFiles dir)
+                           (map #(.getName %))
+                           (filter #(.startsWith (.toLowerCase %) "readme"))
+                           first)]
+      (process-toc dir [["Readme" {:file readme}]]))))
+
 (comment
 
   (let [yada (get known-for-testing "yada")]

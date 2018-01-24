@@ -1,13 +1,15 @@
 (ns cljdoc.grimoire-helpers
   (:require [clojure.spec.alpha :as spec]
             [cljdoc.git-repo :as git]
+            [cljdoc.doc-tree :as doctree]
             [grimoire.api]
             [grimoire.api.fs]
             [grimoire.api.fs.write]
             [grimoire.api.fs.read]
             [grimoire.things]
             [grimoire.util]
-            [grimoire.either]))
+            [grimoire.either])
+  (:import [org.eclipse.jgit.api Git]))
 
 (def v "0.1.0")
 
@@ -40,6 +42,7 @@
   (assert dst "target dir missing!")
   (assert (coll? codox-namespaces) "codox-namespaces malformed")
   (let [store    (grimoire.api.fs/->Config dst "" "")
+        git-dir  (.. git-repo getRepository getWorkTree)
         platform (-> (grimoire.things/->Group    (:group-id platf-entity))
                      (grimoire.things/->Artifact (:artifact-id platf-entity))
                      (grimoire.things/->Version  (:version platf-entity))
@@ -51,7 +54,9 @@
       (grimoire.api/write-meta (grimoire.things/thing->group platform) {})
       (grimoire.api/write-meta (grimoire.things/thing->artifact platform) {})
       (grimoire.api/write-meta (grimoire.things/thing->version platform)
-                               {:scm (git/read-repo-meta git-repo (:version platf-entity))})
+                               {:scm (git/read-repo-meta git-repo (:version platf-entity))
+                                :doc (some->> (doctree/derive-toc (:artifact-id platf-entity) git-dir)
+                                              (doctree/process-toc git-dir))})
       (grimoire.api/write-meta platform {}))
 
     (let [namespaces codox-namespaces]
