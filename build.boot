@@ -32,6 +32,7 @@
 
 
 (boot.core/set-env! :source-paths #{"src"}
+                    :resource-paths #{"site"}
                     :dependencies application-deps)
 
 (require '[boot.pod :as pod]
@@ -325,6 +326,7 @@
         (import-repo :project project :version version)
         (analyze :project project :version version)
         (grimoire :project project :version version)
+        (sift :move {#"^cljdoc.css" "grimoire-html/cljdoc.css"})
         (grimoire-html :project project :version version)
         (when-task transit
           (transit-cache :project project :version version))
