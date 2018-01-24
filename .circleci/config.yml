@@ -24,7 +24,7 @@ jobs:
           - v1-dependencies- # fallback if not cache found
 
       - run: boot show -d
-      - run: boot -B -d codox -d confetti/s3-deploy
+      - run: boot -B -d codox -d confetti/s3-deploy -d confetti/cloudformation
 
       - save_cache:
           paths:
