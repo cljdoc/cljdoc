@@ -37,11 +37,12 @@
     {:href (r/path-for :artifact/index cache-id)}
     (:version cache-id)]
    [:span.dib.v-mid.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "Non official"]
-   [:a.link.dim.gray.f6.tr
-    {:style {:flex-grow 1}
-     :href (-> version-meta :scm :url)}
-    [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
-    [:span.dib (subs (-> version-meta :scm :url) 19)]]])
+   [:div.tr
+    {:style {:flex-grow 1}}
+    [:a.link.dim.gray.f6.tr
+     {:href (-> version-meta :scm :url)}
+     [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
+     [:span.dib (subs (-> version-meta :scm :url) 19)]]]])
 
 (defn def-block [platforms]
   (assert (coll? platforms) "def meta is not a map")
