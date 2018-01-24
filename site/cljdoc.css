@@ -1,6 +1,10 @@
+/** Tachyons style helpers ---------------------------------- **/
+
 .f7 {
   font-size: 12px
 }
+
+/** Asciidoc ------------------------------------------------ **/
 
 .asciidoc .listingblock {
   padding: 1rem;
