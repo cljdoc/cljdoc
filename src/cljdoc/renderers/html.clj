@@ -213,7 +213,9 @@
            [:div.markdown.lh-copy.pv4 (-> md markup/markdown-to-html hiccup/raw)])
          (when-let [adoc (some-> doc-page :attrs :cljdoc/asciidoc)]
            [:div.asciidoc.lh-copy.pv4 (-> adoc markup/asciidoc-to-html hiccup/raw)])
-         [:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))])])])
+         [:div.lh-copy.pv6.tc
+          #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
+          [:span.f4.serif.gray "Space intentionally left blank."]])])])
 
 (defn render-to [hiccup ^java.io.File file]
   (println "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
