@@ -21,6 +21,7 @@
     [confetti "0.2.0"]
     [bidi "2.1.3"]
     [hiccup "2.0.0-alpha1"]
+    [org.asciidoctor/asciidoctorj "1.5.6"]
 
     [org.slf4j/slf4j-nop "1.7.25"]
     [org.eclipse.jgit "4.10.0.201712302008-r"]

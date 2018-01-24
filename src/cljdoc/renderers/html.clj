@@ -1,20 +1,37 @@
 (ns cljdoc.renderers.html
   (:require [cljdoc.routes :as r]
+            [cljdoc.doc-tree :as doctree]
             [cljdoc.cache]
             [cljdoc.spec]
             [hiccup2.core :as hiccup]
             [hiccup.page]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as spec]))
+            [clojure.spec.alpha :as spec])
+  (:import [org.asciidoctor Asciidoctor Asciidoctor$Factory OptionsBuilder Attributes]))
+
+
+(def adoc-container
+  (Asciidoctor$Factory/create ""))
+
+;; (doto (java.util.HashMap.)
+;;   (.put "attributes" (doto (java.util.HashMap.)
+;;                        (.put "source-highlighter" "pygments"))))
+
+(defn asciidoctor-to-html [file-content]
+  (.convert adoc-container file-content {}))
 
 (defn page [contents]
   (hiccup/html {:mode :html}
                (hiccup.page/doctype :html5)
                [:html {}
                 [:head
-                 [:link {:rel "stylesheet" :href "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"}]]
+                 [:link {:rel "stylesheet" :href "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"}]
+                 (hiccup.page/include-css "/cljdoc.css")]
                 [:div.sans-serif
                  contents]]))
+
+(defn sidebar-title [title]
+  [:h4.ttu.f7.fw5.tracked.gray title])
 
 (defn top-bar [cache-id version-meta]
   [:nav.pa3.pa4-ns.bb.b--black-10
@@ -27,7 +44,8 @@
     (:version cache-id)]
    [:a.link.dim.gray.f6.dib.fr
     {:href (-> version-meta :scm :url)}
-    (subs (-> version-meta :scm :url) 8)]])
+    [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
+    [:span.dib (subs (-> version-meta :scm :url) 19)]]])
 
 (defn def-block [platforms]
   (assert (coll? platforms) "def meta is not a map")
@@ -55,7 +73,7 @@
 
 (defn namespace-list [namespaces]
   [:div
-   [:h4 "Namespaces"]
+   (sidebar-title "Namespaces")
    [:ul.list.pl2
     (for [ns (sort-by :namespace namespaces)]
       [:li
@@ -63,12 +81,10 @@
         {:href (r/path-for :artifact/namespace ns)}
         (:namespace ns)]])]])
 
-(defn article-list [articles]
+(defn article-list [doc-tree]
   [:div
-   [:h4 "Articles"]
-   [:ul.list.pl2
-    [:li
-     [:a.no-underline.black.dib.pa1 {:href "#"} "Nothing there yet"]]]])
+   (sidebar-title "Articles")
+   doc-tree])
 
 (defn humanize-supported-platforms
   ([supported-platforms]
@@ -99,43 +115,43 @@
     (->> counts-by-platform (sort-by val) reverse (filter (comp pos? second)))))
 
 (defn definitions-list [ns-entity defs {:keys [indicate-platforms-other-than]}]
-  [:div.absolute.overflow-scroll.CSS_HACK
-   {:style {:bottom "0px" :top "10rem"}} ; CSS HACK
-   [:div.pb4
-    [:ul.list.pl2
-     (for [[def-name platf-defs] (->> defs
-                                      (group-by :name)
-                                      (sort-by key))]
-       [:li
-        [:a.link.dim.blue.dib.pa1
-         {:href (r/path-for :artifact/def (merge ns-entity {:def def-name}))}
-         def-name]
-        (when-not (= (set (map :platform platf-defs))
-                     indicate-platforms-other-than)
-          [:span.f6.ttu.gray
-           (-> (set (map :platform platf-defs))
-               (humanize-supported-platforms))])])]]])
-
+  [:div.pb4
+   [:ul.list.pl2
+    (for [[def-name platf-defs] (->> defs
+                                     (group-by :name)
+                                     (sort-by key))]
+      [:li
+       [:a.link.dim.blue.dib.pa1
+        {:href (r/path-for :artifact/def (merge ns-entity {:def def-name}))}
+        def-name]
+       (when-not (= (set (map :platform platf-defs))
+                    indicate-platforms-other-than)
+         [:span.f6.ttu.gray
+          (-> (set (map :platform platf-defs))
+              (humanize-supported-platforms))])])]])
 
 (defn sidebar [& contents]
-  [:div.fixed.w5.pa3.pa4-ns.bottom-0.CSS_HACK
-   {:style {:top "80px"}} ; CSS HACK
-   contents])
+  [:div.absolute.w5.bottom-0.top-0.br.b--black-10
+   [:div.absolute.bottom-0.right-0.left-0.pa3.pa4-ns.overflow-scroll
+    {:style {:top "83px"}} ; CSS HACK]
+    contents]])
 
-(defn index-page [{:keys [top-bar-component namespaces]}]
+(defn index-page [{:keys [top-bar-component doc-tree-component namespaces]}]
   [:div
    top-bar-component
    (sidebar
-    (article-list [])
+    (article-list doc-tree-component)
     (namespace-list namespaces))])
 
 (defn platform-support-note [[[dominant-platf] :as platf-stats]]
-  (if (= 1 (count platf-stats))
-    (if (or (= dominant-platf #{"clj"})
-            (= dominant-platf #{"cljs"}))
-      [:span (str (humanize-supported-platforms dominant-platf :long) " only.")]
-      [:span "All forms support " (str (humanize-supported-platforms dominant-platf :long) ".")])
-    [:span (str "Mostly " (humanize-supported-platforms dominant-platf) " forms. Exceptions indicated.")]))
+  (let [node :span.f7.ttu.fw5.tracked.gray]
+    (if (= 1 (count platf-stats))
+      (if (or (= dominant-platf #{"clj"})
+              (= dominant-platf #{"cljs"}))
+        [node (str (humanize-supported-platforms dominant-platf :long) " only.")]
+        #_[node "All forms support " (str (humanize-supported-platforms dominant-platf :long) ".")]
+        [node "All platforms."])
+      [node (str "Mostly " (humanize-supported-platforms dominant-platf) " forms. Exceptions indicated.")])))
 
 (defn namespace-page [{:keys [namespace defs top-bar-component]}]
   (spec/assert :cljdoc.spec/namespace-entity namespace)
@@ -145,16 +161,58 @@
      top-bar-component
      [:div
       (sidebar
-       [:a.link.dim.blue.f6 {:href (r/path-for :artifact/version namespace)} "All namespaces"]
-       [:h3 (:namespace namespace)]
-       (platform-support-note platf-stats)
+       [:div
+        [:a.link.dim.blue.f6 {:href (r/path-for :artifact/version namespace)} "All namespaces"]
+        [:h3 (:namespace namespace)]
+        (platform-support-note platf-stats)]
        (definitions-list namespace sorted-defs
          {:indicate-platforms-other-than dominant-platf}))
-      [:div.ml7.w-60-ns.pa4-ns.bl.b--black-10
+      [:div.ml7.w-60-ns.pa4-ns
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))]
          (def-block platf-defs))]]]))
+
+(defn doc-link [cache-id slugs]
+  (assert (seq slugs) "Slug path missing")
+  (->> (clojure.string/join "/" slugs)
+       (assoc cache-id :doc-page)
+       (r/path-for :artifact/doc)))
+
+(defn subseq? [a b]
+  (= (take (count b) a) b))
+
+(defn doc-tree-view
+  [cache-id doc-bundle current-page]
+  (->> doc-bundle
+       (map (fn [doc-page]
+              (let [slug-path (-> doc-page :attrs :slug-path)]
+                [:li
+                 [:a.link.blue.dib.pa1
+                  {:href  (doc-link cache-id slug-path)
+                   :class (if (= current-page slug-path) "fw7" "link dim")}
+                  (:title doc-page)]
+                 (when (subseq? current-page slug-path)
+                   (doc-tree-view cache-id (:children doc-page) current-page))])))
+       (into [:ul.list.pl2])))
+
+(defn doc-page [{:keys [top-bar-component
+                        doc-tree-component
+                        namespace-list-component
+                        doc-page] :as args}]
+  [:div
+   top-bar-component
+   (sidebar
+    (article-list doc-tree-component)
+    namespace-list-component)
+   [:div.absolute.bottom-0.right-0
+    {:style {:left "256px" :top "83px"}}
+    [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2
+     [:div.mw7.center
+      (or (some-> doc-page :attrs :cljdoc/markdown)
+          [:div.asciidoc.lh-copy.pv4
+           (some-> doc-page :attrs :cljdoc/asciidoc asciidoctor-to-html hiccup/raw)]
+          [:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))])]]]])
 
 (defn render-to [hiccup ^java.io.File file]
   (println "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
@@ -170,10 +228,27 @@
                              (map #(merge cache-id {:namespace %}))
                              (map #(spec/assert :cljdoc.spec/namespace-entity %))
                              set)
-        top-bar-comp (top-bar cache-id (:version cache-contents))]
+        top-bar-comp (top-bar cache-id (:version cache-contents))
+        doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))]
+
+    ;; Index page for given version
     (render-to (index-page {:top-bar-component top-bar-comp
+                            :doc-tree-component (doc-tree-view cache-id doc-tree [])
                             :namespaces namespace-emaps})
                (file-for out-dir :artifact/version cache-id))
+
+    ;; Documentation Pages / Articles
+    (doseq [doc-p (-> doc-tree doctree/flatten*)]
+      (render-to (doc-page {:top-bar-component top-bar-comp
+                            :doc-tree-component (doc-tree-view cache-id doc-tree (-> doc-p :attrs :slug-path))
+                            :namespace-list-component (namespace-list namespace-emaps)
+                            :doc-page doc-p})
+                 (->> (-> doc-p :attrs :slug-path)
+                      (clojure.string/join "/")
+                      (assoc cache-id :doc-page)
+                      (file-for out-dir :artifact/doc))))
+
+    ;; Namespace Pages
     (doseq [ns-emap namespace-emaps
             :let [defs (filter #(= (:namespace ns-emap)
                                    (:namespace %))
@@ -194,7 +269,7 @@
 
 
   (write-docs store platf out)
-  
+
   (defn namespace-hierarchy [ns-list]
     (reduce (fn [hierarchy ns-string]
               (let [ns-path (clojure.string/split ns-string #"\.")]
