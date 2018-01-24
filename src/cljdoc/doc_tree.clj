@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]))
 
 (defn read-file [f]
-  (-> f slurp (subs 0 20)))
+  (-> f slurp #_(subs 0 20)))
 
 (defn slugify [s]
   (-> s
