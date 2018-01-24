@@ -134,10 +134,9 @@
               (humanize-supported-platforms))])])]])
 
 (defn sidebar [& contents]
-  [:div.absolute.w5.bottom-0.top-0.br.b--black-10
-   [:div.absolute.bottom-0.right-0.left-0.pa3.pa4-ns.overflow-scroll
-    {:style {:top "83px"}} ; CSS HACK]
-    contents]])
+  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10
+   {:style {:top "83px"}} ; CSS HACK
+   contents])
 
 (defn index-page [{:keys [top-bar-component doc-tree-component namespaces]}]
   [:div
@@ -156,25 +155,31 @@
         [node "All platforms."])
       [node (str "Mostly " (humanize-supported-platforms dominant-platf) " forms. Exceptions indicated.")])))
 
+(defn main-container [& content]
+   [:div.absolute.bottom-0.right-0
+    {:style {:left "256px" :top "83px"}}
+    (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2]
+          content)])
+
 (defn namespace-page [{:keys [namespace defs top-bar-component]}]
   (spec/assert :cljdoc.spec/namespace-entity namespace)
   (let [sorted-defs                        (sort-by :name defs)
         [[dominant-platf] :as platf-stats] (platform-stats defs)]
     [:div
      top-bar-component
-     [:div
-      (sidebar
-       [:div
-        [:a.link.dim.blue.f6 {:href (r/path-for :artifact/version namespace)} "All namespaces"]
-        [:h3 (:namespace namespace)]
-        (platform-support-note platf-stats)]
-       (definitions-list namespace sorted-defs
-         {:indicate-platforms-other-than dominant-platf}))
-      [:div.ml7.w-60-ns.pa4-ns
+     (sidebar
+      [:div
+       [:a.link.dim.blue.f6 {:href (r/path-for :artifact/version namespace)} "All namespaces"]
+       [:h3 (:namespace namespace)]
+       (platform-support-note platf-stats)]
+      (definitions-list namespace sorted-defs
+        {:indicate-platforms-other-than dominant-platf}))
+     (main-container
+      [:div.w-60-ns
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))]
-         (def-block platf-defs))]]]))
+         (def-block platf-defs))])]))
 
 (defn doc-link [cache-id slugs]
   (assert (seq slugs) "Slug path missing")
@@ -208,14 +213,12 @@
    (sidebar
     (article-list doc-tree-component)
     namespace-list-component)
-   [:div.absolute.bottom-0.right-0
-    {:style {:left "256px" :top "83px"}}
-    [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2
-     [:div.mw7.center
-      (or (some-> doc-page :attrs :cljdoc/markdown)
-          [:div.asciidoc.lh-copy.pv4
-           (some-> doc-page :attrs :cljdoc/asciidoc asciidoctor-to-html hiccup/raw)]
-          [:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))])]]]])
+   (main-container
+    [:div.mw7.center
+     (or (some-> doc-page :attrs :cljdoc/markdown)
+         [:div.asciidoc.lh-copy.pv4
+          (some-> doc-page :attrs :cljdoc/asciidoc asciidoctor-to-html hiccup/raw)]
+         [:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))])])])
 
 (defn render-to [hiccup ^java.io.File file]
   (println "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
