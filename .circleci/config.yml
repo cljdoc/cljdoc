@@ -32,4 +32,6 @@ jobs:
             - ~/.boot
           key: v1-dependencies-{{ checksum "build.boot" }}
 
-      - run: boot build-docs --project bidi --version 2.1.3
+      - run: boot build-docs --project bidi --version 2.1.3 --deploy
+      - run: boot build-docs --project yada --version 1.2.10 --deploy
+      - run: boot build-docs --project org.martinklepsch/derivatives --version 0.3.0 --deploy
