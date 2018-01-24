@@ -38,16 +38,19 @@
     artifact-id
     (str group-id "/" artifact-id)))
 
+(def TOP-BAR-HEIGHT "57px")
+
 (defn top-bar [cache-id version-meta]
-  [:nav.pa3.pa4-ns.bb.b--black-10
-   [:a.link.dim.black.b.f6.dib.mr3 {:href (r/path-for :artifact/version cache-id)}
+  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
+   [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (r/path-for :artifact/version cache-id)}
     (clojars-id cache-id)]
-   [:a.link.dim.gray.f6.dib.mr3
+   [:a.dib.v-mid.link.dim.gray.f6.mr3
     {:href (r/path-for :artifact/index cache-id)}
     (:version cache-id)]
-   [:span.dib.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "Non official"]
-   [:a.link.dim.gray.f6.dib.fr
-    {:href (-> version-meta :scm :url)}
+   [:span.dib.v-mid.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "Non official"]
+   [:a.link.dim.gray.f6.tr
+    {:style {:flex-grow 1}
+     :href (-> version-meta :scm :url)}
     [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
     [:span.dib (subs (-> version-meta :scm :url) 19)]]])
 
@@ -136,7 +139,7 @@
 
 (defn sidebar [& contents]
   [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10
-   {:style {:top "83px"}} ; CSS HACK
+   {:style {:top TOP-BAR-HEIGHT}} ; CSS HACK
    contents])
 
 (defn index-page [{:keys [top-bar-component doc-tree-component namespaces]}]
@@ -158,7 +161,7 @@
 
 (defn main-container [& content]
    [:div.absolute.bottom-0.right-0
-    {:style {:left "256px" :top "83px"}}
+    {:style {:left "256px" :top TOP-BAR-HEIGHT}}
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2]
           content)])
 
