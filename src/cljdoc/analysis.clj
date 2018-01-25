@@ -18,7 +18,7 @@
   ;; file, this cannot be serialized accross
   ;; pod boundaries by default
   (let [clean-public    #(update % :path (fn [file] (.getPath file)))
-        remove-unneeded #(dissoc % :path :members)  ; TODO what are members?
+        remove-unneeded #(dissoc % :path)
         stringify-name  #(update % :name name)]
     (-> cdx-namespace
         (update :name name)
