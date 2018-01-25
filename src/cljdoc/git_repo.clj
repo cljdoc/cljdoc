@@ -1,8 +1,11 @@
 (ns cljdoc.git-repo
   (:require [clojure.java.io :as io]
             [clojure.string :as string])
-  (:import  [org.eclipse.jgit.lib RepositoryBuilder]
-            [org.eclipse.jgit.api Git]))
+  (:import  (org.eclipse.jgit.lib RepositoryBuilder
+                                  ObjectIdRef$PeeledNonTag
+                                  ObjectIdRef$PeeledTag
+                                  ObjectIdRef$Unpeeled)
+            (org.eclipse.jgit.api Git)))
 
 (defn clone [uri target-dir]
   (printf "Cloning repo %s\n" uri)
@@ -15,7 +18,7 @@
 (defn read-origin
   [^Git git-repo]
   {:post [(.startsWith % "https://")
-          (not (.endsWith % ".git"))]}
+          #_(not (.endsWith % ".git"))]}
   (let [remotes (->> (.. git-repo remoteList call)
                      (map (fn [remote]
                             [(keyword (.getName remote))
@@ -66,7 +69,11 @@
                     (find-tag repo (str "v" version-str)))]
     (assert tag-obj (format "No tag found for version-str: %s" version-str))
     {:url     (read-origin repo)
-     :commit  (.. tag-obj getPeeledObjectId getName)
+     :commit  (condp instance? tag-obj
+                ;; Not sure I really understand the difference between these two
+                ;; PeeledTags seem to have their own sha while PeeledNonTags dont
+                ObjectIdRef$PeeledTag    (.. tag-obj getPeeledObjectId getName)
+                ObjectIdRef$PeeledNonTag (.. tag-obj getObjectId getName))
      :tag     {:name (-> (.. tag-obj getName)
                          (string/replace #"^refs/tags/" ""))
                :sha  (.. tag-obj getObjectId getName)}}))
@@ -95,12 +102,18 @@
 
 (comment
   (def r (->repo (io/file "target/git-repo")))
+  (read-repo-meta r "0.1.6")
+
+  (def r (->repo (io/file "/Users/martin/code/02-oss/yada")))
+  (read-repo-meta r "1.2.10")
+
+  (.getPeeledObjectId -t)
 
   (clojure.pprint/pprint
    (read-repo-meta r "2.1.3"))
 
   (read-origin r)
-  (list-tags r)
+  (find-tag r "0.1.7-alpha5")
 
   )
 
