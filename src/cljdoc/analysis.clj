@@ -2,14 +2,14 @@
   (:require [codox.main]
             [cljs.util]))
 
-(defn codox-config [jar-contents-path platf]
+(defn codox-config [namespaces jar-contents-path platf]
   (assert (string? jar-contents-path) (str "was: " (pr-str jar-contents-path)))
   (assert (contains? #{"clj" "cljs"} platf) (str "was: " (pr-str platf)))
   {:language     (get {"clj" :clojure, "cljs" :clojurescript} platf)
    ;; not sure what :root-path is needed for
    :root-path    (System/getProperty "user.dir")
    :source-paths [jar-contents-path]
-   :namespaces   :all
+   :namespaces   (or namespaces :all)
    :metadata     {}
    :exclude-vars #"^(map)?->\p{Upper}"})
 
@@ -24,8 +24,8 @@
         (update :name name)
         (update :publics #(map (comp stringify-name remove-unneeded) %)))))
 
-(defn codox-namespaces [jar-contents-path platf]
-  (let [config (codox-config jar-contents-path platf)]
+(defn codox-namespaces [namespaces jar-contents-path platf]
+  (let [config (codox-config namespaces jar-contents-path platf)]
     ;; TODO print versions for Clojure/CLJS and other important deps
     (boot.util/info "Analysing sources for platform %s\n" (pr-str platf))
     (boot.util/dbug "ClojureScript version %s\n" (cljs.util/clojurescript-version))

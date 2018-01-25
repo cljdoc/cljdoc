@@ -45,6 +45,7 @@
          '[cljdoc.git-repo :as gr]
          '[cljdoc.renderers.html]
          '[cljdoc.renderers.transit]
+         '[cljdoc.hardcoded-config :as cfg]
          '[cljdoc.grimoire-helpers]
          '[confetti.boot-confetti :as confetti])
 
@@ -211,12 +212,17 @@
           (let [tempd        (tmp-dir!)
                 grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                             :directories #{"src"}})
+                platforms    (get-in cfg/projects [(artifact-id project) :cljdoc.api/platforms])
+                namespaces   (get-in cfg/projects [(artifact-id project) :cljdoc.api/namespaces])
                 build-cdx      (fn [jar-contents-path platf]
                                  (pod/with-eval-in grimoire-pod
                                    (require 'cljdoc.analysis)
-                                   (cljdoc.analysis/codox-namespaces ~jar-contents-path ~platf)))
-                cdx-namespaces {"clj"  (build-cdx (.getPath (jar-contents-dir fs)) "clj")
-                                "cljs" (build-cdx (.getPath (jar-contents-dir fs)) "cljs")}]
+                                   (cljdoc.analysis/codox-namespaces
+                                    (quote ~namespaces) ; the unquote seems to be recursive in some sense
+                                    ~jar-contents-path
+                                    ~platf)))
+                cdx-namespaces (->> (map #(build-cdx (.getPath (jar-contents-dir fs)) %) platforms)
+                                    (zipmap platforms))]
             (doto (io/file tempd (codox-edn project version))
               (io/make-parents)
               (spit (pr-str cdx-namespaces)))
@@ -234,7 +240,8 @@
           cdx-namespaces (-> (codox-edn project version)
                              io/resource slurp read-string)]
       (util/info "Generating Grimoire store for %s\n" project)
-      (doseq [platf ["clj" "cljs"]]
+      (doseq [platf (keys cdx-namespaces)]
+        (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
         (cljdoc.grimoire-helpers/build-grim
          {:group-id     (group-id project)
           :artifact-id  (artifact-id project)
