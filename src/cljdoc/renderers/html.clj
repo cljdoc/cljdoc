@@ -89,9 +89,9 @@
   ([supported-platforms style]
    (case style
      :short (case supported-platforms
-              #{"clj" "cljs"} "CLJ/S"
-              #{"clj"}        "CLJ"
-              #{"cljs"}       "CLJS")
+              #{"clj" "cljs"} "clj/s"
+              #{"clj"}        "clj"
+              #{"cljs"}       "cljs")
      :long  (case supported-platforms
               #{"clj" "cljs"} "Clojure & ClojureScript"
               #{"clj"}        "Clojure"
@@ -123,7 +123,7 @@
         def-name]
        (when-not (= (set (map :platform platf-defs))
                     indicate-platforms-other-than)
-         [:span.f6.ttu.gray
+         [:sup.f7.gray
           (-> (set (map :platform platf-defs))
               (humanize-supported-platforms))])])]])
 
