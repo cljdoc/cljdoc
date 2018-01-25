@@ -57,7 +57,7 @@
       (grimoire.api/write-meta (grimoire.things/thing->version platform)
                                {:scm (git/read-repo-meta git-repo (:version platf-entity))
                                 :doc (some->> (or (get-in cfg/projects [(:artifact-id platf-entity) :cljdoc.doc/tree])
-                                                  (doctree/derive-toc (:artifact-id platf-entity) git-dir))
+                                                  (doctree/derive-toc git-dir))
                                               (doctree/process-toc git-dir))})
       (grimoire.api/write-meta platform {}))
 

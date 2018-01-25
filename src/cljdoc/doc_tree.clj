@@ -52,7 +52,7 @@
        (filter :title)
        (map #(dissoc % :children))))
 
-(defn derive-toc [artifact-id dir]
+(defn derive-toc [dir]
   (when-let [readme (->> (.listFiles dir)
                          (map #(.getName %))
                          (filter #(.startsWith (.toLowerCase %) "readme"))
