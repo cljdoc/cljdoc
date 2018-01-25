@@ -13,7 +13,7 @@
                           (leaf "/" :artifact/version)
                           (branch "/doc/" (param :doc-page)
                                   (leaf "/" :artifact/doc))
-                          (branch "/api/" (param [ #"[\w\.]+" :namespace ])
+                          (branch "/api/" (param [ #"[\w\.-]+" :namespace ])
                                   (leaf "" :artifact/namespace)
                                   (branch "#" (param :def)
                                           (leaf "" :artifact/def)))))))
