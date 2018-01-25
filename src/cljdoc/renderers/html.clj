@@ -15,6 +15,7 @@
                [:html {}
                 [:head
                  [:title (:title opts)]
+                 [:meta {:charset "utf-8"}]
                  [:link {:rel "stylesheet" :href "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"}]
                  (hiccup.page/include-css "/cljdoc.css")]
                 [:div.sans-serif
