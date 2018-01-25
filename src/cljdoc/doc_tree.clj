@@ -53,7 +53,12 @@
        (map #(dissoc % :children))))
 
 (def known-for-testing
-  {"yada" {:dir (io/file "/Users/martin/code/02-oss/yada/")
+  {"manifold" {:toc [["Readme" {:file "README.md"}]
+                     ["Rationale" {:file "docs/rationale.md"}]
+                     ["Deferreds" {:file "docs/deferred.md"}]
+                     ["Streams" {:file "docs/stream.md"}]
+                     ["Execution" {:file "docs/execution.md"}]]}
+   "yada" {:dir (io/file "/Users/martin/code/02-oss/yada/")
            :toc [["Readme" {:file "README.md"}]
                  ["Preface" {:file "doc/preface.adoc"}]
                  ["Basics" {}
@@ -90,13 +95,12 @@
                   ["Colophon" {:file "doc/colophon.adoc"}]]]}})
 
 (defn derive-toc [artifact-id dir]
-  (case artifact-id
-    "yada" (get-in known-for-testing ["yada" :toc])
-    (when-let [readme (->> (.listFiles dir)
-                           (map #(.getName %))
-                           (filter #(.startsWith (.toLowerCase %) "readme"))
-                           first)]
-      [["Readme" {:file readme}]])))
+  (or (get-in known-for-testing [artifact-id :toc])
+      (when-let [readme (->> (.listFiles dir)
+                             (map #(.getName %))
+                             (filter #(.startsWith (.toLowerCase %) "readme"))
+                             first)]
+        [["Readme" {:file readme}]])))
 
 (comment
 
