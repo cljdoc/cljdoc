@@ -212,7 +212,7 @@
           (let [tempd        (tmp-dir!)
                 grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                             :directories #{"src"}})
-                platforms    (get-in cfg/projects [(artifact-id project) :cljdoc.api/platforms])
+                platforms    (get-in cfg/projects [(artifact-id project) :cljdoc.api/platforms] ["clj" "cljs"])
                 namespaces   (get-in cfg/projects [(artifact-id project) :cljdoc.api/namespaces])
                 build-cdx      (fn [jar-contents-path platf]
                                  (pod/with-eval-in grimoire-pod
