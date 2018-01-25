@@ -37,3 +37,7 @@ I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blo
 I've often chosen to refer to functions with their fully qualified name. I hope this makes reading the code easier.
 
 I outlined some areas that could use help in [`CONTRIBUTING.md`](https://github.com/martinklepsch/cljdoc/blob/master/CONTRIBUTING.md)
+
+## License
+
+`EPL-2.0` see `LICENSE`
