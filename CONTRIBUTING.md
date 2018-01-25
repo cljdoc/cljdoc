@@ -1,6 +1,6 @@
 # Contributing
 
-Hello there :wave: — nice to have you here.
+Hello there :wave: — nice to have you here.
 
 There are several broad areas to this project where people may contribute. If you are interested in working on these please open an issue and state your intention to work on something.
 
