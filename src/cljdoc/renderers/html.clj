@@ -9,11 +9,12 @@
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]))
 
-(defn page [contents]
+(defn page [opts contents]
   (hiccup/html {:mode :html}
                (hiccup.page/doctype :html5)
                [:html {}
                 [:head
+                 [:title (:title opts)]
                  [:link {:rel "stylesheet" :href "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"}]
                  (hiccup.page/include-css "/cljdoc.css")]
                 [:div.sans-serif
@@ -218,9 +219,9 @@
           #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
           [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
 
-(defn render-to [hiccup ^java.io.File file]
+(defn render-to [opts hiccup ^java.io.File file]
   (println "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
-  (->> hiccup page str (spit file)))
+  (->> hiccup (page opts) str (spit file)))
 
 (defn file-for [out-dir route-id route-params]
   (doto (io/file out-dir (subs (r/path-for route-id route-params) 1) "index.html")
@@ -236,14 +237,16 @@
         doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))]
 
     ;; Index page for given version
-    (render-to (index-page {:top-bar-component top-bar-comp
+    (render-to {:title (str (clojars-id cache-id) " " (:version cache-id))}
+               (index-page {:top-bar-component top-bar-comp
                             :doc-tree-component (doc-tree-view cache-id doc-tree [])
                             :namespaces namespace-emaps})
                (file-for out-dir :artifact/version cache-id))
 
     ;; Documentation Pages / Articles
     (doseq [doc-p (-> doc-tree doctree/flatten*)]
-      (render-to (doc-page {:top-bar-component top-bar-comp
+      (render-to {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}
+                 (doc-page {:top-bar-component top-bar-comp
                             :doc-tree-component (doc-tree-view cache-id doc-tree (-> doc-p :attrs :slug-path))
                             :namespace-list-component (namespace-list namespace-emaps)
                             :doc-page doc-p})
@@ -257,10 +260,13 @@
             :let [defs (filter #(= (:namespace ns-emap)
                                    (:namespace %))
                                (:defs cache-contents))]]
-      (render-to (namespace-page {:top-bar-component top-bar-comp
-                                  :namespace ns-emap
-                                  :defs defs})
-                 (file-for out-dir :artifact/namespace ns-emap)))))
+      (if-not (seq defs)
+        (println "Skipping namespace" (:namespace ns-emap) "- no defs")
+        (render-to {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}
+                   (namespace-page {:top-bar-component top-bar-comp
+                                    :namespace ns-emap
+                                    :defs defs})
+                   (file-for out-dir :artifact/namespace ns-emap))))))
 
 (defrecord HTMLRenderer []
   cljdoc.cache/ICacheRenderer
