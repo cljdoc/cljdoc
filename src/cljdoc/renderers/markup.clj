@@ -1,7 +1,11 @@
 (ns cljdoc.renderers.markup
+  (:require [clojure.string :as string])
   (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory OptionsBuilder Attributes)
+           (org.commonmark.node Image Link)
            (org.commonmark.parser Parser)
-           (org.commonmark.renderer.html HtmlRenderer)))
+           (org.commonmark.renderer.html HtmlRenderer AttributeProvider AttributeProviderFactory)
+           (org.commonmark.ext.gfm.tables TablesExtension)
+           (org.commonmark.ext.heading.anchor HeadingAnchorExtension)))
 
 (def adoc-container
   (Asciidoctor$Factory/create ""))
@@ -13,15 +17,62 @@
 (defn asciidoc-to-html [file-content]
   (.convert adoc-container file-content {}))
 
+(def md-extensions
+  [(TablesExtension/create)
+   (HeadingAnchorExtension/create)])
+
 (def md-container
-  (.build (Parser/builder)))
+  (.. (Parser/builder)
+      (extensions md-extensions)
+      (build)))
 
-(def md-renderer
-  (.build (HtmlRenderer/builder)))
+(defn- absolute-uri? [s]
+  (or (.startsWith s "https://")
+      (.startsWith s "http://")
+      (.startsWith s "//")))
 
-(defn markdown-to-html [input-str]
+(defn ->ImageUrlFixer
+  [ctx]
+  ;; TODO assertion that (:scm ctx) contains proper scm info
+  (proxy [AttributeProviderFactory] []
+    (create [_]
+      (reify AttributeProvider
+        (setAttributes [_ node tag-name attrs]
+          (when (and (instance? Image node)
+                     (not (absolute-uri? (get attrs "src"))))
+            (.put attrs "src"
+                  (str (-> ctx :scm :url)
+                       "/raw/" (-> ctx :scm :commit)
+                       "/" (get attrs "src")))))))))
+
+(defn ->LinkUrlFixer
+  [{:keys [uri-mapping]}]
+  (proxy [AttributeProviderFactory] []
+    (create [_]
+      (reify AttributeProvider
+        (setAttributes [_ node tag-name attrs]
+          (when (and (instance? Link node)
+                     (not (absolute-uri? (get attrs "href"))))
+            (if-let [corrected (get uri-mapping (string/replace (get attrs "href") #"^/" ""))]
+              (.put attrs "href" corrected)
+              (println "Could not fix link for uri" (get attrs "href")))))))))
+
+
+(defn md-renderer
+  "Create a Markdown renderer.
+
+  `ctx` is provided to all AttributeProviderFactories."
+  [ctx]
+  (.. (HtmlRenderer/builder)
+      (extensions md-extensions)
+      (attributeProviderFactory (->ImageUrlFixer ctx))
+      (attributeProviderFactory (->LinkUrlFixer ctx))
+      (build)))
+
+(defn markdown-to-html [ctx input-str]
+  ;; (prn 'ctx ctx)
   (->> (.parse md-container input-str)
-       (.render md-renderer)))
+       (.render (md-renderer ctx))))
 
 (comment
   (markdown-to-html "# hello world")
