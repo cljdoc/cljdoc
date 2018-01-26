@@ -14,6 +14,9 @@
 (defn process-toc-entry [base-dir [title attrs & children]]
   (cond-> {:title title}
 
+    (:file attrs)
+    (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
+
     (and (:file attrs) (.endsWith (:file attrs) ".adoc"))
     (assoc-in [:attrs :cljdoc/asciidoc] (read-file (io/file base-dir (:file attrs))))
 
