@@ -31,7 +31,9 @@
       (.startsWith s "http://")
       (.startsWith s "//")))
 
-(defn ->ImageUrlFixer
+;; TODO implement these as xml.zipper/hiccup walkers
+
+#_(defn ->ImageUrlFixer
   [ctx]
   ;; TODO assertion that (:scm ctx) contains proper scm info
   (proxy [AttributeProviderFactory] []
@@ -45,7 +47,7 @@
                        "/raw/" (-> ctx :scm :commit)
                        "/" (get attrs "src")))))))))
 
-(defn ->LinkUrlFixer
+#_(defn ->LinkUrlFixer
   [{:keys [uri-mapping]}]
   (proxy [AttributeProviderFactory] []
     (create [_]
@@ -59,20 +61,15 @@
 
 
 (defn md-renderer
-  "Create a Markdown renderer.
-
-  `ctx` is provided to all AttributeProviderFactories."
-  [ctx]
+  "Create a Markdown renderer."
+  []
   (.. (HtmlRenderer/builder)
       (extensions md-extensions)
-      (attributeProviderFactory (->ImageUrlFixer ctx))
-      (attributeProviderFactory (->LinkUrlFixer ctx))
       (build)))
 
-(defn markdown-to-html [ctx input-str]
-  ;; (prn 'ctx ctx)
+(defn markdown-to-html [input-str]
   (->> (.parse md-container input-str)
-       (.render (md-renderer ctx))))
+       (.render (md-renderer))))
 
 (comment
   (markdown-to-html "# hello world")
