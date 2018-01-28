@@ -3,6 +3,7 @@
             [cljdoc.routes :as routes]))
 
 (defn read-file [f]
+  (assert (.exists f) (format "File supplied in doctree does not exist %s" f))
   (-> f slurp #_(subs 0 20)))
 
 (defn slugify [s]
