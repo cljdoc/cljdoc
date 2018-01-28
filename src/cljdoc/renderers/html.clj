@@ -153,7 +153,7 @@
 
 (defn main-container [& content]
    [:div.absolute.bottom-0.right-0
-    {:style {:left "256px" :top TOP-BAR-HEIGHT}}
+    {:style {:left "16rem" :top TOP-BAR-HEIGHT}}
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2]
           content)])
 
