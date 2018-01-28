@@ -5,7 +5,24 @@
                                   ObjectIdRef$PeeledNonTag
                                   ObjectIdRef$PeeledTag
                                   ObjectIdRef$Unpeeled)
-            (org.eclipse.jgit.api Git)))
+            (org.eclipse.jgit.api Git TransportConfigCallback)
+            (org.eclipse.jgit.transport SshTransport JschConfigSessionFactory)
+            (com.jcraft.jsch JSch)
+            (com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository)))
+
+(def ^:private ^TransportConfigCallback ssh-callback
+  (delay
+    (let [factory (doto (ConnectorFactory/getDefault) (.setPreferredUSocketFactories "jna,nc"))
+          connector (.createConnector factory)]
+      (JSch/setConfig "PreferredAuthentications" "publickey")
+      (reify TransportConfigCallback
+        (configure [_ transport]
+          (.setSshSessionFactory ^SshTransport transport
+            (proxy [JschConfigSessionFactory] []
+              (configure [host session])
+              (getJSch [hc fs]
+                (doto (proxy-super getJSch hc fs)
+                  (.setIdentityRepository (RemoteIdentityRepository. connector)))))))))))
 
 (defn clone [uri target-dir]
   (printf "Cloning repo %s\n" uri)
@@ -13,6 +30,7 @@
       cloneRepository
       (setURI uri)
       (setDirectory target-dir)
+      (setTransportConfigCallback @ssh-callback)
       call))
 
 (defn read-origin

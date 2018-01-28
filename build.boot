@@ -29,6 +29,8 @@
 
     [org.slf4j/slf4j-nop "1.7.25"]
     [org.eclipse.jgit "4.10.0.201712302008-r"]
+    [com.jcraft/jsch.agentproxy.connector-factory "0.0.9"]
+    [com.jcraft/jsch.agentproxy.jsch "0.0.9"]
 
     [org.clojure-grimoire/lib-grimoire "0.10.9"]
     ;; lib-grimpoire depends on an old core-match
