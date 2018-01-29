@@ -5,6 +5,7 @@
             [boot.util :as util]
             [clojure.java.io :as io]
             [cljdoc.util]
+            [cljdoc.util.boot]
             [cljdoc.hardcoded-config :as cfg])
   (:import (java.net URI)))
 
@@ -79,10 +80,13 @@
                                     ~jar-contents-path
                                     ~platf)))
                 cdx-namespaces (->> (map #(build-cdx (.getPath (jar-contents-dir fs)) %) platforms)
-                                    (zipmap platforms))]
-            (doto (io/file tempd (cljdoc.util/codox-edn project version))
+                                    (zipmap platforms))
+                ana-result     {:codox cdx-namespaces
+                                :pom   (cljdoc.util.boot/find-pom-map fs project)}]
+            (doto (io/file tempd (cljdoc.util/cljdoc-edn project version))
               (io/make-parents)
-              (spit (pr-str cdx-namespaces)))
+              ;; TODO implement spec for this + validate
+              (spit (pr-str ana-result)))
             (reset! jar-contents-md5 (digest-dir (jar-contents-dir fs)))
             (reset! prev-tmp-dir tempd)
             (-> fs (b/add-resource tempd) b/commit!)))))))

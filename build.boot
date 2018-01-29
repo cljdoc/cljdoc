@@ -155,19 +155,20 @@
     (boot.util/info "Creating analysis pod ...\n")
     (let [tempd          (tmp-dir!)
           grimoire-dir   (io/file tempd "grimoire")
-          cdx-namespaces (-> (cljdoc.util/codox-edn project version)
-                             io/resource slurp read-string)]
+          analysis-result (-> (cljdoc.util/cljdoc-edn project version)
+                              io/resource slurp read-string)]
       (util/info "Generating Grimoire store for %s\n" project)
-      (doseq [platf (keys cdx-namespaces)]
+      (doseq [platf (keys (:codox analysis-result))]
         (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
         (cljdoc.grimoire-helpers/build-grim
          {:group-id     (cljdoc.util/group-id project)
           :artifact-id  (cljdoc.util/artifact-id project)
           :version      version
           :platform     platf}
-         (get cdx-namespaces platf)
-         {:dst      (.getPath grimoire-dir)
-          :git-repo (gr/->repo (git-repo-dir fs))}))
+         {:dst              (.getPath grimoire-dir)
+          :pom              (get-in analysis-result [:pom])
+          :codox-namespaces (get-in analysis-result [:codox platf])
+          :git-repo         (gr/->repo (git-repo-dir fs))}))
       (-> fs (add-resource tempd) commit!))))
 
 (deftask grimoire-html

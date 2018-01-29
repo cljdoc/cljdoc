@@ -38,10 +38,14 @@
   (grimoire.api/write-meta store ns-thing ns-meta)
   (println "Finished namespace" (:name ns-meta)))
 
-(defn build-grim [platf-entity codox-namespaces {:keys [dst ^Git git-repo]}]
+(defn build-grim [platf-entity {:keys [codox-namespaces pom dst ^Git git-repo]}]
   (spec/assert :cljdoc.spec/platform-entity platf-entity)
   (assert dst "target dir missing!")
   (assert (coll? codox-namespaces) "codox-namespaces malformed")
+  (assert (= (:artifact-id platf-entity) (cljdoc.util/artifact-id (:project pom))))
+  (assert (= (:group-id platf-entity) (cljdoc.util/group-id (:project pom))))
+  (assert (= (:version platf-entity) (:version pom)))
+  ;; TODO assert that platf-entity and pom values are identical
   (let [store    (grimoire.api.fs/->Config dst "" "")
         git-dir  (.. git-repo getRepository getWorkTree)
         platform (-> (grimoire.things/->Group    (:group-id platf-entity))
