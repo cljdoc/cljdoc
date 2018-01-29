@@ -10,6 +10,9 @@ jar_path="$3"
 # load analysis namespace
 # run analysis on supplied jar
 
+echo "Running build for $project v$version"
+echo "Jar: $jar_path"
+
 boot \
     -B \
     --source-paths src \
