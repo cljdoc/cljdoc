@@ -41,6 +41,7 @@
          '[cljdoc.grimoire-helpers]
          '[cljdoc.analysis.task :as ana]
          '[cljdoc.util]
+         '[cljdoc.util.boot]
          '[confetti.boot-confetti :as confetti])
 
 (spec/check-asserts true)
@@ -51,35 +52,12 @@
                        :cloudfront-id (System/getenv "CLOUDFRONT_ID")
                        :bucket (System/getenv "S3_BUCKET_NAME")})
 
-(defn pom-path [project]
-  (let [artifact (name project)
-        group    (or (namespace project) artifact)]
-    (str "META-INF/maven/" group "/" artifact "/pom.xml")))
-
 (defn docs-path [project version]
   (str "" (cljdoc.util/group-id project) "/" (cljdoc.util/artifact-id project) "/" version "/"))
-
-(defn scm-url [pom-map]
-  (some->
-   (cond (some-> pom-map :scm :url (.contains "github"))
-         (:url (:scm pom-map))
-         (some-> pom-map :url (.contains "github"))
-         (:url pom-map))
-   (clojure.string/replace #"^http://" "https://"))) ;; TODO HACK
 
 (defn version-tag? [pom-version tag]
   (or (= pom-version tag)
       (= (str "v" pom-version) tag)))
-
-(defn find-pom-map [fileset project]
-  (when-let [pom (some->> (output-files fileset)
-                          (by-path [(str "jar-contents/" (pom-path project))])
-                          first
-                          tmp-file)]
-    ;; TODO assert that only one pom.xml is found
-    (pod/with-eval-in pod/worker-pod
-      (require 'boot.pom)
-      (boot.pom/pom-xml-parse-string ~(slurp pom)))))
 
 (def known-gh ;HACK
   {'yada "https://github.com/juxt/yada"})
@@ -88,16 +66,15 @@
   "Scans the fileset for a pom.xml for the specified project,
    detects the referenced Github/SCM repo and clones it into
    a git-repo/ subdirectory in the fileset."
-  [p project PROJECT sym "Project to build documentation for"
-   v version VERSION str "Version of project to build documentation for"]
+  [p project PROJECT     sym "Project to build documentation for"
+   v version VERSION     str "Version of project to build documentation for"
+   s scm-url  SCM_URL    str  "SCM url to use for cloning the repository"
+   _ find-scm SCM_FINDER code "Function which receives the fileset and returns a SCM url"]
   (let [repo-container-dir (atom nil)]
     (with-pre-wrap fs
-      (let [pom-map (find-pom-map fs project)
-            tempd   (or @repo-container-dir (tmp-dir!))
+      (let [tempd   (or @repo-container-dir (tmp-dir!))
             git-dir (io/file tempd "git-repo")]
-        (when-not pom-map
-          (util/warn "Could not find pom.xml for %s in fileset\n" project))
-        (if-let [scm (or (scm-url pom-map) (get known-gh project))]
+        (if-let [scm (or (find-scm fs) (get known-gh project))]
           (do (if @repo-container-dir
                 (util/info "Repository for %s already cloned\n" project)
                 (util/info "Identified project repository %s\n" scm))
@@ -112,8 +89,7 @@
                   (gr/git-checkout-repo repo version-tag)
                   (util/warn "No version tag found for version %s in %s\n" version scm))))
           (throw (ex-info "Could not determine project repository"
-                          {:project project :version version
-                           :pom-map pom-map})))
+                          {:project project :version version})))
         (-> fs (add-resource tempd) commit!)))))
 
 (defn boot-tmpd-containing [fs re-ptn]
@@ -271,10 +247,12 @@
    c run-codox       bool "Also generate codox documentation"
    t transit         bool "Also generate transit cache"]
   (comp (ana/copy-jar-contents :jar (cljdoc.util/local-jar-file [project version]))
-        (import-repo :project project :version version)
         (ana/analyze :project project :version version)
+        (import-repo :project project
+                     :version version
+                     :find-scm #(cljdoc.util.boot/scm-url
+                                 (cljdoc.util.boot/find-pom-map % project)))
         (grimoire :project project :version version)
-        (sift :move {#"^cljdoc.css" "grimoire-html/cljdoc.css"})
         (grimoire-html :project project :version version)
         (when-task transit
           (transit-cache :project project :version version))
