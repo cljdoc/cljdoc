@@ -18,7 +18,7 @@
     [org.clojure/tools.namespace "0.2.11"]
     [org.clojure/clojurescript "1.9.946"] ; Codox depends on old CLJS which fails with CLJ 1.9
     [org.clojure/core.async "RELEASE"] ; Manifold dev-dependency — we should probably detect+load these
-    [codox "0.10.3"]])
+    [codox "0.10.3" :exclusions [enlive hiccup org.pegdown/pegdown]]])
 
 (defn copy [uri file]
   (with-open [in  (io/input-stream uri)

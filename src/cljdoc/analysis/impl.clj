@@ -11,12 +11,15 @@
    :source-paths [jar-contents-path]
    :namespaces   (or namespaces :all)
    :metadata     {}
+   :writer       'clojure.core/identity
    :exclude-vars #"^(map)?->\p{Upper}"})
 
-(defn sanitize-cdx [cdx-namespace]
+(defn sanitize-cdx
+  [cdx-namespace]
   ;; :publics contain a field path which is a
   ;; file, this cannot be serialized accross
   ;; pod boundaries by default
+  (assert (:name cdx-namespace))
   (let [clean-public    #(update % :path (fn [file] (.getPath file)))
         remove-unneeded #(dissoc % :path)
         stringify-name  #(update % :name name)]
@@ -30,7 +33,8 @@
     (boot.util/info "Analysing sources for platform %s\n" (pr-str platf))
     (boot.util/dbug "ClojureScript version %s\n" (cljs.util/clojurescript-version))
     (boot.util/dbug "Codox opts: %s\n" config)
-    (->> (#'codox.main/read-namespaces config)
+    (->> (codox.main/generate-docs config)
+         :namespaces
          (mapv sanitize-cdx)
          ;; Ensure everything is fully realized, see
          ;; https://github.com/boot-clj/boot/issues/683
