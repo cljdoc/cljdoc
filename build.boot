@@ -92,7 +92,9 @@
                           {:project project :version version})))
         (-> fs (add-resource tempd) commit!)))))
 
-(defn boot-tmpd-containing [fs re-ptn]
+(defn boot-tmpd-containing
+  [fs re-ptn]
+  {:post [(some? %)]}
   (->> (output-files fs) (by-re [re-ptn]) first :dir))
 
 (defn jar-contents-dir [fileset]
