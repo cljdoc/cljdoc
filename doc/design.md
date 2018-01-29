@@ -27,3 +27,4 @@ We use [Tachyons](http://tachyons.io/) for most CSS needs. I'm still planning to
   - The sections would need to be inferred from the rendered HTML
   - There is little styling done for rendered Markdown or Asciidoc. We could style things using plain CSS or adding [tachyons](http://tachyons.io/) classes to elements.
   - Syntax highlighting is not implemented yet
+- Since we build on hiccup we could try to write code in a way that allows us to reuse components on multiple platforms
