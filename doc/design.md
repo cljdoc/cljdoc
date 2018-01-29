@@ -6,7 +6,8 @@ We use [Tachyons](http://tachyons.io/) for most CSS needs. I'm still planning to
 
 - General
   - Think about some UI to switch between versions and view other supplemental information, docs.rs solves this nicely with a dropdown:
-    ![docs.rs dropdown](https://user-images.githubusercontent.com/97496/35530810-6f0b1b00-0535-11e8-833d-277bc61977a6.png)
+
+    <img src="https://user-images.githubusercontent.com/97496/35530810-6f0b1b00-0535-11e8-833d-277bc61977a6.png" alt="docs.rs dropdown" width="340px">
 
   - Also we might want some space for anything not related to the current project but cljdoc itself
   - Two top bars might help but would take a lot of screen space.
@@ -21,7 +22,7 @@ We use [Tachyons](http://tachyons.io/) for most CSS needs. I'm still planning to
     scroll-indicator we could have a little UI at the top that
     indicates what section you're in
 
-    ![cljdoc section viewer](https://user-images.githubusercontent.com/97496/35530594-d6fffc40-0534-11e8-975a-869cb1f88e0f.png)
+    <img src="https://user-images.githubusercontent.com/97496/35530594-d6fffc40-0534-11e8-975a-869cb1f88e0f.png" alt="cljdoc section viewer" width="400px">
 
   - With some JS users might even be able to click on it and navigate sections in a document
   - The sections would need to be inferred from the rendered HTML
