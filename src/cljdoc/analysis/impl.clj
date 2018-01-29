@@ -1,4 +1,4 @@
-(ns cljdoc.analysis
+(ns cljdoc.analysis.impl
   (:require [codox.main]
             [cljs.util]))
 

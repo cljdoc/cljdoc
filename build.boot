@@ -1,16 +1,5 @@
 (ns boot.user)
 
-(def sandbox-analysis-deps
-  "This is what is being loaded in the pod that is used for analysis.
-  It is also the stuff that we cannot generate documentation for in versions
-  other than the ones listed below. (See CONTRIBUTING for details.)"
-  '[[org.clojure/clojure "1.9.0"]
-    [org.clojure/java.classpath "0.2.2"]
-    [org.clojure/tools.namespace "0.2.11"]
-    [org.clojure/clojurescript "1.9.946"] ; Codox depends on old CLJS which fails with CLJ 1.9
-    [org.clojure/core.async "RELEASE"] ; Manifold dev-dependency — we should probably detect+load these
-    [codox "0.10.3"]])
-
 (def application-deps
   "These are dependencies we can use regardless of what we're analyzing.
   All code using these dependencies does not operate on Clojure source
@@ -37,7 +26,6 @@
     ;; which pulls in other old stuff
     [org.clojure/core.match "0.3.0-alpha5"]])
 
-
 (boot.core/set-env! :source-paths #{"src"}
                     :resource-paths #{"site"}
                     :dependencies application-deps)
@@ -51,39 +39,19 @@
          '[cljdoc.renderers.transit]
          '[cljdoc.hardcoded-config :as cfg]
          '[cljdoc.grimoire-helpers]
+         '[cljdoc.analysis.task :as ana]
+         '[cljdoc.util]
          '[confetti.boot-confetti :as confetti])
 
 (spec/check-asserts true)
-
-(defn jar-file [coordinate]
-  ;; (jar-file '[org.martinklepsch/derivatives "0.2.0"])
-  (->> (pod/resolve-dependencies {:dependencies [coordinate]})
-       (filter #(= coordinate (:dep %)))
-       (first)
-       :jar))
-
-(deftask copy-jar-contents
-  "Copy the contents of the given jar into the fileset"
-  [j jar     PATH  str      "The path of the jar file."]
-  (with-pre-wrap fileset
-    (let [d (tmp-dir!)]
-      (util/info "Unpacking %s\n" jar)
-      (pod/unpack-jar jar (io/file d "jar-contents/"))
-      (-> fileset (add-resource d) commit!))))
 
 (defn pom-path [project]
   (let [artifact (name project)
         group    (or (namespace project) artifact)]
     (str "META-INF/maven/" group "/" artifact "/pom.xml")))
 
-(defn group-id [project]
-  (or (namespace project) (name project)))
-
-(defn artifact-id [project]
-  (name project))
-
 (defn docs-path [project version]
-  (str "" (group-id project) "/" (artifact-id project) "/" version "/"))
+  (str "" (cljdoc.util/group-id project) "/" (cljdoc.util/artifact-id project) "/" version "/"))
 
 (defn scm-url [pom-map]
   (some->
@@ -146,14 +114,17 @@
   (->> (output-files fs) (by-re [re-ptn]) first :dir))
 
 (defn jar-contents-dir [fileset]
-  (some-> (boot-tmpd-containing fileset #"^jar-contents/")
+  (some-> (->> (output-files fileset)
+               (by-re [#"^jar-contents/"])
+               first
+               :dir)
           (io/file "jar-contents")))
 
 (defn git-repo-dir [fileset]
   (some-> (boot-tmpd-containing fileset #"^git-repo/")
           (io/file "git-repo")))
 
-(deftask codox
+#_(deftask codox
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
@@ -193,47 +164,6 @@
                (codox.main/generate-docs))))
       (-> fs (add-resource tempd) commit!))))
 
-(defn digest-dir [dir]
-  (->> (file-seq dir)
-       (filter #(.isFile %))
-       (map #(boot.from.digest/digest "md5" %))
-       (apply str)
-       (boot.from.digest/digest "md5")))
-
-(defn codox-edn [project version]
-  (str "codox-edn/" project "/" version "/codox.edn"))
-
-(deftask analyze
-  [p project PROJECT sym "Project to build documentation for"
-   v version VERSION str "Version of project to build documentation for"]
-  (let [jar-contents-md5 (atom nil)
-        prev-tmp-dir     (atom nil)]
-    (with-pre-wrap fs
-      (if (= @jar-contents-md5 (digest-dir (jar-contents-dir fs)))
-        (-> fs (add-resource @prev-tmp-dir) commit!)
-        (do
-          (boot.util/info "Creating analysis pod ...\n")
-          (let [tempd        (tmp-dir!)
-                grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
-                                            :directories #{"src"}})
-                platforms    (get-in cfg/projects [(artifact-id project) :cljdoc.api/platforms] ["clj" "cljs"])
-                namespaces   (get-in cfg/projects [(artifact-id project) :cljdoc.api/namespaces])
-                build-cdx      (fn [jar-contents-path platf]
-                                 (pod/with-eval-in grimoire-pod
-                                   (require 'cljdoc.analysis)
-                                   (cljdoc.analysis/codox-namespaces
-                                    (quote ~namespaces) ; the unquote seems to be recursive in some sense
-                                    ~jar-contents-path
-                                    ~platf)))
-                cdx-namespaces (->> (map #(build-cdx (.getPath (jar-contents-dir fs)) %) platforms)
-                                    (zipmap platforms))]
-            (doto (io/file tempd (codox-edn project version))
-              (io/make-parents)
-              (spit (pr-str cdx-namespaces)))
-            (reset! jar-contents-md5 (digest-dir (jar-contents-dir fs)))
-            (reset! prev-tmp-dir tempd)
-            (-> fs (add-resource tempd) commit!)))))))
-
 (deftask grimoire
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
@@ -241,14 +171,14 @@
     (boot.util/info "Creating analysis pod ...\n")
     (let [tempd          (tmp-dir!)
           grimoire-dir   (io/file tempd "grimoire")
-          cdx-namespaces (-> (codox-edn project version)
+          cdx-namespaces (-> (cljdoc.util/codox-edn project version)
                              io/resource slurp read-string)]
       (util/info "Generating Grimoire store for %s\n" project)
       (doseq [platf (keys cdx-namespaces)]
         (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
         (cljdoc.grimoire-helpers/build-grim
-         {:group-id     (group-id project)
-          :artifact-id  (artifact-id project)
+         {:group-id     (cljdoc.util/group-id project)
+          :artifact-id  (cljdoc.util/artifact-id project)
           :version      version
           :platform     platf}
          (get cdx-namespaces platf)
@@ -265,8 +195,8 @@
                               (assert boot-dir)
                               (io/file boot-dir "grimoire/"))
           grimoire-html-dir (io/file tempd "grimoire-html")
-          grimoire-thing    (-> (grimoire.things/->Group (group-id project))
-                                (grimoire.things/->Artifact (artifact-id project))
+          grimoire-thing    (-> (grimoire.things/->Group (cljdoc.util/group-id project))
+                                (grimoire.things/->Artifact (cljdoc.util/artifact-id project))
                                 (grimoire.things/->Version version))
           grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
       (util/info "Generating Grimoire HTML for %s\n" project)
@@ -286,8 +216,8 @@
           grimoire-dir      (let [boot-dir (->> (output-files fs) (by-re [#"^grimoire/"]) first :dir)]
                               (assert boot-dir)
                               (io/file boot-dir "grimoire/"))
-          grimoire-thing    (-> (grimoire.things/->Group (group-id project))
-                                (grimoire.things/->Artifact (artifact-id project))
+          grimoire-thing    (-> (grimoire.things/->Group (cljdoc.util/group-id project))
+                                (grimoire.things/->Artifact (cljdoc.util/artifact-id project))
                                 (grimoire.things/->Version version))
           transit-cache-dir (io/file tempd "transit-cache")
           grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
@@ -301,7 +231,7 @@
       (-> fs (add-resource tempd) commit!))))
 
 (defn open-uri [format-str project version]
-  (let [uri (format format-str (group-id project) (artifact-id project) version)]
+  (let [uri (format format-str (cljdoc.util/group-id project) (cljdoc.util/artifact-id project) version)]
     (boot.util/info "Opening %s\n" uri)
     (boot.util/dosh "open" uri)))
 
@@ -339,9 +269,9 @@
    d deploy          bool "Also deploy newly built docs to S3?"
    c run-codox       bool "Also generate codox documentation"
    t transit         bool "Also generate transit cache"]
-  (comp (copy-jar-contents :jar (jar-file [project version]))
+  (comp (ana/copy-jar-contents :jar (cljdoc.util/local-jar-file [project version]))
         (import-repo :project project :version version)
-        (analyze :project project :version version)
+        (ana/analyze :project project :version version)
         (grimoire :project project :version version)
         (sift :move {#"^cljdoc.css" "grimoire-html/cljdoc.css"})
         (grimoire-html :project project :version version)
@@ -349,7 +279,7 @@
           (transit-cache :project project :version version))
         (when-task deploy
           (deploy-docs :project project :version version))
-        (when-task run-codox
+        #_(when-task run-codox
           (codox :project project :version version))
         #_(open :project project :version version)))
 
@@ -360,10 +290,6 @@
 (deftask update-site []
   (set-env! :resource-paths #{"site"})
   (confetti/sync-bucket :confetti-edn "cljdoc-martinklepsch-org.confetti.edn"))
-
-(deftask analysis-deps []
-  (set-env! :dependencies sandbox-analysis-deps)
-  identity)
 
 (comment
   (def f
