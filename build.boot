@@ -241,6 +241,10 @@
 (defmacro when-task [test task-form]
   `(if ~test ~task-form identity))
 
+(defn read-scm-from-cljdoc-edn [project version]
+  (-> (cljdoc.util/cljdoc-edn project version)
+      io/resource slurp read-string :pom cljdoc.util.boot/scm-url))
+
 (deftask build-docs
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
@@ -251,8 +255,7 @@
         (ana/analyze :project project :version version)
         (import-repo :project project
                      :version version
-                     :find-scm #(cljdoc.util.boot/scm-url
-                                 (cljdoc.util.boot/find-pom-map % project)))
+                     :find-scm (fn [_] (read-scm-from-cljdoc-edn project version)))
         (grimoire :project project :version version)
         (grimoire-html :project project :version version)
         (when-task transit
