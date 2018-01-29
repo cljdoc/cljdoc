@@ -175,9 +175,8 @@
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
     (let [tempd             (tmp-dir!)
-          grimoire-dir      (let [boot-dir (->> (output-files fs) (by-re [#"^grimoire/"]) first :dir)]
-                              (assert boot-dir)
-                              (io/file boot-dir "grimoire/"))
+          grimoire-dir      (-> (boot-tmpd-containing fs #"^grimoire/")
+                                (io/file "grimoire/"))
           grimoire-html-dir (io/file tempd "grimoire-html")
           grimoire-thing    (-> (grimoire.things/->Group (cljdoc.util/group-id project))
                                 (grimoire.things/->Artifact (cljdoc.util/artifact-id project))
@@ -197,9 +196,8 @@
    v version VERSION str "Version of project to build transit cache for"]
   (with-pre-wrap fs
     (let [tempd             (tmp-dir!)
-          grimoire-dir      (let [boot-dir (->> (output-files fs) (by-re [#"^grimoire/"]) first :dir)]
-                              (assert boot-dir)
-                              (io/file boot-dir "grimoire/"))
+          grimoire-dir      (-> (boot-tmpd-containing fs #"^grimoire/")
+                                (io/file "grimoire/"))
           grimoire-thing    (-> (grimoire.things/->Group (cljdoc.util/group-id project))
                                 (grimoire.things/->Artifact (cljdoc.util/artifact-id project))
                                 (grimoire.things/->Version version))
