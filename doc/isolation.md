@@ -8,32 +8,34 @@ With all of these options there will still be issues that need consideration
 - People could use our sandbox to "steal compute", e.g. mining Bitcoin etc.
 - Any more issues to think about?
 
----
-
-Besides this kind of process isolation there also is the problem of **Classpath isolation**. Right now we cannot build API docs for Codox or any of it's dependencies in different versions than what is already on the classpath. This could be solved by either anonymizing our or the dependencies' namespaces using something like [mranderson](https://github.com/benedekfazekas/mranderson). Both variants have their own tradeoffs. This is low priority but if it excites someone... :rocket:
-
-## Docker
+### Docker
 
 - A setup and instructions can be found in `docker/`
 - Running stuff in Docker means we will still need to have a machine
   on which we run Docker.
 
-#### How we could use CircleCI
+### CircleCI
 
-- We run the analysis on CircleCI
+- We can run the analysis on CircleCI
 - The resulting data is stored as a build artifact
 - Since we have the keys we can then load this data in an environment without special isolation and do all the remaining work
 - This may work especially well in the beginning when we only operate on a few selected projects.
-- We should look into how Juho did this kind of stuff for CLJSJS
 
-CircleCI provides [an API to trigger jobs](https://circleci.com/docs/2.0/api-job-trigger/). I imagine we could use that quite easily.
+A setup for this can be found in the following places
 
-##### Open Questions with CircleCI
+- [`/scripts/analysis.sh`](/script/analyze.sh) - runs analysis on provided project, version, jar
+- [`cljdoc-builder`](https://github.com/martinklepsch/cljdoc-builder) - is a github repo which defines build steps using the `analyze.sh` script
+- [`/scripts/trigger-build.sh`](/script/trigger-build.sh) - triggers a build on CircleCI using the CircleCI API
 
-- How do we trigger new builds and influence what jar is analysed?
-- We should probably store the build artifact somewhere? S3?
-
-## AWS Lambda
+### AWS Lambda
 
 - To be evaluated...
 
+### AWS Spot instances
+
+- To be evaluated...
+
+
+## Classpath Isolation
+
+Besides this kind of process isolation there also is the problem of **Classpath isolation**. Right now we cannot build API docs for Codox or any of it's dependencies in different versions than what is already on the classpath. This could be solved by either anonymizing our or the dependencies' namespaces using something like [mranderson](https://github.com/benedekfazekas/mranderson). Both variants have their own tradeoffs. This is low priority but if it excites someone... :rocket:
