@@ -68,6 +68,7 @@
      ;; source-fn really is broken
      ;; [:pre.pa3.bg-black-05.br2.overflow-scroll (:src def-meta)]
      ;; [:pre (with-out-str (clojure.pprint/pprint def-meta))]
+     ;; TODO show protocol member methods if the given def is a protocol (see :members key)
      [:hr.b--black-10]]))
 
 (defn namespace-list [namespaces]
