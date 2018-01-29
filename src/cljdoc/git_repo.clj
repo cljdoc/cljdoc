@@ -1,5 +1,6 @@
 (ns cljdoc.git-repo
-  (:require [clojure.java.io :as io]
+  (:require [cljdoc.util]
+            [clojure.java.io :as io]
             [clojure.string :as string])
   (:import  (org.eclipse.jgit.lib RepositoryBuilder
                                   ObjectIdRef$PeeledNonTag
@@ -64,18 +65,12 @@
   (printf "Checking out revision %s\n" rev)
   (.. repo checkout (setName rev) call))
 
-(defn assert-first [[x & rest :as xs]]
-  (if (empty? rest)
-    x
-    (throw (ex-info "Expected collection with one item, got multiple"
-                    {:coll xs}))))
-
 (defn find-tag [^Git repo tag-str]
   (->> (.. repo tagList call)
        (filter (fn [t]
                  (= (.getName t)
                     (str "refs/tags/" tag-str))))
-       assert-first))
+       cljdoc.util/assert-first))
 
 (defn git-tag-names [repo]
   (->> repo

@@ -9,6 +9,9 @@
 (defn codox-edn [project version]
   (str "codox-edn/" project "/" version "/codox.edn"))
 
+(defn cljdoc-edn [project version]
+  (str "cljdoc-edn/" (group-id project) "/" (artifact-id project) "/" version "/cljdoc.edn"))
+
 (defn local-jar-file [coordinate]
   ;; (jar-file '[org.martinklepsch/derivatives "0.2.0"])
   (->> (boot.pod/resolve-dependencies {:dependencies [coordinate]})
@@ -23,3 +26,9 @@
        (artifact-id project) "/"
        version "/"
        (artifact-id project) "-" version ".jar"))
+
+(defn assert-first [[x & rest :as xs]]
+  (if (empty? rest)
+    x
+    (throw (ex-info "Expected collection with one item, got multiple"
+                    {:coll xs}))))
