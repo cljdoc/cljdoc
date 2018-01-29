@@ -33,7 +33,7 @@
           remote-jar? (boolean (.getHost jar-uri))  ; basic check if jar is at remote location
           jar-local (if remote-jar?
                       (let [jar-f (io/file d "downloaded.jar")]
-                        (boot.util/info "Downloading remote jar...")
+                        (boot.util/info "Downloading remote jar...\n")
                         (copy jar-uri jar-f)
                         (.getPath jar-f))
                       jar)]
