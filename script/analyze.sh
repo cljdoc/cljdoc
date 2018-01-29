@@ -19,5 +19,5 @@ boot \
     --init "(require 'cljdoc.analysis.task)" \
     cljdoc.analysis.task/copy-jar-contents --jar "$jar_path" \
     cljdoc.analysis.task/analyze -p "$project" -v "$version" \
-    sift --include "^codox-edn" \
+    sift --include "^cljdoc-edn" \
     target
