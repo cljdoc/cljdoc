@@ -152,7 +152,6 @@
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
-    (boot.util/info "Creating analysis pod ...\n")
     (let [tempd          (tmp-dir!)
           grimoire-dir   (io/file tempd "grimoire")
           analysis-result (-> (cljdoc.util/cljdoc-edn project version)
@@ -272,6 +271,17 @@
 (deftask update-site []
   (set-env! :resource-paths #{"site"})
   (confetti/sync-bucket))
+
+(deftask dev-design
+  [p project PROJECT sym "Project to generate docs for"]
+  (let [versions {'manifold "0.1.6", 'yada "1.2.11", 'bidi "2.1.3"}]
+    (assert (get versions project) (format "project version not specified for project %s" project))
+    (boot.util/info "\n\n    To serve files from target/ run ./script/serve.sh (requires `npx`)\n\n")
+    (comp (watch)
+          (notify :audible true)
+          (build-docs :project project
+                      :version (get versions project))
+          (target))))
 
 (comment
   (def f
