@@ -30,7 +30,8 @@
       cloneRepository
       (setURI uri)
       (setDirectory target-dir)
-      (setTransportConfigCallback @ssh-callback)
+      ;; This breaks if the URI uses http
+      ;; (setTransportConfigCallback @ssh-callback)
       call))
 
 (defn read-origin
