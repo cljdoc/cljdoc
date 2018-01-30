@@ -7,7 +7,7 @@
 (defn system-config [env-config]
   {:cljdoc/server  {:port    (cfg/get-in env-config [:cljdoc/server :port]),
                     :handler (ig/ref :cljdoc/handler)}
-   :cljdoc/handler {:name "Alice"}})
+   :cljdoc/handler (select-keys env-config [:circle-ci])})
 
 (defmethod ig/init-key :cljdoc/server [_ {:keys [handler port] :as opts}]
   (println "Starting server on port" port)
