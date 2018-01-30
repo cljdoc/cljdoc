@@ -24,7 +24,10 @@
     [org.clojure-grimoire/lib-grimoire "0.10.9"]
     ;; lib-grimpoire depends on an old core-match
     ;; which pulls in other old stuff
-    [org.clojure/core.match "0.3.0-alpha5"]])
+    [org.clojure/core.match "0.3.0-alpha5"]
+
+    [yada/lean "1.2.11"]
+    [metosin/jsonista "0.1.1"]])
 
 (boot.core/set-env! :source-paths #{"src"}
                     :resource-paths #{"site"}
