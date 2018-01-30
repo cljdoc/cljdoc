@@ -52,11 +52,20 @@
 
 (spec/check-asserts true)
 
-(task-options!
- confetti/sync-bucket {:access-key    (cfg/config :default [:aws :access-key])
-                       :secret-key    (cfg/config :default [:aws :secret-key])
-                       :cloudfront-id (cfg/config :default [:aws :cloudfront-id])
-                       :bucket        (cfg/config :default [:aws :s3-bucket-name])})
+(when-not (io/resource "config.edn")
+  (util/warn "\n  No config.edn file found on classpath.\n")
+  (util/warn "  A minimal config.edn file can be found in resources/config.min.edn\n")
+  (util/warn "  To use it run the following:\n\n")
+  (util/warn "    cp resources/config.min.edn resources/config.edn\n\n")
+  (System/exit 1))
+
+(defn set-sync-bucket-opts! []
+  (task-options!
+   confetti/sync-bucket {:access-key    (cfg/config :default [:aws :access-key])
+                         :secret-key    (cfg/config :default [:aws :secret-key])
+                         :cloudfront-id (cfg/config :default [:aws :cloudfront-id])
+                         :bucket        (cfg/config :default [:aws :s3-bucket-name])}))
+
 
 (defn docs-path [project version]
   (str "" (cljdoc.util/group-id project) "/" (cljdoc.util/artifact-id project) "/" version "/"))
@@ -221,6 +230,7 @@
 (deftask deploy-docs
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
+  (set-sync-bucket-opts!)
   (let [doc-path (docs-path project version)]
     (assert (.endsWith doc-path "/"))
     (assert (not (.startsWith doc-path "/")))
@@ -262,9 +272,11 @@
         #_(open :project project :version version)))
 
 (deftask wipe-s3-bucket []
+  (set-sync-bucket-opts!)
   (confetti/sync-bucket :prune true))
 
 (deftask update-site []
+  (set-sync-bucket-opts!)
   (set-env! :resource-paths #{"site"})
   (confetti/sync-bucket))
 
