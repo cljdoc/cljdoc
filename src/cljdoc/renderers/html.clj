@@ -59,7 +59,7 @@
   (let [def-meta (first (sort-by :platform platforms))]
     (cljdoc.spec/assert :cljdoc.spec/def-full def-meta)
     [:div
-     [:h4
+     [:h4.def-block-title
       {:name (:name def-meta), :id (:name def-meta)}
       (:name def-meta)
       [:span.f5.gray.ml2 (:type def-meta)]
@@ -126,7 +126,7 @@
     (for [[def-name platf-defs] (->> defs
                                      (group-by :name)
                                      (sort-by key))]
-      [:li
+      [:li.def-item
        [:a.link.dim.blue.dib.pa1
         {:href (r/path-for :artifact/def (merge ns-entity {:def def-name}))}
         def-name]
@@ -137,7 +137,7 @@
               (humanize-supported-platforms))])])]])
 
 (defn sidebar [& contents]
-  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10
+  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10.sidebar-scroll-view
    {:style {:top TOP-BAR-HEIGHT}} ; CSS HACK
    contents])
 
@@ -161,14 +161,14 @@
 (defn main-container [& content]
    [:div.absolute.bottom-0.right-0
     {:style {:left "16rem" :top TOP-BAR-HEIGHT}}
-    (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2]
+    (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
           content)])
 
 (defn namespace-page [{:keys [namespace defs top-bar-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity namespace)
   (let [sorted-defs                        (sort-by :name defs)
         [[dominant-platf] :as platf-stats] (platform-stats defs)]
-    [:div
+    [:div.ns-page
      top-bar-component
      (sidebar
       [:div
