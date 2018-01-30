@@ -1,13 +1,16 @@
 (ns cljdoc.server.system
   (:require [cljdoc.server.handler]
+            [cljdoc.config :as cfg]
             [integrant.core :as ig]
             [yada.yada :as yada]))
 
 (defn system-config [env-config]
-  {:cljdoc/server  {:port 8080, :handler (ig/ref :cljdoc/handler)}
+  {:cljdoc/server  {:port    (cfg/get-in env-config [:cljdoc/server :port]),
+                    :handler (ig/ref :cljdoc/handler)}
    :cljdoc/handler {:name "Alice"}})
 
 (defmethod ig/init-key :cljdoc/server [_ {:keys [handler port] :as opts}]
+  (println "Starting server on port" port)
   (yada/listener handler {:port port}))
 
 (defmethod ig/halt-key! :cljdoc/server [_ server]
@@ -17,14 +20,14 @@
   (cljdoc.server.handler/cljdoc-api-routes opts))
 
 (comment
-  (require '[integrant.repl :as igr])
+  (require '[integrant.repl])
 
-  (igr/set-prep! #(system-config {}))
+  (integrant.repl/set-prep! #(system-config (cfg/config :default)))
 
-  (igr/go)
+  (integrant.repl/go)
 
-  (igr/halt)
+  (integrant.repl/halt)
 
-  (igr/reset)
+  (integrant.repl/reset)
 
   )
