@@ -48,3 +48,7 @@
          (some-> pom-map :url (.contains "github"))
          (:url pom-map))
    (clojure.string/replace #"^http://" "https://"))) ;; TODO HACK
+
+(defn version-tag? [pom-version tag]
+  (or (= pom-version tag)
+      (= (str "v" pom-version) tag)))

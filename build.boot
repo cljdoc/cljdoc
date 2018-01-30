@@ -61,10 +61,6 @@
 (defn docs-path [project version]
   (str "" (cljdoc.util/group-id project) "/" (cljdoc.util/artifact-id project) "/" version "/"))
 
-(defn version-tag? [pom-version tag]
-  (or (= pom-version tag)
-      (= (str "v" pom-version) tag)))
-
 (def known-gh ;HACK
   {'yada "https://github.com/juxt/yada"})
 
@@ -90,7 +86,7 @@
                 (reset! repo-container-dir tempd))
               (let [repo (gr/->repo git-dir)]
                 (if-let [version-tag (->> (gr/git-tag-names repo)
-                                          (filter #(version-tag? version %))
+                                          (filter #(cljdoc.util/version-tag? version %))
                                           first)]
                   (gr/git-checkout-repo repo version-tag)
                   (util/warn "No version tag found for version %s in %s\n" version scm))))
