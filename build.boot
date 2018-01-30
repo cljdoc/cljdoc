@@ -161,7 +161,7 @@
       (util/info "Generating Grimoire store for %s\n" project)
       (cljdoc.grimoire-helpers/import
        {:cljdoc-edn   analysis-result
-        :grimoire-dir (.getPath grimoire-dir)
+        :grimoire-dir grimoire-dir
         :git-repo     (-> (cljdoc.util/git-dir project version)
                           io/resource io/file gr/->repo)})
       (-> fs (add-resource tempd) commit!))))
