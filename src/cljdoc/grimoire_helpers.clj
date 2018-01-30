@@ -2,7 +2,7 @@
   (:require [clojure.spec.alpha :as spec]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
-            [cljdoc.hardcoded-config :as cfg]
+            [cljdoc.config :as cfg
             [grimoire.api]
             [grimoire.api.fs]
             [grimoire.api.fs.write]
@@ -60,7 +60,7 @@
       (grimoire.api/write-meta (grimoire.things/thing->artifact platform) {})
       (grimoire.api/write-meta (grimoire.things/thing->version platform)
                                {:scm (git/read-repo-meta git-repo (:version platf-entity))
-                                :doc (some->> (or (get-in cfg/projects [(:artifact-id platf-entity) :cljdoc.doc/tree])
+                                :doc (some->> (or (get-in (cfg/config :defailts) [:cljdoc/hardcoded (:artifact-id platf-entity) :cljdoc.doc/tree])
                                                   (doctree/derive-toc git-dir))
                                               (doctree/process-toc git-dir))})
       (grimoire.api/write-meta platform {}))

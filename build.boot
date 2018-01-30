@@ -33,7 +33,7 @@
     [metosin/jsonista "0.1.1"]])
 
 (boot.core/set-env! :source-paths #{"src"}
-                    :resource-paths #{"site"}
+                    :resource-paths #{"site" "resources"}
                     :dependencies application-deps)
 
 (require '[boot.pod :as pod]

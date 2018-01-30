@@ -6,7 +6,7 @@
             [clojure.java.io :as io]
             [cljdoc.util]
             [cljdoc.util.boot]
-            [cljdoc.hardcoded-config :as cfg])
+            [cljdoc.config :as cfg])
   (:import (java.net URI)))
 
 (def sandbox-analysis-deps
@@ -70,8 +70,11 @@
           (let [tempd        (b/tmp-dir!)
                 grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                             :directories #{"src"}})
-                platforms    (get-in cfg/projects [(cljdoc.util/artifact-id project) :cljdoc.api/platforms] ["clj" "cljs"])
-                namespaces   (get-in cfg/projects [(cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
+                platforms    (get-in (cfg/config :default)
+                                     [:cljdoc/hardcoded (cljdoc.util/artifact-id project) :cljdoc.api/platforms]
+                                     ["clj" "cljs"])
+                namespaces   (get-in (cfg/config :default)
+                                     [:cljdoc/hardcoded (cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
                 build-cdx      (fn [jar-contents-path platf]
                                  (pod/with-eval-in grimoire-pod
                                    (require 'cljdoc.analysis.impl)

@@ -11,4 +11,4 @@
  :cljdoc/server {:port #profile {:default 8000
                                  :dev     8001}}
 
- :cljdoc/hardcoded "move cljdoc.hardcoded-config here"}
+ :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}
