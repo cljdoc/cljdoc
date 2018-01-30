@@ -28,6 +28,7 @@
 
     [integrant "0.7.0-alpha1"]
     [integrant/repl "0.3.0"] ; dev-dependency
+    [aero "1.1.2"]
     [yada/lean "1.2.11"]
     [metosin/jsonista "0.1.1"]])
 
@@ -43,6 +44,7 @@
          '[cljdoc.renderers.html]
          '[cljdoc.renderers.transit]
          '[cljdoc.hardcoded-config :as cfg]
+         '[cljdoc.config :as config]
          '[cljdoc.grimoire-helpers]
          '[cljdoc.analysis.task :as ana]
          '[cljdoc.util]
@@ -52,10 +54,10 @@
 (spec/check-asserts true)
 
 (task-options!
- confetti/sync-bucket {:access-key (System/getenv "AWS_ACCESS_KEY")
-                       :secret-key (System/getenv "AWS_SECRET_KEY")
-                       :cloudfront-id (System/getenv "CLOUDFRONT_ID")
-                       :bucket (System/getenv "S3_BUCKET_NAME")})
+ confetti/sync-bucket {:access-key    (config/config :default [:aws :access-key])
+                       :secret-key    (config/config :default [:aws :secret-key])
+                       :cloudfront-id (config/config :default [:aws :cloudfront-id])
+                       :bucket        (config/config :default [:aws :s3-bucket-name])})
 
 (defn docs-path [project version]
   (str "" (cljdoc.util/group-id project) "/" (cljdoc.util/artifact-id project) "/" version "/"))
