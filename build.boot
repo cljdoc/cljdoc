@@ -33,7 +33,7 @@
     [metosin/jsonista "0.1.1"]])
 
 (boot.core/set-env! :source-paths #{"src"}
-                    :resource-paths #{"site" "resources"}
+                    :resource-paths #{"resources"}
                     :dependencies application-deps)
 
 (require '[boot.pod :as pod]
@@ -263,6 +263,7 @@
                      :find-scm (fn [_] (read-scm-from-cljdoc-edn project version)))
         (grimoire :project project :version version)
         (grimoire-html :project project :version version)
+        (sift :move {#"^public/" "grimoire-html/"}) ; move files from public into grimoire-html
         (when-task transit
           (transit-cache :project project :version version))
         (when-task deploy
@@ -277,7 +278,7 @@
 
 (deftask update-site []
   (set-sync-bucket-opts!)
-  (set-env! :resource-paths #{"site"})
+  (set-env! :resource-paths #{"resources/public"})
   (confetti/sync-bucket))
 
 (deftask dev-design
