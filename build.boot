@@ -141,7 +141,7 @@
                 :output-path  ~(.getPath codox-dir)
                 ;; Codox' way of determining :source-uri is tricky since it depends working on
                 ;; the repository while we are not giving it the repository information but jar-contents
-                ;; :source-uri   ~(str (scm-url pom-map) "/blob/{version}/{filepath}#L{line}")
+                ;; :source-uri   ~(str (cljdoc.util/scm-url pom-map) "/blob/{version}/{filepath}#L{line}")
                 :doc-paths    [~docs-dir]
                 :language     nil
                 :namespaces   nil
@@ -241,7 +241,7 @@
 
 (defn read-scm-from-cljdoc-edn [project version]
   (-> (cljdoc.util/cljdoc-edn project version)
-      io/resource slurp read-string :pom cljdoc.util.boot/scm-url))
+      io/resource slurp read-string :pom cljdoc.util/scm-url))
 
 (deftask build-docs
   [p project PROJECT sym "Project to build documentation for"

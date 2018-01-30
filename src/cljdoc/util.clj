@@ -37,3 +37,11 @@
     x
     (throw (ex-info "Expected collection with one item, got multiple"
                     {:coll xs}))))
+
+(defn scm-url [pom-map]
+  (some->
+   (cond (some-> pom-map :scm :url (.contains "github"))
+         (:url (:scm pom-map))
+         (some-> pom-map :url (.contains "github"))
+         (:url pom-map))
+   (clojure.string/replace #"^http://" "https://"))) ;; TODO HACK

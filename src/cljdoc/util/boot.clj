@@ -19,11 +19,3 @@
     (pod/with-eval-in pod/worker-pod
       (require 'boot.pom)
       (boot.pom/pom-xml-parse-string ~(slurp pom)))))
-
-(defn scm-url [pom-map]
-  (some->
-   (cond (some-> pom-map :scm :url (.contains "github"))
-         (:url (:scm pom-map))
-         (some-> pom-map :url (.contains "github"))
-         (:url pom-map))
-   (clojure.string/replace #"^http://" "https://"))) ;; TODO HACK
