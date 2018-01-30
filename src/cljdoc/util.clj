@@ -10,6 +10,7 @@
   (name project))
 
 (defn codox-edn [project version]
+  ;; TODO maybe delete, currently not used (like other codox stuff)
   (str "codox-edn/" project "/" version "/codox.edn"))
 
 (defn cljdoc-edn
