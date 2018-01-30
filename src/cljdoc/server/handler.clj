@@ -1,22 +1,61 @@
 (ns cljdoc.server.handler
-  (:require [yada.yada :as yada]
+  (:require [cljdoc.server.yada-jsonista] ; extends yada multimethods
+            [cljdoc.util]
+            [aleph.http :as http]
+            [yada.yada :as yada]
             [yada.request-body :as req-body]
             [yada.body :as res-body]
             [byte-streams :as bs]
             [jsonista.core :as json]))
 
-;; JSONista
-;; TODO turn this into cljdoc.server/yada-jsonista
+;; TODO set this up for development
+;; (Thread/setDefaultUncaughtExceptionHandler
+;;  (reify Thread$UncaughtExceptionHandler
+;;    (uncaughtException [_ thread ex]
+;;      (log/error ex "Uncaught exception on" (.getName thread)))))
 
-(defmethod req-body/parse-stream "application/json"
-  [_ stream]
-  (-> (bs/to-string stream)
-      (json/read-value)
-      (req-body/with-400-maybe)))
+;; Circle CI API stuff -----------------------------------------------
+;; TODO move into separate namespace and maybe record later
 
-(defmethod req-body/process-request-body "application/json"
-  [& args]
-  (apply req-body/default-process-request-body args))
+(defn get-build [circle-ci-config build-num]
+  @(http/get (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/" build-num)
+             {:accept "application/json"
+              :basic-auth [(:api-token circle-ci-config) ""]}))
+
+(defn get-artifacts [circle-ci-config build-num]
+  @(http/get (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/" build-num "/artifacts?circle-token=:token")
+             {:accept "application/json"
+              :basic-auth [(:api-token circle-ci-config) ""]}))
+
+(defn trigger-analysis-build
+  [circle-ci-config {:keys [build-id project version jarpath]}]
+  {:pre [(string? build-id) (string? project) (string? version) (string? jarpath)]}
+  (if (:api-token circle-ci-config)
+    @(http/post (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/tree/master")
+                {:accept "application/json"
+                 :form-params {"build_parameters" {"CLJDOC_BUILD_ID" build-id
+                                                   "CLJDOC_PROJECT" project
+                                                   "CLJDOC_PROJECT_VERSION" version
+                                                   "CLJDOC_PROJECT_JAR" jarpath}}
+                 :basic-auth [(:api-token circle-ci-config) ""]})
+    (println "No API token present to communicate with CircleCI, skipping request")))
+
+
+;; cljdoc API client functions ---------------------------------------
+
+(defn run-full-build [params]
+  @(http/post (str "http://localhost:" (cljdoc.config/config :default [:cljdoc/server :port]) "/full-build")
+              {:form-params params
+               :content-type "application/x-www-form-urlencoded"
+               :basic-auth ["cljdoc" "cljdoc"]})) ;TODO fix
+
+(defn test-webhook [circle-ci-config build-num]
+  (let [payload (-> (get-build circle-ci-config build-num) :body bs/to-string json/read-value)]
+    @(http/post (str "http://localhost:" (cljdoc.config/config :default [:cljdoc/server :port]) "/hooks/circle-ci")
+                {:body (json/write-value-as-string {"payload" payload})
+                 :content-type "application/json"})))
+
+;; Auth --------------------------------------------------------------
 
 (defn auth [[user password]]
   (let [m {"cljdoc" "cljdoc"}]
@@ -25,52 +64,121 @@
        :roles #{:api-user}}
       {})))
 
-(def circle-ci-webhook-handler
-  (yada/handler
-   (yada/resource
-    {:access-control
-     {:realm "accounts"
-      :scheme "Basic"
-      :verify auth
-      :authorization {:methods {:post :api-user}}}
+(def cljdoc-admins
+  {:realm "accounts"
+   :scheme "Basic"
+   :verify auth
+   :authorization {:methods {:post :api-user}}})
 
-     :methods
-     {:post
-      {:consumes #{"application/json"}
-       :produces "text/plain"
-       :response (fn [ctx]
-                   (clojure.pprint/pprint (:body ctx))
-                   (assoc-in ctx [:response :status]))}}})))
-
-(def trigger-analysis-handler
+(defn circle-ci-webhook-handler [circle-ci-config]
   (yada/handler
    (yada/resource
     {:methods
      {:post
+      {:consumes #{"application/json"}
+       :produces "text/plain"
+       :response (fn webhook-req-handler [ctx]
+                   ;; TODO implement some rate limiting based on build-number
+                   ;; this should be sufficient for now since triggering new
+                   ;; builds requires authentication
+                   (let [build-num (get-in ctx [:body "payload" "build_num"])
+                         project   (get-in ctx [:body "payload" "build_parameters" "CLJDOC_PROJECT"])
+                         version   (get-in ctx [:body "payload" "build_parameters" "CLJDOC_PROJECT_VERSION"])
+                         build-id  (get-in ctx [:body "payload" "build_parameters" "CLJDOC_BUILD_ID"])
+                         cljdoc-edn (cljdoc.util/cljdoc-edn project version)
+                         artifacts  (-> (get-artifacts circle-ci-config build-num)
+                                        :body bs/to-string json/read-value)]
+                     (if (and (= 1 (count artifacts))
+                              (= cljdoc-edn (get (first artifacts) "path")))
+                       (do
+                         (println "Found expected artifact:" (first artifacts))
+                         (let [full-build-req (run-full-build {:project project
+                                                               :version version
+                                                               :build-id build-id
+                                                               :cljdoc-edn cljdoc-edn})]
+                           (assoc (:response ctx) :status (:status full-build-req))))
+                       (do
+                         (println "Unexpected artifacts for build submitted via webhook" artifacts)
+                         (println "Expected path" cljdoc-edn)
+                         (assoc (:response ctx) :status 400)))))}}})))
+
+(defn initiate-build-handler [circle-ci-config]
+  (yada/handler
+   (yada/resource
+    {:access-control cljdoc-admins
+     :methods
+     {:post
       {:parameters {:form {:project String :version String :jarpath String}}
        :consumes #{"application/x-www-form-urlencoded"}
-       :response (fn [ctx]
-                   (prn (get-in ctx [:parameters :form]))
-                   (assoc-in ctx [:response :status] 200))}}})))
+       :response (fn initiate-build-handler-response [ctx]
+                   (let [build-id  (str (java.util.UUID/randomUUID))
+                         ci-resp   (trigger-analysis-build
+                                    circle-ci-config
+                                    (-> (get-in ctx [:parameters :form])
+                                        (assoc :build-id build-id)))
+                         build-num (-> ci-resp :body bs/to-string json/read-value (get "build_num"))]
+                     (when (= 201 (:status ci-resp))
+                       (assert build-num "build number missing from CircleCI response")
+                       (println {:event :cljdoc/analysis-job-started
+                                 :cljdoc/build-id build-id
+                                 :cljdoc/job {:circle-ci {:project (:builder-project circle-ci-config)
+                                                          :build-num build-num}}}))
+                     (assoc (:response ctx) :status (:status ci-resp))))}}})))
+
+(defn full-build-handler [{:keys [tmp-dir]}]
+  (yada/handler
+   (yada/resource
+    {:access-control cljdoc-admins
+     :methods
+     {:post
+      {:parameters {:form {:project String :version String  :build-id String :cljdoc-edn String}}
+       :consumes #{"application/x-www-form-urlencoded"}
+       :response (fn full-build-handler-response [ctx]
+                   (let [build-id  (get-in ctx [:parameters :form :build-id])]
+                     (prn 'full-build (get-in ctx [:parameters :form]))
+                     (assoc (:response ctx) :status 200)))}}})))
 
 (def ping-handler
   (yada/handler
    (yada/resource
     {:methods
-     {:get
-      {:produces "text/plain"
-       :response "pong"}}})))
+     {:get {:produces "text/plain"
+            :response "pong"}}})))
 
-(defn cljdoc-api-routes [deps]
-  (println 'passed-handler-opts deps)
-  ["" [["/ping"             ping-handler]
-       ["/hooks/circle-ci"  circle-ci-webhook-handler]
-       ["/request-analysis" trigger-analysis-handler]]])
+(defn cljdoc-api-routes [{:keys [circle-ci] :as deps}]
+  ["" [["/ping"            ping-handler]
+       ["/hooks/circle-ci" (circle-ci-webhook-handler circle-ci)]
+       ["/request-build"   (initiate-build-handler circle-ci)]
+       ["/full-build"      (full-build-handler {})]
+       ]])
 
 (comment
+  (def c (cljdoc.config/config :default [:circle-ci]))
 
-  (start-server!)
+  (def r
+    (trigger-analysis-build
+     (cljdoc.config/config :default [:circle-ci])
+     {:project "bidi" :version "2.1.3" :jarpath "https://repo.clojars.org/bidi/bidi/2.1.3/bidi-2.1.3.jar"}))
 
-  (stop-server!)
+  (def b
+    (-> r :body bs/to-string))
+
+  (get (json/read-value b) "build_num")
+
+  (def build (get-build c 25))
+
+  (defn pp-body [r]
+    (-> r :body bs/to-string json/read-value clojure.pprint/pprint))
+
+  (get parsed-build "build_parameters")
+
+  (test-webhook c 27)
+
+  (pp-body (get-artifacts c 24))
+
+  (-> (get-artifacts c 24)
+      :body bs/to-string json/read-value)
+
+
 
   )
