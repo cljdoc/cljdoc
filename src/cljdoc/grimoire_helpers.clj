@@ -48,6 +48,9 @@
   (-> (version-thing project version)
       (grimoire.things/->Platform (grimoire.util/normalize-platform platf))))
 
+(defn grimoire-store [^java.io.File dir]
+  (grimoire.api.fs/->Config (.getPath dir) "" ""))
+
 (defn import-api [{:keys [platform store codox-namespaces]}]
   (grimoire.api/write-meta store platform {})
   (let [namespaces codox-namespaces]
@@ -90,15 +93,18 @@
   [{:keys [cljdoc-edn grimoire-dir git-repo]}]
   ;; TODO assert format of cljdoc-edn
   (let [project (-> cljdoc-edn :pom :project)
-        version (-> cljdoc-edn :pom :version)]
+        version (-> cljdoc-edn :pom :version)
+        store   (grimoire-store grimoire-dir)]
+    ;; TODO logging
     (import-doc {:version (version-thing project version)
-                 :store (grimoire.api.fs/->Config grimoire-dir "" "")
+                 :store store
                  :git-repo git-repo})
 
+    ;; TODO logging
     (doseq [platf (keys (:codox cljdoc-edn))]
       (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
       (import-api {:platform (platform-thing project version platf)
-                   :store (grimoire.api.fs/->Config grimoire-dir "" "")
+                   :store store
                    :codox-namespaces (get-in cljdoc-edn [:codox platf])}))))
 
 (comment
