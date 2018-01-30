@@ -1,4 +1,5 @@
 (ns cljdoc.grimoire-helpers
+  (:refer-clojure :exclude [import])
   (:require [clojure.spec.alpha :as spec]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
@@ -38,47 +39,67 @@
   (grimoire.api/write-meta store ns-thing ns-meta)
   (println "Finished namespace" (:name ns-meta)))
 
-(defn build-grim [platf-entity {:keys [codox-namespaces pom dst ^Git git-repo]}]
-  (spec/assert :cljdoc.spec/platform-entity platf-entity)
-  (assert dst "target dir missing!")
-  (assert (coll? codox-namespaces) "codox-namespaces malformed")
-  (assert (= (:artifact-id platf-entity) (cljdoc.util/artifact-id (:project pom))))
-  (assert (= (:group-id platf-entity) (cljdoc.util/group-id (:project pom))))
-  (assert (= (:version platf-entity) (:version pom)))
-  ;; TODO assert that platf-entity and pom values are identical
-  (let [store    (grimoire.api.fs/->Config dst "" "")
-        git-dir  (.. git-repo getRepository getWorkTree)
-        platform (-> (grimoire.things/->Group    (:group-id platf-entity))
-                     (grimoire.things/->Artifact (:artifact-id platf-entity))
-                     (grimoire.things/->Version  (:version platf-entity))
-                     (grimoire.things/->Platform (grimoire.util/normalize-platform (:platform platf-entity))))]
+(defn version-thing [project version]
+  (-> (grimoire.things/->Group    (cljdoc.util/group-id project))
+      (grimoire.things/->Artifact (cljdoc.util/artifact-id project))
+      (grimoire.things/->Version  version)))
 
-    (println "Writing bare meta for"
-             (grimoire.things/thing->path (grimoire.things/thing->version platform)))
+(defn platform-thing [project version platf]
+  (-> (version-thing project version)
+      (grimoire.things/->Platform (grimoire.util/normalize-platform platf))))
+
+(defn import-api [{:keys [platform store codox-namespaces]}]
+  (grimoire.api/write-meta store platform {})
+  (let [namespaces codox-namespaces]
+    (doseq [ns namespaces
+            :let [publics  (:publics ns)
+                  ns-thing (grimoire.things/->Ns platform (-> ns :name name))]]
+      (write-docs-for-ns store ns-thing (dissoc ns :publics))
+      (doseq [public publics]
+        (try
+          (write-docs-for-def store
+                              (grimoire.things/->Def ns-thing (-> public :name name))
+                              public)
+          (catch Throwable e
+            (throw (ex-info "Failed to write docs for def"
+                            {:codox/public public}
+                            e))))))))
+
+(defn import-doc
+  [{:keys [version store ^Git git-repo]}]
+  {:pre [(grimoire.things/version? version)
+         (some? store)
+         (some? git-repo)]}
+  (let [git-dir   (.. git-repo getRepository getWorkTree)]
+    (println "Writing bare meta for" (grimoire.things/thing->path version))
     (doto store
-      (grimoire.api/write-meta (grimoire.things/thing->group platform) {})
-      (grimoire.api/write-meta (grimoire.things/thing->artifact platform) {})
-      (grimoire.api/write-meta (grimoire.things/thing->version platform)
-                               {:scm (git/read-repo-meta git-repo (:version platf-entity))
-                                :doc (some->> (or (get-in (cfg/config :defailts) [:cljdoc/hardcoded (:artifact-id platf-entity) :cljdoc.doc/tree])
+      (grimoire.api/write-meta (grimoire.things/thing->group version) {})
+      (grimoire.api/write-meta (grimoire.things/thing->artifact version) {})
+      (grimoire.api/write-meta version
+                               {:scm (->> (grimoire.things/thing->name version)
+                                          (git/read-repo-meta git-repo))
+                                :doc (some->> (or (get-in (cfg/config :defaults)
+                                                          [:cljdoc/hardcoded
+                                                           (->> (grimoire.things/thing->artifact version)
+                                                                (grimoire.things/thing->name))
+                                                           :cljdoc.doc/tree])
                                                   (doctree/derive-toc git-dir))
-                                              (doctree/process-toc git-dir))})
-      (grimoire.api/write-meta platform {}))
+                                              (doctree/process-toc git-dir))}))))
 
-    (let [namespaces codox-namespaces]
-      (doseq [ns namespaces
-              :let [publics  (:publics ns)
-                    ns-thing (grimoire.things/->Ns platform (-> ns :name name))]]
-        (write-docs-for-ns store ns-thing (dissoc ns :publics))
-        (doseq [public publics]
-          (try
-            (write-docs-for-def store
-                                (grimoire.things/->Def ns-thing (-> public :name name))
-                                public)
-            (catch Throwable e
-              (throw (ex-info "Failed to write docs for def"
-                              {:codox/public public}
-                              e)))))))))
+(defn import
+  [{:keys [cljdoc-edn grimoire-dir git-repo]}]
+  ;; TODO assert format of cljdoc-edn
+  (let [project (-> cljdoc-edn :pom :project)
+        version (-> cljdoc-edn :pom :version)]
+    (import-doc {:version (version-thing project version)
+                 :store (grimoire.api.fs/->Config grimoire-dir "" "")
+                 :git-repo git-repo})
+
+    (doseq [platf (keys (:codox cljdoc-edn))]
+      (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
+      (import-api {:platform (platform-thing project version platf)
+                   :store (grimoire.api.fs/->Config grimoire-dir "" "")
+                   :codox-namespaces (get-in cljdoc-edn [:codox platf])}))))
 
 (comment
   (build-grim {:group-id "bidi"
