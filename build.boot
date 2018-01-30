@@ -43,8 +43,7 @@
          '[cljdoc.git-repo :as gr]
          '[cljdoc.renderers.html]
          '[cljdoc.renderers.transit]
-         '[cljdoc.hardcoded-config :as cfg]
-         '[cljdoc.config :as config]
+         '[cljdoc.config :as cfg]
          '[cljdoc.grimoire-helpers]
          '[cljdoc.analysis.task :as ana]
          '[cljdoc.util]
@@ -54,10 +53,10 @@
 (spec/check-asserts true)
 
 (task-options!
- confetti/sync-bucket {:access-key    (config/config :default [:aws :access-key])
-                       :secret-key    (config/config :default [:aws :secret-key])
-                       :cloudfront-id (config/config :default [:aws :cloudfront-id])
-                       :bucket        (config/config :default [:aws :s3-bucket-name])})
+ confetti/sync-bucket {:access-key    (cfg/config :default [:aws :access-key])
+                       :secret-key    (cfg/config :default [:aws :secret-key])
+                       :cloudfront-id (cfg/config :default [:aws :cloudfront-id])
+                       :bucket        (cfg/config :default [:aws :s3-bucket-name])})
 
 (defn docs-path [project version]
   (str "" (cljdoc.util/group-id project) "/" (cljdoc.util/artifact-id project) "/" version "/"))
