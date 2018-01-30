@@ -26,6 +26,8 @@
     ;; which pulls in other old stuff
     [org.clojure/core.match "0.3.0-alpha5"]
 
+    [integrant "0.7.0-alpha1"]
+    [integrant/repl "0.3.0"] ; dev-dependency
     [yada/lean "1.2.11"]
     [metosin/jsonista "0.1.1"]])
 

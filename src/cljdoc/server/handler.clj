@@ -61,22 +61,11 @@
       {:produces "text/plain"
        :response "pong"}}})))
 
-(defn hello-routes [deps]
-  ["" [["/ping"    ping-handler]
-       ["/hooks/circle-ci" circle-ci-webhook-handler]
+(defn cljdoc-api-routes [deps]
+  (println 'passed-handler-opts deps)
+  ["" [["/ping"             ping-handler]
+       ["/hooks/circle-ci"  circle-ci-webhook-handler]
        ["/request-analysis" trigger-analysis-handler]]])
-
-(defonce *server
-  (atom nil))
-
-(defn stop-server! []
-  ((:close @*server))
-  (reset! *server nil))
-
-(defn start-server! []
-  (when @*server (stop-server!))
-  (when-let [s (yada/listener (hello-routes {}) {:port 3000})]
-    (reset! *server s)))
 
 (comment
 
