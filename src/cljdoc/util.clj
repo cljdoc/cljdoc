@@ -1,7 +1,10 @@
 (ns cljdoc.util)
 
 (defn group-id [project]
-  (or (namespace project) (name project)))
+  (or (if (symbol? project)
+        (namespace project)
+        (namespace (symbol project)))
+      (name project)))
 
 (defn artifact-id [project]
   (name project))
@@ -9,7 +12,9 @@
 (defn codox-edn [project version]
   (str "codox-edn/" project "/" version "/codox.edn"))
 
-(defn cljdoc-edn [project version]
+(defn cljdoc-edn
+  [project version]
+  {:pre [(some? project) (string? version)]}
   (str "cljdoc-edn/" (group-id project) "/" (artifact-id project) "/" version "/cljdoc.edn"))
 
 (defn local-jar-file [coordinate]
