@@ -8,7 +8,9 @@
   {:cljdoc/server  {:port    (cfg/get-in env-config [:cljdoc/server :port]),
                     :handler (ig/ref :cljdoc/handler)}
    :cljdoc/handler (-> (select-keys env-config [:circle-ci])
-                       (assoc :dir (cfg/get-in env-config [:cljdoc/server :dir])))})
+                       (assoc :dir (cfg/get-in env-config [:cljdoc/server :dir]))
+                       (assoc :deploy-bucket (-> (cfg/get-in env-config [:aws])
+                                                 (select-keys [:access-key :secret-key :s3-bucket-name :cloudfront-id]))))})
 
 (defmethod ig/init-key :cljdoc/server [_ {:keys [handler port] :as opts}]
   (println "Starting server on port" port)

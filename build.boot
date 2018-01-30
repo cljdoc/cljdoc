@@ -30,6 +30,8 @@
     [integrant/repl "0.3.0"] ; dev-dependency
     [aero "1.1.2"]
     [yada/lean "1.2.11"]
+    [org.clojure/tools.logging "0.4.0"]
+    [confetti/s3-deploy "0.1.2"]
     [metosin/jsonista "0.1.1"]])
 
 (boot.core/set-env! :source-paths #{"src"}

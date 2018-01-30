@@ -1,6 +1,13 @@
 (ns cljdoc.server.handler
   (:require [cljdoc.server.yada-jsonista] ; extends yada multimethods
             [cljdoc.util]
+            [cljdoc.cache]
+            [cljdoc.renderers.html]
+            [clojure.tools.logging :as log]
+            [cljdoc.grimoire-helpers]
+            [cljdoc.git-repo]
+            [clojure.java.io :as io]
+            [confetti.s3-deploy :as s3]
             [aleph.http :as http]
             [yada.yada :as yada]
             [yada.request-body :as req-body]
@@ -128,7 +135,7 @@
                                                           :build-num build-num}}}))
                      (assoc (:response ctx) :status (:status ci-resp))))}}})))
 
-(defn full-build-handler [{:keys [dir]}]
+(defn full-build-handler [{:keys [dir deploy-bucket]}]
   (yada/handler
    (yada/resource
     {:access-control cljdoc-admins
@@ -137,9 +144,55 @@
       {:parameters {:form {:project String :version String  :build-id String :cljdoc-edn String}}
        :consumes #{"application/x-www-form-urlencoded"}
        :response (fn full-build-handler-response [ctx]
-                   (let [build-id  (get-in ctx [:parameters :form :build-id])]
-                     (prn 'full-build (get-in ctx [:parameters :form]))
-                     (assoc (:response ctx) :status 200)))}}})))
+                   (try
+                     (let [{:keys [project version build-id cljdoc-edn]} (get-in ctx [:parameters :form])
+                           cljdoc-edn   (clojure.edn/read-string (slurp cljdoc-edn))
+                           git-dir      (io/file dir (cljdoc.util/git-dir project version))
+                           grimoire-dir (doto (io/file dir "grimoire") (.mkdir))
+                           html-dir     (doto (io/file dir "grimoire-html") (.mkdir))
+                           scm-url      (cljdoc.util/scm-url (:pom cljdoc-edn))]
+                       (log/info "Cloning Git repo" scm-url)
+                       (when-not (.exists git-dir) ; TODO we should really wipe and start fresh for each build
+                         (cljdoc.git-repo/clone scm-url git-dir))
+                       (let [repo        (cljdoc.git-repo/->repo git-dir)
+                             version-tag (->> (cljdoc.git-repo/git-tag-names repo)
+                                              (filter #(cljdoc.util/version-tag? version %))
+                                              first)]
+                         (if version-tag
+                           (cljdoc.git-repo/git-checkout-repo repo version-tag)
+                           (println "WARN No version tag found for version %s in %s\n" version scm-url))
+
+                         (println "Importing into Grimoire")
+                         (cljdoc.grimoire-helpers/import
+                          {:cljdoc-edn   cljdoc-edn
+                           :grimoire-dir grimoire-dir
+                           :git-repo     repo})
+
+                         (println "Rendering HTML")
+                         (cljdoc.cache/render
+                          (cljdoc.renderers.html/->HTMLRenderer)
+                          (cljdoc.cache/bundle-docs
+                           (cljdoc.grimoire-helpers/grimoire-store grimoire-dir)
+                           (cljdoc.grimoire-helpers/version-thing project version))
+                          {:dir html-dir})
+
+                         (println "Deploying")
+
+                         (println 'deploy-bucket deploy-bucket)
+                         (s3/sync! (select-keys deploy-bucket [:access-key :secret-key])
+                                   (:s3-bucket-name deploy-bucket)
+                                   (s3/dir->file-maps html-dir)
+                                   {:report-fn println})
+
+                         (println "\nDONE!")
+
+                         )
+
+                       (assoc (:response ctx) :status 200))
+                     (catch Throwable t
+                       (println "Exception")
+                       (clojure.repl/pst t)
+                       (log/error t "Failure"))))}}})))
 
 (def ping-handler
   (yada/handler
@@ -148,11 +201,11 @@
      {:get {:produces "text/plain"
             :response "pong"}}})))
 
-(defn cljdoc-api-routes [{:keys [circle-ci dir] :as deps}]
+(defn cljdoc-api-routes [{:keys [circle-ci dir deploy-bucket] :as deps}]
   ["" [["/ping"            ping-handler]
        ["/hooks/circle-ci" (circle-ci-webhook-handler circle-ci)]
        ["/request-build"   (initiate-build-handler circle-ci)]
-       ["/full-build"      (full-build-handler {:dir dir})]
+       ["/full-build"      (full-build-handler (select-keys deps [:dir :deploy-bucket]))]
        ]])
 
 (comment
@@ -182,6 +235,11 @@
   (-> (get-artifacts c 24)
       :body bs/to-string json/read-value)
 
+  (run-full-build {:project "bidi"
+                   :version "2.1.3"
+                   :build-id "something"
+                   :cljdoc-edn "https://27-119377591-gh.circle-artifacts.com/0/cljdoc-edn/bidi/bidi/2.1.3/cljdoc.edn"})
 
+  (log/info "test")
 
   )
