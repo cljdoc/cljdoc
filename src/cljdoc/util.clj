@@ -17,6 +17,9 @@
   {:pre [(some? project) (string? version)]}
   (str "cljdoc-edn/" (group-id project) "/" (artifact-id project) "/" version "/cljdoc.edn"))
 
+(defn git-dir [project version]
+  (str "git-repos/" (group-id project) "/" (artifact-id project) "/" version "/"))
+
 (defn local-jar-file [coordinate]
   ;; (jar-file '[org.martinklepsch/derivatives "0.2.0"])
   (->> (boot.pod/resolve-dependencies {:dependencies [coordinate]})

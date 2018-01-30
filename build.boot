@@ -79,7 +79,7 @@
   (let [repo-container-dir (atom nil)]
     (with-pre-wrap fs
       (let [tempd   (or @repo-container-dir (tmp-dir!))
-            git-dir (io/file tempd "git-repo")]
+            git-dir (io/file tempd (cljdoc.util/git-dir project version))]
         (if-let [scm (or (find-scm fs) (get known-gh project))]
           (do (if @repo-container-dir
                 (util/info "Repository for %s already cloned\n" project)
@@ -166,7 +166,8 @@
       (cljdoc.grimoire-helpers/import
        {:cljdoc-edn   analysis-result
         :grimoire-dir (.getPath grimoire-dir)
-        :git-repo     (gr/->repo (git-repo-dir fs))})
+        :git-repo     (-> (cljdoc.util/git-dir project version)
+                          io/resource io/file gr/->repo)})
       (-> fs (add-resource tempd) commit!))))
 
 (deftask grimoire-html
