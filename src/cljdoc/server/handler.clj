@@ -125,7 +125,7 @@
                                                           :build-num build-num}}}))
                      (assoc (:response ctx) :status (:status ci-resp))))}}})))
 
-(defn full-build-handler [{:keys [tmp-dir]}]
+(defn full-build-handler [{:keys [dir]}]
   (yada/handler
    (yada/resource
     {:access-control cljdoc-admins
@@ -145,11 +145,11 @@
      {:get {:produces "text/plain"
             :response "pong"}}})))
 
-(defn cljdoc-api-routes [{:keys [circle-ci] :as deps}]
+(defn cljdoc-api-routes [{:keys [circle-ci dir] :as deps}]
   ["" [["/ping"            ping-handler]
        ["/hooks/circle-ci" (circle-ci-webhook-handler circle-ci)]
        ["/request-build"   (initiate-build-handler circle-ci)]
-       ["/full-build"      (full-build-handler {})]
+       ["/full-build"      (full-build-handler {:dir dir})]
        ]])
 
 (comment

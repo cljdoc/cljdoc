@@ -9,6 +9,7 @@
              :builder-project #env CIRCLE_BUILDER_PROJECT}
 
  :cljdoc/server {:port #profile {:default 8000
-                                 :dev     8001}}
+                                 :dev     8001}
+                 :dir "./tmp"}
 
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}
