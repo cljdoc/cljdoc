@@ -19,7 +19,8 @@
                  [:link {:rel "stylesheet" :href "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"}]
                  (hiccup.page/include-css "/cljdoc.css")]
                 [:div.sans-serif
-                 contents]]))
+                 contents]
+                (hiccup.page/include-js "/cljdoc.js")]))
 
 (defn sidebar-title [title]
   [:h4.ttu.f7.fw5.tracked.gray title])
@@ -291,5 +292,4 @@
             {}
             ns-list))
 
-  (namespace-hierarchy (map :name namespaces))
-  )
+  (namespace-hierarchy (map :name namespaces)))
