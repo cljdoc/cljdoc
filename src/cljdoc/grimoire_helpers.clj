@@ -2,7 +2,7 @@
   (:require [clojure.spec.alpha :as spec]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
-            [cljdoc.config :as cfg
+            [cljdoc.config :as cfg]
             [grimoire.api]
             [grimoire.api.fs]
             [grimoire.api.fs.write]
