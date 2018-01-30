@@ -30,7 +30,8 @@ We will implement a server component which has the following responsibilties:
 - manage flow of documentation builds
   - trigger analysis of jars
   - receive webhooks about completed analysis
-  - build HTML documentation from analysis results and a project's Git repository
+  - populate Grimoire store using analysis results and a project's Git repository
+  - build HTML documentation based on data in Grimoire store
   - deploy HTML documentation to S3/Cloudfront
 
 ## Consequences
