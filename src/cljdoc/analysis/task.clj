@@ -85,6 +85,7 @@
                 cdx-namespaces (->> (map #(build-cdx (.getPath (jar-contents-dir fs)) %) platforms)
                                     (zipmap platforms))
                 ana-result     {:codox cdx-namespaces
+                                ;; TODO do not parse pom here, defer to trusted env for that
                                 :pom   (cljdoc.util.boot/find-pom-map fs project)}]
             (doto (io/file tempd (cljdoc.util/cljdoc-edn project version))
               (io/make-parents)

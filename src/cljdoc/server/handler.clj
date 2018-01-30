@@ -108,6 +108,9 @@
     {:access-control cljdoc-admins
      :methods
      {:post
+      ;; TODO don't take jarpath as an argument here but instead derive it
+      ;; from project and version information. If we take jarpath as an argument
+      ;; we lose the immutability guarantees that we get when only talking to Clojars
       {:parameters {:form {:project String :version String :jarpath String}}
        :consumes #{"application/x-www-form-urlencoded"}
        :response (fn initiate-build-handler-response [ctx]
