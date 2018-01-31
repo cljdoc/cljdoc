@@ -35,6 +35,39 @@ data "aws_acm_certificate" "cljdoc_certificate" {
   statuses = ["ISSUED"]
 }
 
+data "aws_iam_policy_document" "cljdoc_html_bucket_policy" {
+  provider = "aws.prod"
+
+  statement {
+    sid    = "PublicReadForGetBucketObjects"
+    effect = "Allow"
+
+    principals = [
+      {
+        type        = "AWS"
+        identifiers = ["*"]
+      },
+    ]
+
+    actions   = ["s3:GetObject"]
+    resources = ["arn:aws:s3:::${var.domain}-${random_pet.server.id}/*"]
+  }
+}
+
+data "aws_iam_policy_document" "cljdoc_html_bucket_write_user_policy" {
+  provider = "aws.prod"
+
+  statement {
+    effect  = "Allow"
+    actions = ["s3:*"]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cljdoc_html_bucket.id}",
+      "arn:aws:s3:::${aws_s3_bucket.cljdoc_html_bucket.id}/*",
+    ]
+  }
+}
+
 # S3 Bucket ----------------------------------------------------------
 
 resource "aws_s3_bucket" "cljdoc_html_bucket" {
@@ -45,20 +78,7 @@ resource "aws_s3_bucket" "cljdoc_html_bucket" {
   # TODO figure out if we can move this policy to a separate .json file
   # Seems this should work — we'll need to put in the bucket name though
   # policy = "${file("policy.json")}"
-  policy = <<POLICY
-{
-  "Version":"2012-10-17",
-  "Statement":[
-    {
-      "Sid":"PublicReadForGetBucketObjects",
-      "Effect":"Allow",
-      "Principal": "*",
-      "Action":"s3:GetObject",
-      "Resource":["arn:aws:s3:::${var.domain}-${random_pet.server.id}/*"]
-    }
-  ]
-}
-POLICY
+  policy = "${data.aws_iam_policy_document.cljdoc_html_bucket_policy.json}"
 
   website {
     index_document = "index.html"
@@ -157,22 +177,10 @@ resource "aws_iam_access_key" "cljdoc_html_bucket_write_user_key" {
 
 resource "aws_iam_user_policy" "cljdoc_html_bucket_write_user_policy" {
   provider = "aws.prod"
-  name = "cljdoc_bucket_upload"
-  user = "${aws_iam_user.cljdoc_html_bucket_write_user.name}"
-  policy= <<POLICY
-{
-    "Version": "2012-10-17",
-    "Statement": [
-    {
-        "Effect": "Allow",
-        "Action": "s3:*",
-        "Resource": [
-            "arn:aws:s3:::${aws_s3_bucket.cljdoc_html_bucket.id}",
-            "arn:aws:s3:::${aws_s3_bucket.cljdoc_html_bucket.id}/*"
-        ]
-     }]
-}
-POLICY
+  name     = "cljdoc_bucket_upload"
+  user     = "${aws_iam_user.cljdoc_html_bucket_write_user.name}"
+
+  policy = "${data.aws_iam_policy_document.cljdoc_html_bucket_write_user_policy.json}"
 }
 
 # Outputs ------------------------------------------------------------
