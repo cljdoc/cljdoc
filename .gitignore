@@ -1,3 +1,4 @@
 .nrepl*
 target/
 docker/docker-target
+log/

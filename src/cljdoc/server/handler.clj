@@ -45,7 +45,7 @@
                                                    "CLJDOC_PROJECT_VERSION" version
                                                    "CLJDOC_PROJECT_JAR" jarpath}}
                  :basic-auth [(:api-token circle-ci-config) ""]})
-    (println "No API token present to communicate with CircleCI, skipping request")))
+    (log/warn "No API token present to communicate with CircleCI, skipping request")))
 
 
 ;; cljdoc API client functions ---------------------------------------
@@ -98,15 +98,15 @@
                      (if (and (= 1 (count artifacts))
                               (= cljdoc-edn (get (first artifacts) "path")))
                        (do
-                         (println "Found expected artifact:" (first artifacts))
+                         (log/info "Found expected artifact:" (first artifacts))
                          (let [full-build-req (run-full-build {:project project
                                                                :version version
                                                                :build-id build-id
                                                                :cljdoc-edn cljdoc-edn})]
                            (assoc (:response ctx) :status (:status full-build-req))))
                        (do
-                         (println "Unexpected artifacts for build submitted via webhook" artifacts)
-                         (println "Expected path" cljdoc-edn)
+                         (log/warn "Unexpected artifacts for build submitted via webhook" artifacts)
+                         (log/warn "Expected path" cljdoc-edn)
                          (assoc (:response ctx) :status 400)))))}}})))
 
 (defn initiate-build-handler [circle-ci-config]
@@ -129,10 +129,9 @@
                          build-num (-> ci-resp :body bs/to-string json/read-value (get "build_num"))]
                      (when (= 201 (:status ci-resp))
                        (assert build-num "build number missing from CircleCI response")
-                       (println {:event :cljdoc/analysis-job-started
-                                 :cljdoc/build-id build-id
-                                 :cljdoc/job {:circle-ci {:project (:builder-project circle-ci-config)
-                                                          :build-num build-num}}}))
+                       (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}"
+                                  build-id
+                                  (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)))
                      (assoc (:response ctx) :status (:status ci-resp))))}}})))
 
 (defn full-build-handler [{:keys [dir deploy-bucket]}]
@@ -160,15 +159,16 @@
                                               first)]
                          (if version-tag
                            (cljdoc.git-repo/git-checkout-repo repo version-tag)
-                           (println "WARN No version tag found for version %s in %s\n" version scm-url))
+                           (log/warn "No version tag found for version %s in %s\n" version scm-url))
 
-                         (println "Importing into Grimoire")
+                         (log/info "Importing into Grimoire")
                          (cljdoc.grimoire-helpers/import
                           {:cljdoc-edn   cljdoc-edn
                            :grimoire-dir grimoire-dir
                            :git-repo     repo})
 
-                         (println "Rendering HTML")
+                         (log/info "Rendering HTML")
+                         (log/info "html-dir" html-dir)
                          (cljdoc.cache/render
                           (cljdoc.renderers.html/->HTMLRenderer)
                           (cljdoc.cache/bundle-docs
@@ -176,23 +176,18 @@
                            (cljdoc.grimoire-helpers/version-thing project version))
                           {:dir html-dir})
 
-                         (println "Deploying")
+                         (log/info "Deploying")
 
-                         (println 'deploy-bucket deploy-bucket)
                          (s3/sync! (select-keys deploy-bucket [:access-key :secret-key])
                                    (:s3-bucket-name deploy-bucket)
                                    (s3/dir->file-maps html-dir)
-                                   {:report-fn println})
+                                   {:report-fn #(log/info %1 %2)})
 
-                         (println "\nDONE!")
-
-                         )
+                         (log/infof "Done with build %s" build-id))
 
                        (assoc (:response ctx) :status 200))
                      (catch Throwable t
-                       (println "Exception")
-                       (clojure.repl/pst t)
-                       (log/error t "Failure"))))}}})))
+                       (log/error t "Exception while running full build"))))}}})))
 
 (def ping-handler
   (yada/handler
@@ -240,6 +235,6 @@
                    :build-id "something"
                    :cljdoc-edn "https://27-119377591-gh.circle-artifacts.com/0/cljdoc-edn/bidi/bidi/2.1.3/cljdoc.edn"})
 
-  (log/info "test")
+  (log/error (ex-info "some stuff" {}) "test")
 
   )

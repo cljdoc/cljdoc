@@ -32,7 +32,8 @@
     [yada/lean "1.2.11"]
     [org.clojure/tools.logging "0.4.0"]
     [confetti/s3-deploy "0.1.2"]
-    [metosin/jsonista "0.1.1"]])
+    [metosin/jsonista "0.1.1"]
+    [spootnik/unilog "0.7.22"]])
 
 (boot.core/set-env! :source-paths #{"src"}
                     :resource-paths #{"resources"}

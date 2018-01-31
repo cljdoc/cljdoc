@@ -1,6 +1,7 @@
 (ns cljdoc.grimoire-helpers
   (:refer-clojure :exclude [import])
   (:require [clojure.spec.alpha :as spec]
+            [clojure.tools.logging :as log]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.config :as cfg]
@@ -24,7 +25,7 @@
   (let [docs (-> codox-meta
                  (update :name name))]
     (when-not (:name docs)
-      (println "Var name missing:" docs))
+      (log/error "Var name missing:" docs))
     (assert (:name docs) "Var name was nil!")
     (assert (nil? (:namespace docs)) "Namespace should not get written to def-meta")
     (assert (nil? (:platform docs)) "Platform should not get written to def-meta")
@@ -37,7 +38,7 @@
   [store ns-thing ns-meta]
   (assert (grimoire.things/namespace? ns-thing))
   (grimoire.api/write-meta store ns-thing ns-meta)
-  (println "Finished namespace" (:name ns-meta)))
+  (log/info "Finished namespace" (:name ns-meta)))
 
 (defn version-thing [project version]
   (-> (grimoire.things/->Group    (cljdoc.util/group-id project))
@@ -74,7 +75,7 @@
          (some? store)
          (some? git-repo)]}
   (let [git-dir   (.. git-repo getRepository getWorkTree)]
-    (println "Writing bare meta for" (grimoire.things/thing->path version))
+    (log/info "Writing bare meta for" (grimoire.things/thing->path version))
     (doto store
       (grimoire.api/write-meta (grimoire.things/thing->group version) {})
       (grimoire.api/write-meta (grimoire.things/thing->artifact version) {})

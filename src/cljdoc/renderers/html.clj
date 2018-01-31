@@ -6,6 +6,7 @@
             [cljdoc.spec]
             [hiccup2.core :as hiccup]
             [hiccup.page]
+            [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]))
 
@@ -222,7 +223,7 @@
           [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
 
 (defn render-to [opts hiccup ^java.io.File file]
-  (println "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
+  (log/info "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
   (->> hiccup (page opts) str (spit file)))
 
 (defn file-for [out-dir route-id route-params]
@@ -263,7 +264,7 @@
                                    (:namespace %))
                                (:defs cache-contents))]]
       (if-not (seq defs)
-        (println "Skipping namespace" (:namespace ns-emap) "- no defs")
+        (log/warn "Skipping namespace" (:namespace ns-emap) "- no defs")
         (render-to {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}
                    (namespace-page {:top-bar-component top-bar-comp
                                     :namespace ns-emap
