@@ -167,8 +167,8 @@ resource "aws_iam_user_policy" "cljdoc_html_bucket_write_user_policy" {
         "Effect": "Allow",
         "Action": "s3:*",
         "Resource": [
-            "arn:aws:s3:::${var.domain}-${random_pet.server.id}",
-            "arn:aws:s3:::${var.domain}-${random_pet.server.id}/*"
+            "arn:aws:s3:::${aws_s3_bucket.cljdoc_html_bucket.id}",
+            "arn:aws:s3:::${aws_s3_bucket.cljdoc_html_bucket.id}/*"
         ]
      }]
 }
