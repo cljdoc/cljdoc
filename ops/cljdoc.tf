@@ -135,7 +135,7 @@ resource "aws_route53_record" "cdn_record" {
   alias {
     name = "${aws_cloudfront_distribution.cljdoc_cdn.domain_name}"
     zone_id = "${var.cf_alias_zone_id}"
-    evaluate_target_health = true
+    evaluate_target_health = false # not supported for Cloudfront distributions
   }
 }
 
