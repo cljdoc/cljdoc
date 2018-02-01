@@ -243,7 +243,7 @@ output "cloudfront_id" {
 }
 
 output "cloudfront_url" {
-  value = "${aws_cloudfront_distribution.cljdoc_cdn.url}"
+  value = "${aws_cloudfront_distribution.cljdoc_cdn.domain_name}"
 }
 
 output "hosted_zone_name_servers" {
