@@ -40,10 +40,10 @@ cat /etc/ssh/sshd_config
 # https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04#step-seven-%E2%80%94-set-up-a-basic-firewall
 
 
-# Application Setup
+# Clojure Setup
 
-# bootpath=/usr/local/bin/boot
-# curl -sL https://github.com/boot-clj/boot-bin/releases/download/2.7.2/boot.sh -o "$bootpath"
-# chmod +x "$bootpath"
+bootpath=/usr/local/bin/boot
+curl -sL "https://github.com/boot-clj/boot-bin/releases/download/2.7.2/boot.sh" -o "$bootpath"
+chmod +x "$bootpath"
 
-# BOOT_VERSION=2.7.2 boot repl
+BOOT_VERSION=2.7.2 boot repl
