@@ -3,3 +3,5 @@
 
 domain      = "cljdoc.xyz"
 domainAlias = "cljdoc_xyz"
+
+api_domain  = "api.cljdoc.xyz"

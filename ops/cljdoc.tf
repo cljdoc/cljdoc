@@ -2,8 +2,9 @@
 
 variable "aws_access_key_id" {}
 variable "aws_secret_key" {}
+variable "do_token" {}
 
-variable "region" {
+variable "aws_region" {
   default = "us-east-1"
 }
 
@@ -11,19 +12,29 @@ variable "pgp_key" {}
 
 variable "domain" {}
 variable "domainAlias" {}
+variable "api_domain" {}
 
 variable "cf_alias_zone_id" {
   description = "Fixed hardcoded constant zone_id that is used for all CloudFront distributions"
   default     = "Z2FDTNDATAQYW2"
 }
 
+# Providers ----------------------------------------------------------
+
 provider "aws" {
   alias = "prod"
 
-  region     = "${var.region}"
+  region     = "${var.aws_region}"
   access_key = "${var.aws_access_key_id}"
   secret_key = "${var.aws_secret_key}"
 }
+
+
+provider "digitalocean" {
+  token = "${var.do_token}"
+}
+
+# Random -------------------------------------------------------------
 
 resource "random_pet" "server" {
   # https://www.terraform.io/docs/providers/random/r/pet.html
@@ -32,6 +43,8 @@ resource "random_pet" "server" {
     domain = "${var.domain}"
   }
 }
+
+# Data Providers -----------------------------------------------------
 
 data "aws_acm_certificate" "cljdoc_certificate" {
   provider = "aws.prod"
@@ -70,6 +83,15 @@ data "aws_iam_policy_document" "cljdoc_html_bucket_write_user_policy" {
       "arn:aws:s3:::${aws_s3_bucket.cljdoc_html_bucket.id}/*",
     ]
   }
+}
+
+# DigitalOcean Server ------------------------------------------------
+
+resource "digitalocean_droplet" "cljdoc_api" {
+  image  = "${file("image/image-id")}"
+  name   = "cljdoc-1"
+  region = "ams3"
+  size   = "2gb"
 }
 
 # S3 Bucket ----------------------------------------------------------
@@ -165,6 +187,15 @@ resource "aws_route53_record" "cdn_record" {
     zone_id                = "${var.cf_alias_zone_id}"
     evaluate_target_health = false                                                   # not supported for Cloudfront distributions
   }
+}
+
+resource "aws_route53_record" "api" {
+  provider = "aws.prod"
+  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
+  name     = "${var.api_domain}"
+  type     = "A"
+  ttl      = "300"
+  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
 }
 
 # Access Keys --------------------------------------------------------
