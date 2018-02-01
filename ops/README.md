@@ -3,6 +3,9 @@
 This directory contains a [Terraform](https://www.terraform.io/)
 configuration to create infrastructure required by cljdoc.
 
+It also contains a [Packer](https://www.packer.io/) configuration
+to create machine images for the cljdoc server.
+
 > The intention here is not just to make it easy to spin up an
 > environment but also to document what is needed.
 
@@ -14,6 +17,7 @@ encrypt secrets created during the process of terraforming. 🙂
 ```bash
 export TF_VAR_aws_access_key_id=foo
 export TF_VAR_aws_secret_key=foo
+export TF_VAR_do_token=digital-ocean-api-token
 export TF_VAR_pgp_key=base64-encoded-public-key
 ```
 
@@ -23,7 +27,9 @@ To base64 encode your public key you can run:
 gpg --export YOUR_KEY_ID | base64
 ```
 
-## What does this do?
+## Terraform
+
+### What does this do?
 
 Mostly creating things on AWS:
 
@@ -40,7 +46,7 @@ The used domain can be customized in `cljdoc.tfvars`. The domain will
 not be bought and it is expected that the domain's nameserver are set
 to the nameservers of the Route53 HostedZone, which are part of the outputs.
 
-## Common Commands
+### Common Commands
 
 **Note:** These commands require the environment variables mentioned above to be set.
 
@@ -56,3 +62,24 @@ terraform output
 terraform output -json
 terraform output bucket_user_secret_key | base64 --decode | gpg -q --decrypt
 ```
+
+## Packer
+
+We use Packer to create machine images for the cljdoc server.
+All required files can be found in `./image/`
+
+#### Creating an image
+
+This requires `TF_VAR_do_token` to be set.
+
+```sh
+cd image
+make image-id
+```
+This will create an image and the image-id will be saved to `image-id`.
+
+The provisioning script can be found in `provision.sh`.
+
+Currently the provisioning script locks out the `root` user
+and does not enable `sudo` for the `cljdoc` user. This means all
+steps requiring admin-privileges need to be done at build time.
