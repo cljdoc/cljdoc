@@ -46,6 +46,8 @@
          '[cljdoc.git-repo :as gr]
          '[cljdoc.renderers.html]
          '[cljdoc.renderers.transit]
+         '[cljdoc.server.system]
+         '[integrant.core]
          '[cljdoc.config :as cfg]
          '[cljdoc.grimoire-helpers]
          '[cljdoc.analysis.task :as ana]
@@ -294,6 +296,13 @@
           (build-docs :project project
                       :version (get versions project))
           (target))))
+
+(deftask start-api []
+  (comp (with-pass-thru _
+          (integrant.core/init
+           (cljdoc.server.system/system-config
+            (cfg/config :default))))
+        (wait)))
 
 (comment
   (def f
