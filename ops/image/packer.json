@@ -1,0 +1,24 @@
+{
+    "variables": {
+      "do_token": "{{env `TF_VAR_do_token`}}"
+    },
+    "builders": [
+        {
+            "type": "digitalocean",
+            "api_token": "{{user `do_token`}}",
+            "image": "ubuntu-17-10-x64",
+            "region": "ams3",
+            "size": "2gb",
+            "ssh_username": "root",
+            "snapshot_name": "cljdoc-{{isotime}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "scripts": [
+                "provision.sh"
+            ]
+        }
+    ]
+}
