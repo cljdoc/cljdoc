@@ -92,6 +92,21 @@ resource "digitalocean_droplet" "cljdoc_api" {
   name   = "cljdoc-1"
   region = "ams3"
   size   = "2gb"
+  monitoring = true
+
+  connection {
+    type     = "ssh"
+    user     = "cljdoc"
+    timeout  = "60s"
+    # I'd expect this to work witht the defailt agent = true setting but it does not.
+    # https://gitter.im/hashicorp-terraform/Lobby?at=5a739beb475054191754817d
+    private_key = "${file("/Users/martin/.ssh/id_rsa")}"
+  }
+
+  provisioner "file" {
+    source      = "run-cljdoc-api.sh"
+    destination = "/home/cljdoc/run-cljdoc-api.sh"
+  }
 }
 
 # S3 Bucket ----------------------------------------------------------
@@ -248,4 +263,8 @@ output "cloudfront_url" {
 
 output "hosted_zone_name_servers" {
   value = "${aws_route53_zone.cljdoc_zone.name_servers}"
+}
+
+output "api_ip" {
+  value = "${digitalocean_droplet.cljdoc_api.ipv4_address}"
 }

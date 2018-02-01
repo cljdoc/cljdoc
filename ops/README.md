@@ -31,7 +31,7 @@ gpg --export YOUR_KEY_ID | base64
 
 ### What does this do?
 
-Mostly creating things on AWS:
+Creating various resources on AWS and DigitalOcean:
 
 - an S3 bucket where HTML documentation is stored
 - a user with a policy that allows updating the bucket contents
@@ -39,6 +39,7 @@ Mostly creating things on AWS:
 - a Cloudfront distribution that serves the contents of this bucket
 - a Route53 HostedZone for domain supplied in the configuration
 - a HostedZone RecordSet to point the domain to the Cloudfront distribution
+- a Droplet to run the cljdoc API
 
 For the Cloudfront distribution an AWS ACM certificate will be used which needs to be created manually.
 
@@ -61,6 +62,14 @@ Retrieving outputs:
 terraform output
 terraform output -json
 terraform output bucket_user_secret_key | base64 --decode | gpg -q --decrypt
+```
+
+As part of the terraform setup `run-cljdoc-api.sh` will be uploaded to the server.
+This script expects a `CLJDOC_VERSION` file in the `$HOME` directory of the user running
+it which contains a full shasum of a commit available on Github. Create it using SSH:
+
+```sh
+ssh cljdoc@(terraform output api_ip) "echo 5471...436 > CLJDOC_VERSION"
 ```
 
 ## Packer
