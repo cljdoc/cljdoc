@@ -8,8 +8,6 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "pgp_key" {}
-
 variable "domain" {}
 variable "domainAlias" {}
 variable "api_domain" {}
@@ -228,7 +226,6 @@ resource "aws_iam_user" "cljdoc_html_bucket_write_user" {
 resource "aws_iam_access_key" "cljdoc_html_bucket_write_user_key" {
   provider = "aws.prod"
   user     = "${aws_iam_user.cljdoc_html_bucket_write_user.name}"
-  pgp_key  = "${var.pgp_key}"
 }
 
 resource "aws_iam_user_policy" "cljdoc_html_bucket_write_user_policy" {
@@ -250,7 +247,7 @@ output "bucket_user_access_key" {
 }
 
 output "bucket_user_secret_key" {
-  value = "${aws_iam_access_key.cljdoc_html_bucket_write_user_key.encrypted_secret}"
+  value = "${aws_iam_access_key.cljdoc_html_bucket_write_user_key.secret}"
 }
 
 output "cloudfront_id" {
