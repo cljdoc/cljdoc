@@ -34,7 +34,7 @@
 (comment
   (require '[integrant.repl])
 
-  (integrant.repl/set-prep! #(system-config (cfg/config :default)))
+  (integrant.repl/set-prep! #(system-config (cfg/config)))
 
   (integrant.repl/go)
 

@@ -1,28 +1,31 @@
 (ns cljdoc.config
   (:refer-clojure :exclude [get-in])
-  (:require [clojure.java.io :as io]
+  (:require [clojure.tools.logging :as log]
+            [clojure.java.io :as io]
             [aero.core :as aero]))
+
+(defn profile []
+  (or (keyword (System/getenv "CLJDOC_PROFILE"))
+      (log/warn "No profile found in CLJDOC_PROFILE")))
 
 (defn get-in
   [config-map ks]
   (or (clojure.core/get-in config-map ks)
-      (throw (ex-info (format "No config found for path %s\nDid you configure your secrets.edn file?" ks) {:ks ks}))))
+      (throw (ex-info (format "No config found for path %s\nDid you configure your secrets.edn file?" ks)
+                      {:ks ks, :profile (profile)}))))
 
-(defn config
-  ([profile]
-   (aero/read-config (io/resource "config.edn") {:profile profile}))
-  ([profile ks]
-   (get-in (config profile) ks)))
+(defn config []
+  (aero/read-config (io/resource "config.edn") {:profile (profile)}))
 
 (defn circle-ci []
-  {:api-token (get-in (config :default) [:secrets :circle-ci :api-token])
-   :builder-project (get-in  (config :default) [:circle-ci :builder-project])})
+  {:api-token       (get-in (config) [:secrets :circle-ci :api-token])
+   :builder-project (get-in (config) [:circle-ci :builder-project])})
 
 (defn s3-deploy []
-  {:access-key    (config :default [:secrets :aws :access-key])
-   :secret-key    (config :default [:secrets :aws :secret-key])
-   :cloudfront-id (config :default [:secrets :aws :cloudfront-id])
-   :bucket        (config :default [:secrets :aws :s3-bucket-name])})
+  {:access-key    (get-in (config) [:secrets :aws :access-key])
+   :secret-key    (get-in (config) [:secrets :aws :secret-key])
+   :cloudfront-id (get-in (config) [:secrets :aws :cloudfront-id])
+   :bucket        (get-in (config) [:secrets :aws :s3-bucket-name])})
 
 (comment
   (config :default)

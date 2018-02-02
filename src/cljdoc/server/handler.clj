@@ -51,14 +51,14 @@
 ;; cljdoc API client functions ---------------------------------------
 
 (defn run-full-build [params]
-  @(http/post (str "http://localhost:" (cljdoc.config/config :default [:cljdoc/server :port]) "/full-build")
+  @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/full-build")
               {:form-params params
                :content-type "application/x-www-form-urlencoded"
                :basic-auth ["cljdoc" "cljdoc"]})) ;TODO fix
 
 (defn test-webhook [circle-ci-config build-num]
   (let [payload (-> (get-build circle-ci-config build-num) :body bs/to-string json/read-value)]
-    @(http/post (str "http://localhost:" (cljdoc.config/config :default [:cljdoc/server :port]) "/hooks/circle-ci")
+    @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/hooks/circle-ci")
                 {:body (json/write-value-as-string {"payload" payload})
                  :content-type "application/json"})))
 
@@ -208,7 +208,7 @@
 
   (def r
     (trigger-analysis-build
-     (cljdoc.config/config :default [:circle-ci])
+     (cljdoc.config/circle-ci)
      {:project "bidi" :version "2.1.3" :jarpath "https://repo.clojars.org/bidi/bidi/2.1.3/bidi-2.1.3.jar"}))
 
   (def b

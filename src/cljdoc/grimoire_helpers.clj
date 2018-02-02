@@ -82,7 +82,7 @@
       (grimoire.api/write-meta version
                                {:scm (->> (grimoire.things/thing->name version)
                                           (git/read-repo-meta git-repo))
-                                :doc (some->> (or (get-in (cfg/config :defaults)
+                                :doc (some->> (or (get-in (cfg/config)
                                                           [:cljdoc/hardcoded
                                                            (->> (grimoire.things/thing->artifact version)
                                                                 (grimoire.things/thing->name))

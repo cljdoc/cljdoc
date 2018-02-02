@@ -289,7 +289,7 @@
   (comp (with-pass-thru _
           (integrant.core/init
            (cljdoc.server.system/system-config
-            (cfg/config :default))))
+            (cfg/config))))
         (wait)))
 
 (comment
