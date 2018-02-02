@@ -34,9 +34,33 @@ I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blo
 - The cache that serves as input to renderers is defined in `cljdoc.cache`
 - Overall resource/routing model is defined in `cljdoc.routes`.
 
-I've often chosen to refer to functions with their fully qualified name. I hope this makes reading the code easier.
+I often choose to refer to functions with their fully qualified name. I hope this makes reading the code easier.
 
 I outlined some areas that could use help in [`CONTRIBUTING.md`](https://github.com/martinklepsch/cljdoc/blob/master/CONTRIBUTING.md)
+
+### Configuration
+
+We use [`aero`](https://github.com/juxt/aero) for configuration and several modes of operation are possible:
+
+- You should always, **without any further steps** be able to clone this
+  repo and generate documentation locally using:
+
+  ```clojure
+  boot build-docs --project bidi --version 2.1.3 target
+  ```
+  If this does not work, it's a bug.
+- The [cljdoc API server](/doc/server.md) requires some additional
+  configuration as it will upload files to an S3 bucket and run analysis
+  of jars on CircleCI instead of on the local machine.
+  The additional configration can be placed into
+  `resources/secrets.edn` or supplied via the environment variables
+  specified in that file. Once these steps are completed you should be
+  able to run the server using
+
+  ```clojure
+  CLJDOC_PROFILE=live boot start-api
+  ```
+
 
 ## License
 
