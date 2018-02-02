@@ -57,20 +57,8 @@
 
 (spec/check-asserts true)
 
-(when-not (io/resource "config.edn")
-  (util/warn "\n  No config.edn file found on classpath.\n")
-  (util/warn "  A minimal config.edn file can be found in resources/config.min.edn\n")
-  (util/warn "  To use it run the following:\n\n")
-  (util/warn "    cp resources/config.min.edn resources/config.edn\n\n")
-  (System/exit 1))
-
 (defn set-sync-bucket-opts! []
-  (task-options!
-   confetti/sync-bucket {:access-key    (cfg/config :default [:aws :access-key])
-                         :secret-key    (cfg/config :default [:aws :secret-key])
-                         :cloudfront-id (cfg/config :default [:aws :cloudfront-id])
-                         :bucket        (cfg/config :default [:aws :s3-bucket-name])}))
-
+  (task-options! confetti/sync-bucket (cfg/s3-deploy)))
 
 (defn docs-path [project version]
   (str "" (cljdoc.util/group-id project) "/" (cljdoc.util/artifact-id project) "/" version "/"))

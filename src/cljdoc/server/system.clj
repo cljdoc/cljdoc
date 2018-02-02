@@ -15,10 +15,10 @@
 (defn system-config [env-config]
   {:cljdoc/server  {:port    (cfg/get-in env-config [:cljdoc/server :port]),
                     :handler (ig/ref :cljdoc/handler)}
-   :cljdoc/handler (-> (select-keys env-config [:circle-ci])
+   :cljdoc/handler (-> {}
                        (assoc :dir (cfg/get-in env-config [:cljdoc/server :dir]))
-                       (assoc :deploy-bucket (-> (cfg/get-in env-config [:aws])
-                                                 (select-keys [:access-key :secret-key :s3-bucket-name :cloudfront-id]))))})
+                       (assoc :circle-ci (cfg/circle-ci))
+                       (assoc :s3-deploy (cfg/s3-deploy)))})
 
 (defmethod ig/init-key :cljdoc/server [_ {:keys [handler port] :as opts}]
   (unilog/start-logging! logging-config)

@@ -196,7 +196,7 @@
      {:get {:produces "text/plain"
             :response "pong"}}})))
 
-(defn cljdoc-api-routes [{:keys [circle-ci dir deploy-bucket] :as deps}]
+(defn cljdoc-api-routes [{:keys [circle-ci dir s3-deploy] :as deps}]
   ["" [["/ping"            ping-handler]
        ["/hooks/circle-ci" (circle-ci-webhook-handler circle-ci)]
        ["/request-build"   (initiate-build-handler circle-ci)]
@@ -204,7 +204,7 @@
        ]])
 
 (comment
-  (def c (cljdoc.config/config :default [:circle-ci]))
+  (def c (cljdoc.config/circle-ci))
 
   (def r
     (trigger-analysis-build
