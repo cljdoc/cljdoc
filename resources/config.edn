@@ -1,4 +1,4 @@
-{:secrets #profile {:prod #include #join [ #env HOME "secrets.edn"]
+{:secrets #profile {:prod #include #join [ #env HOME "/secrets.edn"]
                     :live #include "secrets.edn"
                     :local {}}
  :circle-ci {:builder-project #env CIRCLE_BUILDER_PROJECT}
