@@ -77,9 +77,15 @@ data "aws_iam_policy_document" "cljdoc_html_bucket_write_user_policy" {
     actions = ["s3:*"]
 
     resources = [
-      "arn:aws:s3:::${aws_s3_bucket.cljdoc_html_bucket.id}",
-      "arn:aws:s3:::${aws_s3_bucket.cljdoc_html_bucket.id}/*",
+      "${aws_s3_bucket.cljdoc_html_bucket.arn}",
+      "${aws_s3_bucket.cljdoc_html_bucket.arn}/*"
     ]
+  }
+
+  statement {
+    effect  = "Allow"
+    actions = ["cloudfront:CreateInvalidation"]
+    resources = [ "*" ]
   }
 }
 
