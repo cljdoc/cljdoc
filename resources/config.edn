@@ -1,0 +1,6 @@
+{:secrets #profile {:prod #include #join [ #env HOME "secrets.edn"]
+                    :live #include "secrets.edn"
+                    :local {}}
+ :circle-ci {:builder-project #env CIRCLE_BUILDER_PROJECT}
+ :cljdoc/server {:port 8000, :dir "./tmp"}
+ :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}

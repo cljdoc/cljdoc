@@ -5,8 +5,10 @@
             [aero.core :as aero]))
 
 (defn profile []
-  (or (keyword (System/getenv "CLJDOC_PROFILE"))
-      (log/warn "No profile found in CLJDOC_PROFILE")))
+  (let [known-profiles #{:live :local :prod}
+        profile        (keyword (System/getenv "CLJDOC_PROFILE"))]
+    (or (known-profiles profile)
+        (log/warnf "No known profile found in CLJDOC_PROFILE %s" profile))))
 
 (defn get-in
   [config-map ks]
