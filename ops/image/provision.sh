@@ -3,13 +3,20 @@
 set -euo pipefail
 
 username="cljdoc"
-sudo add-apt-repository -y ppa:webupd8team/java
+add-apt-repository -y ppa:webupd8team/java
 
 apt-get update
 apt-get upgrade -y
 apt-get install -y git curl
 
-echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
+apt autoremove -y
+apt-get install -y binutils
+echo -e "\n\n\ndpkg --configure -a"
+dpkg --configure -a  # without this there's some weird 'held packages' error when installing JDK
+
+echo -e "\n\n\nAccept Java agreement"
+echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
+echo -e "\n\n\nInstall java"
 apt-get install -y oracle-java8-installer
 
 # User setup
@@ -46,4 +53,4 @@ bootpath=/usr/local/bin/boot
 curl -sL "https://github.com/boot-clj/boot-bin/releases/download/2.7.2/boot.sh" -o "$bootpath"
 chmod +x "$bootpath"
 
-BOOT_VERSION=2.7.2 boot repl
+# su -c 'BOOT_VERSION=2.7.2 boot repl' - "$username"
