@@ -91,20 +91,10 @@ resource "digitalocean_droplet" "cljdoc_api" {
   region = "ams3"
   size   = "2gb"
   monitoring = true
-
-  connection {
-    type     = "ssh"
-    user     = "cljdoc"
-    timeout  = "60s"
-    # I'd expect this to work witht the defailt agent = true setting but it does not.
-    # https://gitter.im/hashicorp-terraform/Lobby?at=5a739beb475054191754817d
-    private_key = "${file("/Users/martin/.ssh/id_rsa")}"
-  }
-
-  provisioner "file" {
-    source      = "run-cljdoc-api.sh"
-    destination = "/home/cljdoc/run-cljdoc-api.sh"
-  }
+  # supplying a key here seems to be the only way to
+  # not get a root password via email, despite having
+  # added SSH keys to the snapshot/image before
+  ssh_keys = ["18144068"]
 }
 
 # S3 Bucket ----------------------------------------------------------
