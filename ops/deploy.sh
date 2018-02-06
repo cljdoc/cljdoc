@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+set -eou pipefail
+
+if [[ $# -eq 0 ]] || [ -z "$1" ] ; then
+    echo 'No version supplied, aborting'
+    exit 1
+fi
+
+tf_opts="-state=ops/terraform.tfstate"
+api_ip=$(terraform output "$tf_opts" api_ip)
+tf_out_json=$(terraform output "$tf_opts" -json)
+
+secrets_file=$(mktemp -t cljdoc-secrets.edn)
+version_file=$(mktemp -t CLJDOC_VERSION)
+version="$1"
+
+
+echo -e "\nDeploying $version to $api_ip"
+
+
+echo "$tf_out_json" | ./ops/create-secrets.cljs > "$secrets_file"
+echo -e "\nSecrets written to $secrets_file"
+echo "$version" > "$version_file"
+
+echo -e "\nDeploying secrets file..."
+scp "$secrets_file" "cljdoc@$api_ip:secrets.edn"
+echo -e "Deleting secrets file..."
+rm "$secrets_file"
+
+echo -e "\nDeploying CLJDOC_VERSION file..."
+scp "$version_file" "cljdoc@$api_ip:CLJDOC_VERSION"
+
+echo -e "\nDeploying runner file..."
+scp "ops/run-cljdoc-api.sh" "cljdoc@$api_ip:"
+ssh "cljdoc@$api_ip" chmod +x run-cljdoc-api.sh
+
+echo -e "\nDone"
