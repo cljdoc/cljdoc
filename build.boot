@@ -16,7 +16,7 @@
     [com.atlassian.commonmark/commonmark-ext-gfm-tables "0.9.0"]
     [com.atlassian.commonmark/commonmark-ext-heading-anchor "0.11.0"]
 
-    [org.slf4j/slf4j-nop "1.7.25"]
+    #_[org.slf4j/slf4j-nop "1.7.25"]
     [org.eclipse.jgit "4.10.0.201712302008-r"]
     [com.jcraft/jsch.agentproxy.connector-factory "0.0.9"]
     [com.jcraft/jsch.agentproxy.jsch "0.0.9"]
