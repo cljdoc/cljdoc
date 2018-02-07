@@ -95,14 +95,15 @@
                          cljdoc-edn (cljdoc.util/cljdoc-edn project version)
                          artifacts  (-> (get-artifacts circle-ci-config build-num)
                                         :body bs/to-string json/read-value)]
-                     (if (and (= 1 (count artifacts))
-                              (= cljdoc-edn (get (first artifacts) "path")))
+                     (if-let [artifact (and (= 1 (count artifacts))
+                                            (= cljdoc-edn (get (first artifacts) "path"))
+                                            (first artifacts))]
                        (do
                          (log/info "Found expected artifact:" (first artifacts))
                          (let [full-build-req (run-full-build {:project project
                                                                :version version
                                                                :build-id build-id
-                                                               :cljdoc-edn cljdoc-edn})]
+                                                               :cljdoc-edn (get artifact "url")})]
                            (assoc (:response ctx) :status (:status full-build-req))))
                        (do
                          (log/warn "Unexpected artifacts for build submitted via webhook" artifacts)
