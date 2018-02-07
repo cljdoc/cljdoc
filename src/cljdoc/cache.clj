@@ -22,6 +22,7 @@
   (:require [cljdoc.spec]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]
+            [clojure.tools.logging :as log]
             [grimoire.api.fs]
             [grimoire.api.fs.read]
             [grimoire.api :as grim]
@@ -59,6 +60,7 @@
 (defn bundle-docs
   [store version-t]
   (assert (things/version? version-t) "bundle-docs expects a grimoire.things/version argument")
+  (log/info "Bundling docs" {:store store :version-t version-t})
   (->> {:cache-contents (docs-cache-contents store version-t)
         :cache-id       {:group-id    (-> version-t things/thing->group things/thing->name)
                          :artifact-id (-> version-t things/thing->artifact things/thing->name)
