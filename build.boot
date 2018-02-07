@@ -13,10 +13,10 @@
     [hiccup "2.0.0-alpha1"]
     [org.asciidoctor/asciidoctorj "1.5.6"]
     [com.atlassian.commonmark/commonmark "0.11.0"]
-    [com.atlassian.commonmark/commonmark-ext-gfm-tables "0.9.0"]
+    [com.atlassian.commonmark/commonmark-ext-gfm-tables "0.11.0"]
     [com.atlassian.commonmark/commonmark-ext-heading-anchor "0.11.0"]
 
-    #_[org.slf4j/slf4j-nop "1.7.25"]
+    [org.slf4j/slf4j-api "1.7.25"]
     [org.eclipse.jgit "4.10.0.201712302008-r"]
     [com.jcraft/jsch.agentproxy.connector-factory "0.0.9"]
     [com.jcraft/jsch.agentproxy.jsch "0.0.9"]
