@@ -11,6 +11,7 @@ curl -Ls "https://github.com/martinklepsch/cljdoc/archive/$version.tar.gz" -o "c
 
 echo "Unpacking archive"
 tar -xvf "cljdoc-$version.tar.gz"
+rm "cljdoc-$version.tar.gz"
 
 pushd "cljdoc-$version"
 
