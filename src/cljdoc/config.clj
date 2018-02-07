@@ -21,7 +21,7 @@
 
 (defn circle-ci []
   {:api-token       (get-in (config) [:secrets :circle-ci :api-token])
-   :builder-project (get-in (config) [:circle-ci :builder-project])})
+   :builder-project (get-in (config) [:secrets :circle-ci :builder-project])})
 
 (defn s3-deploy []
   {:access-key    (get-in (config) [:secrets :aws :access-key])

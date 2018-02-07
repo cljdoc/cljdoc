@@ -17,7 +17,8 @@
               :cloudfront-id (tf-val tf-outputs "cloudfront_id")
               :cloudfront-url (tf-val tf-outputs "cloudfront_url")
               :r53-hosted-zone (tf-val tf-outputs "cloudfront_url")}
-        :circle-ci {:api-token js/process.env.CIRCLE_API_TOKEN}}))
+        :circle-ci {:api-token js/process.env.CIRCLE_API_TOKEN
+                    :builder-project js/process.env.CIRCLE_BUILDER_PROJECT}}))
 
 (def stdinput (atom []))
 
