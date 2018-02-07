@@ -16,4 +16,4 @@ rm "cljdoc-$version.tar.gz"
 pushd "cljdoc-$version"
 
 echo "Starting process"
-boot start-api
+CLJDOC_PROFILE=prod boot start-api
