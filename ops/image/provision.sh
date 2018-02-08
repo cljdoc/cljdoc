@@ -5,19 +5,19 @@ set -euo pipefail
 username="cljdoc"
 add-apt-repository -y ppa:webupd8team/java
 
-apt-get update
-apt-get upgrade -y
-apt-get install -y git curl
+apt update
+apt upgrade -y
+apt install -y git curl
 
 apt autoremove -y
-apt-get install -y binutils
+apt install -y binutils
 echo -e "\n\n\ndpkg --configure -a"
 dpkg --configure -a  # without this there's some weird 'held packages' error when installing JDK
 
 echo -e "\n\n\nAccept Java agreement"
 echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
 echo -e "\n\n\nInstall java"
-apt-get install -y oracle-java8-installer
+apt install -y oracle-java8-installer
 
 # User setup
 
@@ -47,7 +47,7 @@ cat /etc/ssh/sshd_config
 # https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04#step-seven-%E2%80%94-set-up-a-basic-firewall
 
 
-# Clojure Setup
+# Boot installation
 
 bootpath=/usr/local/bin/boot
 curl -sL "https://github.com/boot-clj/boot-bin/releases/download/2.7.2/boot.sh" -o "$bootpath"
