@@ -6,7 +6,7 @@
         {
             "type": "digitalocean",
             "api_token": "{{user `do_token`}}",
-            "image": "ubuntu-17-10-x64",
+            "image": "fedora-27-x64",
             "region": "ams3",
             "size": "2gb",
             "ssh_username": "root",
@@ -17,7 +17,7 @@
         {
             "type": "shell",
             "scripts": [
-                "provision.sh"
+                "fedora-provision.sh"
             ]
         },
         {
