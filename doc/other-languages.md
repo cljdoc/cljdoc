@@ -27,8 +27,16 @@ That said looking at it does not hurt in many cases.
 
 ### Rust
 
+- https://docs.rs/im/9.0.0/im/
+
 ### Elixir
+
+- https://hexdocs.pm/plug/readme.html
 
 ### Racket
 
 ### Elm
+
+### Cocoa / iOS
+
+- http://cocoadocs.org/docsets/AFNetworking/3.1.0/
