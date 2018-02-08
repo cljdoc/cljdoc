@@ -135,7 +135,7 @@
                                   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)))
                      (assoc (:response ctx) :status (:status ci-resp))))}}})))
 
-(defn full-build-handler [{:keys [dir deploy-bucket]}]
+(defn full-build-handler [{:keys [dir s3-deploy]}]
   (yada/handler
    (yada/resource
     {:access-control cljdoc-admins
@@ -179,8 +179,8 @@
 
                          (log/info "Deploying")
 
-                         (s3/sync! (select-keys deploy-bucket [:access-key :secret-key])
-                                   (:s3-bucket-name deploy-bucket)
+                         (s3/sync! (select-keys s3-deploy [:access-key :secret-key])
+                                   (:bucket s3-deploy)
                                    (s3/dir->file-maps html-dir)
                                    {:report-fn #(log/info %1 %2)})
 
@@ -201,7 +201,7 @@
   ["" [["/ping"            ping-handler]
        ["/hooks/circle-ci" (circle-ci-webhook-handler circle-ci)]
        ["/request-build"   (initiate-build-handler circle-ci)]
-       ["/full-build"      (full-build-handler (select-keys deps [:dir :deploy-bucket]))]
+       ["/full-build"      (full-build-handler (select-keys deps [:dir :s3-deploy]))]
        ]])
 
 (comment

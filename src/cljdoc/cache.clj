@@ -60,6 +60,8 @@
 (defn bundle-docs
   [store version-t]
   (assert (things/version? version-t) "bundle-docs expects a grimoire.things/version argument")
+  (assert (e/succeed? (grim/read-meta store version-t))
+          (format "version meta is missing for version %s" (things/thing->name version-t)))
   (log/info "Bundling docs" {:store store :version-t version-t})
   (->> {:cache-contents (docs-cache-contents store version-t)
         :cache-id       {:group-id    (-> version-t things/thing->group things/thing->name)
