@@ -4,10 +4,13 @@
             [boot.pod :as pod]
             [boot.util :as util]
             [clojure.java.io :as io]
+            [clojure.edn]
             [cljdoc.util]
-            [cljdoc.util.boot]
-            [cljdoc.config :as cfg])
+            [cljdoc.util.boot])
   (:import (java.net URI)))
+
+(defn hardcoded-config []
+  (clojure.edn/read-string (slurp (io/resource "hardcoded-projects-config.edn"))))
 
 (def sandbox-analysis-deps
   "This is what is being loaded in the pod that is used for analysis.
@@ -70,11 +73,11 @@
           (let [tempd        (b/tmp-dir!)
                 grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                             :directories #{"src"}})
-                platforms    (get-in (cfg/config)
-                                     [:cljdoc/hardcoded (cljdoc.util/artifact-id project) :cljdoc.api/platforms]
+                platforms    (get-in (hardcoded-config)
+                                     [(cljdoc.util/artifact-id project) :cljdoc.api/platforms]
                                      ["clj" "cljs"])
-                namespaces   (get-in (cfg/config)
-                                     [:cljdoc/hardcoded (cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
+                namespaces   (get-in (hardcoded-config)
+                                     [(cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
                 build-cdx      (fn [jar-contents-path platf]
                                  (pod/with-eval-in grimoire-pod
                                    (require 'cljdoc.analysis.impl)

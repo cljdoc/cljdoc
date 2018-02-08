@@ -16,6 +16,7 @@ echo "Jar: $jar_path"
 boot \
     -B \
     --source-paths src \
+    --resource-paths resources \
     --init "(require 'cljdoc.analysis.task)" \
     cljdoc.analysis.task/copy-jar-contents --jar "$jar_path" \
     cljdoc.analysis.task/analyze -p "$project" -v "$version" \
