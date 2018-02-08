@@ -1,0 +1,12 @@
+[Unit]
+Description=cljdoc API server
+After=network.target
+
+[Service]
+User=cljdoc
+Group=cljdoc
+WorkingDirectory=/home/cljdoc
+ExecStart=/home/cljdoc/run-cljdoc-api.sh
+
+[Install]
+WantedBy=multi-user.target

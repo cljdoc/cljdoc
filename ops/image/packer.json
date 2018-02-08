@@ -19,6 +19,21 @@
             "scripts": [
                 "provision.sh"
             ]
+        },
+        {
+            "type": "file",
+            "source": "cljdoc-api.service",
+            "destination": "/etc/systemd/system/cljdoc-api.service"
+        },
+        {
+            "type": "file",
+            "source": "CLJDOC_VERSION",
+            "destination": "/home/cljdoc/CLJDOC_VERSION"
+        },
+        {
+            "type": "file",
+            "source": "../run-cljdoc-api.sh",
+            "destination": "/home/cljdoc/run-cljdoc-api.sh"
         }
     ]
 }
