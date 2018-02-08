@@ -7,16 +7,15 @@ add-apt-repository -y ppa:webupd8team/java
 
 apt update
 apt upgrade -y
-apt install -y git curl
+apt install -y git curl htop tmux
 
 apt autoremove -y
 apt install -y binutils
-echo -e "\n\n\ndpkg --configure -a"
 dpkg --configure -a  # without this there's some weird 'held packages' error when installing JDK
 
-echo -e "\n\n\nAccept Java agreement"
+echo -e "Accepting Java agreement"
 echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
-echo -e "\n\n\nInstall java"
+echo -e "Install java"
 apt install -y oracle-java8-installer
 
 # User setup
