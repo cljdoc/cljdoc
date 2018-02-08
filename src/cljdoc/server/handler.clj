@@ -182,7 +182,7 @@
                          (s3/sync! (select-keys s3-deploy [:access-key :secret-key])
                                    (:bucket s3-deploy)
                                    (s3/dir->file-maps html-dir)
-                                   {:report-fn #(log/info %1 %2)})
+                                   {:report-fn #(log/info %)})
 
                          (log/infof "Done with build %s" build-id))
 
