@@ -20,6 +20,11 @@ rm "$jdk_rpm"
 
 useradd "$username"
 
+# Fix permissions on files uploaded as part of provisioning
+chown "$username:$username" \
+      "/home/$username/CLJDOC_VERSION" \
+      "/home/$username/run-cljdoc-api.sh"
+
 # SSH --------------------------------------------------------------------------
 mkdir /home/$username/.ssh
 curl -s "https://github.com/martinklepsch.keys" >> /home/$username/.ssh/authorized_keys
@@ -38,10 +43,12 @@ chown -R $username:$username /home/$username/.ssh
 # sed -i '/PasswordAuthentication yes/c\PasswordAuthentication no' /etc/ssh/sshd_config
 # cat /etc/ssh/sshd_config
 
-# Boot installation
+# Boot installation -------------------------------------------------------------
 
 bootpath=/usr/local/bin/boot
 curl -sL "https://github.com/boot-clj/boot-bin/releases/download/2.7.2/boot.sh" -o "$bootpath"
 chmod +x "$bootpath"
+
+# Cleanup -----------------------------------------------------------------------
 
 dnf clean all
