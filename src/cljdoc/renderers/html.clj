@@ -275,7 +275,7 @@
   cljdoc.cache/ICacheRenderer
   (render [_ cache-bundle {:keys [dir] :as out-cfg}]
     (spec/assert :cljdoc.spec/cache-bundle cache-bundle)
-    (assert (and dir (.isDirectory dir) (nil? (:file out-cfg)) "HTMLRenderer expects output directory"))
+    (assert (and dir (.isDirectory dir)) (format "HTMLRenderer expects output directory, was %s" dir))
     (write-docs* cache-bundle dir)))
 
 (comment
