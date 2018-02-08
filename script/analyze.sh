@@ -20,4 +20,4 @@ boot \
     cljdoc.analysis.task/copy-jar-contents --jar "$jar_path" \
     cljdoc.analysis.task/analyze -p "$project" -v "$version" \
     sift --include "^cljdoc-edn" \
-    target
+    target -d /tmp/cljdoc-target/
