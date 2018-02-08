@@ -1,11 +1,37 @@
 #!/usr/bin/env bash
 
-project="$1"
-version="$2"
-jar_path="$3"
+cmd="$1"
 
-curl -u cljdoc:xxx \
-     -d project="$project" \
-     -d version="$version" \
-     -d jarpath="$jar_path" \
-     -i api.cljdoc.xyz:8000/request-build
+# Probably should be using getopts here or something ¯\_(ツ)_/¯
+
+if [[ "$cmd" == "build" ]]; then
+    project="$2"
+    version="$3"
+
+    if [[ "$project" == *\/* ]]; then
+        group=$(echo $project | sed 's/\/.*//')
+        artifact=$(echo $project | sed 's/^[^/]*\///')
+    else
+        group="$project"
+        artifact="$project"
+    fi
+
+    jar_path="https://repo.clojars.org/$group/$artifact/$version/$artifact-$version.jar"
+
+    echo -e "Group: $group\nArtifact: $artifact\nVersion: $version\nJar: $jar_path\n"
+
+    if curl -Ifs "$jar_path" > /dev/null; then
+        curl -u cljdoc:xxx \
+             -d project="$project" \
+             -d version="$version" \
+             -d jarpath="$jar_path" \
+             -i api.cljdoc.xyz:8000/request-build
+    else
+        echo "No jar found on Clojars for given parameters."
+    fi
+
+else
+    echo "Usage:"
+    echo "  cljdoc build bidi 2.1.3"
+    echo "  cljdoc build confetti/s3-deploy 0.1.2"
+fi
