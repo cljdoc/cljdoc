@@ -13,6 +13,8 @@ jar_path="$3"
 echo "Running build for $project v$version"
 echo "Jar: $jar_path"
 
+BOOT_JVM_OPTIONS=-Dclojure.spec.check-asserts=true
+
 boot \
     -B \
     --source-paths src \
