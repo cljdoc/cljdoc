@@ -16,16 +16,11 @@
 
 (defn sanitize-cdx
   [cdx-namespace]
-  ;; :publics contain a field path which is a
-  ;; file, this cannot be serialized accross
-  ;; pod boundaries by default
+  ;; :publics contain a field :path which is a java.io.File,
+  ;; files cannot be serialized across pod boundaries by default
   (assert (:name cdx-namespace))
-  (let [clean-public    #(update % :path (fn [file] (.getPath file)))
-        remove-unneeded #(dissoc % :path)
-        stringify-name  #(update % :name name)]
-    (-> cdx-namespace
-        (update :name name)
-        (update :publics #(map (comp stringify-name remove-unneeded) %)))))
+  (let [remove-path #(dissoc % :path)]
+    (update cdx-namespace :publics #(map remove-path %))))
 
 (defn codox-namespaces [namespaces jar-contents-path platf]
   (let [config (codox-config namespaces jar-contents-path platf)]

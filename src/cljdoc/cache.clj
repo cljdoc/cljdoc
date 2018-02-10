@@ -21,7 +21,6 @@
   The format of the cache is defined in the spec :cljcdoc.spec/cache-bundle"
   (:require [cljdoc.spec]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as spec]
             [clojure.tools.logging :as log]
             [grimoire.api.fs]
             [grimoire.api.fs.read]
@@ -48,6 +47,7 @@
                            namespace (e/result (grim/list-namespaces store platform))
                            def       (e/result (grim/list-defs store namespace))]
                        (assoc (e/result (grim/read-meta store def))
+                              :name (things/thing->name def)
                               :platform (things/thing->name platform)
                               :namespace (things/thing->name namespace)))]
     {:version   (e/result (grim/read-meta store version-t))
@@ -62,12 +62,12 @@
   (assert (things/version? version-t) "bundle-docs expects a grimoire.things/version argument")
   (assert (e/succeed? (grim/read-meta store version-t))
           (format "version meta is missing for version %s" (things/thing->name version-t)))
-  (log/info "Bundling docs" {:store store :version-t version-t})
+  (log/info "Bundling docs" (things/thing->url-path version-t))
   (->> {:cache-contents (docs-cache-contents store version-t)
         :cache-id       {:group-id    (-> version-t things/thing->group things/thing->name)
                          :artifact-id (-> version-t things/thing->artifact things/thing->name)
                          :version     (-> version-t things/thing->name)}}
-       (spec/assert :cljdoc.spec/cache-bundle)))
+       (cljdoc.spec/assert :cljdoc.spec/cache-bundle)))
 
 (defprotocol ICacheRenderer
   "This protocol is intended to allow different implementations of renderers.
@@ -99,11 +99,11 @@
 
   (def x (grimoire.api/write-meta store vt {:test "s"}))
 
-  spec/*compile-asserts*
+  clojure.spec.alpha/*compile-asserts*
 
-  (spec/check-asserts true)
+  (clojure.spec.alpha/check-asserts true)
 
-  (spec/assert string? 1)
+  (cljdoc.spec/assert string? 1)
 
 
   (def cache (bundle-docs store vt))
@@ -115,6 +115,6 @@
       (update :namespaces #(take 2 %))
       pp)
 
-  (spec/check-asserts true)
+  (clojure.spec.alpha/check-asserts true)
 
   )

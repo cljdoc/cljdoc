@@ -6,6 +6,7 @@
             [clojure.tools.logging :as log]
             [cljdoc.grimoire-helpers]
             [cljdoc.git-repo]
+            [cljdoc.spec]
             [clojure.java.io :as io]
             [confetti.s3-deploy :as s3]
             [aleph.http :as http]
@@ -151,6 +152,10 @@
                            grimoire-dir (doto (io/file dir "grimoire") (.mkdir))
                            html-dir     (doto (io/file dir "grimoire-html") (.mkdir))
                            scm-url      (cljdoc.util/scm-url (:pom cljdoc-edn))]
+
+                       (log/info "Verifying cljdoc-edn contents against spec")
+                       (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
+
                        (log/info "Cloning Git repo" scm-url)
                        (when-not (.exists git-dir) ; TODO we should really wipe and start fresh for each build
                          (cljdoc.git-repo/clone scm-url git-dir))

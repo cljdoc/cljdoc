@@ -1,10 +1,10 @@
 (ns cljdoc.grimoire-helpers
   (:refer-clojure :exclude [import])
-  (:require [clojure.spec.alpha :as spec]
-            [clojure.tools.logging :as log]
+  (:require [clojure.tools.logging :as log]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.config :as cfg]
+            [cljdoc.spec]
             [grimoire.api]
             [grimoire.api.fs]
             [grimoire.api.fs.write]
@@ -16,29 +16,39 @@
 
 (def v "0.1.0")
 
+(defn grimoire-write
+  "Like `grimore.api/write-meta` but assert that no :name field is
+  written as part of the metadata since that would duplicate
+  information already encoded in the thing-hierarchy."
+  [store thing meta]
+  (assert (nil? (:name meta)) (format "Name not nil: %s" meta))
+  (cond (grimoire.things/def? thing)
+        (cljdoc.spec/assert :cljdoc.grimoire/def meta)
+        (grimoire.things/namespace? thing)
+        (cljdoc.spec/assert :cljdoc.grimoire/namespace meta))
+  (grimoire.api/write-meta store thing meta))
+
 (defn write-docs-for-def
   "General case of writing documentation for a Var instance with
   metadata. Compute a \"docs\" structure from the var's metadata and then punt
   off to write-meta which does the heavy lifting."
-  [store def-thing codox-meta]
+  [store def-thing codox-public]
   (assert (grimoire.things/def? def-thing))
-  (let [docs (-> codox-meta
-                 (update :name name))]
-    (when-not (:name docs)
-      (log/error "Var name missing:" docs))
-    (assert (:name docs) "Var name was nil!")
-    (assert (nil? (:namespace docs)) "Namespace should not get written to def-meta")
-    (assert (nil? (:platform docs)) "Platform should not get written to def-meta")
-    (spec/assert :cljdoc.spec/def-minimal docs)
-    (grimoire.api/write-meta store def-thing docs)))
+  (cljdoc.spec/assert :cljdoc.codox/public codox-public)
+  (assert (= (-> codox-public :name name) (grimoire.things/thing->name def-thing))
+          (format "meta <> grimoire thing missmatch: %s <> %s" (:name codox-public)
+                  (grimoire.things/thing->name def-thing)))
+  (assert (nil? (:namespace codox-public)) "Namespace should not get written to def-meta")
+  (assert (nil? (:platform codox-public)) "Platform should not get written to def-meta")
+  (grimoire-write store def-thing (dissoc codox-public :name)))
 
 (defn write-docs-for-ns
   "Function of a configuration and a Namespace which writes namespace metadata
   to the :datastore in config."
   [store ns-thing ns-meta]
   (assert (grimoire.things/namespace? ns-thing))
-  (grimoire.api/write-meta store ns-thing ns-meta)
-  (log/info "Finished namespace" (:name ns-meta)))
+  (cljdoc.spec/assert :cljdoc.grimoire/namespace ns-meta)
+  (grimoire-write store ns-thing ns-meta))
 
 (defn version-thing [project version]
   (-> (grimoire.things/->Group    (cljdoc.util/group-id project))
@@ -58,7 +68,7 @@
     (doseq [ns namespaces
             :let [publics  (:publics ns)
                   ns-thing (grimoire.things/->Ns platform (-> ns :name name))]]
-      (write-docs-for-ns store ns-thing (dissoc ns :publics))
+      (write-docs-for-ns store ns-thing (dissoc ns :publics :name))
       (doseq [public publics]
         (try
           (write-docs-for-def store
@@ -67,7 +77,8 @@
           (catch Throwable e
             (throw (ex-info "Failed to write docs for def"
                             {:codox/public public}
-                            e))))))))
+                            e)))))
+      (log/info "Finished namespace" (:name ns)))))
 
 (defn import-doc
   [{:keys [version store ^Git git-repo]}]

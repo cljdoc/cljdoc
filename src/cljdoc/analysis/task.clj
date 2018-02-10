@@ -6,7 +6,8 @@
             [clojure.java.io :as io]
             [clojure.edn]
             [cljdoc.util]
-            [cljdoc.util.boot])
+            [cljdoc.util.boot]
+            [cljdoc.spec])
   (:import (java.net URI)))
 
 (defn hardcoded-config []
@@ -90,6 +91,7 @@
                 ana-result     {:codox cdx-namespaces
                                 ;; TODO do not parse pom here, defer to trusted env for that
                                 :pom   (cljdoc.util.boot/find-pom-map fs project)}]
+            (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
             (doto (io/file tempd (cljdoc.util/cljdoc-edn project version))
               (io/make-parents)
               ;; TODO implement spec for this + validate

@@ -29,16 +29,16 @@
   (s/merge ::def-minimal
            (s/keys :req-un [::platform ::namespace])))
 
+;; Entity maps -------------------------------------------------------
+;; These are basically intended to serve the same purpose as
+;; grimoire.things but in a plain data, cross platform fashion
+
 (s/def ::group-id string?)
 (s/def ::artifact-id string?)
 (s/def ::version string?)
 (s/def ::git-tag string?)
 (s/def ::git-sha string?)
 (s/def ::scm-url string?)
-
-;; Entity maps -------------------------------------------------------
-;; These are basically intended to serve the same purpose as
-;; grimoire.things but in a plain data, cross platform fashion
 
 (s/def ::group-entity
   (s/keys :req-un [::group-id]))
@@ -91,6 +91,65 @@
   ;; mentioning that this data is related to the cache may
   ;; help them to understand the API faster
   (s/keys :req-un [::cache-id ::cache-contents]))
+
+
+;; codox -------------------------------------------------------------
+;; A spec for Codox namespace analysis data
+
+(s/def :cljdoc.codox.public/name symbol? #_(s/or :a string? :b symbol? ))
+(s/def :cljdoc.codox.public/file string?)
+(s/def :cljdoc.codox.public/line int?)
+(s/def :cljdoc.codox.public/arglists coll?)
+(s/def :cljdoc.codox.public/doc (s/nilable string?))
+(s/def :cljdoc.codox.public/type #{:var :fn :macro :protocol :multimethod})
+(s/def :cljdoc.codox.public/members (s/coll-of :cljdoc.codox/public))
+
+(s/def :cljdoc.codox/public
+  (s/keys :req-un [:cljdoc.codox.public/name
+                   :cljdoc.codox.public/type]
+          :opt-un [:cljdoc.codox.public/deprecated
+                   :cljdoc.codox.public/doc
+                   :cljdoc.codox.public/arglists
+                   :cljdoc.codox.public/file
+                   :cljdoc.codox.public/line
+                   :cljdoc.codox.public/members]))
+
+(s/def :cljdoc.codox.namespace/name symbol?)
+(s/def :cljdoc.codox.namespace/publics (s/coll-of :cljdoc.codox/public))
+(s/def :cljdoc.codox.namespace/doc (s/nilable string?))
+
+(s/def :cljdoc.codox/namespace
+  (s/keys :req-un [:cljdoc.codox.namespace/name
+                   :cljdoc.codox.namespace/publics]
+          :opt-un [:cljdoc.codox.namespace/doc]))
+
+
+;; cljdoc.edn ---------------------------------------------------------
+
+(s/def :cljdoc.cljdoc-edn/codox
+  (s/map-of ::platform (s/coll-of :cljdoc.codox/namespace)))
+
+(s/def :cljdoc.cljdoc-edn/pom map?)
+
+(s/def :cljdoc/cljdoc-edn
+  (s/keys :req-un [:cljdoc.cljdoc-edn/codox
+                   :cljdoc.cljdoc-edn/pom]))
+
+
+;; grimoire -----------------------------------------------------------
+
+(s/def :cljdoc.grimoire/def
+  ;; like codox output but without name
+  (s/keys :req-un [:cljdoc.codox.public/type]
+          :opt-un [:cljdoc.codox.public/deprecated
+                   :cljdoc.codox.public/doc
+                   :cljdoc.codox.public/arglists
+                   :cljdoc.codox.public/file
+                   :cljdoc.codox.public/line
+                   :cljdoc.codox.public/members]))
+
+(s/def :cljdoc.grimoire/namespace
+  (s/keys :opt-un [:cljdoc.codox.namespace/doc]))
 
 ;; utilities ----------------------------------------------------------
 
