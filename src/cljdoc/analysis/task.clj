@@ -90,7 +90,9 @@
                                     (zipmap platforms))
                 ana-result     {:codox cdx-namespaces
                                 ;; TODO do not parse pom here, defer to trusted env for that
-                                :pom   (cljdoc.util.boot/find-pom-map fs project)}]
+                                :pom-str (slurp (cljdoc.util.boot/find-pom fs project))
+                                :pom     (-> (cljdoc.util.boot/find-pom fs project)
+                                             (cljdoc.util.boot/parse-pom))}]
             (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
             (doto (io/file tempd (cljdoc.util/cljdoc-edn project version))
               (io/make-parents)
