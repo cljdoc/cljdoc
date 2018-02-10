@@ -7,8 +7,7 @@
             [hiccup2.core :as hiccup]
             [hiccup.page]
             [clojure.tools.logging :as log]
-            [clojure.java.io :as io]
-            [clojure.spec.alpha :as spec]))
+            [clojure.java.io :as io]))
 
 (defn page [opts contents]
   (hiccup/html {:mode :html}
@@ -52,7 +51,7 @@
   ;; Currently we just render any platform, this obviously
   ;; isn't the best we can do
   (let [def-meta (first (sort-by :platform platforms))]
-    (spec/assert :cljdoc.spec/def-full def-meta)
+    (cljdoc.spec/assert :cljdoc.spec/def-full def-meta)
     [:div
      [:h4
       {:name (:name def-meta), :id (:name def-meta)}
@@ -160,7 +159,7 @@
           content)])
 
 (defn namespace-page [{:keys [namespace defs top-bar-component]}]
-  (spec/assert :cljdoc.spec/namespace-entity namespace)
+  (cljdoc.spec/assert :cljdoc.spec/namespace-entity namespace)
   (let [sorted-defs                        (sort-by :name defs)
         [[dominant-platf] :as platf-stats] (platform-stats defs)]
     [:div
@@ -234,7 +233,7 @@
   (let [namespace-emaps (->> (:namespaces cache-contents)
                              (map :name)
                              (map #(merge cache-id {:namespace %}))
-                             (map #(spec/assert :cljdoc.spec/namespace-entity %))
+                             (map #(cljdoc.spec/assert :cljdoc.spec/namespace-entity %))
                              set)
         top-bar-comp (top-bar cache-id (:version cache-contents))
         doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))]
@@ -274,7 +273,7 @@
 (defrecord HTMLRenderer []
   cljdoc.cache/ICacheRenderer
   (render [_ cache-bundle {:keys [dir] :as out-cfg}]
-    (spec/assert :cljdoc.spec/cache-bundle cache-bundle)
+    (cljdoc.spec/assert :cljdoc.spec/cache-bundle cache-bundle)
     (assert (and dir (.isDirectory dir)) (format "HTMLRenderer expects output directory, was %s" dir))
     (write-docs* cache-bundle dir)))
 

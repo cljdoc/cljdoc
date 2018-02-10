@@ -1,4 +1,5 @@
 (ns cljdoc.spec
+  (:refer-clojure :exclude [assert])
   (:require [clojure.spec.alpha :as s]))
 
 ;; Basic list of struff that can be found in grimoire ----------------
@@ -90,6 +91,13 @@
   ;; mentioning that this data is related to the cache may
   ;; help them to understand the API faster
   (s/keys :req-un [::cache-id ::cache-contents]))
+
+;; utilities ----------------------------------------------------------
+
+(defn assert [spec v]
+  (if (s/get-spec spec)
+    (s/assert spec v)
+    (throw (Exception. (format "No spec found for %s" spec)))))
 
 (comment
   (require '[clojure.spec.gen.alpha :as gen])

@@ -2,7 +2,6 @@
   (:require [cljdoc.cache]
             [cljdoc.spec]
             [cljdoc.routes]
-            [clojure.spec.alpha :as spec]
             [clojure.java.io :as io]
             [cognitect.transit :as transit]))
 
@@ -11,7 +10,7 @@
 (defrecord TransitRenderer []
   cljdoc.cache/ICacheRenderer
   (render [_ cache {:keys [dir] :as out-cfg}]
-    (spec/assert :cljdoc.spec/cache-bundle cache)
+    (cljdoc.spec/assert :cljdoc.spec/cache-bundle cache)
     (assert (and dir
                  (.isDirectory dir)
                  (nil? (:file out-cfg))) "TransitRenderer expects dir to render to")

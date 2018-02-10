@@ -1,7 +1,7 @@
 (ns cljdoc.routes
   (:require [bidi.bidi :as bidi]
             [bidi.verbose :refer [branch leaf param]]
-            [clojure.spec.alpha :as spec]))
+            [cljdoc.spec]))
 
 (def html-routes
   "This is the routing scheme for rendering static HTML files"
@@ -37,7 +37,7 @@
   ;; NOTE spec/conform could be used to eliminate key param
   ;; NOTE multiple routing trees could be implemented with only
   ;; a style argument being passed: :html, :grimoire, :spa, :api
-  (spec/assert :cljdoc.spec/grimoire-entity params)
+  (cljdoc.spec/assert :cljdoc.spec/grimoire-entity params)
   (apply bidi/path-for routes k (apply concat params))) ;; *shakes head*
 
 (comment
