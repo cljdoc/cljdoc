@@ -9,10 +9,10 @@ if [[ "$cmd" == "build" ]]; then
     version="$3"
 
     if [[ "$project" == *\/* ]]; then
-        group=$(echo $project | sed 's/\/.*//')
+        group=$(echo $project | sed 's/\/.*//' | tr . /)
         artifact=$(echo $project | sed 's/^[^/]*\///')
     else
-        group="$project"
+        group=$("$project" | tr . /)
         artifact="$project"
     fi
 
