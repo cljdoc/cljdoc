@@ -7,7 +7,7 @@
       (name project)))
 
 (defn artifact-id [project]
-  (name project))
+  (name (symbol project)))
 
 (defn codox-edn [project version]
   ;; TODO maybe delete, currently not used (like other codox stuff)
