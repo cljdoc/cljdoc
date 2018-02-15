@@ -65,20 +65,21 @@
 
 ;; Auth --------------------------------------------------------------
 
-(defn auth [[user password]]
-  (let [m {"cljdoc" "cljdoc"}]
-    (if (get m user)
+(defn mk-auth [known-users]
+  (fn authenticate [[user password]]
+    (if (get known-users user)
       {:user  user
        :roles #{:api-user}}
       {})))
 
-(def cljdoc-admins
+(defn cljdoc-acc-control [users]
   {:realm "accounts"
    :scheme "Basic"
-   :verify auth
+   :verify (mk-auth users)
    :authorization {:methods {:post :api-user}}})
 
 (defn circle-ci-webhook-handler [circle-ci-config]
+  ;; TODO assert config correctness
   (yada/handler
    (yada/resource
     {:methods
@@ -111,10 +112,11 @@
                          (log/warn "Expected path" cljdoc-edn)
                          (assoc (:response ctx) :status 400)))))}}})))
 
-(defn initiate-build-handler [circle-ci-config]
+(defn initiate-build-handler [{:keys [access-control circle-ci-config]}]
+  ;; TODO assert config correctness
   (yada/handler
    (yada/resource
-    {:access-control cljdoc-admins
+    {:access-control access-control
      :methods
      {:post
       ;; TODO don't take jarpath as an argument here but instead derive it
@@ -136,10 +138,11 @@
                                   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)))
                      (assoc (:response ctx) :status (:status ci-resp))))}}})))
 
-(defn full-build-handler [{:keys [dir s3-deploy]}]
+(defn full-build-handler [{:keys [dir s3-deploy access-control]}]
+  ;; TODO assert config correctness
   (yada/handler
    (yada/resource
-    {:access-control cljdoc-admins
+    {:access-control access-control
      :methods
      {:post
       {:parameters {:form {:project String :version String  :build-id String :cljdoc-edn String}}
@@ -205,8 +208,13 @@
 (defn cljdoc-api-routes [{:keys [circle-ci dir s3-deploy] :as deps}]
   ["" [["/ping"            ping-handler]
        ["/hooks/circle-ci" (circle-ci-webhook-handler circle-ci)]
-       ["/request-build"   (initiate-build-handler circle-ci)]
-       ["/full-build"      (full-build-handler (select-keys deps [:dir :s3-deploy]))]
+       ["/request-build"   (initiate-build-handler
+                            {:circle-ci-config circle-ci
+                             :access-control (cljdoc-acc-control {"cljdoc" "cljdoc"})})]
+       ["/full-build"      (full-build-handler
+                            {:dir dir
+                             :s3-deploy s3-deploy
+                             :access-control (cljdoc-acc-control {"cljdoc" "cljdoc"})})]
        ]])
 
 (comment
