@@ -12,7 +12,8 @@ if [[ "$cmd" == "build" ]]; then
         group=$(echo $project | sed 's/\/.*//' | tr . /)
         artifact=$(echo $project | sed 's/^[^/]*\///')
     else
-        group=$("$project" | tr . /)
+        echo "Parse project"
+        group=$(echo "$project" | tr . /)
         artifact="$project"
     fi
 
