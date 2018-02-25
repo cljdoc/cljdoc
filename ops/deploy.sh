@@ -35,4 +35,8 @@ echo -e "\nDeploying runner file..."
 scp "ops/run-cljdoc-api.sh" "cljdoc@$api_ip:"
 ssh "cljdoc@$api_ip" chmod +x run-cljdoc-api.sh
 
+echo -e "\nFiles updated, restarting..."
+
+ssh "root@$api_ip" systemctl restart cljdoc-api
+
 echo -e "\nDone"
