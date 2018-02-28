@@ -30,9 +30,9 @@
    :bucket        (get-in (config) [:secrets :aws :s3-bucket-name])})
 
 (comment
-  (config :default)
+  (config)
 
-  (get-in (config :default)
+  (get-in (config)
           [:cljdoc/hardcoded (cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
 
   (clojure.pprint/pprint
