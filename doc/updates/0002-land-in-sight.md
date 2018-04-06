@@ -24,7 +24,8 @@ Using CircleCI is a great little hack that allows us to ignore all the problems 
 The API call is a simple `curl` invocation with three params (project, version, jar URL). Details of that can be found in `script/cljdoc`. 
 
 ```
-script/cljdoc build bidi 2.1.3
+script/cljdoc build bidi 2.1.3    # => https://cljdoc.xyz/d/bidi/bidi/2.1.3/
+                                  # => https://cljdoc.xyz/d/$group/$project/$version/
 ```
 
 **I'm incredibly excited about this being fully automated and providing the community with a platform for improving documentation tooling on a ecosystem-reaching scale.**
