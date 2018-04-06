@@ -44,7 +44,9 @@
     [:a.link.dim.gray.f6.tr
      {:href (-> version-meta :scm :url)}
      [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
-     [:span.dib (subs (-> version-meta :scm :url) 19)]]]])
+     [:span.dib (if-let [scm-url (-> version-meta :scm :url)]
+                  (subs scm-url 19)
+                  (log/error "SCM Url missing from version-meta" version-meta))]]]])
 
 (defn def-block [platforms]
   (assert (coll? platforms) "def meta is not a map")
