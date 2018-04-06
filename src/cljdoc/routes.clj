@@ -5,7 +5,7 @@
 
 (def html-routes
   "This is the routing scheme for rendering static HTML files"
-  (branch "/" (param :group-id)
+  (branch "/d/" (param :group-id)
           (leaf "/" :group/index)
           (branch "/" (param :artifact-id)
                   (leaf "/" :artifact/index)
