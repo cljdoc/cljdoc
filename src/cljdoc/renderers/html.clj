@@ -60,9 +60,9 @@
       (:name def-meta)
       [:span.f5.gray.ml2 (:type def-meta)]
       (when (:deprecated def-meta) [:span.fw3.f6.light-red.ml2 "deprecated"])]
-     [:div
+     [:div.lh-copy
       (for [argv (sort-by count (:arglists def-meta))]
-        [:pre (str "(" (:name def-meta) " " (clojure.string/join " " argv) ")")])]
+        [:code.db.mb2 (str "(" (:name def-meta) " " (clojure.string/join " " argv) ")")])]
      (when (:doc def-meta)
        (if (.contains (:doc def-meta) "{")
          [:pre.w8 (:doc def-meta)]
