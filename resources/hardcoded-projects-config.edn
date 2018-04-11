@@ -40,4 +40,12 @@
                             ["Glossary" {:file "doc/glossary.adoc"}]
                             ["Reference" {:file "doc/reference.adoc"}]
                             ["Colophon" {:file "doc/colophon.adoc"}]]]}
- }
+
+ "dali" {:cljdoc.api/platforms #{"clj"}
+         :cljdoc.doc/tree [["Readme" {:file "README.md"}]
+                           ["Basic Syntax" {:file "doc/syntax.md"}]
+                           ["Layout" {:file "doc/layout.md"}]
+                           ["Pre-fabricated Elements" {:file "doc/prefab.md"}]
+                           ["How To Do X" {:file "doc/howto.md"}]
+                           ["Limitations" {:file "doc/limitations.md"}]
+                           ["Version History" {:file "doc/history.md"}]]}}
