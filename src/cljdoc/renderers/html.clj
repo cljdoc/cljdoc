@@ -232,9 +232,13 @@
     io/make-parents))
 
 (defn write-docs* [{:keys [cache-contents cache-id]} ^java.io.File out-dir]
-  (let [namespace-emaps (->> (:namespaces cache-contents)
+  (let [has-defs?       (fn [ns-emap]
+                          (seq (filter #(= (:namespace ns-emap) (:namespace %))
+                                       (:defs cache-contents))))
+        namespace-emaps (->> (:namespaces cache-contents)
                              (map :name)
                              (map #(merge cache-id {:namespace %}))
+                             (filter has-defs?)
                              (map #(cljdoc.spec/assert :cljdoc.spec/namespace-entity %))
                              set)
         top-bar-comp (top-bar cache-id (:version cache-contents))
