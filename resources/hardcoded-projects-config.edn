@@ -41,6 +41,8 @@
                             ["Reference" {:file "doc/reference.adoc"}]
                             ["Colophon" {:file "doc/colophon.adoc"}]]]}
 
+ "uruk" {:cljdoc.api/platforms #{"clj"}}
+
  "dali" {:cljdoc.api/platforms #{"clj"}
          :cljdoc.doc/tree [["Readme" {:file "README.md"}]
                            ["Basic Syntax" {:file "doc/syntax.md"}]
