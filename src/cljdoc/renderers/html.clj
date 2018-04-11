@@ -38,7 +38,10 @@
    [:a.dib.v-mid.link.dim.gray.f6.mr3
     {:href (r/path-for :artifact/index cache-id)}
     (:version cache-id)]
-   [:span.dib.v-mid.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "Non official"]
+   [:span.dib.v-mid.mr3.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "Non official"]
+   [:a.black.no-underline.ttu.fw5.f7.tracked.pv1.ph2.dim
+    {:href "https://github.com/martinklepsch/cljdoc/issues"}
+    "Help Develop cljdoc"]
    [:div.tr
     {:style {:flex-grow 1}}
     [:a.link.dim.gray.f6.tr
