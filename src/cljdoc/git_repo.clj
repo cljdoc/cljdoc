@@ -1,6 +1,7 @@
 (ns cljdoc.git-repo
   (:require [cljdoc.util]
             [clojure.java.io :as io]
+            [clojure.tools.logging :as log]
             [clojure.string :as string])
   (:import  (org.eclipse.jgit.lib RepositoryBuilder
                                   ObjectIdRef$PeeledNonTag
@@ -80,17 +81,21 @@
 
 (defn read-repo-meta [^Git repo version-str]
   (let [tag-obj (or (find-tag repo version-str)
-                    (find-tag repo (str "v" version-str)))]
-    (assert tag-obj (format "No tag found for version-str: %s" version-str))
-    {:url     (read-origin repo)
-     :commit  (condp instance? tag-obj
-                ;; Not sure I really understand the difference between these two
-                ;; PeeledTags seem to have their own sha while PeeledNonTags dont
-                ObjectIdRef$PeeledTag    (.. tag-obj getPeeledObjectId getName)
-                ObjectIdRef$PeeledNonTag (.. tag-obj getObjectId getName))
-     :tag     {:name (-> (.. tag-obj getName)
-                         (string/replace #"^refs/tags/" ""))
-               :sha  (.. tag-obj getObjectId getName)}}))
+                    (find-tag repo (str "v" version-str)))
+        origin  (read-origin repo)]
+    #_(assert tag-obj (format "No tag found for version-str: %s" version-str))
+    (when-not tag-obj
+      (log/warnf "Could not find Git tag for version %s in Git repo %s" version-str origin))
+    (merge {:url     (read-origin repo)}
+           (when tag-obj
+             {:commit  (condp instance? tag-obj
+                         ;; Not sure I really understand the difference between these two
+                         ;; PeeledTags seem to have their own sha while PeeledNonTags dont
+                         ObjectIdRef$PeeledTag    (.. tag-obj getPeeledObjectId getName)
+                         ObjectIdRef$PeeledNonTag (.. tag-obj getObjectId getName))
+              :tag     {:name (-> (.. tag-obj getName)
+                                  (string/replace #"^refs/tags/" ""))
+                        :sha  (.. tag-obj getObjectId getName)}}))))
 
 (defn patch-level-info
   ;; Non API documentation should be updated with new Git revisions,
