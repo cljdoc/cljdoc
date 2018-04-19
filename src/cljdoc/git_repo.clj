@@ -71,7 +71,7 @@
        (filter (fn [t]
                  (= (.getName t)
                     (str "refs/tags/" tag-str))))
-       cljdoc.util/assert-first))
+       first))
 
 (defn git-tag-names [repo]
   (->> repo
