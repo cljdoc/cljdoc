@@ -50,4 +50,16 @@
                            ["Pre-fabricated Elements" {:file "doc/prefab.md"}]
                            ["How To Do X" {:file "doc/howto.md"}]
                            ["Limitations" {:file "doc/limitations.md"}]
-                           ["Version History" {:file "doc/history.md"}]]}}
+                           ["Version History" {:file "doc/history.md"}]]}
+
+ "artemis" {:cljdoc.doc/tree [["Readme" {:file "README.md"}]
+                              ["Getting Started" {:file "doc/01_getting_started.md"}]
+                              ["Interacting With A View" {:file "doc/02_interacting_with_a_view.md"}]
+                              ["Querying" {:file "doc/03_querying.md"}]
+                              ["Mutating" {:file "doc/04_mutating.md"}]
+                              ["The Network Chain" {:file "doc/05_the_network_chain.md"}]
+                              ["The Local Store" {:file "doc/06_the_local_store.md"}]
+                              ["Conclusion" {:file "doc/07_conclusion.md"}]
+                              ["Advanced" {:file "doc/08_advanced.md"}]]}
+
+ }
