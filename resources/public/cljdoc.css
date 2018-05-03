@@ -1,7 +1,7 @@
 /** Tachyons style helpers ---------------------------------- **/
 
 .f7 {
-  font-size: 12px
+  font-size: 12px;
 }
 
 /** Asciidoc ------------------------------------------------ **/
@@ -9,35 +9,45 @@
 .asciidoc .listingblock {
   padding: 1rem;
   background-color: rgb(246, 248, 250);
-  border-radius: 3px
+  border-radius: 3px;
 }
 
 .asciidoc .listingblock pre {
-  margin: 0
+  margin: 0;
 }
 
 /** Markdown ------------------------------------------------ **/
 /** Most of this should be implemented via Visitors when rendering Markdown I believe **/
 
 .markdown pre {
-  font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,Courier,monospace;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
+    monospace;
   padding: 1rem;
   background-color: rgb(246, 248, 250);
-  border-radius: 3px
+  border-radius: 3px;
 }
 
 .markdown code {
-  font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,Courier,monospace;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
+    monospace;
   padding: 0.2em 0.4em;
   margin: 0;
   font-size: 85%;
-  background-color: rgba(27,31,35,0.05);
+  background-color: rgba(27, 31, 35, 0.05);
   border-radius: 3px;
 }
 
 .markdown pre code {
-  font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,Courier,monospace;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
+    monospace;
   padding: 0;
   font-size: 100%;
   background-color: transparent;
+}
+
+/** Scroll Indicator ------------------------------------------------ **/
+.def-item.scroll-indicator .link {
+  border-left: 2px solid rgb(53, 126, 221);
+  position: relative;
+  left: -2px;
 }
