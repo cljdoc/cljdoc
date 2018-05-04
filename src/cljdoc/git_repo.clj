@@ -38,8 +38,7 @@
 
 (defn read-origin
   [^Git git-repo]
-  {:post [(.startsWith % "https://")
-          #_(not (.endsWith % ".git"))]}
+  {:post [(.startsWith % "https://")]}
   (let [remotes (->> (.. git-repo remoteList call)
                      (map (fn [remote]
                             [(keyword (.getName remote))
@@ -51,10 +50,12 @@
     ;; {:github "some/thing"}
     ;; This would also make things more extensible for stuff like bitbucket
     ;; although admittedly I don't care about that much at this point
-    (string/replace (:origin remotes) #"ssh://git@" "https://")))
+    (-> (:origin remotes)
+        (string/replace #"^git@github.com:" "https://github.com/")
+        (string/replace #"^ssh://git@" "https://"))))
 
 (defn ->repo [^java.io.File d]
-  {:pre [(.isDirectory d)]}
+  {:pre [(some? d) (.isDirectory d)]}
   (-> (RepositoryBuilder.)
       (.setGitDir (io/file d ".git"))
       (.readEnvironment)
