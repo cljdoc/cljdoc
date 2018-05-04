@@ -48,8 +48,15 @@
 }
 
 /** Scroll Indicator ------------------------------------------------ **/
-.def-item.scroll-indicator .link {
-  border-left: 2px solid rgb(53, 126, 221);
+.def-item.scroll-indicator {
   position: relative;
-  left: -2px;
+}
+
+.def-item.scroll-indicator::before {
+  border-left: 2px solid rgb(53, 126, 221);
+  content: ' ';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -2rem;
 }

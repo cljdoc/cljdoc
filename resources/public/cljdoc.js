@@ -26,7 +26,9 @@ function initSrollIndicator() {
       var defItem = defItems[idx]
       if (isElementVisible(mainScrollView, el)) {
         defItem.classList.add("scroll-indicator")
-        if (isElementVisible(sidebarScrollView, defItem) === false) {
+        if (idx === 0) {
+          sidebarScrollView.scrollTop = 1
+        } else if (isElementVisible(sidebarScrollView, defItem) === false) {
           defItem.scrollIntoView()
         }
       } else {

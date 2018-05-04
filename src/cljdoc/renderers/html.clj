@@ -122,12 +122,12 @@
 
 (defn definitions-list [ns-entity defs {:keys [indicate-platforms-other-than]}]
   [:div.pb4
-   [:ul.list.pl2
+   [:ul.list.pl0
     (for [[def-name platf-defs] (->> defs
                                      (group-by :name)
                                      (sort-by key))]
       [:li.def-item
-       [:a.link.dim.blue.dib.pa1
+       [:a.link.dim.blue.dib.pa1.pl0
         {:href (r/path-for :artifact/def (merge ns-entity {:def def-name}))}
         def-name]
        (when-not (= (set (map :platform platf-defs))
