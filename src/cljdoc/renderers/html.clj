@@ -23,10 +23,17 @@
                  [:title (:title opts)]
                  [:meta {:charset "utf-8"}]
                  [:link {:rel "stylesheet" :href "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"}]
-                 (hiccup.page/include-css "/cljdoc.css")]
+                 (hiccup.page/include-css
+                   "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
+                   "/cljdoc.css")]
                 [:div.sans-serif
                  contents]
-                (hiccup.page/include-js "/cljdoc.js")]))
+                (hiccup.page/include-js
+                  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"
+                  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js"
+                  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js"
+                  "/cljdoc.js")
+                [:script "hljs.initHighlightingOnLoad();"]]))
 
 (defn sidebar-title [title]
   [:h4.ttu.f7.fw5.tracked.gray title])
@@ -58,13 +65,19 @@
                   (subs scm-url 19)
                   (log/error "SCM Url missing from version-meta" version-meta))]]]])
 
+(defn def-code-block
+  [content]
+  [:pre
+   [:code.db.mb2 {:class "language-clojure"}
+    content]])
+
 (defn def-block [platforms]
   (assert (coll? platforms) "def meta is not a map")
   ;; Currently we just render any platform, this obviously
   ;; isn't the best we can do
   (let [def-meta (first (sort-by :platform platforms))]
     (cljdoc.spec/assert :cljdoc.spec/def-full def-meta)
-    [:div
+    [:div.def-block
      [:hr.mv3.b--black-10]
      [:h4.def-block-title
       {:name (:name def-meta), :id (:name def-meta)}
@@ -76,7 +89,7 @@
      ;;   [:code (pr-str def-meta)])
      [:div.lh-copy
       (for [argv (sort-by count (:arglists def-meta))]
-        [:code.db.mb2 (str "(" (:name def-meta) (when (seq argv) " ") (clojure.string/join " " argv) ")")])]
+        (def-code-block (str "(" (:name def-meta) (when (seq argv) " ") (clojure.string/join " " argv) ")")))]
      (when (:doc def-meta)
        [:div.lh-copy.markdown
         (-> (:doc def-meta) markup/markdown-to-html hiccup/raw)])
@@ -86,7 +99,7 @@
           [:div
            [:h5 (:name m)]
            (for [argv (sort-by count (:arglists m))]
-             [:code.db.mb2 (str "(" (:name m) " " (clojure.string/join " " argv) ")")])
+             (def-code-block (str "(" (:name m) " " (clojure.string/join " " argv) ")")))
            (when (:doc m)
              [:p (:doc m)])])])]))
 
