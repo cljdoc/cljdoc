@@ -77,14 +77,15 @@
      ;; TODO show protocol member methods if the given def is a protocol (see :members key)
      [:hr.b--black-10]]))
 
-(defn namespace-list [namespaces]
+(defn namespace-list [{:keys [current]} namespaces]
   [:div
    (sidebar-title "Namespaces")
    [:ul.list.pl2
     (for [ns (sort-by :namespace namespaces)]
       [:li
        [:a.link.dim.blue.dib.pa1
-        {:href (r/path-for :artifact/namespace ns)}
+        {:href (r/path-for :artifact/namespace ns)
+         :class (when (= (:namespace ns) current) "b")}
         (:namespace ns)]])]])
 
 (defn article-list [doc-tree]
@@ -169,7 +170,7 @@
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
           content)])
 
-(defn namespace-page [{:keys [namespace defs top-bar-component]}]
+(defn namespace-page [{:keys [namespace defs top-bar-component doc-tree-component namespace-list-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity namespace)
   (let [sorted-defs                        (sort-by :name defs)
         [[dominant-platf] :as platf-stats] (platform-stats defs)]
@@ -258,6 +259,7 @@
                                                        (doctree/add-slug-path (-> cache-contents :version :doc))
                                                        [])
                     :namespace-list-component (namespace-list
+                                               {}
                                                (cljdoc.cache/namespaces cache-bundle))})
        (page {:title (str (clojars-id cache-id) " " (:version cache-id))})))
 
@@ -272,6 +274,7 @@
     (->> (doc-page {:top-bar-component (top-bar cache-id (:version cache-contents))
                     :doc-tree-component (doc-tree-view cache-id doc-tree doc-slug-path)
                     :namespace-list-component (namespace-list
+                                               {}
                                                (cljdoc.cache/namespaces cache-bundle))
                     :doc-page doc-p})
          (page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
@@ -284,6 +287,12 @@
     (when (empty? defs)
       (log/warnf "Namespace %s contains no defs" (:namespace route-params)))
     (->> (namespace-page {:top-bar-component (top-bar cache-id (:version cache-contents))
+                          :doc-tree-component (doc-tree-view cache-id
+                                                             (doctree/add-slug-path (-> cache-contents :version :doc))
+                                                             [])
+                          :namespace-list-component (namespace-list
+                                                     {:current (:namespace ns-emap)}
+                                                     (cljdoc.cache/namespaces cache-bundle))
                           :namespace ns-emap
                           :defs defs})
          (page {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}))))
