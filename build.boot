@@ -152,20 +152,25 @@
                (codox.main/generate-docs))))
       (-> fs (add-resource tempd) commit!))))
 
+(def grimoire-dir
+  (io/file "data" "grimoire"))
+
 (deftask grimoire
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
-    (let [tempd          (tmp-dir!)
-          grimoire-dir   (io/file tempd "grimoire")
+    (let [offline-mapping (first [nil {'bidi "/Users/martin/code/02-oss/bidi/"}])
+          tempd           (tmp-dir!)
           analysis-result (-> (cljdoc.util/cljdoc-edn project version)
                               io/resource slurp read-string)]
       (util/info "Generating Grimoire store for %s\n" project)
       (cljdoc.grimoire-helpers/import
        {:cljdoc-edn   analysis-result
         :grimoire-dir grimoire-dir
-        :git-repo     (-> (cljdoc.util/git-dir project version)
-                          io/resource io/file gr/->repo)})
+        :git-repo     (or (some-> (get offline-mapping project)
+                                  io/file gr/->repo)
+                          (some-> (cljdoc.util/git-dir project version)
+                                  io/resource io/file gr/->repo))})
       (-> fs (add-resource tempd) commit!))))
 
 (deftask grimoire-html
@@ -173,8 +178,6 @@
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
     (let [tempd             (tmp-dir!)
-          grimoire-dir      (-> (boot-tmpd-containing fs #"^grimoire/")
-                                (io/file "grimoire/"))
           grimoire-html-dir (io/file tempd "grimoire-html")
           grimoire-thing    (-> (grimoire.things/->Group (cljdoc.util/group-id project))
                                 (grimoire.things/->Artifact (cljdoc.util/artifact-id project))
@@ -265,8 +268,9 @@
           (codox :project project :version version))
         #_(open :project project :version version)))
 
-(deftask wipe-s3-bucket []
+(deftask wipe-docs []
   (set-sync-bucket-opts!)
+  (set-env! :resource-paths #{"resources/public"})
   (confetti/sync-bucket :prune true))
 
 (deftask update-site []
