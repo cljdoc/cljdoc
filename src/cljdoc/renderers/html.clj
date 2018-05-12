@@ -137,8 +137,13 @@
               (humanize-supported-platforms))])])]])
 
 (defn sidebar [& contents]
-  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10.sidebar-scroll-view
+  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10
    {:style {:top TOP-BAR-HEIGHT}} ; CSS HACK
+   contents])
+
+(defn sidebar-two [& contents]
+  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10.sidebar-scroll-view
+   {:style {:top TOP-BAR-HEIGHT :left "16rem"}} ; CSS HACK
    contents])
 
 (defn index-page [{:keys [top-bar-component doc-tree-component namespace-list-component]}]
@@ -158,9 +163,9 @@
         [node "All platforms."])
       [node (str "Mostly " (humanize-supported-platforms dominant-platf) " forms. Exceptions indicated.")])))
 
-(defn main-container [& content]
+(defn main-container [{:keys [offset]} & content]
    [:div.absolute.bottom-0.right-0
-    {:style {:left "16rem" :top TOP-BAR-HEIGHT}}
+    {:style {:left offset :top TOP-BAR-HEIGHT}}
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
           content)])
 
@@ -171,14 +176,16 @@
     [:div.ns-page
      top-bar-component
      (sidebar
-      [:div
-       [:a.link.dim.blue.f6 {:href (r/path-for :artifact/version namespace)} "All namespaces"]
-       [:h3 (:namespace namespace)]
-       (platform-support-note platf-stats)]
+      (article-list doc-tree-component)
+      namespace-list-component)
+     (sidebar-two
+      (platform-support-note platf-stats)
       (definitions-list namespace sorted-defs
         {:indicate-platforms-other-than dominant-platf}))
      (main-container
-      [:div.w-60-ns.pv4
+      {:offset "32rem"}
+      [:div.w-80-ns.pv4
+       [:h2 (:namespace namespace)]
        (when-let [ns-doc (:doc namespace)]
          [:p ns-doc])
        (for [[def-name platf-defs] (->> defs
@@ -219,6 +226,7 @@
     (article-list doc-tree-component)
     namespace-list-component)
    (main-container
+    {:offset "16rem"}
     [:div.mw7.center
      ;; TODO dispatch on a type parameter that becomes part of the attrs map
      (or (when-let [md (some-> doc-page :attrs :cljdoc/markdown)]
