@@ -83,9 +83,22 @@
   (render [this cache output-config]
     "Render contents of cache to :file or :dir specified in output-config"))
 
+(defn namespaces
+  "Return entity-maps for all namespaces in the cache-bundle"
+  [{:keys [cache-contents cache-id]}]
+  (let [has-defs? (fn [ns-emap]
+                    (seq (filter #(= (:namespace ns-emap) (:namespace %))
+                                 (:defs cache-contents))))]
+    (->> (:namespaces cache-contents)
+         (map :name)
+         (map #(merge cache-id {:namespace %}))
+         (filter has-defs?)
+         (map #(cljdoc.spec/assert :cljdoc.spec/namespace-entity %))
+         set)))
+
 (comment
   (do
-    (def store (grimoire.api.fs/->Config "target/grimoire" "" ""))
+    (def store (grimoire.api.fs/->Config "data/grimoire" "" ""))
     (def pp clojure.pprint/pprint)
 
     (def gt (things/->Group "bidi"))
@@ -95,7 +108,7 @@
     (def cache (bundle-docs store vt))
     (defn dev-cache [] (bundle-docs store vt)))
 
-  (e/result (grim/list-namespaces store pt))
+  (namespaces cache)
 
   (def x (grimoire.api/write-meta store vt {:test "s"}))
 
