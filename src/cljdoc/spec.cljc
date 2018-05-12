@@ -191,6 +191,4 @@
 
   (s/valid? ::namespace x)
 
-
-
   )

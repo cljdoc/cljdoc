@@ -141,12 +141,12 @@
    {:style {:top TOP-BAR-HEIGHT}} ; CSS HACK
    contents])
 
-(defn index-page [{:keys [top-bar-component doc-tree-component namespaces]}]
+(defn index-page [{:keys [top-bar-component doc-tree-component namespace-list-component]}]
   [:div
    top-bar-component
    (sidebar
     (article-list doc-tree-component)
-    (namespace-list namespaces))])
+    namespace-list-component)])
 
 (defn platform-support-note [[[dominant-platf] :as platf-stats]]
   (let [node :span.f7.ttu.fw5.tracked.gray]
@@ -179,6 +179,8 @@
         {:indicate-platforms-other-than dominant-platf}))
      (main-container
       [:div.w-60-ns.pv4
+       (when-let [ns-doc (:doc namespace)]
+         [:p ns-doc])
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))]
@@ -235,50 +237,75 @@
   (doto (io/file out-dir (subs (r/path-for route-id route-params) 1) "index.html")
     io/make-parents))
 
-(defn write-docs* [{:keys [cache-contents cache-id]} ^java.io.File out-dir]
-  (let [has-defs?       (fn [ns-emap]
-                          (seq (filter #(= (:namespace ns-emap) (:namespace %))
-                                       (:defs cache-contents))))
-        namespace-emaps (->> (:namespaces cache-contents)
-                             (map :name)
-                             (map #(merge cache-id {:namespace %}))
-                             (filter has-defs?)
-                             (map #(cljdoc.spec/assert :cljdoc.spec/namespace-entity %))
-                             set)
-        top-bar-comp (top-bar cache-id (:version cache-contents))
+(defmulti render (fn [page-type route-params cache-bundle] page-type))
+
+(defmethod render :default
+  [page-type _ _]
+  (format "%s not implemented, sorry" page-type))
+
+(defmethod render :artifact/version
+  [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  (->> (index-page {:top-bar-component (top-bar cache-id (:version cache-contents))
+                    :doc-tree-component (doc-tree-view cache-id
+                                                       (doctree/add-slug-path (-> cache-contents :version :doc))
+                                                       [])
+                    :namespace-list-component (namespace-list
+                                               (cljdoc.cache/namespaces cache-bundle))})
+       (page {:title (str (clojars-id cache-id) " " (:version cache-id))})))
+
+(defmethod render :artifact/doc
+  [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  (let [doc-slug-path (:doc-slug-path route-params)
+        doc-tree (doctree/add-slug-path (-> cache-contents :version :doc))
+        doc-p (->> doc-tree
+                   doctree/flatten*
+                   (filter #(= doc-slug-path (:slug-path (:attrs %))))
+                   first)]
+    (->> (doc-page {:top-bar-component (top-bar cache-id (:version cache-contents))
+                    :doc-tree-component (doc-tree-view cache-id doc-tree doc-slug-path)
+                    :namespace-list-component (namespace-list
+                                               (cljdoc.cache/namespaces cache-bundle))
+                    :doc-page doc-p})
+         (page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
+
+(defmethod render :artifact/namespace
+  [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  (assert (:namespace route-params))
+  (let [ns-emap route-params
+        defs (filter #(= (:namespace ns-emap) (:namespace %)) (:defs cache-contents))]
+    (when (empty? defs)
+      (log/warnf "Namespace %s contains no defs" (:namespace route-params)))
+    (->> (namespace-page {:top-bar-component (top-bar cache-id (:version cache-contents))
+                          :namespace ns-emap
+                          :defs defs})
+         (page {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}))))
+
+(defn write-docs* [{:keys [cache-contents cache-id] :as cache-bundle} ^java.io.File out-dir]
+  (let [top-bar-comp (top-bar cache-id (:version cache-contents))
         doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))]
 
     ;; Index page for given version
-    (render-to {:title (str (clojars-id cache-id) " " (:version cache-id))}
-               (index-page {:top-bar-component top-bar-comp
-                            :doc-tree-component (doc-tree-view cache-id doc-tree [])
-                            :namespaces namespace-emaps})
-               (file-for out-dir :artifact/version cache-id))
+    (log/info "Rendering index page for" cache-id)
+    (->> (str (render :artifact/version {} cache-bundle))
+         (spit (file-for out-dir :artifact/version cache-id)))
 
     ;; Documentation Pages / Articles
     (doseq [doc-p (-> doc-tree doctree/flatten*)]
-      (render-to {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}
-                 (doc-page {:top-bar-component top-bar-comp
-                            :doc-tree-component (doc-tree-view cache-id doc-tree (-> doc-p :attrs :slug-path))
-                            :namespace-list-component (namespace-list namespace-emaps)
-                            :doc-page doc-p})
-                 (->> (-> doc-p :attrs :slug-path)
+      (log/info "Rendering Doc Page" (dissoc doc-p :attrs))
+      (->> (str (render :artifact/doc {:doc-slug-path (:slug-path doc-p)} cache-bundle))
+           (spit (->> (-> doc-p :attrs :slug-path)
                       (clojure.string/join "/")
                       (assoc cache-id :doc-page)
-                      (file-for out-dir :artifact/doc))))
+                      (file-for out-dir :artifact/doc)))))
 
     ;; Namespace Pages
-    (doseq [ns-emap namespace-emaps
+    (doseq [ns-emap (cljdoc.cache/namespaces cache-bundle)
             :let [defs (filter #(= (:namespace ns-emap)
                                    (:namespace %))
                                (:defs cache-contents))]]
-      (if-not (seq defs)
-        (log/warn "Skipping namespace" (:namespace ns-emap) "- no defs")
-        (render-to {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}
-                   (namespace-page {:top-bar-component top-bar-comp
-                                    :namespace ns-emap
-                                    :defs defs})
-                   (file-for out-dir :artifact/namespace ns-emap))))))
+      (log/infof "Rendering namespace %s" (:namespace ns-emap))
+      (->> (str (render :artifact/namespace ns-emap cache-bundle))
+           (spit (file-for out-dir :artifact/namespace ns-emap))))))
 
 (defrecord HTMLRenderer []
   cljdoc.cache/ICacheRenderer
@@ -301,4 +328,11 @@
             {}
             ns-list))
 
-  (namespace-hierarchy (map :name namespaces)))
+  (namespace-hierarchy (map :name namespaces))
+
+  (-> (doctree/add-slug-path (-> (:cache-contents cljdoc.cache/cache) :version :doc))
+      first)
+
+  (r/path-for :artifact/doc {:group-id "a" :artifact-id "b" :version "v" :doc-page "asd/as"})
+
+  )

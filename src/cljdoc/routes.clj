@@ -3,18 +3,22 @@
             [bidi.verbose :refer [branch leaf param]]
             [cljdoc.spec]))
 
-(def html-routes
-  "This is the routing scheme for rendering static HTML files"
+(defn html-routes [leaf-constructor]
+  "This is the routing scheme for rendering static HTML files
+  
+  The `leaf-constructor` argument will be passed a keyword (route-id)
+  and may return anyting that implements bidi.bidi/Matched. This separation
+  has been put in place so the routing table remains plain data."
   (branch "/d/" (param :group-id)
-          (leaf "/" :group/index)
+          (leaf "/" (leaf-constructor :group/index))
           (branch "/" (param :artifact-id)
-                  (leaf "/" :artifact/index)
+                  (leaf "/" (leaf-constructor :artifact/index))
                   (branch "/" (param :version)
-                          (leaf "/" :artifact/version)
+                          (leaf "/" (leaf-constructor :artifact/version))
                           (branch "/doc/" (param :doc-page)
-                                  (leaf "/" :artifact/doc))
+                                  (leaf "/" (leaf-constructor :artifact/doc)))
                           (branch "/api/" (param [ #"[\w\.-]+" :namespace ])
-                                  (leaf "" :artifact/namespace)
+                                  (leaf "" (leaf-constructor :artifact/namespace))
                                   (branch "#" (param :def)
                                           (leaf "" :artifact/def)))))))
 
@@ -31,7 +35,7 @@
   ;; TODO implement grimoire URIs
   (branch ""
           transit-cache-routes
-          html-routes))
+          (html-routes identity)))
 
 (defn path-for [k params]
   ;; NOTE spec/conform could be used to eliminate key param
