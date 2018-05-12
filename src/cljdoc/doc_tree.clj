@@ -1,6 +1,6 @@
 (ns cljdoc.doc-tree
   (:require [clojure.java.io :as io]
-            [cljdoc.routes :as routes]))
+            #_[cljdoc.routes :as routes]))
 
 (defn read-file [f]
   (assert (.exists f) (format "File supplied in doctree does not exist %s" f))
@@ -64,7 +64,7 @@
                          first)]
     [["Readme" {:file readme}]]))
 
-(defn uri-mapping [cache-id docs]
+#_(defn uri-mapping [cache-id docs]
   (->> docs
        (map (fn [d]
               [(-> d :attrs :cljdoc.doc/source-file)
