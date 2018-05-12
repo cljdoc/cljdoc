@@ -50,10 +50,13 @@
   (cljdoc.spec/assert :cljdoc.grimoire/namespace ns-meta)
   (grimoire-write store ns-thing ns-meta))
 
-(defn version-thing [project version]
-  (-> (grimoire.things/->Group    (cljdoc.util/group-id project))
-      (grimoire.things/->Artifact (cljdoc.util/artifact-id project))
-      (grimoire.things/->Version  version)))
+(defn version-thing
+  ([project version]
+   (version-thing (cljdoc.util/group-id project) (cljdoc.util/artifact-id project) version))
+  ([group artifact version]
+   (-> (grimoire.things/->Group    group)
+       (grimoire.things/->Artifact artifact)
+       (grimoire.things/->Version  version))))
 
 (defn platform-thing [project version platf]
   (-> (version-thing project version)
