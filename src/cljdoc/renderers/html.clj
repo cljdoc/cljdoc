@@ -62,20 +62,30 @@
      [:h4.def-block-title
       {:name (:name def-meta), :id (:name def-meta)}
       (:name def-meta)
-      [:span.f5.gray.ml2 (:type def-meta)]
+      [:span.f7.ttu.normal.gray.ml2 (:type def-meta)]
       (when (:deprecated def-meta) [:span.fw3.f6.light-red.ml2 "deprecated"])]
+     ;; (when-not (= :var (:type def-meta))
+     ;;   [:code (pr-str def-meta)])
      [:div.lh-copy
       (for [argv (sort-by count (:arglists def-meta))]
         [:code.db.mb2 (str "(" (:name def-meta) " " (clojure.string/join " " argv) ")")])]
      (when (:doc def-meta)
-       (if (.contains (:doc def-meta) "{")
-         [:pre.w8 (:doc def-meta)]
-         [:p.lh-copy.w8 (:doc def-meta)]))
+       [:p.lh-copy.w8
+        (-> (:doc def-meta) markup/markdown-to-html hiccup/raw)])
+     (when (seq (:members def-meta))
+       [:div.lh-copy.pl3.bl.b--black-10
+        (for [m (:members def-meta)]
+          [:div
+           [:h5 (:name m)]
+           (for [argv (sort-by count (:arglists m))]
+             [:code.db.mb2 (str "(" (:name m) " " (clojure.string/join " " argv) ")")])
+           (when (:doc m)
+             [:p (:doc m)])])])
      ;; source-fn really is broken
      ;; [:pre.pa3.bg-black-05.br2.overflow-scroll (:src def-meta)]
      ;; [:pre (with-out-str (clojure.pprint/pprint def-meta))]
      ;; TODO show protocol member methods if the given def is a protocol (see :members key)
-     [:hr.b--black-10]]))
+     [:hr.mv3.b--black-10]]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   [:div
