@@ -62,13 +62,14 @@
      [:h4.def-block-title
       {:name (:name def-meta), :id (:name def-meta)}
       (:name def-meta)
-      [:span.f7.ttu.normal.gray.ml2 (:type def-meta)]
+      (when-not (= :var (:type def-meta))
+        [:span.f7.ttu.normal.gray.ml2 (:type def-meta)])
       (when (:deprecated def-meta) [:span.fw3.f6.light-red.ml2 "deprecated"])]
      ;; (when-not (= :var (:type def-meta))
      ;;   [:code (pr-str def-meta)])
      [:div.lh-copy
       (for [argv (sort-by count (:arglists def-meta))]
-        [:code.db.mb2 (str "(" (:name def-meta) " " (clojure.string/join " " argv) ")")])]
+        [:code.db.mb2 (str "(" (:name def-meta) (when (seq argv) " ") (clojure.string/join " " argv) ")")])]
      (when (:doc def-meta)
        [:p.lh-copy.w8
         (-> (:doc def-meta) markup/markdown-to-html hiccup/raw)])
@@ -165,14 +166,15 @@
     namespace-list-component)])
 
 (defn platform-support-note [[[dominant-platf] :as platf-stats]]
-  (let [node :span.f7.ttu.fw5.tracked.gray]
+  (let [node :span.f7.fw5.gray]
     (if (= 1 (count platf-stats))
       (if (or (= dominant-platf #{"clj"})
               (= dominant-platf #{"cljs"}))
         [node (str (humanize-supported-platforms dominant-platf :long) " only.")]
         #_[node "All forms support " (str (humanize-supported-platforms dominant-platf :long) ".")]
         [node "All platforms."])
-      [node (str "Mostly " (humanize-supported-platforms dominant-platf) " forms. Exceptions indicated.")])))
+      [node (str "Mostly " (humanize-supported-platforms dominant-platf) " forms.")
+       [:br] " Exceptions indicated."])))
 
 (defn main-container [{:keys [offset]} & content]
    [:div.absolute.bottom-0.right-0
