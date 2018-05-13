@@ -1,5 +1,6 @@
 (ns cljdoc.analysis.impl
-  (:require [codox.main]
+  (:require [clojure.tools.logging :as log]
+            [codox.main]
             [cljs.util]))
 
 (defn codox-config [namespaces jar-contents-path platf]
@@ -19,8 +20,17 @@
   ;; :publics contain a field :path which is a java.io.File,
   ;; files cannot be serialized across pod boundaries by default
   (assert (:name cdx-namespace))
-  (let [remove-path #(dissoc % :path)]
-    (update cdx-namespace :publics #(map remove-path %))))
+  (let [remove-path #(dissoc % :path)
+        remove-arglists #(if (and (find % :arglists)
+                                  (nil? (:arglists %)))
+                           ;; Instaparse 1.4.9 and other projects exhibited
+                           ;; this issue. Might be an inconsistency in Codox?
+                           (do (log/warnf "Removing nil :arglists from %s" %)
+                               (dissoc % :arglists))
+                           %)]
+    (-> cdx-namespace
+        (update :publics #(map remove-path %))
+        (update :publics #(map remove-arglists %)))))
 
 (defn codox-namespaces [namespaces jar-contents-path platf]
   (let [config (codox-config namespaces jar-contents-path platf)]
