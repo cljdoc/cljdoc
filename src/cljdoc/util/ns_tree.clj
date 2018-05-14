@@ -1,4 +1,6 @@
 (ns cljdoc.util.ns-tree)
+;; bunch of this is taken from https://github.com/weavejester/codox/blob/da92057b9c904f6e35078cc680c2422db76521b0/codox/src/codox/writer/html.clj#L165-L199https://github.com/weavejester/codox/blob/da92057b9c904f6e35078cc680c2422db76521b0/codox/src/codox/writer/html.clj#L165-L199
+;; TODO proper credit
 
 (defn split-ns [namespace]
   (clojure.string/split (str namespace) #"\."))
