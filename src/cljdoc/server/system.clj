@@ -29,7 +29,7 @@
   ((:close server)))
 
 (defmethod ig/init-key :cljdoc/handler [_ opts]
-  (cljdoc.server.handler/cljdoc-api-routes opts))
+  (cljdoc.server.handler/cljdoc-routes opts))
 
 (comment
   (require '[integrant.repl])

@@ -48,14 +48,14 @@
 ;; cljdoc API client functions ---------------------------------------
 
 (defn run-full-build [params]
-  @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/full-build")
+  @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/full-build")
               {:form-params params
                :content-type "application/x-www-form-urlencoded"
                :basic-auth ["cljdoc" "cljdoc"]})) ;TODO fix
 
 (defn test-webhook [circle-ci-config build-num]
   (let [payload (-> (get-build circle-ci-config build-num) :body bs/to-string json/read-value)]
-    @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/hooks/circle-ci")
+    @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/hooks/circle-ci")
                 {:body (json/write-value-as-string {"payload" payload})
                  :content-type "application/json"})))
 
@@ -200,3 +200,16 @@
     {:methods
      {:get {:produces "text/plain"
             :response "pong"}}})))
+
+;; Routes -------------------------------------------------------------
+
+(defn routes [{:keys [circle-ci dir s3-deploy]}]
+  [["/ping"            ping-handler]
+   ["/hooks/circle-ci" (circle-ci-webhook-handler circle-ci)]
+   ["/request-build"   (initiate-build-handler
+                        {:circle-ci-config circle-ci
+                         :access-control (api-acc-control {"cljdoc" "cljdoc"})})]
+   ["/full-build"      (full-build-handler
+                        {:dir dir
+                         :s3-deploy s3-deploy
+                         :access-control (api-acc-control {"cljdoc" "cljdoc"})})]])

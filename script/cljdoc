@@ -26,7 +26,7 @@ if [[ "$cmd" == "build" ]]; then
              -d project="$project" \
              -d version="$version" \
              -d jarpath="$jar_path" \
-             -i api.cljdoc.xyz:8000/request-build
+             -i api.cljdoc.xyz/api/request-build
     else
         echo "No jar found on Clojars for given parameters."
     fi

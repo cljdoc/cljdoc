@@ -10,19 +10,9 @@
 ;;    (uncaughtException [_ thread ex]
 ;;      (log/error ex "Uncaught exception on" (.getName thread)))))
 
-(defn cljdoc-api-routes [{:keys [circle-ci dir s3-deploy] :as deps}]
-  ["" [["/ping"            api/ping-handler]
-       ["/hooks/circle-ci" (api/circle-ci-webhook-handler circle-ci)]
-       ["/request-build"   (api/initiate-build-handler
-                            {:circle-ci-config circle-ci
-                             :access-control (api/api-acc-control {"cljdoc" "cljdoc"})})]
-       ["/full-build"      (api/full-build-handler
-                            {:dir dir
-                             :s3-deploy s3-deploy
-                             :access-control (api/api-acc-control {"cljdoc" "cljdoc"})})]
-
-       (cljdoc.routes/html-routes (partial dp/doc-page (io/file dir "grimoire")))
-
+(defn cljdoc-routes [{:keys [circle-ci dir s3-deploy] :as deps}]
+  ["" [["/api" (api/routes deps)]
+       ["/d/" [(cljdoc.routes/html-routes (partial dp/doc-page (io/file dir "grimoire")))]]
        ["" (yada.resources.classpath-resource/new-classpath-resource "public")]]])
 
 (comment
