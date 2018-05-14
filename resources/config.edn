@@ -3,6 +3,6 @@
                     :live #include "secrets.edn"
                     :local {}}
  :cljdoc/server {:port 8000,
-                 :dir #profile {:default "tmp"
-                                :prod "/tmp/cljdoc/"}}
+                 :dir #profile {:default "data"
+                                :prod "/var/cljdoc/"}}
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}
