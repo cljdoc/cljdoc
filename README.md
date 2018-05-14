@@ -4,10 +4,15 @@
 
 An effort to create a central documentation hub for the Clojure & ClojureScript ecosystem.
 
-- An update (read this first): [Hello everyone :wave:](https://github.com/martinklepsch/cljdoc/blob/master/doc/updates/0001-hello-everyone.md)
-- The old README can be found under [`doc/OLD_NOTES_MARTIN.md`](doc/OLD_NOTES_MARTIN.md)
-
 > :wave: Need help getting started? Say hi on [Telegram](https://telegram.me/martinklepsch), [Twitter](https://twitter.com/martinklepsch) or [Clojurians Slack](http://clojurians.net/) (@martinklepsch).
+
+#### Goals
+
+- Provide an easy way to host library documentation for Clojure/Script library authors
+- Deal with all the boring stuff: hosting, updating, keeping old versions around
+- Build an ecosystem-encompassing database (+ API) of artifacts, namespaces and their contents.
+- Support API documentation, articles and examples.
+- Encourage the writing of more and better documentation.
 
 ## Rationale
 
