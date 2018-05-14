@@ -1,6 +1,7 @@
 (ns cljdoc.server.handler
   (:require [cljdoc.server.api :as api]
             [cljdoc.server.doc-pages :as dp]
+            [clojure.java.io :as io]
             [yada.resources.classpath-resource]))
 
 ;; TODO set this up for development
@@ -20,7 +21,7 @@
                              :s3-deploy s3-deploy
                              :access-control (api/api-acc-control {"cljdoc" "cljdoc"})})]
 
-       (cljdoc.routes/html-routes dp/doc-page)
+       (cljdoc.routes/html-routes (partial dp/doc-page (io/file dir "grimoire")))
 
        ["" (yada.resources.classpath-resource/new-classpath-resource "public")]]])
 

@@ -17,18 +17,18 @@
 
 (defn grimoire-loader
   "An interceptor to load relevant data for the request from our Grimoire store"
-  [ctx]
+  [grimoire-dir ctx]
   (log/info "Loading cache bundle for" (:route-params ctx))
   (assoc ctx
          :cache-bundle
          (cljdoc.cache/bundle-docs
-          (cljdoc.grimoire-helpers/grimoire-store (io/file "data/grimoire/"))
+          (cljdoc.grimoire-helpers/grimoire-store grimoire-dir)
           (cljdoc.grimoire-helpers/version-thing
            (-> ctx :route-params :group-id)
            (-> ctx :route-params :artifact-id)
            (-> ctx :route-params :version)))))
 
-(defrecord DocPage [page-type]
+(defrecord DocPage [grimoire-dir page-type]
   yada.resource/ResourceCoercion
   (as-resource [_]
     (yada/resource
@@ -38,7 +38,7 @@
       :produces "text/html"
       :path-info? (if (= :artifact/doc page-type) true false)
       :interceptor-chain (cond->> yada/default-interceptor-chain
-                           (not (#{:group/index :artifact/index} page-type)) (cons grimoire-loader)
+                           (not (#{:group/index :artifact/index} page-type)) (cons (partial grimoire-loader grimoire-dir))
                            (= :artifact/doc page-type)                       (cons doc-slug-parser))
       :methods {:get (fn page-response [{:keys [route-params cache-bundle] :as ctx}]
                        (str (or (html/render page-type route-params cache-bundle)
@@ -59,8 +59,8 @@
       "")))
 
 
-(defn doc-page [page-type]
-  (->DocPage page-type)) 
+(defn doc-page [grimoire-dir page-type]
+  (->DocPage grimoire-dir page-type))
 
 #_(defn doc-page [page-type]
   (yada/resource
