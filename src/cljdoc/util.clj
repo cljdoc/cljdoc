@@ -55,3 +55,18 @@
 (defn version-tag? [pom-version tag]
   (or (= pom-version tag)
       (= (str "v" pom-version) tag)))
+
+(defn infer-platforms-from-src-dir
+  "Given a directory `src-dir` inspect all files and infer which
+  platforms the source files likely target."
+  [^java.io.File src-dir]
+  (let [file-types (->> (file-seq src-dir)
+                        (keep (fn [f]
+                                (cond
+                                  (.endsWith (.getPath f) ".clj")  :clj
+                                  (.endsWith (.getPath f) ".cljs") :cljs
+                                  (.endsWith (.getPath f) ".cljc") :cljc))))]
+    (case (set file-types)
+      #{:clj}  ["clj"]
+      #{:cljs} ["cljs"]
+      ["clj" "cljs"])))

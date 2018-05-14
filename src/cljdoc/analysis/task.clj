@@ -76,7 +76,7 @@
                                             :directories #{"src"}})
                 platforms    (get-in (hardcoded-config)
                                      [(cljdoc.util/artifact-id project) :cljdoc.api/platforms]
-                                     ["clj" "cljs"])
+                                     (cljdoc.util/infer-platforms-from-src-dir (jar-contents-dir fs)))
                 namespaces   (get-in (hardcoded-config)
                                      [(cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
                 build-cdx      (fn [jar-contents-path platf]
