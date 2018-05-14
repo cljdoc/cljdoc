@@ -4,3 +4,4 @@ docker/docker-target
 log/
 ops/.terraform
 ops/terraform.tfstate*
+ops/image/image-id

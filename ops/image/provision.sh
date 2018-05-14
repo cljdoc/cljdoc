@@ -3,6 +3,7 @@
 set -euo pipefail
 
 username="cljdoc"
+prod_data_dir="/var/cljdoc"
 add-apt-repository -y ppa:webupd8team/java
 
 apt update
@@ -53,3 +54,6 @@ curl -sL "https://github.com/boot-clj/boot-bin/releases/download/2.7.2/boot.sh" 
 chmod +x "$bootpath"
 
 # su -c 'BOOT_VERSION=2.7.2 boot repl' - "$username"
+
+mkdir -p $prod_data_dir
+chown -R $username:$username $prod_data_dir
