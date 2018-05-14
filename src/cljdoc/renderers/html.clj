@@ -2,6 +2,7 @@
   (:require [cljdoc.routes :as r]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.renderers.markup :as markup]
+            [cljdoc.util.ns-tree :as ns-tree]
             [cljdoc.cache]
             [cljdoc.spec]
             [hiccup2.core :as hiccup]
@@ -89,15 +90,34 @@
      [:hr.mv3.b--black-10]]))
 
 (defn namespace-list [{:keys [current]} namespaces]
-  [:div
-   (sidebar-title "Namespaces")
-   [:ul.list.pl2
-    (for [ns (sort-by :namespace namespaces)]
-      [:li
-       [:a.link.dim.blue.dib.pa1
-        {:href (r/path-for :artifact/namespace ns)
-         :class (when (= (:namespace ns) current) "b")}
-        (:namespace ns)]])]])
+  (let [namespaces (ns-tree/index-by :namespace namespaces)]
+    [:div
+     (sidebar-title "Namespaces")
+     [:ul.list.pl2
+      (clojure.pprint/pprint (ns-tree/namespace-hierarchy (keys namespaces)))
+      (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))]
+        (if-let [ns (get namespaces ns)]
+          [:li
+           [:a.link.dim.blue.dib.pa1
+            {:href (r/path-for :artifact/namespace ns)
+             :class (str (when (= (:namespace ns) current) "b")
+                         " "
+                         (case level
+                           1 ""
+                           2 "pl3"
+                           3 "pl4"
+                           4 "pl5"))}
+
+            (->> (ns-tree/split-ns (:namespace ns))
+                 (drop (dec level)))]]
+          [:li.blue.pa1 ns]))
+
+      #_(for [ns (sort-by :namespace namespaces)]
+          [:li
+           [:a.link.dim.blue.dib.pa1
+            {:href (r/path-for :artifact/namespace ns)
+             :class (when (= (:namespace ns) current) "b")}
+            (:namespace ns)]])]]))
 
 (defn article-list [doc-tree]
   [:div
