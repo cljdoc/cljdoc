@@ -72,7 +72,7 @@
       (for [argv (sort-by count (:arglists def-meta))]
         [:code.db.mb2 (str "(" (:name def-meta) (when (seq argv) " ") (clojure.string/join " " argv) ")")])]
      (when (:doc def-meta)
-       [:p.lh-copy.w8
+       [:div.lh-copy.markdown
         (-> (:doc def-meta) markup/markdown-to-html hiccup/raw)])
      (when (seq (:members def-meta))
        [:div.lh-copy.pl3.bl.b--black-10
@@ -202,8 +202,8 @@
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
           content)])
 
-(defn namespace-page [{:keys [namespace defs top-bar-component doc-tree-component namespace-list-component]}]
-  (cljdoc.spec/assert :cljdoc.spec/namespace-entity namespace)
+(defn namespace-page [{:keys [ns-entity ns-data defs top-bar-component doc-tree-component namespace-list-component]}]
+  (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (let [sorted-defs                        (sort-by :name defs)
         [[dominant-platf] :as platf-stats] (platform-stats defs)]
     [:div.ns-page
@@ -213,14 +213,14 @@
       namespace-list-component)
      (sidebar-two
       (platform-support-note platf-stats)
-      (definitions-list namespace sorted-defs
+      (definitions-list ns-entity sorted-defs
         {:indicate-platforms-other-than dominant-platf}))
      (main-container
       {:offset "32rem"}
       [:div.w-80-ns.pv4
-       [:h2 (:namespace namespace)]
-       (when-let [ns-doc (:doc namespace)]
-         [:p ns-doc])
+       [:h2 (:namespace ns-entity)]
+       (when-let [ns-doc (:doc ns-data)]
+         [:p.lh-copy ns-doc])
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))]
@@ -315,7 +315,9 @@
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (assert (:namespace route-params))
   (let [ns-emap route-params
-        defs (filter #(= (:namespace ns-emap) (:namespace %)) (:defs cache-contents))]
+        defs (filter #(= (:namespace ns-emap) (:namespace %)) (:defs cache-contents))
+        ns-data (first (filter #(= (:namespace ns-emap) (:name %))
+                               (:namespaces cache-contents)))]
     (when (empty? defs)
       (log/warnf "Namespace %s contains no defs" (:namespace route-params)))
     (->> (namespace-page {:top-bar-component (top-bar cache-id (:version cache-contents))
@@ -325,7 +327,8 @@
                           :namespace-list-component (namespace-list
                                                      {:current (:namespace ns-emap)}
                                                      (cljdoc.cache/namespaces cache-bundle))
-                          :namespace ns-emap
+                          :ns-entity ns-emap
+                          :ns-data ns-data
                           :defs defs})
          (page {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
