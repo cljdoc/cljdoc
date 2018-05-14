@@ -9,7 +9,7 @@
   The `leaf-constructor` argument will be passed a keyword (route-id)
   and may return anyting that implements bidi.bidi/Matched. This separation
   has been put in place so the routing table remains plain data."
-  (branch "" (param :group-id)
+  (branch "/d/" (param :group-id)
           (leaf "/" (leaf-constructor :group/index))
           (branch "/" (param :artifact-id)
                   (leaf "/" (leaf-constructor :artifact/index))

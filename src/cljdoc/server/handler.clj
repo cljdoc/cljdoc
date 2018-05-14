@@ -12,7 +12,7 @@
 
 (defn cljdoc-routes [{:keys [circle-ci dir s3-deploy] :as deps}]
   ["" [["/api" (api/routes deps)]
-       ["/d/" [(cljdoc.routes/html-routes (partial dp/doc-page (io/file dir "grimoire")))]]
+       (cljdoc.routes/html-routes (partial dp/doc-page (io/file dir "grimoire")))
        ["" (yada.resources.classpath-resource/new-classpath-resource "public")]]])
 
 (comment
