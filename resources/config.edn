@@ -2,7 +2,8 @@
 {:secrets #profile {:prod #include #join [ #env HOME "/secrets.edn"]
                     :live #include "secrets.edn"
                     :local {}}
- :cljdoc/server {:port 8000,
+ :cljdoc/server {:port {:default 8000
+                        :prod 80},
                  :dir #profile {:default "data"
                                 :prod "/var/cljdoc/"}}
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}
