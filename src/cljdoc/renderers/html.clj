@@ -94,7 +94,6 @@
     [:div
      (sidebar-title "Namespaces")
      [:ul.list.pl2
-      (clojure.pprint/pprint (ns-tree/namespace-hierarchy (keys namespaces)))
       (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))]
         (if-let [ns (get namespaces ns)]
           [:li
