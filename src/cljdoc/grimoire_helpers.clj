@@ -50,17 +50,25 @@
   (cljdoc.spec/assert :cljdoc.grimoire/namespace ns-meta)
   (grimoire-write store ns-thing ns-meta))
 
+(defn thing
+  ([group]
+   (grimoire.things/->Group group))
+  ([group artifact]
+   (grimoire.things/->Artifact (thing group) artifact))
+  ([group artifact version]
+   (grimoire.things/->Version (thing group artifact) version))
+  ([group artifact version platf]
+   (grimoire.things/->Platform (thing group artifact)
+                               (grimoire.util/normalize-platform platf))))
+
 (defn version-thing
   ([project version]
-   (version-thing (cljdoc.util/group-id project) (cljdoc.util/artifact-id project) version))
+   (thing (cljdoc.util/group-id project) (cljdoc.util/artifact-id project) version))
   ([group artifact version]
-   (-> (grimoire.things/->Group    group)
-       (grimoire.things/->Artifact artifact)
-       (grimoire.things/->Version  version))))
+   (thing group artifact version)))
 
 (defn platform-thing [project version platf]
-  (-> (version-thing project version)
-      (grimoire.things/->Platform (grimoire.util/normalize-platform platf))))
+  (thing (cljdoc.util/group-id project) (cljdoc.util/artifact-id project) version platf))
 
 (defn grimoire-store [^java.io.File dir]
   (grimoire.api.fs/->Config (.getPath dir) "" ""))
