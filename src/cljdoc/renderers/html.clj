@@ -420,7 +420,16 @@
         [:h1 "Thanks for using cljdoc!"]
         [:p "Your documentation build is " [:a.link.blue.no-underline {:href circle-job-url} "in progress"]]
         [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href github-url} "reach out."]]]
-       (page {:title (str "Build submitted")})))
+       (page {:title "Build submitted"})))
+
+(defn local-build-submitted-page []
+  (->> [:div.pa4-ns.pa2
+        [:h1 "The build has been submitted to the local analysis service"]
+        [:p "Check the logs to see how it's progressing. Errors will be logged there too."]
+        [:div.markdown
+         [:pre [:code "tail -f log/cljdoc.log"]]]
+        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href github-url} "reach out."]]]
+       (page {:title "Build submitted"})))
 
 (comment
 
