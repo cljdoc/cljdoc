@@ -53,20 +53,6 @@
       (copy-jar-contents-impl (URI. jar) (io/file d "jar-contents/"))
       (-> fileset (b/add-resource d) b/commit!))))
 
-(defn jar-contents-dir [fileset]
-  (some-> (->> (b/output-files fileset)
-               (b/by-re [#"^jar-contents/"])
-               first
-               :dir)
-          (io/file "jar-contents")))
-
-(defn digest-dir [dir]
-  (->> (file-seq dir)
-       (filter #(.isFile %))
-       (map #(boot.from.digest/digest "md5" %))
-       (apply str)
-       (boot.from.digest/digest "md5")))
-
 (defn system-temp-dir [prefix]
   (.toFile (Files/createTempDirectory
             (clojure.string/replace prefix #"/" "-")
@@ -116,7 +102,7 @@
         (spit (pr-str ana-result))))))
 
 (b/deftask analyze
-  [p project PROJECT sym "Project to build documentation for"
+  [p project PROJECT str "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
    j jarpath JARPATH str "Absolute path to the jar (optional, local/remote)"]
   (b/with-pre-wrap fs
