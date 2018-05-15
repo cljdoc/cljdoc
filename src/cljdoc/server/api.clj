@@ -3,7 +3,7 @@
             [cljdoc.util]
             [cljdoc.cache]
             [cljdoc.routes]
-            [cljdoc.renderers.html]
+            [cljdoc.renderers.html :as html]
             [clojure.tools.logging :as log]
             [cljdoc.grimoire-helpers]
             [cljdoc.git-repo]
@@ -108,6 +108,36 @@
                          (log/warn "Expected path" cljdoc-edn)
                          (assoc (:response ctx) :status 400)))))}}})))
 
+(defn initiate-build-handler-simple [{:keys [circle-ci-config]}]
+  (yada/handler
+   (yada/resource
+    {:methods
+     {:post
+      ;; TODO don't take jarpath as an argument here but instead derive it
+      ;; from project and version information. If we take jarpath as an argument
+      ;; we lose the immutability guarantees that we get when only talking to Clojars
+      {:parameters {:form {:project String :version String}}
+       :consumes #{"application/x-www-form-urlencoded"}
+       :produces "text/html"
+       :response (fn initiate-build-handler-simple-response [ctx]
+                   (let [project   (get-in ctx [:parameters :form :project])
+                         version   (get-in ctx [:parameters :form :version])
+                         jarpath   (cljdoc.util/remote-jar-file [project version])
+                         build-id  (str (java.util.UUID/randomUUID))
+                         ci-resp   (trigger-analysis-build
+                                    circle-ci-config
+                                    {:project project
+                                     :version version
+                                     :jarpath jarpath
+                                     :build-id build-id})
+                         build-num (-> ci-resp :body bs/to-string json/read-value (get "build_num"))
+                         job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)]
+                     (when (= 201 (:status ci-resp))
+                       (assert build-num "build number missing from CircleCI response")
+                       (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}"
+                                  build-id job-url))
+                     (str (html/build-submitted-page job-url))))}}})))
+
 (defn initiate-build-handler [{:keys [access-control circle-ci-config]}]
   ;; TODO assert config correctness
   (yada/handler
@@ -209,6 +239,8 @@
    ["/request-build"   (initiate-build-handler
                         {:circle-ci-config circle-ci
                          :access-control (api-acc-control {"cljdoc" "cljdoc"})})]
+   ["/request-build2"  (initiate-build-handler-simple
+                        {:circle-ci-config circle-ci})]
    ["/full-build"      (full-build-handler
                         {:dir dir
                          :s3-deploy s3-deploy
