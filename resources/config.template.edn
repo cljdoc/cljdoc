@@ -1,4 +1,5 @@
 {:secrets #include "secrets.edn"
- :circle-ci {:builder-project #env CIRCLE_BUILDER_PROJECT}
- :cljdoc/server {:port 8000, :dir "./tmp"}
+ :cljdoc/server {:port 8000,
+                 :dir "./tmp"
+                 :analysis-service :local}
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}

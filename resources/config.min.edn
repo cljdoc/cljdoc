@@ -1,2 +1,3 @@
-{:cljdoc/hardcoded #include "hardcoded-projects-config.edn"}
+{:cljdoc/server {:analysis-service :local}
+ :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}
 
