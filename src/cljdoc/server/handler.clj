@@ -10,7 +10,7 @@
 ;;    (uncaughtException [_ thread ex]
 ;;      (log/error ex "Uncaught exception on" (.getName thread)))))
 
-(defn cljdoc-routes [{:keys [circle-ci dir s3-deploy] :as deps}]
+(defn cljdoc-routes [{:keys [dir] :as deps}]
   ["" [["/api" (api/routes deps)]
        (cljdoc.routes/html-routes (partial dp/doc-page (io/file dir "grimoire")))
        ["" (yada.resources.classpath-resource/new-classpath-resource "public")]]])

@@ -1,5 +1,6 @@
 (ns cljdoc.server.system
   (:require [cljdoc.server.handler]
+            [cljdoc.analysis.service :as analysis-service]
             [cljdoc.config :as cfg]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
@@ -17,8 +18,9 @@
                     :handler (ig/ref :cljdoc/handler)}
    :cljdoc/handler (-> {}
                        (assoc :dir (cfg/get-in env-config [:cljdoc/server :dir]))
-                       (assoc :circle-ci (cfg/circle-ci))
-                       (assoc :s3-deploy (cfg/s3-deploy)))})
+                       (assoc :analysis-service (ig/ref :cljdoc/analysis-service))
+                       (assoc :s3-deploy (cfg/s3-deploy)))
+   :cljdoc/analysis-service [:circle-ci (cfg/circle-ci)]})
 
 (defmethod ig/init-key :cljdoc/server [_ {:keys [handler port] :as opts}]
   (unilog/start-logging! logging-config)
@@ -30,6 +32,10 @@
 
 (defmethod ig/init-key :cljdoc/handler [_ opts]
   (cljdoc.server.handler/cljdoc-routes opts))
+
+(defmethod ig/init-key :cljdoc/analysis-service [_ [type opts]]
+  (case type
+    :circle-ci (analysis-service/circle-ci (:api-token opts) (:builder-project opts))))
 
 (comment
   (require '[integrant.repl])

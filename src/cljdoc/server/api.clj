@@ -1,5 +1,6 @@
 (ns cljdoc.server.api
   (:require [cljdoc.server.yada-jsonista] ; extends yada multimethods
+            [cljdoc.analysis.service :as analysis-service]
             [cljdoc.util]
             [cljdoc.cache]
             [cljdoc.routes]
@@ -26,15 +27,16 @@
              {:accept "application/json"
               :basic-auth [(:api-token circle-ci-config) ""]}))
 
-(defn get-artifacts [circle-ci-config build-num]
-  @(http/get (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/" build-num "/artifacts?circle-token=:token")
-             {:accept "application/json"
-              :basic-auth [(:api-token circle-ci-config) ""]}))
+;; (defn get-artifacts [circle-ci-config build-num]
+;;   @(http/get (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/" build-num "/artifacts?circle-token=:token")
+;;              {:accept "application/json"
+;;               :basic-auth [(:api-token circle-ci-config) ""]}))
 
 (defn trigger-analysis-build
   [circle-ci-config {:keys [build-id project version jarpath]}]
   {:pre [(string? build-id) (string? project) (string? version) (string? jarpath)]}
-  (if (:api-token circle-ci-config)
+  (assert false "deprecated")
+  #_(if (:api-token circle-ci-config)
     @(http/post (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/tree/master")
                 {:accept "application/json"
                  :form-params {"build_parameters" {"CLJDOC_BUILD_ID" build-id
@@ -74,7 +76,7 @@
    :verify (mk-auth users)
    :authorization {:methods {:post :api-user}}})
 
-(defn circle-ci-webhook-handler [circle-ci-config]
+(defn circle-ci-webhook-handler [circle-ci]
   ;; TODO assert config correctness
   (yada/handler
    (yada/resource
@@ -91,7 +93,7 @@
                          version   (get-in ctx [:body "payload" "build_parameters" "CLJDOC_PROJECT_VERSION"])
                          build-id  (get-in ctx [:body "payload" "build_parameters" "CLJDOC_BUILD_ID"])
                          cljdoc-edn (cljdoc.util/cljdoc-edn project version)
-                         artifacts  (-> (get-artifacts circle-ci-config build-num)
+                         artifacts  (-> (analysis-service/get-circle-ci-build-artifacts circle-ci build-num)
                                         :body bs/to-string json/read-value)]
                      (if-let [artifact (and (= 1 (count artifacts))
                                             (= cljdoc-edn (get (first artifacts) "path"))
@@ -108,7 +110,7 @@
                          (log/warn "Expected path" cljdoc-edn)
                          (assoc (:response ctx) :status 400)))))}}})))
 
-(defn initiate-build-handler-simple [{:keys [circle-ci-config]}]
+(defn initiate-build-handler-simple [{:keys [analysis-service]}]
   (yada/handler
    (yada/resource
     {:methods
@@ -124,8 +126,8 @@
                          version   (get-in ctx [:parameters :form :version])
                          jarpath   (cljdoc.util/remote-jar-file [project version])
                          build-id  (str (java.util.UUID/randomUUID))
-                         ci-resp   (trigger-analysis-build
-                                    circle-ci-config
+                         ci-resp   (analysis-service/trigger-build
+                                    analysis-service
                                     {:project project
                                      :version version
                                      :jarpath jarpath
@@ -138,7 +140,7 @@
                                   build-id job-url))
                      (str (html/build-submitted-page job-url))))}}})))
 
-(defn initiate-build-handler [{:keys [access-control circle-ci-config]}]
+(defn initiate-build-handler [{:keys [access-control analysis-service]}]
   ;; TODO assert config correctness
   (yada/handler
    (yada/resource
@@ -152,8 +154,8 @@
        :consumes #{"application/x-www-form-urlencoded"}
        :response (fn initiate-build-handler-response [ctx]
                    (let [build-id  (str (java.util.UUID/randomUUID))
-                         ci-resp   (trigger-analysis-build
-                                    circle-ci-config
+                         ci-resp   (analysis-service/trigger-build
+                                    analysis-service
                                     (-> (get-in ctx [:parameters :form])
                                         (assoc :build-id build-id)))
                          build-num (-> ci-resp :body bs/to-string json/read-value (get "build_num"))]
@@ -233,14 +235,14 @@
 
 ;; Routes -------------------------------------------------------------
 
-(defn routes [{:keys [circle-ci dir s3-deploy]}]
+(defn routes [{:keys [analysis-service dir s3-deploy]}]
   [["/ping"            ping-handler]
-   ["/hooks/circle-ci" (circle-ci-webhook-handler circle-ci)]
+   ["/hooks/circle-ci" (circle-ci-webhook-handler analysis-service)]
    ["/request-build"   (initiate-build-handler
-                        {:circle-ci-config circle-ci
+                        {:analysis-service analysis-service
                          :access-control (api-acc-control {"cljdoc" "cljdoc"})})]
    ["/request-build2"  (initiate-build-handler-simple
-                        {:circle-ci-config circle-ci})]
+                        {:analysis-service analysis-service})]
    ["/full-build"      (full-build-handler
                         {:dir dir
                          :s3-deploy s3-deploy
