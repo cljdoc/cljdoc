@@ -10,6 +10,8 @@
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
 
+(def github-url "https://github.com/martinklepsch/cljdoc/issues")
+
 (defn page [opts contents]
   (hiccup/html {:mode :html}
                (hiccup.page/doctype :html5)
@@ -42,7 +44,7 @@
     (:version cache-id)]
    [:span.dib.v-mid.mr3.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "Non official"]
    [:a.black.no-underline.ttu.fw5.f7.tracked.pv1.ph2.dim
-    {:href "https://github.com/martinklepsch/cljdoc/issues"}
+    {:href github-url}
     "Help Develop cljdoc"]
    [:div.tr
     {:style {:flex-grow 1}}
@@ -390,6 +392,27 @@
     (cljdoc.spec/assert :cljdoc.spec/cache-bundle cache-bundle)
     (assert (and dir (.isDirectory dir)) (format "HTMLRenderer expects output directory, was %s" dir))
     (write-docs* cache-bundle dir)))
+
+(defn request-build-page [route-params]
+  (->> [:div.pa4-ns.pa2
+        [:h1 "Want to build some documentation?"]
+        [:p "We currently don't have documentation built for " (clojars-id route-params) " v" (:version route-params)]
+        (if (cljdoc.util/on-clojars? [(clojars-id route-params) (:version route-params)])
+          [:form.pv3 {:action "/api/request-build2" :method "POST"}
+           [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "project" :name "project" :value (str (:group-id route-params) "/" (:artifact-id route-params))}]
+           [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "version" :name "version" :value (:version route-params)}]
+           [:input.ph3.pv2.mr2.br2.ba.b--blue.bg-white.blue.ttu.pointer.b {:type "submit" :value "build"}]]
+          [:div
+           [:p "We also can't find it on Clojars, which at this time, is required to build documentation."]
+           [:p [:a.no-underline.blue {:href github-url} "Let us know if this is unexpected."]]])]
+       (page {:title (str "Build docs for " (clojars-id route-params))})))
+
+(defn build-submitted-page [circle-job-url]
+  (->> [:div.pa4-ns.pa2
+        [:h1 "Thanks for using cljdoc!"]
+        [:p "Your documentation build is " [:a.link.blue.no-underline {:href circle-job-url} "in progress"]]
+        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href github-url} "reach out."]]]
+       (page {:title (str "Build submitted")})))
 
 (comment
 

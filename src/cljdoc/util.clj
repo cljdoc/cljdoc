@@ -1,4 +1,5 @@
-(ns cljdoc.util)
+(ns cljdoc.util
+  (:require [aleph.http]))
 
 (defn group-id [project]
   (or (if (symbol? project)
@@ -30,7 +31,9 @@
        (first)
        :jar))
 
-(defn remote-jar-file [[project version :as coordinate]]
+(defn remote-jar-file
+  [[project version :as coordinate]]
+  {:pre [(some? project) (some? version)]}
   ;; Probably doesn't work with SNAPSHOTs
   (str "https://repo.clojars.org/"
        (group-id project) "/"
@@ -70,3 +73,9 @@
       #{:clj}  ["clj"]
       #{:cljs} ["cljs"]
       ["clj" "cljs"])))
+
+(defn on-clojars? [coordinate]
+  (try
+    (= 200 (:status @(aleph.http/head (remote-jar-file coordinate))))
+    (catch clojure.lang.ExceptionInfo e
+      false)))
