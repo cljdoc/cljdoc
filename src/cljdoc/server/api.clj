@@ -126,21 +126,21 @@
                          version   (get-in ctx [:parameters :form :version])
                          jarpath   (cljdoc.util/remote-jar-file [project version])
                          build-id  (str (java.util.UUID/randomUUID))
-                         ci-resp   (analysis-service/trigger-build
+                         ana-resp  (analysis-service/trigger-build
                                     analysis-service
                                     {:project project
                                      :version version
                                      :jarpath jarpath
                                      :build-id build-id})]
                      (if (analysis-service/circle-ci? analysis-service)
-                       (let [build-num (-> ci-resp :body bs/to-string json/read-value (get "build_num"))
+                       (let [build-num (-> ana-resp :body bs/to-string json/read-value (get "build_num"))
                              job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)]
-                         (when (= 201 (:status ci-resp))
+                         (when (= 201 (:status ana-resp))
                            (assert build-num "build number missing from CircleCI response")
                            (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}"
                                       build-id job-url))
                          (str (html/build-submitted-page job-url)))
-                       (str (html/build-submitted-page "LOCAL BUILD")))))}}})))
+                       (str (html/local-build-submitted-page)))))}}})))
 
 (defn initiate-build-handler [{:keys [access-control analysis-service]}]
   ;; TODO assert config correctness
