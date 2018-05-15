@@ -2,13 +2,13 @@
   {:boot/export-tasks true}
   (:require [boot.core :as b]
             [boot.pod :as pod]
-            [boot.util :as util]
             [clojure.java.io :as io]
             [clojure.edn]
             [cljdoc.util]
             [cljdoc.util.boot]
             [cljdoc.spec])
-  (:import (java.net URI)))
+  (:import (java.net URI)
+           (java.nio.file Files)))
 
 (defn hardcoded-config []
   (clojure.edn/read-string (slurp (io/resource "hardcoded-projects-config.edn"))))
@@ -30,22 +30,26 @@
               out (io/output-stream file)]
     (io/copy in out)))
 
+(defn copy-jar-contents-impl
+  [jar-uri target-dir]
+  (let [remote-jar? (boolean (.getHost jar-uri))  ; basic check if jar is at remote location
+        jar-local (if remote-jar?
+                    (let [jar-f (io/file target-dir "downloaded.jar")]
+                      (io/make-parents jar-f)
+                      (printf "Downloading remote jar...\n")
+                      (copy jar-uri jar-f)
+                      (.getPath jar-f))
+                    (str jar-uri))]
+    (printf "Unpacking %s\n" jar-local)
+    (pod/unpack-jar jar-local target-dir)
+    (when remote-jar? (.delete (io/file jar-local)))))
+
 (b/deftask copy-jar-contents
   "Copy the contents of the given jar into the fileset"
   [j jar     PATH  str      "The path of the jar file, may be a URI or a path on local disk."]
   (b/with-pre-wrap fileset
-    (let [d         (b/tmp-dir!)
-          jar-uri   (URI. jar)
-          remote-jar? (boolean (.getHost jar-uri))  ; basic check if jar is at remote location
-          jar-local (if remote-jar?
-                      (let [jar-f (io/file d "downloaded.jar")]
-                        (boot.util/info "Downloading remote jar...\n")
-                        (copy jar-uri jar-f)
-                        (.getPath jar-f))
-                      jar)]
-      (boot.util/info "Unpacking %s\n" jar-local)
-      (pod/unpack-jar jar-local (io/file d "jar-contents/"))
-      (when remote-jar? (.delete (io/file jar-local)))
+    (let [d (b/tmp-dir!)]
+      (copy-jar-contents-impl (URI. jar) (io/file d "jar-contents/"))
       (-> fileset (b/add-resource d) b/commit!))))
 
 (defn jar-contents-dir [fileset]
@@ -62,43 +66,61 @@
        (apply str)
        (boot.from.digest/digest "md5")))
 
+(defn system-temp-dir [prefix]
+  (.toFile (Files/createTempDirectory prefix (into-array java.nio.file.attribute.FileAttribute []))))
+
+(defn delete-directory [dir]
+  (let [{:keys [files dirs]} (group-by (fn [f]
+                                         (cond (.isDirectory f) :dirs
+                                               (.isFile f) :files))
+                                       (file-seq dir))]
+    (doseq [f files] (.delete f))
+    (doseq [d (reverse dirs)] (.delete d))))
+
+(defn analyze-impl
+  [project version jar]
+  {:pre [(symbol? project) (seq version) (seq jar)]}
+  (let [tmp-dir      (system-temp-dir (str project "-" version))
+        jar-contents (io/file tmp-dir "jar-contents/")
+        grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
+                                    :directories #{"src"}})
+        platforms    (get-in (hardcoded-config)
+                             [(cljdoc.util/artifact-id project) :cljdoc.api/platforms]
+                             (cljdoc.util/infer-platforms-from-src-dir jar-contents))
+        namespaces   (get-in (hardcoded-config)
+                             [(cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
+        build-cdx      (fn build-cdx [jar-contents-path platf]
+                         (pod/with-eval-in grimoire-pod
+                           (require 'cljdoc.analysis.impl)
+                           (cljdoc.analysis.impl/codox-namespaces
+                            (quote ~namespaces) ; the unquote seems to be recursive in some sense
+                            ~jar-contents-path
+                            ~platf)))]
+
+    (copy-jar-contents-impl (URI. jar) jar-contents)
+
+    (let [cdx-namespaces (->> (map #(build-cdx (.getPath jar-contents) %) platforms)
+                              (zipmap platforms))
+          ana-result     {:codox cdx-namespaces
+                          ;; TODO do not parse pom here, defer to trusted env for that
+                          :pom-str (slurp (cljdoc.util/find-pom-in-dir jar-contents project))
+                          :pom     (-> (cljdoc.util/find-pom-in-dir jar-contents project)
+                                       (cljdoc.util.boot/parse-pom))}]
+      (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
+      (delete-directory jar-contents)
+      (doto (io/file tmp-dir (cljdoc.util/cljdoc-edn project version))
+        (io/make-parents)
+        (spit (pr-str ana-result))))))
+
 (b/deftask analyze
   [p project PROJECT sym "Project to build documentation for"
-   v version VERSION str "Version of project to build documentation for"]
-  (let [jar-contents-md5 (atom nil)
-        prev-tmp-dir     (atom nil)]
-    (b/with-pre-wrap fs
-      (if (= @jar-contents-md5 (digest-dir (jar-contents-dir fs)))
-        (-> fs (b/add-resource @prev-tmp-dir) b/commit!)
-        (do
-          (boot.util/info "Creating analysis pod ...\n")
-          (let [tempd        (b/tmp-dir!)
-                grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
-                                            :directories #{"src"}})
-                platforms    (get-in (hardcoded-config)
-                                     [(cljdoc.util/artifact-id project) :cljdoc.api/platforms]
-                                     (cljdoc.util/infer-platforms-from-src-dir (jar-contents-dir fs)))
-                namespaces   (get-in (hardcoded-config)
-                                     [(cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
-                build-cdx      (fn [jar-contents-path platf]
-                                 (pod/with-eval-in grimoire-pod
-                                   (require 'cljdoc.analysis.impl)
-                                   (cljdoc.analysis.impl/codox-namespaces
-                                    (quote ~namespaces) ; the unquote seems to be recursive in some sense
-                                    ~jar-contents-path
-                                    ~platf)))
-                cdx-namespaces (->> (map #(build-cdx (.getPath (jar-contents-dir fs)) %) platforms)
-                                    (zipmap platforms))
-                ana-result     {:codox cdx-namespaces
-                                ;; TODO do not parse pom here, defer to trusted env for that
-                                :pom-str (slurp (cljdoc.util.boot/find-pom fs project))
-                                :pom     (-> (cljdoc.util.boot/find-pom fs project)
-                                             (cljdoc.util.boot/parse-pom))}]
-            (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
-            (doto (io/file tempd (cljdoc.util/cljdoc-edn project version))
-              (io/make-parents)
-              ;; TODO implement spec for this + validate
-              (spit (pr-str ana-result)))
-            (reset! jar-contents-md5 (digest-dir (jar-contents-dir fs)))
-            (reset! prev-tmp-dir tempd)
-            (-> fs (b/add-resource tempd) b/commit!)))))))
+   v version VERSION str "Version of project to build documentation for"
+   j jarpath JARPATH str "Absolute path to the jar (optional, local/remote)"]
+  (b/with-pre-wrap fs
+    (let [tempd           (b/tmp-dir!)
+          jar             (or jarpath (cljdoc.util/remote-jar-file [project version]))
+          cljdoc-edn-file (analyze-impl project version jar)]
+      (io/copy cljdoc-edn-file
+               (doto (io/file tempd (cljdoc.util/cljdoc-edn project version))
+                 (io/make-parents)))
+      (-> fs (b/add-resource tempd) b/commit!))))

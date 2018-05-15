@@ -2,18 +2,14 @@
   (:require [cljdoc.util]
             [boot.core :as boot]
             [boot.pod :as pod]
+            [clojure.java.io :as io]
             [clojure.string]))
 
 ;; SCM URL finding -------------------------------------------------------------
 
-(defn pom-path [project]
-  (let [artifact (name project)
-        group    (or (namespace project) artifact)]
-    (str "META-INF/maven/" group "/" artifact "/pom.xml")))
-
 (defn find-pom [fileset project]
   (some->> (boot/output-files fileset)
-           (boot/by-path [(str "jar-contents/" (pom-path project))])
+           (boot/by-path [(str "jar-contents/" (cljdoc.util/pom-path project))])
            cljdoc.util/assert-first
            boot/tmp-file))
 

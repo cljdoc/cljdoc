@@ -1,5 +1,5 @@
 (ns cljdoc.util
-  (:require [aleph.http]))
+  (:require [clojure.java.io :as io]))
 
 (defn group-id [project]
   (or (if (symbol? project)
@@ -74,8 +74,10 @@
       #{:cljs} ["cljs"]
       ["clj" "cljs"])))
 
-(defn on-clojars? [coordinate]
-  (try
-    (= 200 (:status @(aleph.http/head (remote-jar-file coordinate))))
-    (catch clojure.lang.ExceptionInfo e
-      false)))
+(defn pom-path [project]
+  (format "META-INF/maven/%s/%s/pom.xml"
+          (group-id project)
+          (artifact-id project)))
+
+(defn find-pom-in-dir [dir project]
+  (io/file dir (pom-path project)))
