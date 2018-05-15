@@ -31,24 +31,22 @@
 (defn grimoire-loader
   "An interceptor to load relevant data for the request from our Grimoire store"
   [grimoire-dir ctx]
-  (log/info "Loading cache bundle for" (:route-params ctx))
-  (case (:id ctx)
-    (:group/index :artifact/index)
-    (assoc ctx
-           :cache-bundle
-           (cljdoc.cache/bundle-group
-            (grimoire-helpers/grimoire-store grimoire-dir)
-            (grimoire-helpers/thing (-> ctx :route-params :group-id))))
+  (let [store (grimoire-helpers/grimoire-store grimoire-dir)
+        group-thing (grimoire-helpers/thing (-> ctx :route-params :group-id))]
+    (case (:id ctx)
+      (:group/index :artifact/index)
+      (do (log/info "Loading group cache bundle for" (:route-params ctx))
+          (assoc ctx :cache-bundle (cljdoc.cache/bundle-group store group-thing)))
 
-    (:artifact/version :artifact/doc :artifact/namespace)
-    (assoc ctx
-           :cache-bundle
-           (cljdoc.cache/bundle-docs
-            (grimoire-helpers/grimoire-store grimoire-dir)
-            (grimoire-helpers/version-thing
-             (-> ctx :route-params :group-id)
-             (-> ctx :route-params :artifact-id)
-             (-> ctx :route-params :version))))))
+      (:artifact/version :artifact/doc :artifact/namespace)
+      (let [version-thing (grimoire-helpers/version-thing
+                           (-> ctx :route-params :group-id)
+                           (-> ctx :route-params :artifact-id)
+                           (-> ctx :route-params :version))]
+        (log/info "Loading artifact cache bundle for" (:route-params ctx))
+        (if (grimoire-helpers/exists? store version-thing)
+          (assoc ctx :cache-bundle (cljdoc.cache/bundle-docs store version-thing))
+          ctx)))))
 
 (defrecord DocPage [grimoire-dir page-type]
   yada.resource/ResourceCoercion
@@ -63,7 +61,9 @@
                            true                        (cons (partial grimoire-loader grimoire-dir))
                            (= :artifact/doc page-type) (cons doc-slug-parser))
       :methods {:get (fn page-response [{:keys [route-params cache-bundle] :as ctx}]
-                       (str (html/render page-type route-params cache-bundle)))}}))
+                       (if cache-bundle
+                         (str (html/render page-type route-params cache-bundle))
+                         (str (html/request-build-page route-params))))}}))
 
   bidi.bidi/Matched
   (resolve-handler [this m]
