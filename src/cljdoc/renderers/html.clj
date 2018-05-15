@@ -292,11 +292,12 @@
         big-btn-link :a.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
     (->> [:div.pa4-ns.pa2
           [:h1 (clojars-id artifact-entity)]
-          [:span.db "known versions on cljdoc"]
+          [:span.db "Known versions on cljdoc:"]
           [:ol.list.pl0.pv3
-           (for [v (sort (filter #(= (:artifact-id %) (:artifact-id route-params))
-                                 (:versions cache-contents)))]
-             [:li
+           (for [v (->> (:versions cache-contents)
+                        (filter #(= (:artifact-id %) (:artifact-id route-params)))
+                        (sort-by :version))]
+             [:li.dib.mr3
               [big-btn-link
                {:href (r/path-for :artifact/version (merge cache-id v))}
                (:version v)]])]
