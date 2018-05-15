@@ -207,21 +207,21 @@
                            :grimoire-dir grimoire-dir
                            :git-repo     repo})
 
-                         (log/info "Rendering HTML")
-                         (log/info "html-dir" html-dir)
-                         (cljdoc.cache/render
-                          (cljdoc.renderers.html/->HTMLRenderer)
-                          (cljdoc.cache/bundle-docs
-                           (cljdoc.grimoire-helpers/grimoire-store grimoire-dir)
-                           (cljdoc.grimoire-helpers/version-thing project version))
-                          {:dir html-dir})
+                         ;; (log/info "Rendering HTML")
+                         ;; (log/info "html-dir" html-dir)
+                         ;; (cljdoc.cache/render
+                         ;;  (cljdoc.renderers.html/->HTMLRenderer)
+                         ;;  (cljdoc.cache/bundle-docs
+                         ;;   (cljdoc.grimoire-helpers/grimoire-store grimoire-dir)
+                         ;;   (cljdoc.grimoire-helpers/version-thing project version))
+                         ;;  {:dir html-dir})
 
-                         (log/info "Deploying")
+                         ;; (log/info "Deploying")
 
-                         (s3/sync! (select-keys s3-deploy [:access-key :secret-key])
-                                   (:bucket s3-deploy)
-                                   (s3/dir->file-maps html-dir)
-                                   {:report-fn #(log/info %)})
+                         ;; (s3/sync! (select-keys s3-deploy [:access-key :secret-key])
+                         ;;           (:bucket s3-deploy)
+                         ;;           (s3/dir->file-maps html-dir)
+                         ;;           {:report-fn #(log/info %)})
 
                          (log/infof "Done with build %s" build-id))
 
