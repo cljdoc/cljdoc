@@ -4,6 +4,7 @@
             [boot.pod :as pod]
             [clojure.java.io :as io]
             [clojure.edn]
+            [clojure.string]
             [cljdoc.util]
             [cljdoc.util.boot]
             [cljdoc.spec])
@@ -67,7 +68,9 @@
        (boot.from.digest/digest "md5")))
 
 (defn system-temp-dir [prefix]
-  (.toFile (Files/createTempDirectory prefix (into-array java.nio.file.attribute.FileAttribute []))))
+  (.toFile (Files/createTempDirectory
+            (clojure.string/replace prefix #"/" "-")
+            (into-array java.nio.file.attribute.FileAttribute []))))
 
 (defn delete-directory [dir]
   (let [{:keys [files dirs]} (group-by (fn [f]
@@ -79,10 +82,10 @@
 
 (defn analyze-impl
   [project version jar]
-  {:pre [(symbol? project) (seq version) (seq jar)]}
-  (let [tmp-dir      (system-temp-dir (str project "-" version))
+  {:pre [(string? project) (seq version) (seq jar)]}
+  (let [tmp-dir      (system-temp-dir (str "cljdoc-" project "-" version))
         jar-contents (io/file tmp-dir "jar-contents/")
-        grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
+        grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [(symbol project) version])
                                     :directories #{"src"}})
         platforms    (get-in (hardcoded-config)
                              [(cljdoc.util/artifact-id project) :cljdoc.api/platforms]

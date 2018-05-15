@@ -35,7 +35,8 @@
 
 (defmethod ig/init-key :cljdoc/analysis-service [_ [type opts]]
   (case type
-    :circle-ci (analysis-service/circle-ci (:api-token opts) (:builder-project opts))))
+    :circle-ci (analysis-service/circle-ci (:api-token opts) (:builder-project opts))
+    :local     (analysis-service/->Local)))
 
 (comment
   (require '[integrant.repl])
