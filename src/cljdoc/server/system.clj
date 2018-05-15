@@ -14,13 +14,16 @@
             #_{:file "/var/log/standard-json.log" :encoder :json}]})
 
 (defn system-config [env-config]
-  {:cljdoc/server  {:port    (cfg/get-in env-config [:cljdoc/server :port]),
-                    :handler (ig/ref :cljdoc/handler)}
-   :cljdoc/handler (-> {}
-                       (assoc :dir (cfg/get-in env-config [:cljdoc/server :dir]))
-                       (assoc :analysis-service (ig/ref :cljdoc/analysis-service))
-                       (assoc :s3-deploy (cfg/s3-deploy)))
-   :cljdoc/analysis-service [:circle-ci (cfg/circle-ci)]})
+  (let [ana-service (cfg/analysis-service)]
+    {:cljdoc/server  {:port    (cfg/get-in env-config [:cljdoc/server :port]),
+                      :handler (ig/ref :cljdoc/handler)}
+     :cljdoc/handler (-> {}
+                         (assoc :dir (cfg/get-in env-config [:cljdoc/server :dir]))
+                         (assoc :analysis-service (ig/ref :cljdoc/analysis-service))
+                         (assoc :s3-deploy (cfg/s3-deploy)))
+     :cljdoc/analysis-service (case ana-service
+                                :local     [:local]
+                                :circle-ci [:circle-ci (cfg/circle-ci)])}))
 
 (defmethod ig/init-key :cljdoc/server [_ {:keys [handler port] :as opts}]
   (unilog/start-logging! logging-config)
@@ -34,6 +37,7 @@
   (cljdoc.server.handler/cljdoc-routes opts))
 
 (defmethod ig/init-key :cljdoc/analysis-service [_ [type opts]]
+  (log/infof "Starting Analysis Service %s" type)
   (case type
     :circle-ci (analysis-service/circle-ci (:api-token opts) (:builder-project opts))
     :local     (analysis-service/->Local)))

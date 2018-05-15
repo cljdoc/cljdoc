@@ -29,6 +29,9 @@
    :cloudfront-id (get-in (config) [:secrets :aws :cloudfront-id])
    :bucket        (get-in (config) [:secrets :aws :s3-bucket-name])})
 
+(defn analysis-service []
+  (get-in (config) [:cljdoc/server :analysis-service]))
+
 (comment
   (config)
 
