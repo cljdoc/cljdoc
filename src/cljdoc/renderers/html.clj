@@ -283,6 +283,32 @@
   [page-type _ _]
   (format "%s not implemented, sorry" page-type))
 
+(defmethod render :artifact/index
+  [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  (let [artifact-id (:artifact-id route-params)
+        artifact-entity (assoc cache-id :artifact-id artifact-id)
+        big-btn-link :a.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
+    (->> [:div.pa4-ns.pa2
+          [:h1 (clojars-id artifact-entity)]
+          [:span.db "known versions on cljdoc"]
+          [:ol.list.pl0.pv3
+           (for [v (sort (filter #(= (:artifact-id %) (:artifact-id route-params))
+                                 (:versions cache-contents)))]
+             [:li
+              [big-btn-link
+               {:href (r/path-for :artifact/version (merge cache-id v))}
+               (:version v)]])]
+          (when-not (= #{artifact-id} (set(:artifacts cache-contents)))
+            [:div
+             [:h3 "Other artifacts under the " (:group-id cache-id) " group"]
+             [:ol.list.pl0.pv3
+              (for [a (sort (:artifacts cache-contents))]
+                [:li
+                 [big-btn-link
+                  {:href (r/path-for :artifact/index (assoc cache-id :artifact-id a))}
+                  a]])]])]
+         (page {:title (str (clojars-id artifact-entity) " — cljdoc")}))))
+
 (defmethod render :artifact/version
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (->> (index-page {:top-bar-component (top-bar cache-id (:version cache-contents))
