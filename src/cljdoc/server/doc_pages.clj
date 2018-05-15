@@ -15,18 +15,40 @@
                                                        (clojure.string/split (:remainder ctx) #"/")))
     (assoc-in ctx [:route-params :doc-slug-path] [(-> ctx :route-params :doc-page)])))
 
+(defn route-thing
+  "Convert a route-id and it's params to the respective Grimoire Thing"
+  [route-id params]
+  (case route-id
+    :group/index (grimoire-helpers/thing (-> params :group-id))
+    :artifact/index (grimoire-helpers/thing (-> params :group-id)
+                                            (-> params :artifact-id))
+
+    (:artifact/version :artifact/doc :artifact/namespace)
+    (grimoire-helpers/thing (-> params :group-id)
+                            (-> params :artifact-id)
+                            (-> params :version))))
+
 (defn grimoire-loader
   "An interceptor to load relevant data for the request from our Grimoire store"
   [grimoire-dir ctx]
   (log/info "Loading cache bundle for" (:route-params ctx))
-  (assoc ctx
-         :cache-bundle
-         (cljdoc.cache/bundle-docs
-          (cljdoc.grimoire-helpers/grimoire-store grimoire-dir)
-          (cljdoc.grimoire-helpers/version-thing
-           (-> ctx :route-params :group-id)
-           (-> ctx :route-params :artifact-id)
-           (-> ctx :route-params :version)))))
+  (case (:id ctx)
+    (:group/index :artifact/index)
+    (assoc ctx
+           :cache-bundle
+           (cljdoc.cache/bundle-group
+            (grimoire-helpers/grimoire-store grimoire-dir)
+            (grimoire-helpers/thing (-> ctx :route-params :group-id))))
+
+    (:artifact/version :artifact/doc :artifact/namespace)
+    (assoc ctx
+           :cache-bundle
+           (cljdoc.cache/bundle-docs
+            (grimoire-helpers/grimoire-store grimoire-dir)
+            (grimoire-helpers/version-thing
+             (-> ctx :route-params :group-id)
+             (-> ctx :route-params :artifact-id)
+             (-> ctx :route-params :version))))))
 
 (defrecord DocPage [grimoire-dir page-type]
   yada.resource/ResourceCoercion
@@ -38,12 +60,10 @@
       :produces "text/html"
       :path-info? (if (= :artifact/doc page-type) true false)
       :interceptor-chain (cond->> yada/default-interceptor-chain
-                           (not (#{:group/index :artifact/index} page-type)) (cons (partial grimoire-loader grimoire-dir))
-                           (= :artifact/doc page-type)                       (cons doc-slug-parser))
+                           true                        (cons (partial grimoire-loader grimoire-dir))
+                           (= :artifact/doc page-type) (cons doc-slug-parser))
       :methods {:get (fn page-response [{:keys [route-params cache-bundle] :as ctx}]
-                       (str (or (html/render page-type route-params cache-bundle)
-                                "NOT IMPLEMENTED"))
-                       #_(str "hello world " page-type " " route-params))}}))
+                       (str (html/render page-type route-params cache-bundle)))}}))
 
   bidi.bidi/Matched
   (resolve-handler [this m]
@@ -61,15 +81,6 @@
 
 (defn doc-page [grimoire-dir page-type]
   (->DocPage grimoire-dir page-type))
-
-#_(defn doc-page [page-type]
-  (yada/resource
-    {:id page-type
-     :description "The description to this example resource"
-     :summary "An example resource"
-     :produces "text/html"
-     :methods {:get (fn [_] "hello world")}}))
-
 
 (comment
   (integrant.repl/reset)
