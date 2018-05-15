@@ -58,7 +58,7 @@
   ([group artifact version]
    (grimoire.things/->Version (thing group artifact) version))
   ([group artifact version platf]
-   (grimoire.things/->Platform (thing group artifact)
+   (grimoire.things/->Platform (thing group artifact version)
                                (grimoire.util/normalize-platform platf))))
 
 (defn version-thing
