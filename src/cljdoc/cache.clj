@@ -69,6 +69,19 @@
                          :version     (-> version-t things/thing->name)}}
        (cljdoc.spec/assert :cljdoc.spec/cache-bundle)))
 
+(defn bundle-group
+  [store group-t]
+  (assert (things/group? group-t) "bundle-group expects a grimoire.things/group argument")
+  (log/info "Bundling group info" (things/thing->url-path group-t))
+  (let [artifacts (e/result (grim/list-artifacts store group-t))]
+    (->> {:cache-contents {:versions  (for [a artifacts
+                                            v (e/result (grim/list-versions store a))]
+                                        {:artifact-id (things/thing->name a)
+                                         :version     (things/thing->name v)})
+                           :artifacts (map :name artifacts)}
+          :cache-id       {:group-id  (-> group-t things/thing->name)}}
+         (cljdoc.spec/assert :cljdoc.spec/cache-bundle))))
+
 (defprotocol ICacheRenderer
   "This protocol is intended to allow different implementations of renderers.
 
@@ -101,14 +114,16 @@
     (def store (grimoire.api.fs/->Config "data/grimoire" "" ""))
     (def pp clojure.pprint/pprint)
 
-    (def gt (things/->Group "bidi"))
-    (def at (things/->Artifact gt "bidi"))
-    (def vt (things/->Version at "2.1.3"))
+    (def gt (things/->Group "instaparse"))
+    (def at (things/->Artifact gt "instaparse"))
+    (def vt (things/->Version at "1.4.9"))
     (def pt (things/->Platform vt "clj"))
     (def cache (bundle-docs store vt))
     (defn dev-cache [] (bundle-docs store vt)))
 
-  (namespaces cache)
+  (bundle-group store gt)
+
+  (map :namespace (namespaces cache))
 
   (def x (grimoire.api/write-meta store vt {:test "s"}))
 

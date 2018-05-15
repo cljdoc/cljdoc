@@ -71,17 +71,24 @@
 
 ;; Cache specific ----------------------------------------------------
 
-;; Docs-cache: this is intended for
+;; Docs-cache: this is intended for a specific
+;; versioned artifact, e.g. [re-frame 0.10.5]
 (s/def ::defs (s/coll-of ::def-full :gen-max 2))
 (s/def ::namespaces (s/coll-of map? :gen-max 2))
 
 (s/def ::docs-cache
   (s/keys :req-un [::defs ::namespaces]))
 
+(s/def ::artifacts (s/coll-of string?))
+(s/def ::versions (s/coll-of (s/keys :req-un [::version ::artifact-id])))
+(s/def ::group-cache
+  (s/keys :req-un [::versions ::artifacts]))
+
 ;; Cache bundle (combination of the above cache specs)
 
 (s/def ::cache-contents
-  (s/or :docs ::docs-cache))
+  (s/or :docs  ::docs-cache
+        :group ::group-cache))
 
 (s/def ::cache-id ::grimoire-entity)
 
