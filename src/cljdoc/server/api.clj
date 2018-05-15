@@ -4,6 +4,7 @@
             [cljdoc.util]
             [cljdoc.cache]
             [cljdoc.routes]
+            [cljdoc.config] ; should not be necessary but instead be passed as args
             [cljdoc.renderers.html :as html]
             [clojure.tools.logging :as log]
             [cljdoc.grimoire-helpers]

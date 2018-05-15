@@ -7,6 +7,7 @@
             [cljdoc.spec]
             [hiccup2.core :as hiccup]
             [hiccup.page]
+            [aleph.http]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
 

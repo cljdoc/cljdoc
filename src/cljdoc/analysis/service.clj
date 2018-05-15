@@ -9,7 +9,7 @@
   Services that implement this interface will receive all relevant information
   via their `trigger-build` method. The expectation then is that the services
   will eventually call `/api/full-build` with the appropriate params.
-  
+
   Initially this has been done with CircleCI but this is tricky during local
   development (webhooks and all). A local service is now implemented for this
   purpose."
@@ -45,7 +45,7 @@
     {:accept "application/json"
      :basic-auth [(:api-token circle-ci) ""]}))
 
-(defrecord Local []
+(defrecord Local [full-build-url]
   IAnalysisService
   (trigger-build [_ {:keys [build-id project version jarpath]}]
     (future
@@ -53,8 +53,8 @@
         (log/infof "Starting local analysis for %s %s %s" project version jarpath)
         (let [cljdoc-edn-file (analysis/analyze-impl project version jarpath)]
           (log/infof "Got file from Local AnalysisService %s" cljdoc-edn-file)
-          (log/info "Posting to" (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/full-build"))
-          @(aleph.http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/full-build")
+          (log/info "Posting to" full-build-url)
+          @(aleph.http/post full-build-url
                             {:form-params {:project project
                                            :version version
                                            :build-id build-id

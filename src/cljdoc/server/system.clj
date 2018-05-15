@@ -14,15 +14,16 @@
             #_{:file "/var/log/standard-json.log" :encoder :json}]})
 
 (defn system-config [env-config]
-  (let [ana-service (cfg/analysis-service)]
-    {:cljdoc/server  {:port    (cfg/get-in env-config [:cljdoc/server :port]),
+  (let [ana-service (cfg/analysis-service)
+        port        (cfg/get-in env-config [:cljdoc/server :port])]
+    {:cljdoc/server  {:port    port,
                       :handler (ig/ref :cljdoc/handler)}
      :cljdoc/handler (-> {}
                          (assoc :dir (cfg/get-in env-config [:cljdoc/server :dir]))
                          (assoc :analysis-service (ig/ref :cljdoc/analysis-service))
                          (assoc :s3-deploy (cfg/s3-deploy)))
      :cljdoc/analysis-service (case ana-service
-                                :local     [:local]
+                                :local     [:local {:full-build-url (str "http://localhost:" port "/api/full-build")}]
                                 :circle-ci [:circle-ci (cfg/circle-ci)])}))
 
 (defmethod ig/init-key :cljdoc/server [_ {:keys [handler port] :as opts}]
@@ -40,7 +41,7 @@
   (log/infof "Starting Analysis Service %s" type)
   (case type
     :circle-ci (analysis-service/circle-ci (:api-token opts) (:builder-project opts))
-    :local     (analysis-service/->Local)))
+    :local     (analysis-service/->Local (:full-build-url opts))))
 
 (comment
   (require '[integrant.repl])
