@@ -2,6 +2,7 @@
 target/
 docker/docker-target
 log/
+data/
 ops/.terraform
 ops/terraform.tfstate*
 ops/image/image-id
