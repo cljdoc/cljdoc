@@ -70,6 +70,9 @@
 (defn platform-thing [project version platf]
   (thing (cljdoc.util/group-id project) (cljdoc.util/artifact-id project) version platf))
 
+(defn exists? [store t]
+  (grimoire.either/succeed? (grimoire.api/read-meta store t)))
+
 (defn grimoire-store [^java.io.File dir]
   (grimoire.api.fs/->Config (.getPath dir) "" ""))
 
