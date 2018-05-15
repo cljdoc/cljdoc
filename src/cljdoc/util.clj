@@ -1,5 +1,6 @@
 (ns cljdoc.util
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.string :as string]))
 
 (defn group-id [project]
   (or (if (symbol? project)
@@ -36,7 +37,7 @@
   {:pre [(some? project) (some? version)]}
   ;; Probably doesn't work with SNAPSHOTs
   (str "https://repo.clojars.org/"
-       (group-id project) "/"
+       (string/replace (group-id project) #"\." "/") "/"
        (artifact-id project) "/"
        version "/"
        (artifact-id project) "-" version ".jar"))
