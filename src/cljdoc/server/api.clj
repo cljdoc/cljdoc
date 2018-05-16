@@ -187,11 +187,15 @@
                            git-dir      (io/file dir (cljdoc.util/git-dir project version))
                            grimoire-dir (doto (io/file dir "grimoire") (.mkdir))
                            html-dir     (doto (io/file dir "grimoire-html") (.mkdir))
-                           scm-url      (cljdoc.util/scm-url (:pom cljdoc-edn))]
+                           scm-url      (or (cljdoc.util/scm-url (:pom cljdoc-edn))
+                                            (cljdoc.util/scm-fallback project))]
 
                        (log/info "Verifying cljdoc-edn contents against spec")
                        (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
 
+                       (when-not scm-url
+                         (throw (ex-info (str "Could not find SCM URL for project " project " " (:pom cljdoc-edn))
+                                         {:pom (:pom cljdoc-edn)})))
                        (log/info "Cloning Git repo" scm-url)
                        (when-not (.exists git-dir) ; TODO we should really wipe and start fresh for each build
                          (cljdoc.git-repo/clone scm-url git-dir))

@@ -48,6 +48,9 @@
     (throw (ex-info "Expected collection with one item, got multiple"
                     {:coll xs}))))
 
+(def scm-fallback
+  {"yada/yada" "https://github.com/juxt/yada/"})
+
 (defn scm-url [pom-map]
   (some->
    (cond (some-> pom-map :scm :url (.contains "github"))
