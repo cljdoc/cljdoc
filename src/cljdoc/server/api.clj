@@ -201,7 +201,8 @@
                                               first)]
                          (if version-tag
                            (cljdoc.git-repo/git-checkout-repo repo version-tag)
-                           (log/warn "No version tag found for version %s in %s\n" version scm-url))
+                           (do (log/warn "No version tag found for version %s in %s\n" version scm-url)
+                               (telegram/no-version-tag project version scm-url)))
 
                          (log/info "Importing into Grimoire")
                          (cljdoc.grimoire-helpers/import

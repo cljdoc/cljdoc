@@ -36,6 +36,11 @@
   (->> (format "Import completed: https://cljdoc.xyz%s" docs-url)
        (send-text bot-token chat-id)))
 
+(defn no-version-tag
+  [project version scm-url]
+  (->> (format "Untagged version for %s v%s\n%s" project version scm-url)
+       (send-text bot-token chat-id)))
+
 (comment
   ;; useful helper to get initial chat id
   @(http/get (str base-url bot-token "/getUpdates")
