@@ -63,6 +63,7 @@
   (let [def-meta (first (sort-by :platform platforms))]
     (cljdoc.spec/assert :cljdoc.spec/def-full def-meta)
     [:div
+     [:hr.mv3.b--black-10]
      [:h4.def-block-title
       {:name (:name def-meta), :id (:name def-meta)}
       (:name def-meta)
@@ -85,12 +86,7 @@
            (for [argv (sort-by count (:arglists m))]
              [:code.db.mb2 (str "(" (:name m) " " (clojure.string/join " " argv) ")")])
            (when (:doc m)
-             [:p (:doc m)])])])
-     ;; source-fn really is broken
-     ;; [:pre.pa3.bg-black-05.br2.overflow-scroll (:src def-meta)]
-     ;; [:pre (with-out-str (clojure.pprint/pprint def-meta))]
-     ;; TODO show protocol member methods if the given def is a protocol (see :members key)
-     [:hr.mv3.b--black-10]]))
+             [:p (:doc m)])])])]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   (let [namespaces (ns-tree/index-by :namespace namespaces)]
