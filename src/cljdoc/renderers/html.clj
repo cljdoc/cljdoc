@@ -222,7 +222,8 @@
       [:div.w-80-ns.pv4
        [:h2 (:namespace ns-entity)]
        (when-let [ns-doc (:doc ns-data)]
-         [:p.lh-copy ns-doc])
+         [:div.lh-copy.markdown
+          (-> ns-doc markup/markdown-to-html hiccup/raw)])
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))]
