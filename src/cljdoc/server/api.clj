@@ -211,7 +211,7 @@
 
                          (telegram/import-completed
                           (cljdoc.routes/path-for
-                           :artifact/index
+                           :artifact/version
                            {:group-id (cljdoc.util/group-id project)
                             :artifact-id (cljdoc.util/artifact-id project)
                             :version version}))

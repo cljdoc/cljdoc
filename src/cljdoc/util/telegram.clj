@@ -33,7 +33,7 @@
 
 (defn import-completed
   [docs-url]
-  (->> (format "Import completed: %s" docs-url)
+  (->> (format "Import completed: https://cljdoc.xyz%s" docs-url)
        (send-text bot-token chat-id)))
 
 (comment
