@@ -6,7 +6,9 @@ After=network.target
 User=cljdoc
 Group=cljdoc
 WorkingDirectory=/home/cljdoc
-ExecStart=/home/cljdoc/run-cljdoc-api.sh
+# Just using `/home/cljdoc/run-cljdoc-api.sh` results in some SELinux issues.
+# Running it via /bin/bash solved that.
+ExecStart=/bin/bash /home/cljdoc/run-cljdoc-api.sh
 
 [Install]
 WantedBy=multi-user.target
