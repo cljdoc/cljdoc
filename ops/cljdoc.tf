@@ -185,23 +185,32 @@ resource "aws_route53_zone" "cljdoc_zone" {
   name     = "${var.domain}"
 }
 
-resource "aws_route53_record" "cdn_record" {
-  provider = "aws.prod"
-  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
-  name     = "${var.domain}"
-  type     = "A"
+# resource "aws_route53_record" "cdn_record" {
+#   provider = "aws.prod"
+#   zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
+#   name     = "${var.domain}"
+#   type     = "A"
 
-  alias {
-    name                   = "${aws_cloudfront_distribution.cljdoc_cdn.domain_name}"
-    zone_id                = "${var.cf_alias_zone_id}"
-    evaluate_target_health = false                                                   # not supported for Cloudfront distributions
-  }
-}
+#   alias {
+#     name                   = "${aws_cloudfront_distribution.cljdoc_cdn.domain_name}"
+#     zone_id                = "${var.cf_alias_zone_id}"
+#     evaluate_target_health = false                                                   # not supported for Cloudfront distributions
+#   }
+# }
 
 resource "aws_route53_record" "api" {
   provider = "aws.prod"
   zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
   name     = "${var.api_domain}"
+  type     = "A"
+  ttl      = "300"
+  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
+}
+
+resource "aws_route53_record" "main" {
+  provider = "aws.prod"
+  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
+  name     = "${var.domain}"
   type     = "A"
   ttl      = "300"
   records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
