@@ -9,6 +9,8 @@ to create machine images for the cljdoc server.
 > The intention here is not just to make it easy to spin up an
 > environment but also to document what is needed.
 
+[Terraform](#terraform) | [Packer](#packer) | [Backups](#backing-up-data)
+
 ## Required Secrets
 
 At least an AWS Access- and Secret key is required as well as a PGP key to
@@ -18,13 +20,6 @@ encrypt secrets created during the process of terraforming. 🙂
 export TF_VAR_aws_access_key_id=foo
 export TF_VAR_aws_secret_key=foo
 export TF_VAR_do_token=digital-ocean-api-token
-export TF_VAR_pgp_key=base64-encoded-public-key
-```
-
-To base64 encode your public key you can run:
-
-```bash
-gpg --export YOUR_KEY_ID | base64
 ```
 
 ## Terraform
@@ -61,16 +56,25 @@ Retrieving outputs:
 ```
 terraform output
 terraform output -json
-terraform output bucket_user_secret_key | base64 --decode | gpg -q --decrypt
 ```
 
 As part of the terraform setup `run-cljdoc-api.sh` will be uploaded to the server.
 This script expects a `CLJDOC_VERSION` file in the `$HOME` directory of the user running
-it which contains a full shasum of a commit available on Github. Create it using SSH:
+it which contains a full shasum of a commit available on Github. A full deploy routine can
+be found in `deploy.sh`:
 
 ```sh
-ssh cljdoc@(terraform output api_ip) "echo 5471...436 > CLJDOC_VERSION"
+./ops/deploy.sh (git rev-parse origin/master)
 ```
+
+### Certificates
+
+To get a certificate run:
+
+```sh
+ssh root@(terraform output api_ip) bash < ./get-cert.sh
+```
+
 
 ## Packer
 
@@ -86,9 +90,16 @@ cd image
 make image-id
 ```
 This will create an image and the image-id will be saved to `image-id`.
+The image is based on Fedora, additional provisioning steps can be found in `fedora-provision.sh`.
 
-The provisioning script can be found in `provision.sh`.
+## Backing Up Data
 
-Currently the provisioning script locks out the `root` user
-and does not enable `sudo` for the `cljdoc` user. This means all
-steps requiring admin-privileges need to be done at build time.
+```sh
+mkdir prod-backup
+
+# backing up data
+rsync -azrv root@(terraform output api_ip):/var/cljdoc/grimoire prod-backup/(date "+%Y-%m-%d")
+
+# restoring data from local backup
+rsync -azrv prod-backup/YYYY-MM-DD/ root@(terraform output api_ip):/var/cljdoc/
+```
