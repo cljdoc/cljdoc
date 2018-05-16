@@ -22,18 +22,18 @@
         },
         {
             "type": "file",
+            "source": "nginx.conf",
+            "destination": "/etc/nginx/nginx.conf"
+        },
+        {
+            "type": "file",
+            "source": "cljdoc.xyz.conf",
+            "destination": "/etc/nginx/sites-available/cljdoc.xyz.conf"
+        },
+        {
+            "type": "file",
             "source": "cljdoc-api.service",
             "destination": "/etc/systemd/system/cljdoc-api.service"
-        },
-        {
-            "type": "file",
-            "source": "CLJDOC_VERSION",
-            "destination": "/home/cljdoc/CLJDOC_VERSION"
-        },
-        {
-            "type": "file",
-            "source": "../run-cljdoc-api.sh",
-            "destination": "/home/cljdoc/run-cljdoc-api.sh"
         }
     ]
 }
