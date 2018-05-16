@@ -1,6 +1,7 @@
 (ns cljdoc.server.api
   (:require [cljdoc.server.yada-jsonista] ; extends yada multimethods
             [cljdoc.analysis.service :as analysis-service]
+            [cljdoc.util.telegram :as telegram]
             [cljdoc.util]
             [cljdoc.cache]
             [cljdoc.routes]
@@ -136,6 +137,7 @@
                      (if (analysis-service/circle-ci? analysis-service)
                        (let [build-num (-> ana-resp :body bs/to-string json/read-value (get "build_num"))
                              job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)]
+                         (telegram/build-requested project version job-url)
                          (when (= 201 (:status ana-resp))
                            (assert build-num "build number missing from CircleCI response")
                            (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}"
@@ -206,6 +208,13 @@
                           {:cljdoc-edn   cljdoc-edn
                            :grimoire-dir grimoire-dir
                            :git-repo     repo})
+
+                         (telegram/import-completed
+                          (cljdoc.routes/path-for
+                           :artifact/index
+                           {:group-id (cljdoc.util/group-id project)
+                            :artifact-id (cljdoc.util/artifact-id project)
+                            :version version}))
 
                          ;; (log/info "Rendering HTML")
                          ;; (log/info "html-dir" html-dir)

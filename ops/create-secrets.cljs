@@ -18,7 +18,10 @@
               :cloudfront-url (tf-val tf-outputs "cloudfront_url")
               :r53-hosted-zone (tf-val tf-outputs "cloudfront_url")}
         :circle-ci {:api-token js/process.env.CIRCLE_API_TOKEN
-                    :builder-project js/process.env.CIRCLE_BUILDER_PROJECT}}))
+                    :builder-project js/process.env.CIRCLE_BUILDER_PROJECT}
+
+        :telegram {:bot-token js/process.env.TELEGRAM_BOT_TOKEN
+                   :chat js/process.env.TELEGRAM_CHAT_ID}}))
 
 (def stdinput (atom []))
 
