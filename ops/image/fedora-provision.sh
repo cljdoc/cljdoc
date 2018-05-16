@@ -3,27 +3,28 @@
 set -euo pipefail
 
 username="cljdoc"
-
-dnf update -y
-
-dnf install -y git curl tmux htop
+prod_data_dir="/var/cljdoc"
 
 jdk_rpm="/tmp/jdk.rpm"
 curl -L -o "$jdk_rpm" \
      -H "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" \
-     "http://download.oracle.com/otn-pub/java/jdk/8u162-b12/0da788060d494f5095bf8624735fa2f1/jdk-8u162-linux-x64.rpm"
+     "http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/jdk-8u172-linux-x64.rpm"
 
 dnf install -y "$jdk_rpm"
 rm "$jdk_rpm"
+
+dnf update -y
+
+dnf install -y git curl tmux htop nginx certbot-nginx
 
 # User setup
 
 useradd "$username"
 
 # Fix permissions on files uploaded as part of provisioning
-chown "$username:$username" \
-      "/home/$username/CLJDOC_VERSION" \
-      "/home/$username/run-cljdoc-api.sh"
+# chown "$username:$username" \
+#       "/home/$username/CLJDOC_VERSION" \
+#       "/home/$username/run-cljdoc-api.sh"
 
 # SSH --------------------------------------------------------------------------
 mkdir /home/$username/.ssh
@@ -49,6 +50,16 @@ bootpath=/usr/local/bin/boot
 curl -sL "https://github.com/boot-clj/boot-bin/releases/download/2.7.2/boot.sh" -o "$bootpath"
 chmod +x "$bootpath"
 
+# Nginx
+
+# https://unix.stackexchange.com/questions/196907/proxy-nginx-shows-a-bad-gateway-error
+setsebool -P httpd_can_network_connect true
+mkdir /etc/nginx/sites-enabled/
+mkdir /etc/nginx/sites-available/
+
 # Cleanup -----------------------------------------------------------------------
 
 dnf clean all
+
+mkdir -p $prod_data_dir
+chown -R $username:$username $prod_data_dir
