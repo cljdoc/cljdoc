@@ -21,7 +21,7 @@
                     :builder-project js/process.env.CIRCLE_BUILDER_PROJECT}
 
         :telegram {:bot-token js/process.env.TELEGRAM_BOT_TOKEN
-                   :chat js/process.env.TELEGRAM_CHAT_ID}}))
+                   :chat-id js/process.env.TELEGRAM_CHAT_ID}}))
 
 (def stdinput (atom []))
 
