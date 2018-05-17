@@ -12,7 +12,6 @@
             [cljdoc.git-repo]
             [cljdoc.spec]
             [clojure.java.io :as io]
-            [confetti.s3-deploy :as s3]
             [aleph.http :as http]
             [yada.yada :as yada]
             [yada.request-body :as req-body]
@@ -171,7 +170,7 @@
                                   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)))
                      (assoc (:response ctx) :status (:status ci-resp))))}}})))
 
-(defn full-build-handler [{:keys [dir s3-deploy access-control]}]
+(defn full-build-handler [{:keys [dir access-control]}]
   ;; TODO assert config correctness
   (yada/handler
    (yada/resource
@@ -186,7 +185,6 @@
                            cljdoc-edn   (clojure.edn/read-string (slurp cljdoc-edn))
                            git-dir      (io/file dir (cljdoc.util/git-dir project version))
                            grimoire-dir (doto (io/file dir "grimoire") (.mkdir))
-                           html-dir     (doto (io/file dir "grimoire-html") (.mkdir))
                            scm-url      (or (cljdoc.util/scm-url (:pom cljdoc-edn))
                                             (cljdoc.util/scm-fallback project))]
 
@@ -221,22 +219,6 @@
                             :artifact-id (cljdoc.util/artifact-id project)
                             :version version}))
 
-                         ;; (log/info "Rendering HTML")
-                         ;; (log/info "html-dir" html-dir)
-                         ;; (cljdoc.cache/render
-                         ;;  (cljdoc.renderers.html/->HTMLRenderer)
-                         ;;  (cljdoc.cache/bundle-docs
-                         ;;   (cljdoc.grimoire-helpers/grimoire-store grimoire-dir)
-                         ;;   (cljdoc.grimoire-helpers/version-thing project version))
-                         ;;  {:dir html-dir})
-
-                         ;; (log/info "Deploying")
-
-                         ;; (s3/sync! (select-keys s3-deploy [:access-key :secret-key])
-                         ;;           (:bucket s3-deploy)
-                         ;;           (s3/dir->file-maps html-dir)
-                         ;;           {:report-fn #(log/info %)})
-
                          (log/infof "Done with build %s" build-id))
 
                        (assoc (:response ctx) :status 200))
@@ -252,7 +234,7 @@
 
 ;; Routes -------------------------------------------------------------
 
-(defn routes [{:keys [analysis-service dir s3-deploy]}]
+(defn routes [{:keys [analysis-service dir]}]
   [["/ping"            ping-handler]
    ["/hooks/circle-ci" (circle-ci-webhook-handler analysis-service)]
    ["/request-build"   (initiate-build-handler
@@ -262,5 +244,4 @@
                         {:analysis-service analysis-service})]
    ["/full-build"      (full-build-handler
                         {:dir dir
-                         :s3-deploy s3-deploy
                          :access-control (api-acc-control {"cljdoc" "cljdoc"})})]])
