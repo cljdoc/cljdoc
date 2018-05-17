@@ -4,9 +4,14 @@
             [clojure.tools.logging :as log]
             [clojure.string :as string])
   (:import  (org.eclipse.jgit.lib RepositoryBuilder
+                                  Repository
                                   ObjectIdRef$PeeledNonTag
                                   ObjectIdRef$PeeledTag
-                                  ObjectIdRef$Unpeeled)
+                                  ObjectIdRef$Unpeeled
+                                  Constants)
+            (org.eclipse.jgit.revwalk RevWalk)
+            (org.eclipse.jgit.treewalk TreeWalk)
+            (org.eclipse.jgit.treewalk.filter PathFilter)
             (org.eclipse.jgit.api Git TransportConfigCallback)
             (org.eclipse.jgit.transport SshTransport JschConfigSessionFactory)
             (com.jcraft.jsch JSch)
@@ -64,7 +69,7 @@
       (Git.)))
 
 (defn git-checkout-repo [^Git repo rev]
-  (printf "Checking out revision %s\n" rev)
+  (log/infof "Checking out revision %s\n" rev)
   (.. repo checkout (setName rev) call))
 
 (defn find-tag [^Git repo tag-str]
@@ -74,6 +79,10 @@
                     (str "refs/tags/" tag-str))))
        first))
 
+(defn version-tag [^Git g version-str]
+  (or (find-tag g version-str)
+      (find-tag g (str "v" version-str))))
+
 (defn git-tag-names [repo]
   (->> repo
        (.tagList)
@@ -81,8 +90,7 @@
        (map #(->> % .getName (re-matches #"refs/tags/(.*)") second))))
 
 (defn read-repo-meta [^Git repo version-str]
-  (let [tag-obj (or (find-tag repo version-str)
-                    (find-tag repo (str "v" version-str)))
+  (let [tag-obj (version-tag repo version-str)
         origin  (read-origin repo)]
     #_(assert tag-obj (format "No tag found for version-str: %s" version-str))
     (when-not tag-obj
@@ -97,6 +105,25 @@
               :tag     {:name (-> (.. tag-obj getName)
                                   (string/replace #"^refs/tags/" ""))
                         :sha  (.. tag-obj getObjectId getName)}}))))
+
+(defn slurp-file-at
+  "Read a file `f` in the Git repository `g` at revision `rev`.
+
+  If the file cannot be found, return `nil`."
+  [^Git g rev f]
+  (let [repo        (.getRepository g)
+        last-commit (.resolve repo rev)
+        rev-walk    (RevWalk. repo)
+        commit      (.parseCommit rev-walk last-commit)
+        tree        (.getTree commit)
+        tree-walk   (TreeWalk. repo)]
+    (prn 'last-commit last-commit)
+    (.addTree tree-walk tree)
+    (.setRecursive tree-walk true)
+    (.setFilter tree-walk (PathFilter/create f))
+    (when (.next tree-walk)
+      (slurp (.openStream (.open repo (.getObjectId tree-walk 0)))))))
+
 
 (defn patch-level-info
   ;; Non API documentation should be updated with new Git revisions,
@@ -118,14 +145,15 @@
   ;; https://stackoverflow.com/questions/31836087/list-all-tags-in-current-branch-with-jgit
   )
 
-(defn write-meta-for-version [store version-thing])
-
 (comment
   (def r (->repo (io/file "target/git-repo")))
   (read-repo-meta r "0.1.6")
 
   (def r (->repo (io/file "/Users/martin/code/02-oss/yada")))
   (read-repo-meta r "1.2.10")
+  (version-tag r "1.2.10")
+  (git-checkout-repo r (.getName (version-tag r "1.2.10")))
+  (slurp-file-at r "master" "doc/cljdoc.edn")
 
   (.getPeeledObjectId -t)
 
@@ -135,5 +163,9 @@
   (read-origin r)
   (find-tag r "0.1.7-alpha5")
 
+
+  (.getName (find-tag r "1.2.0"))
+
+  (read-file-at r (.getName (find-tag r "1.2.0")))
   )
 
