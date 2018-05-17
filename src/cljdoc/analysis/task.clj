@@ -58,14 +58,6 @@
             (clojure.string/replace prefix #"/" "-")
             (into-array java.nio.file.attribute.FileAttribute []))))
 
-(defn delete-directory [dir]
-  (let [{:keys [files dirs]} (group-by (fn [f]
-                                         (cond (.isDirectory f) :dirs
-                                               (.isFile f) :files))
-                                       (file-seq dir))]
-    (doseq [f files] (.delete f))
-    (doseq [d (reverse dirs)] (.delete d))))
-
 (defn analyze-impl
   [project version jar]
   {:pre [(symbol? project) (seq version) (seq jar)]}
@@ -96,7 +88,7 @@
                           :pom     (-> (cljdoc.util/find-pom-in-dir jar-contents project)
                                        (cljdoc.util.boot/parse-pom))}]
       (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
-      (delete-directory jar-contents)
+      (cljdoc.util/delete-directory jar-contents)
       (doto (io/file tmp-dir (cljdoc.util/cljdoc-edn project version))
         (io/make-parents)
         (spit (pr-str ana-result))))))
