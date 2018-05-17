@@ -11,6 +11,9 @@
 (defn artifact-id [project]
   (name (symbol project)))
 
+(defn normalize-project [project]
+  (str (group-id project) "/" (artifact-id project)))
+
 (defn codox-edn [project version]
   ;; TODO maybe delete, currently not used (like other codox stuff)
   (str "codox-edn/" project "/" version "/codox.edn"))
@@ -93,3 +96,14 @@
                                        (file-seq dir))]
     (doseq [f files] (.delete f))
     (doseq [d (reverse dirs)] (.delete d))))
+
+(defn assert-match [project version cljdoc-edn]
+  (when-not (= (normalize-project project)
+               (normalize-project (-> cljdoc-edn :pom :project)))
+    (throw (Exception. (format "Mismatch between project and pom-info: %s<>%s"
+                               (normalize-project project)
+                               (normalize-project (-> cljdoc-edn :pom :project))))))
+  (when-not (= version (-> cljdoc-edn :pom :version))
+    (throw (Exception. (format "Mismatch between version and pom-info: %s<>%s"
+                               version
+                               (-> cljdoc-edn :pom :version))))))

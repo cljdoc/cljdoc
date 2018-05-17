@@ -1,7 +1,6 @@
 (ns cljdoc.grimoire-helpers
   (:refer-clojure :exclude [import])
   (:require [clojure.tools.logging :as log]
-            [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.config :as cfg]
             [cljdoc.spec]
@@ -76,7 +75,7 @@
 (defn grimoire-store [^java.io.File dir]
   (grimoire.api.fs/->Config (.getPath dir) "" ""))
 
-(defn import-api [{:keys [platform store codox-namespaces]}]
+(defn import-api* [{:keys [platform store codox-namespaces]}]
   (grimoire.api/write-meta store platform {})
   (let [namespaces codox-namespaces]
     (doseq [ns namespaces
@@ -95,43 +94,27 @@
       (log/info "Finished namespace" (:name ns)))))
 
 (defn import-doc
-  [{:keys [version store ^Git git-repo]}]
+  [{:keys [version store doc-tree repo-meta]}]
   {:pre [(grimoire.things/version? version)
-         (some? store)
-         (some? git-repo)]}
-  (let [git-dir   (.. git-repo getRepository getWorkTree)]
-    (log/info "Writing bare meta for" (grimoire.things/thing->path version))
-    (doto store
-      (grimoire.api/write-meta (grimoire.things/thing->group version) {})
-      (grimoire.api/write-meta (grimoire.things/thing->artifact version) {})
-      (grimoire.api/write-meta version
-                               {:scm (->> (grimoire.things/thing->name version)
-                                          (git/read-repo-meta git-repo))
-                                :doc (some->> (or (get-in (cfg/config)
-                                                          [:cljdoc/hardcoded
-                                                           (->> (grimoire.things/thing->artifact version)
-                                                                (grimoire.things/thing->name))
-                                                           :cljdoc.doc/tree])
-                                                  (doctree/derive-toc git-dir))
-                                              (doctree/process-toc git-dir))}))))
+         (some? store)]}
+  (log/info "Writing bare meta for" (grimoire.things/thing->path version))
+  (doto store
+    (grimoire.api/write-meta (grimoire.things/thing->group version) {})
+    (grimoire.api/write-meta (grimoire.things/thing->artifact version) {})
+    (grimoire.api/write-meta version {:scm repo-meta, :doc doc-tree})))
 
-(defn import
-  [{:keys [cljdoc-edn grimoire-dir git-repo]}]
+(defn import-api
+  [{:keys [cljdoc-edn grimoire-dir]}]
   ;; TODO assert format of cljdoc-edn
   (let [project (-> cljdoc-edn :pom :project)
         version (-> cljdoc-edn :pom :version)
         store   (grimoire-store grimoire-dir)]
-    ;; TODO logging
-    (import-doc {:version (version-thing project version)
-                 :store store
-                 :git-repo git-repo})
 
-    ;; TODO logging
     (doseq [platf (keys (:codox cljdoc-edn))]
       (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
-      (import-api {:platform (platform-thing project version platf)
-                   :store store
-                   :codox-namespaces (get-in cljdoc-edn [:codox platf])}))))
+      (import-api* {:platform (platform-thing project version platf)
+                    :store store
+                    :codox-namespaces (get-in cljdoc-edn [:codox platf])}))))
 
 (comment
   (build-grim {:group-id "bidi"

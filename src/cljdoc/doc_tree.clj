@@ -13,27 +13,27 @@
 
 (declare process-toc)
 
-(defn process-toc-entry [base-dir [title attrs & children]]
+(defn process-toc-entry [slurp-fn [title attrs & children]]
   (cond-> {:title title}
 
     (:file attrs)
     (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
 
     (and (:file attrs) (.endsWith (:file attrs) ".adoc"))
-    (assoc-in [:attrs :cljdoc/asciidoc] (read-file (io/file base-dir (:file attrs))))
+    (assoc-in [:attrs :cljdoc/asciidoc] (slurp-fn (:file attrs)))
 
     (and (:file attrs) (or (.endsWith (:file attrs) ".md")
                            (.endsWith (:file attrs) ".markdown")))
-    (assoc-in [:attrs :cljdoc/markdown] (read-file (io/file base-dir (:file attrs))))
+    (assoc-in [:attrs :cljdoc/markdown] (slurp-fn (:file attrs)))
 
     (nil? (:slug attrs))
     (assoc-in [:attrs :slug] (slugify title))
 
     (seq children)
-    (assoc :children (process-toc base-dir children))))
+    (assoc :children (process-toc slurp-fn children))))
 
-(defn process-toc [base-dir toc]
-  (mapv #(process-toc-entry base-dir %) toc))
+(defn process-toc [slurp-fn toc]
+  (mapv #(process-toc-entry slurp-fn %) toc))
 
 (defn add-slug-path
   "For various purposes it is useful to know the path to a given document
@@ -76,12 +76,4 @@
 
 (comment
 
-  (let [yada (get known-for-testing "yada")]
-    (clojure.pprint/pprint
-     (flatten*
-      (add-slug-path
-       (process-toc (:dir yada) (:toc yada))))))
-
-  (spit "test.edn"
-        (pr-str (process-toc (:dir yada) (:toc yada))))
   )

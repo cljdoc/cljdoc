@@ -117,13 +117,16 @@
         commit      (.parseCommit rev-walk last-commit)
         tree        (.getTree commit)
         tree-walk   (TreeWalk. repo)]
-    (prn 'last-commit last-commit)
     (.addTree tree-walk tree)
     (.setRecursive tree-walk true)
     (.setFilter tree-walk (PathFilter/create f))
     (when (.next tree-walk)
       (slurp (.openStream (.open repo (.getObjectId tree-walk 0)))))))
 
+(defn read-cljdoc-config [repo rev]
+  (let [f "doc/cljdoc.edn"]
+    (or (when rev (cljdoc.git-repo/slurp-file-at repo (.getName rev) f))
+        (cljdoc.git-repo/slurp-file-at repo "master" f))))
 
 (defn patch-level-info
   ;; Non API documentation should be updated with new Git revisions,
@@ -168,4 +171,3 @@
 
   (read-file-at r (.getName (find-tag r "1.2.0")))
   )
-
