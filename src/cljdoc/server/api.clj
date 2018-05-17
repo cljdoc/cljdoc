@@ -24,26 +24,6 @@
              {:accept "application/json"
               :basic-auth [(:api-token circle-ci-config) ""]}))
 
-;; (defn get-artifacts [circle-ci-config build-num]
-;;   @(http/get (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/" build-num "/artifacts?circle-token=:token")
-;;              {:accept "application/json"
-;;               :basic-auth [(:api-token circle-ci-config) ""]}))
-
-(defn trigger-analysis-build
-  [circle-ci-config {:keys [build-id project version jarpath]}]
-  {:pre [(string? build-id) (string? project) (string? version) (string? jarpath)]}
-  (assert false "deprecated")
-  #_(if (:api-token circle-ci-config)
-    @(http/post (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/tree/master")
-                {:accept "application/json"
-                 :form-params {"build_parameters" {"CLJDOC_BUILD_ID" build-id
-                                                   "CLJDOC_PROJECT" project
-                                                   "CLJDOC_PROJECT_VERSION" version
-                                                   "CLJDOC_PROJECT_JAR" jarpath}}
-                 :basic-auth [(:api-token circle-ci-config) ""]})
-    (log/warn "No API token present to communicate with CircleCI, skipping request")))
-
-
 ;; cljdoc API client functions ---------------------------------------
 
 (defn run-full-build [params]
