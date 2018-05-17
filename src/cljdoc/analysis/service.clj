@@ -51,7 +51,7 @@
     (future
       (try
         (log/infof "Starting local analysis for %s %s %s" project version jarpath)
-        (let [cljdoc-edn-file (analysis/analyze-impl project version jarpath)]
+        (let [cljdoc-edn-file (analysis/analyze-impl (symbol project) version jarpath)]
           (log/infof "Got file from Local AnalysisService %s" cljdoc-edn-file)
           (log/info "Posting to" full-build-url)
           @(aleph.http/post full-build-url

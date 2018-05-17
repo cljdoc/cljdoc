@@ -68,10 +68,10 @@
 
 (defn analyze-impl
   [project version jar]
-  {:pre [(string? project) (seq version) (seq jar)]}
+  {:pre [(symbol? project) (seq version) (seq jar)]}
   (let [tmp-dir      (system-temp-dir (str "cljdoc-" project "-" version))
         jar-contents (io/file tmp-dir "jar-contents/")
-        grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [(symbol project) version])
+        grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                     :directories #{"src"}})
         platforms    (get-in (hardcoded-config)
                              [(cljdoc.util/artifact-id project) :cljdoc.api/platforms]
@@ -102,7 +102,7 @@
         (spit (pr-str ana-result))))))
 
 (b/deftask analyze
-  [p project PROJECT str "Project to build documentation for"
+  [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
    j jarpath JARPATH str "Absolute path to the jar (optional, local/remote)"]
   (b/with-pre-wrap fs
