@@ -305,7 +305,7 @@
              [:h3 "Other artifacts under the " (:group-id cache-id) " group"]
              [:ol.list.pl0.pv3
               (for [a (sort (:artifacts cache-contents))]
-                [:li
+                [:li.dib.mr3
                  [big-btn-link
                   {:href (r/path-for :artifact/index (assoc cache-id :artifact-id a))}
                   a]])]])]
