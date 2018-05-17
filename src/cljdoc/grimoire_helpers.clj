@@ -4,6 +4,7 @@
             [cljdoc.doc-tree :as doctree]
             [cljdoc.config :as cfg]
             [cljdoc.spec]
+            [cljdoc.util]
             [grimoire.api]
             [grimoire.api.fs]
             [grimoire.api.fs.write]

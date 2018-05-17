@@ -1,6 +1,5 @@
 (ns cljdoc.git-repo
-  (:require [cljdoc.util]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [clojure.string :as string])
   (:import  (org.eclipse.jgit.lib RepositoryBuilder

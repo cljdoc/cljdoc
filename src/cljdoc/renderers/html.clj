@@ -3,6 +3,7 @@
             [cljdoc.doc-tree :as doctree]
             [cljdoc.renderers.markup :as markup]
             [cljdoc.util.ns-tree :as ns-tree]
+            [cljdoc.util]
             [cljdoc.cache]
             [cljdoc.spec]
             [hiccup2.core :as hiccup]
