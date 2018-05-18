@@ -79,31 +79,22 @@
        first))
 
 (defn version-tag [^Git g version-str]
-  (or (find-tag g version-str)
-      (find-tag g (str "v" version-str))))
+  (when-let [tag-obj (or (find-tag g version-str)
+                         (find-tag g (str "v" version-str)))]
+    {:name (-> (.. tag-obj getName)
+               (string/replace #"^refs/tags/" ""))
+     :sha  (.. tag-obj getObjectId getName)
+     :commit (condp instance? tag-obj
+               ;; Not sure I really understand the difference between these two
+               ;; PeeledTags seem to have their own sha while PeeledNonTags dont
+               ObjectIdRef$PeeledTag    (.. tag-obj getPeeledObjectId getName)
+               ObjectIdRef$PeeledNonTag (.. tag-obj getObjectId getName))}))
 
 (defn git-tag-names [repo]
   (->> repo
        (.tagList)
        (.call)
        (map #(->> % .getName (re-matches #"refs/tags/(.*)") second))))
-
-(defn read-repo-meta [^Git repo version-str]
-  (let [tag-obj (version-tag repo version-str)
-        origin  (read-origin repo)]
-    #_(assert tag-obj (format "No tag found for version-str: %s" version-str))
-    (when-not tag-obj
-      (log/warnf "Could not find Git tag for version %s in Git repo %s" version-str origin))
-    (merge {:url     (read-origin repo)}
-           (when tag-obj
-             {:commit  (condp instance? tag-obj
-                         ;; Not sure I really understand the difference between these two
-                         ;; PeeledTags seem to have their own sha while PeeledNonTags dont
-                         ObjectIdRef$PeeledTag    (.. tag-obj getPeeledObjectId getName)
-                         ObjectIdRef$PeeledNonTag (.. tag-obj getObjectId getName))
-              :tag     {:name (-> (.. tag-obj getName)
-                                  (string/replace #"^refs/tags/" ""))
-                        :sha  (.. tag-obj getObjectId getName)}}))))
 
 (defn slurp-file-at
   "Read a file `f` in the Git repository `g` at revision `rev`.
@@ -124,8 +115,7 @@
 
 (defn read-cljdoc-config [repo rev]
   (let [f "doc/cljdoc.edn"]
-    (or (when rev (cljdoc.git-repo/slurp-file-at repo (.getName rev) f))
-        (cljdoc.git-repo/slurp-file-at repo "master" f))))
+    (cljdoc.git-repo/slurp-file-at repo (or rev "master") f)))
 
 (defn patch-level-info
   ;; Non API documentation should be updated with new Git revisions,
@@ -149,18 +139,13 @@
 
 (comment
   (def r (->repo (io/file "target/git-repo")))
-  (read-repo-meta r "0.1.6")
 
   (def r (->repo (io/file "/Users/martin/code/02-oss/yada")))
-  (read-repo-meta r "1.2.10")
   (version-tag r "1.2.10")
   (git-checkout-repo r (.getName (version-tag r "1.2.10")))
   (slurp-file-at r "master" "doc/cljdoc.edn")
 
   (.getPeeledObjectId -t)
-
-  (clojure.pprint/pprint
-   (read-repo-meta r "2.1.3"))
 
   (read-origin r)
   (find-tag r "0.1.7-alpha5")
