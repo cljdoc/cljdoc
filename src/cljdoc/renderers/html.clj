@@ -4,6 +4,7 @@
             [cljdoc.renderers.markup :as markup]
             [cljdoc.util.ns-tree :as ns-tree]
             [cljdoc.util]
+            [cljdoc.util.fixref :as fixref]
             [cljdoc.cache]
             [cljdoc.spec]
             [hiccup2.core :as hiccup]
@@ -252,7 +253,7 @@
 (defn doc-page [{:keys [top-bar-component
                         doc-tree-component
                         namespace-list-component
-                        doc-page] :as args}]
+                        doc-html] :as args}]
   [:div
    top-bar-component
    (sidebar
@@ -262,10 +263,8 @@
     {:offset "16rem"}
     [:div.mw7.center
      ;; TODO dispatch on a type parameter that becomes part of the attrs map
-     (or (when-let [md (some-> doc-page :attrs :cljdoc/markdown)]
-           [:div.markdown.lh-copy.pv4 (-> md markup/markdown-to-html hiccup/raw)])
-         (when-let [adoc (some-> doc-page :attrs :cljdoc/asciidoc)]
-           [:div.asciidoc.lh-copy.pv4 (-> adoc markup/asciidoc-to-html hiccup/raw)])
+     (or (when doc-html
+           [:div.markdown.lh-copy.pv4 (hiccup/raw doc-html)])
          [:div.lh-copy.pv6.tc
           #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
           [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
@@ -329,13 +328,19 @@
         doc-p (->> doc-tree
                    doctree/flatten*
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
-                   first)]
+                   first)
+        doc-p-html (or (when-let [md (some-> doc-p :attrs :cljdoc/markdown)]
+                         (fixref/fix (-> doc-page :attrs :cljdoc.doc/source-file)
+                                     (-> md markup/markdown-to-html)
+                                     {:scm (:scm (:version cache-contents))}))
+                       (when-let [adoc (some-> doc-p :attrs :cljdoc/asciidoc)]
+                         (-> adoc markup/asciidoc-to-html)))]
     (->> (doc-page {:top-bar-component (top-bar cache-id (:version cache-contents))
                     :doc-tree-component (doc-tree-view cache-id doc-tree doc-slug-path)
                     :namespace-list-component (namespace-list
                                                {}
                                                (cljdoc.cache/namespaces cache-bundle))
-                    :doc-page doc-p})
+                    :doc-html doc-p-html})
          (page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
 (defmethod render :artifact/namespace
