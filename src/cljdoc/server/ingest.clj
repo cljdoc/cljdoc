@@ -51,7 +51,8 @@
                          (fn slurp-at-rev [f]
                            (git/slurp-file-at
                             repo (or (:name version-tag) "master") f))
-                         (:cljdoc.doc/tree config-edn))})
+                         (or (:cljdoc.doc/tree config-edn)
+                             (doctree/derive-toc git-dir)))})
 
         (log/info "Importing API into Grimoire")
         (cljdoc.grimoire-helpers/import-api
