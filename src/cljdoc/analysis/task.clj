@@ -83,10 +83,7 @@
     (let [cdx-namespaces (->> (map #(build-cdx (.getPath jar-contents) %) platforms)
                               (zipmap platforms))
           ana-result     {:codox cdx-namespaces
-                          ;; TODO do not parse pom here, defer to trusted env for that
-                          :pom-str (slurp (cljdoc.util/find-pom-in-dir jar-contents project))
-                          :pom     (-> (cljdoc.util/find-pom-in-dir jar-contents project)
-                                       (cljdoc.util.boot/parse-pom))}]
+                          :pom-str (slurp (cljdoc.util/find-pom-in-dir jar-contents project))}]
       (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
       (cljdoc.util/delete-directory jar-contents)
       (doto (io/file tmp-dir (cljdoc.util/cljdoc-edn project version))

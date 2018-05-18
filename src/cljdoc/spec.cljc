@@ -136,11 +136,11 @@
 (s/def :cljdoc.cljdoc-edn/codox
   (s/map-of ::platform (s/coll-of :cljdoc.codox/namespace)))
 
-(s/def :cljdoc.cljdoc-edn/pom map?)
+(s/def :cljdoc.cljdoc-edn/pom-str string?)
 
 (s/def :cljdoc/cljdoc-edn
   (s/keys :req-un [:cljdoc.cljdoc-edn/codox
-                   :cljdoc.cljdoc-edn/pom]))
+                   :cljdoc.cljdoc-edn/pom-str]))
 
 
 ;; grimoire -----------------------------------------------------------
