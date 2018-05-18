@@ -263,11 +263,11 @@
     {:offset "16rem"}
     [:div.mw7.center
      ;; TODO dispatch on a type parameter that becomes part of the attrs map
-     (or (when doc-html
-           [:div.markdown.lh-copy.pv4 (hiccup/raw doc-html)])
-         [:div.lh-copy.pv6.tc
-          #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
-          [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
+     (if doc-html
+       [:div.markdown.lh-copy.pv4 (hiccup/raw doc-html)]
+       [:div.lh-copy.pv6.tc
+        #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
+        [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
 
 (defn render-to [opts hiccup ^java.io.File file]
   (log/info "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
