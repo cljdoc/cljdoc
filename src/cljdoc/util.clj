@@ -62,6 +62,12 @@
          (:url pom-map))
    (clojure.string/replace #"^http://" "https://"))) ;; TODO HACK
 
+(defn ensure-https [s]
+  (clojure.string/replace s #"^http://" "https://"))
+
+(defn gh-url? [s]
+  (some-> s (.contains "github.com")))
+
 (defn version-tag? [pom-version tag]
   (or (= pom-version tag)
       (= (str "v" pom-version) tag)))
@@ -97,13 +103,17 @@
     (doseq [f files] (.delete f))
     (doseq [d (reverse dirs)] (.delete d))))
 
-(defn assert-match [project version cljdoc-edn]
-  (when-not (= (normalize-project project)
-               (normalize-project (-> cljdoc-edn :pom :project)))
-    (throw (Exception. (format "Mismatch between project and pom-info: %s<>%s"
-                               (normalize-project project)
-                               (normalize-project (-> cljdoc-edn :pom :project))))))
-  (when-not (= version (-> cljdoc-edn :pom :version))
-    (throw (Exception. (format "Mismatch between version and pom-info: %s<>%s"
-                               version
-                               (-> cljdoc-edn :pom :version))))))
+;; (defn assert-match [project version artifact-enitity]
+;;   (assert (and (:group-id artifact-entity)
+;;                (:artifact-id artifact-entity)
+;;                (:version artifact-entity))
+;;           (format "Malformed artifact entity %s" artifact-entity))
+;;   (when-not (and (= (group-id project) (:group-id artifact-entity))
+;;                  (= (artifact-id project) (:artifact-id artifact-entity)))
+;;     (throw (Exception. (format "Mismatch between project and pom-info: %s<>%s"
+;;                                (normalize-project project)
+;;                                (normalize-project (-> cljdoc-edn :pom :project))))))
+;;   (when-not (= version (-> cljdoc-edn :pom :version))
+;;     (throw (Exception. (format "Mismatch between version and pom-info: %s<>%s"
+;;                                version
+;;                                (-> cljdoc-edn :pom :version))))))

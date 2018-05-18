@@ -159,7 +159,8 @@
                    (let [{:keys [project version build-id cljdoc-edn]} (get-in ctx [:parameters :form])
                          cljdoc-edn (clojure.edn/read-string (slurp cljdoc-edn))]
 
-                     (cljdoc.util/assert-match project version cljdoc-edn)
+                     ;; TODO put this back in place
+                     ;; (cljdoc.util/assert-match project version cljdoc-edn)
                      (ingest/ingest-cljdoc-edn dir cljdoc-edn)
                      (assoc (:response ctx) :status 200)))}}})))
 
