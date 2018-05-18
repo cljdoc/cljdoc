@@ -9,7 +9,17 @@
             [cljdoc.git-repo :as git]
             [cljdoc.spec]))
 
-(defn ingest-cljdoc-edn [data-dir cljdoc-edn]
+(defn ingest-cljdoc-edn
+  "Ingest all the information in the passed `cljdoc-edn` data.
+
+  This is a large function, doing the following:
+  - parse pom.xml from `:pom-str` key
+  - assert that the format of `cljdoc-edn` is correct
+  - clone the git repo of the project to local disk
+  - read the `doc/cljdoc.edn` configuration file from the projects git repo
+  - store articles and other version specific data in grimoire
+  - store API data in grimoire"
+  [data-dir cljdoc-edn]
   (let [pom-doc      (pom/parse (:pom-str cljdoc-edn))
         artifact     (pom/artifact-info pom-doc)
         scm-info     (pom/scm-info pom-doc)
