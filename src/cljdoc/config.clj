@@ -23,12 +23,6 @@
   {:api-token       (get-in (config) [:secrets :circle-ci :api-token])
    :builder-project (get-in (config) [:secrets :circle-ci :builder-project])})
 
-(defn s3-deploy []
-  {:access-key    (get-in (config) [:secrets :aws :access-key])
-   :secret-key    (get-in (config) [:secrets :aws :secret-key])
-   :cloudfront-id (get-in (config) [:secrets :aws :cloudfront-id])
-   :bucket        (get-in (config) [:secrets :aws :s3-bucket-name])})
-
 (defn analysis-service []
   (get-in (config) [:cljdoc/server :analysis-service]))
 

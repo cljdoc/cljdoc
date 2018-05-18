@@ -20,8 +20,7 @@
                       :handler (ig/ref :cljdoc/handler)}
      :cljdoc/handler (-> {}
                          (assoc :dir (cfg/get-in env-config [:cljdoc/server :dir]))
-                         (assoc :analysis-service (ig/ref :cljdoc/analysis-service))
-                         (assoc :s3-deploy (cfg/s3-deploy)))
+                         (assoc :analysis-service (ig/ref :cljdoc/analysis-service)))
      :cljdoc/analysis-service (case ana-service
                                 :local     [:local {:full-build-url (str "http://localhost:" port "/api/full-build")}]
                                 :circle-ci [:circle-ci (cfg/circle-ci)])}))
