@@ -95,14 +95,16 @@
       (log/info "Finished namespace" (:name ns)))))
 
 (defn import-doc
-  [{:keys [version store doc-tree repo-meta]}]
+  [{:keys [version store doc-tree git-meta]}]
   {:pre [(grimoire.things/version? version)
-         (some? store)]}
+         (some? store)
+         (some? git-meta)
+         (some? doc-tree)]}
   (log/info "Writing bare meta for" (grimoire.things/thing->path version))
   (doto store
     (grimoire.api/write-meta (grimoire.things/thing->group version) {})
     (grimoire.api/write-meta (grimoire.things/thing->artifact version) {})
-    (grimoire.api/write-meta version {:scm repo-meta, :doc doc-tree})))
+    (grimoire.api/write-meta version {:scm git-meta, :doc doc-tree})))
 
 (defn import-api
   [{:keys [version codox grimoire-dir]}]

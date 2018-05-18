@@ -56,7 +56,7 @@
      [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
      [:span.dib (if-let [scm-url (-> version-meta :scm :url)]
                   (subs scm-url 19)
-                  (log/error "SCM Url missing from version-meta" version-meta))]]]])
+                  (log/error "SCM Url missing from version-meta" (:scm version-meta)))]]]])
 
 (defn def-block [platforms]
   (assert (coll? platforms) "def meta is not a map")
@@ -323,6 +323,7 @@
 
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  (assert (:doc-slug-path route-params))
   (let [doc-slug-path (:doc-slug-path route-params)
         doc-tree (doctree/add-slug-path (-> cache-contents :version :doc))
         doc-p (->> doc-tree
@@ -376,7 +377,7 @@
     ;; Documentation Pages / Articles
     (doseq [doc-p (-> doc-tree doctree/flatten*)]
       (log/info "Rendering Doc Page" (dissoc doc-p :attrs))
-      (->> (str (render :artifact/doc {:doc-slug-path (:slug-path doc-p)} cache-bundle))
+      (->> (str (render :artifact/doc {:doc-slug-path (:slug-path (:attrs doc-p))} cache-bundle))
            (spit (->> (-> doc-p :attrs :slug-path)
                       (clojure.string/join "/")
                       (assoc cache-id :doc-page)
