@@ -20,7 +20,6 @@ boot \
     --source-paths src \
     --resource-paths resources \
     --init "(require 'cljdoc.analysis.task)" \
-    cljdoc.analysis.task/copy-jar-contents --jar "$jar_path" \
-    cljdoc.analysis.task/analyze -p "$project" -v "$version" \
+    cljdoc.analysis.task/analyze -p "$project" -v "$version" -j "$jar_path"\
     sift --include "^cljdoc-edn" \
     target -d /tmp/cljdoc-target/
