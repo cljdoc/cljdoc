@@ -51,43 +51,17 @@ I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blo
 
 ## Quickstart for potential contributors
 
-- `build.boot` contains various entry points into the code, most interesting is probably `build-docs` which you can run with
+```
+boot run
+```
 
-      boot build-docs --project bidi --version 2.1.3 target
-  - After that there will be a bunch of stuff in `target/` which you may want to look at.
-  - There are various sub-tasks that address different aspects of building documentation.  I hope reading `build-docs` will give you a quick overview about all the things going on.
-- There are various specs defined in `cljdoc.spec`.
-- Code that needs to be loaded for analysis is in `cljdoc.analysis`.
-- The cache that serves as input to renderers is defined in `cljdoc.cache`
-- Overall resource/routing model is defined in `cljdoc.routes`.
+After that the server will start under http://localhost:8000/. You can
+navigate to a projects documentation page like
+http://localhost:8000/d/bidi/bidi/2.1.3/ and request a build. This
+will analyze Bidi's source code locally and store the result. After
+that is done you can reload the page and view the documentation.
 
-I often choose to refer to functions with their fully qualified name. I hope this makes reading the code easier.
-
-I outlined some areas that could use help in [`CONTRIBUTING.md`](https://github.com/martinklepsch/cljdoc/blob/master/CONTRIBUTING.md)
-
-### Configuration
-
-We use [`aero`](https://github.com/juxt/aero) for configuration and several modes of operation are possible:
-
-- You should always, **without any further steps** be able to clone this
-  repo and generate documentation locally using:
-
-  ```clojure
-  boot build-docs --project bidi --version 2.1.3 target
-  ```
-  If this does not work, it's a bug.
-- The [cljdoc API server](/doc/server.md) requires some additional
-  configuration as it will upload files to an S3 bucket and run analysis
-  of jars on CircleCI instead of on the local machine.
-  The additional configration can be placed into
-  `resources/secrets.edn` or supplied via the environment variables
-  specified in that file. Once these steps are completed you should be
-  able to run the server using
-
-  ```clojure
-  CLJDOC_PROFILE=live boot start-api
-  ```
-
+Logs can be viewed with `tail -f log/cljdoc.log`.
 
 ## License
 

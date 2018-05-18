@@ -97,7 +97,7 @@
         (grimoire-html :project project :version version)
         (sift :move {#"^public/" "grimoire-html/"})))
 
-(deftask start-api []
+(deftask run []
   (comp (with-pass-thru _
           (integrant.core/init
            (cljdoc.server.system/system-config
