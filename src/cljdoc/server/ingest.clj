@@ -42,9 +42,10 @@
                             repo (if version-tag (.getName version-tag) "master") f))
                          (:cljdoc.doc/tree config-edn))})
 
-        (log/info "Importing into Grimoire")
+        (log/info "Importing API into Grimoire")
         (cljdoc.grimoire-helpers/import-api
-         {:cljdoc-edn   cljdoc-edn
+         {:version      (cljdoc.grimoire-helpers/version-thing project version)
+          :codox        (:codox cljdoc-edn)
           :grimoire-dir grimoire-dir})
 
         (telegram/import-completed

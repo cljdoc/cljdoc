@@ -105,17 +105,17 @@
     (grimoire.api/write-meta version {:scm repo-meta, :doc doc-tree})))
 
 (defn import-api
-  [{:keys [cljdoc-edn grimoire-dir]}]
+  [{:keys [version codox grimoire-dir]}]
   ;; TODO assert format of cljdoc-edn
-  (let [project (-> cljdoc-edn :pom :project)
-        version (-> cljdoc-edn :pom :version)
+  (let [;project (-> cljdoc-edn :pom :project)
+        ;version (-> cljdoc-edn :pom :version)
         store   (grimoire-store grimoire-dir)]
 
-    (doseq [platf (keys (:codox cljdoc-edn))]
+    (doseq [platf (keys codox)]
       (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
-      (import-api* {:platform (platform-thing project version platf)
+      (import-api* {:platform (grimoire.things/->Platform version platf)
                     :store store
-                    :codox-namespaces (get-in cljdoc-edn [:codox platf])}))))
+                    :codox-namespaces (get codox platf)}))))
 
 (comment
   (build-grim {:group-id "bidi"
