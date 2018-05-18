@@ -100,7 +100,7 @@
          (some? store)
          (some? git-meta)
          (some? doc-tree)]}
-  (log/info "Writing bare meta for" (grimoire.things/thing->path version))
+  (log/info "Writing bare meta for" (grimoire.things/thing->path version) {:scm git-meta})
   (doto store
     (grimoire.api/write-meta (grimoire.things/thing->group version) {})
     (grimoire.api/write-meta (grimoire.things/thing->artifact version) {})
