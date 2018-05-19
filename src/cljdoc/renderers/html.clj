@@ -71,6 +71,12 @@
    [:code.db.mb2 {:class "language-clojure"}
     content]])
 
+(defn def-code-block
+  [content]
+  [:pre
+   [:code.db.mb2 {:class "language-clojure"}
+    content]])
+
 (defn def-block [platforms]
   (assert (coll? platforms) "def meta is not a map")
   ;; Currently we just render any platform, this obviously
