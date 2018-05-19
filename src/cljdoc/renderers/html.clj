@@ -13,7 +13,12 @@
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
 
-(def github-url "https://github.com/martinklepsch/cljdoc/issues")
+(defn github-url [type]
+  (let [base "https://github.com/martinklepsch/cljdoc"]
+    (case type
+      :issues             (str base "/issues")
+      :userguide/articles (str base "/blob/master/doc/userguide/articles.md")
+      :userguide/scm-faq  (str base "/blob/master/doc/userguide/faq.md#how-do-i-set-scm-info-for-my-project"))))
 
 (defn page [opts contents]
   (hiccup/html {:mode :html}
@@ -54,7 +59,7 @@
     (:version cache-id)]
    [:span.dib.v-mid.mr3.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "Non official"]
    [:a.black.no-underline.ttu.fw5.f7.tracked.pv1.ph2.dim
-    {:href github-url}
+    {:href (github-url :issues)}
     "Help Develop cljdoc"]
    [:div.tr
     {:style {:flex-grow 1}}
@@ -135,7 +140,13 @@
 (defn article-list [doc-tree]
   [:div
    (sidebar-title "Articles")
-   doc-tree])
+   (or doc-tree
+       [:p.pl2.f7.gray [:a.blue.link {:href (github-url
+       :userguide/articles)} "Articles"] " are a practical way to
+       provide additional guidance beyond API documentation. To use
+       them, please ensure you " [:a.blue.link {:href (github-url
+       :userguide/scm-faq)} "properly set SCM info"] " in your
+       project."])])
 
 (defn humanize-supported-platforms
   ([supported-platforms]
@@ -251,17 +262,18 @@
 
 (defn doc-tree-view
   [cache-id doc-bundle current-page]
-  (->> doc-bundle
-       (map (fn [doc-page]
-              (let [slug-path (-> doc-page :attrs :slug-path)]
-                [:li
-                 [:a.link.blue.dib.pa1
-                  {:href  (doc-link cache-id slug-path)
-                   :class (if (= current-page slug-path) "fw7" "link dim")}
-                  (:title doc-page)]
-                 (when (subseq? current-page slug-path)
-                   (doc-tree-view cache-id (:children doc-page) current-page))])))
-       (into [:ul.list.pl2])))
+  (when (seq doc-bundle)
+    (->> doc-bundle
+         (map (fn [doc-page]
+                (let [slug-path (-> doc-page :attrs :slug-path)]
+                  [:li
+                   [:a.link.blue.dib.pa1
+                    {:href  (doc-link cache-id slug-path)
+                     :class (if (= current-page slug-path) "fw7" "link dim")}
+                    (:title doc-page)]
+                   (when (subseq? current-page slug-path)
+                     (doc-tree-view cache-id (:children doc-page) current-page))])))
+         (into [:ul.list.pl2]))))
 
 (defn doc-page [{:keys [top-bar-component
                         doc-tree-component
@@ -430,14 +442,14 @@
            [:input.ph3.pv2.mr2.br2.ba.b--blue.bg-white.blue.ttu.pointer.b {:type "submit" :value "build"}]]
           [:div
            [:p "We also can't find it on Clojars, which at this time, is required to build documentation."]
-           [:p [:a.no-underline.blue {:href github-url} "Let us know if this is unexpected."]]])]
+           [:p [:a.no-underline.blue {:href (github-url :issues)} "Let us know if this is unexpected."]]])]
        (page {:title (str "Build docs for " (clojars-id route-params))})))
 
 (defn build-submitted-page [circle-job-url]
   (->> [:div.pa4-ns.pa2
         [:h1 "Thanks for using cljdoc!"]
         [:p "Your documentation build is " [:a.link.blue.no-underline {:href circle-job-url} "in progress"]]
-        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href github-url} "reach out."]]]
+        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href (github-url :issues)} "reach out."]]]
        (page {:title "Build submitted"})))
 
 (defn local-build-submitted-page []
@@ -446,7 +458,7 @@
         [:p "Check the logs to see how it's progressing. Errors will be logged there too."]
         [:div.markdown
          [:pre [:code "tail -f log/cljdoc.log"]]]
-        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href github-url} "reach out."]]]
+        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href (github-url :issues)} "reach out."]]]
        (page {:title "Build submitted"})))
 
 (comment
