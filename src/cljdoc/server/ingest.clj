@@ -25,8 +25,10 @@
         scm-info     (pom/scm-info pom-doc)
         project      (str (:group-id artifact) "/" (:artifact-id artifact))
         version      (:version artifact)
+        v-thing      (cljdoc.grimoire-helpers/version-thing project version)
         git-dir      (io/file data-dir (cljdoc.util/git-dir project version))
-        grimoire-dir (doto (io/file data-dir "grimoire") (.mkdir))
+        store        (cljdoc.grimoire-helpers/grimoire-store
+                      (doto (io/file data-dir "grimoire") (.mkdir)))
         scm-url      (some-> (or (:url scm-info)
                                  (if (util/gh-url? (:url artifact))
                                    (:url artifact))
@@ -37,47 +39,50 @@
       (log/info "Verifying cljdoc-edn contents against spec")
       (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
 
-      (when-not scm-url
-        (throw (ex-info (str "Could not find SCM URL for project " project) {})))
-      (log/info "Cloning Git repo" scm-url)
-      (git/clone scm-url git-dir)
+      (cljdoc.grimoire-helpers/write-bare store v-thing)
 
-      (let [repo        (git/->repo git-dir)
-            version-tag (git/version-tag repo version)
-            pom-scm-sha (:sha scm-info)
-            config-edn  (clojure.edn/read-string (git/read-cljdoc-config repo (:name version-tag)))]
+      (log/info "Importing API into Grimoire")
+      (cljdoc.grimoire-helpers/import-api
+       {:version      v-thing
+        :codox        (:codox cljdoc-edn)
+        :store        store})
 
-        (when-not version-tag
-          (do (log/warnf "No version tag found for version %s in %s\n" version scm-url)
-              (telegram/no-version-tag project version scm-url)))
+      (if-not scm-url
+        (log/warnf "Could not find SCM URL for project %s v%s" project version)
+        (do 
+          (log/info "Cloning Git repo" scm-url)
+          (git/clone scm-url git-dir)
 
-        (log/info "Importing Articles into Grimoire")
-        (cljdoc.grimoire-helpers/import-doc
-         {:version      (cljdoc.grimoire-helpers/version-thing project version)
-          :store        (cljdoc.grimoire-helpers/grimoire-store grimoire-dir)
-          :git-meta     {:url scm-url
-                         :tag (git/version-tag repo version)}
-          :doc-tree     (doctree/process-toc
-                         (fn slurp-at-rev [f]
-                           (git/slurp-file-at
-                            repo (or (:name version-tag) "master") f))
-                         (or (:cljdoc.doc/tree config-edn)
-                             (doctree/derive-toc git-dir)))})
+          ;; Stuff that depends on a SCM url being present
+          (let [repo        (git/->repo git-dir)
+                version-tag (git/version-tag repo version)
+                pom-scm-sha (:sha scm-info)
+                config-edn  (clojure.edn/read-string (git/read-cljdoc-config repo (:name version-tag)))]
 
-        (log/info "Importing API into Grimoire")
-        (cljdoc.grimoire-helpers/import-api
-         {:version      (cljdoc.grimoire-helpers/version-thing project version)
-          :codox        (:codox cljdoc-edn)
-          :grimoire-dir grimoire-dir})
+            (when-not version-tag
+              (do (log/warnf "No version tag found for version %s in %s\n" version scm-url)
+                  (telegram/no-version-tag project version scm-url)))
 
-        (telegram/import-completed
-         (cljdoc.routes/path-for
-          :artifact/version
-          {:group-id    (:group-id artifact)
-           :artifact-id (:artifact-id artifact)
-           :version version}))
+            (log/info "Importing Articles into Grimoire")
+            (cljdoc.grimoire-helpers/import-doc
+             {:version      v-thing
+              :store        store
+              :git-meta     {:url scm-url
+                             :tag (git/version-tag repo version)}
+              :doc-tree     (doctree/process-toc
+                             (fn slurp-at-rev [f]
+                               (git/slurp-file-at
+                                repo (or (:name version-tag) "master") f))
+                             (or (:cljdoc.doc/tree config-edn)
+                                 (doctree/derive-toc git-dir)))}))))
 
-        (log/infof "Done with build for %s %s" project version))
+      (log/infof "Done with build for %s %s" project version)
+      (telegram/import-completed
+       (cljdoc.routes/path-for
+        :artifact/version
+        {:group-id    (:group-id artifact)
+         :artifact-id (:artifact-id artifact)
+         :version version}))
 
       (catch Throwable t
         (throw (ex-info "Exception while running full build" {:project project :version version} t)))

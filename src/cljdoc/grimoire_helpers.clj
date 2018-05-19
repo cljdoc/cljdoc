@@ -94,30 +94,31 @@
                             e)))))
       (log/info "Finished namespace" (:name ns)))))
 
+(defn write-bare
+  [store version]
+  {:pre [(grimoire.things/version? version)]}
+  (doto store
+    (grimoire.api/write-meta (grimoire.things/thing->group version) {})
+    (grimoire.api/write-meta (grimoire.things/thing->artifact version) {})
+    (grimoire.api/write-meta version {})))
+
 (defn import-doc
   [{:keys [version store doc-tree git-meta]}]
   {:pre [(grimoire.things/version? version)
          (some? store)
          (some? git-meta)
          (some? doc-tree)]}
-  (log/info "Writing bare meta for" (grimoire.things/thing->path version) {:scm git-meta})
-  (doto store
-    (grimoire.api/write-meta (grimoire.things/thing->group version) {})
-    (grimoire.api/write-meta (grimoire.things/thing->artifact version) {})
-    (grimoire.api/write-meta version {:scm git-meta, :doc doc-tree})))
+  (log/info "Writing doc meta for" (grimoire.things/thing->path version) {:scm git-meta})
+  (grimoire.api/write-meta store version {:scm git-meta, :doc doc-tree}))
 
 (defn import-api
-  [{:keys [version codox grimoire-dir]}]
+  [{:keys [version codox store]}]
   ;; TODO assert format of cljdoc-edn
-  (let [;project (-> cljdoc-edn :pom :project)
-        ;version (-> cljdoc-edn :pom :version)
-        store   (grimoire-store grimoire-dir)]
-
-    (doseq [platf (keys codox)]
-      (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
-      (import-api* {:platform (grimoire.things/->Platform version platf)
-                    :store store
-                    :codox-namespaces (get codox platf)}))))
+  (doseq [platf (keys codox)]
+    (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
+    (import-api* {:platform (grimoire.things/->Platform version platf)
+                  :store store
+                  :codox-namespaces (get codox platf)})))
 
 (comment
   (build-grim {:group-id "bidi"
