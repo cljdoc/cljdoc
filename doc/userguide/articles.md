@@ -1,6 +1,6 @@
 # Articles
 
-Besides API documentatino cljdoc allows you to publish guides and
+Besides API documentation cljdoc allows you to publish guides and
 articles to help users work with your library. Articles can be
 provided through your projects Git repository using a configuration
 file `doc/cljdoc.edn` (if this file is not present we will try to
