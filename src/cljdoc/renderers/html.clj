@@ -63,12 +63,12 @@
     "Help Develop cljdoc"]
    [:div.tr
     {:style {:flex-grow 1}}
-    [:a.link.dim.gray.f6.tr
-     {:href (-> version-meta :scm :url)}
-     [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
-     [:span.dib (if-let [scm-url (-> version-meta :scm :url)]
-                  (subs scm-url 19)
-                  (log/error "SCM Url missing from version-meta" (:scm version-meta)))]]]])
+    (if-let [scm-url (-> version-meta :scm :url)]
+      [:a.link.dim.gray.f6.tr
+       {:href scm-url}
+       [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
+       [:span.dib (subs scm-url 19)]]
+      [:a.f6.link.blue {:href (github-url :userguide/scm-faq)} "SCM info missing"])]])
 
 (defn def-code-block
   [content]
