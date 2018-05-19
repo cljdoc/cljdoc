@@ -4,6 +4,8 @@ Short answers to common questions.
 
 # How do I set SCM info for my project?
 
+Source Control Management (SCM) info is information about where the source of your project is stored.
+
 - **Leiningen**: Add a `:scm` key to your `defproject`, see [sample.project.clj](https://github.com/technomancy/leiningen/blob/master/sample.project.clj#L476).
 - **Boot**: Pass the `:scm` option to the `pom` task, see [example](https://github.com/martinklepsch/derivatives/blob/f9cc6be8eeaf21513641cb09d5a466e34ecdd565/build.boot#L18-L23).
 
