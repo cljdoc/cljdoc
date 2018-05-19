@@ -18,8 +18,7 @@ This document is intended to give an overview around the various libraries and n
 ### Running the server
 
 ```sh
-# Note that this requires various secrets (see secrets.edn)
-CLJDOC_PROFILE=live boot start-api
+boot run
 ```
 
 ### Future plans

@@ -18,4 +18,4 @@ fi
 pushd "cljdoc-$version"
 
 echo "Starting process"
-CLJDOC_PROFILE=prod CLJDOC_ANALYSIS_SERVICE=circle-ci BOOT_JVM_OPTIONS=-Xmx1400m boot start-api
+CLJDOC_PROFILE=prod CLJDOC_ANALYSIS_SERVICE=circle-ci BOOT_JVM_OPTIONS=-Xmx1400m boot run
