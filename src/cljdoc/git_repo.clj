@@ -115,7 +115,8 @@
 
 (defn read-cljdoc-config [repo rev]
   (let [f "doc/cljdoc.edn"]
-    (cljdoc.git-repo/slurp-file-at repo (or rev "master") f)))
+    (or (cljdoc.git-repo/slurp-file-at repo rev f)
+        (cljdoc.git-repo/slurp-file-at repo "master" f))))
 
 (defn patch-level-info
   ;; Non API documentation should be updated with new Git revisions,
@@ -144,6 +145,8 @@
   (version-tag r "1.2.10")
   (git-checkout-repo r (.getName (version-tag r "1.2.10")))
   (slurp-file-at r "master" "doc/cljdoc.edn")
+
+  (read-cljdoc-config (->repo (io/file "/Users/martin/code/02-oss/reitit")) "0.1.0")
 
   (.getPeeledObjectId -t)
 
