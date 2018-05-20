@@ -356,9 +356,11 @@
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
         doc-p-html (or (when-let [md (some-> doc-p :attrs :cljdoc/markdown)]
-                         (fixref/fix (-> doc-page :attrs :cljdoc.doc/source-file)
+                         (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                      (-> md markup/markdown-to-html)
-                                     {:scm (:scm (:version cache-contents))}))
+                                     {:scm (:scm (:version cache-contents))
+                                      :artifact-entity cache-id
+                                      :flattened-doctree (doctree/flatten* doc-tree)}))
                        (when-let [adoc (some-> doc-p :attrs :cljdoc/asciidoc)]
                          (-> adoc markup/asciidoc-to-html)))]
     (->> (doc-page {:top-bar-component (top-bar cache-id (:version cache-contents))
