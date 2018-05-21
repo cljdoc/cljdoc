@@ -66,10 +66,10 @@
         grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                     :directories #{"src"}})
         platforms    (get-in (hardcoded-config)
-                             [(cljdoc.util/artifact-id project) :cljdoc.api/platforms]
+                             [(cljdoc.util/normalize-project project) :cljdoc.api/platforms]
                              (cljdoc.util/infer-platforms-from-src-dir jar-contents))
         namespaces   (get-in (hardcoded-config)
-                             [(cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
+                             [(cljdoc.util/normalize-project project) :cljdoc.api/namespaces])
         build-cdx      (fn build-cdx [jar-contents-path platf]
                          (pod/with-eval-in grimoire-pod
                            (require 'cljdoc.analysis.impl)
