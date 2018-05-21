@@ -31,6 +31,7 @@
     [yada/lean "1.2.11"]
     [org.clojure/tools.logging "0.4.0"]
     [metosin/jsonista "0.1.1"]
+    [funcool/cuerdas "2.0.5"]
     [spootnik/unilog "0.7.22"]
     [org.jsoup/jsoup "1.11.3"]
     [expound "0.6.0"]])

@@ -1,15 +1,10 @@
 (ns cljdoc.doc-tree
   (:require [clojure.java.io :as io]
-            #_[cljdoc.routes :as routes]))
+            [cuerdas.core :as cuerdas]))
 
 (defn read-file [f]
   (assert (.exists f) (format "File supplied in doctree does not exist %s" f))
   (-> f slurp #_(subs 0 20)))
-
-(defn slugify [s]
-  (-> s
-      (clojure.string/replace #"\s" "-")
-      (clojure.string/lower-case)))
 
 (declare process-toc)
 
@@ -27,7 +22,7 @@
     (assoc-in [:attrs :cljdoc/markdown] (slurp-fn (:file attrs)))
 
     (nil? (:slug attrs))
-    (assoc-in [:attrs :slug] (slugify title))
+    (assoc-in [:attrs :slug] (cuerdas/uslug title))
 
     (seq children)
     (assoc :children (process-toc slurp-fn children))))
@@ -63,16 +58,6 @@
                          (filter #(.startsWith (.toLowerCase %) "readme"))
                          first)]
     [["Readme" {:file readme}]]))
-
-#_(defn uri-mapping [cache-id docs]
-  (->> docs
-       (map (fn [d]
-              [(-> d :attrs :cljdoc.doc/source-file)
-               (->> (-> d :attrs :slug-path)
-                    (clojure.string/join "/")
-                    (assoc cache-id :doc-page)
-                    (routes/path-for :artifact/doc))]))
-       (into {})))
 
 (comment
 
