@@ -505,7 +505,8 @@
            "\n     (:group-id your-project)"
            "\n     (:artifact-id your-project)"
            "\n     (:version your-project))"]]
-         [:p.lh-copy.f6.mid-gray [:span.fw5 "Tip: "] "If your project name does not contain a slash, group and artifact ID are the same."]]
+         [:p.lh-copy.f6.mid-gray [:span.fw5 "Tip: "] "If your project name does not contain a slash, group and artifact ID are the same."]
+         [:p.lh-copy "After you've done that you may want to " [:a.link.blue {:href (github-url :userguide/articles)} "add additional articles to the sidebar."]]]
 
         [:div.mid-gray.mt4
          [:span.db.nb3 "—"]
