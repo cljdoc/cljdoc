@@ -71,6 +71,7 @@
         namespaces   (get-in (hardcoded-config)
                              [(cljdoc.util/normalize-project project) :cljdoc.api/namespaces])
         build-cdx      (fn build-cdx [jar-contents-path platf]
+                         (println "Analyzing" project platf)
                          (pod/with-eval-in grimoire-pod
                            (require 'cljdoc.analysis.impl)
                            (cljdoc.analysis.impl/codox-namespaces
