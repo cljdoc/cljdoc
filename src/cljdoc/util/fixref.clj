@@ -76,7 +76,7 @@
                              (remove #(absolute-uri? (.get % "href"))))]
       (.put broken-link "href" (fix-link file-path
                                          (.get broken-link "href")
-                                         {:scm-base (str (:url scm) "/blob/" (:sha scm) "/")
+                                         {:scm-base (str (:url scm) "/blob/" (:name (:tag scm)) "/")
                                           :uri-map uri-map})))
 
     (doseq [broken-img (->> (.select doc "img")
