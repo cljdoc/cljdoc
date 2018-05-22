@@ -115,10 +115,10 @@
           (slurp (.openStream (.open repo (.getObjectId tree-walk 0))))))
       (log/warnf "Could not resolve revision %s in repo %s" rev repo))))
 
-(defn read-cljdoc-config [repo rev]
-  (let [f "doc/cljdoc.edn"]
-    (or (cljdoc.git-repo/slurp-file-at repo rev f)
-        (cljdoc.git-repo/slurp-file-at repo "master" f))))
+(defn read-cljdoc-config
+  [repo rev]
+  {:pre [(some? repo) (string? rev) (seq rev)]}
+  (cljdoc.git-repo/slurp-file-at repo rev "doc/cljdoc.edn"))
 
 (defn patch-level-info
   ;; Non API documentation should be updated with new Git revisions,

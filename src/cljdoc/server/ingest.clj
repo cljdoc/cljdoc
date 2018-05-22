@@ -57,7 +57,9 @@
           (let [repo        (git/->repo git-dir)
                 version-tag (git/version-tag repo version)
                 pom-scm-sha (:sha scm-info)
-                config-edn  (clojure.edn/read-string (git/read-cljdoc-config repo (:name version-tag)))]
+                config-edn  (->> (or (:name version-tag) "master")
+                                 (git/read-cljdoc-config repo)
+                                 (clojure.edn/read-string))]
 
             (when-not version-tag
               (do (log/warnf "No version tag found for version %s in %s\n" version scm-url)
