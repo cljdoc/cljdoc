@@ -355,20 +355,19 @@
                    doctree/flatten*
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
-        doc-p-html (or (when-let [md (some-> doc-p :attrs :cljdoc/markdown)]
-                         (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
-                                     (-> md markup/markdown-to-html)
-                                     {:scm (:scm (:version cache-contents))
-                                      :artifact-entity cache-id
-                                      :flattened-doctree (doctree/flatten* doc-tree)}))
-                       (when-let [adoc (some-> doc-p :attrs :cljdoc/asciidoc)]
-                         (-> adoc markup/asciidoc-to-html)))]
+        doc-html (or (some-> doc-p :attrs :cljdoc/markdown markup/markdown-to-html)
+                     (some-> doc-p :attrs :cljdoc/asciidoc markup/asciidoc-to-html))
+        fixed-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
+                               doc-html
+                               {:scm (:scm (:version cache-contents))
+                                :artifact-entity cache-id
+                                :flattened-doctree (doctree/flatten* doc-tree)})]
     (->> (doc-page {:top-bar-component (top-bar cache-id (:version cache-contents))
                     :doc-tree-component (doc-tree-view cache-id doc-tree doc-slug-path)
                     :namespace-list-component (namespace-list
                                                {}
                                                (cljdoc.cache/namespaces cache-bundle))
-                    :doc-html doc-p-html})
+                    :doc-html fixed-html})
          (page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
 (defmethod render :artifact/namespace

@@ -87,7 +87,7 @@
                                         {:scm-base (str "https://raw.githubusercontent.com/"
                                                         (gh-owner (:url scm)) "/"
                                                         (gh-repo (:url scm)) "/"
-                                                        (:sha scm) "/")})))
+                                                        (:name (:tag scm)) "/")})))
     (.toString doc)))
 
 (comment
