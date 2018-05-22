@@ -76,6 +76,8 @@
                                (git/slurp-file-at
                                 repo (or (:name version-tag) "master") f))
                              (or (:cljdoc.doc/tree config-edn)
+                                 (get-in cljdoc.util/hardcoded-config
+                                         [(cljdoc.util/normalize-project project) :cljdoc.doc/tree])
                                  (doctree/derive-toc git-dir)))}))))
 
       (log/infof "Done with build for %s %s" project version)

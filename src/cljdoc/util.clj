@@ -1,6 +1,10 @@
 (ns cljdoc.util
-  (:require [clojure.java.io :as io]
+  (:require [clojure.edn]
+            [clojure.java.io :as io]
             [clojure.string :as string]))
+
+(def hardcoded-config
+  (clojure.edn/read-string (slurp (io/resource "hardcoded-projects-config.edn"))))
 
 (defn group-id [project]
   (or (if (symbol? project)
