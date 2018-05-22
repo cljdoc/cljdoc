@@ -11,9 +11,6 @@
   (:import (java.net URI)
            (java.nio.file Files)))
 
-(defn hardcoded-config []
-  (clojure.edn/read-string (slurp (io/resource "hardcoded-projects-config.edn"))))
-
 (def sandbox-analysis-deps
   "This is what is being loaded in the pod that is used for analysis.
   It is also the stuff that we cannot generate documentation for in versions
@@ -65,10 +62,10 @@
         jar-contents (io/file tmp-dir "jar-contents/")
         grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                     :directories #{"src"}})
-        platforms    (get-in (hardcoded-config)
+        platforms    (get-in cljdoc.util/hardcoded-config
                              [(cljdoc.util/normalize-project project) :cljdoc.api/platforms]
                              (cljdoc.util/infer-platforms-from-src-dir jar-contents))
-        namespaces   (get-in (hardcoded-config)
+        namespaces   (get-in cljdoc.util/hardcoded-config
                              [(cljdoc.util/normalize-project project) :cljdoc.api/namespaces])
         build-cdx      (fn build-cdx [jar-contents-path platf]
                          (println "Analyzing" project platf)
