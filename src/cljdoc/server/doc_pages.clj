@@ -4,6 +4,7 @@
             [clojure.java.io :as io]
             [cljdoc.renderers.html :as html]
             [cljdoc.cache]
+            [cljdoc.routes :as routes]
             [cljdoc.grimoire-helpers :as grimoire-helpers]))
 
 (defn doc-slug-parser
@@ -61,9 +62,16 @@
                            true                        (cons (partial grimoire-loader grimoire-dir))
                            (= :artifact/doc page-type) (cons doc-slug-parser))
       :methods {:get (fn page-response [{:keys [route-params cache-bundle] :as ctx}]
-                       (if cache-bundle
-                         (str (html/render page-type route-params cache-bundle))
-                         (str (html/request-build-page route-params))))}}))
+                       (if-let [first-article-slug (and (= page-type :artifact/version)
+                                                        (-> cache-bundle :cache-contents :version :doc first :attrs :slug))]
+                         ;; instead of rendering a mostly white page we
+                         ;; redirect to the README/first listed article for now
+                         (assoc (:response ctx)
+                                :status 302
+                                :headers {"Location" (routes/path-for :artifact/doc (assoc route-params :doc-page first-article-slug))})
+                         (if cache-bundle
+                           (str (html/render page-type route-params cache-bundle))
+                           (str (html/request-build-page route-params)))))}}))
 
   bidi.bidi/Matched
   (resolve-handler [this m]
