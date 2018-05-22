@@ -113,22 +113,22 @@
     [:div
      (sidebar-title "Namespaces")
      [:ul.list.pl2
-      (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))]
+      (clojure.pprint/pprint (ns-tree/namespace-hierarchy (keys namespaces)))
+      (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))
+            :let [style {:margin-left (str (* (dec level) 10) "px")}]]
         (if-let [ns (get namespaces ns)]
           [:li
-           [:a.link.dim.blue.dib.pa1
+           [:a.link.hover-dark-blue.blue.dib.pa1
             {:href (r/path-for :artifact/namespace ns)
-             :class (str (when (= (:namespace ns) current) "b")
-                         " "
-                         (case level
-                           1 ""
-                           2 "pl3"
-                           3 "pl4"
-                           4 "pl5"))}
-
+             :class (when (= (:namespace ns) current) "b")
+             :style style}
             (->> (ns-tree/split-ns (:namespace ns))
                  (drop (dec level)))]]
-          [:li.blue.pa1 ns]))
+          [:li.blue.pa1
+           [:span
+            {:style style}
+            (->> (ns-tree/split-ns ns)
+                 (drop (dec level)))]]))
 
       #_(for [ns (sort-by :namespace namespaces)]
           [:li
