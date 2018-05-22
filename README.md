@@ -1,4 +1,4 @@
-# cljdoc
+![cljdoc is a platform to build, host and view Clojure/Script library documentation](doc/assets/title.png)
 
 [![CircleCI](https://circleci.com/gh/martinklepsch/cljdoc.svg?style=svg)](https://circleci.com/gh/martinklepsch/cljdoc)
 
