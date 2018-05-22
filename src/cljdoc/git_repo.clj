@@ -102,16 +102,18 @@
   If the file cannot be found, return `nil`."
   [^Git g rev f]
   (let [repo        (.getRepository g)
-        last-commit (.resolve repo rev)
-        rev-walk    (RevWalk. repo)
-        commit      (.parseCommit rev-walk last-commit)
-        tree        (.getTree commit)
-        tree-walk   (TreeWalk. repo)]
-    (.addTree tree-walk tree)
-    (.setRecursive tree-walk true)
-    (.setFilter tree-walk (PathFilter/create f))
-    (when (.next tree-walk)
-      (slurp (.openStream (.open repo (.getObjectId tree-walk 0)))))))
+        last-commit (.resolve repo rev)]
+    (if last-commit
+      (let [rev-walk    (RevWalk. repo)
+            commit      (.parseCommit rev-walk last-commit)
+            tree        (.getTree commit)
+            tree-walk   (TreeWalk. repo)]
+        (.addTree tree-walk tree)
+        (.setRecursive tree-walk true)
+        (.setFilter tree-walk (PathFilter/create f))
+        (when (.next tree-walk)
+          (slurp (.openStream (.open repo (.getObjectId tree-walk 0))))))
+      (log/warnf "Could not resolve revision %s in repo %s" rev repo))))
 
 (defn read-cljdoc-config [repo rev]
   (let [f "doc/cljdoc.edn"]
@@ -139,12 +141,14 @@
   )
 
 (comment
-  (def r (->repo (io/file "target/git-repo")))
+  (def r (->repo (io/file "data/git-repos/fulcrologic/fulcro/2.5.4/")))
 
   (def r (->repo (io/file "/Users/martin/code/02-oss/yada")))
   (version-tag r "1.2.10")
   (git-checkout-repo r (.getName (version-tag r "1.2.10")))
   (slurp-file-at r "master" "doc/cljdoc.edn")
+
+  (.resolve (.getRepository r) "master")
 
   (read-cljdoc-config (->repo (io/file "/Users/martin/code/02-oss/reitit")) "0.1.0")
 
@@ -153,6 +157,7 @@
   (read-origin r)
   (find-tag r "0.1.7-alpha5")
 
+  (clone "https://github.com/fulcrologic/fulcro.git" (io/file "fulcro-git"))
 
   (.getName (find-tag r "1.2.0"))
 
