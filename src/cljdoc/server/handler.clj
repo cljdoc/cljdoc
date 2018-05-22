@@ -10,9 +10,19 @@
 ;;    (uncaughtException [_ thread ex]
 ;;      (log/error ex "Uncaught exception on" (.getName thread)))))
 
+(defn home []
+  (yada.yada/handler
+   (yada.yada/resource
+    {:methods
+     {:get
+      {:produces #{"text/html"}
+       :response (fn home-response [ctx]
+                   (cljdoc.renderers.html/home))}}})))
+
 (defn cljdoc-routes [{:keys [dir] :as deps}]
   ["" [["/api" (api/routes deps)]
        (cljdoc.routes/html-routes (partial dp/doc-page (io/file dir "grimoire")))
+       ["/" (home)]
        ["" (yada.resources.classpath-resource/new-classpath-resource "public")]]])
 
 (comment
