@@ -17,19 +17,12 @@ if [[ "$cmd" == "build" ]]; then
         artifact="$project"
     fi
 
-    jar_path="https://repo.clojars.org/$group/$artifact/$version/$artifact-$version.jar"
+    echo -e "Group: $group\nArtifact: $artifact\nVersion: $version\n"
 
-    echo -e "Group: $group\nArtifact: $artifact\nVersion: $version\nJar: $jar_path\n"
-
-    if curl -Ifs "$jar_path" > /dev/null; then
-        curl -u cljdoc:xxx \
-             -d project="$project" \
-             -d version="$version" \
-             -d jarpath="$jar_path" \
-             -i api.cljdoc.xyz/api/request-build
-    else
-        echo "No jar found on Clojars for given parameters."
-    fi
+    curl \
+      -d project="$project" \
+      -d version="$version" \
+      -i https://cljdoc.xyz/api/request-build2
 
 else
     echo "Usage:"
