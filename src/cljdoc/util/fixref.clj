@@ -16,6 +16,9 @@
   (or (.startsWith s "http://")
       (.startsWith s "https://")))
 
+(defn- anchor-uri? [s]
+  (.startsWith s "#"))
+
 (defn- gh-owner [gh-url]
   (second (re-find #"^https*://github.com/(\w+)/" gh-url)))
 
@@ -73,7 +76,8 @@
         uri-map (uri-mapping artifact-entity flattened-doctree)]
     (doseq [broken-link (->> (.select doc "a")
                              (map #(.attributes %))
-                             (remove #(absolute-uri? (.get % "href"))))]
+                             (remove #(absolute-uri? (.get % "href")))
+                             (remove #(anchor-uri? (.get % "href"))))]
       (.put broken-link "href" (fix-link file-path
                                          (.get broken-link "href")
                                          {:scm-base (str (:url scm) "/blob/" (:name (:tag scm)) "/")
