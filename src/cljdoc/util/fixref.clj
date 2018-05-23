@@ -1,7 +1,8 @@
 (ns cljdoc.util.fixref
   "Utilities to fix broken references in HTML that was intended to be
   rendered in other places, e.g. GitHub."
-  (:require [clojure.string :as string]
+  (:require [clojure.tools.logging :as log]
+            [clojure.string :as string]
             [cljdoc.routes :as routes])
   (:import (org.jsoup Jsoup)))
 
@@ -107,7 +108,7 @@
     (if (= 1 (count matches))
       (first matches)
       (do
-        (printf "Could not find unique file for fpath %s" fpath)
+        (log/warnf "Could not find unique file for fpath %s" fpath)
         (->> (filter #(.startsWith % "src") matches)
              first)))))
 
