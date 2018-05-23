@@ -80,7 +80,7 @@
    [:code.db.mb2 {:class "language-clojure"}
     content]])
 
-(defn def-block [platforms]
+(defn def-block [platforms {:keys [base file-mapping] :as scm}]
   (assert (coll? platforms) "def meta is not a map")
   ;; Currently we just render any platform, this obviously
   ;; isn't the best we can do
@@ -110,7 +110,11 @@
            (for [argv (sort-by count (:arglists m))]
              (def-code-block (str "(" (:name m) " " (clojure.string/join " " argv) ")")))
            (when (:doc m)
-             [:p (:doc m)])])])]))
+             [:p (:doc m)])])])
+     (when file-mapping
+       [:a.link.f7.gray.hover-dark-gray
+        {:href (str base (get file-mapping (:file def-meta)) "#L" (:line def-meta))}
+        "source"])]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   (let [namespaces (ns-tree/index-by :namespace namespaces)]
@@ -229,10 +233,14 @@
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
           content)])
 
-(defn namespace-page [{:keys [ns-entity ns-data defs top-bar-component doc-tree-component namespace-list-component]}]
+(defn namespace-page [{:keys [ns-entity ns-data defs scm-info top-bar-component doc-tree-component namespace-list-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (let [sorted-defs                        (sort-by :name defs)
         [[dominant-platf] :as platf-stats] (platform-stats defs)]
+        file-mapping                       (when (:files scm-info)
+                                             (fixref/match-files
+                                              (keys (:files scm-info))
+                                              (set (map :file sorted-defs))))]
     [:div.ns-page
      top-bar-component
      (sidebar
@@ -251,8 +259,11 @@
           (-> ns-doc markup/markdown-to-html hiccup/raw)])
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
-                                        (sort-by key))]
-         (def-block platf-defs))])]))
+                                        (sort-by key))
+             :let [scm-base (str (:url scm-info) "/blob/" (:name (:tag scm-info)) "/")]]
+         (def-block platf-defs (when file-mapping
+                                 {:base scm-base
+                                  :file-mapping file-mapping})))])]))
 
 (defn doc-link [cache-id slugs]
   (assert (seq slugs) "Slug path missing")
@@ -383,6 +394,7 @@
     (when (empty? defs)
       (log/warnf "Namespace %s contains no defs" (:namespace route-params)))
     (->> (namespace-page {:top-bar-component (top-bar cache-id (:version cache-contents))
+                          :scm-info (:scm (:version cache-contents))
                           :doc-tree-component (doc-tree-view cache-id
                                                              (doctree/add-slug-path (-> cache-contents :version :doc))
                                                              [])
