@@ -290,8 +290,7 @@
                     {:href  (doc-link cache-id slug-path)
                      :class (if (= current-page slug-path) "fw7" "link dim")}
                     (:title doc-page)]
-                   (when (subseq? current-page slug-path)
-                     (doc-tree-view cache-id (:children doc-page) current-page))])))
+                   (doc-tree-view cache-id (:children doc-page) current-page)])))
          (into [:ul.list.pl2]))))
 
 (defn doc-page [{:keys [top-bar-component
