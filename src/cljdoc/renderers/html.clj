@@ -60,10 +60,11 @@
    [:a.dib.v-mid.link.dim.gray.f6.mr3
     {:href (r/path-for :artifact/index cache-id)}
     (:version cache-id)]
-   [:span.dib.v-mid.mr3.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "Non official"]
-   [:a.black.no-underline.ttu.fw5.f7.tracked.pv1.ph2.dim
+   [:a {:href "/"}
+    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Alpha"]]
+   [:a.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
     {:href (github-url :issues)}
-    "Help Develop cljdoc"]
+    "Have Feedback?"]
    [:div.tr
     {:style {:flex-grow 1}}
     (if-let [scm-url (-> version-meta :scm :url)]
