@@ -40,6 +40,12 @@
   background-color: transparent;
 }
 
+.markdown blockquote {
+  padding: 0 1em;
+  color: #6a737d;
+  border-left: 0.25em solid #dfe2e5;
+}
+
 .markdown table {
   border-spacing: 0;
   border-collapse: collapse;
