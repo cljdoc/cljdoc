@@ -506,9 +506,9 @@
            [btn {:href "/d/clj-time/clj-time/0.14.3/"}
             [:code "[clj-time \"0.14.3\"]"]]
            [btn {:href "/d/rum/rum/0.11.2/"}
-            [:code "[rum \"0.11.2]"]]
+            [:code "[rum \"0.11.2\"]"]]
            [btn {:href "/d/re-frame/re-frame/0.10.5/"}
-            [:code "[re-frame \"0.10.5]"]]
+            [:code "[re-frame \"0.10.5\"]"]]
            ;; Disabling for now as namespace tree rendering
            ;; is still pretty bad
            ;; [btn {:href "/d/fulcrologic/fulcro/2.5.4/"}
