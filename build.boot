@@ -34,6 +34,7 @@
     [funcool/cuerdas "2.0.5"]
     [spootnik/unilog "0.7.22"]
     [org.jsoup/jsoup "1.11.3"]
+    [digest "1.4.8"]
     [expound "0.6.0"]])
 
 (boot.core/set-env! :source-paths #{"src"}

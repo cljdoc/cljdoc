@@ -1,7 +1,8 @@
 (ns cljdoc.git-repo
   (:require [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [digest :as digest])
   (:import  (org.eclipse.jgit.lib RepositoryBuilder
                                   Repository
                                   ObjectIdRef$PeeledNonTag
@@ -96,24 +97,43 @@
        (.call)
        (map #(->> % .getName (re-matches #"refs/tags/(.*)") second))))
 
+(defn- tree-for
+  [g rev]
+  (let [repo        (.getRepository g)
+        last-commit (.resolve repo rev)]
+    (when last-commit
+      (-> (RevWalk. repo)
+          (.parseCommit last-commit)
+          (.getTree)))))
+
 (defn slurp-file-at
   "Read a file `f` in the Git repository `g` at revision `rev`.
 
   If the file cannot be found, return `nil`."
   [^Git g rev f]
-  (let [repo        (.getRepository g)
-        last-commit (.resolve repo rev)]
-    (if last-commit
-      (let [rev-walk    (RevWalk. repo)
-            commit      (.parseCommit rev-walk last-commit)
-            tree        (.getTree commit)
-            tree-walk   (TreeWalk. repo)]
-        (.addTree tree-walk tree)
-        (.setRecursive tree-walk true)
-        (.setFilter tree-walk (PathFilter/create f))
-        (when (.next tree-walk)
-          (slurp (.openStream (.open repo (.getObjectId tree-walk 0))))))
-      (log/warnf "Could not resolve revision %s in repo %s" rev repo))))
+  (if-let [tree (tree-for g rev)]
+    (let [repo      (.getRepository g)
+          tree-walk (TreeWalk/forPath repo f tree)]
+      (when tree-walk
+        (slurp (.openStream (.open repo (.getObjectId tree-walk 0))))))
+    (log/warnf "Could not resolve revision %s in repo %s" rev g)))
+
+(defn ls-files
+  "Return a map of all filepaths and there SHA256
+  in the git repository at the given revision `rev`."
+  [^Git g rev]
+  (let [tree (tree-for g rev)
+        repo (.getRepository g)
+        tw   (TreeWalk. repo)]
+    (.addTree tw tree)
+    (.setRecursive tw true)
+    (loop [files {}]
+      (if (.next tw)
+        (recur (assoc files (.getPathString tw)
+                            (digest/sha-256
+                             (.openStream
+                              (.open repo (.getObjectId tw 0))))))
+        files))))
 
 (defn read-cljdoc-config
   [repo rev]
@@ -143,7 +163,23 @@
 (comment
   (def r (->repo (io/file "data/git-repos/fulcrologic/fulcro/2.5.4/")))
 
-  (def r (->repo (io/file "/Users/martin/code/02-oss/yada")))
+  (def r (->repo (io/file "/Users/martin/code/02-oss/bidi")))
+  (slurp-file-at r "master" "bidi.cljc")
+  (find-filepath-in-repo r "master" "project.clj")
+  (find-filepath-in-repo r "master" "bidi.cljc")
+
+  (clojure.pprint/pprint
+   (ls-files r "master"))
+
+  (let [t (.getTree (.parseCommit (RevWalk. (.getRepository r))
+                                  (.resolve (.getRepository r) "master")))
+        tw (TreeWalk/forPath (.getRepository r) "project.clj" t)]
+    (prn '(.getObjectId tw 0) (.getObjectId tw 0))
+    (prn  '(.next tw) (.next tw))
+    (slurp (.openStream
+            (.open (.getRepository r)
+                   (.getObjectId tw 0)))))
+
   (version-tag r "1.2.10")
   (git-checkout-repo r (.getName (version-tag r "1.2.10")))
   (slurp-file-at r "master" "doc/cljdoc.edn")
