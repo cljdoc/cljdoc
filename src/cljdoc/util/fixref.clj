@@ -94,6 +94,28 @@
                                                         (:name (:tag scm)) "/")})))
     (.toString doc)))
 
+
+;; Some utilities to find which file in a git repository corresponds
+;; to a file where a `def` is coming from --------------------------
+
+(defn- find-full-filepath
+  "Take a list of filepaths, one subpath and find the best matching full path.
+
+  We use this to find the full path to files in Git for a given file in a jar."
+  [known-files fpath]
+  (let [matches (filter #(.endsWith % fpath) known-files)]
+    (if (= 1 (count matches))
+      (first matches)
+      (do
+        (printf "Could not find unique file for fpath %s" fpath)
+        (->> (filter #(.startsWith % "src") matches)
+             first)))))
+
+(defn match-files
+  [known-files fpaths]
+  {:pre [(seq known-files)]}
+  (zipmap fpaths (map #(find-full-filepath known-files %) fpaths)))
+
 (comment
   (require '[cljdoc.renderers.markup :as md])
 

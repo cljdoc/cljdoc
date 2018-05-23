@@ -38,7 +38,6 @@
     (try
       (log/info "Verifying cljdoc-edn contents against spec")
       (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
-
       (cljdoc.grimoire-helpers/write-bare store v-thing)
 
       (log/info "Importing API into Grimoire")
@@ -56,8 +55,9 @@
           ;; Stuff that depends on a SCM url being present
           (let [repo        (git/->repo git-dir)
                 version-tag (git/version-tag repo version)
+                revision    (or (:name version-tag) (:sha scm-info))
                 pom-scm-sha (:sha scm-info)
-                config-edn  (->> (or (:name version-tag) "master")
+                config-edn  (->> (or revision "master") ; in case people add the file later
                                  (git/read-cljdoc-config repo)
                                  (clojure.edn/read-string))]
 
@@ -69,7 +69,10 @@
             (cljdoc.grimoire-helpers/import-doc
              {:version      v-thing
               :store        store
-              :git-meta     {:url scm-url
+              :jar          {}
+              :scm          {:files (git/ls-files repo revision)
+                             :url scm-url
+                             :commit pom-scm-sha
                              :tag (git/version-tag repo version)}
               :doc-tree     (doctree/process-toc
                              (fn slurp-at-rev [f]
@@ -96,12 +99,13 @@
 
 (comment
 
-  (def p "/var/folders/tt/hdgn6rc92pv68rscfj8jn8nh0000gn/T/cljdoc-yada-1.2.103275451937470452410/cljdoc-edn/yada/yada/1.2.10/cljdoc.edn")
-  (def edn (clojure.edn/read-string (slurp p)))
+  (def yada "/var/folders/tt/hdgn6rc92pv68rscfj8jn8nh0000gn/T/cljdoc-yada-1.2.103275451937470452410/cljdoc-edn/yada/yada/1.2.10/cljdoc.edn")
+  (def bidi "/private/var/folders/tt/hdgn6rc92pv68rscfj8jn8nh0000gn/T/cljdoc-bidi-2.1.34476490973326476417/cljdoc-edn/bidi/bidi/2.1.3/cljdoc.edn")
+  (def edn (clojure.edn/read-string (slurp bidi)))
 
-    (-> (:pom-str edn)
-        (pom/parse)
-        (pom/artifact-info))
+  (-> (:pom-str edn)
+      (pom/parse)
+      (pom/artifact-info))
 
   (ingest-cljdoc-edn (io/file "data") edn)
 

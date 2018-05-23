@@ -103,13 +103,13 @@
     (grimoire.api/write-meta version {})))
 
 (defn import-doc
-  [{:keys [version store doc-tree git-meta]}]
+  [{:keys [version store doc-tree scm jar]}]
   {:pre [(grimoire.things/version? version)
          (some? store)
-         (some? git-meta)
+         (some? scm)
          (some? doc-tree)]}
-  (log/info "Writing doc meta for" (grimoire.things/thing->path version) {:scm git-meta})
-  (grimoire.api/write-meta store version {:scm git-meta, :doc doc-tree}))
+  (log/info "Writing doc meta for" (grimoire.things/thing->path version) {:scm (dissoc scm :files)})
+  (grimoire.api/write-meta store version {:jar jar :scm scm, :doc doc-tree}))
 
 (defn import-api
   [{:keys [version codox store]}]
