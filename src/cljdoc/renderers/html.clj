@@ -10,6 +10,7 @@
             [hiccup2.core :as hiccup]
             [hiccup.page]
             [aleph.http]
+            [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
 
@@ -235,8 +236,8 @@
 
 (defn namespace-page [{:keys [ns-entity ns-data defs scm-info top-bar-component doc-tree-component namespace-list-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
-  (let [sorted-defs                        (sort-by :name defs)
-        [[dominant-platf] :as platf-stats] (platform-stats defs)]
+  (let [sorted-defs                        (sort-by (comp string/lower-case :name) defs)
+        [[dominant-platf] :as platf-stats] (platform-stats defs)
         file-mapping                       (when (:files scm-info)
                                              (fixref/match-files
                                               (keys (:files scm-info))
