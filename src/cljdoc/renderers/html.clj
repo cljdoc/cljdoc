@@ -68,6 +68,10 @@
     "Have Feedback?"]
    [:div.tr
     {:style {:flex-grow 1}}
+    [:form.dib.mr3 {:action "/api/request-build2" :method "POST"}
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id cache-id) "/" (:artifact-id cache-id))}]
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version cache-id)}]
+     [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
     (if-let [scm-url (-> version-meta :scm :url)]
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
