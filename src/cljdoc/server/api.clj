@@ -125,7 +125,9 @@
                          (str (html/build-submitted-page job-url)))
                        (do
                          (build-log/analysis-kicked-off! build-tracker build-id nil)
-                         (str (html/local-build-submitted-page))))))}}})))
+                         (assoc (:response ctx)
+                                :status 301
+                                :headers {"Location" (str "/build/" build-id)})))))}}})))
 
 (defn initiate-build-handler [{:keys [access-control analysis-service]}]
   ;; TODO assert config correctness
