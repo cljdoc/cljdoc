@@ -16,11 +16,12 @@
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service)
         port        (cfg/get-in env-config [:cljdoc/server :port])]
-    {:cljdoc/server  {:port    port,
+    {:cljdoc/build-tracker (cfg/build-log-db)
+     :cljdoc/server  {:port    port,
                       :handler (ig/ref :cljdoc/handler)}
-     :cljdoc/handler (-> {}
-                         (assoc :dir (cfg/get-in env-config [:cljdoc/server :dir]))
-                         (assoc :analysis-service (ig/ref :cljdoc/analysis-service)))
+     :cljdoc/handler {:dir (cfg/get-in env-config [:cljdoc/server :dir])
+                      :build-tracker (ig/ref :cljdoc/build-tracker)
+                      :analysis-service (ig/ref :cljdoc/analysis-service)}
      :cljdoc/analysis-service (case ana-service
                                 :local     [:local {:full-build-url (str "http://localhost:" port "/api/full-build")}]
                                 :circle-ci [:circle-ci (cfg/circle-ci)])}))

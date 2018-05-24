@@ -3,6 +3,7 @@
             [cljdoc.analysis.service :as analysis-service]
             [cljdoc.util.telegram :as telegram]
             [cljdoc.server.ingest :as ingest]
+            [cljdoc.server.build-log :as build-log]
             [cljdoc.util]
             [cljdoc.cache]
             [cljdoc.config] ; should not be necessary but instead be passed as args
@@ -87,7 +88,7 @@
                          (log/warn "Expected path" cljdoc-edn)
                          (assoc (:response ctx) :status 400)))))}}})))
 
-(defn initiate-build-handler-simple [{:keys [analysis-service]}]
+(defn initiate-build-handler-simple [{:keys [analysis-service build-tracker]}]
   (yada/handler
    (yada/resource
     {:methods
@@ -102,7 +103,11 @@
                    (let [project   (symbol (get-in ctx [:parameters :form :project]))
                          version   (get-in ctx [:parameters :form :version])
                          jarpath   (cljdoc.util/remote-jar-file [project version])
-                         build-id  (str (java.util.UUID/randomUUID))
+                         build-id  (build-log/analysis-requested!
+                                    build-tracker
+                                    (cljdoc.util/group-id project)
+                                    (cljdoc.util/artifact-id project)
+                                    version)
                          ana-resp  (analysis-service/trigger-build
                                     analysis-service
                                     {:project project
@@ -115,10 +120,12 @@
                          (telegram/build-requested project version job-url)
                          (when (= 201 (:status ana-resp))
                            (assert build-num "build number missing from CircleCI response")
-                           (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}"
-                                      build-id job-url))
+                           (build-log/analysis-kicked-off! build-tracker build-id job-url)
+                           (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}" build-id job-url))
                          (str (html/build-submitted-page job-url)))
-                       (str (html/local-build-submitted-page)))))}}})))
+                       (do
+                         (build-log/analysis-kicked-off! build-tracker build-id nil)
+                         (str (html/local-build-submitted-page))))))}}})))
 
 (defn initiate-build-handler [{:keys [access-control analysis-service]}]
   ;; TODO assert config correctness
@@ -146,22 +153,24 @@
                                   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)))
                      (assoc (:response ctx) :status (:status ci-resp))))}}})))
 
-(defn full-build-handler [{:keys [dir access-control]}]
+(defn full-build-handler [{:keys [dir access-control build-tracker]}]
   ;; TODO assert config correctness
   (yada/handler
    (yada/resource
     {:access-control access-control
      :methods
      {:post
-      {:parameters {:form {:project String :version String  :build-id String :cljdoc-edn String}}
+      {:parameters {:form {:project String :version String  :build-id Long :cljdoc-edn String}}
        :consumes #{"application/x-www-form-urlencoded"}
        :response (fn full-build-handler-response [ctx]
                    (let [{:keys [project version build-id cljdoc-edn]} (get-in ctx [:parameters :form])
-                         cljdoc-edn (clojure.edn/read-string (slurp cljdoc-edn))]
+                         cljdoc-edn-contents (clojure.edn/read-string (slurp cljdoc-edn))]
 
+                     (build-log/analysis-received! build-tracker (int build-id) cljdoc-edn)
                      ;; TODO put this back in place
                      ;; (cljdoc.util/assert-match project version cljdoc-edn)
-                     (ingest/ingest-cljdoc-edn dir cljdoc-edn)
+                     (let [{:keys [scm-url commit]} (ingest/ingest-cljdoc-edn dir cljdoc-edn-contents)]
+                       (build-log/completed! build-tracker (int build-id) scm-url commit))
                      (assoc (:response ctx) :status 200)))}}})))
 
 (def ping-handler
@@ -173,16 +182,18 @@
 
 ;; Routes -------------------------------------------------------------
 
-(defn routes [{:keys [analysis-service dir]}]
+(defn routes [{:keys [analysis-service build-tracker dir]}]
   [["/ping"            ping-handler]
    ["/hooks/circle-ci" (circle-ci-webhook-handler analysis-service)]
    ["/request-build"   (initiate-build-handler
                         {:analysis-service analysis-service
                          :access-control (api-acc-control {"cljdoc" "cljdoc"})})]
    ["/request-build2"  (initiate-build-handler-simple
-                        {:analysis-service analysis-service})]
+                        {:build-tracker build-tracker
+                         :analysis-service analysis-service})]
    ["/full-build"      (full-build-handler
                         {:dir dir
+                         :build-tracker build-tracker
                          :access-control (api-acc-control {"cljdoc" "cljdoc"})})]])
 
 
