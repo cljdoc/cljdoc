@@ -35,6 +35,12 @@
     [spootnik/unilog "0.7.22"]
     [org.jsoup/jsoup "1.11.3"]
     [digest "1.4.8"]
+
+    ;; Build-logs DB (sqlite)
+    [org.xerial/sqlite-jdbc "3.20.0"]
+    [org.clojure/java.jdbc "0.7.0"]
+    [ragtime "0.7.2"]
+
     [expound "0.6.0"]])
 
 (boot.core/set-env! :source-paths #{"src"}
