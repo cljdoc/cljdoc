@@ -26,6 +26,11 @@
 (defn analysis-service []
   (get-in (config) [:cljdoc/server :analysis-service]))
 
+(defn build-log-db []
+  {:classname "org.sqlite.JDBC",
+   :subprotocol "sqlite",
+   :subname (str (get-in (config) [:cljdoc/server :dir]) "build-log.db")})
+
 (comment
   (config)
 
