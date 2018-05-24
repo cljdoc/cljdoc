@@ -1,6 +1,7 @@
 (ns cljdoc.server.handler
   (:require [cljdoc.server.api :as api]
             [cljdoc.server.doc-pages :as dp]
+            [cljdoc.server.build-log :as build-log]
             [clojure.java.io :as io]
             [yada.resources.classpath-resource]))
 
@@ -19,9 +20,22 @@
        :response (fn home-response [ctx]
                    (cljdoc.renderers.html/home))}}})))
 
-(defn cljdoc-routes [{:keys [dir] :as deps}]
+(defn build-page [build-tracker]
+  (yada.yada/handler
+   (yada.yada/resource
+    {:methods
+     {:get
+      {:produces #{"text/html"}
+       :response (fn build-page-response [ctx]
+                   (->> (:id (:route-params ctx))
+                        (build-log/get-build build-tracker)
+                        (cljdoc.renderers.build-log/build-page)
+                        str))}}})))
+
+(defn cljdoc-routes [{:keys [dir build-tracker] :as deps}]
   ["" [["/api" (api/routes deps)]
        (cljdoc.routes/html-routes (partial dp/doc-page (io/file dir "grimoire")))
+       [["/build/" :id] (build-page build-tracker)]
        ["/" (home)]
        ["" (yada.resources.classpath-resource/new-classpath-resource "public")]]])
 
