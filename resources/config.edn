@@ -4,6 +4,6 @@
                     :local {}}
  :cljdoc/server {:port 8000
                  :analysis-service #keyword #or [#env CLJDOC_ANALYSIS_SERVICE :local]
-                 :dir #profile {:default "data"
+                 :dir #profile {:default "data/"
                                 :prod "/var/cljdoc/"}}
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}
