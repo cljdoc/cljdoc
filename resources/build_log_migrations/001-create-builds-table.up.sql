@@ -1,0 +1,13 @@
+CREATE TABLE builds (id INTEGER PRIMARY KEY ASC,
+                     group_id NOT NULL,
+                     artifact_id NOT NULL,
+                     version NOT NULL,
+                     analysis_requested_ts NOT NULL,
+                     analysis_triggered_ts,
+                     analysis_job_uri,
+                     analysis_received_ts,
+                     analysis_result_uri,
+                     scm_url,
+                     commit_sha,
+                     import_completed_ts,
+                     error);
