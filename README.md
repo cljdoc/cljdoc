@@ -63,6 +63,9 @@ that is done you can reload the page and view the documentation.
 
 Logs can be viewed with `tail -f log/cljdoc.log`.
 
+:recycle: For a more REPL-driven workflow, check the comment block at the end of
+the `cljdoc.server.system` namespace.
+
 ## License
 
 `EPL-2.0` see `LICENSE`
