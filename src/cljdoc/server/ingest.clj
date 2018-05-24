@@ -9,6 +9,15 @@
             [cljdoc.git-repo :as git]
             [cljdoc.spec]))
 
+(defn done [project version]
+  (log/infof "Done with build for %s %s" project version)
+  (telegram/import-completed
+   (cljdoc.routes/path-for
+    :artifact/version
+    {:group-id    (util/group-id project)
+     :artifact-id (util/artifact-id project)
+     :version version})))
+
 (defn ingest-cljdoc-edn
   "Ingest all the information in the passed `cljdoc-edn` data.
 
@@ -47,8 +56,11 @@
         :store        store})
 
       (if-not scm-url
-        (log/warnf "Could not find SCM URL for project %s v%s" project version)
-        (do 
+        (do
+          (log/warnf "Could not find SCM URL for project %s v%s" project version)
+          (done project version))
+
+        (do
           (log/info "Cloning Git repo" scm-url)
           (git/clone scm-url git-dir)
 
@@ -88,15 +100,13 @@
                              (or (:cljdoc.doc/tree config-edn)
                                  (get-in cljdoc.util/hardcoded-config
                                          [(cljdoc.util/normalize-project project) :cljdoc.doc/tree])
-                                 (doctree/derive-toc git-dir)))}))))
+                                 (doctree/derive-toc git-dir)))})
 
-      (log/infof "Done with build for %s %s" project version)
-      (telegram/import-completed
-       (cljdoc.routes/path-for
-        :artifact/version
-        {:group-id    (:group-id artifact)
-         :artifact-id (:artifact-id artifact)
-         :version version}))
+            (done project version)
+
+            {:scm-url scm-url
+             :commit (or (:commit version-tag) pom-scm-sha)})))
+
 
       (catch Throwable t
         (throw (ex-info "Exception while running full build" {:project project :version version} t)))

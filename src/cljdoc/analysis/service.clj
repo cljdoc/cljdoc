@@ -19,7 +19,7 @@
   IAnalysisService
   (trigger-build
     [_ {:keys [build-id project version jarpath]}]
-    {:pre [(string? build-id) (string? project) (string? version) (string? jarpath)]}
+    {:pre [(int? build-id) (string? project) (string? version) (string? jarpath)]}
     @(aleph.http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
                       {:accept "application/json"
                        :form-params {"build_parameters" {"CLJDOC_BUILD_ID" build-id
@@ -47,7 +47,9 @@
 
 (defrecord Local [full-build-url]
   IAnalysisService
-  (trigger-build [_ {:keys [build-id project version jarpath]}]
+  (trigger-build
+    [_ {:keys [build-id project version jarpath]}]
+    {:pre [(int? build-id) (string? project) (string? version) (string? jarpath)]}
     (future
       (try
         (log/infof "Starting local analysis for %s %s %s" project version jarpath)
