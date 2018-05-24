@@ -6,3 +6,4 @@ data/
 ops/.terraform
 ops/terraform.tfstate*
 ops/image/image-id
+ops/prod-backup/
