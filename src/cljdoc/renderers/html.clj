@@ -265,7 +265,8 @@
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))
-             :let [scm-base (str (:url scm-info) "/blob/" (:name (:tag scm-info)) "/")]]
+             :let [blob (or (:name (:tag scm-info)) (:commit scm-info))
+                   scm-base (str (:url scm-info) "/blob/" blob "/")]]
          (def-block platf-defs (when file-mapping
                                  {:base scm-base
                                   :file-mapping file-mapping})))])]))
@@ -532,7 +533,7 @@
           [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (github-url :home)} "GitHub"] "."]]]
        (page {:title "cljdoc"})
        (str)))
- 
+
 
 (comment
 
