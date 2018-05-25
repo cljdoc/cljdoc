@@ -15,7 +15,7 @@ rm "$jdk_rpm"
 
 dnf update -y
 
-dnf install -y git curl tmux htop nginx certbot-nginx
+dnf install -y git curl tmux htop nginx certbot-nginx sqlite
 
 # User setup
 
