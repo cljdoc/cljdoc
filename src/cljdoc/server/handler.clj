@@ -2,6 +2,7 @@
   (:require [cljdoc.server.api :as api]
             [cljdoc.server.doc-pages :as dp]
             [cljdoc.server.build-log :as build-log]
+            [cljdoc.renderers.build-log]
             [clojure.java.io :as io]
             [yada.resources.classpath-resource]))
 
