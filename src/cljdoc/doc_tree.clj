@@ -55,7 +55,7 @@
 (defn derive-toc [dir]
   (when-let [readme (->> (.listFiles dir)
                          (map #(.getName %))
-                         (filter #(.startsWith (.toLowerCase %) "readme"))
+                         (filter #(.startsWith (.toLowerCase %) "readme."))
                          first)]
     [["Readme" {:file readme}]]))
 
