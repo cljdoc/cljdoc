@@ -4,6 +4,7 @@
             [cljdoc.render.rich-text :as rich-text]
             [cljdoc.render.layout :as layout]
             [cljdoc.render.common :as common]
+            [cljdoc.render.articles :as articles]
             [cljdoc.render.api :as api]
             [cljdoc.util]
             [cljdoc.util.fixref :as fixref]
@@ -46,65 +47,12 @@
        [:span.dib (cljdoc.util/gh-coordinate scm-url)]]
       [:a.f6.link.blue {:href (common/github-url :userguide/scm-faq)} "SCM info missing"])]])
 
-(defn article-list [doc-tree]
-  [:div
-   (layout/sidebar-title "Articles")
-   (or doc-tree
-       [:p.pl2.f7.gray [:a.blue.link {:href (common/github-url
-       :userguide/articles)} "Articles"] " are a practical way to
-       provide additional guidance beyond API documentation. To use
-       them, please ensure you " [:a.blue.link {:href (common/github-url
-       :userguide/scm-faq)} "properly set SCM info"] " in your
-       project."])])
-
 (defn index-page [{:keys [top-bar-component doc-tree-component namespace-list-component]}]
   [:div
    top-bar-component
    (layout/sidebar
-    (article-list doc-tree-component)
+    (articles/article-list doc-tree-component)
     namespace-list-component)])
-
-(defn doc-link [cache-id slugs]
-  (assert (seq slugs) "Slug path missing")
-  (->> (clojure.string/join "/" slugs)
-       (assoc cache-id :doc-page)
-       (r/path-for :artifact/doc)))
-
-(defn subseq? [a b]
-  (= (take (count b) a) b))
-
-(defn doc-tree-view
-  [cache-id doc-bundle current-page]
-  (when (seq doc-bundle)
-    (->> doc-bundle
-         (map (fn [doc-page]
-                (let [slug-path (-> doc-page :attrs :slug-path)]
-                  [:li
-                   [:a.link.blue.dib.pa1
-                    {:href  (doc-link cache-id slug-path)
-                     :class (if (= current-page slug-path) "fw7" "link dim")}
-                    (:title doc-page)]
-                   (doc-tree-view cache-id (:children doc-page) current-page)])))
-         (into [:ul.list.pl2]))))
-
-(defn doc-page [{:keys [top-bar-component
-                        doc-tree-component
-                        namespace-list-component
-                        doc-html] :as args}]
-  [:div
-   top-bar-component
-   (layout/sidebar
-    (article-list doc-tree-component)
-    namespace-list-component)
-   (layout/main-container
-    {:offset "16rem"}
-    [:div.mw7.center
-     ;; TODO dispatch on a type parameter that becomes part of the attrs map
-     (if doc-html
-       [:div.markdown.lh-copy.pv4 (hiccup/raw doc-html)]
-       [:div.lh-copy.pv6.tc
-        #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
-        [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
 
 (defn render-to [opts hiccup ^java.io.File file]
   (log/info "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
@@ -150,7 +98,7 @@
 (defmethod render :artifact/version
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (->> (index-page {:top-bar-component (top-bar cache-id (:version cache-contents))
-                    :doc-tree-component (doc-tree-view cache-id
+                    :doc-tree-component (articles/doc-tree-view cache-id
                                                        (doctree/add-slug-path (-> cache-contents :version :doc))
                                                        [])
                     :namespace-list-component (api/namespace-list
@@ -174,12 +122,12 @@
                                {:scm (:scm (:version cache-contents))
                                 :artifact-entity cache-id
                                 :flattened-doctree (doctree/flatten* doc-tree)})]
-    (->> (doc-page {:top-bar-component (top-bar cache-id (:version cache-contents))
-                    :doc-tree-component (doc-tree-view cache-id doc-tree doc-slug-path)
-                    :namespace-list-component (api/namespace-list
-                                               {}
-                                               (cljdoc.cache/namespaces cache-bundle))
-                    :doc-html fixed-html})
+    (->> (articles/doc-page {:top-bar-component (top-bar cache-id (:version cache-contents))
+                             :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
+                             :namespace-list-component (api/namespace-list
+                                                        {}
+                                                        (cljdoc.cache/namespaces cache-bundle))
+                             :doc-html fixed-html})
          (layout/page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
 (defmethod render :artifact/namespace
@@ -193,10 +141,10 @@
       (log/warnf "Namespace %s contains no defs" (:namespace route-params)))
     (->> (api/namespace-page {:top-bar-component (top-bar cache-id (:version cache-contents))
                               :scm-info (:scm (:version cache-contents))
-                              :article-list-component (article-list
-                                                       (doc-tree-view cache-id
-                                                                      (doctree/add-slug-path (-> cache-contents :version :doc))
-                                                                      []))
+                              :article-list-component (articles/article-list
+                                                       (articles/doc-tree-view cache-id
+                                                                               (doctree/add-slug-path (-> cache-contents :version :doc))
+                                                                               []))
                               :namespace-list-component (api/namespace-list
                                                          {:current (:namespace ns-emap)}
                                                          (cljdoc.cache/namespaces cache-bundle))
