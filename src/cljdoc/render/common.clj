@@ -1,4 +1,4 @@
-(ns cljdoc.renderers.common
+(ns cljdoc.render.common
   (:require [hiccup.core :as hiccup]
             [hiccup.page]))
 
