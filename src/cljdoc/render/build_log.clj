@@ -1,4 +1,4 @@
-(ns cljdoc.renderers.build-log
+(ns cljdoc.render.build-log
   (:require [cljdoc.render.common :as common]
             [cljdoc.routes :as routes])
   (:import [java.time Instant Duration]))
