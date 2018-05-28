@@ -18,13 +18,6 @@
     artifact-id
     (str group-id "/" artifact-id)))
 
-(defn index-page [{:keys [top-bar-component doc-tree-component namespace-list-component]}]
-  [:div
-   top-bar-component
-   (layout/sidebar
-    (articles/article-list doc-tree-component)
-    namespace-list-component)])
-
 (defn render-to [opts hiccup ^java.io.File file]
   (log/info "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
   (->> hiccup (layout/page opts) str (spit file)))
@@ -68,13 +61,12 @@
 
 (defmethod render :artifact/version
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
-  (->> (index-page {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
-                    :doc-tree-component (articles/doc-tree-view cache-id
-                                                       (doctree/add-slug-path (-> cache-contents :version :doc))
-                                                       [])
-                    :namespace-list-component (api/namespace-list
-                                               {}
-                                               (cljdoc.cache/namespaces cache-bundle))})
+  (->> [:div
+        (layout/top-bar cache-id (:version cache-contents))
+        (layout/sidebar
+         (articles/article-list
+          (articles/doc-tree-view cache-id (doctree/add-slug-path (-> cache-contents :version :doc)) []))
+         (api/namespace-list {} (cljdoc.cache/namespaces cache-bundle)))]
        (layout/page {:title (str (clojars-id cache-id) " " (:version cache-id))})))
 
 (defmethod render :artifact/doc
