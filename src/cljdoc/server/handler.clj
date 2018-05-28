@@ -2,7 +2,7 @@
   (:require [cljdoc.server.api :as api]
             [cljdoc.server.doc-pages :as dp]
             [cljdoc.server.build-log :as build-log]
-            [cljdoc.renderers.build-log]
+            [cljdoc.render.build-log]
             [clojure.java.io :as io]
             [yada.resources.classpath-resource]))
 
@@ -25,13 +25,13 @@
   (fn build-page-response [ctx]
     (->> (:id (:route-params ctx))
          (build-log/get-build build-tracker)
-         (cljdoc.renderers.build-log/build-page)
+         (cljdoc.render.build-log/build-page)
          str)))
 
 (defn builds-page [build-tracker]
   (fn build-page-response [ctx]
     (->> (build-log/recent-builds build-tracker 100)
-         (cljdoc.renderers.build-log/builds-page)
+         (cljdoc.render.build-log/builds-page)
          str)))
 
 (defn cljdoc-routes [{:keys [dir build-tracker] :as deps}]
