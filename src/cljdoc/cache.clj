@@ -82,6 +82,15 @@
           :cache-id       {:group-id  (-> group-t things/thing->name)}}
          (cljdoc.spec/assert :cljdoc.spec/cache-bundle))))
 
+(defn stats
+  [store]
+  (let [versions (for [g (e/result (grim/list-groups store))
+                       a (e/result (grim/list-artifacts store g))
+                       v (e/result (grim/list-versions store a))]
+                   v)]
+    {:versions (count versions)
+     :artifacts (count (set (map things/thing->artifact versions)))}))
+
 (defprotocol ICacheRenderer
   "This protocol is intended to allow different implementations of renderers.
 
@@ -122,6 +131,8 @@
     (defn dev-cache [] (bundle-docs store vt)))
 
   (bundle-group store gt)
+
+  (count (stats store))
 
   (map :namespace (namespaces cache))
 
