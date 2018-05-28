@@ -113,11 +113,11 @@
   (zipmap fpaths (map #(find-full-filepath known-files %) fpaths)))
 
 (comment
-  (require '[cljdoc.renderers.markup :as md])
+  (require '[cljdoc.render.rich-text :as rich-text])
 
   (defn doc []
     (Jsoup/parse
-     (md/markdown-to-html (slurp "https://raw.githubusercontent.com/metosin/jsonista/master/README.md"))))
+     (rich-text/markdown-to-html (slurp "https://raw.githubusercontent.com/metosin/jsonista/master/README.md"))))
 
   (def fix-opts
     {:git-ls []
@@ -137,7 +137,7 @@
                (.toPath (java.io.File. "route_syntax.md")))
 
   (fix "README.md"
-       (md/markdown-to-html (slurp "https://raw.githubusercontent.com/metosin/jsonista/master/README.md"))
+       (rich-text/markdown-to-html (slurp "https://raw.githubusercontent.com/metosin/jsonista/master/README.md"))
        fix-opts)
 
   (->> (.select (doc) "img")
