@@ -1,6 +1,6 @@
 (ns cljdoc.render.build-log
-  (:require [cljdoc.render.common :as common]
-            [cljdoc.render.layout :as layout]
+  (:require [cljdoc.render.layout :as layout]
+            [cljdoc.util :as util]
             [cljdoc.routes :as routes])
   (:import [java.time Instant Duration]))
 
@@ -30,7 +30,7 @@
       "We could not find the git repository for your project or
              link a commit to this release. API docs work regardless
              of this but consider "
-      [:a.link.blue {:href (common/github-url :userguide/scm-faq)}
+      [:a.link.blue {:href (util/github-url :userguide/scm-faq)}
        "setting these for optimal results"] "."]
      [:dl
       [:dt.b.mv2 "SCM URL"]
