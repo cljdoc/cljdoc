@@ -78,8 +78,13 @@
                              :tag (git/version-tag repo version)}
               :doc-tree     (doctree/process-toc
                              (fn slurp-at-rev [f]
-                               (git/slurp-file-at
-                                repo (or (:name version-tag) "master") f))
+                               ;; We are intentionally relaxed here for now
+                               ;; In principle we should only look at files at the tagged
+                               ;; revision but if a file has been added after the tagged
+                               ;; revision we might as well include it to allow a smooth,
+                               ;; even if slightly less correct, UX
+                               (or (git/slurp-file-at repo revision f)
+                                   (git/slurp-file-at repo "master" f)))
                              (or (:cljdoc.doc/tree config-edn)
                                  (get-in cljdoc.util/hardcoded-config
                                          [(cljdoc.util/normalize-project project) :cljdoc.doc/tree])
