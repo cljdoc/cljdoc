@@ -483,7 +483,7 @@
        (page {:title "Build submitted"})))
 
 (defn home []
-  (->> [:div.mw7.center.pv4
+  (->> [:div.mw7.center.pv4.pa0-l.pa2
         [:h1.f1 "cljdoc"
          [:span.dib.v-mid.ml3.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "alpha"]]
         [:p.f2.lh-copy "is a platform to build, host and view
