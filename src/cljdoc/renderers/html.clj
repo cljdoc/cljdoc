@@ -245,7 +245,7 @@
         file-mapping                       (when (:files scm-info)
                                              (fixref/match-files
                                               (keys (:files scm-info))
-                                              (set (map :file sorted-defs))))]
+                                              (set (keep :file sorted-defs))))]
     [:div.ns-page
      top-bar-component
      (sidebar
