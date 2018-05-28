@@ -1,6 +1,8 @@
 (ns cljdoc.render.layout
   "Components to layout cljdoc pages"
-  (:require [hiccup.core :as hiccup]
+  (:require [cljdoc.routes :as routes]
+            [cljdoc.util :as util]
+            [hiccup.core :as hiccup]
             [hiccup.page]))
 
 (defn page [opts contents]
@@ -43,3 +45,28 @@
     {:style {:left offset :top TOP-BAR-HEIGHT}}
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
           content)])
+
+(defn top-bar [cache-id version-meta]
+  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
+   [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/path-for :artifact/version cache-id)}
+    (util/clojars-id cache-id)]
+   [:a.dib.v-mid.link.dim.gray.f6.mr3
+    {:href (routes/path-for :artifact/index cache-id)}
+    (:version cache-id)]
+   [:a {:href "/"}
+    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Alpha"]]
+   [:a.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
+    {:href (util/github-url :issues)}
+    "Have Feedback?"]
+   [:div.tr
+    {:style {:flex-grow 1}}
+    [:form.dib.mr3 {:action "/api/request-build2" :method "POST"}
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id cache-id) "/" (:artifact-id cache-id))}]
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version cache-id)}]
+     [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
+    (if-let [scm-url (-> version-meta :scm :url)]
+      [:a.link.dim.gray.f6.tr
+       {:href scm-url}
+       [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
+       [:span.dib (util/gh-coordinate scm-url)]]
+      [:a.f6.link.blue {:href (util/github-url :userguide/scm-faq)} "SCM info missing"])]])

@@ -18,31 +18,6 @@
     artifact-id
     (str group-id "/" artifact-id)))
 
-(defn top-bar [cache-id version-meta]
-  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
-   [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (r/path-for :artifact/version cache-id)}
-    (clojars-id cache-id)]
-   [:a.dib.v-mid.link.dim.gray.f6.mr3
-    {:href (r/path-for :artifact/index cache-id)}
-    (:version cache-id)]
-   [:a {:href "/"}
-    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Alpha"]]
-   [:a.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
-    {:href (cljdoc.util/github-url :issues)}
-    "Have Feedback?"]
-   [:div.tr
-    {:style {:flex-grow 1}}
-    [:form.dib.mr3 {:action "/api/request-build2" :method "POST"}
-     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id cache-id) "/" (:artifact-id cache-id))}]
-     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version cache-id)}]
-     [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
-    (if-let [scm-url (-> version-meta :scm :url)]
-      [:a.link.dim.gray.f6.tr
-       {:href scm-url}
-       [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
-       [:span.dib (cljdoc.util/gh-coordinate scm-url)]]
-      [:a.f6.link.blue {:href (cljdoc.util/github-url :userguide/scm-faq)} "SCM info missing"])]])
-
 (defn index-page [{:keys [top-bar-component doc-tree-component namespace-list-component]}]
   [:div
    top-bar-component
@@ -93,7 +68,7 @@
 
 (defmethod render :artifact/version
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
-  (->> (index-page {:top-bar-component (top-bar cache-id (:version cache-contents))
+  (->> (index-page {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
                     :doc-tree-component (articles/doc-tree-view cache-id
                                                        (doctree/add-slug-path (-> cache-contents :version :doc))
                                                        [])
@@ -118,7 +93,7 @@
                                {:scm (:scm (:version cache-contents))
                                 :artifact-entity cache-id
                                 :flattened-doctree (doctree/flatten* doc-tree)})]
-    (->> (articles/doc-page {:top-bar-component (top-bar cache-id (:version cache-contents))
+    (->> (articles/doc-page {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
                              :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
                              :namespace-list-component (api/namespace-list
                                                         {}
@@ -135,7 +110,7 @@
                                (:namespaces cache-contents)))]
     (when (empty? defs)
       (log/warnf "Namespace %s contains no defs" (:namespace route-params)))
-    (->> (api/namespace-page {:top-bar-component (top-bar cache-id (:version cache-contents))
+    (->> (api/namespace-page {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
                               :scm-info (:scm (:version cache-contents))
                               :article-list-component (articles/article-list
                                                        (articles/doc-tree-view cache-id
@@ -150,7 +125,7 @@
          (layout/page {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
 (defn write-docs* [{:keys [cache-contents cache-id] :as cache-bundle} ^java.io.File out-dir]
-  (let [top-bar-comp (top-bar cache-id (:version cache-contents))
+  (let [top-bar-comp (layout/top-bar cache-id (:version cache-contents))
         doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))]
 
     ;; Index page for given version
