@@ -1,7 +1,7 @@
 (ns cljdoc.renderers.html
   (:require [cljdoc.routes :as r]
             [cljdoc.doc-tree :as doctree]
-            [cljdoc.renderers.markup :as markup]
+            [cljdoc.render.rich-text :as rich-text]
             [cljdoc.util.ns-tree :as ns-tree]
             [cljdoc.util]
             [cljdoc.util.fixref :as fixref]
@@ -106,7 +106,7 @@
         (def-code-block (str "(" (:name def-meta) (when (seq argv) " ") (clojure.string/join " " argv) ")")))]
      (when (:doc def-meta)
        [:div.lh-copy.markdown
-        (-> (:doc def-meta) markup/markdown-to-html hiccup/raw)])
+        (-> (:doc def-meta) rich-text/markdown-to-html hiccup/raw)])
      (when (seq (:members def-meta))
        [:div.lh-copy.pl3.bl.b--black-10
         (for [m (:members def-meta)]
@@ -261,7 +261,7 @@
        [:h2 (:namespace ns-entity)]
        (when-let [ns-doc (:doc ns-data)]
          [:div.lh-copy.markdown
-          (-> ns-doc markup/markdown-to-html hiccup/raw)])
+          (-> ns-doc rich-text/markdown-to-html hiccup/raw)])
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))
@@ -374,8 +374,8 @@
                    doctree/flatten*
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
-        doc-html (or (some-> doc-p :attrs :cljdoc/markdown markup/markdown-to-html)
-                     (some-> doc-p :attrs :cljdoc/asciidoc markup/asciidoc-to-html))
+        doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
+                     (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
         fixed-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                doc-html
                                {:scm (:scm (:version cache-contents))

@@ -1,4 +1,4 @@
-(ns cljdoc.renderers.markup
+(ns cljdoc.render.rich-text
   (:require [clojure.string :as string])
   (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory OptionsBuilder Attributes)
            (org.commonmark.node Image Link)
