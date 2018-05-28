@@ -3,6 +3,7 @@
             [cljdoc.server.doc-pages :as dp]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.render.build-log]
+            [cljdoc.render.home :as render-home]
             [clojure.java.io :as io]
             [yada.resources.classpath-resource]))
 
@@ -19,7 +20,7 @@
                      :response response-fn}}})))
 
 (defn home [ctx]
-  (cljdoc.renderers.html/home))
+  (render-home/home))
 
 (defn build-page [build-tracker]
   (fn build-page-response [ctx]
