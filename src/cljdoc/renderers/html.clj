@@ -239,43 +239,6 @@
     (assert (and dir (.isDirectory dir)) (format "HTMLRenderer expects output directory, was %s" dir))
     (write-docs* cache-bundle dir)))
 
-(defn- on-clojars? [coordinate]
-  ;; TODO move elsewhere as this won't load in analysis env
-  (try
-    (= 200 (:status @(aleph.http/head (cljdoc.util/remote-jar-file coordinate))))
-    (catch clojure.lang.ExceptionInfo e
-      false)))
-
-(defn request-build-page [route-params]
-  (->> [:div.pa4-ns.pa2
-        [:h1 "Want to build some documentation?"]
-        [:p "We currently don't have documentation built for " (clojars-id route-params) " v" (:version route-params)]
-        (if (on-clojars? [(clojars-id route-params) (:version route-params)])
-          [:form.pv3 {:action "/api/request-build2" :method "POST"}
-           [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "project" :name "project" :value (str (:group-id route-params) "/" (:artifact-id route-params))}]
-           [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "version" :name "version" :value (:version route-params)}]
-           [:input.ph3.pv2.mr2.br2.ba.b--blue.bg-white.blue.ttu.pointer.b {:type "submit" :value "build"}]]
-          [:div
-           [:p "We also can't find it on Clojars, which at this time, is required to build documentation."]
-           [:p [:a.no-underline.blue {:href (common/github-url :issues)} "Let us know if this is unexpected."]]])]
-       (layout/page {:title (str "Build docs for " (clojars-id route-params))})))
-
-(defn build-submitted-page [circle-job-url]
-  (->> [:div.pa4-ns.pa2
-        [:h1 "Thanks for using cljdoc!"]
-        [:p "Your documentation build is " [:a.link.blue.no-underline {:href circle-job-url} "in progress"]]
-        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href (common/github-url :issues)} "reach out."]]]
-       (layout/page {:title "Build submitted"})))
-
-(defn local-build-submitted-page []
-  (->> [:div.pa4-ns.pa2
-        [:h1 "The build has been submitted to the local analysis service"]
-        [:p "Check the logs to see how it's progressing. Errors will be logged there too."]
-        [:div.markdown
-         [:pre [:code "tail -f log/cljdoc.log"]]]
-        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href (common/github-url :issues)} "reach out."]]]
-       (layout/page {:title "Build submitted"})))
-
 (defn home []
   (->> [:div.mw7.center.pv4.pa0-l.pa2
         [:h1.f1 "cljdoc"
@@ -327,7 +290,6 @@
           [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (common/github-url :home)} "GitHub"] "."]]]
        (layout/page {:title "cljdoc"})
        (str)))
-
 
 (comment
 

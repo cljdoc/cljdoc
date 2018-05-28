@@ -3,6 +3,7 @@
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [cljdoc.renderers.html :as html]
+            [cljdoc.render.build-req :as render-build-req]
             [cljdoc.cache]
             [cljdoc.routes :as routes]
             [cljdoc.grimoire-helpers :as grimoire-helpers]))
@@ -71,7 +72,7 @@
                                 :headers {"Location" (routes/path-for :artifact/doc (assoc route-params :doc-page first-article-slug))})
                          (if cache-bundle
                            (str (html/render page-type route-params cache-bundle))
-                           (str (html/request-build-page route-params)))))}}))
+                           (str (render-build-req/request-build-page route-params)))))}}))
 
   bidi.bidi/Matched
   (resolve-handler [this m]
