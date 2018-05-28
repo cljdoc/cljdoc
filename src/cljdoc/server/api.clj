@@ -127,7 +127,7 @@
                          (build-log/analysis-kicked-off! build-tracker build-id nil)
                          (assoc (:response ctx)
                                 :status 301
-                                :headers {"Location" (str "/build/" build-id)})))))}}})))
+                                :headers {"Location" (str "/builds/" build-id)})))))}}})))
 
 (defn initiate-build-handler [{:keys [access-control analysis-service]}]
   ;; TODO assert config correctness

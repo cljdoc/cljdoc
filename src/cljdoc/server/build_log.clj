@@ -4,14 +4,10 @@
             [clojure.tools.logging :as log]
             [ragtime.jdbc :as jdbc]
             [ragtime.core :as ragtime])
-  (:import [java.util Date]
-           [java.text SimpleDateFormat]))
-
-(def db {:classname "org.sqlite.JDBC", :subprotocol "sqlite", :subname "test.db"})
+  (:import (java.time Instant)))
 
 (defn- now []
-  (-> (SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ss.SSS")
-      (.format (Date.))))
+  (str (Instant/now)))
 
 (defprotocol IBuildTracker
   (analysis-requested!
@@ -56,7 +52,7 @@
   (get-build [_ build-id]
     (first (sql/query db-spec ["SELECT * FROM builds WHERE id = ?" build-id])))
   (recent-builds [_ limit]
-    (sql/query db-spec ["SELECT * FROM builds ORDER_BY analysis_triggered_ts LIMIT ?" limit])))
+    (sql/query db-spec ["SELECT * FROM builds ORDER BY id DESC LIMIT ?" limit])))
 
 (defmethod ig/init-key :cljdoc/build-tracker [_ db-spec]
   (log/info "Starting BuildTracker")
@@ -71,6 +67,10 @@
   (ragtime.repl/rollback config)
   (ragtime.repl/migrate config)
 
+  (def bt (->SQLBuildTracker (cljdoc.config/build-log-db)))
+
+  (recent-builds  1)
+
   (clojure.pprint/pprint
    (get-build db 1))
 
@@ -84,7 +84,7 @@
 
   (sql/query db ["UPDATE builds SET analysis_job_uri = ? WHERE id = ?" "hello world" 9])
 
-  (track-analysis-request! db "bidi" "bidi" "2.1.3")
+  (analysis-requested! bt "bidi" "bidi" "2.1.3")
  
   (track-analysis-kick-off! db 2 "xxx")
 
