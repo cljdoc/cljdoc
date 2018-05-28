@@ -1,4 +1,8 @@
 (ns cljdoc.util
+  "Utility functions :)
+
+  These are available in the analysis environment and thus
+  should work without any additional dependencies."
   (:require [clojure.edn]
             [clojure.java.io :as io]
             [clojure.string :as string]))
