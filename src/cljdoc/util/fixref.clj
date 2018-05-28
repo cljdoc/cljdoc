@@ -3,6 +3,7 @@
   rendered in other places, e.g. GitHub."
   (:require [clojure.tools.logging :as log]
             [clojure.string :as string]
+            [cljdoc.util :as util]
             [cljdoc.routes :as routes])
   (:import (org.jsoup Jsoup)))
 
@@ -19,12 +20,6 @@
 
 (defn- anchor-uri? [s]
   (.startsWith s "#"))
-
-(defn- gh-owner [gh-url]
-  (second (re-find #"^https*://github.com/(\w+)/" gh-url)))
-
-(defn- gh-repo [gh-url]
-  (second (re-find #"^https*://github.com/\w+/(\w+)" gh-url)))
 
 (defn- uri-mapping [cache-id docs]
   (->> docs
@@ -90,8 +85,8 @@
       (.put broken-img "src" (fix-image file-path
                                         (.get broken-img "src")
                                         {:scm-base (str "https://raw.githubusercontent.com/"
-                                                        (gh-owner (:url scm)) "/"
-                                                        (gh-repo (:url scm)) "/"
+                                                        (util/gh-owner (:url scm)) "/"
+                                                        (util/gh-repo (:url scm)) "/"
                                                         (:name (:tag scm)) "/")})))
     (.toString doc)))
 

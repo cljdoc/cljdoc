@@ -124,3 +124,13 @@
 ;;     (throw (Exception. (format "Mismatch between version and pom-info: %s<>%s"
 ;;                                version
 ;;                                (-> cljdoc-edn :pom :version))))))
+
+
+(defn gh-owner [gh-url]
+  (second (re-find #"^https*://github.com/(\w+)/" gh-url)))
+
+(defn gh-repo [gh-url]
+  (second (re-find #"^https*://github.com/\w+/(\w+)" gh-url)))
+
+(defn gh-coordinate [gh-url]
+  (str (gh-owner gh-url) "/" (gh-repo gh-url)))

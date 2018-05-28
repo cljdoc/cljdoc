@@ -76,7 +76,7 @@
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
        [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
-       [:span.dib (subs scm-url 19)]]
+       [:span.dib (cljdoc.util/gh-coordinate scm-url)]]
       [:a.f6.link.blue {:href (github-url :userguide/scm-faq)} "SCM info missing"])]])
 
 (defn def-code-block
