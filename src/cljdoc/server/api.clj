@@ -113,7 +113,10 @@
                                     {:project project
                                      :version version
                                      :jarpath jarpath
-                                     :build-id build-id})]
+                                     :build-id build-id})
+                         response  (assoc (:response ctx)
+                                          :status 301
+                                          :headers {"Location" (str "/builds/" build-id)})]
                      (if (analysis-service/circle-ci? analysis-service)
                        (let [build-num (-> ana-resp :body bs/to-string json/read-value (get "build_num"))
                              job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)]
@@ -122,12 +125,10 @@
                            (assert build-num "build number missing from CircleCI response")
                            (build-log/analysis-kicked-off! build-tracker build-id job-url)
                            (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}" build-id job-url))
-                         (str (html/build-submitted-page job-url)))
+                         response)
                        (do
                          (build-log/analysis-kicked-off! build-tracker build-id nil)
-                         (assoc (:response ctx)
-                                :status 301
-                                :headers {"Location" (str "/builds/" build-id)})))))}}})))
+                         response))))}}})))
 
 (defn initiate-build-handler [{:keys [access-control analysis-service]}]
   ;; TODO assert config correctness
