@@ -57,8 +57,10 @@
                 version-tag (git/version-tag repo version)
                 revision    (or (:name version-tag) (:sha scm-info))
                 pom-scm-sha (:sha scm-info)
-                config-edn  (->> (or revision "master") ; in case people add the file later
-                                 (git/read-cljdoc-config repo)
+                config-edn  (->> (or (git/read-cljdoc-config repo revision)
+                                     ;; in case people add the file later,
+                                     ;; also check in master branch
+                                     (git/read-cljdoc-config repo "master"))
                                  (clojure.edn/read-string))]
 
             (when-not version-tag
