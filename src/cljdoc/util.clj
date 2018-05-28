@@ -49,6 +49,11 @@
        version "/"
        (artifact-id project) "-" version ".jar"))
 
+(defn clojars-id [{:keys [group-id artifact-id] :as cache-id}]
+  (if (= group-id artifact-id)
+    artifact-id
+    (str group-id "/" artifact-id)))
+
 (defn assert-first [[x & rest :as xs]]
   (if (empty? rest)
     x
@@ -134,3 +139,13 @@
 
 (defn gh-coordinate [gh-url]
   (str (gh-owner gh-url) "/" (gh-repo gh-url)))
+
+(defn github-url [type]
+  (let [base "https://github.com/martinklepsch/cljdoc"]
+    (case type
+      :home               base
+      :issues             (str base "/issues")
+      :rationale          (str base "#rationale")
+      :contributors       (str base "/graphs/contributors")
+      :userguide/articles (str base "/blob/master/doc/userguide/articles.md")
+      :userguide/scm-faq  (str base "/blob/master/doc/userguide/faq.md#how-do-i-set-scm-info-for-my-project"))))
