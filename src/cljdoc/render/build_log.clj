@@ -1,5 +1,6 @@
 (ns cljdoc.render.build-log
   (:require [cljdoc.render.common :as common]
+            [cljdoc.render.layout :as layout]
             [cljdoc.routes :as routes])
   (:import [java.time Instant Duration]))
 
@@ -85,7 +86,7 @@
         (when-not (:import_completed_ts build-info)
           [:script
            "setTimeout(function(){window.location.reload(1);}, 5000);"])]
-       (common/page {:title "cljdoc build #"})))
+       (layout/page {:title "cljdoc build #"})))
 
 (defn seconds-diff [d1 d2]
   (let [s (.getSeconds
@@ -136,4 +137,4 @@
        (into [:div.mw8.center.pv3.ph2
               [:h1 "Recent cljdoc builds"]])
 
-   (common/page {:title "cljdoc builds"})))
+   (layout/page {:title "cljdoc builds"})))

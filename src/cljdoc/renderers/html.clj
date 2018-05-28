@@ -2,6 +2,8 @@
   (:require [cljdoc.routes :as r]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.render.rich-text :as rich-text]
+            [cljdoc.render.layout :as layout]
+            [cljdoc.render.common :as common]
             [cljdoc.util.ns-tree :as ns-tree]
             [cljdoc.util]
             [cljdoc.util.fixref :as fixref]
@@ -14,45 +16,10 @@
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
 
-(defn github-url [type]
-  (let [base "https://github.com/martinklepsch/cljdoc"]
-    (case type
-      :home               base
-      :issues             (str base "/issues")
-      :rationale          (str base "#rationale")
-      :contributors       (str base "/graphs/contributors")
-      :userguide/articles (str base "/blob/master/doc/userguide/articles.md")
-      :userguide/scm-faq  (str base "/blob/master/doc/userguide/faq.md#how-do-i-set-scm-info-for-my-project"))))
-
-(defn page [opts contents]
-  (hiccup/html {:mode :html}
-               (hiccup.page/doctype :html5)
-               [:html {}
-                [:head
-                 [:title (:title opts)]
-                 [:meta {:charset "utf-8"}]
-                 (hiccup.page/include-css
-                   "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
-                   "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
-                   "/cljdoc.css")]
-                [:div.sans-serif
-                 contents]
-                (hiccup.page/include-js
-                  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"
-                  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js"
-                  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js"
-                  "/cljdoc.js")
-                [:script "hljs.initHighlightingOnLoad();"]]))
-
-(defn sidebar-title [title]
-  [:h4.ttu.f7.fw5.tracked.gray title])
-
 (defn clojars-id [{:keys [group-id artifact-id] :as cache-id}]
   (if (= group-id artifact-id)
     artifact-id
     (str group-id "/" artifact-id)))
-
-(def TOP-BAR-HEIGHT "57px")
 
 (defn top-bar [cache-id version-meta]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
@@ -64,7 +31,7 @@
    [:a {:href "/"}
     [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Alpha"]]
    [:a.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
-    {:href (github-url :issues)}
+    {:href (common/github-url :issues)}
     "Have Feedback?"]
    [:div.tr
     {:style {:flex-grow 1}}
@@ -77,7 +44,7 @@
        {:href scm-url}
        [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
        [:span.dib (cljdoc.util/gh-coordinate scm-url)]]
-      [:a.f6.link.blue {:href (github-url :userguide/scm-faq)} "SCM info missing"])]])
+      [:a.f6.link.blue {:href (common/github-url :userguide/scm-faq)} "SCM info missing"])]])
 
 (defn def-code-block
   [content]
@@ -124,7 +91,7 @@
 (defn namespace-list [{:keys [current]} namespaces]
   (let [namespaces (ns-tree/index-by :namespace namespaces)]
     [:div
-     (sidebar-title "Namespaces")
+     (layout/sidebar-title "Namespaces")
      [:ul.list.pl2
       (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))
             :let [style {:margin-left (str (* (dec level) 10) "px")}]]
@@ -151,12 +118,12 @@
 
 (defn article-list [doc-tree]
   [:div
-   (sidebar-title "Articles")
+   (layout/sidebar-title "Articles")
    (or doc-tree
-       [:p.pl2.f7.gray [:a.blue.link {:href (github-url
+       [:p.pl2.f7.gray [:a.blue.link {:href (common/github-url
        :userguide/articles)} "Articles"] " are a practical way to
        provide additional guidance beyond API documentation. To use
-       them, please ensure you " [:a.blue.link {:href (github-url
+       them, please ensure you " [:a.blue.link {:href (common/github-url
        :userguide/scm-faq)} "properly set SCM info"] " in your
        project."])])
 
@@ -204,20 +171,10 @@
           (-> (set (map :platform platf-defs))
               (humanize-supported-platforms))])])]])
 
-(defn sidebar [& contents]
-  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10
-   {:style {:top TOP-BAR-HEIGHT}} ; CSS HACK
-   contents])
-
-(defn sidebar-two [& contents]
-  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10.sidebar-scroll-view
-   {:style {:top TOP-BAR-HEIGHT :left "16rem"}} ; CSS HACK
-   contents])
-
 (defn index-page [{:keys [top-bar-component doc-tree-component namespace-list-component]}]
   [:div
    top-bar-component
-   (sidebar
+   (layout/sidebar
     (article-list doc-tree-component)
     namespace-list-component)])
 
@@ -232,12 +189,6 @@
       [node (str "Mostly " (humanize-supported-platforms dominant-platf) " forms.")
        [:br] " Exceptions indicated."])))
 
-(defn main-container [{:keys [offset]} & content]
-   [:div.absolute.bottom-0.right-0
-    {:style {:left offset :top TOP-BAR-HEIGHT}}
-    (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
-          content)])
-
 (defn namespace-page [{:keys [ns-entity ns-data defs scm-info top-bar-component doc-tree-component namespace-list-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (let [sorted-defs                        (sort-by (comp string/lower-case :name) defs)
@@ -248,14 +199,14 @@
                                               (set (keep :file sorted-defs))))]
     [:div.ns-page
      top-bar-component
-     (sidebar
+     (layout/sidebar
       (article-list doc-tree-component)
       namespace-list-component)
-     (sidebar-two
+     (layout/sidebar-two
       (platform-support-note platf-stats)
       (definitions-list ns-entity sorted-defs
         {:indicate-platforms-other-than dominant-platf}))
-     (main-container
+     (layout/main-container
       {:offset "32rem"}
       [:div.w-80-ns.pv4
        [:h2 (:namespace ns-entity)]
@@ -300,10 +251,10 @@
                         doc-html] :as args}]
   [:div
    top-bar-component
-   (sidebar
+   (layout/sidebar
     (article-list doc-tree-component)
     namespace-list-component)
-   (main-container
+   (layout/main-container
     {:offset "16rem"}
     [:div.mw7.center
      ;; TODO dispatch on a type parameter that becomes part of the attrs map
@@ -315,7 +266,7 @@
 
 (defn render-to [opts hiccup ^java.io.File file]
   (log/info "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
-  (->> hiccup (page opts) str (spit file)))
+  (->> hiccup (layout/page opts) str (spit file)))
 
 (defn file-for [out-dir route-id route-params]
   (doto (io/file out-dir (subs (r/path-for route-id route-params) 1) "index.html")
@@ -352,7 +303,7 @@
                  [big-btn-link
                   {:href (r/path-for :artifact/index (assoc cache-id :artifact-id a))}
                   a]])]])]
-         (page {:title (str (clojars-id artifact-entity) " — cljdoc")}))))
+         (layout/page {:title (str (clojars-id artifact-entity) " — cljdoc")}))))
 
 (defmethod render :artifact/version
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -363,7 +314,7 @@
                     :namespace-list-component (namespace-list
                                                {}
                                                (cljdoc.cache/namespaces cache-bundle))})
-       (page {:title (str (clojars-id cache-id) " " (:version cache-id))})))
+       (layout/page {:title (str (clojars-id cache-id) " " (:version cache-id))})))
 
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -387,7 +338,7 @@
                                                {}
                                                (cljdoc.cache/namespaces cache-bundle))
                     :doc-html fixed-html})
-         (page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
+         (layout/page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
 (defmethod render :artifact/namespace
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -409,7 +360,7 @@
                           :ns-entity ns-emap
                           :ns-data ns-data
                           :defs defs})
-         (page {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}))))
+         (layout/page {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
 (defn write-docs* [{:keys [cache-contents cache-id] :as cache-bundle} ^java.io.File out-dir]
   (let [top-bar-comp (top-bar cache-id (:version cache-contents))
@@ -463,15 +414,15 @@
            [:input.ph3.pv2.mr2.br2.ba.b--blue.bg-white.blue.ttu.pointer.b {:type "submit" :value "build"}]]
           [:div
            [:p "We also can't find it on Clojars, which at this time, is required to build documentation."]
-           [:p [:a.no-underline.blue {:href (github-url :issues)} "Let us know if this is unexpected."]]])]
-       (page {:title (str "Build docs for " (clojars-id route-params))})))
+           [:p [:a.no-underline.blue {:href (common/github-url :issues)} "Let us know if this is unexpected."]]])]
+       (layout/page {:title (str "Build docs for " (clojars-id route-params))})))
 
 (defn build-submitted-page [circle-job-url]
   (->> [:div.pa4-ns.pa2
         [:h1 "Thanks for using cljdoc!"]
         [:p "Your documentation build is " [:a.link.blue.no-underline {:href circle-job-url} "in progress"]]
-        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href (github-url :issues)} "reach out."]]]
-       (page {:title "Build submitted"})))
+        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href (common/github-url :issues)} "reach out."]]]
+       (layout/page {:title "Build submitted"})))
 
 (defn local-build-submitted-page []
   (->> [:div.pa4-ns.pa2
@@ -479,8 +430,8 @@
         [:p "Check the logs to see how it's progressing. Errors will be logged there too."]
         [:div.markdown
          [:pre [:code "tail -f log/cljdoc.log"]]]
-        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href (github-url :issues)} "reach out."]]]
-       (page {:title "Build submitted"})))
+        [:p "If anything isn't working as you'd expect, please " [:a.no-underline.blue {:href (common/github-url :issues)} "reach out."]]]
+       (layout/page {:title "Build submitted"})))
 
 (defn home []
   (->> [:div.mw7.center.pv4.pa0-l.pa2
@@ -488,7 +439,7 @@
          [:span.dib.v-mid.ml3.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "alpha"]]
         [:p.f2.lh-copy "is a platform to build, host and view
         documentation for Clojure/Script libraries."]
-        [:p.lh-copy "Read " [:a.link.blue {:href (github-url :rationale)} "the rationale"]
+        [:p.lh-copy "Read " [:a.link.blue {:href (common/github-url :rationale)} "the rationale"]
          " or check out some existing documentation:"]
         (let [btn :a.dib.mr2.mb2.link.blue.pa2.ba.b--blue.br1]
           [:div.pr4
@@ -524,14 +475,14 @@
            "\n     (:artifact-id your-project) \"/\""
            "\n     (:version your-project) \"/\")"]]
          [:p.lh-copy.f6.mid-gray [:span.fw5 "Tip: "] "If your project name does not contain a slash, group and artifact ID are the same."]
-         [:p.lh-copy "After you've done that you may want to " [:a.link.blue {:href (github-url :userguide/articles)} "add additional articles to the sidebar."]]]
+         [:p.lh-copy "After you've done that you may want to " [:a.link.blue {:href (common/github-url :userguide/articles)} "add additional articles to the sidebar."]]]
 
         [:div.mid-gray.mt4
          [:span.db.nb3 "—"]
-         [:p.mid-gray "cljdoc is created by its " [:a.link.blue {:href (github-url :contributors) } "contributors"]
+         [:p.mid-gray "cljdoc is created by its " [:a.link.blue {:href (common/github-url :contributors) } "contributors"]
           ". Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on "
-          [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (github-url :home)} "GitHub"] "."]]]
-       (page {:title "cljdoc"})
+          [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (common/github-url :home)} "GitHub"] "."]]]
+       (layout/page {:title "cljdoc"})
        (str)))
 
 
