@@ -56,6 +56,9 @@
   (when-let [readme (->> (.listFiles dir)
                          (map #(.getName %))
                          (filter #(.startsWith (.toLowerCase %) "readme."))
+                         (filter #(or (.endsWith % ".markdown")
+                                      (.endsWith % ".md")
+                                      (.endsWith % ".adoc")))
                          first)]
     [["Readme" {:file readme}]]))
 
