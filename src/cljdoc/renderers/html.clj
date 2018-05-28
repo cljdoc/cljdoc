@@ -3,16 +3,12 @@
             [cljdoc.doc-tree :as doctree]
             [cljdoc.render.rich-text :as rich-text]
             [cljdoc.render.layout :as layout]
-            [cljdoc.render.common :as common]
             [cljdoc.render.articles :as articles]
             [cljdoc.render.api :as api]
             [cljdoc.util]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.cache]
             [cljdoc.spec]
-            [hiccup2.core :as hiccup]
-            [hiccup.page]
-            [aleph.http]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
@@ -32,7 +28,7 @@
    [:a {:href "/"}
     [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Alpha"]]
    [:a.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
-    {:href (common/github-url :issues)}
+    {:href (cljdoc.util/github-url :issues)}
     "Have Feedback?"]
    [:div.tr
     {:style {:flex-grow 1}}
@@ -45,7 +41,7 @@
        {:href scm-url}
        [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
        [:span.dib (cljdoc.util/gh-coordinate scm-url)]]
-      [:a.f6.link.blue {:href (common/github-url :userguide/scm-faq)} "SCM info missing"])]])
+      [:a.f6.link.blue {:href (cljdoc.util/github-url :userguide/scm-faq)} "SCM info missing"])]])
 
 (defn index-page [{:keys [top-bar-component doc-tree-component namespace-list-component]}]
   [:div
