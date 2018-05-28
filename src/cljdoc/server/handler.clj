@@ -12,32 +12,34 @@
 ;;    (uncaughtException [_ thread ex]
 ;;      (log/error ex "Uncaught exception on" (.getName thread)))))
 
-(defn home []
+(defn html-resource [response-fn]
   (yada.yada/handler
    (yada.yada/resource
-    {:methods
-     {:get
-      {:produces #{"text/html"}
-       :response (fn home-response [ctx]
-                   (cljdoc.renderers.html/home))}}})))
+    {:methods {:get {:produces #{"text/html"}
+                     :response response-fn}}})))
+
+(defn home [ctx]
+  (cljdoc.renderers.html/home))
 
 (defn build-page [build-tracker]
-  (yada.yada/handler
-   (yada.yada/resource
-    {:methods
-     {:get
-      {:produces #{"text/html"}
-       :response (fn build-page-response [ctx]
-                   (->> (:id (:route-params ctx))
-                        (build-log/get-build build-tracker)
-                        (cljdoc.renderers.build-log/build-page)
-                        str))}}})))
+  (fn build-page-response [ctx]
+    (->> (:id (:route-params ctx))
+         (build-log/get-build build-tracker)
+         (cljdoc.renderers.build-log/build-page)
+         str)))
+
+(defn builds-page [build-tracker]
+  (fn build-page-response [ctx]
+    (->> (build-log/recent-builds build-tracker 100)
+         (cljdoc.renderers.build-log/builds-page)
+         str)))
 
 (defn cljdoc-routes [{:keys [dir build-tracker] :as deps}]
   ["" [["/api" (api/routes deps)]
        (cljdoc.routes/html-routes (partial dp/doc-page (io/file dir "grimoire")))
-       [["/build/" :id] (build-page build-tracker)]
-       ["/" (home)]
+       [["/builds/" :id] (html-resource (build-page build-tracker))]
+       ["/builds" (html-resource (builds-page build-tracker))]
+       ["/" (html-resource home)]
        ["" (yada.resources.classpath-resource/new-classpath-resource "public")]]])
 
 (comment
