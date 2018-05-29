@@ -49,6 +49,11 @@
   (on-clojars? 'bidi "2.1.3")
   (on-clojars? 'bidi "2.1.4")
 
+  (def d
+    (cljdoc.util.pom/parse (slurp (:pom (artifact-uris 'metosin/reitit "0.1.2-SNAPSHOT")))))
+
+  (cljdoc.util.pom/scm-info d)
+
   ;; (def f "/Users/martin/Downloads/clojars-downloads.edn")
   ;; (def f "https://clojars.org/stats/downloads-20180525.edn")
 
