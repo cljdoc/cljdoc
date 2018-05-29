@@ -4,6 +4,11 @@
             [cljdoc.routes :as routes])
   (:import [java.time Instant Duration]))
 
+(defn done? [build-info]
+  (boolean
+   (or (:import_completed_ts build-info)
+       (:error build-info))))
+
 (defn section [date & contents]
   (when date
     [:div.cf.ba.b--moon-gray.mb2.br1.bg-washed-yellow
@@ -71,7 +76,7 @@
           (section
            ""
            [:h3.mt0 "There was an error"]
-           [:p.bg-washed-red (:error build-info)]))
+           [:p.bg-washed-red.pa3.br2 (:error build-info)]))
 
         (section
          (:import_completed_ts build-info)
@@ -89,7 +94,7 @@
             [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
              (subs (:commit_sha build-info) 0 8)]]))
 
-        (when-not (:import_completed_ts build-info)
+        (when-not (done? build-info)
           [:script
            "setTimeout(function(){window.location.reload(1);}, 5000);"])]
        (layout/page {:title "cljdoc build #"})))
@@ -111,7 +116,7 @@
               [:span.silver.normal "#" (:id b)]]]
             (cljdoc-link b false)]
            [:div.fr
-            (when (:import_completed_ts b)
+            (when (done? b)
               (cond
                 (and (:scm_url b) (:commit_sha b)) [:span.db.bg-washed-green.pa3.br2 "Good"]
                 (and (:import_completed_ts b)
@@ -139,11 +144,12 @@
                (:analysis_received_ts b)))]
            [:div.fl.w-25
             [:span.db.f7.ttu.tracked.gray "Import completed"]
-            (if (:import_completed_ts b)
-              (seconds-diff
-               (:analysis_requested_ts b)
-               (:import_completed_ts b))
-              "in progress")]]])
+            (cond
+              (:import_completed_ts b) (seconds-diff
+                                        (:analysis_requested_ts b)
+                                        (:import_completed_ts b))
+              (:error b)               "failed"
+              :else                    "in progress")]]])
        (into [:div.mw8.center.pv3.ph2
               [:h1 "Recent cljdoc builds"]])
 
