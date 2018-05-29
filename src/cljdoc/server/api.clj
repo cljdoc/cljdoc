@@ -175,9 +175,13 @@
                      (build-log/analysis-received! build-tracker (int build-id) cljdoc-edn)
                      ;; TODO put this back in place
                      ;; (cljdoc.util/assert-match project version cljdoc-edn)
-                     (let [{:keys [scm-url commit]} (ingest/ingest-cljdoc-edn dir cljdoc-edn-contents)]
-                       (build-log/completed! build-tracker (int build-id) scm-url commit))
-                     (assoc (:response ctx) :status 200)))}}})))
+                     (try
+                       (let [{:keys [scm-url commit]} (ingest/ingest-cljdoc-edn dir cljdoc-edn-contents)]
+                         (build-log/completed! build-tracker (int build-id) scm-url commit))
+                       (assoc (:response ctx) :status 200)
+                       (catch Throwable e
+                         (build-log/failed! build-tracker build-id "exception-during-import")
+                         (throw e)))))}}})))
 
 (def ping-handler
   (yada/handler
