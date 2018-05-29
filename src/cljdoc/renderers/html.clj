@@ -84,12 +84,15 @@
                                doc-html
                                {:scm (:scm (:version cache-contents))
                                 :artifact-entity cache-id
-                                :flattened-doctree (doctree/flatten* doc-tree)})]
+                                :flattened-doctree (doctree/flatten* doc-tree)})
+        scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
+                     (-> doc-p :attrs :cljdoc.doc/source-file))]
     (->> (articles/doc-page {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
                              :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
                              :namespace-list-component (api/namespace-list
                                                         {}
                                                         (cljdoc.cache/namespaces cache-bundle))
+                             :doc-scm-url scm-url
                              :doc-html fixed-html})
          (layout/page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
