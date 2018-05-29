@@ -15,6 +15,7 @@
     [_ group-id artifact-id version])
   (analysis-kicked-off! [_ build-id analysis-job-uri])
   (analysis-received! [_ build-id cljdoc-edn-uri])
+  (failed! [_ build-id error])
   (completed! [_ build-id scm-url commit])
   (get-build [_ build-id])
   (recent-builds [_ limit]))
@@ -41,6 +42,11 @@
                  "builds"
                  {:analysis_result_uri cljdoc-edn-uri
                   :analysis_received_ts (now)}
+                 ["id = ?" build-id]))
+  (failed! [_ build-id error]
+    (sql/update! db-spec
+                 "builds"
+                 {:error error}
                  ["id = ?" build-id]))
   (completed! [_ build-id scm-url commit]
     (sql/update! db-spec

@@ -54,7 +54,7 @@
    :verify (mk-auth users)
    :authorization {:methods {:post :api-user}}})
 
-(defn circle-ci-webhook-handler [circle-ci]
+(defn circle-ci-webhook-handler [{:keys [analysis-service build-tracker]}]
   ;; TODO assert config correctness
   (yada/handler
    (yada/resource
@@ -70,23 +70,25 @@
                          project   (get-in ctx [:body "payload" "build_parameters" "CLJDOC_PROJECT"])
                          version   (get-in ctx [:body "payload" "build_parameters" "CLJDOC_PROJECT_VERSION"])
                          build-id  (get-in ctx [:body "payload" "build_parameters" "CLJDOC_BUILD_ID"])
+                         status    (get-in ctx [:body "payload" "status"])
                          cljdoc-edn (cljdoc.util/cljdoc-edn project version)
-                         artifacts  (-> (analysis-service/get-circle-ci-build-artifacts circle-ci build-num)
+                         artifacts  (-> (analysis-service/get-circle-ci-build-artifacts analysis-service build-num)
                                         :body bs/to-string json/read-value)]
-                     (if-let [artifact (and (= 1 (count artifacts))
+                     (if-let [artifact (and (= status "success")
+                                            (= 1 (count artifacts))
                                             (= cljdoc-edn (get (first artifacts) "path"))
                                             (first artifacts))]
+                       (let [full-build-req (run-full-build {:project project
+                                                             :version version
+                                                             :build-id build-id
+                                                             :cljdoc-edn (get artifact "url")})]
+                         (assoc (:response ctx) :status (:status full-build-req)))
+
                        (do
-                         (log/info "Found expected artifact:" (first artifacts))
-                         (let [full-build-req (run-full-build {:project project
-                                                               :version version
-                                                               :build-id build-id
-                                                               :cljdoc-edn (get artifact "url")})]
-                           (assoc (:response ctx) :status (:status full-build-req))))
-                       (do
-                         (log/warn "Unexpected artifacts for build submitted via webhook" artifacts)
-                         (log/warn "Expected path" cljdoc-edn)
-                         (assoc (:response ctx) :status 400)))))}}})))
+                         (if (= status "success")
+                           (build-log/failed! build-tracker build-id "unexpected-artifacts")
+                           (build-log/failed! build-tracker build-id "analysis-job-failed"))
+                         (assoc (:response ctx) :status 200)))))}}})))
 
 (defn initiate-build-handler-simple [{:keys [analysis-service build-tracker]}]
   (yada/handler
@@ -187,7 +189,9 @@
 
 (defn routes [{:keys [analysis-service build-tracker dir]}]
   [["/ping"            ping-handler]
-   ["/hooks/circle-ci" (circle-ci-webhook-handler analysis-service)]
+   ["/hooks/circle-ci" (circle-ci-webhook-handler
+                        {:anlysis-service analysis-service
+                         :build-tracker build-tracker})]
    ["/request-build"   (initiate-build-handler
                         {:analysis-service analysis-service
                          :access-control (api-acc-control {"cljdoc" "cljdoc"})})]
