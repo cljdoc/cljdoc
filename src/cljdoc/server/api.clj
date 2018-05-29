@@ -190,13 +190,22 @@
      {:get {:produces "text/plain"
             :response "pong"}}})))
 
+(def not-implemented-handler
+  (yada/handler
+   (yada/resource
+    {:methods
+     {:get {:produces "text/plain"
+            :response {:status 501}}}})))
+
 ;; Routes -------------------------------------------------------------
 
 (defn routes [{:keys [analysis-service build-tracker dir]}]
   [["/ping"            ping-handler]
-   ["/hooks/circle-ci" (circle-ci-webhook-handler
-                        {:analysis-service analysis-service
-                         :build-tracker build-tracker})]
+   ["/hooks/circle-ci" (if (analysis-service/circle-ci? analysis-service)
+                         (circle-ci-webhook-handler
+                          {:analysis-service analysis-service
+                           :build-tracker build-tracker})
+                         not-implemented-handler)]
    ["/request-build"   (initiate-build-handler
                         {:analysis-service analysis-service
                          :access-control (api-acc-control {"cljdoc" "cljdoc"})})]
