@@ -1,17 +1,21 @@
 (ns cljdoc.util.clojars
   (:require [cljdoc.util :as util]
+            [clojure.string :as string]
             [aleph.http :as http]
             [byte-streams :as bs])
   (:import (org.jsoup Jsoup)))
 
+(defn group-path [project]
+  (string/replace (util/group-id project) #"\." "/"))
+
 (defn on-clojars? [project version]
   (let [uri (format "https://repo.clojars.org/%s/%s/%s/"
-                    (util/group-id project) (util/artifact-id project) version)]
+                    (group-path project) (util/artifact-id project) version)]
     (= 200 (:status @(aleph.http/head uri {:throw-exceptions? false})))))
 
 (defn metadata-xml-uri [project version]
   (format "https://repo.clojars.org/%s/%s/%s/maven-metadata.xml"
-          (util/group-id project) (util/artifact-id project) version))
+          (group-path project) (util/artifact-id project) version))
 
 (defn resolve-snapshot [project version]
   (let [d (Jsoup/parse (bs/to-string (:body @(http/get (metadata-xml-uri project version)))))]
@@ -30,10 +34,10 @@
                      (resolve-snapshot project version)
                      version)]
       {:pom (format "https://repo.clojars.org/%s/%s/%s/%s-%s.pom"
-                    (util/group-id project) (util/artifact-id project) version
+                    (group-path project) (util/artifact-id project) version
                     (util/artifact-id project) version')
        :jar (format "https://repo.clojars.org/%s/%s/%s/%s-%s.jar"
-                    (util/group-id project) (util/artifact-id project) version
+                    (group-path project) (util/artifact-id project) version
                     (util/artifact-id project) version')})))
 
 (comment
@@ -48,6 +52,8 @@
 
   (on-clojars? 'bidi "2.1.3")
   (on-clojars? 'bidi "2.1.4")
+
+  (on-clojars? 'com.bhauman/spell-spec "0.1.0")
 
   (def d
     (cljdoc.util.pom/parse (slurp (:pom (artifact-uris 'metosin/reitit "0.1.2-SNAPSHOT")))))
