@@ -40,6 +40,12 @@
                     (str jar-uri))]
     (printf "Unpacking %s\n" jar-local)
     (pod/unpack-jar jar-local target-dir)
+    ;; Some projects include their `out` directories in their jars,
+    ;; usually somewhere under public/, this tries to clear those.
+    ;; NOTE this means projects with the group-id `public` will fail to build.
+    (when (.exists (io/file target-dir "public"))
+      (println "Deleting public/ dir")
+      (cljdoc.util/delete-directory (io/file target-dir "public")))
     (when remote-jar? (.delete (io/file jar-local)))))
 
 (b/deftask copy-jar-contents
