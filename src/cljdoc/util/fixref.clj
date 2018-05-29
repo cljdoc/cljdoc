@@ -69,14 +69,16 @@
   ;; (def hs html-str)
   ;; (def fo fix-opts)
   (let [doc     (Jsoup/parse html-str)
-        uri-map (uri-mapping artifact-entity flattened-doctree)]
+        uri-map (uri-mapping artifact-entity flattened-doctree)
+        scm-rev (or (:name (:tag scm))
+                    (:commit scm))]
     (doseq [broken-link (->> (.select doc "a")
                              (map #(.attributes %))
                              (remove #(absolute-uri? (.get % "href")))
                              (remove #(anchor-uri? (.get % "href"))))]
       (.put broken-link "href" (fix-link file-path
                                          (.get broken-link "href")
-                                         {:scm-base (str (:url scm) "/blob/" (:name (:tag scm)) "/")
+                                         {:scm-base (str (:url scm) "/blob/" scm-rev "/")
                                           :uri-map uri-map})))
 
     (doseq [broken-img (->> (.select doc "img")
@@ -87,7 +89,7 @@
                                         {:scm-base (str "https://raw.githubusercontent.com/"
                                                         (util/gh-owner (:url scm)) "/"
                                                         (util/gh-repo (:url scm)) "/"
-                                                        (:name (:tag scm)) "/")})))
+                                                        scm-rev "/")})))
     (.toString doc)))
 
 
