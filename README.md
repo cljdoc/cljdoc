@@ -49,7 +49,9 @@ interesting use-cases down the road.
 
 I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions) for some time, you can find them all in [`doc/adr/`](https://github.com/martinklepsch/cljdoc/tree/master/doc/adr).
 
-## Quickstart for potential contributors
+## Contributing
+
+To start the entire system, simply run:
 
 ```
 boot run
@@ -65,6 +67,8 @@ Logs can be viewed with `tail -f log/cljdoc.log`.
 
 :recycle: For a more REPL-driven workflow, check the comment block at the end of
 the `cljdoc.server.system` namespace.
+
+**Tests:** There is a small amount of tests which can be ran with `boot test`.
 
 ## License
 
