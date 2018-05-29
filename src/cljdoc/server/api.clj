@@ -74,6 +74,7 @@
                          cljdoc-edn (cljdoc.util/cljdoc-edn project version)
                          artifacts  (-> (analysis-service/get-circle-ci-build-artifacts analysis-service build-num)
                                         :body bs/to-string json/read-value)]
+                     (log/info "Payload" (get-in ctx [:body "payload"]))
                      (if-let [artifact (and (= status "success")
                                             (= 1 (count artifacts))
                                             (= cljdoc-edn (get (first artifacts) "path"))
