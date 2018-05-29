@@ -5,6 +5,7 @@
             [cljdoc.server.ingest :as ingest]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.util]
+            [cljdoc.util.clojars :as clojars]
             [cljdoc.cache]
             [cljdoc.config] ; should not be necessary but instead be passed as args
             [cljdoc.renderers.html :as html]
@@ -105,7 +106,7 @@
        :response (fn initiate-build-handler-simple-response [ctx]
                    (let [project   (symbol (get-in ctx [:parameters :form :project]))
                          version   (get-in ctx [:parameters :form :version])
-                         jarpath   (cljdoc.util/remote-jar-file [project version])
+                         jarpath   (:jar (clojars/artifact-uris project version))
                          build-id  (build-log/analysis-requested!
                                     build-tracker
                                     (cljdoc.util/group-id project)

@@ -59,6 +59,7 @@
          '[cljdoc.config :as cfg]
          '[cljdoc.analysis.task :as ana]
          '[cljdoc.util]
+         '[cljdoc.util.clojars :as clojars]
          '[cljdoc.util.boot])
 
 (spec/check-asserts true)
@@ -99,9 +100,10 @@
 
 (deftask build-docs
   [p project PROJECT sym "Project to build documentation for"
-   v version VERSION str "Version of project to build documentation for"
-   ]
-  (comp (ana/analyze :project project :version version)
+   v version VERSION str "Version of project to build documentation for"]
+  (comp (ana/analyze :project project
+                     :version version
+                     :jarpath (:jar (clojars/artifact-uris project version)))
         (grimoire :project project :version version)
         (grimoire-html :project project :version version)
         (sift :move {#"^public/" "grimoire-html/"})))

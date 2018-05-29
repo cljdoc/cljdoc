@@ -43,16 +43,6 @@
        (first)
        :jar))
 
-(defn remote-jar-file
-  [[project version :as coordinate]]
-  {:pre [(some? project) (some? version)]}
-  ;; Probably doesn't work with SNAPSHOTs
-  (str "https://repo.clojars.org/"
-       (string/replace (group-id project) #"\." "/") "/"
-       (artifact-id project) "/"
-       version "/"
-       (artifact-id project) "-" version ".jar"))
-
 (defn clojars-id [{:keys [group-id artifact-id] :as cache-id}]
   (if (= group-id artifact-id)
     artifact-id

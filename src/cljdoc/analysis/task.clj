@@ -91,11 +91,13 @@
 (b/deftask analyze
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
-   j jarpath JARPATH str "Absolute path to the jar (optional, local/remote)"]
+   j jarpath JARPATH str "Absolute path to the jar (can be local/remote)"]
+  (assert project "project is required")
+  (assert version "version is required")
+  (assert jarpath "jarpath is required")
   (b/with-pre-wrap fs
     (let [tempd           (b/tmp-dir!)
-          jar             (or jarpath (cljdoc.util/remote-jar-file [project version]))
-          cljdoc-edn-file (analyze-impl project version jar)]
+          cljdoc-edn-file (analyze-impl project version jarpath)]
       (io/copy cljdoc-edn-file
                (doto (io/file tempd (cljdoc.util/cljdoc-edn project version))
                  (io/make-parents)))
