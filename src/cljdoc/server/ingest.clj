@@ -67,7 +67,9 @@
           ;; Stuff that depends on a SCM url being present
           (let [repo        (git/->repo git-dir)
                 version-tag (git/version-tag repo version)
-                revision    (or (:name version-tag) (:sha scm-info))
+                revision    (or (:name version-tag) (:sha scm-info)
+                                (when (.endsWith version "-SNAPSHOT")
+                                  "master"))
                 pom-scm-sha (:sha scm-info)
                 config-edn  (->> (or (git/read-cljdoc-config repo revision)
                                      ;; in case people add the file later,
