@@ -55,7 +55,7 @@
    :authorization {:methods {:post :api-user}}})
 
 (defn circle-ci-webhook-handler [{:keys [analysis-service build-tracker]}]
-  ;; TODO assert config correctness
+  (assert (analysis-service/circle-ci? analysis-service))
   (yada/handler
    (yada/resource
     {:methods
@@ -190,7 +190,7 @@
 (defn routes [{:keys [analysis-service build-tracker dir]}]
   [["/ping"            ping-handler]
    ["/hooks/circle-ci" (circle-ci-webhook-handler
-                        {:anlysis-service analysis-service
+                        {:analysis-service analysis-service
                          :build-tracker build-tracker})]
    ["/request-build"   (initiate-build-handler
                         {:analysis-service analysis-service
