@@ -41,9 +41,10 @@
     [org.clojure/java.jdbc "0.7.0"]
     [ragtime "0.7.2"]
 
-    [expound "0.6.0"]])
+    [expound "0.6.0"]
+    [metosin/bat-test "0.4.0" :scope "test"]])
 
-(boot.core/set-env! :source-paths #{"src"}
+(boot.core/set-env! :source-paths #{"src" "test"}
                     :resource-paths #{"resources"}
                     :dependencies application-deps)
 
@@ -111,6 +112,10 @@
            (cljdoc.server.system/system-config
             (cfg/config))))
         (wait)))
+
+(require '[metosin.bat-test :as bat])
+(deftask test []
+  (bat/bat-test :report [:pretty {:type :junit :output-to "target/junit.xml"}]))
 
 (comment
   (def f
