@@ -56,9 +56,8 @@
      ;; TODO dispatch on a type parameter that becomes part of the attrs map
      (if doc-html
        [:div.markdown.lh-copy.pv4
-        [:div.relative
-         [:a.absolute.top-0.left-0.f7 {:href doc-scm-url} "Edit on GitHub"]]
-        (hiccup/raw doc-html)]
+        (hiccup/raw doc-html)
+        [:a.db.f7.tr {:href doc-scm-url} "Edit on GitHub"]]
        [:div.lh-copy.pv6.tc
         #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
         [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
