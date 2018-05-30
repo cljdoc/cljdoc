@@ -46,6 +46,9 @@
     (when (.exists (io/file target-dir "public"))
       (println "Deleting public/ dir")
       (cljdoc.util/delete-directory (io/file target-dir "public")))
+    (when (.exists (io/file target-dir "deps.cljs"))
+      (println "Deleting deps.cljs")
+      (.delete (io/file target-dir "deps.cljs")))
     (when remote-jar? (.delete (io/file jar-local)))))
 
 (b/deftask copy-jar-contents
