@@ -9,6 +9,7 @@
             [grimoire.api.fs]
             [grimoire.api.fs.write]
             [grimoire.api.fs.read]
+            [grimoire.api.fs.impl]
             [grimoire.things]
             [grimoire.util]
             [grimoire.either])
@@ -111,11 +112,18 @@
   (log/info "Writing doc meta for" (grimoire.things/thing->path version) {:scm (dissoc scm :files)})
   (grimoire.api/write-meta store version {:jar jar :scm scm, :doc doc-tree}))
 
+(defn- delete-thing! [store thing]
+  (let [thing-dir (.getParentFile (grimoire.api.fs.impl/thing->meta-handle store thing))]
+    (when (.exists thing-dir)
+      (log/info "Deleting all previously imported data for" (grimoire.things/thing->path thing))
+      (cljdoc.util/delete-directory! thing-dir))))
+
 (defn import-api
   [{:keys [version codox store]}]
   ;; TODO assert format of cljdoc-edn
   (doseq [platf (keys codox)]
     (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
+    (delete-thing! store (grimoire.things/->Platform version platf))
     (import-api* {:platform (grimoire.things/->Platform version platf)
                   :store store
                   :codox-namespaces (get codox platf)})))
