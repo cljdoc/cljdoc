@@ -70,7 +70,12 @@
   (->SQLBuildTracker db-spec))
 
 (comment
+  (require 'ragtime.repl 'ragtime.jdbc)
+  (def config {:datastore  (ragtime.jdbc/sql-database (cljdoc.config/build-log-db))
+               :migrations (ragtime.jdbc/load-resources "build_log_migrations")})
+
   (ragtime.repl/rollback config)
+
   (ragtime.repl/migrate config)
 
   (def bt (->SQLBuildTracker (cljdoc.config/build-log-db)))
