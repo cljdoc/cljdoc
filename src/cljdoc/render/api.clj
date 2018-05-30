@@ -7,7 +7,8 @@
             [cljdoc.spec]
             [cljdoc.routes :as routes]
             [clojure.string :as string]
-            [hiccup2.core :as hiccup]))
+            [hiccup2.core :as hiccup]
+	    [zprint.core :as zp]))
 
 (defn def-code-block
   [content]
@@ -33,7 +34,12 @@
      ;;   [:code (pr-str def-meta)])
      [:div.lh-copy
       (for [argv (sort-by count (:arglists def-meta))]
-        (def-code-block (str "(" (:name def-meta) (when (seq argv) " ") (string/join " " argv) ")")))]
+        (def-code-block 
+	  (zp/zprint-str (str "(" 
+	                      (:name def-meta) 
+			      (when (seq argv) " ") 
+			      (string/join " " argv) ")")
+			 {:parse-string? true :width 70})))]
      (when (:doc def-meta)
        [:div.lh-copy.markdown
         (-> (:doc def-meta) rich-text/markdown-to-html hiccup/raw)])

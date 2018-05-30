@@ -42,7 +42,8 @@
     [ragtime "0.7.2"]
 
     [expound "0.6.0"]
-    [metosin/bat-test "0.4.0" :scope "test"]])
+    [metosin/bat-test "0.4.0" :scope "test"]
+    [zprint "0.4.9"]])
 
 (boot.core/set-env! :source-paths #{"src" "test"}
                     :resource-paths #{"resources"}
