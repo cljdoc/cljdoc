@@ -45,7 +45,7 @@
     ;; NOTE this means projects with the group-id `public` will fail to build.
     (when (.exists (io/file target-dir "public"))
       (println "Deleting public/ dir")
-      (cljdoc.util/delete-directory (io/file target-dir "public")))
+      (cljdoc.util/delete-directory! (io/file target-dir "public")))
     (when (.exists (io/file target-dir "deps.cljs"))
       (println "Deleting deps.cljs")
       (.delete (io/file target-dir "deps.cljs")))
@@ -92,7 +92,7 @@
           ana-result     {:codox cdx-namespaces
                           :pom-str (slurp (cljdoc.util/find-pom-in-dir jar-contents project))}]
       (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
-      (cljdoc.util/delete-directory jar-contents)
+      (cljdoc.util/delete-directory! jar-contents)
       (doto (io/file tmp-dir (cljdoc.util/cljdoc-edn project version))
         (io/make-parents)
         (spit (pr-str ana-result))))))

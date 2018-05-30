@@ -114,7 +114,7 @@
         (throw (ex-info "Exception while running full build" {:project project :version version} t)))
       (finally
         (when (.exists git-dir)
-          (cljdoc.util/delete-directory git-dir))))))
+          (cljdoc.util/delete-directory! git-dir))))))
 
 (comment
 

@@ -101,7 +101,7 @@
 (defn find-pom-in-dir [dir project]
   (io/file dir (pom-path project)))
 
-(defn delete-directory [dir]
+(defn delete-directory! [dir]
   (let [{:keys [files dirs]} (group-by (fn [f]
                                          (cond (.isDirectory f) :dirs
                                                (.isFile f) :files))
