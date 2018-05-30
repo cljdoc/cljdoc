@@ -2,8 +2,23 @@
   (:require [cljdoc.util :as util]
             [clojure.string :as string]
             [aleph.http :as http]
-            [byte-streams :as bs])
-  (:import (org.jsoup Jsoup)))
+            [byte-streams :as bs]
+            [jsonista.core :as json])
+  (:import (org.jsoup Jsoup)
+           (java.time Instant Duration)))
+
+(defn releases-since [inst]
+  (let [req @(http/get "https://clojars.org/search"
+                       {;:throw-exceptions? false
+                        :query-params {"q" (format "at:[%s TO %s]" (str inst) (str (Instant/now)))
+                                       "format" "json"
+                                       "page" 1}})
+        results (-> req :body bs/to-string json/read-value (get "results"))]
+    (map (fn [r] (update r "created" #(Instant/ofEpochMilli (Long. %))))
+         results)
+
+      #_first
+      #_clojure.pprint/pprint))
 
 (defn group-path [project]
   (string/replace (util/group-id project) #"\." "/"))
