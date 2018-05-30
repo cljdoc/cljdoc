@@ -23,7 +23,7 @@
                                      :version (:version build-info)})]
     [:a.link.blue {:href cljdoc-uri}
      (when icon?
-       [:img.v-mid.mr2 {:src "https://icon.now.sh/chevron/24"}])
+       [:img.v-mid.mr2 {:src "https://icon.now.sh/chevron/20"}])
      (str "cljdoc.xyz" cljdoc-uri)]))
 
 (defn scm-info [build-info]
@@ -53,6 +53,16 @@
          (str (:group_id build-info) "/" (:artifact_id build-info))
          [:span " v" (:version build-info)]]
 
+        (when-not false; (done? build-info)
+          [:div.pa3.ba.b--blue.mb3.lh-copy.ma0.br2.bw1.f4
+           [:p.ma0.mb2 "We will now queue an job on CircleCI that will analyze
+           your code in an isolated environment. Once this is done we
+           will process the result of the analysis and integrate
+           additional sources like your Git repository."]
+           [:p.ma0 " You can follow the build's progress here. This
+           page will automatically reload until your build is
+           done."]])
+
         (section
          (:analysis_requested_ts build-info)
          [:h3.mt0 "Analysis Requested"])
@@ -61,7 +71,9 @@
          (:analysis_triggered_ts build-info)
          [:h3.mt0 "Analysis Kicked Off"]
          (when-let [job-uri (:analysis_job_uri build-info)]
-           [:a.link.blue {:href job-uri} "view job"]))
+           [:a.link.blue {:href job-uri}
+            [:img.v-mid.mr2 {:src "https://icon.now.sh/circleci/20"}]
+            "View job on CircleCI"]))
 
         (section
          (:analysis_received_ts build-info)
@@ -88,7 +100,7 @@
          (when (and (:scm_url build-info) (:commit_sha build-info))
            [:p
             [:a.link.blue {:href (:scm_url build-info)}
-             [:img.v-mid.mr2 {:src "https://icon.now.sh/github/24"}]
+             [:img.v-mid.mr2 {:src "https://icon.now.sh/github/20"}]
              (subs (:scm_url build-info) 19)]
             " @ "
             [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
