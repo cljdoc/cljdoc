@@ -8,13 +8,14 @@
             [cljdoc.routes :as routes]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]
-	    [zprint.core :as zp]))
+            [zprint.core :as zp]))
 
 (defn def-code-block
-  [content]
+  [args-str]
+  {:pre [(string? args-str)]}
   [:pre
    [:code.db.mb2 {:class "language-clojure"}
-    content]])
+    (zp/zprint-str args-str {:parse-string? true :width 70})]])
 
 (defn def-block [platforms {:keys [base file-mapping] :as scm}]
   (assert (coll? platforms) "def meta is not a map")
@@ -35,11 +36,7 @@
      [:div.lh-copy
       (for [argv (sort-by count (:arglists def-meta))]
         (def-code-block 
-	  (zp/zprint-str (str "(" 
-	                      (:name def-meta) 
-			      (when (seq argv) " ") 
-			      (string/join " " argv) ")")
-			 {:parse-string? true :width 70})))]
+          (str "(" (:name def-meta) (when (seq argv) " ") (string/join " " argv) ")")))]
      (when (:doc def-meta)
        [:div.lh-copy.markdown
         (-> (:doc def-meta) rich-text/markdown-to-html hiccup/raw)])
