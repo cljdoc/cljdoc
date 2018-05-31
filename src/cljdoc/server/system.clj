@@ -2,11 +2,14 @@
   (:require [cljdoc.server.handler]
             [cljdoc.analysis.service :as analysis-service]
             [cljdoc.config :as cfg]
+            [cljdoc.server.release-monitor]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [integrant.core :as ig]
             [yada.yada :as yada]
-            [unilog.config :as unilog]))
+            [unilog.config :as unilog]
+            [ragtime.jdbc :as jdbc]
+            [ragtime.core :as ragtime]))
 
 (def logging-config
  {:level   :info
@@ -44,6 +47,13 @@
   (case type
     :circle-ci (analysis-service/circle-ci (:api-token opts) (:builder-project opts))
     :local     (analysis-service/->Local (:full-build-url opts))))
+
+(defmethod ig/init-key :cljdoc/migrations [_ db-spec]
+  (ragtime/migrate-all (jdbc/sql-database db-spec)
+                       {}
+                       (jdbc/load-resources "build_log_migrations")
+                       {:reporter (fn [store direction migration]
+                                    (log/infof "Migrating %s %s" direction migration))}))
 
 (comment
   (require '[integrant.repl])
