@@ -27,10 +27,13 @@
 (defn analysis-service []
   (get-in (config) [:cljdoc/server :analysis-service]))
 
+(defn data-dir []
+  (get-in (config) [:cljdoc/server :dir]))
+
 (defn build-log-db []
   {:classname "org.sqlite.JDBC",
    :subprotocol "sqlite",
-   :subname (str (get-in (config) [:cljdoc/server :dir]) "build-log.db")})
+   :subname (str (data-dir) "build-log.db")})
 
 (defn autobuild-clojars-releases? []
   (get-in (config) [:cljdoc/server :autobuild-clojars-releases?]))
