@@ -15,17 +15,13 @@
                                        "format" "json"
                                        "page" 1}})
         results (-> req :body bs/to-string json/read-value (get "results"))]
-    (log/infof "Got %s new releases since %s" (count results) inst)
     (->> results
          (sort-by #(get % "created"))
          (map (fn [r]
                 {:created_ts  (Instant/ofEpochMilli (Long. (get r "created")))
                  :group_id    (get r "group_name")
                  :artifact_id (get r "jar_name")
-                 :version     (get r "version")})))
-
-      #_first
-      #_clojure.pprint/pprint))
+                 :version     (get r "version")})))))
 
 (defn group-path [project]
   (string/replace (util/group-id project) #"\." "/"))
