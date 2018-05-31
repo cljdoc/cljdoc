@@ -1,9 +1,7 @@
 (ns cljdoc.server.build-log
   (:require [integrant.core :as ig]
             [clojure.java.jdbc :as sql]
-            [clojure.tools.logging :as log]
-            [ragtime.jdbc :as jdbc]
-            [ragtime.core :as ragtime])
+            [clojure.tools.logging :as log])
   (:import (java.time Instant)))
 
 (defn- now []
@@ -62,11 +60,6 @@
 
 (defmethod ig/init-key :cljdoc/build-tracker [_ db-spec]
   (log/info "Starting BuildTracker")
-  (ragtime/migrate-all (jdbc/sql-database db-spec)
-                       {}
-                       (jdbc/load-resources "build_log_migrations")
-                       {:reporter (fn [store direction migration]
-                                    (log/infof "Migrating %s %s" direction migration))})
   (->SQLBuildTracker db-spec))
 
 (comment
