@@ -37,10 +37,7 @@
                                    (git/read-cljdoc-config repo "master"))
                                (clojure.edn/read-string)))]
 
-        (if-not revision
-          (do (log/warnf "No revision found for version %s in %s\n" version scm-url)
-              (telegram/no-version-tag project version scm-url))
-
+        (if revision
           {:scm      {:files (git/ls-files repo revision)
                       :url scm-url
                       :commit pom-revision
@@ -58,7 +55,11 @@
                       (or (:cljdoc.doc/tree config-edn)
                           (get-in cljdoc.util/hardcoded-config
                                   [(cljdoc.util/normalize-project project) :cljdoc.doc/tree])
-                          (doctree/derive-toc git-dir)))}))
+                          (doctree/derive-toc git-dir)))}
+
+          (do (log/warnf "No revision found for version %s in %s\n" version scm-url)
+              (telegram/no-version-tag project version scm-url)
+              nil)))
       (finally
         (when (.exists git-dir)
           (cljdoc.util/delete-directory! git-dir))))))
