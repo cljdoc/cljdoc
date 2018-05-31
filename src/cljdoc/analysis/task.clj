@@ -65,8 +65,8 @@
             (into-array java.nio.file.attribute.FileAttribute []))))
 
 (defn analyze-impl
-  [project version jar]
-  {:pre [(symbol? project) (seq version) (seq jar)]}
+  [project version jar pom]
+  {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
   (let [tmp-dir      (system-temp-dir (str "cljdoc-" project "-" version))
         jar-contents (io/file tmp-dir "jar-contents/")
         grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
@@ -89,8 +89,11 @@
 
     (let [cdx-namespaces (->> (map #(build-cdx (.getPath jar-contents) %) platforms)
                               (zipmap platforms))
-          ana-result     {:codox cdx-namespaces
-                          :pom-str (slurp (cljdoc.util/find-pom-in-dir jar-contents project))}]
+          ana-result     {:group-id (cljdoc.util/group-id project)
+                          :artifact-id (cljdoc.util/artifact-id project)
+                          :version version
+                          :codox cdx-namespaces
+                          :pom-str (slurp pom)}]
       (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
       (cljdoc.util/delete-directory! jar-contents)
       (doto (io/file tmp-dir (cljdoc.util/cljdoc-edn project version))
@@ -100,13 +103,15 @@
 (b/deftask analyze
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
-   j jarpath JARPATH str "Absolute path to the jar (can be local/remote)"]
+   j jarpath JARPATH str "Absolute path to the jar (can be local/remote)"
+   _ pompath POMPATH str "Absolute path to the pom (can be local/remote)"]
   (assert project "project is required")
   (assert version "version is required")
   (assert jarpath "jarpath is required")
+  (assert pompath "jarpath is required")
   (b/with-pre-wrap fs
     (let [tempd           (b/tmp-dir!)
-          cljdoc-edn-file (analyze-impl project version jarpath)]
+          cljdoc-edn-file (analyze-impl project version jarpath pompath)]
       (io/copy cljdoc-edn-file
                (doto (io/file tempd (cljdoc.util/cljdoc-edn project version))
                  (io/make-parents)))

@@ -13,19 +13,20 @@
   Initially this has been done with CircleCI but this is tricky during local
   development (webhooks and all). A local service is now implemented for this
   purpose."
-  (trigger-build [_ {:keys [build-id project version jarpath]}]))
+  (trigger-build [_ {:keys [build-id project version jarpath pompath]}]))
 
 (defrecord CircleCI [api-token builder-project]
   IAnalysisService
   (trigger-build
-    [_ {:keys [build-id project version jarpath]}]
-    {:pre [(int? build-id) (string? project) (string? version) (string? jarpath)]}
+    [_ {:keys [build-id project version jarpath pompath]}]
+    {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     @(aleph.http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
                       {:accept "application/json"
                        :form-params {"build_parameters" {"CLJDOC_BUILD_ID" build-id
                                                          "CLJDOC_PROJECT" project
                                                          "CLJDOC_PROJECT_VERSION" version
-                                                         "CLJDOC_PROJECT_JAR" jarpath}}
+                                                         "CLJDOC_PROJECT_JAR" jarpath
+                                                         "CLJDOC_PROJECT_POM" pompath}}
                        :basic-auth [api-token ""]})))
 
 (defn circle-ci
@@ -48,12 +49,12 @@
 (defrecord Local [full-build-url]
   IAnalysisService
   (trigger-build
-    [_ {:keys [build-id project version jarpath]}]
-    {:pre [(int? build-id) (string? project) (string? version) (string? jarpath)]}
+    [_ {:keys [build-id project version jarpath pompath]}]
+    {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (future
       (try
         (log/infof "Starting local analysis for %s %s %s" project version jarpath)
-        (let [cljdoc-edn-file (analysis/analyze-impl (symbol project) version jarpath)]
+        (let [cljdoc-edn-file (analysis/analyze-impl (symbol project) version jarpath pompath)]
           (log/infof "Got file from Local AnalysisService %s" cljdoc-edn-file)
           (log/info "Posting to" full-build-url)
           @(aleph.http/post full-build-url

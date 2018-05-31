@@ -105,7 +105,9 @@
        :response (fn initiate-build-handler-simple-response [ctx]
                    (let [project   (symbol (get-in ctx [:parameters :form :project]))
                          version   (get-in ctx [:parameters :form :version])
-                         jarpath   (:jar (clojars/artifact-uris project version))
+                         ;; WARN this introduces some coupling to clojars, making it a little
+                         ;; less easy to build documentation for artifacts only existing in local ~/.m2
+                         a-uris    (clojars/artifact-uris project version)
                          build-id  (build-log/analysis-requested!
                                     build-tracker
                                     (cljdoc.util/group-id project)
@@ -115,7 +117,8 @@
                                     analysis-service
                                     {:project project
                                      :version version
-                                     :jarpath jarpath
+                                     :jarpath (:jar a-uris)
+                                     :pompath (:pom a-uris)
                                      :build-id build-id})
                          response  (assoc (:response ctx)
                                           :status 301
