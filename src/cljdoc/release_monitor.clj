@@ -7,13 +7,16 @@
             [tea-time.core :as tt])
   (:import (java.time Instant Duration)))
 
-(defn last-release-ts [db-spec]
+(defn- last-release-ts [db-spec]
   (some-> (sql/query db-spec ["SELECT * FROM releases ORDER BY datetime(created_ts) DESC LIMIT 1"])
           first
           :created_ts
           Instant/parse))
 
-(defn update-build-id
+(defn- oldest-not-built [db-spec]
+  (first (sql/query db-spec ["SELECT * FROM releases WHERE build_id IS NULL ORDER BY datetime(created_ts) LIMIT 1"])))
+
+(defn- update-build-id
   [db-spec release-id build-id]
   (sql/update! db-spec
                "releases"
@@ -21,7 +24,7 @@
                ["id = ?" release-id]))
 
 (defn trigger-build
-  [db-spec release]
+  [release]
   {:pre [(:id release) (:group_id release) (:artifact_id release) (:version release)]}
   (let [req @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/request-build2")
                         {:form-params {:project (str (:group_id release) "/" (:artifact_id release))
@@ -31,8 +34,23 @@
                       (re-find #"/builds/(\d+)")
                       (second))]
     (assert build-id)
-    (update-build-id db-spec (:id release) build-id)))
+    build-id))
 
+
+(defn release-fetch-job-fn [db-spec]
+  (let [ts (or (some-> (last-release-ts db-spec)
+                       (.plus (Duration/ofSeconds 1)))
+               (.minus (Instant/now) (Duration/ofHours 24)))
+        cljsjs?  #(= "cljsjs" (:group_id %))
+        releases (->> (clojars/releases-since ts)
+                      (remove cljsjs?))]
+    (when (seq releases)
+      (sql/insert-multi! db-spec "releases" releases))))
+
+(defn build-queuer-job-fn [db-spec]
+  (when-let [to-build (oldest-not-built db-spec)]
+    (let [build-id (trigger-build to-build)]
+      (update-build-id db-spec (:id to-build) build-id))))
 
 (defmethod ig/init-key :cljdoc/release-monitor [_ db-spec]
   (log/info "Starting ReleaseMonitor")
@@ -42,21 +60,19 @@
   ;;                      {:reporter (fn [store direction migration]
   ;;                                   (log/infof "Migrating %s %s" direction migration))})
   (tt/start!)
-  (let [task (tt/every! 20 (fn release-fetch-job-fn []
-                             (let [ts (or (some-> (last-release-ts db-spec)
-                                                  (.plus (Duration/ofSeconds 1)))
-                                          (.minus (Instant/now) (Duration/ofHours 24)))
-                                   releases (clojars/releases-since ts)]
-                               (when (seq releases)
-                                 (sql/insert-multi! db-spec "releases" releases)))))]
-    {:task task}))
+  {:release-fetcher (tt/every! 20 #(release-fetch-job-fn db-spec))
+   :build-queuer    (tt/every! 30 #(build-queuer-job-fn db-spec))})
 
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
   (log/info "Stopping ReleaseMonitor")
-  (tt/cancel! (:task release-monitor)))
+  (tt/cancel! (:release-fetcher release-monitor))
+  (tt/cancel! (:build-queuer release-monitor)))
 
 (comment
   (def db-spec (cljdoc.config/build-log-db))
+
+  (build-queuer-job-fn db-spec)
+
 
   (def rm
     (ig/init-key :cljdoc/release-monitor db-spec))
@@ -73,6 +89,8 @@
   (clojure.pprint/pprint
    (->> (clojars/releases-since (last-release-ts db-spec))
         (map #(select-keys % [:created_ts]))))
+
+  (oldest-not-built db-spec)
 
   
 
