@@ -3,7 +3,8 @@
             [clojure.string :as string]
             [aleph.http :as http]
             [byte-streams :as bs]
-            [jsonista.core :as json])
+            [jsonista.core :as json]
+            [clojure.tools.logging :as log])
   (:import (org.jsoup Jsoup)
            (java.time Instant Duration)))
 
@@ -14,8 +15,14 @@
                                        "format" "json"
                                        "page" 1}})
         results (-> req :body bs/to-string json/read-value (get "results"))]
-    (map (fn [r] (update r "created" #(Instant/ofEpochMilli (Long. %))))
-         results)
+    (log/infof "Got %s new releases since %s" (count results) inst)
+    (->> results
+         (sort-by #(get % "created"))
+         (map (fn [r]
+                {:created_ts  (Instant/ofEpochMilli (Long. (get r "created")))
+                 :group_id    (get r "group_name")
+                 :artifact_id (get r "jar_name")
+                 :version     (get r "version")})))
 
       #_first
       #_clojure.pprint/pprint))
