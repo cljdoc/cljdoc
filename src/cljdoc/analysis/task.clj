@@ -59,15 +59,10 @@
       (copy-jar-contents-impl (URI. jar) (io/file d "jar-contents/"))
       (-> fileset (b/add-resource d) b/commit!))))
 
-(defn system-temp-dir [prefix]
-  (.toFile (Files/createTempDirectory
-            (clojure.string/replace prefix #"/" "-")
-            (into-array java.nio.file.attribute.FileAttribute []))))
-
 (defn analyze-impl
   [project version jar pom]
   {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
-  (let [tmp-dir      (system-temp-dir (str "cljdoc-" project "-" version))
+  (let [tmp-dir      (cljdoc.util/system-temp-dir (str "cljdoc-" project "-" version))
         jar-contents (io/file tmp-dir "jar-contents/")
         grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                     :directories #{"src"}})

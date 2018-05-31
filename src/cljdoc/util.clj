@@ -5,7 +5,8 @@
   should work without any additional dependencies."
   (:require [clojure.edn]
             [clojure.java.io :as io]
-            [clojure.string :as string]))
+            [clojure.string :as string])
+  (:import (java.nio.file Files)))
 
 (def hardcoded-config
   (clojure.edn/read-string (slurp (io/resource "hardcoded-projects-config.edn"))))
@@ -108,6 +109,12 @@
                                        (file-seq dir))]
     (doseq [f files] (.delete f))
     (doseq [d (reverse dirs)] (.delete d))))
+
+(defn system-temp-dir [prefix]
+  (.toFile (Files/createTempDirectory
+            (clojure.string/replace prefix #"/" "-")
+            (into-array java.nio.file.attribute.FileAttribute []))))
+
 
 ;; (defn assert-match [project version artifact-enitity]
 ;;   (assert (and (:group-id artifact-entity)
