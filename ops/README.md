@@ -98,7 +98,7 @@ The image is based on Fedora, additional provisioning steps can be found in `fed
 mkdir prod-backup
 
 # backing up data
-rsync -azrv root@(terraform output api_ip):/var/cljdoc/grimoire prod-backup/(date "+%Y-%m-%d")
+rsync -azrv root@(terraform output api_ip):/var/cljdoc/ prod-backup/(date "+%Y-%m-%d")
 
 # restoring data from local backup
 rsync -azrv prod-backup/YYYY-MM-DD/ root@(terraform output api_ip):/var/cljdoc/
