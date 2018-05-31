@@ -23,9 +23,10 @@
                {:build_id build-id}
                ["id = ?" release-id]))
 
-(defn trigger-build
+(defn- trigger-build
   [release]
   {:pre [(:id release) (:group_id release) (:artifact_id release) (:version release)]}
+  ;; I'm really not liking that this makes it all very tied to the HTTP server... - martin
   (let [req @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/request-build2")
                         {:form-params {:project (str (:group_id release) "/" (:artifact_id release))
                                        :version (:version release)}
@@ -35,7 +36,6 @@
                       (second))]
     (assert build-id)
     build-id))
-
 
 (defn release-fetch-job-fn [db-spec]
   (let [ts (or (some-> (last-release-ts db-spec)
@@ -47,21 +47,25 @@
     (when (seq releases)
       (sql/insert-multi! db-spec "releases" releases))))
 
-(defn build-queuer-job-fn [db-spec]
+(defn build-queuer-job-fn [db-spec dry-run?]
   (when-let [to-build (oldest-not-built db-spec)]
-    (let [build-id (trigger-build to-build)]
-      (update-build-id db-spec (:id to-build) build-id))))
+    (if dry-run?
+      (log/infof "Dry-run mode: not triggering build for %s/%s %s"
+                 (:group_id to-build) (:artifact_id to-build) (:version to-build))
+      (let [build-id (trigger-build to-build)]
+        (update-build-id db-spec (:id to-build) build-id)))))
 
-(defmethod ig/init-key :cljdoc/release-monitor [_ db-spec]
-  (log/info "Starting ReleaseMonitor")
-  ;; (ragtime/migrate-all (jdbc/sql-database db-spec)
-  ;;                      {}
-  ;;                      (jdbc/load-resources "build_log_migrations")
-  ;;                      {:reporter (fn [store direction migration]
-  ;;                                   (log/infof "Migrating %s %s" direction migration))})
+(defmethod ig/init-key :cljdoc/release-monitor [_ {:keys [db-spec dry-run?]}]
+  (log/info "Starting ReleaseMonitor" (when dry-run? "(dry-run mode)"))
   (tt/start!)
-  {:release-fetcher (tt/every! 20 #(release-fetch-job-fn db-spec))
-   :build-queuer    (tt/every! 30 #(build-queuer-job-fn db-spec))})
+  {:release-fetcher (tt/every! 60 #(release-fetch-job-fn db-spec))
+   :build-queuer    (tt/every!
+                     ;; Starting conservatively, building one project per hour
+                     ;; But really instead of running this once an hour we should
+                     ;; rate limit and run it more often so builds are becoming available
+                     ;; as they are released
+                     (* 60 60 60)
+                     #(build-queuer-job-fn db-spec dry-run?))})
 
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
   (log/info "Stopping ReleaseMonitor")
@@ -71,8 +75,7 @@
 (comment
   (def db-spec (cljdoc.config/build-log-db))
 
-  (build-queuer-job-fn db-spec)
-
+  (build-queuer-job-fn db-spec true)
 
   (def rm
     (ig/init-key :cljdoc/release-monitor db-spec))
