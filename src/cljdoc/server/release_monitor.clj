@@ -1,4 +1,4 @@
-(ns cljdoc.release-monitor
+(ns cljdoc.server.release-monitor
   (:require [cljdoc.util.clojars :as clojars])
   (:require [integrant.core :as ig]
             [aleph.http :as http]
