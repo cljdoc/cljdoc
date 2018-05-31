@@ -53,7 +53,7 @@
 (defmethod ig/init-key :cljdoc/migrations [_ db-spec]
   (ragtime/migrate-all (jdbc/sql-database db-spec)
                        {}
-                       (jdbc/load-resources "build_log_migrations")
+                       (jdbc/load-resources "migrations")
                        {:reporter (fn [store direction migration]
                                     (log/infof "Migrating %s %s" direction migration))}))
 
