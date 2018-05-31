@@ -3,6 +3,7 @@
             [cljdoc.analysis.service :as analysis-service]
             [cljdoc.config :as cfg]
             [clojure.tools.logging :as log]
+            [clojure.java.io :as io]
             [integrant.core :as ig]
             [yada.yada :as yada]
             [unilog.config :as unilog]))
@@ -35,6 +36,7 @@
   ((:close server)))
 
 (defmethod ig/init-key :cljdoc/handler [_ opts]
+  (.mkdirs (io/file (:dir opts)))
   (cljdoc.server.handler/cljdoc-routes opts))
 
 (defmethod ig/init-key :cljdoc/analysis-service [_ [type opts]]
