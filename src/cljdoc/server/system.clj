@@ -20,7 +20,9 @@
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service)
         port        (cfg/get-in env-config [:cljdoc/server :port])]
-    {:cljdoc/build-tracker (cfg/build-log-db)
+    {:cljdoc/build-tracker   (cfg/build-log-db)
+     :cljdoc/release-monitor {:db-spec  (cfg/build-log-db)
+                              :dry-run? (not (cfg/autobuild-clojars-releases?))}
      :cljdoc/server  {:port    port,
                       :handler (ig/ref :cljdoc/handler)}
      :cljdoc/handler {:dir (cfg/get-in env-config [:cljdoc/server :dir])
