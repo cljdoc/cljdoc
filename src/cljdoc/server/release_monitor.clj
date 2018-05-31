@@ -45,6 +45,7 @@
         releases (->> (clojars/releases-since ts)
                       (remove cljsjs?))]
     (when (seq releases)
+      (log/infof "Storing %s new releases in releases table" (count releases))
       (sql/insert-multi! db-spec "releases" releases))))
 
 (defn build-queuer-job-fn [db-spec dry-run?]
