@@ -35,6 +35,7 @@
     [spootnik/unilog "0.7.22"]
     [org.jsoup/jsoup "1.11.3"]
     [digest "1.4.8"]
+    [tea-time "1.0.0"]
 
     ;; Build-logs DB (sqlite)
     [org.xerial/sqlite-jdbc "3.20.0"]
