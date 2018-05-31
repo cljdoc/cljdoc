@@ -65,7 +65,7 @@
 (comment
   (require 'ragtime.repl 'ragtime.jdbc)
   (def config {:datastore  (ragtime.jdbc/sql-database (cljdoc.config/build-log-db))
-               :migrations (ragtime.jdbc/load-resources "build_log_migrations")})
+               :migrations (ragtime.jdbc/load-resources "migrations")})
 
   (ragtime.repl/rollback config)
 
