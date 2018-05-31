@@ -28,7 +28,9 @@
     (assoc :children (process-toc slurp-fn children))))
 
 (defn process-toc [slurp-fn toc]
-  (mapv #(process-toc-entry slurp-fn %) toc))
+  (let [slurp! (fn [file] (or (slurp-fn file)
+                              (throw (Exception. (format "Could not read contents of %s" file)))))]
+    (mapv (partial process-toc-entry slurp!) toc)))
 
 (defn add-slug-path
   "For various purposes it is useful to know the path to a given document
