@@ -12,9 +12,10 @@
 
 (defn get-in
   [config-map ks]
-  (or (clojure.core/get-in config-map ks)
-      (throw (ex-info (format "No config found for path %s\nDid you configure your secrets.edn file?" ks)
-                      {:ks ks, :profile (profile)}))))
+  (if (some? (clojure.core/get-in config-map ks))
+    (clojure.core/get-in config-map ks)
+    (throw (ex-info (format "No config found for path %s\nDid you configure your secrets.edn file?" ks)
+                    {:ks ks, :profile (profile)}))))
 
 (defn config []
   (aero/read-config (io/resource "config.edn") {:profile (profile)}))
@@ -30,6 +31,9 @@
   {:classname "org.sqlite.JDBC",
    :subprotocol "sqlite",
    :subname (str (get-in (config) [:cljdoc/server :dir]) "build-log.db")})
+
+(defn autobuild-clojars-releases? []
+  (get-in (config) [:cljdoc/server :autobuild-clojars-releases?]))
 
 (comment
   (config)
