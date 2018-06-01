@@ -1,12 +1,11 @@
 (ns cljdoc.server.ingest
   (:require [clojure.java.io :as io]
             [cljdoc.util :as util]
-            [cljdoc.doc-tree :as doctree]
+            [cljdoc.analysis.git :as ana-git]
             [cljdoc.util.telegram :as telegram]
             [cljdoc.util.pom :as pom]
             [clojure.tools.logging :as log]
             [cljdoc.grimoire-helpers]
-            [cljdoc.git-repo :as git]
             [cljdoc.spec]))
 
 (defn done [project version]
@@ -17,52 +16,6 @@
     {:group-id    (util/group-id project)
      :artifact-id (util/artifact-id project)
      :version version})))
-
-(defn analyze-git-repo [project version scm-url pom-revision]
-  (let [git-dir (cljdoc.util/system-temp-dir (str "git-" project))]
-    (try
-      (log/info "Cloning Git repo" scm-url)
-      (git/clone scm-url git-dir)
-
-      ;; Stuff that depends on a SCM url being present
-      (let [repo        (git/->repo git-dir)
-            version-tag (git/version-tag repo version)
-            revision    (or (:name version-tag) pom-revision
-                            (when (.endsWith version "-SNAPSHOT")
-                              "master"))
-            config-edn  (when revision
-                          (->> (or (git/read-cljdoc-config repo revision)
-                                   ;; in case people add the file later,
-                                   ;; also check in master branch
-                                   (git/read-cljdoc-config repo "master"))
-                               (clojure.edn/read-string)))]
-
-        (if revision
-          {:scm      {:files (git/ls-files repo revision)
-                      :url scm-url
-                      :commit pom-revision
-                      :tag version-tag}
-           :doc-tree (doctree/process-toc
-                      (fn slurp-at-rev [f]
-                        ;; We are intentionally relaxed here for now
-                        ;; In principle we should only look at files at the tagged
-                        ;; revision but if a file has been added after the tagged
-                        ;; revision we might as well include it to allow a smooth,
-                        ;; even if slightly less correct, UX
-                        (or (when revision
-                              (git/slurp-file-at repo revision f))
-                            (git/slurp-file-at repo "master" f)))
-                      (or (:cljdoc.doc/tree config-edn)
-                          (get-in cljdoc.util/hardcoded-config
-                                  [(cljdoc.util/normalize-project project) :cljdoc.doc/tree])
-                          (doctree/derive-toc git-dir)))}
-
-          (do (log/warnf "No revision found for version %s in %s\n" version scm-url)
-              (telegram/no-version-tag project version scm-url)
-              nil)))
-      (finally
-        (when (.exists git-dir)
-          (cljdoc.util/delete-directory! git-dir))))))
 
 (defn ingest-cljdoc-edn
   "Ingest all the information in the passed `cljdoc-edn` data.
@@ -102,7 +55,7 @@
         :store        store})
 
       (let [git-analysis (and (some? scm-url)
-                              (analyze-git-repo project version scm-url (:sha scm-info)))]
+                              (ana-git/analyze-git-repo project version scm-url (:sha scm-info)))]
         (if git-analysis
           (do
             (log/info "Importing Articles into Grimoire")
@@ -118,6 +71,7 @@
              :commit  (-> git-analysis :scm :commit)})
 
           (do
+            (telegram/no-version-tag project version scm-url)
             (done project version)
             {:scm-url scm-url})))
 
