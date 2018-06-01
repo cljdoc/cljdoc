@@ -1,4 +1,4 @@
-# 12. Move away from static site approach
+# 12. Move Away From Static Site Approach
 
 Date: 2018-06-01
 
