@@ -61,11 +61,11 @@
   (tt/start!)
   {:release-fetcher (tt/every! 60 #(release-fetch-job-fn db-spec))
    :build-queuer    (tt/every!
-                     ;; Starting conservatively, building one project per hour
+                     ;; Starting conservatively, building one project per 30min
                      ;; But really instead of running this once an hour we should
                      ;; rate limit and run it more often so builds are becoming available
                      ;; as they are released
-                     (* 60 60 60)
+                     (* 30 60 60)
                      #(build-queuer-job-fn db-spec dry-run?))})
 
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
