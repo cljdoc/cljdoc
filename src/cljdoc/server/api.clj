@@ -91,6 +91,41 @@
                            (build-log/failed! build-tracker build-id "analysis-job-failed"))
                          (assoc (:response ctx) :status 200)))))}}})))
 
+(defn initiate-build
+  "Kick of a build for the given project and version
+
+  If successful, return build-id, otherwise throws."
+  [{:keys [analysis-service build-tracker project version]}]
+  {:pre [(some? analysis-service) (some? build-tracker)]}
+  ;; WARN using `artifact-uris` here introduces some coupling to
+  ;; clojars, making it a little less easy to build documentation for
+  ;; artifacts only existing in local ~/.m2
+  (let [a-uris    (repositories/artifact-uris project version)
+        build-id  (build-log/analysis-requested!
+                   build-tracker
+                   (cljdoc.util/group-id project)
+                   (cljdoc.util/artifact-id project)
+                   version)
+        ana-resp  (analysis-service/trigger-build
+                   analysis-service
+                   {:project project
+                    :version version
+                    :jarpath (:jar a-uris)
+                    :pompath (:pom a-uris)
+                    :build-id build-id})]
+    (if (analysis-service/circle-ci? analysis-service)
+      (let [build-num (-> ana-resp :body bs/to-string json/read-value (get "build_num"))
+            job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)]
+        (telegram/build-requested project version job-url)
+        (when (= 201 (:status ana-resp))
+          (assert build-num "build number missing from CircleCI response")
+          (build-log/analysis-kicked-off! build-tracker build-id job-url)
+          (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}" build-id job-url))
+        build-id)
+      (do
+        (build-log/analysis-kicked-off! build-tracker build-id nil)
+        build-id))))
+
 (defn initiate-build-handler-simple [{:keys [analysis-service build-tracker]}]
   (yada/handler
    (yada/resource
@@ -103,38 +138,13 @@
        :consumes #{"application/x-www-form-urlencoded"}
        :produces "text/html"
        :response (fn initiate-build-handler-simple-response [ctx]
-                   (let [project   (symbol (get-in ctx [:parameters :form :project]))
-                         version   (get-in ctx [:parameters :form :version])
-                         ;; WARN this introduces some coupling to clojars, making it a little
-                         ;; less easy to build documentation for artifacts only existing in local ~/.m2
-                         a-uris    (repositories/artifact-uris project version)
-                         build-id  (build-log/analysis-requested!
-                                    build-tracker
-                                    (cljdoc.util/group-id project)
-                                    (cljdoc.util/artifact-id project)
-                                    version)
-                         ana-resp  (analysis-service/trigger-build
-                                    analysis-service
-                                    {:project project
-                                     :version version
-                                     :jarpath (:jar a-uris)
-                                     :pompath (:pom a-uris)
-                                     :build-id build-id})
-                         response  (assoc (:response ctx)
-                                          :status 301
-                                          :headers {"Location" (str "/builds/" build-id)})]
-                     (if (analysis-service/circle-ci? analysis-service)
-                       (let [build-num (-> ana-resp :body bs/to-string json/read-value (get "build_num"))
-                             job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)]
-                         (telegram/build-requested project version job-url)
-                         (when (= 201 (:status ana-resp))
-                           (assert build-num "build number missing from CircleCI response")
-                           (build-log/analysis-kicked-off! build-tracker build-id job-url)
-                           (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}" build-id job-url))
-                         response)
-                       (do
-                         (build-log/analysis-kicked-off! build-tracker build-id nil)
-                         response))))}}})))
+                   (let [build-id (initiate-build {:analysis-service analysis-service
+                                                   :build-tracker    build-tracker
+                                                   :project          (symbol (get-in ctx [:parameters :form :project]))
+                                                   :version          (get-in ctx [:parameters :form :version])})]
+                     (assoc (:response ctx)
+                            :status 301
+                            :headers {"Location" (str "/builds/" build-id)})))}}})))
 
 (defn initiate-build-handler [{:keys [access-control analysis-service]}]
   ;; TODO assert config correctness
@@ -162,6 +172,20 @@
                                   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)))
                      (assoc (:response ctx) :status (:status ci-resp))))}}})))
 
+(defn full-build
+  [{:keys [dir build-tracker] :as deps}
+   {:keys [project version build-id cljdoc-edn] :as params}]
+  (let [cljdoc-edn-contents (clojure.edn/read-string (slurp cljdoc-edn))]
+    (build-log/analysis-received! build-tracker (int build-id) cljdoc-edn)
+    ;; TODO put this back in place
+    ;; (cljdoc.util/assert-match project version cljdoc-edn)
+    (try
+      (let [{:keys [scm-url commit]} (ingest/ingest-cljdoc-edn dir cljdoc-edn-contents)]
+        (build-log/completed! build-tracker (int build-id) scm-url commit))
+      (catch Throwable e
+        (build-log/failed! build-tracker build-id "exception-during-import")
+        (throw e)))))
+
 (defn full-build-handler [{:keys [dir access-control build-tracker]}]
   ;; TODO assert config correctness
   (yada/handler
@@ -172,19 +196,10 @@
       {:parameters {:form {:project String :version String  :build-id Long :cljdoc-edn String}}
        :consumes #{"application/x-www-form-urlencoded"}
        :response (fn full-build-handler-response [ctx]
-                   (let [{:keys [project version build-id cljdoc-edn]} (get-in ctx [:parameters :form])
-                         cljdoc-edn-contents (clojure.edn/read-string (slurp cljdoc-edn))]
-
-                     (build-log/analysis-received! build-tracker (int build-id) cljdoc-edn)
-                     ;; TODO put this back in place
-                     ;; (cljdoc.util/assert-match project version cljdoc-edn)
-                     (try
-                       (let [{:keys [scm-url commit]} (ingest/ingest-cljdoc-edn dir cljdoc-edn-contents)]
-                         (build-log/completed! build-tracker (int build-id) scm-url commit))
-                       (assoc (:response ctx) :status 200)
-                       (catch Throwable e
-                         (build-log/failed! build-tracker build-id "exception-during-import")
-                         (throw e)))))}}})))
+                   (full-build {:build-tracker build-tracker
+                                :dir dir}
+                               (get-in ctx [:parameters :form]))
+                   (assoc (:response ctx) :status 200))}}})))
 
 (def ping-handler
   (yada/handler
