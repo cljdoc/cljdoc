@@ -12,22 +12,22 @@
          " or check out some existing documentation:"]
         (let [btn :a.dib.mr2.mb2.link.blue.pa2.ba.b--blue.br1]
           [:div.pr4
-           [btn {:href "/d/bidi/bidi/2.1.3/"}
+           [btn {:href "/d/bidi/bidi/2.1.3"}
             [:code "[bidi \"2.1.3\"]"]]
            ;; Not working, will need investigation
            ;; [btn {:href "/d/funcool/cuerdas/2.0.5/"}
            ;;  [:code "[funcool/cuerdas \"2.0.5\"]"]]
-           [btn {:href "/d/reagent/reagent/0.8.1/"}
+           [btn {:href "/d/reagent/reagent/0.8.1"}
             [:code "[reagent \"0.8.1\"]"]]
-           [btn {:href "/d/compojure/compojure/1.6.1/"}
+           [btn {:href "/d/compojure/compojure/1.6.1"}
             [:code "[compojure \"1.6.1\"]"]]
-           [btn {:href "/d/ring/ring-core/1.6.3/"}
+           [btn {:href "/d/ring/ring-core/1.6.3"}
             [:code "[ring/ring-core \"1.6.3\"]"]]
-           [btn {:href "/d/clj-time/clj-time/0.14.3/"}
+           [btn {:href "/d/clj-time/clj-time/0.14.3"}
             [:code "[clj-time \"0.14.3\"]"]]
-           [btn {:href "/d/rum/rum/0.11.2/"}
+           [btn {:href "/d/rum/rum/0.11.2"}
             [:code "[rum \"0.11.2\"]"]]
-           [btn {:href "/d/re-frame/re-frame/0.10.5/"}
+           [btn {:href "/d/re-frame/re-frame/0.10.5"}
             [:code "[re-frame \"0.10.5\"]"]]
            ;; Disabling for now as namespace tree rendering
            ;; is still pretty bad
@@ -42,7 +42,7 @@
            "(str \"https://cljdoc.xyz/d/\""
            "\n     (:group-id your-project) \"/\""
            "\n     (:artifact-id your-project) \"/\""
-           "\n     (:version your-project) \"/\")"]]
+           "\n     (:version your-project))"]]
          [:p.lh-copy.f6.mid-gray [:span.fw5 "Tip: "] "If your project name does not contain a slash, group and artifact ID are the same."]
          [:p.lh-copy "After you've done that you may want to " [:a.link.blue {:href (util/github-url :userguide/articles)} "add additional articles to the sidebar."]]]
 

@@ -11,10 +11,10 @@
 (defn doc-slug-parser
   "Because articles may reside in a nested hierarchy we need to manually parse
   some of the request URI"
-  [ctx]
-  (if-not (empty? (:remainder ctx))
+  [{:keys [remainder] :as ctx}]
+  (if-not (empty? remainder)
     (assoc-in ctx [:route-params :doc-slug-path] (cons (-> ctx :route-params :doc-page)
-                                                       (clojure.string/split (:remainder ctx) #"/")))
+                                                       (clojure.string/split (subs remainder 1) #"/")))
     (assoc-in ctx [:route-params :doc-slug-path] [(-> ctx :route-params :doc-page)])))
 
 (defn route-thing
