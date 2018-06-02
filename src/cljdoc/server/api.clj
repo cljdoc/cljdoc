@@ -175,13 +175,14 @@
 (defn full-build
   [{:keys [dir build-tracker] :as deps}
    {:keys [project version build-id cljdoc-edn] :as params}]
-  (let [cljdoc-edn-contents (clojure.edn/read-string (slurp cljdoc-edn))]
-    (build-log/analysis-received! build-tracker (int build-id) cljdoc-edn)
+  (let [cljdoc-edn-contents (clojure.edn/read-string (slurp cljdoc-edn))
+        build-id            (Long. build-id)]
+    (build-log/analysis-received! build-tracker build-id cljdoc-edn)
     ;; TODO put this back in place
     ;; (cljdoc.util/assert-match project version cljdoc-edn)
     (try
       (let [{:keys [scm-url commit]} (ingest/ingest-cljdoc-edn dir cljdoc-edn-contents)]
-        (build-log/completed! build-tracker (int build-id) scm-url commit))
+        (build-log/completed! build-tracker build-id scm-url commit))
       (catch Throwable e
         (build-log/failed! build-tracker build-id "exception-during-import")
         (throw e)))))
