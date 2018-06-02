@@ -3,6 +3,8 @@
                     :live #include "secrets.edn"
                     :local {}}
  :cljdoc/server {:port 8000
+                 :host #profile {:prod "cljdoc.xyz"
+                                 :default "localhost"}
                  :analysis-service #keyword #or [#env CLJDOC_ANALYSIS_SERVICE :local]
                  :autobuild-clojars-releases? #profile {:default false
                                                         :prod true}
