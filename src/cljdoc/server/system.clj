@@ -11,7 +11,7 @@
             [ragtime.jdbc :as jdbc]
             [ragtime.core :as ragtime]))
 
-(def logging-config
+(unilog/start-logging!
  {:level   :info
   :console true
   :files   ["log/cljdoc.log"
@@ -20,8 +20,7 @@
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service)
         port        (cfg/get-in env-config [:cljdoc/server :port])]
-    {:cljdoc/logger          logging-config
-     :cljdoc/sqlite          (cfg/build-log-db)
+    {:cljdoc/sqlite          (cfg/build-log-db)
      :cljdoc/build-tracker   (ig/ref :cljdoc/sqlite)
      :cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
                               :dry-run? (not (cfg/autobuild-clojars-releases?))}
@@ -33,9 +32,6 @@
      :cljdoc/analysis-service (case ana-service
                                 :local     [:local {:full-build-url (str "http://localhost:" port "/api/full-build")}]
                                 :circle-ci [:circle-ci (cfg/circle-ci)])}))
-
-(defmethod ig/init-key :cljdoc/logger [_ opts]
-  (unilog/start-logging! opts))
 
 (defmethod ig/init-key :cljdoc/server [_ {:keys [handler port] :as opts}]
   (log/info "Starting server on port" port)
