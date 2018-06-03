@@ -5,7 +5,7 @@
             [cljdoc.server.ingest :as ingest]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.util]
-            [cljdoc.util.clojars :as clojars]
+            [cljdoc.util.repositories :as repositories]
             [cljdoc.cache]
             [cljdoc.config] ; should not be necessary but instead be passed as args
             [cljdoc.renderers.html :as html]
@@ -107,7 +107,7 @@
                          version   (get-in ctx [:parameters :form :version])
                          ;; WARN this introduces some coupling to clojars, making it a little
                          ;; less easy to build documentation for artifacts only existing in local ~/.m2
-                         a-uris    (clojars/artifact-uris project version)
+                         a-uris    (repositories/artifact-uris project version)
                          build-id  (build-log/analysis-requested!
                                     build-tracker
                                     (cljdoc.util/group-id project)
