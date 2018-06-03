@@ -26,52 +26,90 @@
 (defn group-path [project]
   (string/replace (util/group-id project) #"\." "/"))
 
-(defn on-clojars? [project version]
-  (let [uri (format "https://repo.clojars.org/%s/%s/%s/"
-                    (group-path project) (util/artifact-id project) version)]
-    (= 200 (:status @(aleph.http/head uri {:throw-exceptions? false})))))
+(defn metadata-xml-uri [repository project version]
+  (format "%s%s/%s/%s/maven-metadata.xml"
+          repository
+          (group-path project)
+          (util/artifact-id project)
+          version))
 
-(defn metadata-xml-uri [project version]
-  (format "https://repo.clojars.org/%s/%s/%s/maven-metadata.xml"
-          (group-path project) (util/artifact-id project) version))
+(defn resolve-snapshot [repository project version]
+  (let [{:keys [body status]} @(http/get (metadata-xml-uri repository project version)
+                                         {:throw-exceptions? false})]
+    (if (= 200 status)
+      (let [d (Jsoup/parse (bs/to-string body))]
+        (->> (.select d "versioning > snapshotVersions > snapshotVersion > value")
+             (map #(.ownText %))
+             (set)
+             (util/assert-first)))
+      version)))
 
-(defn resolve-snapshot [project version]
-  (let [d (Jsoup/parse (bs/to-string (:body @(http/get (metadata-xml-uri project version)))))]
-    (->> (.select d "versioning > snapshotVersions > snapshotVersion > value")
-         (map #(.ownText %))
-         (set)
-         (util/assert-first))))
+(defn exists? [repository project version]
+  (let [version' (if (.endsWith version "-SNAPSHOT")
+                   (resolve-snapshot repository project version)
+                   version)
+        uri (format "%s%s/%s/%s/%s-%s.pom"
+                    repository
+                    (group-path project)
+                    (util/artifact-id project)
+                    version
+                    (util/artifact-id project)
+                    version')]
+    (= 200 (:status @(aleph.http/get uri {:throw-exceptions? false})))))
 
-(defn artifact-uris
-  [project version]
+(defn artifact-uris*
+  [repository project version]
   {:pre [(some? project) (some? version)]}
-  (if-not (on-clojars? project version)
-    (throw (ex-info (format "Requested version cannot be found on Clojars: [%s %s]" project version)
-                    {:project project :version version}))
-    (let [version' (if (.endsWith version "-SNAPSHOT")
-                     (resolve-snapshot project version)
-                     version)]
-      {:pom (format "https://repo.clojars.org/%s/%s/%s/%s-%s.pom"
-                    (group-path project) (util/artifact-id project) version
-                    (util/artifact-id project) version')
-       :jar (format "https://repo.clojars.org/%s/%s/%s/%s-%s.jar"
-                    (group-path project) (util/artifact-id project) version
-                    (util/artifact-id project) version')})))
+  (let [version' (if (.endsWith version "-SNAPSHOT")
+                   (resolve-snapshot repository project version)
+                   version)]
+    {:pom (format "%s%s/%s/%s/%s-%s.pom"
+                  repository
+                  (group-path project)
+                  (util/artifact-id project)
+                  version
+                  (util/artifact-id project)
+                  version')
+     :jar (format "%s%s/%s/%s/%s-%s.jar"
+                  repository
+                  (group-path project)
+                  (util/artifact-id project)
+                  version
+                  (util/artifact-id project)
+                  version')}))
+
+(def repositories
+  {:clojars "https://repo.clojars.org/"
+   :maven-central "https://search.maven.org/remotecontent?filepath="})
+
+(defn find-artifact-repository [project version]
+  (first (filter #(exists? % project version) (vals repositories))))
+
+(defn artifact-uris [project version]
+  (if-let [repository (find-artifact-repository project version)]
+    (artifact-uris* repository project version)
+    (throw (ex-info (format "Requested version cannot be found on Clojars or Maven Central: [%s %s]" project version)
+                    {:project project :version version}))))
 
 (comment
-  @(http/head (metadata-xml-uri 'bidi "2.1.3-SNAPSHOT") {:throw-exceptions? false})
+  (find-artifact-repository "org.clojure/clojure" "1.9.0")
 
-  (on-clojars? 'bidi "2.1.3-SNAPSHOT")
-  (on-clojars? 'bidi "2.1.3")
-  (on-clojars? 'bidi "2.1.4")
+  @(http/head (metadata-xml-uri (:clojars repositories) 'bidi "2.1.3-SNAPSHOT") {:throw-exceptions? false})
+
+  (exists? (:clojars repositories) 'bidi "2.1.3-SNAPSHOT")
+  (exists? (:clojars repositories) 'bidi "2.0.9-SNAPSHOT")
+
+  (find-artifact-repository 'bidi "2.1.3")
+  (find-artifact-repository 'bidi "2.1.4")
 
   (artifact-uris 'bidi "2.1.3-SNAPSHOT")
+  (artifact-uris 'bidi "2.0.9-SNAPSHOT")
   (artifact-uris 'bidi "2.1.3")
 
-  (on-clojars? 'bidi "2.1.3")
-  (on-clojars? 'bidi "2.1.4")
+  (find-artifact-repository 'bidi "2.1.3")
+  (find-artifact-repository 'bidi "2.1.4")
 
-  (on-clojars? 'com.bhauman/spell-spec "0.1.0")
+  (find-artifact-repository 'com.bhauman/spell-spec "0.1.0")
 
   (def d
     (cljdoc.util.pom/parse (slurp (:pom (artifact-uris 'metosin/reitit "0.1.2-SNAPSHOT")))))
