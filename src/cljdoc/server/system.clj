@@ -24,11 +24,18 @@
      :cljdoc/build-tracker   (ig/ref :cljdoc/sqlite)
      :cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
                               :dry-run? (not (cfg/autobuild-clojars-releases?))}
-     :cljdoc/server  {:port    port,
-                      :handler (ig/ref :cljdoc/handler)}
-     :cljdoc/handler {:dir (cfg/get-in env-config [:cljdoc/server :dir])
-                      :build-tracker (ig/ref :cljdoc/build-tracker)
-                      :analysis-service (ig/ref :cljdoc/analysis-service)}
+     ;; :cljdoc/server  {:port    port,
+     ;;                  :handler (ig/ref :cljdoc/handler)}
+     ;; :cljdoc/handler {:dir (cfg/get-in env-config [:cljdoc/server :dir])
+     ;;                  :build-tracker (ig/ref :cljdoc/build-tracker)
+     ;;                  :analysis-service (ig/ref :cljdoc/analysis-service)}
+     :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
+                       :host             (cfg/get-in env-config [:cljdoc/server :host])
+                       :build-tracker    (ig/ref :cljdoc/build-tracker)
+                       :analysis-service (ig/ref :cljdoc/analysis-service)
+                       ;; todo just pass storage component
+                       ;; see https://github.com/martinklepsch/cljdoc/issues/58
+                       :dir              (clojure.java.io/file "data")}
      :cljdoc/analysis-service (case ana-service
                                 :local     [:local {:full-build-url (str "http://localhost:" port "/api/full-build")}]
                                 :circle-ci [:circle-ci (cfg/circle-ci)])}))
