@@ -5,7 +5,8 @@
   should work without any additional dependencies."
   (:require [clojure.edn]
             [clojure.java.io :as io]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [boot.pod :as pod])
   (:import (java.nio.file Files)))
 
 (def hardcoded-config
@@ -37,7 +38,7 @@
 
 (defn local-jar-file [[project version :as coordinate]]
   ;; (jar-file '[org.martinklepsch/derivatives "0.2.0"])
-  (->> (boot.pod/resolve-dependencies {:dependencies [coordinate]})
+  (->> (pod/resolve-dependencies {:dependencies [coordinate]})
        (filter #(if (.endsWith version "-SNAPSHOT")
                   (= project (first (:dep %)))
                   (= coordinate (:dep %))))
