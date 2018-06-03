@@ -1,7 +1,7 @@
 (ns cljdoc.render.build-req
   "HTML pages/fragments related to requesting a documentation build"
   (:require [cljdoc.render.layout :as layout]
-            [cljdoc.util.clojars :as clojars]
+            [cljdoc.util.repositories :as repositories]
             [cljdoc.util :as util]
             [aleph.http :as http]))
 
@@ -9,7 +9,7 @@
   (->> [:div.pa4-ns.pa2
         [:h1 "Want to build some documentation?"]
         [:p "We currently don't have documentation built for " (util/clojars-id route-params) " v" (:version route-params)]
-        (if (clojars/artifact-uris (util/clojars-id route-params) (:version route-params))
+        (if (repositories/artifact-uris (util/clojars-id route-params) (:version route-params))
           [:form.pv3 {:action "/api/request-build2" :method "POST"}
            [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "project" :name "project" :value (str (:group-id route-params) "/" (:artifact-id route-params))}]
            [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "version" :name "version" :value (:version route-params)}]

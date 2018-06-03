@@ -1,4 +1,4 @@
-(ns cljdoc.util.clojars
+(ns cljdoc.util.repositories
   (:require [cljdoc.util :as util]
             [clojure.string :as string]
             [aleph.http :as http]
@@ -8,6 +8,7 @@
   (:import (org.jsoup Jsoup)
            (java.time Instant Duration)))
 
+; TODO. Maven Central
 (defn releases-since [inst]
   (let [req @(http/get "https://clojars.org/search"
                        {;:throw-exceptions? false
