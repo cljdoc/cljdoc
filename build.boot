@@ -37,6 +37,10 @@
     [digest "1.4.8"]
     [tea-time "1.0.0"]
 
+    ;; Pedestal (drop yada at some point)
+    [io.pedestal/pedestal.service       "0.5.3"]
+    [io.pedestal/pedestal.jetty         "0.5.3"]
+
     ;; Build-logs DB (sqlite)
     [org.xerial/sqlite-jdbc "3.20.0"]
     [org.clojure/java.jdbc "0.7.0"]
