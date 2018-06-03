@@ -1,5 +1,5 @@
 (ns cljdoc.server.release-monitor
-  (:require [cljdoc.util.clojars :as clojars])
+  (:require [cljdoc.util.repositories :as repositories])
   (:require [integrant.core :as ig]
             [aleph.http :as http]
             [clojure.java.jdbc :as sql]
@@ -42,7 +42,7 @@
                        (.plus (Duration/ofSeconds 1)))
                (.minus (Instant/now) (Duration/ofHours 24)))
         cljsjs?  #(= "cljsjs" (:group_id %))
-        releases (->> (clojars/releases-since ts)
+        releases (->> (repositories/releases-since ts)
                       (remove cljsjs?))]
     (when (seq releases)
       (log/infof "Storing %s new releases in releases table" (count releases))
@@ -83,7 +83,7 @@
 
   (ig/halt-key! :cljdoc/release-monitor rm)
 
-  (doseq [r (cljdoc.util.clojars/releases-since (.minus (Instant/now) (Duration/ofDays 2)))]
+  (doseq [r (repositories/releases-since (.minus (Instant/now) (Duration/ofDays 2)))]
     (insert db-spec r))
 
   (last (sql/query db-spec ["SELECT * FROM releases"]))
@@ -91,7 +91,7 @@
   (trigger-build db-spec (first (sql/query db-spec ["SELECT * FROM releases"])))
 
   (clojure.pprint/pprint
-   (->> (clojars/releases-since (last-release-ts db-spec))
+   (->> (repositories/releases-since (last-release-ts db-spec))
         (map #(select-keys % [:created_ts]))))
 
   (oldest-not-built db-spec)
