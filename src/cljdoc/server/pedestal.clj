@@ -157,9 +157,18 @@
 (def pong
   {:name ::pong :enter (fn [ctx] (assoc-in ctx [:response] {:status 200 :body "pong"}))})
 
+(def request-build-validate
+  ;; TODO quick and dirty for now
+  {:name ::request-build-validate
+   :enter (fn request-build-validate [ctx]
+            (if (and (some-> ctx :request :form-params :project string?)
+                     (some-> ctx :request :form-params :version string?))
+              ctx
+              (assoc ctx :response {:status 400 :headers {}})))})
+
 (defn api-routes [{:keys [analysis-service build-tracker dir] :as opts}]
   #{["/api/ping" :get pong]
-    ["/api/request-build2" :post [(body/body-params) (request-build opts)] :route-name :request-build]
+    ["/api/request-build2" :post [(body/body-params) request-build-validate (request-build opts)] :route-name :request-build]
     ["/api/full-build" :post [(body/body-params) (full-build opts)] :route-name :full-build]
     (when (analysis-service/circle-ci? analysis-service)
       ["/hooks/circle-ci" :post [(body/body-params) (full-build opts)] :route-name :circle-ci-webhook])})
