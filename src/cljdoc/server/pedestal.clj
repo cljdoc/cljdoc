@@ -196,8 +196,7 @@
   (let [grimoire-store (cljdoc.grimoire-helpers/grimoire-store
                         (clojure.java.io/file (:dir opts) "grimoire"))
         deps (assoc opts :grimoire-store grimoire-store)]
-    (-> {::http/routes (routes/routes (partial route-resolver deps)
-                                      (select-keys opts [:host :port :scheme]))
+    (-> {::http/routes (routes/routes (partial route-resolver deps) {})
          ::http/type   :jetty
          ::http/join?  false
          ::http/port   (:port opts)
