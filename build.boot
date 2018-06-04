@@ -28,7 +28,6 @@
     [integrant/repl "0.3.0"] ; dev-dependency
     [aero "1.1.2"]
     [org.clojure/tools.logging "0.4.0"]
-    [metosin/jsonista "0.1.1"]
     [funcool/cuerdas "2.0.5"]
     [spootnik/unilog "0.7.22"]
     [org.jsoup/jsoup "1.11.3"]
@@ -37,7 +36,8 @@
 
     [io.pedestal/pedestal.service       "0.5.3"]
     [io.pedestal/pedestal.jetty         "0.5.3"]
-    [aleph "0.4.5-alpha6"]
+    [cheshire "5.8.0"]
+    [aleph "0.4.5-alpha6"] ;TODO replace with clj-http or similar
 
     ;; Build-logs DB (sqlite)
     [org.xerial/sqlite-jdbc "3.20.0"]

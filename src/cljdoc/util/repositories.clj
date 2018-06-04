@@ -3,7 +3,7 @@
             [clojure.string :as string]
             [aleph.http :as http]
             [byte-streams :as bs]
-            [jsonista.core :as json]
+            [cheshire.core :as json]
             [clojure.tools.logging :as log])
   (:import (org.jsoup Jsoup)
            (java.time Instant Duration)))
@@ -15,7 +15,7 @@
                         :query-params {"q" (format "at:[%s TO %s]" (str inst) (str (Instant/now)))
                                        "format" "json"
                                        "page" 1}})
-        results (-> req :body bs/to-string json/read-value (get "results"))]
+        results (-> req :body bs/to-string json/parse-string (get "results"))]
     (->> results
          (sort-by #(get % "created"))
          (map (fn [r]
@@ -116,6 +116,8 @@
     (cljdoc.util.pom/parse (slurp (:pom (artifact-uris 'metosin/reitit "0.1.2-SNAPSHOT")))))
 
   (cljdoc.util.pom/scm-info d)
+
+  (releases-since (.minus (Instant/now) (Duration/ofHours 12)))
 
   ;; (def f "/Users/martin/Downloads/clojars-downloads.edn")
   ;; (def f "https://clojars.org/stats/downloads-20180525.edn")

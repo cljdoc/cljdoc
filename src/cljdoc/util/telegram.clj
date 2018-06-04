@@ -3,7 +3,7 @@
   so that I can investigate when/if stuff fails"
   (:require [aleph.http :as http]
             [cljdoc.config :as cfg]
-            [jsonista.core :as json]))
+            [cheshire.core :as json]))
 
 (def bot-token
   (get-in (cfg/config) [:secrets :telegram :bot-token]))
@@ -23,7 +23,7 @@
      (let [url  (str base-url token "/sendMessage")
            body (into {:chat_id chat-id :text text} options)
            resp @(http/post url {:content-type :json
-                                 :body (json/write-value-as-string body)})]
+                                 :body (json/generate-string body)})]
        (-> resp :status)))))
 
 (defn build-requested
