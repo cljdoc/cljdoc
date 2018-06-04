@@ -4,6 +4,7 @@
             [cljdoc.doc-tree :as doctree]
             [cljdoc.util :as util]
             [cljdoc.routes :as routes]
+            [io.pedestal.http.route :as route]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]))
 
@@ -21,8 +22,8 @@
 (defn doc-link [cache-id slugs]
   (assert (seq slugs) "Slug path missing")
   (->> (string/join "/" slugs)
-       (assoc cache-id :doc-page)
-       (routes/path-for :artifact/doc)))
+       (assoc cache-id :article-slug)
+       (route/url-for :artifact/doc :path-params)))
 
 (defn doc-tree-view
   [cache-id doc-bundle current-page]

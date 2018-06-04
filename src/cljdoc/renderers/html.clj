@@ -1,6 +1,5 @@
 (ns cljdoc.renderers.html
-  (:require [cljdoc.routes :as r]
-            [cljdoc.doc-tree :as doctree]
+  (:require [cljdoc.doc-tree :as doctree]
             [cljdoc.render.rich-text :as rich-text]
             [cljdoc.render.layout :as layout]
             [cljdoc.render.articles :as articles]
@@ -9,6 +8,7 @@
             [cljdoc.util.fixref :as fixref]
             [cljdoc.cache]
             [cljdoc.spec]
+            [io.pedestal.http.route :as route]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
@@ -23,7 +23,7 @@
   (->> hiccup (layout/page opts) str (spit file)))
 
 (defn file-for [out-dir route-id route-params]
-  (doto (io/file out-dir (subs (r/path-for route-id route-params) 1) "index.html")
+  (doto (io/file out-dir (subs (route/url-for route-id :path-params route-params) 1) "index.html")
     io/make-parents))
 
 (defmulti render (fn [page-type route-params cache-bundle] page-type))
@@ -46,7 +46,7 @@
                         (sort-by :version))]
              [:li.dib.mr3
               [big-btn-link
-               {:href (r/path-for :artifact/version (merge cache-id v))}
+               {:href (route/url-for :artifact/version :path-params (merge cache-id v))}
                (:version v)]])]
           (when-not (= #{artifact-id} (set(:artifacts cache-contents)))
             [:div
@@ -55,7 +55,7 @@
               (for [a (sort (:artifacts cache-contents))]
                 [:li.dib.mr3
                  [big-btn-link
-                  {:href (r/path-for :artifact/index (assoc cache-id :artifact-id a))}
+                  {:href (route/url-for :artifact/index :path-params (assoc cache-id :artifact-id a))}
                   a]])]])]
          (layout/page {:title (str (clojars-id artifact-entity) " — cljdoc")}))))
 
@@ -171,7 +171,5 @@
 
   (-> (doctree/add-slug-path (-> (:cache-contents cljdoc.cache/cache) :version :doc))
       first)
-
-  (r/path-for :artifact/doc {:group-id "a" :artifact-id "b" :version "v" :doc-page "asd/as"})
 
   )

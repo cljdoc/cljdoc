@@ -4,7 +4,7 @@
   (:require [clojure.tools.logging :as log]
             [clojure.string :as string]
             [cljdoc.util :as util]
-            [cljdoc.routes :as routes])
+            [io.pedestal.http.route :as route])
   (:import (org.jsoup Jsoup)))
 
 ;; inputs
@@ -27,8 +27,8 @@
               [(-> d :attrs :cljdoc.doc/source-file)
                (->> (-> d :attrs :slug-path)
                     (clojure.string/join "/")
-                    (assoc cache-id :doc-page)
-                    (routes/path-for :artifact/doc))]))
+                    (assoc cache-id :article-slug)
+                    (route/url-for :artifact/doc :path-params))]))
        (into {})))
 
 (defn- rebase
