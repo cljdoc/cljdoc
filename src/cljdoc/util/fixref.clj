@@ -4,7 +4,7 @@
   (:require [clojure.tools.logging :as log]
             [clojure.string :as string]
             [cljdoc.util :as util]
-            [io.pedestal.http.route :as route])
+            [cljdoc.server.routes :as routes])
   (:import (org.jsoup Jsoup)))
 
 ;; inputs
