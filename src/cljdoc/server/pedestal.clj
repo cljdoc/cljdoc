@@ -10,7 +10,7 @@
             [cljdoc.server.api :as api]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
-            [jsonista.core :as json]
+            [cheshire.core :as json]
             [byte-streams :as bs]
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]))
@@ -124,7 +124,7 @@
                   status    (get-in ctx [:request :json-params "payload" "status"])
                   cljdoc-edn (cljdoc.util/cljdoc-edn project version)
                   artifacts  (-> (analysis-service/get-circle-ci-build-artifacts analysis-service build-num)
-                                 :body bs/to-string json/read-value)]
+                                 :body bs/to-string json/parse-string)]
               (if-let [artifact (and (= status "success")
                                      (= 1 (count artifacts))
                                      (= cljdoc-edn (get (first artifacts) "path"))
