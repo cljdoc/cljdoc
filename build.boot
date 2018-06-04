@@ -46,7 +46,7 @@
 
     [expound "0.6.0"]
     [metosin/bat-test "0.4.0" :scope "test"]
-    [boot/core "2.7.2"]
+    [boot/core "2.7.2"] ; for inclusion in test pod
     [zprint "0.4.9"]])
 
 (boot.core/set-env! :source-paths #{"src" "test"}
