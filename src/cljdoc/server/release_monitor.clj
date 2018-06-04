@@ -49,6 +49,7 @@
       (sql/insert-multi! db-spec "releases" releases))))
 
 (defn build-queuer-job-fn [db-spec dry-run?]
+  (log/info "Will queue build:" (oldest-not-built db-spec))
   (when-let [to-build (oldest-not-built db-spec)]
     (if dry-run?
       (log/infof "Dry-run mode: not triggering build for %s/%s %s"
