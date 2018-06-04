@@ -41,10 +41,10 @@
                 ;; instead of rendering a mostly white page we
                 ;; redirect to the README/first listed article for now
                 (assoc ctx
-                       :response 
+                       :response
                        {:status 302
                         :headers {"Location"  (@(:url-for ctx) :artifact/doc :params (assoc path-params :article-slug first-article-slug))}})
-                
+
                 (if cache-bundle
                   (ok-html! ctx (html/render page-type path-params cache-bundle))
                   (ok-html! ctx (render-build-req/request-build-page path-params))))))})
@@ -62,9 +62,7 @@
   [store route-name]
   {:name  ::grimoire-loader
    :enter (fn [{:keys [request] :as ctx}]
-            (let [store       (cljdoc.grimoire-helpers/grimoire-store
-                               (clojure.java.io/file "data" "grimoire"))
-                  group-thing (grimoire-helpers/thing (-> request :path-params :group-id))]
+            (let [group-thing (grimoire-helpers/thing (-> request :path-params :group-id))]
               (case route-name
                 (:group/index :artifact/index)
                 (do (log/info "Loading group cache bundle for" (:path-params request))
@@ -115,7 +113,7 @@
                              :version          (get-in ctx [:request :form-params :version])})]
               (assoc ctx
                      :response
-                     {:status 301
+                     {:status 303
                       :headers {"Location" (str "/builds/" build-id)}})))})
 
 (defn full-build
