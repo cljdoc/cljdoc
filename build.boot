@@ -8,7 +8,6 @@
     [org.clojure/test.check "0.9.0"]
     [com.cognitect/transit-clj "0.8.300"]
 
-    [bidi "2.1.3"]
     [hiccup "2.0.0-alpha1"]
     [org.asciidoctor/asciidoctorj "1.5.6"]
     [com.atlassian.commonmark/commonmark "0.11.0"]
@@ -28,7 +27,6 @@
     [integrant "0.7.0-alpha1"]
     [integrant/repl "0.3.0"] ; dev-dependency
     [aero "1.1.2"]
-    [yada/lean "1.2.11"]
     [org.clojure/tools.logging "0.4.0"]
     [metosin/jsonista "0.1.1"]
     [funcool/cuerdas "2.0.5"]
@@ -37,9 +35,9 @@
     [digest "1.4.8"]
     [tea-time "1.0.0"]
 
-    ;; Pedestal (drop yada at some point)
     [io.pedestal/pedestal.service       "0.5.3"]
     [io.pedestal/pedestal.jetty         "0.5.3"]
+    [aleph "0.4.5-alpha6"]
 
     ;; Build-logs DB (sqlite)
     [org.xerial/sqlite-jdbc "3.20.0"]

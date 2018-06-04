@@ -28,7 +28,7 @@
                (->> (-> d :attrs :slug-path)
                     (clojure.string/join "/")
                     (assoc cache-id :article-slug)
-                    (route/url-for :artifact/doc :path-params))]))
+                    (routes/url-for :artifact/doc :path-params))]))
        (into {})))
 
 (defn- rebase
