@@ -6,13 +6,13 @@
             [cljdoc.util.pom :as pom]
             [clojure.tools.logging :as log]
             [cljdoc.grimoire-helpers]
-            [io.pedestal.http.route :as route]
+            [cljdoc.server.routes :as routes]
             [cljdoc.spec]))
 
 (defn done [project version]
   (log/infof "Done with build for %s %s" project version)
   (telegram/import-completed
-   (route/url-for
+   (routes/url-for
     :artifact/version
     :path-params
     {:group-id    (util/group-id project)

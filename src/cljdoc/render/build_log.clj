@@ -1,7 +1,7 @@
 (ns cljdoc.render.build-log
   (:require [cljdoc.render.layout :as layout]
             [cljdoc.util :as util]
-            [io.pedestal.http.route :as route])
+            [cljdoc.server.routes :as routes])
   (:import [java.time Instant Duration]))
 
 (defn done? [build-info]
@@ -17,11 +17,11 @@
      (into [:div.fl-ns.w-two-thirds-ns.bg-white.bl-ns.b--moon-gray.pa3] contents)]))
 
 (defn cljdoc-link [build-info icon?]
-  (let [cljdoc-uri (route/url-for :artifact/version
-                                  :path-params
-                                  {:group-id (:group_id build-info)
-                                   :artifact-id (:artifact_id build-info)
-                                   :version (:version build-info)})]
+  (let [cljdoc-uri (routes/url-for :artifact/version
+                                   :path-params
+                                   {:group-id (:group_id build-info)
+                                    :artifact-id (:artifact_id build-info)
+                                    :version (:version build-info)})]
     [:a.link.blue {:href cljdoc-uri}
      (when icon?
        [:img.v-mid.mr2 {:src "https://icon.now.sh/chevron/20"}])

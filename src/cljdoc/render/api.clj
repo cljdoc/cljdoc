@@ -5,7 +5,7 @@
             [cljdoc.util.ns-tree :as ns-tree]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.spec]
-            [io.pedestal.http.route :as route]
+            [cljdoc.server.routes :as routes]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]
             [zprint.core :as zp]))
@@ -64,7 +64,7 @@
         (if-let [ns (get namespaces ns)]
           [:li
            [:a.link.hover-dark-blue.blue.dib.pa1
-            {:href (route/url-for :artifact/namespace :path-params ns)
+            {:href (routes/url-for :artifact/namespace :path-params ns)
              :class (when (= (:namespace ns) current) "b")
              :style style}
             (->> (ns-tree/split-ns (:namespace ns))
@@ -78,7 +78,7 @@
       #_(for [ns (sort-by :namespace namespaces)]
           [:li
            [:a.link.dim.blue.dib.pa1
-            {:href (route/url-for :artifact/namespace :path-params ns)
+            {:href (routes/url-for :artifact/namespace :path-params ns)
              :class (when (= (:namespace ns) current) "b")}
             (:namespace ns)]])]]))
 

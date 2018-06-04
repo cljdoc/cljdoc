@@ -1,6 +1,6 @@
 (ns cljdoc.render.layout
   "Components to layout cljdoc pages"
-  (:require [io.pedestal.http.route :as route]
+  (:require [cljdoc.server.routes :as routes]
             [cljdoc.util :as util]
             [hiccup.core :as hiccup]
             [hiccup.page]))
@@ -48,10 +48,10 @@
 
 (defn top-bar [cache-id version-meta]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
-   [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (route/url-for :artifact/version :path-params cache-id)}
+   [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params cache-id)}
     (util/clojars-id cache-id)]
    [:a.dib.v-mid.link.dim.gray.f6.mr3
-    {:href (route/url-for :artifact/index :path-params cache-id)}
+    {:href (routes/url-for :artifact/index :path-params cache-id)}
     (:version cache-id)]
    [:a {:href "/"}
     [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Alpha"]]

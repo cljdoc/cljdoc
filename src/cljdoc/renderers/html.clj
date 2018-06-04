@@ -8,7 +8,7 @@
             [cljdoc.util.fixref :as fixref]
             [cljdoc.cache]
             [cljdoc.spec]
-            [io.pedestal.http.route :as route]
+            [cljdoc.server.routes :as routes]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
@@ -23,7 +23,7 @@
   (->> hiccup (layout/page opts) str (spit file)))
 
 (defn file-for [out-dir route-id route-params]
-  (doto (io/file out-dir (subs (route/url-for route-id :path-params route-params) 1) "index.html")
+  (doto (io/file out-dir (subs (routes/url-for route-id :path-params route-params) 1) "index.html")
     io/make-parents))
 
 (defmulti render (fn [page-type route-params cache-bundle] page-type))
@@ -46,7 +46,7 @@
                         (sort-by :version))]
              [:li.dib.mr3
               [big-btn-link
-               {:href (route/url-for :artifact/version :path-params (merge cache-id v))}
+               {:href (routes/url-for :artifact/version :path-params (merge cache-id v))}
                (:version v)]])]
           (when-not (= #{artifact-id} (set(:artifacts cache-contents)))
             [:div
@@ -55,7 +55,7 @@
               (for [a (sort (:artifacts cache-contents))]
                 [:li.dib.mr3
                  [big-btn-link
-                  {:href (route/url-for :artifact/index :path-params (assoc cache-id :artifact-id a))}
+                  {:href (routes/url-for :artifact/index :path-params (assoc cache-id :artifact-id a))}
                   a]])]])]
          (layout/page {:title (str (clojars-id artifact-entity) " — cljdoc")}))))
 

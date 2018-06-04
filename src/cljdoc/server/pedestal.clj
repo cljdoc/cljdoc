@@ -6,14 +6,14 @@
             [cljdoc.renderers.html :as html]
             [cljdoc.analysis.service :as analysis-service]
             [cljdoc.server.build-log :as build-log]
+            [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [jsonista.core :as json]
             [byte-streams :as bs]
             [io.pedestal.http :as http]
-            [io.pedestal.http.body-params :as body]
-            [io.pedestal.http.route :as route]))
+            [io.pedestal.http.body-params :as body]))
 
 (defn ok! [ctx body]
   (assoc ctx :response {:status 200 :body body}))
@@ -22,8 +22,6 @@
   (assoc ctx :response {:status 200
                         :body (str body)
                         :headers {"Content-Type" "text/html"}}))
-
-(declare url-for)
 
 (def render-interceptor
   {:name  ::render
@@ -42,7 +40,7 @@
                 (assoc ctx
                        :response
                        {:status 302
-                        :headers {"Location"  (@(:url-for ctx) :artifact/doc :params (assoc path-params :article-slug first-article-slug))}})
+                        :headers {"Location"  (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))}})
 
                 (if cache-bundle
                   (ok-html! ctx (html/render page-type path-params cache-bundle))
@@ -90,16 +88,6 @@
         render-interceptor]
        (keep identity)
        (vec)))
-
-(defn documentation-routes [{:keys [grimoire-store]}]
-  (->> {:group/index        "/d/:group-id"
-        :artifact/index     "/d/:group-id/:artifact-id"
-        :artifact/version   "/d/:group-id/:artifact-id/:version"
-        :artifact/doc       "/d/:group-id/:artifact-id/:version/doc/*article-slug"
-        :artifact/namespace "/d/:group-id/:artifact-id/:version/api/:namespace"}
-       (reduce-kv (fn [routes route-name route-pattern]
-                    (conj routes [route-pattern :get (view grimoire-store route-name) :route-name route-name]))
-                  #{})))
 
 (defn request-build
   [{:keys [analysis-service build-tracker]}]
@@ -165,61 +153,43 @@
               ctx
               (assoc ctx :response {:status 400 :headers {}})))})
 
-(defn api-routes [{:keys [analysis-service build-tracker dir] :as opts}]
-  #{["/api/ping" :get pong]
-    ["/api/request-build2" :post [(body/body-params) request-build-validate (request-build opts)] :route-name :request-build]
-    ["/api/full-build" :post [(body/body-params) (full-build opts)] :route-name :full-build]
-    (when (analysis-service/circle-ci? analysis-service)
-      ["/hooks/circle-ci" :post [(body/body-params) (full-build opts)] :route-name :circle-ci-webhook])})
+(defn show-build
+  [build-tracker]
+  {:name ::build-show
+   :enter (fn build-show-render [ctx]
+            (if-let [build-info (->> ctx :request :path-params :id
+                                     (build-log/get-build build-tracker))]
+              (ok-html! ctx (cljdoc.render.build-log/build-page build-info))
+              ;; Not setting :response implies 404 response
+              ctx))})
 
-(defn build-log-routes [build-tracker]
-  #{["/builds/:id" :get {:name ::build-show
-                         :enter (fn build-show-render [ctx]
-                                  (if-let [build-info (->> ctx :request :path-params :id
-                                                           (build-log/get-build build-tracker))]
-                                    (ok-html! ctx (cljdoc.render.build-log/build-page build-info))
-                                    ;; Not setting :response implies 404 response
-                                    ctx))}]
-    ["/builds" :get {:name ::build-index
-                     :enter (fn build-index-render [ctx]
-                              (->> (build-log/recent-builds build-tracker 100)
-                                   (cljdoc.render.build-log/builds-page)
-                                   (ok-html! ctx)))}]})
+(defn all-builds
+  [build-tracker]
+  {:name ::build-index
+   :enter (fn build-index-render [ctx]
+            (->> (build-log/recent-builds build-tracker 100)
+                 (cljdoc.render.build-log/builds-page)
+                 (ok-html! ctx)))})
 
-(defn info-pages []
-  #{["/" :get {:name ::home :enter #(ok-html! % (render-home/home))}]})
+(defn route-resolver
+  [{:keys [build-tracker grimoire-store] :as deps}
+   {:keys [route-name] :as route}]
+  (->> (case route-name
+         :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
+         :show-build [(show-build build-tracker)]
+         :all-builds [(all-builds build-tracker)]
 
-(defn routes [{:keys [host port scheme] :as opts}]
-  (route/expand-routes
-   (->> [(when host
-           ;; https://github.com/pedestal/pedestal/issues/570
-           #{(select-keys opts [:host :port :scheme])})
-         (documentation-routes opts)
-         (api-routes opts)
-         (build-log-routes (:build-tracker opts))
-         (info-pages)]
-        (reduce into #{}))))
+         :ping          [pong]
+         :request-build [(body/body-params) request-build-validate (request-build deps)]
+         :full-build    [(body/body-params) (full-build deps)]
+         :circle-ci-webhook [(body/body-params) (full-build deps)]
 
-(defn- url-for-routes
-  "A variant of Pedestal's own url-for-routes but instead of
-  accepting path-params maps with missing parameters this one throws."
-  [routes & default-options]
-  (let [{:as default-opts} default-options
-        m (#'io.pedestal.http.route/linker-map routes)]
-    (fn [route-name & options]
-      (let [{:keys [app-name] :as options-map} options
-            default-app-name (:app-name default-opts)
-            route (#'io.pedestal.http.route/find-route m (or app-name default-app-name) route-name)
-            opts (#'io.pedestal.http.route/combine-opts options-map default-opts route)]
-        (doseq [k (:path-params route)]
-          (when-not (get-in opts [:path-params k])
-            (throw (ex-info (format "Missing path-param %s" k)
-                            {:route-path (:path route) :route-name (:route-name route) :opts opts}))))
-        (#'io.pedestal.http.route/link-str route opts)))))
-
-(def url-for
-  ;; TODO parameterize
-  (url-for-routes (routes {})))
+         :group/index (view grimoire-store route-name)
+         :artifact/index (view grimoire-store route-name)
+         :artifact/version (view grimoire-store route-name)
+         :artifact/namespace (view grimoire-store route-name)
+         :artifact/doc (view grimoire-store route-name))
+       (assoc route :interceptors)))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
   (log/info "Starting pedestal on port" opts)
@@ -227,8 +197,10 @@
   ;; doesn't work, arrives as the following:
   ;; (:grimoire.api.fs/Config {:docs "data/grimoire", :examples "", :notes ""})
   (let [grimoire-store (cljdoc.grimoire-helpers/grimoire-store
-                        (clojure.java.io/file (:dir opts) "grimoire"))]
-    (-> {::http/routes (routes (assoc opts :grimoire-store grimoire-store))
+                        (clojure.java.io/file (:dir opts) "grimoire"))
+        deps (assoc opts :grimoire-store grimoire-store)]
+    (-> {::http/routes (routes/routes (partial route-resolver deps)
+                                      (select-keys opts [:host :port :scheme]))
          ::http/type   :jetty
          ::http/join?  false
          ::http/port   (:port opts)
