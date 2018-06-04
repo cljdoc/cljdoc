@@ -141,9 +141,6 @@
                     (build-log/failed! build-tracker build-id "analysis-job-failed"))
                   (assoc-in ctx [:response :status] 200)))))})
 
-(def pong
-  {:name ::pong :enter (fn [ctx] (assoc-in ctx [:response] {:status 200 :body "pong"}))})
-
 (def request-build-validate
   ;; TODO quick and dirty for now
   {:name ::request-build-validate
@@ -179,16 +176,16 @@
          :show-build [(show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]
 
-         :ping          [pong]
+         :ping          [{:name ::pong :enter #(ok-html! % "pong")}]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
          :full-build    [(body/body-params) (full-build deps)]
          :circle-ci-webhook [(body/body-params) (full-build deps)]
 
-         :group/index (view grimoire-store route-name)
-         :artifact/index (view grimoire-store route-name)
-         :artifact/version (view grimoire-store route-name)
+         :group/index        (view grimoire-store route-name)
+         :artifact/index     (view grimoire-store route-name)
+         :artifact/version   (view grimoire-store route-name)
          :artifact/namespace (view grimoire-store route-name)
-         :artifact/doc (view grimoire-store route-name))
+         :artifact/doc       (view grimoire-store route-name))
        (assoc route :interceptors)))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
