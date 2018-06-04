@@ -68,7 +68,8 @@
 
             (done project version)
             {:scm-url scm-url
-             :commit  (-> git-analysis :scm :commit)})
+             :commit  (or (-> git-analysis :scm :commit)
+                          (-> git-analysis :scm :tag :commit))})
 
           (do
             (telegram/no-version-tag project version scm-url)
