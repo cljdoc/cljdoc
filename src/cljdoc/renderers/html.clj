@@ -80,6 +80,7 @@
                    first)
         doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
+        _ (assert doc-html (format "doc page missing important fields %s" doc-p))
         fixed-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                doc-html
                                {:scm (:scm (:version cache-contents))
@@ -129,12 +130,13 @@
          (spit (file-for out-dir :artifact/version cache-id)))
 
     ;; Documentation Pages / Articles
-    (doseq [doc-p (-> doc-tree doctree/flatten*)]
+    (doseq [doc-p (-> doc-tree doctree/flatten*)
+            :when (:cljdoc/source-file doc-p)]
       (log/info "Rendering Doc Page" (dissoc doc-p :attrs))
       (->> (str (render :artifact/doc {:doc-slug-path (:slug-path (:attrs doc-p))} cache-bundle))
            (spit (->> (-> doc-p :attrs :slug-path)
                       (clojure.string/join "/")
-                      (assoc cache-id :doc-page)
+                      (assoc cache-id :article-slug)
                       (file-for out-dir :artifact/doc)))))
 
     ;; Namespace Pages
