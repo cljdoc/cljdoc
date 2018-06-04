@@ -3,7 +3,6 @@
   (:require [cljdoc.render.layout :as layout]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.util :as util]
-            [cljdoc.routes :as routes]
             [cljdoc.server.routes :as routes]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]))
