@@ -20,23 +20,32 @@
 (defn config []
   (aero/read-config (io/resource "config.edn") {:profile (profile)}))
 
-(defn circle-ci []
-  {:api-token       (get-in (config) [:secrets :circle-ci :api-token])
-   :builder-project (get-in (config) [:secrets :circle-ci :builder-project])})
+;; Accessors
 
-(defn analysis-service []
-  (get-in (config) [:cljdoc/server :analysis-service]))
+(defn circle-ci
+  ([] (circle-ci (config)))
+  ([config]
+   {:api-token       (get-in config [:secrets :circle-ci :api-token])
+    :builder-project (get-in config [:secrets :circle-ci :builder-project])}))
 
-(defn data-dir []
-  (get-in (config) [:cljdoc/server :dir]))
+(defn analysis-service
+  ([] (analysis-service (config)))
+  ([config] (get-in config [:cljdoc/server :analysis-service])))
 
-(defn build-log-db []
-  {:classname "org.sqlite.JDBC",
-   :subprotocol "sqlite",
-   :subname (str (data-dir) "build-log.db")})
+(defn data-dir
+  ([] (data-dir (config)))
+  ([config] (get-in config [:cljdoc/server :dir])))
 
-(defn autobuild-clojars-releases? []
-  (get-in (config) [:cljdoc/server :autobuild-clojars-releases?]))
+(defn build-log-db
+  ([] (build-log-db (config)))
+  ([config]
+   {:classname "org.sqlite.JDBC",
+    :subprotocol "sqlite",
+    :subname (str (data-dir config) "build-log.db")}))
+
+(defn autobuild-clojars-releases?
+  ([] (autobuild-clojars-releases? (config)))
+  ([config] (get-in config [:cljdoc/server :autobuild-clojars-releases?])))
 
 (comment
   (config)
