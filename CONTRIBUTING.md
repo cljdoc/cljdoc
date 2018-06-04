@@ -46,7 +46,7 @@ Renderers are what turns data from Grimoire into other representations. Most com
 - **Single page app** — with all the data we have I think there are many nice things to be done, ultimately that could culminate in a snappy app that allows you to navigate between versions, toggle between platforms etc.
 - **Docsets** for documentation browsers like [Dash](https://kapeli.com/dash). Go, Elixir, Scala all have a canonical source that Dash integrates with directly, maybe this could also be a way forward.
 
-With all of these I believe **link stability** is incredibly important and thus every route for every renderer is defined in one global thing in `cljdoc.routes`.
+With all of these I believe **link stability** is incredibly important and thus every route for every renderer is defined in one global thing in `cljdoc.server.routes`.
 
 :warning: I will try to create a playground kind of thing where less Clojure savvy designers could work on the existing `cljdoc.renderers.html` code. Let's talk before you put any effort in working on existing or new renderers.
 
