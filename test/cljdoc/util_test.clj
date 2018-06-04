@@ -20,8 +20,13 @@
            {:pom "https://repo.clojars.org/bidi/bidi/2.0.9-SNAPSHOT/bidi-2.0.9-20160426.224252-1.pom",
             :jar "https://repo.clojars.org/bidi/bidi/2.0.9-SNAPSHOT/bidi-2.0.9-20160426.224252-1.jar"})))
 
-
-
+(t/deftest normalize-git-url-test
+  (t/is (= (util/normalize-git-url "git@github.com:clojure/clojure.git")
+           "https://github.com/clojure/clojure"))
+  (t/is (= (util/normalize-git-url "http://github.com/clojure/clojure.git")
+           "https://github.com/clojure/clojure"))
+  (t/is (= (util/normalize-git-url "http://github.com/clojure/clojure")
+           "https://github.com/clojure/clojure")))
 
 (comment
   (t/run-tests)

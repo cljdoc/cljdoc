@@ -70,9 +70,10 @@
 (defn normalize-git-url
   "Ensure that the passed string is a git URL and that it's using HTTPS"
   [s]
-  (cond
-    (.startsWith s "http") (string/replace s #"^http://" "https://")
-    (.startsWith s "git@github.com:") (string/replace s #"^git@github.com:" "https://github.com/")))
+  (cond-> s
+    (.startsWith s "http") (string/replace #"^http://" "https://")
+    (.startsWith s "git@github.com:") (string/replace #"^git@github.com:" "https://github.com/")
+    (.endsWith s ".git") (string/replace #".git$" "")))
 
 (defn gh-url? [s]
   (some-> s (.contains "github.com")))
