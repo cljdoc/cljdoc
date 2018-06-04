@@ -96,7 +96,7 @@
           grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
       (util/info "Generating Grimoire HTML for %s\n" project)
       (.mkdir grimoire-html-dir)
-      (require 'cljdoc.renderers.html 'cljdoc.render.rich-text 'cljdoc.routes 'cljdoc.spec :reload)
+      (require 'cljdoc.renderers.html 'cljdoc.render.rich-text 'cljdoc.spec :reload)
       (cljdoc.cache/render
        (cljdoc.renderers.html/->HTMLRenderer)
        (cljdoc.cache/bundle-docs grimoire-store grimoire-thing)
