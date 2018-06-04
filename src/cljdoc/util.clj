@@ -72,7 +72,7 @@
   [s]
   (cond
     (.startsWith s "http") (string/replace s #"^http://" "https://")
-    (.startsWith s "git@github.com:" (string/replace s #"^git@github.com:" "https://github.com/"))))
+    (.startsWith s "git@github.com:") (string/replace s #"^git@github.com:" "https://github.com/")))
 
 (defn gh-url? [s]
   (some-> s (.contains "github.com")))
