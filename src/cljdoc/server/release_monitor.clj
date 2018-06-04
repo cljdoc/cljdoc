@@ -58,7 +58,7 @@
         (update-build-id db-spec (:id to-build) build-id)))))
 
 (defmethod ig/init-key :cljdoc/release-monitor [_ {:keys [db-spec dry-run?]}]
-  (log/info "Starting ReleaseMonitor" (when dry-run? "(dry-run mode)"))
+  (log/info "Starting ReleaseMonitor" (if dry-run? "(dry-run mode)" ""))
   (tt/start!)
   {:release-fetcher (tt/every! 60 #(release-fetch-job-fn db-spec))
    :build-queuer    (tt/every!
@@ -67,6 +67,7 @@
                      ;; rate limit and run it more often so builds are becoming available
                      ;; as they are released
                      (* 30 60 60)
+                     10
                      #(build-queuer-job-fn db-spec dry-run?))})
 
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
