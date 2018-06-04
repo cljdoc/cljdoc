@@ -201,6 +201,9 @@
          ::http/type   :jetty
          ::http/join?  false
          ::http/port   (:port opts)
+         ;; TODO look into this somre more:
+         ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
+         ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
          ::http/resource-path "public"}
         (http/create-server)
         (http/start))))
