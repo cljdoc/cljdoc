@@ -7,7 +7,6 @@
             [cljdoc.analysis.service :as analysis-service]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.api :as api]
-            [cljdoc.server.pedestal]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [jsonista.core :as json]
@@ -201,11 +200,26 @@
          (info-pages)]
         (reduce into #{}))))
 
-;; (def url-for
-;;   ;; TODO parameterize
-;;   (route/url-for-routes (routes {:host "cljdox.xyz"
-;;                                  :port 8888
-;;                                  :scheme :https})))
+(defn- url-for-routes
+  "A variant of Pedestal's own url-for-routes but instead of
+  accepting path-params maps with missing parameters this one throws."
+  [routes & default-options]
+  (let [{:as default-opts} default-options
+        m (#'io.pedestal.http.route/linker-map routes)]
+    (fn [route-name & options]
+      (let [{:keys [app-name] :as options-map} options
+            default-app-name (:app-name default-opts)
+            route (#'io.pedestal.http.route/find-route m (or app-name default-app-name) route-name)
+            opts (#'io.pedestal.http.route/combine-opts options-map default-opts route)]
+        (doseq [k (:path-params route)]
+          (when-not (get-in opts [:path-params k])
+            (throw (ex-info (format "Missing path-param %s" k)
+                            {:route-path (:path route) :route-name (:route-name route) :opts opts}))))
+        (#'io.pedestal.http.route/link-str route opts)))))
+
+(def url-for
+  ;; TODO parameterize
+  (url-for-routes (routes {})))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
   (log/info "Starting pedestal on port" opts)
