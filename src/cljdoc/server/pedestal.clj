@@ -191,8 +191,10 @@
   #{["/" :get {:name ::home :enter #(ok-html! % (render-home/home))}]})
 
 (defn routes [{:keys [host port scheme] :as opts}]
-  (route/expand-routes 
-   (->> [#{(select-keys opts [:host :port :scheme])} 
+  (route/expand-routes
+   (->> [(when host
+           ;; https://github.com/pedestal/pedestal/issues/570
+           #{(select-keys opts [:host :port :scheme])})
          (documentation-routes opts)
          (api-routes opts)
          (build-log-routes (:build-tracker opts))
@@ -229,7 +231,7 @@
   (def s (http/start (create-server (routes {}))))
 
   (http/stop s)
-  
+
   (clojure.pprint/pprint
    (routes {:grimoire-store gs}))
 
