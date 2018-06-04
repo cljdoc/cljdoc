@@ -94,6 +94,7 @@
 
 (comment
   (find-artifact-repository "org.clojure/clojure" "1.9.0")
+  (artifact-uris "org.clojure/clojure" "1.9.0")
 
   @(http/head (metadata-xml-uri (:clojars repositories) 'bidi "2.1.3-SNAPSHOT") {:throw-exceptions? false})
 

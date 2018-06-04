@@ -41,7 +41,7 @@
                                  (if (util/gh-url? (:url artifact))
                                    (:url artifact))
                                  (util/scm-fallback project))
-                             util/ensure-https)]
+                             util/normalize-git-url)]
 
     (try
       (log/info "Verifying cljdoc-edn contents against spec")

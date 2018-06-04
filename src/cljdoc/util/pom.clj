@@ -35,6 +35,9 @@
   (def doc
     (Jsoup/parse (slurp "https://repo.clojars.org/bidi/bidi/2.1.3/bidi-2.1.3.pom")))
 
+  (def doc
+    (parse (slurp "https://search.maven.org/remotecontent?filepath=org/clojure/clojure/1.9.0/clojure-1.9.0.pom")))
+
   (println (.toString doc))
 
   (licenses doc)

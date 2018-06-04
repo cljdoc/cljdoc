@@ -67,11 +67,12 @@
          (:url pom-map))
    (clojure.string/replace #"^http://" "https://"))) ;; TODO HACK
 
-(defn ensure-https
-  "Ensure that the passed string is a URL and that it's using HTTPS"
+(defn normalize-git-url
+  "Ensure that the passed string is a git URL and that it's using HTTPS"
   [s]
-  (when (.startsWith s "http")
-    (clojure.string/replace s #"^http://" "https://")))
+  (cond
+    (.startsWith s "http") (string/replace s #"^http://" "https://")
+    (.startsWith s "git@github.com:" (string/replace s #"^git@github.com:" "https://github.com/"))))
 
 (defn gh-url? [s]
   (some-> s (.contains "github.com")))
