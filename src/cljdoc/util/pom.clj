@@ -25,9 +25,14 @@
      :version     (text d "version")}))
 
 (defn artifact-info [^Jsoup doc]
-  {:group-id    (text doc "project > groupId")
+  ;; These `parent` fallbacks are a bit of a hack but
+  ;; I didn't want to modify the data model and make this
+  ;; leak outside of this namespace - Martin
+  {:group-id    (or (text doc "project > groupId")
+                    (text doc "project > parent > groupId"))
    :artifact-id (text doc "project > artifactId")
-   :version     (text doc "project > version")
+   :version     (or (text doc "project > version")
+                    (text doc "project > parent > version"))
    :description (text doc "project > description")
    :url         (text doc "project > url")})
 
