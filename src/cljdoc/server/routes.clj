@@ -40,9 +40,7 @@
   "Return the expanded routes given the `opts` as passed to
   `io.pedestal.http.route/expand-routes`. The `route-resolver`
   will be used for post processing the routes, usually setting
-  the right interceptors.
-
-  If `route-resolver` returns `nil` the route is dropped."
+  the right interceptors."
   [route-resolver {:keys [host port scheme] :as opts}]
   (->> [(when host
           ;; https://github.com/pedestal/pedestal/issues/570
