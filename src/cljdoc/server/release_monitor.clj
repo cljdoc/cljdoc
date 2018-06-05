@@ -42,8 +42,10 @@
   (let [ts (or (some-> (last-release-ts db-spec)
                        (.plus (Duration/ofSeconds 1)))
                (.minus (Instant/now) (Duration/ofHours 24)))
-        cljsjs?  #(= "cljsjs" (:group_id %))
+        cljsjs?   #(= "cljsjs" (:group_id %))
+        snapshot? #(.endsWith (:version %) "-SNAPSHOT")
         releases (->> (repositories/releases-since ts)
+                      (remove snapshot?)
                       (remove cljsjs?))]
     (when (seq releases)
       (log/infof "Storing %s new releases in releases table" (count releases))
@@ -63,15 +65,7 @@
   (log/info "Starting ReleaseMonitor" (if dry-run? "(dry-run mode)" ""))
   (tt/start!)
   {:release-fetcher (tt/every! 60 #(release-fetch-job-fn db-spec))
-   :build-queuer    (tt/every!
-                     ;; Starting conservatively, building one project per 30min
-                     ;; But really instead of running this once an hour we should
-                     ;; rate limit and run it more often so builds are becoming available
-                     ;; as they are released
-                     120;TEST
-                     ;; (* 30 60 60)
-                     10
-                     #(build-queuer-job-fn db-spec dry-run?))})
+   :build-queuer    (tt/every! (* 10 60) 10 #(build-queuer-job-fn db-spec dry-run?))})
 
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
   (log/info "Stopping ReleaseMonitor")
