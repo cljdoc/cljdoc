@@ -4,10 +4,20 @@
             [raven-clj.interfaces :as interfaces]
             [clojure.tools.logging :as log]))
 
+(def app-namespaces
+  ["cljdoc"])
+
+(if (cfg/sentry-dsn)
+  (raven/install-uncaught-exception-handler!
+   (cfg/sentry-dsn)
+   {:packet-transform (fn [packet] (assoc packet :release (cfg/version)))
+    :app-namespaces app-namespaces
+    :handler (fn [thread ex] (log/errorf ex "Uncaught exception on thread %s" (.getName thread)))}))
+
 (defn capture [{:keys [req ex]}]
   (if (cfg/sentry-dsn)
     (let [payload (cond-> {:release (cfg/version)}
-                             ex  (interfaces/stacktrace ex ["cljdoc"])
+                             ex  (interfaces/stacktrace ex app-namespaces)
                              req (interfaces/http req identity))
           sentry-response (raven/capture (cfg/sentry-dsn) payload)]
       (when-not (= 200 (:status sentry-response))
