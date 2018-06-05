@@ -12,6 +12,7 @@
     [org.asciidoctor/asciidoctorj "1.5.6"]
     [com.atlassian.commonmark/commonmark "0.11.0"]
     [com.atlassian.commonmark/commonmark-ext-gfm-tables "0.11.0"]
+    [com.atlassian.commonmark/commonmark-ext-autolink "0.11.0"]
     [com.atlassian.commonmark/commonmark-ext-heading-anchor "0.11.0"]
 
     [org.slf4j/slf4j-api "1.7.25"]

@@ -5,6 +5,7 @@
            (org.commonmark.parser Parser)
            (org.commonmark.renderer.html HtmlRenderer AttributeProvider AttributeProviderFactory)
            (org.commonmark.ext.gfm.tables TablesExtension)
+           (org.commonmark.ext.autolink AutolinkExtension)
            (org.commonmark.ext.heading.anchor HeadingAnchorExtension)))
 
 (def adoc-container
@@ -19,6 +20,7 @@
 
 (def md-extensions
   [(TablesExtension/create)
+   (AutolinkExtension/create)
    (HeadingAnchorExtension/create)])
 
 (def md-container
