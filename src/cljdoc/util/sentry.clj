@@ -30,22 +30,3 @@
    :error (fn sentry-intercept [ctx ex-info]
             (capture {:ex ex-info :req (:request ctx)})
             (throw ex-info))})
-
-(comment
-  (raven/parse-dsn dsn)
-
-  (capture {:ex cljdoc.server.pedestal/-error-ex
-            :req (:request cljdoc.server.pedestal/-error-ctx)})
-
-
-  (clojure.pprint/pprint
-   (-> {}
-       (interfaces/stacktrace cljdoc.server.pedestal/-error-ex)
-       (interfaces/http (:request cljdoc.server.pedestal/-error-ctx)
-                        identity)))
-
-  (identity cljdoc.server.pedestal/-error-ex)
-
-  )
-
-
