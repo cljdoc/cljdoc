@@ -122,6 +122,9 @@
             (cfg/config))))
         (wait)))
 
+;; Testing ---------------------------------------------------------------------
+
+(ns-unmap 'boot.user 'test)
 (require '[metosin.bat-test :as bat])
 (deftask test []
   (bat/bat-test :report [:pretty {:type :junit :output-to "target/junit.xml"}]))
