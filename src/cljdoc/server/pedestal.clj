@@ -112,11 +112,11 @@
   [{:keys [analysis-service build-tracker]}]
   {:name ::circle-ci-webhook
    :enter (fn [ctx]
-            (let [build-num (get-in ctx [:request :json-params "payload" "build_num"])
-                  project   (get-in ctx [:request :json-params "payload" "build_parameters" "CLJDOC_PROJECT"])
-                  version   (get-in ctx [:request :json-params "payload" "build_parameters" "CLJDOC_PROJECT_VERSION"])
-                  build-id  (get-in ctx [:request :json-params "payload" "build_parameters" "CLJDOC_BUILD_ID"])
-                  status    (get-in ctx [:request :json-params "payload" "status"])
+            (let [build-num (get-in ctx [:request :json-params :payload :build_num])
+                  project   (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_PROJECT])
+                  version   (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_PROJECT_VERSION])
+                  build-id  (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_BUILD_ID])
+                  status    (get-in ctx [:request :json-params :payload :status])
                   cljdoc-edn (cljdoc.util/cljdoc-edn project version)
                   artifacts  (-> (analysis-service/get-circle-ci-build-artifacts analysis-service build-num)
                                  :body json/parse-string)]
@@ -175,7 +175,7 @@
            :ping          [{:name ::pong :enter #(ok-html! % "pong")}]
            :request-build [(body/body-params) request-build-validate (request-build deps)]
            :full-build    [(body/body-params) (full-build deps)]
-           :circle-ci-webhook [(body/body-params) (full-build deps)]
+           :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]
 
            :group/index        (view grimoire-store route-name)
            :artifact/index     (view grimoire-store route-name)
