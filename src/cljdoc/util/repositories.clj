@@ -36,7 +36,7 @@
 
 (defn resolve-snapshot [repository project version]
   (let [{:keys [body status]} (http/get (metadata-xml-uri repository project version)
-                                        {:throw-exceptions? false})]
+                                        {:throw-exceptions false})]
     (if (= 200 status)
       (let [d (Jsoup/parse (bs/to-string body))]
         (->> (.select d "versioning > snapshotVersions > snapshotVersion > value")
@@ -56,7 +56,7 @@
                     version
                     (util/artifact-id project)
                     version')]
-    (= 200 (:status (http/get uri {:throw-exceptions? false})))))
+    (= 200 (:status (http/get uri {:throw-exceptions false})))))
 
 (defn artifact-uris*
   [repository project version]
