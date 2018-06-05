@@ -8,6 +8,7 @@
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
+            [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [cheshire.core :as json]
@@ -171,22 +172,24 @@
 (defn route-resolver
   [{:keys [build-tracker grimoire-store] :as deps}
    {:keys [route-name] :as route}]
-  (->> (case route-name
-         :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
-         :show-build [(show-build build-tracker)]
-         :all-builds [(all-builds build-tracker)]
+  (let [default-interceptors [sentry/interceptor]]
+    (->> (case route-name
+           :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
+           :show-build [(show-build build-tracker)]
+           :all-builds [(all-builds build-tracker)]
 
-         :ping          [{:name ::pong :enter #(ok-html! % "pong")}]
-         :request-build [(body/body-params) request-build-validate (request-build deps)]
-         :full-build    [(body/body-params) (full-build deps)]
-         :circle-ci-webhook [(body/body-params) (full-build deps)]
+           :ping          [{:name ::pong :enter #(ok-html! % "pong")}]
+           :request-build [(body/body-params) request-build-validate (request-build deps)]
+           :full-build    [(body/body-params) (full-build deps)]
+           :circle-ci-webhook [(body/body-params) (full-build deps)]
 
-         :group/index        (view grimoire-store route-name)
-         :artifact/index     (view grimoire-store route-name)
-         :artifact/version   (view grimoire-store route-name)
-         :artifact/namespace (view grimoire-store route-name)
-         :artifact/doc       (view grimoire-store route-name))
-       (assoc route :interceptors)))
+           :group/index        (view grimoire-store route-name)
+           :artifact/index     (view grimoire-store route-name)
+           :artifact/version   (view grimoire-store route-name)
+           :artifact/namespace (view grimoire-store route-name)
+           :artifact/doc       (view grimoire-store route-name))
+         (into default-interceptors)
+         (assoc route :interceptors))))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
   (log/info "Starting pedestal on port" opts)

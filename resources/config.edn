@@ -10,6 +10,8 @@
                                              :prod :circle-ci}
                  :autobuild-clojars-releases? #profile {:default false
                                                         :prod true}
+                 :enable-sentry? #profile {:default false
+                                           :prod true}
                  :dir #profile {:default "data/"
                                 :prod "/var/cljdoc/"}}
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}

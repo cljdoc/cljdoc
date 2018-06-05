@@ -51,6 +51,11 @@
   ([] (version (config)))
   ([config] (get-in config [:cljdoc/version])))
 
+(defn sentry-dsn
+  ([] (sentry-dsn (config)))
+  ([config] (when (get-in config [:cljdoc/server :enable-sentry?])
+              (get-in config [:secrets :sentry :dsn]))))
+
 (comment
   (config)
 
