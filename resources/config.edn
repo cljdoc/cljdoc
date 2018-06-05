@@ -5,7 +5,8 @@
  :cljdoc/server {:port 8000
                  :host #profile {:prod "cljdoc.xyz"
                                  :default "localhost"}
-                 :analysis-service #keyword #or [#env CLJDOC_ANALYSIS_SERVICE :local]
+                 :analysis-service #profile {:default :local
+                                             :prod :circle-ci}
                  :autobuild-clojars-releases? #profile {:default false
                                                         :prod true}
                  :dir #profile {:default "data/"
