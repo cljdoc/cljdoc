@@ -117,10 +117,11 @@
                   version   (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_PROJECT_VERSION])
                   build-id  (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_BUILD_ID])
                   status    (get-in ctx [:request :json-params :payload :status])
+                  success?  (contains? #{"success" "fixed"} status)
                   cljdoc-edn (cljdoc.util/cljdoc-edn project version)
                   artifacts  (-> (analysis-service/get-circle-ci-build-artifacts analysis-service build-num)
                                  :body json/parse-string)]
-              (if-let [artifact (and (= status "success")
+              (if-let [artifact (and success?
                                      (= 1 (count artifacts))
                                      (= cljdoc-edn (get (first artifacts) "path"))
                                      (first artifacts))]
@@ -132,7 +133,7 @@
                   (assoc-in ctx [:response] {:status 200 :headers {}}))
 
                 (do
-                  (if (= status "success")
+                  (if success?
                     (build-log/failed! build-tracker build-id "unexpected-artifacts")
                     (do (log/error :analysis-job-failed status)
                         (build-log/failed! build-tracker build-id "analysis-job-failed")))
