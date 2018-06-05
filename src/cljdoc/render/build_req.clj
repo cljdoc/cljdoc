@@ -2,8 +2,7 @@
   "HTML pages/fragments related to requesting a documentation build"
   (:require [cljdoc.render.layout :as layout]
             [cljdoc.util.repositories :as repositories]
-            [cljdoc.util :as util]
-            [aleph.http :as http]))
+            [cljdoc.util :as util]))
 
 (defn request-build-page [route-params]
   (->> [:div.pa4-ns.pa2

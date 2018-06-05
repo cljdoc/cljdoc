@@ -37,7 +37,8 @@
     [io.pedestal/pedestal.service       "0.5.3"]
     [io.pedestal/pedestal.jetty         "0.5.3"]
     [cheshire "5.8.0"]
-    [aleph "0.4.5-alpha6"] ;TODO replace with clj-http or similar
+    [clj-http-lite "0.3.0"] ;TODO replace with clj-http or similar
+    [byte-streams "0.2.3"]
     [raven-clj "1.6.0-alpha"]
 
     ;; Build-logs DB (sqlite)

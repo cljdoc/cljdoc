@@ -1,7 +1,7 @@
 (ns cljdoc.server.release-monitor
   (:require [cljdoc.util.repositories :as repositories])
   (:require [integrant.core :as ig]
-            [aleph.http :as http]
+            [clj-http.lite.client :as http]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
             [tea-time.core :as tt])
@@ -27,14 +27,15 @@
   [release]
   {:pre [(:id release) (:group_id release) (:artifact_id release) (:version release)]}
   ;; I'm really not liking that this makes it all very tied to the HTTP server... - martin
-  (let [req @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/request-build2")
-                        {:form-params {:project (str (:group_id release) "/" (:artifact_id release))
-                                       :version (:version release)}
-                         :content-type "application/x-www-form-urlencoded"})
-        build-id (->> (get-in req [:headers "location"])
-                      (re-find #"/builds/(\d+)")
-                      (second))]
-    (assert build-id)
+  (let [req (http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/request-build2")
+                       {:follow-redirects false
+                        :form-params {:project (str (:group_id release) "/" (:artifact_id release))
+                                      :version (:version release)}
+                        :content-type "application/x-www-form-urlencoded"})
+        build-id (some->> (get-in req [:headers "location"])
+                          (re-find #"/builds/(\d+)")
+                          (second))]
+    (assert build-id "Could not extract build-id from response")
     build-id))
 
 (defn release-fetch-job-fn [db-spec]

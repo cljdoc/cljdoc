@@ -9,7 +9,7 @@
             [cljdoc.config] ; should not be necessary but instead be passed as args
             [cljdoc.renderers.html :as html]
             [clojure.tools.logging :as log]
-            [aleph.http :as http]
+            [clj-http.lite.client :as http]
             [byte-streams :as bs]
             [cheshire.core :as json]))
 
@@ -18,23 +18,23 @@
 ;; TODO move into separate namespace and maybe record later
 
 (defn get-build [circle-ci-config build-num]
-  @(http/get (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/" build-num)
-             {:accept "application/json"
-              :basic-auth [(:api-token circle-ci-config) ""]}))
+  (http/get (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci-config) "/" build-num)
+            {:accept "application/json"
+             :basic-auth [(:api-token circle-ci-config) ""]}))
 
 ;; cljdoc API client functions ---------------------------------------
 
 (defn run-full-build [params]
-  @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/full-build")
-              {:form-params params
-               :content-type "application/x-www-form-urlencoded"
-               :basic-auth ["cljdoc" "cljdoc"]})) ;TODO fix
+  (http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/full-build")
+             {:form-params params
+              :content-type "application/x-www-form-urlencoded"
+              :basic-auth ["cljdoc" "cljdoc"]})) ;TODO fix
 
 (defn test-webhook [circle-ci-config build-num]
   (let [payload (-> (get-build circle-ci-config build-num) :body bs/to-string json/parse-string)]
-    @(http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/hooks/circle-ci")
-                {:body (json/generate-string {"payload" payload})
-                 :content-type "application/json"})))
+    (http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/hooks/circle-ci")
+               {:body (json/generate-string {"payload" payload})
+                :content-type "application/json"})))
 
 (defn initiate-build
   "Kick of a build for the given project and version

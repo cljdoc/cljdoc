@@ -1,7 +1,7 @@
 (ns cljdoc.util.repositories
   (:require [cljdoc.util :as util]
             [clojure.string :as string]
-            [aleph.http :as http]
+            [clj-http.lite.client :as http]
             [byte-streams :as bs]
             [cheshire.core :as json]
             [clojure.tools.logging :as log])
@@ -10,11 +10,11 @@
 
 ; TODO. Maven Central
 (defn releases-since [inst]
-  (let [req @(http/get "https://clojars.org/search"
-                       {;:throw-exceptions? false
-                        :query-params {"q" (format "at:[%s TO %s]" (str inst) (str (Instant/now)))
-                                       "format" "json"
-                                       "page" 1}})
+  (let [req (http/get "https://clojars.org/search"
+                      {;:throw-exceptions? false
+                       :query-params {"q" (format "at:[%s TO %s]" (str inst) (str (Instant/now)))
+                                      "format" "json"
+                                      "page" 1}})
         results (-> req :body bs/to-string json/parse-string (get "results"))]
     (->> results
          (sort-by #(get % "created"))
@@ -56,7 +56,7 @@
                     version
                     (util/artifact-id project)
                     version')]
-    (= 200 (:status @(aleph.http/get uri {:throw-exceptions? false})))))
+    (= 200 (:status (http/get uri {:throw-exceptions? false})))))
 
 (defn artifact-uris*
   [repository project version]

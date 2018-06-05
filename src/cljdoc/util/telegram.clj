@@ -1,7 +1,7 @@
 (ns cljdoc.util.telegram
   "Some helpers to be notified about builds queued
   so that I can investigate when/if stuff fails"
-  (:require [aleph.http :as http]
+  (:require [clj-http.lite.client :as http]
             [cljdoc.config :as cfg]
             [cheshire.core :as json]))
 
@@ -22,8 +22,8 @@
    (when (and token chat-id)
      (let [url  (str base-url token "/sendMessage")
            body (into {:chat_id chat-id :text text} options)
-           resp @(http/post url {:content-type :json
-                                 :body (json/generate-string body)})]
+           resp (http/post url {:content-type :json
+                                :body (json/generate-string body)})]
        (-> resp :status)))))
 
 (defn build-requested
