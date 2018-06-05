@@ -43,8 +43,8 @@
 
 (comment
   ;; useful helper to get initial chat id
-  @(http/get (str base-url bot-token "/getUpdates")
-             {:as :json})
+  (http/get (str base-url bot-token "/getUpdates")
+            {:as :json})
 
   (send-text bot-token chat-id "hello")
 

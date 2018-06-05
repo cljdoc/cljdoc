@@ -35,8 +35,8 @@
           version))
 
 (defn resolve-snapshot [repository project version]
-  (let [{:keys [body status]} @(http/get (metadata-xml-uri repository project version)
-                                         {:throw-exceptions? false})]
+  (let [{:keys [body status]} (http/get (metadata-xml-uri repository project version)
+                                        {:throw-exceptions? false})]
     (if (= 200 status)
       (let [d (Jsoup/parse (bs/to-string body))]
         (->> (.select d "versioning > snapshotVersions > snapshotVersion > value")
@@ -96,7 +96,7 @@
   (find-artifact-repository "org.clojure/clojure" "1.9.0")
   (artifact-uris "org.clojure/clojure" "1.9.0")
 
-  @(http/head (metadata-xml-uri (:clojars repositories) 'bidi "2.1.3-SNAPSHOT") {:throw-exceptions? false})
+  (http/head (metadata-xml-uri (:clojars repositories) 'bidi "2.1.3-SNAPSHOT") {:throw-exceptions? false})
 
   (exists? (:clojars repositories) 'bidi "2.1.3-SNAPSHOT")
   (exists? (:clojars repositories) 'bidi "2.0.9-SNAPSHOT")
