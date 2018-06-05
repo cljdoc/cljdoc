@@ -50,7 +50,8 @@
       (sql/insert-multi! db-spec "releases" releases))))
 
 (defn build-queuer-job-fn [db-spec dry-run?]
-  (log/info "Will queue build:" (oldest-not-built db-spec))
+  (log/info "Will queue build:")
+  (log/info (oldest-not-built db-spec))
   (when-let [to-build (oldest-not-built db-spec)]
     (if dry-run?
       (log/infof "Dry-run mode: not triggering build for %s/%s %s"
@@ -67,7 +68,8 @@
                      ;; But really instead of running this once an hour we should
                      ;; rate limit and run it more often so builds are becoming available
                      ;; as they are released
-                     (* 30 60 60)
+                     120;TEST
+                     ;; (* 30 60 60)
                      10
                      #(build-queuer-job-fn db-spec dry-run?))})
 
