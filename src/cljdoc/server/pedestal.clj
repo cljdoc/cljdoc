@@ -124,11 +124,12 @@
                                      (= 1 (count artifacts))
                                      (= cljdoc-edn (get (first artifacts) "path"))
                                      (first artifacts))]
-                (let [full-build-req (api/run-full-build {:project project
-                                                          :version version
-                                                          :build-id build-id
-                                                          :cljdoc-edn (get artifact "url")})]
-                  (assoc-in ctx [:response :status] (:status full-build-req)))
+                (do
+                  (api/run-full-build {:project project
+                                       :version version
+                                       :build-id build-id
+                                       :cljdoc-edn (get artifact "url")})
+                  (assoc-in ctx [:response] {:status 200 :headers {}}))
 
                 (do
                   (if (= status "success")

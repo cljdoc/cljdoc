@@ -25,7 +25,8 @@
 
 (defn run-full-build [params]
   (http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/full-build")
-             {:form-params params
+             {:throw-exceptions false
+              :form-params params
               :content-type "application/x-www-form-urlencoded"
               :basic-auth ["cljdoc" "cljdoc"]})) ;TODO fix
 
