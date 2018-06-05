@@ -2,7 +2,6 @@
   (:require [cljdoc.util :as util]
             [clojure.string :as string]
             [clj-http.lite.client :as http]
-            [byte-streams :as bs]
             [cheshire.core :as json]
             [clojure.tools.logging :as log])
   (:import (org.jsoup Jsoup)
@@ -15,7 +14,7 @@
                        :query-params {"q" (format "at:[%s TO %s]" (str inst) (str (Instant/now)))
                                       "format" "json"
                                       "page" 1}})
-        results (-> req :body bs/to-string json/parse-string (get "results"))]
+        results (-> req :body json/parse-string (get "results"))]
     (->> results
          (sort-by #(get % "created"))
          (map (fn [r]
@@ -38,7 +37,7 @@
   (let [{:keys [body status]} (http/get (metadata-xml-uri repository project version)
                                         {:throw-exceptions false})]
     (if (= 200 status)
-      (let [d (Jsoup/parse (bs/to-string body))]
+      (let [d (Jsoup/parse body)]
         (->> (.select d "versioning > snapshotVersions > snapshotVersion > value")
              (map #(.ownText %))
              (set)

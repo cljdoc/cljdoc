@@ -10,7 +10,6 @@
             [cljdoc.renderers.html :as html]
             [clojure.tools.logging :as log]
             [clj-http.lite.client :as http]
-            [byte-streams :as bs]
             [cheshire.core :as json]))
 
 
@@ -31,7 +30,7 @@
               :basic-auth ["cljdoc" "cljdoc"]})) ;TODO fix
 
 (defn test-webhook [circle-ci-config build-num]
-  (let [payload (-> (get-build circle-ci-config build-num) :body bs/to-string json/parse-string)]
+  (let [payload (-> (get-build circle-ci-config build-num) :body json/parse-string)]
     (http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/hooks/circle-ci")
                {:body (json/generate-string {"payload" payload})
                 :content-type "application/json"})))
@@ -59,7 +58,7 @@
                     :pompath (:pom a-uris)
                     :build-id build-id})]
     (if (analysis-service/circle-ci? analysis-service)
-      (let [build-num (-> ana-resp :body bs/to-string json/parse-string (get "build_num"))
+      (let [build-num (-> ana-resp :body json/parse-string (get "build_num"))
             job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)]
         (telegram/build-requested project version job-url)
         (when (= 201 (:status ana-resp))
