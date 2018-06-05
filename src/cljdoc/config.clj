@@ -15,7 +15,7 @@
   (if (some? (clojure.core/get-in config-map ks))
     (clojure.core/get-in config-map ks)
     (throw (ex-info (format "No config found for path %s\nDid you configure your secrets.edn file?" ks)
-                    {:ks ks, :profile (profile)}))))
+                    {:ks ks, :profile (profile), :config config-map}))))
 
 (defn config []
   (aero/read-config (io/resource "config.edn") {:profile (profile)}))
@@ -57,7 +57,9 @@
               (get-in config [:secrets :sentry :dsn]))))
 
 (comment
-  (config)
+  (:cljdoc/server (config))
+
+  (sentry-dsn)
 
   (get-in (config)
           [:cljdoc/hardcoded (cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
