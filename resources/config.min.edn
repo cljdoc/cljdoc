@@ -1,3 +1,0 @@
-{:cljdoc/server {:analysis-service :local}
- :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}
-
