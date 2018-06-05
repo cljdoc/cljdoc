@@ -133,7 +133,8 @@
                 (do
                   (if (= status "success")
                     (build-log/failed! build-tracker build-id "unexpected-artifacts")
-                    (build-log/failed! build-tracker build-id "analysis-job-failed"))
+                    (do (log/error :analysis-job-failed status)
+                        (build-log/failed! build-tracker build-id "analysis-job-failed")))
                   (assoc-in ctx [:response :status] 200)))))})
 
 (def request-build-validate
