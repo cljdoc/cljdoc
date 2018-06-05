@@ -19,7 +19,7 @@
               :r53-hosted-zone (tf-val tf-outputs "cloudfront_url")}
         :circle-ci {:api-token js/process.env.CIRCLE_API_TOKEN
                     :builder-project js/process.env.CIRCLE_BUILDER_PROJECT}
-
+        :sentry {:dsn js/process.env.SENTRY_DSN}
         :telegram {:bot-token js/process.env.TELEGRAM_BOT_TOKEN
                    :chat-id js/process.env.TELEGRAM_CHAT_ID}}))
 

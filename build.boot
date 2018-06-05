@@ -38,6 +38,7 @@
     [io.pedestal/pedestal.jetty         "0.5.3"]
     [cheshire "5.8.0"]
     [aleph "0.4.5-alpha6"] ;TODO replace with clj-http or similar
+    [raven-clj "1.5.2"]
 
     ;; Build-logs DB (sqlite)
     [org.xerial/sqlite-jdbc "3.20.0"]
