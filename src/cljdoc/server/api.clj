@@ -73,6 +73,8 @@
 (defn full-build
   [{:keys [dir build-tracker] :as deps}
    {:keys [project version build-id cljdoc-edn] :as params}]
+  (assert (and project version build-id cljdoc-edn)
+          (format "Params insufficient %s" params))
   (let [cljdoc-edn-contents (clojure.edn/read-string (slurp cljdoc-edn))
         build-id            (Long. build-id)]
     (build-log/analysis-received! build-tracker build-id cljdoc-edn)
