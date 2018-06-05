@@ -7,7 +7,8 @@
 (def app-namespaces
   ["cljdoc"])
 
-(if (cfg/sentry-dsn)
+(when (cfg/sentry-dsn)
+  (log/info "Sentry DSN found, installing uncaught exception handler")
   (raven/install-uncaught-exception-handler!
    (cfg/sentry-dsn)
    {:packet-transform (fn [packet] (assoc packet :release (cfg/version)))
