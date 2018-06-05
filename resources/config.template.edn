@@ -1,5 +1,0 @@
-{:secrets #include "secrets.edn"
- :cljdoc/server {:port 8000,
-                 :dir "./tmp"
-                 :analysis-service :local}
- :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}

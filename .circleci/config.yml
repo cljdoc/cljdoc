@@ -23,7 +23,6 @@ jobs:
           - v1-dependencies-{{ checksum "build.boot" }}
           - v1-dependencies- # fallback if not cache found
 
-      - run: cp resources/config.template.edn resources/config.edn
       - run: boot show -d
       - run: boot -B -d codox
 
