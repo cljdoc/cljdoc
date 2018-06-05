@@ -22,11 +22,12 @@
     {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
                {:accept "application/json"
-                :form-params {"build_parameters" {"CLJDOC_BUILD_ID" build-id
-                                                  "CLJDOC_PROJECT" project
-                                                  "CLJDOC_PROJECT_VERSION" version
-                                                  "CLJDOC_PROJECT_JAR" jarpath
-                                                  "CLJDOC_PROJECT_POM" pompath}}
+                ;; https://github.com/hiredman/clj-http-lite/issues/15
+                :form-params {"build_parameters[CLJDOC_BUILD_ID]" build-id
+                              "build_parameters[CLJDOC_PROJECT]" project
+                              "build_parameters[CLJDOC_PROJECT_VERSION]" version
+                              "build_parameters[CLJDOC_PROJECT_JAR]" jarpath
+                              "build_parameters[CLJDOC_PROJECT_POM]" pompath}
                 :basic-auth [api-token ""]})))
 
 (defn circle-ci
