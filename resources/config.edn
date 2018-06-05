@@ -2,6 +2,7 @@
 {:secrets #profile {:prod #include #join [ #env HOME "/secrets.edn"]
                     :live #include "secrets.edn"
                     :local {}}
+ :cljdoc/version #env CLJDOC_VERSION
  :cljdoc/server {:port 8000
                  :host #profile {:prod "cljdoc.xyz"
                                  :default "localhost"}
