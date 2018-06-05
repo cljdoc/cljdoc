@@ -26,11 +26,6 @@
 
 (def render-interceptor
   {:name  ::render
-   :error (fn render-error [ctx ex-info]
-            (log/error ex-info
-                       "Exception when processing render-req"
-                       {:path-params (-> ctx :request :path-params)
-                        :route-name  (-> ctx :route :route-name)}))
    :enter (fn render-doc [{:keys [cache-bundle] :as ctx}]
             (let [path-params (-> ctx :request :path-params)
                   page-type   (-> ctx :route :route-name)]

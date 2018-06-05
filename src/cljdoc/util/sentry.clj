@@ -29,5 +29,10 @@
 (def interceptor
   {:name  ::interceptor
    :error (fn sentry-intercept [ctx ex-info]
+            (log/error ex-info
+                       "Exception when processing request"
+                       (merge (dissoc (ex-data -ex-info) :exception)
+                              {:path-params (-> ctx :request :path-params)
+                               :route-name  (-> ctx :route :route-name)}))
             (capture {:ex ex-info :req (:request ctx)})
-            (throw ex-info))})
+            (assoc ctx :response {:status 500 :body "An exception occured, sorry about that!"}))})
