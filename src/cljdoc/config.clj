@@ -47,6 +47,10 @@
   ([] (autobuild-clojars-releases? (config)))
   ([config] (get-in config [:cljdoc/server :autobuild-clojars-releases?])))
 
+(defn version
+  ([] (version (config)))
+  ([config] (get-in config [:cljdoc/version])))
+
 (comment
   (config)
 
