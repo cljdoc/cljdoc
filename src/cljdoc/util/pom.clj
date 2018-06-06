@@ -1,13 +1,13 @@
 (ns cljdoc.util.pom
+  (:require [clojure.string :as string])
   (:import (org.jsoup Jsoup)))
 
 (defn parse [pom-str]
   (Jsoup/parse pom-str))
 
 (defn text [^Jsoup doc sel]
-  (some-> (.select doc sel)
-          (first)
-          (.ownText)))
+  (when-let [t (some-> (.select doc sel) (first) (.ownText))]
+    (when-not (string/blank? t) t)))
 
 (defn licenses [^Jsoup doc]
   (for [l (.select doc "project > licenses > license")]
