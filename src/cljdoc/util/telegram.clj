@@ -27,8 +27,8 @@
        (-> resp :status)))))
 
 (defn build-requested
-  [project version circle-job-url]
-  (->> (format "Build requested for %s v%s: %s" project version circle-job-url)
+  [project version build-id]
+  (->> (format "Build requested for %s v%s: https://cljdoc.xyz/builds/%s" project version build-id)
        (send-text bot-token chat-id)))
 
 (defn import-completed

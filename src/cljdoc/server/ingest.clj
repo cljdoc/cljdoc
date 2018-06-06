@@ -2,22 +2,11 @@
   (:require [clojure.java.io :as io]
             [cljdoc.util :as util]
             [cljdoc.analysis.git :as ana-git]
-            [cljdoc.util.telegram :as telegram]
             [cljdoc.util.pom :as pom]
             [clojure.tools.logging :as log]
             [cljdoc.grimoire-helpers]
             [cljdoc.server.routes :as routes]
             [cljdoc.spec]))
-
-(defn done [project version]
-  (log/infof "Done with build for %s %s" project version)
-  (telegram/import-completed
-   (routes/url-for
-    :artifact/version
-    :path-params
-    {:group-id    (util/group-id project)
-     :artifact-id (util/artifact-id project)
-     :version version})))
 
 (defn ingest-cljdoc-edn
   "Ingest all the information in the passed `cljdoc-edn` data.
@@ -57,10 +46,7 @@
     (when (some? scm-url)
       (let [git-analysis (ana-git/analyze-git-repo project version scm-url (:sha scm-info))]
         (if (:error git-analysis)
-          (do
-            (telegram/no-version-tag project version scm-url)
-            (done project version)
-            {:scm-url scm-url :error (:error git-analysis)})
+          {:scm-url scm-url :error (:error git-analysis)}
           (do
             (log/info "Importing Articles into Grimoire")
             (cljdoc.grimoire-helpers/import-doc
@@ -70,7 +56,6 @@
               :scm          (:scm git-analysis)
               :doc-tree     (:doc-tree git-analysis)})
 
-            (done project version)
             {:scm-url scm-url
              :commit  (or (-> git-analysis :scm :commit)
                           (-> git-analysis :scm :tag :commit))}))))))
