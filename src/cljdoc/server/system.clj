@@ -3,6 +3,7 @@
             [cljdoc.config :as cfg]
             [cljdoc.server.release-monitor]
             [cljdoc.server.pedestal]
+            [cljdoc.util.sentry]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [integrant.core :as ig]
@@ -13,8 +14,9 @@
 (unilog/start-logging!
  {:level   :info
   :console true
-  :files   ["log/cljdoc.log"
-            #_{:file "/var/log/standard-json.log" :encoder :json}]})
+  :files   ["log/cljdoc.log"]
+  :appenders (when (cfg/sentry-dsn)
+               [{:appender :sentry}])})
 
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)

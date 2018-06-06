@@ -40,6 +40,7 @@
     [cheshire "5.8.0"]
     [clj-http-lite "0.3.0"] ;TODO replace with clj-http or similar
     [raven-clj "1.6.0-alpha"]
+    [io.sentry/sentry-logback "1.7.5"]
 
     ;; Build-logs DB (sqlite)
     [org.xerial/sqlite-jdbc "3.20.0"]
