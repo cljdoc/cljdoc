@@ -52,14 +52,12 @@
       (sql/insert-multi! db-spec "releases" releases))))
 
 (defn build-queuer-job-fn [db-spec dry-run?]
-  (log/info "Will queue build:")
-  (log/info (oldest-not-built db-spec))
   (when-let [to-build (oldest-not-built db-spec)]
     (if dry-run?
       (log/infof "Dry-run mode: not triggering build for %s/%s %s"
                  (:group_id to-build) (:artifact_id to-build) (:version to-build))
-      (let [build-id (trigger-build to-build)]
-        (update-build-id db-spec (:id to-build) build-id)))))
+      (do (log/infof "Queuing build for %s" to-build)
+          (update-build-id db-spec (:id to-build) (trigger-build to-build))))))
 
 (defmethod ig/init-key :cljdoc/release-monitor [_ {:keys [db-spec dry-run?]}]
   (log/info "Starting ReleaseMonitor" (if dry-run? "(dry-run mode)" ""))
