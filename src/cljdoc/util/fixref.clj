@@ -105,7 +105,7 @@
     (if (= 1 (count matches))
       (first matches)
       (do
-        (log/warnf "Could not find unique file for fpath %s - canidates: %s" fpath (doall matches))
+        (log/warnf "Could not find unique file for fpath %s - canidates: %s" fpath (pr-str matches))
         (->> (filter #(.startsWith % "src") matches)
              first)))))
 
