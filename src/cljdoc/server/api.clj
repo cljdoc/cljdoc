@@ -61,7 +61,7 @@
     (if (analysis-service/circle-ci? analysis-service)
       (let [build-num (-> ana-resp :body json/parse-string (get "build_num"))
             job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)]
-        (telegram/build-requested project version job-url)
+        (telegram/build-requested project version build-id)
         (when (= 201 (:status ana-resp))
           (assert build-num "build number missing from CircleCI response")
           (build-log/analysis-kicked-off! build-tracker build-id job-url)
