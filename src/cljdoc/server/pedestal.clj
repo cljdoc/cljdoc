@@ -189,7 +189,7 @@
          (assoc route :interceptors))))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
-  (log/info "Starting pedestal on port" opts)
+  (log/info "Starting pedestal on port" (:port opts))
   ;; For some reason passing the Grimoire store as a key in the opts map
   ;; doesn't work, arrives as the following:
   ;; (:grimoire.api.fs/Config {:docs "data/grimoire", :examples "", :notes ""})
