@@ -9,7 +9,9 @@
             [clojure.edn :as edn]
             [clojure.tools.logging :as log]))
 
-(defn analyze-git-repo [project version scm-url pom-revision]
+(defn analyze-git-repo
+  [project version scm-url pom-revision]
+  {:post [(map? %)]}
   (let [git-dir (util/system-temp-dir (str "git-" project))]
     (try
       (log/info "Cloning Git repo" scm-url)
@@ -48,8 +50,18 @@
                                   [(util/normalize-project project) :cljdoc.doc/tree])
                           (doctree/derive-toc git-dir)))}
 
-          (log/warnf "No revision found for version %s in %s\n" version scm-url)))
+          {:error {:type ::no-revision-found
+                   :version-tag version-tag
+                   :pom-revision pom-revision}}))
+      (catch org.eclipse.jgit.api.errors.InvalidRemoteException e
+        {:error {:type ::invalid-remote
+                 :msg (.getMessage e)}})
+      (catch org.eclipse.jgit.errors.MissingObjectException e
+        {:error {:type ::unknown-revision
+                 :revision (.getName (.getObjectId e))}})
+      (catch org.eclipse.jgit.api.errors.TransportException e
+        {:error {:type ::clone-failed
+                 :msg (.getMessage e)}})
       (finally
         (when (.exists git-dir)
           (util/delete-directory! git-dir))))))
-

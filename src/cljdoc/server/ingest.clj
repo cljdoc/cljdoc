@@ -30,7 +30,6 @@
   - store articles and other version specific data in grimoire
   - store API data in grimoire"
   [data-dir cljdoc-edn]
-  {:post [(find % :scm-url)]}
   (let [pom-doc      (pom/parse (:pom-str cljdoc-edn))
         artifact     (pom/artifact-info pom-doc)
         scm-info     (pom/scm-info pom-doc)
@@ -45,20 +44,23 @@
                                  (util/scm-fallback project))
                              util/normalize-git-url)]
 
-    (try
-      (log/info "Verifying cljdoc-edn contents against spec")
-      (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
-      (cljdoc.grimoire-helpers/write-bare store v-thing)
+    (log/info "Verifying cljdoc-edn contents against spec")
+    (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
+    (cljdoc.grimoire-helpers/write-bare store v-thing)
 
-      (log/info "Importing API into Grimoire")
-      (cljdoc.grimoire-helpers/import-api
-       {:version      v-thing
-        :codox        (:codox cljdoc-edn)
-        :store        store})
+    (log/info "Importing API into Grimoire")
+    (cljdoc.grimoire-helpers/import-api
+     {:version      v-thing
+      :codox        (:codox cljdoc-edn)
+      :store        store})
 
-      (let [git-analysis (and (some? scm-url)
-                              (ana-git/analyze-git-repo project version scm-url (:sha scm-info)))]
-        (if git-analysis
+    (when (some? scm-url)
+      (let [git-analysis (ana-git/analyze-git-repo project version scm-url (:sha scm-info))]
+        (if (:error git-analysis)
+          (do
+            (telegram/no-version-tag project version scm-url)
+            (done project version)
+            {:scm-url scm-url :error (:error git-analysis)})
           (do
             (log/info "Importing Articles into Grimoire")
             (cljdoc.grimoire-helpers/import-doc
@@ -71,15 +73,7 @@
             (done project version)
             {:scm-url scm-url
              :commit  (or (-> git-analysis :scm :commit)
-                          (-> git-analysis :scm :tag :commit))})
-
-          (do
-            (telegram/no-version-tag project version scm-url)
-            (done project version)
-            {:scm-url scm-url})))
-
-      (catch Throwable t
-        (throw (ex-info "Exception while running full build" {:project project :version version} t))))))
+                          (-> git-analysis :scm :tag :commit))}))))))
 
 (comment
 
