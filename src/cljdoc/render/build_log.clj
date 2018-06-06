@@ -133,9 +133,9 @@
               (cond
                 (and (:scm_url b) (:commit_sha b)) [:span.db.bg-washed-green.pa3.br2 "Good"]
                 (and (:import_completed_ts b)
-                     (not (:scm_url b)))           [:span.db.bg-washed-red.pa3.br2 "SCM URL missing"]
+                     (not (:scm_url b)))           [:span.db.bg-washed-yellow.pa3.br2 "SCM URL missing"]
                 (and (:import_completed_ts b)
-                     (not (:commit_sha b)))        [:span.db.bg-washed-red.pa3.br2 "SCM revision missing"]
+                     (not (:commit_sha b)))        [:span.db.bg-washed-yellow.pa3.br2 "SCM revision missing"]
                 (:error b)                         [:span.db.bg-washed-red.pa3.br2 (:error b)]))]]
           [:div.cf.tc.bt.b--moon-gray.pa2.o-30
            ;; (def requested (:analysis_requested_ts b))
