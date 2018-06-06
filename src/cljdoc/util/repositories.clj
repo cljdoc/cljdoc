@@ -55,7 +55,7 @@
                     version
                     (util/artifact-id project)
                     version')]
-    (= 200 (:status (http/get uri {:throw-exceptions false})))))
+    (= 200 (:status (http/head uri {:throw-exceptions false})))))
 
 (defn artifact-uris*
   [repository project version]
@@ -80,7 +80,7 @@
 
 (def repositories
   {:clojars "https://repo.clojars.org/"
-   :maven-central "https://search.maven.org/remotecontent?filepath="})
+   :maven-central "http://central.maven.org/maven2/"})
 
 (defn find-artifact-repository [project version]
   (first (filter #(exists? % project version) (vals repositories))))
