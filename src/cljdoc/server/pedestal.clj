@@ -8,8 +8,11 @@
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
+            [cljdoc.util :as util]
+            [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
+            [clojure.string :as string]
             [integrant.core :as ig]
             [cheshire.core :as json]
             [io.pedestal.http :as http]
@@ -46,7 +49,7 @@
   some of the request URI"
   {:name ::doc-slug-parser
    :enter (fn [ctx]
-            (->> (clojure.string/split (get-in ctx [:request :path-params :article-slug])  #"/")
+            (->> (string/split (get-in ctx [:request :path-params :article-slug])  #"/")
                  (assoc-in ctx [:request :path-params :doc-slug-path])))})
 
 (defn grimoire-loader
@@ -166,6 +169,43 @@
                  (cljdoc.render.build-log/builds-page)
                  (ok-html! ctx)))})
 
+(defn badge-interceptor []
+  {:name ::badge
+   :enter (fn badge [ctx]
+            (let [project (-> ctx :request :path-params :project)
+                  release (try (repos/latest-release-version project)
+                               (catch Exception e
+                                 (log/warnf "Could not find release for %s" project)))
+                  url     (if release
+                            (format "https://img.shields.io/badge/cljdoc-%s-blue.svg"
+                                    (string/replace release #"-" "--"))
+                            (format "https://img.shields.io/badge/cljdoc-%s-red.svg" "no release found"))
+                  badge   (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}})]
+              (->> {:status 200
+                    :headers {"Content-Type" "image/svg+xml;charset=utf-8"
+                              "Cache-Control" "no-cache"}
+                    :body (:body badge)}
+                   (assoc ctx :response))))})
+
+(defn jump-interceptor []
+  {:name ::jump
+   :enter (fn jump [ctx]
+            (let [project (-> ctx :request :path-params :project)
+                  release (try (repos/latest-release-version project)
+                               (catch Exception e
+                                 (log/warnf "Could not find release for %s" project)))]
+              (->> (if release
+                     {:status 302
+                      :headers {"Location" (routes/url-for :artifact/version
+                                                           :params
+                                                           {:group-id (util/group-id project)
+                                                            :artifact-id (util/artifact-id project)
+                                                            :version release})}}
+                     {:status 404
+                      :headers {}
+                      :body (format "Could not find release for %s" project)})
+                   (assoc ctx :response))))})
+
 (defn route-resolver
   [{:keys [build-tracker grimoire-store] :as deps}
    {:keys [route-name] :as route}]
@@ -184,7 +224,10 @@
            :artifact/index     (view grimoire-store route-name)
            :artifact/version   (view grimoire-store route-name)
            :artifact/namespace (view grimoire-store route-name)
-           :artifact/doc       (view grimoire-store route-name))
+           :artifact/doc       (view grimoire-store route-name)
+
+           :jump-to-project    [(jump-interceptor)]
+           :badge-for-project  [(badge-interceptor)])
          (into default-interceptors)
          (assoc route :interceptors))))
 
