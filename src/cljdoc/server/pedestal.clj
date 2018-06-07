@@ -172,6 +172,7 @@
 (defn badge-interceptor []
   {:name ::badge
    :enter (fn badge [ctx]
+            (log/info "Badge req headers" (-> ctx :request :headers))
             (let [project (-> ctx :request :path-params :project)
                   release (try (repos/latest-release-version project)
                                (catch Exception e
