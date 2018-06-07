@@ -26,12 +26,19 @@
 (defn group-path [project]
   (string/replace (util/group-id project) #"\." "/"))
 
-(defn metadata-xml-uri [repository project version]
-  (format "%s%s/%s/%s/maven-metadata.xml"
-          repository
-          (group-path project)
-          (util/artifact-id project)
-          version))
+(defn version-directory-uri
+  [repository project version]
+  (format "%s%s/%s/%s/" repository (group-path project) (util/artifact-id project) version))
+
+(defn metadata-xml-uri
+  ([repository project]
+   (format "%s%s/%s/maven-metadata.xml"
+           repository
+           (group-path project)
+           (util/artifact-id project)))
+  ([repository project version]
+   (str (version-directory-uri repository project version)
+        "/maven-metadata.xml")))
 
 (defn resolve-snapshot [repository project version]
   (let [{:keys [body status]} (http/get (metadata-xml-uri repository project version)
@@ -44,22 +51,17 @@
              (util/assert-first)))
       version)))
 
-(defn exists? [repository project version]
-  (let [version' (if (.endsWith version "-SNAPSHOT")
-                   (resolve-snapshot repository project version)
-                   version)
-        uri (format "%s%s/%s/%s/%s-%s.pom"
-                    repository
-                    (group-path project)
-                    (util/artifact-id project)
-                    version
-                    (util/artifact-id project)
-                    version')]
-    (= 200 (:status (http/head uri {:throw-exceptions false})))))
+(defn exists?
+  ([repository project]
+   (let [uri (metadata-xml-uri repository project)]
+     (= 200 (:status (http/head uri {:throw-exceptions false})))))
+  ([repository project version]
+   (let [uri (version-directory-uri repository project version)]
+     (= 200 (:status (http/head uri {:throw-exceptions false}))))))
 
 (defn artifact-uris*
   [repository project version]
-  {:pre [(some? project) (some? version)]}
+  {:pre [(string? repository) (some? project) (some? version)]}
   (let [version' (if (.endsWith version "-SNAPSHOT")
                    (resolve-snapshot repository project version)
                    version)]
@@ -78,12 +80,15 @@
                   (util/artifact-id project)
                   version')}))
 
-(def repositories
-  {:clojars "https://repo.clojars.org/"
-   :maven-central "http://central.maven.org/maven2/"})
+(def maven-central "http://central.maven.org/maven2/")
+(def clojars "https://repo.clojars.org/")
+(def repositories [maven-central clojars])
 
-(defn find-artifact-repository [project version]
-  (first (filter #(exists? % project version) (vals repositories))))
+(defn find-artifact-repository
+  ([project]
+   (first (filter #(exists? % project) repositories)))
+  ([project version]
+   (first (filter #(exists? % project version) repositories))))
 
 (defn artifact-uris [project version]
   (if-let [repository (find-artifact-repository project version)]
@@ -91,14 +96,27 @@
     (throw (ex-info (format "Requested version cannot be found on Clojars or Maven Central: [%s %s]" project version)
                     {:project project :version version}))))
 
+(defn latest-release-version [project]
+  (if-let [repository (find-artifact-repository project)]
+    (let [{:keys [body status]} (http/get (metadata-xml-uri repository project))]
+      (when (= 200 status)
+        (let [d (Jsoup/parse body)]
+          (->> (.select d "metadata > versioning > release")
+               (map #(.ownText %))
+               (util/assert-first)))))
+    (throw (ex-info (format "Requested project cannot be found on Clojars or Maven Central: %s" project)
+                    {:project project}))))
+
 (comment
   (find-artifact-repository "org.clojure/clojure" "1.9.0")
   (artifact-uris "org.clojure/clojure" "1.9.0")
 
+  (latest-release-version "org.clojure/clojure")
+
   (http/head (metadata-xml-uri (:clojars repositories) 'bidi "2.1.3-SNAPSHOT") {:throw-exceptions? false})
 
-  (exists? (:clojars repositories) 'bidi "2.1.3-SNAPSHOT")
-  (exists? (:clojars repositories) 'bidi "2.0.9-SNAPSHOT")
+  (exists? maven-central 'bidi "2.1.3-SNAPSHOT")
+  (exists? clojars 'bidi "2.0.9-SNAPSHOT")
 
   (find-artifact-repository 'bidi "2.1.3")
   (find-artifact-repository 'bidi "2.1.4")
