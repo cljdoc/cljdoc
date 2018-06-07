@@ -36,6 +36,10 @@
 (defn info-pages-routes []
   #{["/" :get nop :route-name :home]})
 
+(defn utility-routes []
+  #{["/jump/release/*project" :get nop :route-name :jump-to-project]
+    ["/badge/*project" :get nop :route-name :badge-for-project]})
+
 (defn routes
   "Return the expanded routes given the `opts` as passed to
   `io.pedestal.http.route/expand-routes`. The `route-resolver`
@@ -48,7 +52,8 @@
         (documentation-routes)
         (api-routes)
         (build-log-routes)
-        (info-pages-routes)]
+        (info-pages-routes)
+        (utility-routes)]
        (reduce into #{})
        (route/expand-routes)
        (keep route-resolver)))
