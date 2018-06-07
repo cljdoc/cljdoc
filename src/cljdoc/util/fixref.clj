@@ -59,9 +59,10 @@
 
 (defn fix-image
   [file-path src {:keys [scm-base]}]
-  (if (.startsWith src "/")
-    (str scm-base (subs src 1))
-    (str scm-base (rebase file-path src))))
+  (let [suffix (when (.endsWith src ".svg") "?sanitize=true")]
+    (if (.startsWith src "/")
+      (str scm-base (subs src 1) suffix)
+      (str scm-base (rebase file-path src) suffix))))
 
 (defn fix
   [file-path html-str {:keys [git-ls scm flattened-doctree artifact-entity] :as fix-opts}]
