@@ -184,7 +184,7 @@
                   badge   (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}})]
               (->> {:status 200
                     :headers {"Content-Type" "image/svg+xml;charset=utf-8"
-                              "Cache-Control" "no-cache"}
+                              "Cache-Control" (format "public; max-age=%s" (* 30 60))}
                     :body (:body badge)}
                    (assoc ctx :response))))})
 
