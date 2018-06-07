@@ -55,7 +55,9 @@
 
 (defn- url-for-routes
   "A variant of Pedestal's own url-for-routes but instead of
-  accepting path-params maps with missing parameters this one throws."
+  accepting path-params maps with missing parameters this one throws.
+
+  See https://github.com/pedestal/pedestal/issues/572"
   [routes & default-options]
   (let [{:as default-opts} default-options
         m (#'io.pedestal.http.route/linker-map routes)]
