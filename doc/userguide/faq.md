@@ -27,3 +27,23 @@ Using it in a Markdown file may look like this:
 ```markdown
 [![](https://cljdoc.xyz/badge/re-frame)](https://cljdoc.xyz/jump/release/re-frame)
 ```
+
+# How to update documentation?
+
+Sometimes library authors make adjustments to their documentation
+after cutting a release. In these situations it is natural that they
+would like to update their docs as well.
+
+Now when cljdoc reads documentation from your Git repository it does not
+simply read it from `master` but instead tries to find a Git tag or a revision
+in your project's `.pom`. This means you can build documentation for older releases
+and generally decouples the output of the build from the time it was done.
+
+This also means that to update documentation you **need to cut a new release** (for now).
+
+I'd like to support some way to update docs after a release but it needs to be explicit
+and hasn't been decided upon yet, see issue [#31](https://github.com/martinklepsch/cljdoc/issues/31)
+for some additional discussion.
+
+`SNAPSHOT` releases will use `master` as Git revision as they usually have no tag
+in your repo or sha in a `.pom`. This can be useful for experimenting with cljdoc.
