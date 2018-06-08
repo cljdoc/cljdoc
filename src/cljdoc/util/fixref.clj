@@ -102,7 +102,7 @@
 
   We use this to find the full path to files in Git for a given file in a jar."
   [known-files fpath]
-  (let [matches (filter #(.endsWith % (str "/" fpath)) known-files)]
+  (let [matches (filter #(or (= fpath %) (.endsWith % (str "/" fpath))) known-files)]
     (if (= 1 (count matches))
       (first matches)
       (do
