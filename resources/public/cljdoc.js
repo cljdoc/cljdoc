@@ -41,3 +41,25 @@ function initSrollIndicator() {
 
   drawScrollIndicator()
 }
+
+window.onbeforeunload = function(){
+  var sidebar = Array.from(document.querySelectorAll(".js--sidebar"))[0]
+  if (sidebar) {
+    var scrollTop = sidebar.scrollTop
+    var page = window.location.pathname.split("/").slice(0,5).join("/")
+    var data = {"page": page, "scrollTop": scrollTop}
+    console.log(data)
+    localStorage.setItem("sidebarScrollPos", JSON.stringify(data))
+  }
+};
+
+(function() {
+  var scrollPosData = JSON.parse(localStorage.getItem("sidebarScrollPos"))
+  var page = window.location.pathname.split("/").slice(0,5).join("/")
+
+  if (scrollPosData && page == scrollPosData.page) {
+    Array.from(document.querySelectorAll(".js--sidebar"))[0].scrollTop = scrollPosData.scrollTop
+  }
+
+  localStorage.removeItem("sidebarScrollPos")
+})();

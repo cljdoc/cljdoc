@@ -32,7 +32,8 @@
 
 (defn sidebar [& contents]
   [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10
-   {:style {:top TOP-BAR-HEIGHT}} ; CSS HACK
+   {:class "js--sidebar"
+    :style {:top TOP-BAR-HEIGHT}} ; CSS HACK
    contents])
 
 (defn sidebar-two [& contents]
