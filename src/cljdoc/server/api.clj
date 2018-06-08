@@ -72,7 +72,7 @@
         build-id))))
 
 (defn full-build
-  [{:keys [dir build-tracker] :as deps}
+  [{:keys [storage build-tracker] :as deps}
    {:keys [project version build-id cljdoc-edn] :as params}]
   (assert (and project version build-id cljdoc-edn)
           (format "Params insufficient %s" params))
@@ -82,7 +82,7 @@
     ;; TODO put this back in place
     ;; (cljdoc.util/assert-match project version cljdoc-edn)
     (try
-      (let [{:keys [scm-url commit error]} (ingest/ingest-cljdoc-edn dir cljdoc-edn-contents)]
+      (let [{:keys [scm-url commit error]} (ingest/ingest-cljdoc-edn storage cljdoc-edn-contents)]
         (if error
           (do (log/warnf "Error while processing %s %s: %s" project version error)
               (build-log/failed! build-tracker build-id (subs (str (:type error)) 1)))

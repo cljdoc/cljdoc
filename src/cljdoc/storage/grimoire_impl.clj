@@ -1,4 +1,4 @@
-(ns cljdoc.cache
+(ns cljdoc.storage.grimoire-impl
   "Grimoire is great but reading from many different places of the filesystem
   can make the code very platform dependent and harder to adapt to new contexts.
 
@@ -90,33 +90,6 @@
                    v)]
     {:versions (count versions)
      :artifacts (count (set (map things/thing->artifact versions)))}))
-
-(defprotocol ICacheRenderer
-  "This protocol is intended to allow different implementations of renderers.
-
-  Intended implementations:
-  - Single Transit file
-  - Multiple HTML files
-  - Single HTML file
-  - Single Page Apps
-    - Single HTML file (CLJS app only working with existing data)
-    - Global app (CLJS app with ways out of the current context: other projects, versions etc.)
-    - Both of them could share a lot of code but have slightly different entry points"
-  (render [this cache output-config]
-    "Render contents of cache to :file or :dir specified in output-config"))
-
-(defn namespaces
-  "Return entity-maps for all namespaces in the cache-bundle"
-  [{:keys [cache-contents cache-id]}]
-  (let [has-defs? (fn [ns-emap]
-                    (seq (filter #(= (:namespace ns-emap) (:namespace %))
-                                 (:defs cache-contents))))]
-    (->> (:namespaces cache-contents)
-         (map :name)
-         (map #(merge cache-id {:namespace %}))
-         (filter has-defs?)
-         (map #(cljdoc.spec/assert :cljdoc.spec/namespace-entity %))
-         set)))
 
 (comment
   (do

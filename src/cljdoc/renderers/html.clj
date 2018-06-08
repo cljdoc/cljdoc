@@ -143,6 +143,7 @@
          (layout/page {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
 (defn write-docs* [{:keys [cache-contents cache-id] :as cache-bundle} ^java.io.File out-dir]
+  (cljdoc.spec/assert :cljdoc.spec/cache-bundle cache-bundle)
   (let [top-bar-comp (layout/top-bar cache-id (:version cache-contents))
         doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))]
 
@@ -169,13 +170,6 @@
       (log/infof "Rendering namespace %s" (:namespace ns-emap))
       (->> (str (render :artifact/namespace ns-emap cache-bundle))
            (spit (file-for out-dir :artifact/namespace ns-emap))))))
-
-(defrecord HTMLRenderer []
-  cljdoc.cache/ICacheRenderer
-  (render [_ cache-bundle {:keys [dir] :as out-cfg}]
-    (cljdoc.spec/assert :cljdoc.spec/cache-bundle cache-bundle)
-    (assert (and dir (.isDirectory dir)) (format "HTMLRenderer expects output directory, was %s" dir))
-    (write-docs* cache-bundle dir)))
 
 (comment
 
