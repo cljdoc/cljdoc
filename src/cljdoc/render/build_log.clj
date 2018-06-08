@@ -103,11 +103,11 @@
             [:a.link.blue {:href (:scm_url build-info)}
              [:img.v-mid.mr2 {:src "https://icon.now.sh/github/20"}]
              (subs (:scm_url build-info) 19)]
-            (when (:commit_sha build-info)
-              [:span
-               " @ "
-               [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
-                (subs (:commit_sha build-info) 0 8)]])]))
+            " @ "
+            [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
+             (if (< (count (:commit_sha build-info)) 8)
+               (:commit_sha build-info)
+               (subs (:commit_sha build-info) 0 8))]]))
 
         (when-not (done? build-info)
           [:script
