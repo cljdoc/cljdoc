@@ -8,6 +8,7 @@
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
+            [cljdoc.storage.api :as storage]
             [cljdoc.util :as util]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
@@ -57,21 +58,16 @@
   [store route-name]
   {:name  ::grimoire-loader
    :enter (fn [{:keys [request] :as ctx}]
-            (let [group-thing (grimoire-helpers/thing (-> request :path-params :group-id))]
-              (case route-name
-                (:group/index :artifact/index)
-                (do (log/info "Loading group cache bundle for" (:path-params request))
-                    (assoc ctx :cache-bundle (cljdoc.cache/bundle-group store group-thing)))
+            (case route-name
+              (:group/index :artifact/index)
+              (do (log/info "Loading group cache bundle for" (:path-params request))
+                  (assoc ctx :cache-bundle (storage/bundle-group store (:path-params request))))
 
-                (:artifact/version :artifact/doc :artifact/namespace)
-                (let [version-thing (grimoire-helpers/version-thing
-                                     (-> request :path-params :group-id)
-                                     (-> request :path-params :artifact-id)
-                                     (-> request :path-params :version))]
-                  (log/info "Loading artifact cache bundle for" (:path-params request))
-                  (if (grimoire-helpers/exists? store version-thing)
-                    (assoc ctx :cache-bundle (cljdoc.cache/bundle-docs store version-thing))
-                    ctx)))))})
+              (:artifact/version :artifact/doc :artifact/namespace)
+              (do (log/info "Loading artifact cache bundle for" (:path-params request))
+                  (if (storage/exists? store (:path-params request))
+                    (assoc ctx :cache-bundle (storage/bundle-docs store (:path-params request)))
+                    ctx))))})
 
 (def article-locator
   {:name ::article-locator
@@ -80,9 +76,9 @@
             ;; somewhere in ctx if not found 404
             )})
 
-(defn view [grimoire-store route-name]
+(defn view [storage route-name]
   (->> [(when (= :artifact/doc route-name) doc-slug-parser)
-        (grimoire-loader grimoire-store route-name)
+        (grimoire-loader storage route-name)
         render-interceptor]
        (keep identity)
        (vec)))
@@ -102,11 +98,11 @@
                       :headers {"Location" (str "/builds/" build-id)}})))})
 
 (defn full-build
-  [{:keys [dir build-tracker]}]
+  [{:keys [storage build-tracker]}]
   {:name ::full-build
    :enter (fn [ctx]
             (api/full-build
-             {:dir           dir
+             {:storage       storage
               :build-tracker build-tracker}
              (get-in ctx [:request :form-params]))
             (ok! ctx nil))})
@@ -208,7 +204,7 @@
                    (assoc ctx :response))))})
 
 (defn route-resolver
-  [{:keys [build-tracker grimoire-store] :as deps}
+  [{:keys [build-tracker storage] :as deps}
    {:keys [route-name] :as route}]
   (let [default-interceptors [sentry/interceptor]]
     (->> (case route-name
@@ -221,11 +217,11 @@
            :full-build    [(body/body-params) (full-build deps)]
            :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]
 
-           :group/index        (view grimoire-store route-name)
-           :artifact/index     (view grimoire-store route-name)
-           :artifact/version   (view grimoire-store route-name)
-           :artifact/namespace (view grimoire-store route-name)
-           :artifact/doc       (view grimoire-store route-name)
+           :group/index        (view storage route-name)
+           :artifact/index     (view storage route-name)
+           :artifact/version   (view storage route-name)
+           :artifact/namespace (view storage route-name)
+           :artifact/doc       (view storage route-name)
 
            :jump-to-project    [(jump-interceptor)]
            :badge-for-project  [(badge-interceptor)])
@@ -234,22 +230,16 @@
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
   (log/info "Starting pedestal on port" (:port opts))
-  ;; For some reason passing the Grimoire store as a key in the opts map
-  ;; doesn't work, arrives as the following:
-  ;; (:grimoire.api.fs/Config {:docs "data/grimoire", :examples "", :notes ""})
-  (let [grimoire-store (cljdoc.grimoire-helpers/grimoire-store
-                        (clojure.java.io/file (:dir opts) "grimoire"))
-        deps (assoc opts :grimoire-store grimoire-store)]
-    (-> {::http/routes (routes/routes (partial route-resolver deps) {})
-         ::http/type   :jetty
-         ::http/join?  false
-         ::http/port   (:port opts)
-         ;; TODO look into this somre more:
-         ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
-         ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-         ::http/resource-path "public"}
-        (http/create-server)
-        (http/start))))
+  (-> {::http/routes (routes/routes (partial route-resolver opts) {})
+       ::http/type   :jetty
+       ::http/join?  false
+       ::http/port   (:port opts)
+       ;; TODO look into this somre more:
+       ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
+       ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
+       ::http/file-path "resources/public"}
+      (http/create-server)
+      (http/start)))
 
 (defmethod ig/halt-key! :cljdoc/pedestal [_ server]
   (http/stop server))

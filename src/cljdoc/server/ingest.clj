@@ -4,7 +4,7 @@
             [cljdoc.analysis.git :as ana-git]
             [cljdoc.util.pom :as pom]
             [clojure.tools.logging :as log]
-            [cljdoc.grimoire-helpers]
+            [cljdoc.storage.api :as storage]
             [cljdoc.server.routes :as routes]
             [cljdoc.spec]))
 
@@ -18,15 +18,12 @@
   - read the `doc/cljdoc.edn` configuration file from the projects git repo
   - store articles and other version specific data in grimoire
   - store API data in grimoire"
-  [data-dir cljdoc-edn]
+  [storage cljdoc-edn]
   (let [pom-doc      (pom/parse (:pom-str cljdoc-edn))
         artifact     (pom/artifact-info pom-doc)
         scm-info     (pom/scm-info pom-doc)
         project      (str (:group-id artifact) "/" (:artifact-id artifact))
         version      (:version artifact)
-        v-thing      (cljdoc.grimoire-helpers/version-thing project version)
-        store        (cljdoc.grimoire-helpers/grimoire-store
-                      (doto (io/file data-dir "grimoire") (.mkdir)))
         scm-url      (some-> (or (:url scm-info)
                                  (if (util/gh-url? (:url artifact))
                                    (:url artifact))
@@ -35,13 +32,9 @@
 
     (log/info "Verifying cljdoc-edn contents against spec")
     (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
-    (cljdoc.grimoire-helpers/write-bare store v-thing)
 
     (log/info "Importing API into Grimoire")
-    (cljdoc.grimoire-helpers/import-api
-     {:version      v-thing
-      :codox        (:codox cljdoc-edn)
-      :store        store})
+    (storage/import-api storage artifact (:codox cljdoc-edn))
 
     (when (some? scm-url)
       (let [git-analysis (ana-git/analyze-git-repo project version scm-url (:sha scm-info))]
@@ -49,10 +42,10 @@
           {:scm-url scm-url :error (:error git-analysis)}
           (do
             (log/info "Importing Articles into Grimoire")
-            (cljdoc.grimoire-helpers/import-doc
-             {:version      v-thing
-              :store        store
-              :jar          {}
+            (storage/import-doc
+             storage
+             artifact
+             {:jar          {}
               :scm          (:scm git-analysis)
               :doc-tree     (:doc-tree git-analysis)})
 

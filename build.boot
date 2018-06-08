@@ -67,6 +67,7 @@
          '[cljdoc.config :as cfg]
          '[cljdoc.analysis.task :as ana]
          '[cljdoc.util]
+         '[cljdoc.storage.api :as storage]
          '[cljdoc.util.repositories :as repositories]
          '[cljdoc.util.boot])
 
@@ -82,9 +83,10 @@
     (let [offline-mapping (first [nil {'bidi "/Users/martin/code/02-oss/bidi/"}])
           tempd           (tmp-dir!)
           analysis-result (-> (cljdoc.util/cljdoc-edn project version)
-                              io/resource slurp read-string)]
+                              io/resource slurp read-string)
+          storage (storage/->GrimoireStorage (io/file "data"))]
       (util/info "Generating Grimoire store for %s\n" project)
-      (ingest/ingest-cljdoc-edn (io/file "data") analysis-result) 
+      (ingest/ingest-cljdoc-edn storage analysis-result)
       (-> fs (add-resource tempd) commit!))))
 
 (deftask grimoire-html
@@ -92,18 +94,17 @@
    v version VERSION str "Version of project to build documentation for"]
   (with-pre-wrap fs
     (let [tempd             (tmp-dir!)
-          grimoire-html-dir (io/file tempd "grimoire-html")
-          grimoire-thing    (-> (grimoire.things/->Group (cljdoc.util/group-id project))
-                                (grimoire.things/->Artifact (cljdoc.util/artifact-id project))
-                                (grimoire.things/->Version version))
-          grimoire-store   (grimoire.api.fs/->Config (.getPath grimoire-dir) "" "")]
+          grimoire-html-dir (io/file tempd "grimoire-html")]
       (util/info "Generating Grimoire HTML for %s\n" project)
       (.mkdir grimoire-html-dir)
       (require 'cljdoc.renderers.html 'cljdoc.render.rich-text 'cljdoc.spec :reload)
-      (cljdoc.cache/render
-       (cljdoc.renderers.html/->HTMLRenderer)
-       (cljdoc.cache/bundle-docs grimoire-store grimoire-thing)
-       {:dir grimoire-html-dir})
+      (cljdoc.renderers.html/write-docs*
+       (cljdoc.storage.api/bundle-docs
+        (storage/->GrimoireStorage grimoire-dir)
+        {:group-id (cljdoc.util/group-id project)
+         :artifact-id (cljdoc.util/artifact-id project)
+         :version version})
+       grimoire-html-dir)
       (-> fs (add-resource tempd) commit!))))
 
 (deftask build-docs

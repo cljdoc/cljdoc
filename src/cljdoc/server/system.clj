@@ -3,6 +3,7 @@
             [cljdoc.config :as cfg]
             [cljdoc.server.release-monitor]
             [cljdoc.server.pedestal]
+            [cljdoc.storage.api :as storage]
             [cljdoc.util.sentry]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
@@ -30,6 +31,7 @@
                        :host             (get-in env-config [:cljdoc/server :host])
                        :build-tracker    (ig/ref :cljdoc/build-tracker)
                        :analysis-service (ig/ref :cljdoc/analysis-service)
+                       :storage          (storage/->GrimoireStorage (io/file (cfg/data-dir env-config) "grimoire"))
                        ;; todo just pass storage component
                        ;; see https://github.com/martinklepsch/cljdoc/issues/58
                        :dir              (cfg/data-dir env-config)}
