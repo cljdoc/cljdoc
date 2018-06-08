@@ -32,6 +32,27 @@
   [page-type _ _]
   (format "%s not implemented, sorry" page-type))
 
+(defmethod render :group/index
+  [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  (let [group-id (:group-id route-params)
+        big-btn-link :a.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
+    (->> [:div.pa4-ns.pa2
+          [:h1 group-id]
+          [:span.db "Known artifacts and versions under the group " group-id]
+          (for [a (:artifacts cache-contents)]
+            [:div
+             [:h3 (format "%s/%s" group-id a)]
+             [:ol.list.pl0.pv3
+              (for [version (->> (:versions cache-contents)
+                                 (filter #(= (:artifact-id %) a))
+                                 (sort-by :version)
+                                 (reverse))]
+                [:li.dib.mr3
+                 [big-btn-link
+                  {:href (routes/url-for :artifact/version :path-params (assoc version :group-id group-id))}
+                  (:version version)]])]])]
+         (layout/page {:title (str group-id " — cljdoc")}))))
+
 (defmethod render :artifact/index
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (let [artifact-id (:artifact-id route-params)
@@ -43,7 +64,8 @@
           [:ol.list.pl0.pv3
            (for [v (->> (:versions cache-contents)
                         (filter #(= (:artifact-id %) (:artifact-id route-params)))
-                        (sort-by :version))]
+                        (sort-by :version)
+                        (reverse))]
              [:li.dib.mr3
               [big-btn-link
                {:href (routes/url-for :artifact/version :path-params (merge cache-id v))}
