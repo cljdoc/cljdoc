@@ -30,9 +30,8 @@ Using it in a Markdown file may look like this:
 
 # How to update documentation?
 
-Sometimes library authors make adjustments to their documentation
-after cutting a release. In these situations it is natural that they
-would like to update their docs as well.
+Sometimes you make adjustments to documentation after cutting a release. 
+In these situations it would be nice to update the docs on cljdoc as well.
 
 Now when cljdoc reads documentation from your Git repository it does not
 simply read it from `master` but instead tries to find a Git tag or a revision
