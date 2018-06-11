@@ -13,12 +13,13 @@
 (defrecord GrimoireStorage [dir]
   IStorage
   (import-api [_ version-entity codox]
-    (grimoire-helpers/import-api
-     {:store   (grimoire-helpers/grimoire-store dir)
-      :version (grimoire-helpers/thing (:group-id version-entity)
-                                       (:artifact-id version-entity)
-                                       (:version version-entity))
-      :codox codox}))
+    (let [store     (grimoire-helpers/grimoire-store dir)
+          version-t (grimoire-helpers/thing (:group-id version-entity)
+                                            (:artifact-id version-entity)
+                                            (:version version-entity))]
+      (grimoire-helpers/write-bare store version-t)
+      (grimoire-helpers/import-api
+       {:store store, :version version-t, :codox codox})))
   (import-doc [_ version-entity {:keys [doc-tree scm jar]}]
     (grimoire-helpers/import-doc
      {:store   (grimoire-helpers/grimoire-store dir)
