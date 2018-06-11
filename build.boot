@@ -84,7 +84,7 @@
           tempd           (tmp-dir!)
           analysis-result (-> (cljdoc.util/cljdoc-edn project version)
                               io/resource slurp read-string)
-          storage (storage/->GrimoireStorage (io/file "data"))]
+          storage (storage/->GrimoireStorage grimoire-dir)]
       (util/info "Generating Grimoire store for %s\n" project)
       (ingest/ingest-cljdoc-edn storage analysis-result)
       (-> fs (add-resource tempd) commit!))))
