@@ -1,6 +1,5 @@
 (ns cljdoc.server.pedestal
-  (:require [cljdoc.grimoire-helpers :as grimoire-helpers]
-            [cljdoc.render.build-req :as render-build-req]
+  (:require [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.home :as render-home]
             [cljdoc.renderers.html :as html]
@@ -237,7 +236,11 @@
        ;; TODO look into this somre more:
        ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
        ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-       ::http/file-path "resources/public"}
+       ;; When runnning with boot repl the resources on the classpath are not
+       ;; updated as they change so in these cases using file path is easier
+       ;; This breaks the homepage for whatever reason
+       ;; ::http/file-path "resources/public"
+       ::http/resource-path "public"}
       (http/create-server)
       (http/start)))
 
@@ -245,7 +248,6 @@
   (http/stop server))
 
 (comment
-  (def gs (grimoire-helpers/grimoire-store (clojure.java.io/file "data" "grimoire")))
 
   (def s (http/start (create-server (routes {}))))
 
