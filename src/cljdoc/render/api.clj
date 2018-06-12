@@ -39,7 +39,7 @@
           (str "(" (:name def-meta) (when (seq argv) " ") (string/join " " argv) ")")))]
      (when (:doc def-meta)
        [:div.lh-copy.markdown
-        (-> (:doc def-meta) rich-text/markdown-to-html hiccup/raw)])
+        (-> (:doc def-meta) (rich-text/markdown-to-html {:escape-html? true}) hiccup/raw)])
      (when (seq (:members def-meta))
        [:div.lh-copy.pl3.bl.b--black-10
         (for [m (:members def-meta)]
@@ -160,7 +160,7 @@
        [:h2 (:namespace ns-entity)]
        (when-let [ns-doc (:doc ns-data)]
          [:div.lh-copy.markdown
-          (-> ns-doc rich-text/markdown-to-html hiccup/raw)])
+          (-> ns-doc (rich-text/markdown-to-html {:escape-html? true}) hiccup/raw)])
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))

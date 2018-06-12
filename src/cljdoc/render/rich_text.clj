@@ -62,19 +62,31 @@
               (println "Could not fix link for uri" (get attrs "href")))))))))
 
 
-(defn md-renderer
+(defn- md-renderer
   "Create a Markdown renderer."
-  []
+  [{:keys [escape-html?] :as opts}]
   (.. (HtmlRenderer/builder)
+      (escapeHtml (boolean escape-html?))
       (extensions md-extensions)
       (build)))
 
-(defn markdown-to-html [input-str]
-  (->> (.parse md-container input-str)
-       (.render (md-renderer))))
+(defn markdown-to-html
+  "Parse the given string as Markdown and return HTML.
+
+  A second argument can be passed to customize the rendring
+  supported options:
+
+  - `:escape-html?` if true HTML in input-str will be escaped"
+  ([input-str]
+   (markdown-to-html input-str {}))
+  ([input-str opts]
+   (->> (.parse md-container input-str)
+        (.render (md-renderer opts)))))
 
 (comment
-  (markdown-to-html "# hello world")
+  (markdown-to-html "*hello world* <code>x</code>")
+
+  (markdown-to-html "*hello world* <code>x</code>" {:escape-html? true})
 
   )
 
