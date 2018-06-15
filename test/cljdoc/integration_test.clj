@@ -15,6 +15,8 @@
                              :analysis-service :local
                              :autobuild-clojars-releases? false
                              :dir dir}}]
+    (assert (not (.exists (io/file dir)))
+            (format "test data directory exists, please clear before running tests: %s" dir))
     (reset! sys (ig/init (sys/system-config cfg)))
     (tests)
     (ig/halt! @sys)
@@ -49,9 +51,12 @@
       (t/is (true? (.contains (:body builds-page) "v0.8.1")))
       (t/is (true? (.contains (:body builds-page) "Analysis Requested")))
 
-      (while (not (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri))
-                             "Import Completed"))
-        (Thread/sleep 1000))
+      (loop [i 10]
+        (when (and (pos? i)
+                   (not (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri))
+                                   "Import Completed")))
+          (Thread/sleep 2000)
+          (recur (dec i))))
 
       (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri))
                               "Import Completed")))
