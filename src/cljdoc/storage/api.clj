@@ -1,6 +1,5 @@
 (ns cljdoc.storage.api
-  (:require [cljdoc.grimoire-helpers :as grimoire-helpers]
-            [cljdoc.storage.grimoire-impl :as grim-retrieve]))
+  (:require [cljdoc.storage.grimoire-impl :as grim]))
 
 (defprotocol IStorage
   (import-api [_ version-entity codox])
@@ -13,34 +12,34 @@
 (defrecord GrimoireStorage [dir]
   IStorage
   (import-api [_ version-entity codox]
-    (let [store     (grimoire-helpers/grimoire-store dir)
-          version-t (grimoire-helpers/thing (:group-id version-entity)
-                                            (:artifact-id version-entity)
-                                            (:version version-entity))]
-      (grimoire-helpers/write-bare store version-t)
-      (grimoire-helpers/import-api
+    (let [store     (grim/grimoire-store dir)
+          version-t (grim/thing (:group-id version-entity)
+                                (:artifact-id version-entity)
+                                (:version version-entity))]
+      (grim/write-bare store version-t)
+      (grim/import-api
        {:store store, :version version-t, :codox codox})))
   (import-doc [_ version-entity {:keys [doc-tree scm jar]}]
-    (grimoire-helpers/import-doc
-     {:store   (grimoire-helpers/grimoire-store dir)
-      :version (grimoire-helpers/thing (:group-id version-entity)
-                                       (:artifact-id version-entity)
-                                       (:version version-entity))
+    (grim/import-doc
+     {:store   (grim/grimoire-store dir)
+      :version (grim/thing (:group-id version-entity)
+                           (:artifact-id version-entity)
+                           (:version version-entity))
       :doc-tree doc-tree
       :scm scm
       :jar jar}))
   (exists? [_ version-entity]
-    (grimoire-helpers/exists?
-     (grimoire-helpers/grimoire-store dir)
-     (grimoire-helpers/thing (:group-id version-entity)
-                             (:artifact-id version-entity)
-                             (:version version-entity))))
+    (grim/exists?
+     (grim/grimoire-store dir)
+     (grim/thing (:group-id version-entity)
+                 (:artifact-id version-entity)
+                 (:version version-entity))))
   (bundle-docs [_ {:keys [group-id artifact-id version]}]
-    (-> (grimoire-helpers/grimoire-store dir)
-        (grim-retrieve/bundle-docs (grimoire-helpers/thing group-id artifact-id version))))
+    (-> (grim/grimoire-store dir)
+        (grim/bundle-docs (grim/thing group-id artifact-id version))))
   (bundle-group [_ {:keys [group-id]}]
-    (-> (grimoire-helpers/grimoire-store dir)
-        (grim-retrieve/bundle-group (grimoire-helpers/thing group-id)))))
+    (-> (grim/grimoire-store dir)
+        (grim/bundle-group (grim/thing group-id)))))
 
 (comment
   (defprotocol ITest

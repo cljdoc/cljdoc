@@ -91,6 +91,145 @@
     {:versions (count versions)
      :artifacts (count (set (map things/thing->artifact versions)))}))
 
+(defn grimoire-write
+  "Like `grimore.api/write-meta` but assert that no :name field is
+  written as part of the metadata since that would duplicate
+  information already encoded in the thing-hierarchy."
+  [store thing meta]
+  (assert (nil? (:name meta)) (format "Name not nil: %s" meta))
+  (cond (things/def? thing)
+        (cljdoc.spec/assert :cljdoc.grimoire/def meta)
+        (things/namespace? thing)
+        (cljdoc.spec/assert :cljdoc.grimoire/namespace meta))
+  (grim/write-meta store thing meta))
+
+(defn write-docs-for-def
+  "General case of writing documentation for a Var instance with
+  metadata. Compute a \"docs\" structure from the var's metadata and then punt
+  off to write-meta which does the heavy lifting."
+  [store def-thing codox-public]
+  (assert (things/def? def-thing))
+  (cljdoc.spec/assert :cljdoc.codox/public codox-public)
+  (assert (= (-> codox-public :name name) (things/thing->name def-thing))
+          (format "meta <> grimoire thing missmatch: %s <> %s" (:name codox-public)
+                  (things/thing->name def-thing)))
+  (assert (nil? (:namespace codox-public)) "Namespace should not get written to def-meta")
+  (assert (nil? (:platform codox-public)) "Platform should not get written to def-meta")
+  (grimoire-write store def-thing (dissoc codox-public :name)))
+
+(defn write-docs-for-ns
+  "Function of a configuration and a Namespace which writes namespace metadata
+  to the :datastore in config."
+  [store ns-thing ns-meta]
+  (assert (things/namespace? ns-thing))
+  (cljdoc.spec/assert :cljdoc.grimoire/namespace ns-meta)
+  (grimoire-write store ns-thing ns-meta))
+
+(defn thing
+  ([group]
+   (things/->Group group))
+  ([group artifact]
+   (things/->Artifact (thing group) artifact))
+  ([group artifact version]
+   (things/->Version (thing group artifact) version))
+  ([group artifact version platf]
+   (things/->Platform (thing group artifact version)
+                               (grimoire.util/normalize-platform platf))))
+
+(defn version-thing
+  ([project version]
+   (thing (cljdoc.util/group-id project) (cljdoc.util/artifact-id project) version))
+  ([group artifact version]
+   (thing group artifact version)))
+
+(defn platform-thing [project version platf]
+  (thing (cljdoc.util/group-id project) (cljdoc.util/artifact-id project) version platf))
+
+(defn exists? [store t]
+  (e/succeed? (grim/read-meta store t)))
+
+(defn grimoire-store [^java.io.File dir]
+  (grimoire.api.fs/->Config (.getPath dir) "" ""))
+
+(defn import-api* [{:keys [platform store codox-namespaces]}]
+  (grim/write-meta store platform {})
+  (let [namespaces codox-namespaces]
+    (doseq [ns namespaces
+            :let [publics  (:publics ns)
+                  ns-thing (things/->Ns platform (-> ns :name name))]]
+      (write-docs-for-ns store ns-thing (dissoc ns :publics :name))
+      (doseq [public publics]
+        (try
+          (write-docs-for-def store
+                              (things/->Def ns-thing (-> public :name name))
+                              public)
+          (catch Throwable e
+            (throw (ex-info "Failed to write docs for def"
+                            {:codox/public public}
+                            e)))))
+      (log/info "Finished namespace" (:name ns)))))
+
+(defn write-bare
+  [store version]
+  {:pre [(things/version? version)]}
+  (doto store
+    (grim/write-meta (things/thing->group version) {})
+    (grim/write-meta (things/thing->artifact version) {})
+    (grim/write-meta version {})))
+
+(defn import-doc
+  [{:keys [version store doc-tree scm jar]}]
+  {:pre [(things/version? version)
+         (some? store)
+         (some? scm)
+         (some? doc-tree)]}
+  (log/info "Writing doc meta for" (things/thing->path version) {:scm (dissoc scm :files)})
+  (grim/write-meta store version {:jar jar :scm scm, :doc doc-tree}))
+
+(defn- delete-thing! [store thing]
+  (let [thing-dir (.getParentFile (grimoire.api.fs.impl/thing->meta-handle store thing))]
+    (when (.exists thing-dir)
+      (log/info "Deleting all previously imported data for" (things/thing->path thing))
+      (cljdoc.util/delete-directory! thing-dir))))
+
+(defn import-api
+  [{:keys [version codox store]}]
+  ;; TODO assert format of cljdoc-edn
+  (doseq [platf (keys codox)]
+    (assert (#{"clj" "cljs"} platf) (format "was %s" platf))
+    (delete-thing! store (things/->Platform version platf))
+    (import-api* {:platform (things/->Platform version platf)
+                  :store store
+                  :codox-namespaces (get codox platf)})))
+
+(comment
+  (build-grim {:group-id "bidi"
+               :artifact-id  "bidi"
+               :version "2.1.3"
+               :platform "clj"}
+              "target/jar-contents/" "target/grim-test")
+
+  (->> (#'codox.main/read-namespaces
+        {:language     :clojure
+         ;; :root-path    (System/getProperty "user.dir")
+         :source-paths ["target/jar-contents/"]
+         :namespaces   :all
+         :metadata     {}
+         :exclude-vars #"^(map)?->\p{Upper}"}))
+
+  (let [c (grimoire.api.fs/->Config "target/grim-test" "" "")]
+    (build-grim "bidi" "bidi" "2.1.3" "target/jar-contents/" "target/grim-test")
+    #_(write-docs-for-var c (var bidi.bidi/match-route)))
+
+  (resolve (symbol "bidi.bidi" "match-route"))
+
+  (var->src (var bidi.bidi/match-route))
+  ;; (symbol (subs (str (var bidi.bidi/match-route)) 2))
+  ;; (clojure.repl/source-fn 'bidi.bidi/match-route)
+  ;; (var (symbol "bidi.bidi/match-route"))
+
+  )
+
 (comment
   (do
     (def store (grimoire.api.fs/->Config "data/grimoire" "" ""))
