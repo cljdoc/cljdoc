@@ -23,7 +23,9 @@
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [grimoire.api.fs]
+            [grimoire.api.fs.write]
             [grimoire.api.fs.read]
+            [grimoire.api.fs.impl]
             [grimoire.api :as grim]
             [grimoire.things :as things]
             [grimoire.either :as e]))
@@ -90,6 +92,8 @@
                    v)]
     {:versions (count versions)
      :artifacts (count (set (map things/thing->artifact versions)))}))
+
+;; Writing -----------------------------------------------------------
 
 (defn grimoire-write
   "Like `grimore.api/write-meta` but assert that no :name field is
