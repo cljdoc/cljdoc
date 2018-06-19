@@ -158,7 +158,7 @@
         [:a.link.black
          {:href ns-url}
          [:h2 ns
-          [:img.ml2 {:src "https:icon.now.sh/chevron/12/357edd"}]]]
+          [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
         (some-> meta :doc render-doc-string)
         [:ul.list.pl0
          (for [d defs]
