@@ -124,22 +124,28 @@
   (assert (:namespace route-params))
   (let [ns-emap route-params
         defs (filter #(= (:namespace ns-emap) (:namespace %)) (:defs cache-contents))
-        ns-data (first (filter #(= (:namespace ns-emap) (:name %))
-                               (:namespaces cache-contents)))]
+        ns-data (first (filter #(= (:namespace ns-emap) (:name %)) ;PLATF_SUPPORT
+                               (:namespaces cache-contents)))
+        common-params {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
+                       :article-list-component (articles/article-list
+                                                (articles/doc-tree-view cache-id
+                                                                        (doctree/add-slug-path (-> cache-contents :version :doc))
+                                                                        []))
+                       :namespace-list-component (api/namespace-list
+                                                  {:current (:namespace ns-emap)}
+                                                  (cljdoc.cache/namespaces cache-bundle))}]
     (when (empty? defs)
       (log/warnf "Namespace %s contains no defs" (:namespace route-params)))
-    (->> (api/namespace-page {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
-                              :scm-info (:scm (:version cache-contents))
-                              :article-list-component (articles/article-list
-                                                       (articles/doc-tree-view cache-id
-                                                                               (doctree/add-slug-path (-> cache-contents :version :doc))
-                                                                               []))
-                              :namespace-list-component (api/namespace-list
-                                                         {:current (:namespace ns-emap)}
-                                                         (cljdoc.cache/namespaces cache-bundle))
-                              :ns-entity ns-emap
-                              :ns-data ns-data
-                              :defs defs})
+    (->> (if ns-data
+           (api/namespace-page (merge common-params
+                                      {:scm-info (:scm (:version cache-contents))
+                                       :ns-entity ns-emap
+                                       :ns-data ns-data
+                                       :defs defs}))
+           (api/sub-namespace-overview-page (merge common-params
+                                                   {:ns-entity ns-emap
+                                                    :namespaces (:namespaces cache-contents)
+                                                    :defs (:defs cache-contents)})))
          (layout/page {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
 (defn write-docs* [{:keys [cache-contents cache-id] :as cache-bundle} ^java.io.File out-dir]

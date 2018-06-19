@@ -17,10 +17,14 @@
    [:code.db.mb2 {:class "language-clojure"}
     (zp/zprint-str args-str {:parse-string? true :width 70})]])
 
+(defn render-doc-string [doc-str]
+  [:div.lh-copy.markdown
+   (-> doc-str (rich-text/markdown-to-html {:escape-html? true}) hiccup/raw)])
+
 (defn def-block [platforms {:keys [base file-mapping] :as scm}]
   (assert (coll? platforms) "def meta is not a map")
   ;; Currently we just render any platform, this obviously
-  ;; isn't the best we can do
+  ;; isn't the best we can do PLATF_SUPPORT
   (let [def-meta (first (sort-by :platform platforms))]
     (cljdoc.spec/assert :cljdoc.spec/def-full def-meta)
     [:div.def-block
@@ -37,9 +41,7 @@
       (for [argv (sort-by count (:arglists def-meta))]
         (def-code-block 
           (str "(" (:name def-meta) (when (seq argv) " ") (string/join " " argv) ")")))]
-     (when (:doc def-meta)
-       [:div.lh-copy.markdown
-        (-> (:doc def-meta) (rich-text/markdown-to-html {:escape-html? true}) hiccup/raw)])
+     (some-> def-meta :doc render-doc-string)
      (when (seq (:members def-meta))
        [:div.lh-copy.pl3.bl.b--black-10
         (for [m (:members def-meta)]
@@ -55,25 +57,20 @@
         "source"])]))
 
 (defn namespace-list [{:keys [current]} namespaces]
-  (let [namespaces (ns-tree/index-by :namespace namespaces)]
+  (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
+        namespaces  (ns-tree/index-by :namespace namespaces)]
     [:div
      (layout/sidebar-title "Namespaces")
      [:ul.list.pl2
       (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))
             :let [style {:margin-left (str (* (dec level) 10) "px")}]]
-        (if-let [ns (get namespaces ns)]
-          [:li
-           [:a.link.hover-dark-blue.blue.dib.pa1
-            {:href (routes/url-for :artifact/namespace :path-params ns)
-             :class (when (= (:namespace ns) current) "b")
-             :style style}
-            (->> (ns-tree/split-ns (:namespace ns))
-                 (drop (dec level)))]]
-          [:li.blue.pa1
-           [:span
-            {:style style}
-            (->> (ns-tree/split-ns ns)
-                 (drop (dec level)))]]))
+        [:li
+         [:a.link.hover-dark-blue.blue.dib.pa1
+          {:href (routes/url-for :artifact/namespace :path-params (assoc base-params :namespace ns))
+           :class (when (= ns current) "b")
+           :style style}
+          (->> (ns-tree/split-ns ns)
+               (drop (dec level)))]])
 
       #_(for [ns (sort-by :namespace namespaces)]
           [:li
@@ -137,6 +134,39 @@
           (-> (set (map :platform platf-defs))
               (humanize-supported-platforms))])])]])
 
+(defn sub-namespace-overview-page
+  [{:keys [ns-entity namespaces defs top-bar-component article-list-component namespace-list-component]}]
+  [:div.ns-page
+   top-bar-component
+   (layout/sidebar
+    article-list-component
+    namespace-list-component)
+   (layout/main-container
+    {:offset "16rem"}
+    [:div.w-80-ns.pv5
+     (for [[ns meta] (->> namespaces
+                          (filter #(.startsWith (:name %) (:namespace ns-entity)))
+                          (map #(dissoc % :platform))
+                          (set)
+                          (ns-tree/index-by :name); see PLATF_SUPPORT
+                          (sort-by key))
+           :let [ns-url (routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace ns))
+                 defs (->> defs
+                           (filter #(= ns (:namespace %)))
+                           (sort-by :name))]]
+       [:div
+        [:a.link.black
+         {:href ns-url}
+         [:h2 ns
+          [:img.ml2 {:src "https:icon.now.sh/chevron/12/357edd"}]]]
+        (some-> meta :doc render-doc-string)
+        [:ul.list.pl0
+         (for [d defs]
+           [:li.dib.mr3.mb2
+            [:a.link.blue
+             {:href (str ns-url "#" (:name d))}
+             (:name d)]])]])])])
+
 (defn namespace-page [{:keys [ns-entity ns-data defs scm-info top-bar-component article-list-component namespace-list-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (let [sorted-defs                        (sort-by (comp string/lower-case :name) defs)
@@ -158,9 +188,7 @@
       {:offset "32rem"}
       [:div.w-80-ns.pv4
        [:h2 (:namespace ns-entity)]
-       (when-let [ns-doc (:doc ns-data)]
-         [:div.lh-copy.markdown
-          (-> ns-doc (rich-text/markdown-to-html {:escape-html? true}) hiccup/raw)])
+       (some-> ns-data :doc render-doc-string)
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))
