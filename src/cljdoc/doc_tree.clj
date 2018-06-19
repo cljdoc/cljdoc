@@ -54,6 +54,20 @@
        (filter :title)
        (map #(dissoc % :children))))
 
+(defn- subseq?
+  "Return true if `ys` is a sequence starting with the elements in `xs`"
+  [xs ys]
+  (= xs (take (count xs) ys)))
+
+(defn get-subtree
+  "Return the node for the given slug-path (including its children).
+  Again, this would probably be way simpler with Zippers :)"
+  [doc-tree slug-path]
+  (loop [t doc-tree]
+    (if (= (:slug-path (:attrs t)) slug-path)
+      t
+      (recur (first (filter #(subseq? (:slug-path (:attrs %)) slug-path) t))))))
+
 (defn derive-toc [dir]
   (when-let [readme (->> (.listFiles dir)
                          (map #(.getName %))

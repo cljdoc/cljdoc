@@ -31,12 +31,10 @@
          (map (fn [doc-page]
                 (let [slug-path (-> doc-page :attrs :slug-path)]
                     [:li
-                     (if (some-> doc-page :attrs :cljdoc.doc/source-file)
-                       [:a.link.blue.hover-dark-blue.dib.pa1
-                        {:href  (doc-link cache-id slug-path)
-                         :class (when (= current-page slug-path) "fw7")}
-                        (:title doc-page)]
-                       [:span.blue.pa1.dib (:title doc-page)])
+                     [:a.link.blue.hover-dark-blue.dib.pa1
+                      {:href  (doc-link cache-id slug-path)
+                       :class (when (= current-page slug-path) "fw7")}
+                      (:title doc-page)]
                      (doc-tree-view cache-id (:children doc-page) current-page)])))
          (into [:ul.list.pl2]))))
 
@@ -61,3 +59,24 @@
        [:div.lh-copy.pv6.tc
         #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
         [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
+
+(defn doc-overview [{:keys [top-bar-component
+                            doc-tree-component
+                            namespace-list-component
+                            cache-id
+                            doc-tree] :as args}]
+  [:div
+   top-bar-component
+   (layout/sidebar
+    (article-list doc-tree-component)
+    namespace-list-component)
+   (layout/main-container
+    {:offset "16rem"}
+    [:div.mw7.center.pv4
+     [:h1 (:title doc-tree)]
+     [:ol
+      (for [c (:children doc-tree)]
+        [:li.mv2
+         [:a.link.blue
+          {:href (doc-link cache-id (-> c :attrs :slug-path))}
+          (-> c :title)]])]])])

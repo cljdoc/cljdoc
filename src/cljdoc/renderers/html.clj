@@ -101,22 +101,23 @@
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
         doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
-                     (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
-        _ (assert doc-html (format "doc page missing important fields %s" doc-p))
-        fixed-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
-                               doc-html
-                               {:scm (:scm (:version cache-contents))
-                                :artifact-entity cache-id
-                                :flattened-doctree (doctree/flatten* doc-tree)})
-        scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
-                     (-> doc-p :attrs :cljdoc.doc/source-file))]
-    (->> (articles/doc-page {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
-                             :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
-                             :namespace-list-component (api/namespace-list
-                                                        {}
-                                                        (cljdoc.cache/namespaces cache-bundle))
-                             :doc-scm-url scm-url
-                             :doc-html fixed-html})
+                     (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))]
+    (->> (if doc-html
+           (articles/doc-page {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
+                               :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
+                               :namespace-list-component (api/namespace-list {} (cljdoc.cache/namespaces cache-bundle))
+                               :doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
+                                                 (-> doc-p :attrs :cljdoc.doc/source-file))
+                               :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
+                                                     doc-html
+                                                     {:scm (:scm (:version cache-contents))
+                                                      :artifact-entity cache-id
+                                                      :flattened-doctree (doctree/flatten* doc-tree)})})
+           (articles/doc-overview {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
+                                   :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
+                                   :namespace-list-component (api/namespace-list {} (cljdoc.cache/namespaces cache-bundle))
+                                   :cache-id cache-id
+                                   :doc-tree (doctree/get-subtree doc-tree doc-slug-path)}))
          (layout/page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
 
 (defmethod render :artifact/namespace
