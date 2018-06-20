@@ -36,6 +36,9 @@
   (t/is (= (util/normalize-git-url "http://github.com/clojure/clojure")
            "https://github.com/clojure/clojure")))
 
+(t/deftest strip-common-start-string-test
+  (t/is (= "xyz.html" (util/strip-common-start-string "doc/abc.html" "doc/xyz.html"))))
+
 (comment
   (t/run-tests)
 

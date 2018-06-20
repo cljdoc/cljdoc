@@ -144,3 +144,12 @@
       :contributors       (str base "/graphs/contributors")
       :userguide/articles (str base "/blob/master/doc/userguide/articles.md")
       :userguide/scm-faq  (str base "/blob/master/doc/userguide/faq.md#how-do-i-set-scm-info-for-my-project"))))
+
+(defn strip-common-start-string
+  "Remove the common substring from `s2` that both, `s1`
+  and `s2` start with."
+  [s1 s2]
+  (->> (map vector s1 s2)
+       (take-while #(= (first %) (second %)))
+       (count)
+       (subs s2)))
