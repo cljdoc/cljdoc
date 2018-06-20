@@ -135,6 +135,21 @@
           (-> (set (map :platform platf-defs))
               (humanize-supported-platforms))])])]])
 
+(defn namespace-overview
+  [ns-url ns defs]
+  [:div
+   [:a.link.black
+    {:href ns-url}
+    [:h2 ns
+     [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
+   (some-> meta :doc render-doc-string)
+   [:ul.list.pl0
+    (for [d defs]
+      [:li.dib.mr3.mb2
+       [:a.link.blue
+        {:href (str ns-url "#" (:name d))}
+        (:name d)]])]])
+
 (defn sub-namespace-overview-page
   [{:keys [ns-entity namespaces defs top-bar-component article-list-component namespace-list-component]}]
   [:div.ns-page
@@ -145,28 +160,17 @@
    (layout/main-container
     {:offset "16rem"}
     [:div.w-80-ns.pv5
-     (for [[ns meta] (->> namespaces
-                          (filter #(.startsWith (:name %) (:namespace ns-entity)))
-                          (map #(dissoc % :platform))
-                          (set)
-                          (ns-tree/index-by :name); see PLATF_SUPPORT
-                          (sort-by key))
-           :let [ns-url (routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace ns))
+     (for [meta (->> namespaces
+                     (filter #(.startsWith (:name %) (:namespace ns-entity)))
+                     (map #(dissoc % :platform)); see PLATF_SUPPORT
+                     (set)
+                     (sort-by key))
+           :let [ns (:name meta)
+                 ns-url (routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace ns))
                  defs (->> defs
                            (filter #(= ns (:namespace %)))
                            (sort-by :name))]]
-       [:div
-        [:a.link.black
-         {:href ns-url}
-         [:h2 ns
-          [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
-        (some-> meta :doc render-doc-string)
-        [:ul.list.pl0
-         (for [d defs]
-           [:li.dib.mr3.mb2
-            [:a.link.blue
-             {:href (str ns-url "#" (:name d))}
-             (:name d)]])]])])])
+       (namespace-overview ns-url meta defs))])])
 
 (defn namespace-page [{:keys [ns-entity ns-data defs scm-info top-bar-component article-list-component namespace-list-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
