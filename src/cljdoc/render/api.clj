@@ -24,7 +24,7 @@
        (rich-text/markdown-to-html {:escape-html? true})
        hiccup/raw)])
 
-(defn def-block [platforms {:keys [base file-mapping] :as scm}]
+(defn def-block [platforms src-uri]
   (assert (coll? platforms) "def meta is not a map")
   ;; Currently we just render any platform, this obviously
   ;; isn't the best we can do PLATF_SUPPORT
@@ -54,10 +54,8 @@
              (def-code-block (str "(" (:name m) " " (string/join " " argv) ")")))
            (when (:doc m)
              [:p (:doc m)])])])
-     (when file-mapping
-       [:a.link.f7.gray.hover-dark-gray
-        {:href (str base (get file-mapping (:file def-meta)) "#L" (:line def-meta))}
-        "source"])]))
+     (when src-uri
+       [:a.link.f7.gray.hover-dark-gray {:href src-uri} "source"])]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
@@ -174,6 +172,8 @@
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (let [sorted-defs                        (sort-by (comp string/lower-case :name) defs)
         [[dominant-platf] :as platf-stats] (platform-stats defs)
+        blob                               (or (:name (:tag scm-info)) (:commit scm-info))
+        scm-base                           (str (:url scm-info) "/blob/" blob "/")
         file-mapping                       (when (:files scm-info)
                                              (fixref/match-files
                                               (keys (:files scm-info))
@@ -195,8 +195,6 @@
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))
-             :let [blob (or (:name (:tag scm-info)) (:commit scm-info))
-                   scm-base (str (:url scm-info) "/blob/" blob "/")]]
+             :let [def-meta (first platf-defs)]] ;PLATF_SUPPORT
          (def-block platf-defs (when file-mapping
-                                 {:base scm-base
-                                  :file-mapping file-mapping})))])]))
+                                 (str scm-base (get file-mapping (:file def-meta)) "#L" (:line def-meta)))))])]))
