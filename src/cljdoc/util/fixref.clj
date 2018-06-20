@@ -54,7 +54,10 @@
     ;; (prn 'from-uri-map  (get uri-map w-o-anchor))
     ;; (prn 'keys-uri-map  (keys uri-map))
     (if-let [from-uri-map (get uri-map w-o-anchor)]
-      (str from-uri-map anchor)
+      (-> (get uri-map file-path)
+          ;; TODO check if relative links will work consistently
+          (util/strip-common-start-string from-uri-map)
+          (str anchor))
       (str scm-base root-relative))))
 
 (defn fix-image
