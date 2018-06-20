@@ -111,8 +111,7 @@
                                :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                                      doc-html
                                                      {:scm (:scm (:version cache-contents))
-                                                      :artifact-entity cache-id
-                                                      :flattened-doctree (doctree/flatten* doc-tree)})})
+                                                      :uri-map (fixref/uri-mapping cache-id (doctree/flatten* doc-tree))})})
            (articles/doc-overview {:top-bar-component (layout/top-bar cache-id (:version cache-contents))
                                    :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
                                    :namespace-list-component (api/namespace-list {} (cljdoc.cache/namespaces cache-bundle))

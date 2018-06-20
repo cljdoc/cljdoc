@@ -65,12 +65,11 @@
       (str scm-base (rebase file-path src) suffix))))
 
 (defn fix
-  [file-path html-str {:keys [git-ls scm flattened-doctree artifact-entity] :as fix-opts}]
+  [file-path html-str {:keys [git-ls scm uri-map] :as fix-opts}]
   ;; (def fp file-path)
   ;; (def hs html-str)
   ;; (def fo fix-opts)
   (let [doc     (Jsoup/parse html-str)
-        uri-map (uri-mapping artifact-entity flattened-doctree)
         scm-rev (or (:name (:tag scm))
                     (:commit scm))]
     (doseq [broken-link (->> (.select doc "a")
