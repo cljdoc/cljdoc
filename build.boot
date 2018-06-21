@@ -108,12 +108,15 @@
       (-> fs (add-resource tempd) commit!))))
 
 (deftask build-docs
+  "This task can be used to build docs for a project locally."
   [p project PROJECT sym "Project to build documentation for"
-   v version VERSION str "Version of project to build documentation for"]
+   v version VERSION str "Version of project to build documentation for"
+   _ jar     JAR     str "Path to jar, may be local"
+   _ pom     POM     str "Path to pom, may be local"]
   (comp (ana/analyze :project project
                      :version version
-                     :jarpath (:jar (repositories/artifact-uris project version))
-                     :pompath (:pom (repositories/artifact-uris project version)))
+                     :jarpath (or jar (:jar (repositories/artifact-uris project version)))
+                     :pompath (or pom (:pom (repositories/artifact-uris project version))))
         (grimoire :project project :version version)
         (grimoire-html :project project :version version)
         (sift :move {#"^public/" "grimoire-html/"})))
