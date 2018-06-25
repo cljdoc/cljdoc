@@ -32,7 +32,7 @@
     (cljdoc.spec/assert :cljdoc.spec/def-full def-meta)
     [:div.def-block
      [:hr.mv3.b--black-10]
-     [:h4.def-block-title
+     [:h4.def-block-title.mv0.pv3
       {:name (:name def-meta), :id (:name def-meta)}
       (:name def-meta)
       (when-not (= :var (:type def-meta))
