@@ -21,7 +21,7 @@
 (defn- anchor-uri? [s]
   (.startsWith s "#"))
 
-(defn- uri-mapping [cache-id docs]
+(defn uri-mapping [cache-id docs]
   (->> docs
        (map (fn [d]
               [(-> d :attrs :cljdoc.doc/source-file)
