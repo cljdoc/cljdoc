@@ -47,7 +47,7 @@
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
           content)])
 
-(defn top-bar [cache-id version-meta]
+(defn top-bar [cache-id scm-url]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
    [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params cache-id)}
     (util/clojars-id cache-id)]
@@ -65,7 +65,7 @@
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id cache-id) "/" (:artifact-id cache-id))}]
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version cache-id)}]
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
-    (if-let [scm-url (-> version-meta :scm :url)]
+    (if scm-url
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
        [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
