@@ -2,8 +2,21 @@
   "Components to layout cljdoc pages"
   (:require [cljdoc.server.routes :as routes]
             [cljdoc.util :as util]
-            [hiccup.core :as hiccup]
+            [clojure.string :as string]
+            [hiccup2.core :as hiccup]
             [hiccup.page]))
+
+(defn highlight-js []
+  [:div
+   (hiccup.page/include-js
+    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"
+    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js"
+    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")
+   [:script
+    (->> ["hljs.initHighlightingOnLoad();"
+          "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });"]
+         (string/join "\n")
+         (hiccup/raw))]])
 
 (defn page [opts contents]
   (hiccup/html {:mode :html}
@@ -18,12 +31,8 @@
                    "/cljdoc.css")]
                 [:div.sans-serif
                  contents]
-                (hiccup.page/include-js
-                  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"
-                  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js"
-                  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js"
-                  "/cljdoc.js")
-                [:script "hljs.initHighlightingOnLoad();"]]))
+                (hiccup.page/include-js "/cljdoc.js")
+                (highlight-js)]))
 
 (defn sidebar-title [title]
   [:h4.ttu.f7.fw5.tracked.gray title])
