@@ -13,8 +13,8 @@
                  [:title (:title opts)]
                  [:meta {:charset "utf-8"}]
                  (hiccup.page/include-css
-                   "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
                    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
+                   "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
                    "/cljdoc.css")]
                 [:div.sans-serif
                  contents]

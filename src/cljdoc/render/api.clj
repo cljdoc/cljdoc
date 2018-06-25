@@ -14,7 +14,7 @@
   [args-str]
   {:pre [(string? args-str)]}
   [:pre
-   [:code.db.mb2 {:class "language-clojure"}
+   [:code.db.mb2.pa0 {:class "language-clojure"}
     (zp/zprint-str args-str {:parse-string? true :width 70})]])
 
 (defn render-doc-string [doc-str]
