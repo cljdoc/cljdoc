@@ -4,7 +4,7 @@
             [cljdoc.render.layout :as layout]
             [cljdoc.render.articles :as articles]
             [cljdoc.render.api :as api]
-            [cljdoc.util]
+            [cljdoc.util :as util]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.cache]
             [cljdoc.spec]
@@ -12,11 +12,6 @@
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
-
-(defn clojars-id [{:keys [group-id artifact-id] :as cache-id}]
-  (if (= group-id artifact-id)
-    artifact-id
-    (str group-id "/" artifact-id)))
 
 (defn render-to [opts hiccup ^java.io.File file]
   (log/info "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
@@ -59,7 +54,7 @@
         artifact-entity (assoc cache-id :artifact-id artifact-id)
         big-btn-link :a.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
     (->> [:div.pa4-ns.pa2
-          [:h1 (clojars-id artifact-entity)]
+          [:h1 (util/clojars-id artifact-entity)]
           [:span.db "Known versions on cljdoc:"]
           [:ol.list.pl0.pv3
            (for [v (->> (:versions cache-contents)
@@ -79,7 +74,7 @@
                  [big-btn-link
                   {:href (routes/url-for :artifact/index :path-params (assoc cache-id :artifact-id a))}
                   a]])]])]
-         (layout/page {:title (str (clojars-id artifact-entity) " — cljdoc")}))))
+         (layout/page {:title (str (util/clojars-id artifact-entity) " — cljdoc")}))))
 
 (defmethod render :artifact/version
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -89,7 +84,7 @@
          (articles/article-list
           (articles/doc-tree-view cache-id (doctree/add-slug-path (-> cache-contents :version :doc)) []))
          (api/namespace-list {} (cljdoc.cache/namespaces cache-bundle)))]
-       (layout/page {:title (str (clojars-id cache-id) " " (:version cache-id))})))
+       (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))})))
 
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -117,7 +112,7 @@
                                    :namespace-list-component (api/namespace-list {} (cljdoc.cache/namespaces cache-bundle))
                                    :cache-id cache-id
                                    :doc-tree (doctree/get-subtree doc-tree doc-slug-path)}))
-         (layout/page {:title (str (:title doc-p) " — " (clojars-id cache-id) " " (:version cache-id))}))))
+         (layout/page {:title (str (:title doc-p) " — " (util/clojars-id cache-id) " " (:version cache-id))}))))
 
 (defmethod render :artifact/namespace
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -146,7 +141,7 @@
                                                    {:ns-entity ns-emap
                                                     :namespaces (:namespaces cache-contents)
                                                     :defs (:defs cache-contents)})))
-         (layout/page {:title (str (:namespace ns-emap) " — " (clojars-id cache-id) " " (:version cache-id))}))))
+         (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id cache-id) " " (:version cache-id))}))))
 
 (defn write-docs* [{:keys [cache-contents cache-id] :as cache-bundle} ^java.io.File out-dir]
   (cljdoc.spec/assert :cljdoc.spec/cache-bundle cache-bundle)
