@@ -111,12 +111,16 @@
   "This task can be used to build docs for a project locally."
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
-   _ jar     JAR     str "Path to jar, may be local"
-   _ pom     POM     str "Path to pom, may be local"]
+   _ jar     JAR     str "Path to jar, may be local, falls back to local ~/.m2 then remote"
+   _ pom     POM     str "Path to pom, may be local, falls back to local ~/.m2 then remote"]
   (comp (ana/analyze :project project
                      :version version
-                     :jarpath (or jar (:jar (repositories/artifact-uris project version)))
-                     :pompath (or pom (:pom (repositories/artifact-uris project version))))
+                     :jarpath (or jar
+                                  (:jar (repositories/local-uris project version))
+                                  (:jar (repositories/artifact-uris project version)))
+                     :pompath (or pom
+                                  (:pom (repositories/local-uris project version))
+                                  (:pom (repositories/artifact-uris project version))))
         (grimoire :project project :version version)
         (grimoire-html :project project :version version)
         (sift :move {#"^public/" "grimoire-html/"})))

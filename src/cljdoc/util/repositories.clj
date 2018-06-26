@@ -3,7 +3,8 @@
             [clojure.string :as string]
             [clj-http.lite.client :as http]
             [cheshire.core :as json]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [clojure.java.io :as io])
   (:import (org.jsoup Jsoup)
            (java.time Instant Duration)))
 
@@ -106,6 +107,12 @@
                (util/assert-first)))))
     (throw (ex-info (format "Requested project cannot be found on Clojars or Maven Central: %s" project)
                     {:project project}))))
+
+(defn local-uris [project version]
+  (let [repo (str (System/getProperty "user.home") "/.m2/repository/")
+        uris (artifact-uris* repo project version)]
+    (when (.exists (io/file (:jar uris)))
+      uris)))
 
 (comment
   (find-artifact-repository "org.clojure/clojure" "1.9.0")

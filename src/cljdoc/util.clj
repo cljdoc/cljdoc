@@ -36,15 +36,6 @@
 (defn git-dir [project version]
   (str "git-repos/" (group-id project) "/" (artifact-id project) "/" version "/"))
 
-(defn local-jar-file [[project version :as coordinate]]
-  ;; (jar-file '[org.martinklepsch/derivatives "0.2.0"])
-  (->> (pod/resolve-dependencies {:dependencies [coordinate]})
-       (filter #(if (.endsWith version "-SNAPSHOT")
-                  (= project (first (:dep %)))
-                  (= coordinate (:dep %))))
-       (first)
-       :jar))
-
 (defn clojars-id [{:keys [group-id artifact-id] :as cache-id}]
   (if (= group-id artifact-id)
     artifact-id
