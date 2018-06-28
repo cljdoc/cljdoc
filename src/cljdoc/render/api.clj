@@ -142,7 +142,7 @@
    [:a.link.black
     {:href ns-url}
     [:h2
-     {:data-cljdoc-type :namespace}
+     {:data-cljdoc-type "namespace"}
      (:name ns-meta)
      [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
    (some-> ns-meta :doc render-doc-string)
@@ -150,7 +150,7 @@
     (for [d defs]
       [:li.dib.mr3.mb2
        [:a.link.blue
-        {:data-cljdoc-type (if (:arglists d) :fn (:type d))
+        {:data-cljdoc-type (name (if (:arglists d) :function (:type d)))
          :href (str ns-url "#" (:name d))}
         (:name d)]])]])
 
