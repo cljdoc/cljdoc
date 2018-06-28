@@ -8,7 +8,7 @@
             [hiccup2.core :as hiccup]))
 
 (defn article-list [doc-tree]
-  [:div
+  [:div.mb4
    (layout/sidebar-title "Articles")
    (or doc-tree
        [:p.pl2.f7.gray

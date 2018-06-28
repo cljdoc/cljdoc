@@ -60,7 +60,7 @@
 (defn namespace-list [{:keys [current]} namespaces]
   (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
         namespaces  (ns-tree/index-by :namespace namespaces)]
-    [:div
+    [:div.mb4
      (layout/sidebar-title "Namespaces")
      [:ul.list.pl2
       (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))

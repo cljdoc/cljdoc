@@ -35,7 +35,7 @@
                 (highlight-js)]))
 
 (defn sidebar-title [title]
-  [:h4.ttu.f7.fw5.tracked.gray title])
+  [:h4.ttu.f7.fw5.mt1.mb2.tracked.gray title])
 
 (def TOP-BAR-HEIGHT "57px")
 
