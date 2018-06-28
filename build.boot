@@ -78,16 +78,22 @@
 
 (deftask grimoire
   [p project PROJECT sym "Project to build documentation for"
-   v version VERSION str "Version of project to build documentation for"]
-  (with-pre-wrap fs
-    (let [offline-mapping (first [nil {'bidi "/Users/martin/code/02-oss/bidi/"}])
-          tempd           (tmp-dir!)
-          analysis-result (-> (cljdoc.util/cljdoc-edn project version)
+   v version VERSION str "Version of project to build documentation for"
+   s scm-url SCM     str "Git repo to use, may be local"
+   r rev     REV     str "Git revision to use, default tries to be smart"]
+  (with-pass-thru _
+    (let [analysis-result (-> (cljdoc.util/cljdoc-edn project version)
                               io/resource slurp read-string)
-          storage (storage/->GrimoireStorage grimoire-dir)]
+          storage (storage/->GrimoireStorage grimoire-dir)
+          scm-info (ingest/scm-info project (:pom-str analysis-result))]
       (util/info "Generating Grimoire store for %s\n" project)
       (ingest/ingest-cljdoc-edn storage analysis-result)
-      (-> fs (add-resource tempd) commit!))))
+      (ingest/ingest-git! storage
+                          {:project project
+                           :version version
+                           :scm-url (:url scm-info)
+                           :local-scm scm-url
+                           :pom-revision (or rev (:sha scm-info))}))))
 
 (deftask grimoire-html
   [p project PROJECT sym "Project to build documentation for"
@@ -108,11 +114,20 @@
       (-> fs (add-resource tempd) commit!))))
 
 (deftask build-docs
-  "This task can be used to build docs for a project locally."
+  "This task can be used to build docs for a project locally.
+
+  A jar from the local maven repository will be used
+  based on the project and version info.
+
+  `:git` and `:rev` options can be used to supply a local git repository
+  that will be used to extract additional data such as doc/cljdoc.edn
+  config and Articles."
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
    _ jar     JAR     str "Path to jar, may be local, falls back to local ~/.m2 then remote"
-   _ pom     POM     str "Path to pom, may be local, falls back to local ~/.m2 then remote"]
+   _ pom     POM     str "Path to pom, may be local, falls back to local ~/.m2 then remote"
+   _ git     GIT     str "Path to git repo, may be local"
+   _ rev     REV     str "Git revision to collect documentation at"]
   (comp (ana/analyze :project project
                      :version version
                      :jarpath (or jar
@@ -121,7 +136,10 @@
                      :pompath (or pom
                                   (:pom (repositories/local-uris project version))
                                   (:pom (repositories/artifact-uris project version))))
-        (grimoire :project project :version version)
+        (grimoire :project project
+                  :version version
+                  :scm-url git
+                  :rev rev)
         (grimoire-html :project project :version version)
         (sift :move {#"^public/" "grimoire-html/"})))
 

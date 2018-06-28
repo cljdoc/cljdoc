@@ -9,49 +9,52 @@
             [cljdoc.spec]))
 
 (defn ingest-cljdoc-edn
-  "Ingest all the information in the passed `cljdoc-edn` data.
-
-  This is a large function, doing the following:
-  - parse pom.xml from `:pom-str` key
-  - assert that the format of `cljdoc-edn` is correct
-  - clone the git repo of the project to local disk
-  - read the `doc/cljdoc.edn` configuration file from the projects git repo
-  - store articles and other version specific data in grimoire
-  - store API data in grimoire"
+  "Ingest all the API-related information in the passed `cljdoc-edn` data."
   [storage cljdoc-edn]
-  (let [pom-doc      (pom/parse (:pom-str cljdoc-edn))
-        artifact     (pom/artifact-info pom-doc)
-        scm-info     (pom/scm-info pom-doc)
-        project      (str (:group-id artifact) "/" (:artifact-id artifact))
-        version      (:version artifact)
-        scm-url      (some-> (or (:url scm-info)
-                                 (if (util/gh-url? (:url artifact))
-                                   (:url artifact))
-                                 (util/scm-fallback project))
-                             util/normalize-git-url)]
-
+  (let [artifact (pom/artifact-info (pom/parse (:pom-str cljdoc-edn)))]
     (log/info "Verifying cljdoc-edn contents against spec")
     (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
-
     (log/info "Importing API into Grimoire")
-    (storage/import-api storage artifact (:codox cljdoc-edn))
+    (storage/import-api storage artifact (:codox cljdoc-edn))))
 
-    (when (some? scm-url)
-      (let [git-analysis (ana-git/analyze-git-repo project version scm-url (:sha scm-info))]
-        (if (:error git-analysis)
-          {:scm-url scm-url :error (:error git-analysis)}
-          (do
-            (log/info "Importing Articles into Grimoire")
-            (storage/import-doc
-             storage
-             artifact
-             {:jar          {}
-              :scm          (:scm git-analysis)
-              :doc-tree     (:doc-tree git-analysis)})
+(defn scm-info
+  [project pom-str]
+  (let [pom-doc  (pom/parse pom-str)
+        artifact (pom/artifact-info pom-doc)
+        scm-info (pom/scm-info pom-doc)
+        project  (str (:group-id artifact) "/" (:artifact-id artifact))
+        version  (:version artifact)
+        scm-url  (some-> (or (:url scm-info)
+                             (if (util/gh-url? (:url artifact))
+                               (:url artifact))
+                             (util/scm-fallback project))
+                         util/normalize-git-url)]
+    (when scm-url
+      {:url scm-url
+       :sha (:sha scm-info)})))
 
-            {:scm-url scm-url
-             :commit  (or (-> git-analysis :scm :commit)
-                          (-> git-analysis :scm :tag :commit))}))))))
+(defn ingest-git!
+  [storage {:keys [project version scm-url local-scm pom-revision]}]
+  {:pre [(string? scm-url)]}
+  (let [git-analysis (ana-git/analyze-git-repo project version (or local-scm scm-url) pom-revision)]
+    (if (:error git-analysis)
+      {:scm-url scm-url :error (:error git-analysis)}
+      (do
+        (log/info "Importing Articles into Grimoire" (or local-scm scm-url) pom-revision)
+        (storage/import-doc
+         storage
+         {:group-id (util/group-id project)
+          :artifact-id (util/artifact-id project)
+          :version version}
+         {:jar          {}
+          :scm          (merge (:scm git-analysis)
+                               {:url scm-url
+                                :commit pom-revision})
+          :doc-tree     (:doc-tree git-analysis)})
+
+        {:scm-url scm-url
+         :commit  (or (-> git-analysis :scm :commit)
+                      (-> git-analysis :scm :tag :commit))}))))
 
 (comment
 

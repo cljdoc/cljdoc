@@ -32,8 +32,6 @@
 
         (if revision
           {:scm      {:files (git/ls-files repo revision)
-                      :url scm-url
-                      :commit pom-revision
                       :tag version-tag}
            :doc-tree (doctree/process-toc
                       (fn slurp-at-rev [f]
