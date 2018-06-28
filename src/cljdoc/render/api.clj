@@ -19,7 +19,10 @@
 
 (defn render-doc-string [doc-str]
   [:div.lh-copy.markdown
-   (-> doc-str (rich-text/markdown-to-html {:escape-html? true}) hiccup/raw)])
+   (-> doc-str
+       (string/replace #"\[\[(.*)\]\]" "[`$1`](#$1)")
+       (rich-text/markdown-to-html {:escape-html? true})
+       hiccup/raw)])
 
 (defn def-block [platforms {:keys [base file-mapping] :as scm}]
   (assert (coll? platforms) "def meta is not a map")
