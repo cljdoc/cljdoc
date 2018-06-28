@@ -63,7 +63,8 @@
 (defn artifact-uris*
   [repository project version]
   {:pre [(string? repository) (some? project) (some? version)]}
-  (let [version' (if (.endsWith version "-SNAPSHOT")
+  (let [version' (if (and (.endsWith version "-SNAPSHOT")
+                          (.startsWith repository "http"))
                    (resolve-snapshot repository project version)
                    version)]
     {:pom (format "%s%s/%s/%s/%s-%s.pom"
