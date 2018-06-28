@@ -77,6 +77,7 @@
   "Given a directory `src-dir` inspect all files and infer which
   platforms the source files likely target."
   [^java.io.File src-dir]
+  (assert (< 1 (count (file-seq src-dir))) "jar contents dir does not contain any files")
   (let [file-types (->> (file-seq src-dir)
                         (keep (fn [f]
                                 (cond
