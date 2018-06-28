@@ -64,6 +64,7 @@
   {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
   (let [tmp-dir      (cljdoc.util/system-temp-dir (str "cljdoc-" project "-" version))
         jar-contents (io/file tmp-dir "jar-contents/")
+        _            (copy-jar-contents-impl (URI. jar) jar-contents)
         grimoire-pod (pod/make-pod {:dependencies (conj sandbox-analysis-deps [project version])
                                     :directories #{"src"}})
         platforms    (get-in cljdoc.util/hardcoded-config
