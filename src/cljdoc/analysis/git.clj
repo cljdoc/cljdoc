@@ -20,7 +20,8 @@
       ;; Stuff that depends on a SCM url being present
       (let [repo        (git/->repo git-dir)
             version-tag (git/version-tag repo version)
-            revision    (or (:name version-tag) pom-revision
+            revision    (or pom-revision
+                            (:name version-tag)
                             (when (.endsWith version "-SNAPSHOT")
                               "master"))
             config-edn  (when revision
