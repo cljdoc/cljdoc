@@ -2,6 +2,7 @@
   (:require [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.home :as render-home]
+            [cljdoc.render.offline :as offline]
             [cljdoc.renderers.html :as html]
             [cljdoc.analysis.service :as analysis-service]
             [cljdoc.server.build-log :as build-log]
@@ -62,7 +63,7 @@
               (do (log/info "Loading group cache bundle for" (:path-params request))
                   (assoc ctx :cache-bundle (storage/bundle-group store (:path-params request))))
 
-              (:artifact/version :artifact/doc :artifact/namespace)
+              (:artifact/version :artifact/doc :artifact/namespace :artifact/offline-bundle)
               (do (log/info "Loading artifact cache bundle for" (:path-params request))
                   (if (storage/exists? store (:path-params request))
                     (assoc ctx :cache-bundle (storage/bundle-docs store (:path-params request)))
@@ -206,6 +207,23 @@
                       :body (format "Could not find release for %s" project)})
                    (assoc ctx :response))))})
 
+(defn offline-bundle []
+  {:name ::offline-bundle
+   :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
+            (log/info "Bundling" (str (-> cache-bundle :cache-id :artifact-id) "-"
+                                      (-> cache-bundle :cache-id :version) ".zip"))
+            (->> (if cache-bundle
+                   {:status 200
+                    :headers {"Content-Type" "application/zip, application/octet-stream"
+                              "Content-Disposition" (format "attachment; filename=\"%s\""
+                                                            (str (-> cache-bundle :cache-id :artifact-id) "-"
+                                                                 (-> cache-bundle :cache-id :version) ".zip"))}
+                    :body (offline/zip-stream cache-bundle)}
+                   {:status 404
+                    :headers {}
+                    :body "Could not find data, please request a build first"})
+                 (assoc ctx :response)))})
+
 (defn route-resolver
   [{:keys [build-tracker storage] :as deps}
    {:keys [route-name] :as route}]
@@ -225,7 +243,8 @@
            :artifact/version   (view storage route-name)
            :artifact/namespace (view storage route-name)
            :artifact/doc       (view storage route-name)
-
+           :artifact/offline-bundle [(grimoire-loader storage route-name)
+                                     (offline-bundle)]
            :jump-to-project    [(jump-interceptor)]
            :badge-for-project  [(badge-interceptor)])
          (into default-interceptors)

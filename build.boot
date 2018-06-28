@@ -34,6 +34,7 @@
     [org.jsoup/jsoup "1.11.3"]
     [digest "1.4.8"]
     [tea-time "1.0.0"]
+    [me.raynes/fs "1.4.6"]
 
     [io.pedestal/pedestal.service       "0.5.3"]
     [io.pedestal/pedestal.jetty         "0.5.3"]

@@ -14,7 +14,7 @@
   [args-str]
   {:pre [(string? args-str)]}
   [:pre
-   [:code.db.mb2 {:class "language-clojure"}
+   [:code.db.mb2.pa0 {:class "language-clojure"}
     (zp/zprint-str args-str {:parse-string? true :width 70})]])
 
 (defn render-doc-string [doc-str]
@@ -24,7 +24,7 @@
        (rich-text/markdown-to-html {:escape-html? true})
        hiccup/raw)])
 
-(defn def-block [platforms {:keys [base file-mapping] :as scm}]
+(defn def-block [platforms src-uri]
   (assert (coll? platforms) "def meta is not a map")
   ;; Currently we just render any platform, this obviously
   ;; isn't the best we can do PLATF_SUPPORT
@@ -32,7 +32,7 @@
     (cljdoc.spec/assert :cljdoc.spec/def-full def-meta)
     [:div.def-block
      [:hr.mv3.b--black-10]
-     [:h4.def-block-title
+     [:h4.def-block-title.mv0.pv3
       {:name (:name def-meta), :id (:name def-meta)}
       (:name def-meta)
       (when-not (= :var (:type def-meta))
@@ -54,10 +54,8 @@
              (def-code-block (str "(" (:name m) " " (string/join " " argv) ")")))
            (when (:doc m)
              [:p (:doc m)])])])
-     (when file-mapping
-       [:a.link.f7.gray.hover-dark-gray
-        {:href (str base (get file-mapping (:file def-meta)) "#L" (:line def-meta))}
-        "source"])]))
+     (when src-uri
+       [:a.link.f7.gray.hover-dark-gray {:href src-uri} "source"])]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
@@ -137,6 +135,25 @@
           (-> (set (map :platform platf-defs))
               (humanize-supported-platforms))])])]])
 
+(defn namespace-overview
+  [ns-url ns-meta defs]
+  {:pre [(:name ns-meta) (string? ns-url) (seq defs)]}
+  [:div
+   [:a.link.black
+    {:href ns-url}
+    [:h2
+     {:data-cljdoc-type "namespace"}
+     (:name ns-meta)
+     [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
+   (some-> ns-meta :doc render-doc-string)
+   [:ul.list.pl0
+    (for [d defs]
+      [:li.dib.mr3.mb2
+       [:a.link.blue
+        {:data-cljdoc-type (name (if (:arglists d) :function (:type d)))
+         :href (str ns-url "#" (:name d))}
+        (:name d)]])]])
+
 (defn sub-namespace-overview-page
   [{:keys [ns-entity namespaces defs top-bar-component article-list-component namespace-list-component]}]
   [:div.ns-page
@@ -147,33 +164,24 @@
    (layout/main-container
     {:offset "16rem"}
     [:div.w-80-ns.pv5
-     (for [[ns meta] (->> namespaces
-                          (filter #(.startsWith (:name %) (:namespace ns-entity)))
-                          (map #(dissoc % :platform))
-                          (set)
-                          (ns-tree/index-by :name); see PLATF_SUPPORT
-                          (sort-by key))
-           :let [ns-url (routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace ns))
+     (for [meta (->> namespaces
+                     (filter #(.startsWith (:name %) (:namespace ns-entity)))
+                     (map #(dissoc % :platform)); see PLATF_SUPPORT
+                     (set)
+                     (sort-by :name))
+           :let [ns (:name meta)
+                 ns-url (routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace ns))
                  defs (->> defs
                            (filter #(= ns (:namespace %)))
                            (sort-by :name))]]
-       [:div
-        [:a.link.black
-         {:href ns-url}
-         [:h2 ns
-          [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
-        (some-> meta :doc render-doc-string)
-        [:ul.list.pl0
-         (for [d defs]
-           [:li.dib.mr3.mb2
-            [:a.link.blue
-             {:href (str ns-url "#" (:name d))}
-             (:name d)]])]])])])
+       (namespace-overview ns-url meta defs))])])
 
 (defn namespace-page [{:keys [ns-entity ns-data defs scm-info top-bar-component article-list-component namespace-list-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (let [sorted-defs                        (sort-by (comp string/lower-case :name) defs)
         [[dominant-platf] :as platf-stats] (platform-stats defs)
+        blob                               (or (:name (:tag scm-info)) (:commit scm-info))
+        scm-base                           (str (:url scm-info) "/blob/" blob "/")
         file-mapping                       (when (:files scm-info)
                                              (fixref/match-files
                                               (keys (:files scm-info))
@@ -195,8 +203,6 @@
        (for [[def-name platf-defs] (->> defs
                                         (group-by :name)
                                         (sort-by key))
-             :let [blob (or (:name (:tag scm-info)) (:commit scm-info))
-                   scm-base (str (:url scm-info) "/blob/" blob "/")]]
+             :let [def-meta (first platf-defs)]] ;PLATF_SUPPORT
          (def-block platf-defs (when file-mapping
-                                 {:base scm-base
-                                  :file-mapping file-mapping})))])]))
+                                 (str scm-base (get file-mapping (:file def-meta)) "#L" (:line def-meta)))))])]))

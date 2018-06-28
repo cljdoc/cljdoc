@@ -98,9 +98,3 @@
   bottom: 0;
   left: -2rem;
 }
-
-/** Namespace Page Code Blocks -------------------------------------- **/
-
-.ns-page .def-block .hljs {
-  padding: inherit;
-}

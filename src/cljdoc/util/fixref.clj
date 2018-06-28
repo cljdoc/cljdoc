@@ -21,7 +21,7 @@
 (defn- anchor-uri? [s]
   (.startsWith s "#"))
 
-(defn- uri-mapping [cache-id docs]
+(defn uri-mapping [cache-id docs]
   (->> docs
        (map (fn [d]
               [(-> d :attrs :cljdoc.doc/source-file)
@@ -54,7 +54,10 @@
     ;; (prn 'from-uri-map  (get uri-map w-o-anchor))
     ;; (prn 'keys-uri-map  (keys uri-map))
     (if-let [from-uri-map (get uri-map w-o-anchor)]
-      (str from-uri-map anchor)
+      (-> (get uri-map file-path)
+          ;; TODO check if relative links will work consistently
+          (util/strip-common-start-string from-uri-map)
+          (str anchor))
       (str scm-base root-relative))))
 
 (defn fix-image
@@ -65,12 +68,11 @@
       (str scm-base (rebase file-path src) suffix))))
 
 (defn fix
-  [file-path html-str {:keys [git-ls scm flattened-doctree artifact-entity] :as fix-opts}]
+  [file-path html-str {:keys [git-ls scm uri-map] :as fix-opts}]
   ;; (def fp file-path)
   ;; (def hs html-str)
   ;; (def fo fix-opts)
   (let [doc     (Jsoup/parse html-str)
-        uri-map (uri-mapping artifact-entity flattened-doctree)
         scm-rev (or (:name (:tag scm))
                     (:commit scm))]
     (doseq [broken-link (->> (.select doc "a")
