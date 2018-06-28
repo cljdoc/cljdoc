@@ -8,6 +8,7 @@
             [cljdoc.render.api :as api]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.spec :as cljdoc-spec]
+            [cljdoc.cache :as cljdoc-cache]
             [cljdoc.util :as util]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.render.rich-text :as rich-text]
@@ -167,7 +168,7 @@
               (page' :article-title (:title doc-p)))])
 
       ;; Namespace Pages
-      (for [ns-emap (cljdoc.cache/namespaces cache-bundle)
+      (for [ns-emap (cljdoc-cache/namespaces cache-bundle)
             :let [ns-data (first (filter #(= (:namespace ns-emap) (:name %)) ;PLATF_SUPPORT
                                          (:namespaces cache-contents)))
                   defs    (filter #(= (:namespace ns-emap)
