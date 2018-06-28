@@ -31,7 +31,8 @@
     ["/d/:group-id" :get nop :route-name :group/index]
     ["/d/:group-id/:artifact-id" :get nop :route-name :artifact/index]
     ["/d/:group-id/:artifact-id/:version/doc/*article-slug" :get nop :route-name :artifact/doc]
-    ["/d/:group-id/:artifact-id/:version/api/:namespace" :get nop :route-name :artifact/namespace]})
+    ["/d/:group-id/:artifact-id/:version/api/:namespace" :get nop :route-name :artifact/namespace]
+    ["/download/:group-id/:artifact-id/:version" :get nop :route-name :artifact/offline-bundle]})
 
 (defn info-pages-routes []
   #{["/" :get nop :route-name :home]})
