@@ -136,18 +136,22 @@
               (humanize-supported-platforms))])])]])
 
 (defn namespace-overview
-  [ns-url ns defs]
+  [ns-url ns-meta defs]
+  {:pre [(:name ns-meta) (string? ns-url) (seq defs)]}
   [:div
    [:a.link.black
     {:href ns-url}
-    [:h2 ns
+    [:h2
+     {:data-cljdoc-type :namespace}
+     (:name ns-meta)
      [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
-   (some-> meta :doc render-doc-string)
+   (some-> ns-meta :doc render-doc-string)
    [:ul.list.pl0
     (for [d defs]
       [:li.dib.mr3.mb2
        [:a.link.blue
-        {:href (str ns-url "#" (:name d))}
+        {:data-cljdoc-type (if (:arglists d) :fn (:type d))
+         :href (str ns-url "#" (:name d))}
         (:name d)]])]])
 
 (defn sub-namespace-overview-page
