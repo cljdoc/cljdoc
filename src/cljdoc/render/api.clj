@@ -164,7 +164,7 @@
                      (filter #(.startsWith (:name %) (:namespace ns-entity)))
                      (map #(dissoc % :platform)); see PLATF_SUPPORT
                      (set)
-                     (sort-by key))
+                     (sort-by :name))
            :let [ns (:name meta)
                  ns-url (routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace ns))
                  defs (->> defs
