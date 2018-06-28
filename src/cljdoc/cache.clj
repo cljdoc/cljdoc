@@ -1,4 +1,5 @@
 (ns cljdoc.cache
+  "Functions to operate on cache bundles"
   (:require [cljdoc.spec]))
 
 (defn namespaces
