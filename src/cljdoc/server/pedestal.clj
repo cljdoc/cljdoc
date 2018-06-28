@@ -164,6 +164,11 @@
                  (cljdoc.render.build-log/builds-page)
                  (ok-html! ctx)))})
 
+(defn badge-url [status color]
+  (format "https://img.shields.io/badge/cljdoc-%s-%s.svg"
+          (-> status (string/replace #"-" "--") (string/replace #"/" "%2F"))
+          (name color)))
+
 (defn badge-interceptor []
   {:name ::badge
    :enter (fn badge [ctx]
@@ -173,9 +178,8 @@
                                (catch Exception e
                                  (log/warnf "Could not find release for %s" project)))
                   url     (if release
-                            (format "https://img.shields.io/badge/cljdoc-%s-blue.svg"
-                                    (string/replace release #"-" "--"))
-                            (format "https://img.shields.io/badge/cljdoc-%s-red.svg" "no release found"))
+                            (badge-url release :blue)
+                            (badge-url (str "no release found for " project) :red))
                   badge   (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}})]
               (->> {:status 200
                     :headers {"Content-Type" "image/svg+xml;charset=utf-8"
