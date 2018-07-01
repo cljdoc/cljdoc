@@ -137,7 +137,7 @@
 
 (defn namespace-overview
   [ns-url ns-meta defs]
-  {:pre [(:name ns-meta) (string? ns-url) (seq defs)]}
+  {:pre [(:name ns-meta) (string? ns-url)]}
   [:div
    [:a.link.black
     {:href ns-url}
@@ -146,13 +146,15 @@
      (:name ns-meta)
      [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
    (some-> ns-meta :doc render-doc-string)
-   [:ul.list.pl0
-    (for [d defs]
-      [:li.dib.mr3.mb2
-       [:a.link.blue
-        {:data-cljdoc-type (name (if (:arglists d) :function (:type d)))
-         :href (str ns-url "#" (:name d))}
-        (:name d)]])]])
+   (if-not (seq defs)
+     [:p [:i "No vars in this namespace."]]
+     [:ul.list.pl0
+      (for [d defs]
+        [:li.dib.mr3.mb2
+         [:a.link.blue
+          {:data-cljdoc-type (name (if (:arglists d) :function (:type d)))
+           :href (str ns-url "#" (:name d))}
+          (:name d)]])])])
 
 (defn sub-namespace-overview-page
   [{:keys [ns-entity namespaces defs top-bar-component article-list-component namespace-list-component]}]
