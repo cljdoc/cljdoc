@@ -43,15 +43,23 @@
     (assert build-id "Could not extract build-id from response")
     build-id))
 
+(defn exclude?
+  [{:keys [group_id artifact_id version] :as  build}]
+  (or (= "cljsjs" group_id)
+      (.endsWith version "-SNAPSHOT")
+      (and (= "org.akvo.flow" group_id)
+           (= "akvo-flow" artifact_id))
+      (= "lein-template" artifact_id)
+      (= "zcaudate" group_id)
+      (.contains group_id "gradle-clojure")
+      (.contains group_od "gradle-clj")))
+
 (defn release-fetch-job-fn [db-spec]
   (let [ts (or (some-> (last-release-ts db-spec)
                        (.plus (Duration/ofSeconds 1)))
                (.minus (Instant/now) (Duration/ofHours 24)))
-        cljsjs?   #(= "cljsjs" (:group_id %))
-        snapshot? #(.endsWith (:version %) "-SNAPSHOT")
         releases (->> (repositories/releases-since ts)
-                      (remove snapshot?)
-                      (remove cljsjs?))]
+                      (remove exclude?))]
     (when (seq releases)
       (log/infof "Storing %s new releases in releases table" (count releases))
       (sql/insert-multi! db-spec "releases" releases))))
