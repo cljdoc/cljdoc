@@ -69,8 +69,7 @@
          '[cljdoc.analysis.task :as ana]
          '[cljdoc.util]
          '[cljdoc.storage.api :as storage]
-         '[cljdoc.util.repositories :as repositories]
-         '[cljdoc.util.boot])
+         '[cljdoc.util.repositories :as repositories])
 
 (spec/check-asserts true)
 
