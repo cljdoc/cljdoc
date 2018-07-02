@@ -1,6 +1,8 @@
 (ns cljdoc.analysis.impl
-  (:require [codox.main]
-            [cljs.util]))
+  (:require [codox.main :as codox]
+            [clojure.edn :as edn]
+            [clojure.pprint :as pprint]
+            [cljs.util :as cljs-util]))
 
 (defn codox-config [namespaces jar-contents-path platf]
   (assert (string? jar-contents-path) (str "was: " (pr-str jar-contents-path)))
@@ -35,13 +37,20 @@
   (let [config (codox-config namespaces jar-contents-path platf)]
     ;; TODO print versions for Clojure/CLJS and other important deps
     (printf "Analysing sources for platform %s\n" (pr-str platf))
-    (printf "ClojureScript version %s\n" (cljs.util/clojurescript-version))
+    (printf "ClojureScript version %s\n" (cljs-util/clojurescript-version))
     (printf "Codox opts: %s\n" config)
-    (->> (codox.main/generate-docs config)
+    (->> (codox/generate-docs config)
          :namespaces
          (mapv sanitize-cdx)
          ;; Ensure everything is fully realized, see
          ;; https://github.com/boot-clj/boot/issues/683
          (clojure.walk/prewalk identity))))
+
+(defn -main [namespaces jar-contents-path platf file]
+  (printf "Args:\n  - namespaces: %s\n  - jar-contents-path: %s\n  - platf: %s\n  - file: %s\n"
+          (pr-str namespaces) (pr-str jar-contents-path) (pr-str platf) (pr-str file))
+  (let [ana-result (codox-namespaces (edn/read-string namespaces) jar-contents-path platf)]
+    (printf "Writing %s\n" file)
+    (spit file (pr-str ana-result))))
 
 

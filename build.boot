@@ -80,11 +80,21 @@
 (deftask grimoire
   [p project PROJECT sym "Project to build documentation for"
    v version VERSION str "Version of project to build documentation for"
+   _ jar     JAR     str "Path to jar, may be local, falls back to local ~/.m2 then remote"
+   _ pom     POM     str "Path to pom, may be local, falls back to local ~/.m2 then remote"
    s scm-url SCM     str "Git repo to use, may be local"
    r rev     REV     str "Git revision to use, default tries to be smart"]
   (with-pass-thru _
-    (let [analysis-result (-> (cljdoc.util/cljdoc-edn project version)
-                              io/resource slurp read-string)
+    (let [analysis-result (-> (ana/analyze-impl
+                               project
+                               version
+                               (or jar
+                                   (:jar (repositories/local-uris project version))
+                                   (:jar (repositories/artifact-uris project version)))
+                               (or pom
+                                   (:pom (repositories/local-uris project version))
+                                   (:pom (repositories/artifact-uris project version))))
+                              slurp read-string)
           storage (storage/->GrimoireStorage grimoire-dir)
           scm-info (ingest/scm-info project (:pom-str analysis-result))]
       (util/info "Generating Grimoire store for %s\n" project)
@@ -129,16 +139,10 @@
    _ pom     POM     str "Path to pom, may be local, falls back to local ~/.m2 then remote"
    _ git     GIT     str "Path to git repo, may be local"
    _ rev     REV     str "Git revision to collect documentation at"]
-  (comp (ana/analyze :project project
-                     :version version
-                     :jarpath (or jar
-                                  (:jar (repositories/local-uris project version))
-                                  (:jar (repositories/artifact-uris project version)))
-                     :pompath (or pom
-                                  (:pom (repositories/local-uris project version))
-                                  (:pom (repositories/artifact-uris project version))))
-        (grimoire :project project
+  (comp (grimoire :project project
                   :version version
+                  :jar jar
+                  :pom pom
                   :scm-url git
                   :rev rev)
         (grimoire-html :project project :version version)

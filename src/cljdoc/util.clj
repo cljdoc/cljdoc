@@ -5,8 +5,7 @@
   should work without any additional dependencies."
   (:require [clojure.edn]
             [clojure.java.io :as io]
-            [clojure.string :as string]
-            [boot.pod :as pod])
+            [clojure.string :as string])
   (:import (java.nio.file Files)))
 
 (def hardcoded-config
@@ -110,6 +109,11 @@
             (clojure.string/replace prefix #"/" "-")
             (into-array java.nio.file.attribute.FileAttribute []))))
 
+(defn system-temp-file [prefix suffix]
+  (.toFile (Files/createTempFile
+            (clojure.string/replace prefix #"/" "-")
+            suffix
+            (into-array java.nio.file.attribute.FileAttribute []))))
 
 ;; (defn assert-match [project version artifact-enitity]
 ;;   (assert (and (:group-id artifact-entity)
