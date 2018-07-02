@@ -52,7 +52,7 @@
       (= "lein-template" artifact_id)
       (= "zcaudate" group_id)
       (.contains group_id "gradle-clojure")
-      (.contains group_od "gradle-clj")))
+      (.contains group_id "gradle-clj")))
 
 (defn release-fetch-job-fn [db-spec]
   (let [ts (or (some-> (last-release-ts db-spec)
