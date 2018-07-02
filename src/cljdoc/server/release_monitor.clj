@@ -13,8 +13,13 @@
           :created_ts
           Instant/parse))
 
-(defn- oldest-not-built [db-spec]
-  (first (sql/query db-spec ["SELECT * FROM releases WHERE build_id IS NULL ORDER BY datetime(created_ts) LIMIT 1"])))
+(defn- oldest-not-built
+  "Return the oldest not yet built release, excluding releases younger than 10 minutes.
+
+  The 10min delay has been put into place to avoid building projects before people had a chance
+  to push the respective commits or tags to their git repositories."
+  [db-spec]
+  (first (sql/query db-spec ["SELECT * FROM releases WHERE build_id IS NULL AND datetime(created_ts) < datetime('now', '-10 minutes') ORDER BY datetime(created_ts) DESC LIMIT 1"])))
 
 (defn- update-build-id
   [db-spec release-id build-id]
