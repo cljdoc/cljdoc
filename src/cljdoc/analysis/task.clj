@@ -83,7 +83,7 @@
         build-cdx      (fn build-cdx [jar-contents-path platf]
                          (let [f (util/system-temp-file project ".edn")]
                            (println "Analyzing" project platf)
-                           (let [process (sh/sh "clj" "-Sdeps" (pr-str {:deps (deps project version)})
+                           (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps (deps project version)})
                                                 "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f))]
                              (when-not (zero? (:exit process))
