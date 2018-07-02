@@ -154,3 +154,11 @@
        (take-while #(= (first %) (second %)))
        (count)
        (subs s2)))
+
+(defn uri-path
+  "Return path part of a URL, this is probably part of pedestal in
+  some way but I couldn't find it fast enough. TODO replace."
+  [uri]
+  (-> uri
+      (string/replace #"^https*://" "")
+      (string/replace #"^[^/]*" "")))

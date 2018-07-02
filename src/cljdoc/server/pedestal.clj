@@ -69,6 +69,36 @@
                     (assoc ctx :cache-bundle (storage/bundle-docs store (:path-params request)))
                     ctx))))})
 
+(defn- resolve-version [path-params referer]
+  (assert (= "CURRENT" (:version path-params)))
+  (->> (or (some-> referer util/uri-path routes/match-route :path-params :version)
+           (repos/latest-release-version (str (-> path-params :group-id) "/"
+                                              (-> path-params :artifact-id))))
+       (assoc path-params :version)))
+
+(defn version-resolve-redirect
+  "Intelligently resolve the `CURRENT` version based on the referer
+  and Clojars releases.
+
+  Users may want to link to API docs from their existing non-API
+  (Markdown/Asciidoc) documentation. Since links are usually tied to a
+  specific version this can become cumbersome when updating docs.
+  This interceptor intelligently rewrites any usages of `CURRENT` in
+  the version part of the URL to use either
+
+  - the version from the referring URL
+  - the version of the last release from Clojars"
+  []
+  {:name ::version-resolve-redirect
+   :enter (fn [{:keys [request route] :as ctx}]
+            (cond-> ctx
+              (= "CURRENT" (-> request :path-params :version))
+              (assoc :response
+                     {:status 307
+                      :headers {"Location" (->> (get-in request [:headers "referer"])
+                                                (resolve-version (:path-params request))
+                                                (routes/url-for (:route-name route) :path-params))}})))})
+
 (def article-locator
   {:name ::article-locator
    :enter (fn article-locator [ctx]
@@ -77,7 +107,8 @@
             )})
 
 (defn view [storage route-name]
-  (->> [(when (= :artifact/doc route-name) doc-slug-parser)
+  (->> [(version-resolve-redirect)
+        (when (= :artifact/doc route-name) doc-slug-parser)
         (grimoire-loader storage route-name)
         render-interceptor]
        (keep identity)

@@ -81,6 +81,9 @@
 (def url-for
   (url-for-routes (routes identity {})))
 
+(defn match-route [path-info]
+  (route/try-routing-for (routes identity {}) :map-tree path-info :get))
+
 (comment
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
 
