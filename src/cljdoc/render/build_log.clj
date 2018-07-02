@@ -54,9 +54,9 @@
          (str (:group_id build-info) "/" (:artifact_id build-info))
          [:span " v" (:version build-info)]]
 
-        (when-not false; (done? build-info)
+        (when-not (done? build-info)
           [:div.pa3.ba.b--blue.mb3.lh-copy.ma0.br2.bw1.f4
-           [:p.ma0.mb2 "We will now queue an job on CircleCI that will analyze
+           [:p.ma0.mb2 "We will now queue a job on CircleCI that will analyze
            your code in an isolated environment. Once this is done we
            will process the result of the analysis and integrate
            additional sources like your Git repository."]
@@ -89,7 +89,13 @@
           (section
            ""
            [:h3.mt0 "There was an error"]
-           [:p.bg-washed-red.pa3.br2 (:error build-info)]))
+           [:p.bg-washed-red.pa3.br2 (:error build-info)]
+           [:p.lh-copy "If this error is Git-related your API docs should still
+           have been imported correctly and be available at the
+           location given below. To fix any Git related issues, please
+           ensure you " [:a.link.blue {:href (util/github-url :userguide/scm-faq)}
+                         "set SCM information in your project."]]
+           [:p (cljdoc-link build-info true)]))
 
         (section
          (:import_completed_ts build-info)
@@ -111,8 +117,15 @@
 
         (when-not (done? build-info)
           [:script
-           "setTimeout(function(){window.location.reload(1);}, 5000);"])]
-       (layout/page {:title "cljdoc build #"})))
+           "setTimeout(function(){window.location.reload(1);}, 5000);"])
+
+        [:p.lh-copy.dark-gray "Having trouble? Please reach out via "
+        [:a.link.blue {:href
+        "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "Slack"] "
+        or " [:a.link.blue {:href (util/github-url :issues)} "open an
+        issue on GitHub"] ". Thanks!"]]
+
+       (layout/page {:title (str "cljdoc build #" (:id build-info))})))
 
 (defn seconds-diff [d1 d2]
   (let [s (.getSeconds
