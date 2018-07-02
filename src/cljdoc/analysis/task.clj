@@ -85,13 +85,15 @@
                            (println "Analyzing" project platf)
                            (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps (deps project version)})
                                                 "-m" "cljdoc.analysis.impl"
-                                                (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f))]
+                                                (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f))
+                                 result (edn/read-string (slurp f))]
                              (when-not (zero? (:exit process))
                                (println (:out process))
                                (println (:err process))
                                (throw (Exception. "Process exited with non-zero exit code.")))
-                             (print-process-result process))
-                           (edn/read-string (slurp f))))]
+                             (print-process-result process)
+                             (assert result "No data was saved in output file")
+                             result)))]
 
     (let [cdx-namespaces (->> (map #(build-cdx (.getPath jar-contents) %) platforms)
                               (zipmap platforms))
