@@ -23,6 +23,13 @@ jobs:
           - v1-dependencies-{{ checksum "build.boot" }}
           - v1-dependencies- # fallback if not cache found
 
+      - run:
+          name: Install CLI tools
+          command: |
+            curl -O https://download.clojure.org/install/linux-install-1.9.0.381.sh
+            chmod +x linux-install-1.9.0.381.sh
+            sudo ./linux-install-1.9.0.381.sh
+
       - run: boot show -d
       - run: boot -B -d codox
 
