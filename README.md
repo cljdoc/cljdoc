@@ -1,6 +1,6 @@
 ![cljdoc is a platform to build, host and view Clojure/Script library documentation](doc/assets/title.png)
 
-[![CircleCI](https://circleci.com/gh/martinklepsch/cljdoc.svg?style=svg)](https://circleci.com/gh/martinklepsch/cljdoc)
+[![CircleCI](https://circleci.com/gh/cljdoc/cljdoc.svg?style=svg)](https://circleci.com/gh/cljdoc/cljdoc)
 
 An effort to create a central documentation hub for the Clojure & ClojureScript ecosystem.
 
@@ -47,7 +47,7 @@ interesting use-cases down the road.
 
 #### ADRs
 
-I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions) for some time, you can find them all in [`doc/adr/`](https://github.com/martinklepsch/cljdoc/tree/master/doc/adr).
+I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions) for some time, you can find them all in [`doc/adr/`](https://github.com/cljdoc/cljdoc/tree/master/doc/adr).
 
 ## Contributing
 
