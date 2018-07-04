@@ -5,7 +5,6 @@
             [cljdoc.server.build-log :as build-log]
             [cljdoc.util]
             [cljdoc.util.repositories :as repositories]
-            [cljdoc.cache]
             [cljdoc.config] ; should not be necessary but instead be passed as args
             [cljdoc.renderers.html :as html]
             [clojure.tools.logging :as log]

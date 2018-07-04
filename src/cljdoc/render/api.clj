@@ -4,6 +4,8 @@
             [cljdoc.render.layout :as layout]
             [cljdoc.util.ns-tree :as ns-tree]
             [cljdoc.util.fixref :as fixref]
+            [cljdoc.bundle :as bundle]
+            [cljdoc.platforms :as platf]
             [cljdoc.spec]
             [cljdoc.server.routes :as routes]
             [clojure.string :as string]
@@ -24,38 +26,57 @@
        (rich-text/markdown-to-html {:escape-html? true})
        hiccup/raw)])
 
-(defn def-block [platforms src-uri]
-  (assert (coll? platforms) "def meta is not a map")
-  ;; Currently we just render any platform, this obviously
-  ;; isn't the best we can do PLATF_SUPPORT
-  (let [def-meta (first (sort-by :platform platforms))]
-    (cljdoc.spec/assert :cljdoc.spec/def-full def-meta)
+(defn render-doc [mp]
+  (if (platf/varies? mp :doc)
+    (for [p (sort (platf/platforms mp))
+          :when (platf/get-field mp :doc p)]
+      [:div
+       [:span.f7.ttu.gray.db.nb2 (get {"clj" "Clojure" "cljs" "ClojureScript"} p) " docstring"]
+       (some-> (platf/get-field mp :doc p) render-doc-string)])
+    (some-> (platf/get-field mp :doc) render-doc-string)))
+
+(defn render-arglists [def-name arglists]
+  (for [argv (sort-by count arglists)]
+    (def-code-block
+      (str "(" def-name (when (seq argv) " ") (string/join " " argv) ")"))))
+
+(defn def-block
+  [def]
+  {:pre [(platf/multiplatform? def)]}
+  (let [def-name (platf/get-field def :name)]
     [:div.def-block
      [:hr.mv3.b--black-10]
      [:h4.def-block-title.mv0.pv3
-      {:name (:name def-meta), :id (:name def-meta)}
-      (:name def-meta)
-      (when-not (= :var (:type def-meta))
-        [:span.f7.ttu.normal.gray.ml2 (:type def-meta)])
-      (when (:deprecated def-meta) [:span.fw3.f6.light-red.ml2 "deprecated"])]
-     ;; (when-not (= :var (:type def-meta))
-     ;;   [:code (pr-str def-meta)])
+      {:name (platf/get-field def :name), :id def-name}
+      def-name
+      (when-not (= :var (platf/get-field def :type))
+        [:span.f7.ttu.normal.gray.ml2 (platf/get-field def :type)])
+      (when (platf/get-field def :deprecated)
+        [:span.fw3.f6.light-red.ml2 "deprecated"])]
      [:div.lh-copy
-      (for [argv (sort-by count (:arglists def-meta))]
-        (def-code-block 
-          (str "(" (:name def-meta) (when (seq argv) " ") (string/join " " argv) ")")))]
-     (some-> def-meta :doc render-doc-string)
-     (when (seq (:members def-meta))
+      (if (platf/varies? def :arglists)
+        (for [p (sort (platf/platforms def))
+              :when (platf/get-field def :arglists p)]
+          [:div
+           [:span.f7.ttu.gray.db.nb2 (get {"clj" "Clojure" "cljs" "ClojureScript"} p) " arglists"]
+           (render-arglists def-name (platf/get-field def :arglists p))])
+        (render-arglists def-name (platf/get-field def :arglists)))]
+     (render-doc def)
+     (when (seq (platf/get-field def :members))
        [:div.lh-copy.pl3.bl.b--black-10
-        (for [m (:members def-meta)]
+        (for [m (platf/get-field def :members)]
           [:div
            [:h5 (:name m)]
-           (for [argv (sort-by count (:arglists m))]
-             (def-code-block (str "(" (:name m) " " (string/join " " argv) ")")))
+           (render-arglists (:name m) (:arglists m))
            (when (:doc m)
-             [:p (:doc m)])])])
-     (when src-uri
-       [:a.link.f7.gray.hover-dark-gray {:href src-uri} "source"])]))
+             [:p (render-doc-string (:doc m))])])])
+     (if (platf/varies? def :src-uri)
+       (for [p (sort (platf/platforms def))
+             :when (platf/get-field def :src-uri p)]
+         [:a.link.f7.gray.hover-dark-gray.mr2
+          {:href (platf/get-field def :src-uri p)}
+          (format "source (%s)" p)])
+       [:a.link.f7.gray.hover-dark-gray {:href (platf/get-field def :src-uri)} "source"])]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
@@ -71,14 +92,7 @@
            :class (when (= ns current) "b")
            :style style}
           (->> (ns-tree/split-ns ns)
-               (drop (dec level)))]])
-
-      #_(for [ns (sort-by :namespace namespaces)]
-          [:li
-           [:a.link.dim.blue.dib.pa1
-            {:href (routes/url-for :artifact/namespace :path-params ns)
-             :class (when (= (:namespace ns) current) "b")}
-            (:namespace ns)]])]]))
+               (drop (dec level)))]])]]))
 
 (defn humanize-supported-platforms
   ([supported-platforms]
@@ -96,11 +110,7 @@
 
 (defn platform-stats [defs]
   (let [grouped-by-platform-support (->> defs
-                                         (map #(select-keys % [:name :platform]))
-                                         (group-by :name)
-                                         vals
-                                         (map (fn [defs]
-                                                (set (map :platform defs))))
+                                         (map platf/platforms)
                                          (group-by identity))
         counts-by-platform (-> grouped-by-platform-support
                                (update #{"clj"} count)
@@ -122,39 +132,42 @@
 (defn definitions-list [ns-entity defs {:keys [indicate-platforms-other-than]}]
   [:div.pb4
    [:ul.list.pl0
-    (for [[def-name platf-defs] (->> defs
-                                     (group-by :name)
-                                     (sort-by key))]
+    (for [def defs
+          :let [def-name (platf/get-field def :name)]]
       [:li.def-item
        [:a.link.dim.blue.dib.pa1.pl0
         {:href (str "#" def-name)}
         def-name]
-       (when-not (= (set (map :platform platf-defs))
+       (when-not (= (platf/platforms def)
                     indicate-platforms-other-than)
          [:sup.f7.gray
-          (-> (set (map :platform platf-defs))
+          (-> (platf/platforms def)
               (humanize-supported-platforms))])])]])
 
 (defn namespace-overview
-  [ns-url ns-meta defs]
-  {:pre [(:name ns-meta) (string? ns-url)]}
+  [ns-url mp-ns defs]
+  {:pre [(platf/multiplatform? mp-ns) (string? ns-url)]}
   [:div
    [:a.link.black
     {:href ns-url}
     [:h2
      {:data-cljdoc-type "namespace"}
-     (:name ns-meta)
+     (platf/get-field mp-ns :name)
      [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
-   (some-> ns-meta :doc render-doc-string)
+   (render-doc mp-ns)
    (if-not (seq defs)
      [:p [:i "No vars in this namespace."]]
      [:ul.list.pl0
-      (for [d defs]
+      (for [d defs
+            :let [def-name (platf/get-field d :name)
+                  type (if (seq (platf/all-vals d :arglists))
+                         :function
+                         (platf/get-field d :type))]]
         [:li.dib.mr3.mb2
          [:a.link.blue
-          {:data-cljdoc-type (name (if (:arglists d) :function (:type d)))
-           :href (str ns-url "#" (:name d))}
-          (:name d)]])])])
+          {:data-cljdoc-type (name type)
+           :href (str ns-url "#" def-name)}
+          def-name]])])])
 
 (defn sub-namespace-overview-page
   [{:keys [ns-entity namespaces defs top-bar-component article-list-component namespace-list-component]}]
@@ -166,28 +179,33 @@
    (layout/main-container
     {:offset "16rem"}
     [:div.w-80-ns.pv5
-     (for [meta (->> namespaces
-                     (filter #(.startsWith (:name %) (:namespace ns-entity)))
-                     (map #(dissoc % :platform)); see PLATF_SUPPORT
-                     (set)
-                     (sort-by :name))
-           :let [ns (:name meta)
+     (for [mp-ns (->> namespaces
+                     (filter #(.startsWith (platf/get-field % :name) (:namespace ns-entity))))
+           :let [ns (platf/get-field mp-ns :name)
                  ns-url (routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace ns))
-                 defs (->> defs
-                           (filter #(= ns (:namespace %)))
-                           (sort-by :name))]]
-       (namespace-overview ns-url meta defs))])])
+                 defs (bundle/defs-for-ns defs ns)]]
+       (namespace-overview ns-url mp-ns defs))])])
+
+(defn add-src-uri
+  [{:keys [platforms] :as mp-var} scm-base file-mapping]
+  {:pre [(platf/multiplatform? mp-var)]}
+  (if file-mapping
+    (->> platforms
+         (map (fn [{:keys [file line] :as p}]
+                (assoc p :src-uri (str scm-base (get file-mapping file) "#L" line))))
+         (assoc mp-var :platforms))
+    mp-var))
 
 (defn namespace-page [{:keys [ns-entity ns-data defs scm-info top-bar-component article-list-component namespace-list-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
-  (let [sorted-defs                        (sort-by (comp string/lower-case :name) defs)
-        [[dominant-platf] :as platf-stats] (platform-stats defs)
+  (assert (platf/multiplatform? ns-data))
+  (let [[[dominant-platf] :as platf-stats] (platform-stats defs)
         blob                               (or (:name (:tag scm-info)) (:commit scm-info))
         scm-base                           (str (:url scm-info) "/blob/" blob "/")
         file-mapping                       (when (:files scm-info)
                                              (fixref/match-files
                                               (keys (:files scm-info))
-                                              (set (keep :file sorted-defs))))]
+                                              (set (mapcat #(platf/all-vals % :file) defs))))]
     [:div.ns-page
      top-bar-component
      (layout/sidebar
@@ -195,16 +213,23 @@
       namespace-list-component)
      (layout/sidebar-two
       (platform-support-note platf-stats)
-      (definitions-list ns-entity sorted-defs
+      (definitions-list ns-entity defs
         {:indicate-platforms-other-than dominant-platf}))
      (layout/main-container
       {:offset "32rem"}
       [:div.w-80-ns.pv4
        [:h2 (:namespace ns-entity)]
-       (some-> ns-data :doc render-doc-string)
-       (for [[def-name platf-defs] (->> defs
-                                        (group-by :name)
-                                        (sort-by key))
-             :let [def-meta (first platf-defs)]] ;PLATF_SUPPORT
-         (def-block platf-defs (when file-mapping
-                                 (str scm-base (get file-mapping (:file def-meta)) "#L" (:line def-meta)))))])]))
+       (render-doc ns-data)
+       (for [def defs]
+         (def-block (add-src-uri def scm-base file-mapping)))])]))
+
+(comment
+  (:platforms --d)
+
+  (let [platforms (:platforms --d)]
+    (< 1 (count (set (map :doc platforms)))))
+
+  (platf/varies? --d :doc)
+  (platf/get-field --d :name)
+
+  )
