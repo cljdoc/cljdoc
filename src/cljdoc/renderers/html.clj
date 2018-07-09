@@ -130,8 +130,6 @@
                        :namespace-list-component (api/namespace-list
                                                   {:current (:namespace ns-emap)}
                                                   (bundle/ns-entities cache-bundle))}]
-    (when (empty? defs)
-      (log/warnf "Namespace %s contains no defs" (:namespace route-params)))
     (->> (if ns-data
            (api/namespace-page (merge common-params
                                       {:scm-info (:scm (:version cache-contents))
