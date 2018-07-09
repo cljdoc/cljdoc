@@ -10,16 +10,26 @@
            (java.net URI)
            (java.nio.file Files)))
 
+(defn extra-deps
+  "Some projects require additional depenencies that have either been specified with
+  scope 'provided' or are specified via documentation, e.g. a README.
+  Maybe should be able to configure this via their cljdoc.edn configuration
+  file but this situation being an edge case this is a sufficient fix for now."
+  [project]
+  (get '{manifold/manifold {org.clojure/core.async {:mvn/version "RELEASE"}}
+         io.pedestal/pedestal.interceptor {org.clojure/tools.logging {:mvn/version "RELEASE"}}
+         compojure/compojure {javax.servlet/servlet-api {:mvn/version "2.5"}}
+         ring/ring-core {javax.servlet/servlet-api {:mvn/version "2.5"}}}
+       (symbol (util/normalize-project project))))
+
 (defn deps [project version]
-  `{~project {:mvn/version ~version}
-    org.clojure/clojure {:mvn/version "1.9.0"},
-    org.clojure/java.classpath {:mvn/version "0.2.2"},
-    org.clojure/tools.namespace {:mvn/version "0.2.11"},
-    org.clojure/clojurescript {:mvn/version "1.10.238"},
-    org.clojure/core.async {:mvn/version "RELEASE"},
-    org.clojure/tools.logging {:mvn/version "RELEASE"},
-    javax.servlet/servlet-api {:mvn/version "2.5"},
-    codox/codox {:mvn/version "0.10.3"}})
+  (merge {project {:mvn/version version}
+          'org.clojure/clojure {:mvn/version "1.9.0"}
+          'org.clojure/java.classpath {:mvn/version "0.2.2"}
+          'org.clojure/tools.namespace {:mvn/version "0.2.11"}
+          'org.clojure/clojurescript {:mvn/version "1.10.238"}
+          'codox/codox {:mvn/version "0.10.3" :exclusions '[enlive hiccup org.pegdown/pegdown]}}
+         (extra-deps project)))
 
 (defn copy [uri file]
   (with-open [in  (io/input-stream uri)
@@ -81,9 +91,11 @@
         namespaces   (get-in util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/namespaces])
         build-cdx      (fn build-cdx [jar-contents-path platf]
-                         (let [f (util/system-temp-file project ".edn")]
+                         (let [f (util/system-temp-file project ".edn")
+                               deps (deps project version)]
                            (println "Analyzing" project platf)
-                           (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps (deps project version)})
+                           (println "Dependencies:" deps)
+                           (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps})
                                                 "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f))
                                  result (edn/read-string (slurp f))]
