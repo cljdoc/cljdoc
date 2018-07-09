@@ -19,10 +19,16 @@
    [:code.db.mb2.pa0 {:class "language-clojure"}
     (zp/zprint-str args-str {:parse-string? true :width 70})]])
 
+(defn wiki-link [m]
+  (if (.contains m "/")
+    (let [[ns var] (string/split m #"/")]
+      (str "[`" ns "/" var "`](" ns "#" var ")" ))
+    (format "[`%s`](#%s)" m m)))
+
 (defn render-doc-string [doc-str]
   [:div.lh-copy.markdown
    (-> doc-str
-       (string/replace #"\[\[(.*)\]\]" "[`$1`](#$1)")
+       (string/replace #"\[\[(.+?)\]\]" (comp wiki-link second))
        (rich-text/markdown-to-html {:escape-html? true})
        hiccup/raw)])
 
