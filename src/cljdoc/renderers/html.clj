@@ -6,7 +6,8 @@
             [cljdoc.render.api :as api]
             [cljdoc.util :as util]
             [cljdoc.util.fixref :as fixref]
-            [cljdoc.cache]
+            [cljdoc.bundle :as bundle]
+            [cljdoc.platforms :as platf]
             [cljdoc.spec]
             [cljdoc.server.routes :as routes]
             [clojure.string :as string]
@@ -83,7 +84,7 @@
         (layout/sidebar
          (articles/article-list
           (articles/doc-tree-view cache-id (doctree/add-slug-path (-> cache-contents :version :doc)) []))
-         (api/namespace-list {} (cljdoc.cache/namespaces cache-bundle)))]
+         (api/namespace-list {} (bundle/ns-entities cache-bundle)))]
        (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))})))
 
 (defmethod render :artifact/doc
@@ -100,7 +101,7 @@
     (->> (if doc-html
            (articles/doc-page {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
                                :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
-                               :namespace-list-component (api/namespace-list {} (cljdoc.cache/namespaces cache-bundle))
+                               :namespace-list-component (api/namespace-list {} (bundle/ns-entities cache-bundle))
                                :doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
                                                  (-> doc-p :attrs :cljdoc.doc/source-file))
                                :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
@@ -109,7 +110,7 @@
                                                       :uri-map (fixref/uri-mapping cache-id (doctree/flatten* doc-tree))})})
            (articles/doc-overview {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
                                    :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
-                                   :namespace-list-component (api/namespace-list {} (cljdoc.cache/namespaces cache-bundle))
+                                   :namespace-list-component (api/namespace-list {} (bundle/ns-entities cache-bundle))
                                    :cache-id cache-id
                                    :doc-tree (doctree/get-subtree doc-tree doc-slug-path)}))
          (layout/page {:title (str (:title doc-p) " — " (util/clojars-id cache-id) " " (:version cache-id))}))))
@@ -118,9 +119,9 @@
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (assert (:namespace route-params))
   (let [ns-emap route-params
-        defs (filter #(= (:namespace ns-emap) (:namespace %)) (:defs cache-contents))
-        ns-data (first (filter #(= (:namespace ns-emap) (:name %)) ;PLATF_SUPPORT
-                               (:namespaces cache-contents)))
+        defs    (bundle/defs-for-ns (:defs cache-contents) (:namespace ns-emap))
+        ns-data (first (filter #(= (:namespace ns-emap) (platf/get-field % :name))
+                               (bundle/namespaces cache-bundle)))
         common-params {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
                        :article-list-component (articles/article-list
                                                 (articles/doc-tree-view cache-id
@@ -128,7 +129,7 @@
                                                                         []))
                        :namespace-list-component (api/namespace-list
                                                   {:current (:namespace ns-emap)}
-                                                  (cljdoc.cache/namespaces cache-bundle))}]
+                                                  (bundle/ns-entities cache-bundle))}]
     (when (empty? defs)
       (log/warnf "Namespace %s contains no defs" (:namespace route-params)))
     (->> (if ns-data
@@ -139,7 +140,7 @@
                                        :defs defs}))
            (api/sub-namespace-overview-page (merge common-params
                                                    {:ns-entity ns-emap
-                                                    :namespaces (:namespaces cache-contents)
+                                                    :namespaces (bundle/namespaces cache-bundle)
                                                     :defs (:defs cache-contents)})))
          (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id cache-id) " " (:version cache-id))}))))
 
@@ -164,7 +165,7 @@
                       (file-for out-dir :artifact/doc)))))
 
     ;; Namespace Pages
-    (doseq [ns-emap (cljdoc.cache/namespaces cache-bundle)
+    (doseq [ns-emap (bundle/ns-entities cache-bundle)
             :let [defs (filter #(= (:namespace ns-emap)
                                    (:namespace %))
                                (:defs cache-contents))]]
@@ -188,7 +189,7 @@
 
   (namespace-hierarchy (map :name namespaces))
 
-  (-> (doctree/add-slug-path (-> (:cache-contents cljdoc.cache/cache) :version :doc))
+  (-> (doctree/add-slug-path (-> (:cache-contents cljdoc.bundle/cache) :version :doc))
       first)
 
   )

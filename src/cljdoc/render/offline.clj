@@ -8,8 +8,9 @@
             [cljdoc.render.api :as api]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.spec :as cljdoc-spec]
-            [cljdoc.cache :as cljdoc-cache]
+            [cljdoc.bundle :as bundle]
             [cljdoc.util :as util]
+            [cljdoc.platforms :as platf]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.render.rich-text :as rich-text]
             [clojure.string :as string]
@@ -19,7 +20,9 @@
             [hiccup.page])
   (:import (java.nio.file Files)))
 
-(defn ns-url [ns]
+(defn ns-url
+  [ns]
+  {:pre [(string? ns)]}
   (str "api/" ns ".html"))
 
 (defn article-url
@@ -87,7 +90,7 @@
                  (some-> doc-page :children seq article-toc)])))
        (into [:ol])))
 
-(defn index-page [{:keys [cache-contents]}]
+(defn index-page [{:keys [cache-contents] :as cache-bundle}]
   [:div
    (when (-> cache-contents :version :doc)
      [:div
@@ -95,17 +98,11 @@
       (article-toc (doctree/add-slug-path (-> cache-contents :version :doc)))])
 
    [:h1.mv0.pv3 {:id "namespaces"} "Namespaces"]
-   (for [ns (->> (:namespaces cache-contents)
-                 (group-by :name) ;PLATF_SUPPORT
-                 (vals)
-                 (map #(apply merge %))
-                 (sort-by :name))
-         :let [ns-url (ns-url (:name ns))
-               defs (->> (:defs cache-contents)
-                         (filter #(= (:name ns) (:namespace %)))
-                         (map #(dissoc % :platform))
-                         (set) ; PLATF_SUPPORT
-                         (sort-by :name))]]
+   (for [ns (bundle/namespaces cache-bundle)
+         :let [ns-url (ns-url (platf/get-field ns :name))
+               defs (bundle/defs-for-ns
+                      (:defs cache-contents)
+                      (platf/get-field ns :name))]]
      (api/namespace-overview ns-url ns defs))])
 
 (defn doc-page [doc-p fix-opts]
@@ -119,14 +116,10 @@
 
 (defn ns-page [ns defs {:keys [scm-base file-mapping]}]
   [:div
-   [:h1 (:name ns)]
-   (some-> ns :doc api/render-doc-string)
-   (for [[def-name platf-defs] (->> defs
-                                    (group-by :name)
-                                    (sort-by key))
-         :let [def-meta (first platf-defs)]] ;PLATF_SUPPORT
-     (api/def-block platf-defs (when file-mapping
-                                 (str scm-base (get file-mapping (:file def-meta)) "#L" (:line def-meta)))))])
+   [:h1 (platf/get-field ns :name)]
+   (api/render-doc ns)
+   (for [def defs]
+     (api/def-block (api/add-src-uri def scm-base file-mapping)))])
 
 (defn docs-files
   "Return a list of [file-path content] pairs describing a zip archive.
@@ -168,15 +161,13 @@
               (page' :article-title (:title doc-p)))])
 
       ;; Namespace Pages
-      (for [ns-emap (cljdoc-cache/namespaces cache-bundle)
-            :let [ns-data (first (filter #(= (:namespace ns-emap) (:name %)) ;PLATF_SUPPORT
-                                         (:namespaces cache-contents)))
-                  defs    (filter #(= (:namespace ns-emap)
-                                      (:namespace %))
-                                  (:defs cache-contents))]]
-        [(ns-url (:namespace ns-emap))
+      (for [ns-data (bundle/namespaces cache-bundle)
+            :let [defs (bundle/defs-for-ns
+                         (:defs cache-contents)
+                         (platf/get-field ns-data :name))]]
+        [(ns-url (platf/get-field ns-data :name))
          (->> (ns-page ns-data defs {:scm-base scm-base :file-mapping file-mapping})
-              (page' :namespace (:name ns-data)))])])))
+              (page' :namespace (platf/get-field ns-data :name)))])])))
 
 (defn zip-stream [{:keys [cache-id] :as cache-bundle}]
   (let [prefix (str (-> cache-id :artifact-id)
@@ -199,13 +190,15 @@
 
   (def --c (storage/bundle-docs (storage/->GrimoireStorage (io/file "data" "grimoire"))
                                 #_{:group-id "reagent" :artifact-id "reagent" :version "0.8.1"}
-                                #_{:group-id "re-frame" :artifact-id "re-frame" :version "0.10.5"}
-                                {:group-id "manifold" :artifact-id "manifold" :version "0.1.6"}))
+                                {:group-id "re-frame" :artifact-id "re-frame" :version "0.10.5"}
+                                #_{:group-id "manifold" :artifact-id "manifold" :version "0.1.6"}))
 
   (defn hiccup-raw-str? [x]
     (instance? hiccup.util.RawString x))
 
   (zip-stream --c)
+
+  (map first (docs-files --c))
 
   (->> (take 2 (docs-files --c))
        (map (fn [[k v]]
