@@ -20,7 +20,7 @@
     [com.jcraft/jsch.agentproxy.connector-factory "0.0.9"]
     [com.jcraft/jsch.agentproxy.jsch "0.0.9"]
 
-    [org.clojure-grimoire/lib-grimoire "0.10.9"]
+    [org.clojure-grimoire/lib-grimoire "0.10.10"]
     ;; lib-grimpoire depends on an old core-match
     ;; which pulls in other old stuff
     [org.clojure/core.match "0.3.0-alpha5"]
