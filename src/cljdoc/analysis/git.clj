@@ -4,6 +4,7 @@
   Cljdoc operates on source files as well as a project's Git repository
   to build API documentation and articles. "
   (:require [cljdoc.util :as util]
+            [cljdoc.util.telegram :as telegram]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
             [clojure.edn :as edn]
@@ -31,6 +32,8 @@
                                    (git/read-cljdoc-config repo "master"))
                                (edn/read-string)))]
 
+        (when config-edn
+          (telegram/has-cljdoc-edn scm-url))
         (if revision
           {:scm      {:files (git/ls-files repo revision)
                       :tag version-tag}

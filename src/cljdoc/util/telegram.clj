@@ -31,9 +31,19 @@
   (->> (format "Build requested for %s v%s: https://cljdoc.xyz/builds/%s" project version build-id)
        (send-text bot-token chat-id)))
 
+(defn build-failed
+  [{:keys [group_id artifact_id version error id]}]
+  (->> (format "%c %s while processing %s/%s: https://cljdoc.xyz/builds/%s" (int 10060) error group_id artifact_id id)
+       (send-text bot-token chat-id)))
+
 (defn import-completed
-  [docs-url]
-  (->> (format "Import completed: https://cljdoc.xyz%s" docs-url)
+  [{:keys [group_id artifact_id version]}]
+  (->> (format "%c Import completed: https://cljdoc.xyz/d/%s/%s/%s" (int 9989) group_id artifact_id version)
+       (send-text bot-token chat-id)))
+
+(defn has-cljdoc-edn
+  [scm-url]
+  (->> (format "%c cljdoc.edn found in %s" (int 10024) scm-url)
        (send-text bot-token chat-id)))
 
 (defn no-version-tag
@@ -47,6 +57,12 @@
             {:as :json})
 
   (send-text bot-token chat-id "hello")
+
+  ;; 10060 :x:
+  ;; 9989 :white_check_mark:
+  ;; 10024 :sparkles:
+
+  (.codePointAt "✨" 0)
 
   )
 

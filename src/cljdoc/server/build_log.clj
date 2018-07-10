@@ -1,7 +1,8 @@
 (ns cljdoc.server.build-log
   (:require [integrant.core :as ig]
             [clojure.java.jdbc :as sql]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [cljdoc.util.telegram :as telegram])
   (:import (java.time Instant)))
 
 (defn- now []
@@ -41,12 +42,14 @@
                  {:analysis_result_uri cljdoc-edn-uri
                   :analysis_received_ts (now)}
                  ["id = ?" build-id]))
-  (failed! [_ build-id error]
+  (failed! [this build-id error]
+    (telegram/build-failed (assoc (get-build this build-id) :error error))
     (sql/update! db-spec
                  "builds"
                  {:error error}
                  ["id = ?" build-id]))
-  (completed! [_ build-id scm-url commit]
+  (completed! [this build-id scm-url commit]
+    (telegram/import-completed (get-build this build-id))
     (sql/update! db-spec
                  "builds"
                  {:scm_url scm-url
