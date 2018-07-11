@@ -31,7 +31,7 @@
 (defmethod render :group/index
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (let [group-id (:group-id route-params)
-        big-btn-link :a.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
+        big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
     (->> [:div.pa4-ns.pa2
           [:h1 group-id]
           [:span.db "Known artifacts and versions under the group " group-id]
@@ -43,7 +43,7 @@
                                  (filter #(= (:artifact-id %) a))
                                  (sort-by :version)
                                  (reverse))]
-                [:li.dib.mr3
+                [:li.dib.mr3.mb3
                  [big-btn-link
                   {:href (routes/url-for :artifact/version :path-params (assoc version :group-id group-id))}
                   (:version version)]])]])]
@@ -53,7 +53,7 @@
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (let [artifact-id (:artifact-id route-params)
         artifact-entity (assoc cache-id :artifact-id artifact-id)
-        big-btn-link :a.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
+        big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
     (->> [:div.pa4-ns.pa2
           [:h1 (util/clojars-id artifact-entity)]
           [:span.db "Known versions on cljdoc:"]
@@ -62,7 +62,7 @@
                         (filter #(= (:artifact-id %) (:artifact-id route-params)))
                         (sort-by :version)
                         (reverse))]
-             [:li.dib.mr3
+             [:li.dib.mr3.mb3
               [big-btn-link
                {:href (routes/url-for :artifact/version :path-params (merge cache-id v))}
                (:version v)]])]
@@ -71,7 +71,7 @@
              [:h3 "Other artifacts under the " (:group-id cache-id) " group"]
              [:ol.list.pl0.pv3
               (for [a (sort (:artifacts cache-contents))]
-                [:li.dib.mr3
+                [:li.dib.mr3.mb3
                  [big-btn-link
                   {:href (routes/url-for :artifact/index :path-params (assoc cache-id :artifact-id a))}
                   a]])]])]
