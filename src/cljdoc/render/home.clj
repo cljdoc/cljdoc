@@ -2,12 +2,17 @@
   (:require [cljdoc.render.layout :as layout]
             [cljdoc.util :as util]))
 
+(defn search-app []
+  [:div.w-90.mb4
+   [:div#cljdoc-search]])
+
 (defn home []
   (->> [:div.mw7.center.pv4.pa0-l.pa2
         [:h1.f1 "cljdoc"
          [:span.dib.v-mid.ml3.pv1.ph2.ba.b--moon-gray.br1.ttu.fw5.f7.gray.tracked "alpha"]]
         [:p.f2.lh-copy "is a platform to build, host and view
         documentation for Clojure/Script libraries."]
+        (search-app)
         [:p.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]
          " or check out some existing documentation:"]
         (let [btn :a.dib.mr2.mb2.link.blue.pa2.ba.b--blue.br1]
@@ -50,7 +55,9 @@
          [:span.db.nb3 "—"]
          [:p.mid-gray "cljdoc is created by its " [:a.link.blue {:href (util/github-url :contributors) } "contributors"]
           ". Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on "
-          [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (util/github-url :home)} "GitHub"] "."]]]
+          [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (util/github-url :home)} "GitHub"] "."]]
+        [:script {:src "https://unpkg.com/preact"}]
+        [:script {:src "/search.js"}]]
        (layout/page {:title "cljdoc"})
        (str)))
 
