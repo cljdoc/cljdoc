@@ -27,7 +27,7 @@ const SearchInput = (props) => {
     placeHolder: 'NEW! Jump to docs...',
     className: 'pa2 w-100 border-box b--blue ba input-reset',
     onFocus: e => props.focus(),
-    onBlur: e => props.unfocus(),
+    onBlur: e => setTimeout(_ => props.unfocus(), 200),
     onKeyUp: e => (e.keyCode == 27 ? props.unfocus() : null),
     onInput: e => debouncedLoader(e.target.value, props.newResultsCallback)
   })
