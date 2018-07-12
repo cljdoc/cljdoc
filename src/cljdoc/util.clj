@@ -166,3 +166,17 @@
   (-> uri
       (string/replace #"^https*://" "")
       (string/replace #"^[^/]*" "")))
+
+(defn replant-ns
+  "Given a fully-qualified `base` and a potentially relative `target` namespace,
+  return the fully qualified version of `target`. Assumes that all `target` namespaces
+  with identical first segments to `base` are already absolute."
+  [base target]
+  (if (= (first (string/split base #"\."))
+         (first (string/split target #"\.")))
+    target
+    (string/join "."
+                 (-> (string/split base #"\.")
+                     drop-last
+                     vec
+                     (conj target)))))

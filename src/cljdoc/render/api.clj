@@ -4,6 +4,7 @@
             [cljdoc.render.layout :as layout]
             [cljdoc.util.ns-tree :as ns-tree]
             [cljdoc.util.fixref :as fixref]
+            [cljdoc.util :as util]
             [cljdoc.bundle :as bundle]
             [cljdoc.platforms :as platf]
             [cljdoc.spec]
@@ -19,27 +20,43 @@
    [:code.db.mb2.pa0 {:class "language-clojure"}
     (zp/zprint-str args-str {:parse-string? true :width 70})]])
 
-(defn wiki-link [m]
+(defn parse-wiki-link [m]
   (if (.contains m "/")
     (let [[ns var] (string/split m #"/")]
-      (str "[`" ns "/" var "`](" ns "#" var ")" ))
-    (format "[`%s`](#%s)" m m)))
+      [ns var])
+    ;; While in theory vars can contain dots it's fairly uncommon and
+    ;; so we assume if there's no / and a dot that the user is
+    ;; referring to a namespace
+    (if (.contains m ".")
+      [m nil]
+      [nil m])))
 
-(defn render-doc-string [doc-str]
+(defn docstring->html [doc-str render-wiki-link]
   [:div.lh-copy.markdown
    (-> doc-str
-       (string/replace #"\[\[(.+?)\]\]" (comp wiki-link second))
+       (string/replace #"\[\[(.+?)\]\]" (comp render-wiki-link parse-wiki-link second))
        (rich-text/markdown-to-html {:escape-html? true})
        hiccup/raw)])
 
-(defn render-doc [mp]
+(defn render-wiki-link-fn
+  "Given the `current-ns` and a function `ns-link-fn` that is assumed
+  to return a link to a passed namespace, return a function that receives
+  a `[ns var]` tuple and will return a Markdown link to the specified ns/var."
+  [current-ns ns-link-fn]
+  (fn render-wiki-link-inner [[ns var]]
+    (format "[`%s`](%s)"
+            (str (str ns (when (and ns var) "/") var))
+            (str (ns-link-fn (if ns (util/replant-ns current-ns ns) current-ns))
+                 (when var (str "#" var))))))
+
+(defn render-doc [mp render-wiki-link]
   (if (platf/varies? mp :doc)
     (for [p (sort (platf/platforms mp))
           :when (platf/get-field mp :doc p)]
       [:div
        [:span.f7.ttu.gray.db.nb2 (get {"clj" "Clojure" "cljs" "ClojureScript"} p) " docstring"]
-       (some-> (platf/get-field mp :doc p) render-doc-string)])
-    (some-> (platf/get-field mp :doc) render-doc-string)))
+       (some-> (platf/get-field mp :doc p) (docstring->html render-wiki-link))])
+    (some-> (platf/get-field mp :doc) (docstring->html render-wiki-link))))
 
 (defn render-arglists [def-name arglists]
   (for [argv (sort-by count arglists)]
@@ -47,7 +64,7 @@
       (str "(" def-name (when (seq argv) " ") (string/join " " argv) ")"))))
 
 (defn def-block
-  [def]
+  [def render-wiki-link]
   {:pre [(platf/multiplatform? def)]}
   (let [def-name (platf/get-field def :name)]
     [:div.def-block
@@ -67,7 +84,7 @@
            [:span.f7.ttu.gray.db.nb2 (get {"clj" "Clojure" "cljs" "ClojureScript"} p) " arglists"]
            (render-arglists def-name (platf/get-field def :arglists p))])
         (render-arglists def-name (platf/get-field def :arglists)))]
-     (render-doc def)
+     (render-doc def render-wiki-link)
      (when (seq (platf/get-field def :members))
        [:div.lh-copy.pl3.bl.b--black-10
         (for [m (platf/get-field def :members)]
@@ -75,7 +92,7 @@
            [:h5 (:name m)]
            (render-arglists (:name m) (:arglists m))
            (when (:doc m)
-             [:p (render-doc-string (:doc m))])])])
+             [:p (docstring->html (:doc m) render-wiki-link)])])])
      (if (platf/varies? def :src-uri)
        (for [p (sort (platf/platforms def))
              :when (platf/get-field def :src-uri p)]
@@ -151,29 +168,30 @@
               (humanize-supported-platforms))])])]])
 
 (defn namespace-overview
-  [ns-url mp-ns defs]
-  {:pre [(platf/multiplatform? mp-ns) (string? ns-url)]}
-  [:div
-   [:a.link.black
-    {:href ns-url}
-    [:h2
-     {:data-cljdoc-type "namespace"}
-     (platf/get-field mp-ns :name)
-     [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
-   (render-doc mp-ns)
-   (if-not (seq defs)
-     [:p [:i "No vars in this namespace."]]
-     [:ul.list.pl0
-      (for [d defs
-            :let [def-name (platf/get-field d :name)
-                  type (if (seq (platf/all-vals d :arglists))
-                         :function
-                         (platf/get-field d :type))]]
-        [:li.dib.mr3.mb2
-         [:a.link.blue
-          {:data-cljdoc-type (name type)
-           :href (str ns-url "#" def-name)}
-          def-name]])])])
+  [ns-url-fn mp-ns defs]
+  {:pre [(platf/multiplatform? mp-ns) (fn? ns-url-fn)]}
+  (let [ns-name (platf/get-field mp-ns :name)]
+    [:div
+     [:a.link.black
+      {:href (ns-url-fn ns-name)}
+      [:h2
+       {:data-cljdoc-type "namespace"}
+       ns-name
+       [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
+     (render-doc mp-ns (render-wiki-link-fn ns-name ns-url-fn))
+     (if-not (seq defs)
+       [:p [:i "No vars in this namespace."]]
+       [:ul.list.pl0
+        (for [d defs
+              :let [def-name (platf/get-field d :name)
+                    type (if (seq (platf/all-vals d :arglists))
+                           :function
+                           (platf/get-field d :type))]]
+          [:li.dib.mr3.mb2
+           [:a.link.blue
+            {:data-cljdoc-type (name type)
+             :href (str (ns-url-fn ns-name) "#" def-name)}
+            def-name]])])]))
 
 (defn sub-namespace-overview-page
   [{:keys [ns-entity namespaces defs top-bar-component article-list-component namespace-list-component]}]
@@ -188,9 +206,9 @@
      (for [mp-ns (->> namespaces
                      (filter #(.startsWith (platf/get-field % :name) (:namespace ns-entity))))
            :let [ns (platf/get-field mp-ns :name)
-                 ns-url (routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace ns))
+                 ns-url-fn #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %))
                  defs (bundle/defs-for-ns defs ns)]]
-       (namespace-overview ns-url mp-ns defs))])])
+       (namespace-overview ns-url-fn mp-ns defs))])])
 
 (defn add-src-uri
   [{:keys [platforms] :as mp-var} scm-base file-mapping]
@@ -211,7 +229,9 @@
         file-mapping                       (when (:files scm-info)
                                              (fixref/match-files
                                               (keys (:files scm-info))
-                                              (set (mapcat #(platf/all-vals % :file) defs))))]
+                                              (set (mapcat #(platf/all-vals % :file) defs))))
+        render-wiki-link (render-wiki-link-fn (:namespace ns-entity)
+                                              #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %)))]
     [:div.ns-page
      top-bar-component
      (layout/sidebar
@@ -225,9 +245,11 @@
       {:offset "32rem"}
       [:div.w-80-ns.pv4
        [:h2 (:namespace ns-entity)]
-       (render-doc ns-data)
+       (render-doc ns-data render-wiki-link)
        (for [def defs]
-         (def-block (add-src-uri def scm-base file-mapping)))])]))
+         (def-block
+           (add-src-uri def scm-base file-mapping)
+           render-wiki-link))])]))
 
 (comment
   (:platforms --d)

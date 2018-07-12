@@ -39,6 +39,11 @@
 (t/deftest strip-common-start-string-test
   (t/is (= "xyz.html" (util/strip-common-start-string "doc/abc.html" "doc/xyz.html"))))
 
+(t/deftest replant-ns-test
+  (t/is (= "my.app.routes" (util/replant-ns "my.app.core" "routes")))
+  (t/is (= "my.app.api.routes" (util/replant-ns "my.app.core" "api.routes")))
+  (t/is (= "my.app.api.handlers" (util/replant-ns "my.app.core" "my.app.api.handlers"))))
+
 (comment
   (t/run-tests)
 

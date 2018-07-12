@@ -99,8 +99,7 @@
 
    [:h1.mv0.pv3 {:id "namespaces"} "Namespaces"]
    (for [ns (bundle/namespaces cache-bundle)
-         :let [ns-url (ns-url (platf/get-field ns :name))
-               defs (bundle/defs-for-ns
+         :let [defs (bundle/defs-for-ns
                       (:defs cache-contents)
                       (platf/get-field ns :name))]]
      (api/namespace-overview ns-url ns defs))])
@@ -115,11 +114,15 @@
                  fix-opts))]])
 
 (defn ns-page [ns defs {:keys [scm-base file-mapping]}]
-  [:div
-   [:h1 (platf/get-field ns :name)]
-   (api/render-doc ns)
-   (for [def defs]
-     (api/def-block (api/add-src-uri def scm-base file-mapping)))])
+  (let [ns-name (platf/get-field ns :name)
+        render-wiki-link (api/render-wiki-link-fn ns-name #(str % ".html"))]
+    [:div
+     [:h1 ns-name]
+     (api/render-doc ns render-wiki-link)
+     (for [def defs]
+       (api/def-block
+         (api/add-src-uri def scm-base file-mapping)
+         render-wiki-link))]))
 
 (defn docs-files
   "Return a list of [file-path content] pairs describing a zip archive.
