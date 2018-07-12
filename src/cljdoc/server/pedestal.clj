@@ -6,6 +6,7 @@
             [cljdoc.renderers.html :as html]
             [cljdoc.analysis.service :as analysis-service]
             [cljdoc.server.build-log :as build-log]
+            [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
             [cljdoc.storage.api :as storage]
@@ -184,7 +185,9 @@
    :enter (fn build-show-render [ctx]
             (if-let [build-info (->> ctx :request :path-params :id
                                      (build-log/get-build build-tracker))]
-              (ok-html! ctx (cljdoc.render.build-log/build-page build-info))
+              (if (= "text/html" (get-in ctx [:request :accept :field]))
+                (ok! ctx (cljdoc.render.build-log/build-page build-info))
+                (ok! ctx build-info))
               ;; Not setting :response implies 404 response
               ctx))})
 
@@ -261,7 +264,9 @@
   (let [default-interceptors [sentry/interceptor]]
     (->> (case route-name
            :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
-           :show-build [(show-build build-tracker)]
+           :show-build [pu/coerce-body
+                        (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
+                        (show-build build-tracker)]
            :all-builds [(all-builds build-tracker)]
 
            :ping          [{:name ::pong :enter #(ok-html! % "pong")}]
