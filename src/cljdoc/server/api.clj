@@ -90,7 +90,7 @@
                                            :pom-revision (:sha scm-info)})]
           (when error
             (log/warnf "Error while processing %s %s: %s" project version error))
-          (build-log/completed! build-tracker build-id git-result))
+          (build-log/completed! build-tracker build-id (update git-result :error :type)))
         (build-log/completed! build-tracker build-id nil))
       (catch Throwable e
         (build-log/failed! build-tracker build-id "exception-during-import")
