@@ -56,7 +56,7 @@
          [:p.mid-gray "cljdoc is created by its " [:a.link.blue {:href (util/github-url :contributors) } "contributors"]
           ". Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on "
           [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (util/github-url :home)} "GitHub"] "."]]
-        [:script {:src "https://unpkg.com/preact"}]
+        [:script {:src "https://unpkg.com/preact@8.2.9/dist/preact.js"}]
         [:script {:src "/search.js"}]]
        (layout/page {:title "cljdoc"})
        (str)))
