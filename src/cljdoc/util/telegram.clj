@@ -37,8 +37,9 @@
        (send-text bot-token chat-id)))
 
 (defn import-completed
-  [{:keys [group_id artifact_id version]}]
-  (->> (format "%c Import completed: https://cljdoc.xyz/d/%s/%s/%s" (int 9989) group_id artifact_id version)
+  [{:keys [group_id artifact_id version]} git-error]
+  (->> (when git-error (format "\n%c SCM issue: %s" (int 9888) git-error))
+       (str (format "%c Import completed: https://cljdoc.xyz/d/%s/%s/%s" (int 9989) group_id artifact_id version))
        (send-text bot-token chat-id)))
 
 (defn has-cljdoc-edn
@@ -62,7 +63,7 @@
   ;; 9989 :white_check_mark:
   ;; 10024 :sparkles:
 
-  (.codePointAt "✨" 0)
+  (.codePointAt "⚠" 0)
 
   )
 

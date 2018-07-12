@@ -15,7 +15,8 @@
   (analysis-kicked-off! [_ build-id analysis-job-uri])
   (analysis-received! [_ build-id cljdoc-edn-uri])
   (failed! [_ build-id error])
-  (completed! [_ build-id scm-url commit])
+  (api-imported! [_ build-id])
+  (completed! [_ build-id git-result])
   (get-build [_ build-id])
   (recent-builds [_ limit]))
 
@@ -44,16 +45,17 @@
                  ["id = ?" build-id]))
   (failed! [this build-id error]
     (telegram/build-failed (assoc (get-build this build-id) :error error))
-    (sql/update! db-spec
-                 "builds"
-                 {:error error}
-                 ["id = ?" build-id]))
-  (completed! [this build-id scm-url commit]
-    (telegram/import-completed (get-build this build-id))
+    (sql/update! db-spec "builds" {:error error} ["id = ?" build-id]))
+  (api-imported! [this build-id]
+    (sql/update! db-spec "builds" {:api_imported_ts (now)} ["id = ?" build-id]))
+  (completed! [this build-id {:keys [scm-url error commit] :as git-result}]
+    (telegram/import-completed (get-build this build-id) (if git-result error "repo-not-provided"))
     (sql/update! db-spec
                  "builds"
                  {:scm_url scm-url
                   :commit_sha commit
+                  :git_imported_ts (when (and git-result (nil? error)) (now))
+                  :git_problem (if git-result error "repo-not-provided")
                   :import_completed_ts (now)}
                  ["id = ?" build-id]))
   (get-build [_ build-id]
@@ -76,23 +78,30 @@
 
   (def bt (->SQLBuildTracker (cljdoc.config/build-log-db)))
 
-  (recent-builds  1)
+  (recent-builds bt 1)
 
-  (clojure.pprint/pprint
-   (get-build db 1))
-
-  (ragtime/migrate-all (jdbc/sql-database db)
-                       {}
-                       (jdbc/load-resources "migrations")
-                       {:reporter (fn [store direction migration]
-                                    (log/infof "Migrating %s %s" direction migration))})
+  (doseq [v [:success :success-no-git :git-problem :fail :kicked-off :analysis-received :api-imported]]
+    (let [id (analysis-requested! bt (name v) (name v) "0.8.0")]
+      (analysis-kicked-off! bt id "fake-url")
+      (when-not (= :kicked-off v)
+        (analysis-received! bt id "fake-url"))
+      (case v
+        :api-imported (api-imported! bt id)
+        :success (do (api-imported! bt id)
+                     (completed! bt id {:scm-url "http://github.com/this/is-a-test" :commit "TESTING"}))
+        :success-no-git (do (api-imported! bt id)
+                            (completed! bt id nil))
+        :git-problem (do (api-imported! bt id)
+                         (completed! bt id {:error "unknown-revision"}))
+        :fail (do (failed! bt id "exception"))
+        nil)))
 
   (sql/update! db "builds" {:analysis_job_uri "hello world"} ["id = ?" 9])
 
   (sql/query db ["UPDATE builds SET analysis_job_uri = ? WHERE id = ?" "hello world" 9])
 
   (analysis-requested! bt "bidi" "bidi" "2.1.3")
- 
+
   (track-analysis-kick-off! db 2 "xxx")
 
   )

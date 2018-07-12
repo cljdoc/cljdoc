@@ -81,16 +81,17 @@
     ;; (cljdoc.util/assert-match project version cljdoc-edn)
     (try
       (ingest/ingest-cljdoc-edn storage cljdoc-edn-contents)
+      (build-log/api-imported! build-tracker build-id)
       (if-let [scm-info (ingest/scm-info project (:pom-str cljdoc-edn-contents))]
-        (let [{:keys [error scm-url commit]} (ingest/ingest-git! storage {:project project
-                                                                          :version version
-                                                                          :scm-url (:url scm-info)
-                                                                          :pom-revision (:sha scm-info)})]
-          (if error
-            (do (log/warnf "Error while processing %s %s: %s" project version error)
-                (build-log/failed! build-tracker build-id (subs (str (:type error)) 1)))
-            (build-log/completed! build-tracker build-id scm-url commit)))
-        (build-log/completed! build-tracker build-id nil nil))
+        (let [{:keys [error scm-url commit] :as git-result}
+              (ingest/ingest-git! storage {:project project
+                                           :version version
+                                           :scm-url (:url scm-info)
+                                           :pom-revision (:sha scm-info)})]
+          (when error
+            (log/warnf "Error while processing %s %s: %s" project version error))
+          (build-log/completed! build-tracker build-id git-result))
+        (build-log/completed! build-tracker build-id nil))
       (catch Throwable e
         (build-log/failed! build-tracker build-id "exception-during-import")
         (throw e)))))

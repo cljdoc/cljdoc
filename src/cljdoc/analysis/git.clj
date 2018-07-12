@@ -52,17 +52,17 @@
                                   [(util/normalize-project project) :cljdoc.doc/tree])
                           (doctree/derive-toc git-dir)))}
 
-          {:error {:type ::no-revision-found
+          {:error {:type "no-revision-found"
                    :version-tag version-tag
                    :pom-revision pom-revision}}))
       (catch org.eclipse.jgit.api.errors.InvalidRemoteException e
-        {:error {:type ::invalid-remote
+        {:error {:type "invalid-remote"
                  :msg (.getMessage e)}})
       (catch org.eclipse.jgit.errors.MissingObjectException e
-        {:error {:type ::unknown-revision
+        {:error {:type "unknown-revision"
                  :revision (.getName (.getObjectId e))}})
       (catch org.eclipse.jgit.api.errors.TransportException e
-        {:error {:type ::clone-failed
+        {:error {:type "clone-failed"
                  :msg (.getMessage e)}})
       (finally
         (when (.exists git-dir)

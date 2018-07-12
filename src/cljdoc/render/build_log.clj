@@ -45,6 +45,19 @@
       [:dt.b.mv2 "Commit SHA"]
       [:dd.ml0 (or (:commit_sha build-info) "nil")]]]))
 
+(defn git-import-explainer [build-info]
+  [:div
+   [:p.lh-copy "cljdoc allows you to combine API docs with "
+    [:a.link.blue {:href (util/github-url :userguide/articles)} "articles"]
+    " from your Git repository. By default we import just the Readme."
+    (when (:git_problem build-info)
+      [:span " In this case there was a problem " [:code.f7.bg-washed-red.br2.pa1.ph2 (:git_problem build-info)]
+       " importing from Git, but don't worry — "
+       [:b.fw6 "API docs will work regardless."]])]
+   (when (:git_problem build-info)
+     [:p.lh-copy "To fix this issue, check out the FAQ on "
+      [:a.link.blue {:href (util/github-url :userguide/scm-faq)} "properly setting SCM information"]])])
+
 (defn build-page [build-info]
   (->> [:div.mw8.center.pa2.pv5
         ;; [:pre.pa3 (pr-str build-info)]
@@ -85,35 +98,57 @@
                    (:analysis_result_uri build-info))}
           "view result"])
 
+        (section
+         (:api_imported_ts build-info)
+         [:h3.mt0 "API Import"]
+         [:p.bg-washed-green.pa3.br2.ma0 "API imported successfully"]
+         [:p.mb0 (cljdoc-link build-info true)])
+
         (when (:error build-info)
           (section
            ""
            [:h3.mt0 "There was an error"]
            [:p.bg-washed-red.pa3.br2 (:error build-info)]
-           [:p.lh-copy "If this error is Git-related your API docs should still
-           have been imported correctly and be available at the
-           location given below. To fix any Git related issues, please
-           ensure you " [:a.link.blue {:href (util/github-url :userguide/scm-faq)}
-                         "set SCM information in your project."]]
+           [:p.lh-copy "Please see the " [:a.link.blue {:href (:analysis_job_uri
+           build-info)} "build job"] " to understand why this build
+           failed and reach out if you aren't sure how to fix the issue."]
+           #_[:p (cljdoc-link build-info true)]))
+
+        (cond
+          (and (:api_imported_ts build-info)
+               (not (or (:git_problem build-info) (:git_imported_ts build-info))))
+          (section
+           ""
+           [:h3.mt0 "Git Import"]
+           (git-import-explainer build-info)
+           [:p.ba.b--blue.pa3.br2.ma0 "in progress.."])
+
+          (:git_imported_ts build-info)
+          (section
+           (:git_imported_ts build-info)
+           [:h3.mt0 "Git Import Completed"]
+           (git-import-explainer build-info)
+
+           (scm-info build-info)
+
+           [:p (cljdoc-link build-info true)]
+           (when (and (:scm_url build-info) (:commit_sha build-info))
+             [:p
+              [:a.link.blue {:href (:scm_url build-info)}
+               [:img.v-mid.mr2 {:src "https://icon.now.sh/github/20"}]
+               (subs (:scm_url build-info) 19)]
+              " @ "
+              [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
+               (if (< (count (:commit_sha build-info)) 8)
+                 (:commit_sha build-info)
+                 (subs (:commit_sha build-info) 0 8))]]))
+
+          (:git_problem build-info)
+          (section
+           ""
+           [:h3.mt0 "Git Import"]
+           (git-import-explainer build-info)
            [:p (cljdoc-link build-info true)]))
-
-        (section
-         (:import_completed_ts build-info)
-         [:h3.mt0 "Import Completed"]
-
-         (scm-info build-info)
-
-         [:p (cljdoc-link build-info true)]
-         (when (and (:scm_url build-info) (:commit_sha build-info))
-           [:p
-            [:a.link.blue {:href (:scm_url build-info)}
-             [:img.v-mid.mr2 {:src "https://icon.now.sh/github/20"}]
-             (subs (:scm_url build-info) 19)]
-            " @ "
-            [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
-             (if (< (count (:commit_sha build-info)) 8)
-               (:commit_sha build-info)
-               (subs (:commit_sha build-info) 0 8))]]))
 
         (when-not (done? build-info)
           [:script
@@ -148,9 +183,9 @@
               (cond
                 (and (:scm_url b) (:commit_sha b)) [:span.db.bg-washed-green.pa3.br2 "Good"]
                 (and (:import_completed_ts b)
-                     (not (:scm_url b)))           [:span.db.bg-washed-yellow.pa3.br2 "SCM URL missing"]
+                     (:git_problem b))        [:span.db.bg-washed-yellow.pa3.br2 (str "Git: " (:git_problem b))]
                 (and (:import_completed_ts b)
-                     (not (:commit_sha b)))        [:span.db.bg-washed-yellow.pa3.br2 "SCM revision missing"]
+                     (not (:scm_url b)))           [:span.db.bg-washed-yellow.pa3.br2 "SCM URL missing"]
                 (some-> (:error b)
                         (.startsWith "cljdoc.analysis.git")) [:span.db.bg-washed-yellow.pa3.br2 (:error b)]
                 (:error b) [:span.db.bg-washed-red.pa3.br2 (:error b)]))]]
