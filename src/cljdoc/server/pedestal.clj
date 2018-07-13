@@ -44,7 +44,8 @@
 
                 (if cache-bundle
                   (ok-html! ctx (html/render page-type path-params cache-bundle))
-                  (ok-html! ctx (render-build-req/request-build-page path-params))))))})
+                  (assoc ctx :response {:status 404
+                                        :body (str (render-build-req/request-build-page path-params))})))))})
 
 (def doc-slug-parser
   "Because articles may reside in a nested hierarchy we need to manually parse
