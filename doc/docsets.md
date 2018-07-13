@@ -20,7 +20,7 @@ It is also assumed that the [Clojars search API](https://github.com/clojars/cloj
 ### Check if an offline bundle is available
 
 ```sh
-curl -OJ http://localhost:8000/download/$group_id/$artifact_id/$version
+curl -OJ https://cljdoc.xyz/download/$group_id/$artifact_id/$version
 # If we have docs available:
 # - a zip-file will be sent as response with a 200 status code
 # - else 404
