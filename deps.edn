@@ -47,6 +47,9 @@
                          :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
                                                                  :sha "5fb4fc46ad0bf2e0ce45eba5b9117a2e89166479"}}
                          :main-opts ["-m" "cognitect.test-runner"]}
+           :eftest {:extra-paths ["test"]
+                    :extra-deps {eftest {:mvn/version "0.5.2"}}
+                    :main-opts ["-m" "cljdoc.test-runner"]}
 
            :cli {:extra-deps {cli-matic {:mvn/version "0.1.14"}}
                  :main-opts ["-m"  "cljdoc.cli"]}}}
