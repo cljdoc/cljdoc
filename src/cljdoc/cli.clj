@@ -51,7 +51,7 @@
                                 {:option "version" :short "v" :as "Version to import" :type :string :default :present}
                                 {:option "jar" :short "j" :as "Jar file to use (may be local)" :type :string}
                                 {:option "pom" :as "POM file to use (may be local)" :type :string}
-                                {:option "scm-url" :short "s" :as "Git repo to use (may be local)" :type :string}
+                                {:option "git" :short "g" :as "Git repo to use (may be local)" :type :string}
                                 {:option "rev" :short "r" :as "Git revision to use (inferred by default)" :type :string}]
                   :runs        build}
                  {:command     "run"
