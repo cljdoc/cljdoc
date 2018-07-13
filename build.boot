@@ -1,61 +1,9 @@
 (ns boot.user)
 
-(def application-deps
-  "These are dependencies we can use regardless of what we're analyzing.
-  All code using these dependencies does not operate on Clojure source
-  files but the Grimoire store and project repo instead."
-  '[[org.clojure/clojure "1.9.0"]
-    [org.clojure/test.check "0.9.0"]
-    [com.cognitect/transit-clj "0.8.300"]
-
-    [hiccup "2.0.0-alpha1"]
-    [org.asciidoctor/asciidoctorj "1.5.6"]
-    [com.atlassian.commonmark/commonmark "0.11.0"]
-    [com.atlassian.commonmark/commonmark-ext-gfm-tables "0.11.0"]
-    [com.atlassian.commonmark/commonmark-ext-autolink "0.11.0"]
-    [com.atlassian.commonmark/commonmark-ext-heading-anchor "0.11.0"]
-
-    [org.slf4j/slf4j-api "1.7.25"]
-    [org.eclipse.jgit "4.10.0.201712302008-r"]
-    [com.jcraft/jsch.agentproxy.connector-factory "0.0.9"]
-    [com.jcraft/jsch.agentproxy.jsch "0.0.9"]
-
-    [org.clojure-grimoire/lib-grimoire "0.10.10"]
-    ;; lib-grimpoire depends on an old core-match
-    ;; which pulls in other old stuff
-    [org.clojure/core.match "0.3.0-alpha5"]
-
-    [integrant "0.7.0-alpha1"]
-    [integrant/repl "0.3.0"] ; dev-dependency
-    [aero "1.1.2"]
-    [org.clojure/tools.logging "0.4.0"]
-    [funcool/cuerdas "2.0.5"]
-    [spootnik/unilog "0.7.22"]
-    [org.jsoup/jsoup "1.11.3"]
-    [digest "1.4.8"]
-    [tea-time "1.0.0"]
-    [me.raynes/fs "1.4.6"]
-
-    [io.pedestal/pedestal.service       "0.5.3"]
-    [io.pedestal/pedestal.jetty         "0.5.3"]
-    [cheshire "5.8.0"]
-    [clj-http-lite "0.3.0"]
-    [raven-clj "1.6.0-alpha"]
-    [io.sentry/sentry-logback "1.7.5"]
-
-    ;; Build-logs DB (sqlite)
-    [org.xerial/sqlite-jdbc "3.20.0"]
-    [org.clojure/java.jdbc "0.7.0"]
-    [ragtime "0.7.2"]
-
-    [expound "0.6.0"]
-    [metosin/bat-test "0.4.0" :scope "test"]
-    [boot/core "2.7.2"] ; for inclusion in test pod
-    [zprint "0.4.9"]])
-
-(boot.core/set-env! :source-paths #{"src" "test"}
-                    :resource-paths #{"resources"}
-                    :dependencies application-deps)
+(boot.core/set-env! :dependencies '[[seancorfield/boot-tools-deps "0.4.5" :scope "test"]
+                                    [metosin/bat-test "0.4.0" :scope "test"]])
+(require '[boot-tools-deps.core :as tools-deps])
+(tools-deps/load-deps {})
 
 (require '[boot.pod :as pod]
          '[boot.util :as util]
@@ -138,7 +86,8 @@
    _ pom     POM     str "Path to pom, may be local, falls back to local ~/.m2 then remote"
    _ git     GIT     str "Path to git repo, may be local"
    _ rev     REV     str "Git revision to collect documentation at"]
-  (comp (grimoire :project project
+  (comp (tools-deps/deps)
+        (grimoire :project project
                   :version version
                   :jar jar
                   :pom pom
