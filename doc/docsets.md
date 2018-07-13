@@ -15,7 +15,9 @@ artifact_id="bidi"
 version="2.1.3"
 ```
 
-##### Check if an offline bundle is available
+It is also assumed that the [Clojars search API](https://github.com/clojars/clojars-web/wiki/Data#json-search-results) is used to find existing project/version combinations.
+
+### Check if an offline bundle is available
 
 ```sh
 curl -OJ http://localhost:8000/download/$group_id/$artifact_id/$version
@@ -24,7 +26,7 @@ curl -OJ http://localhost:8000/download/$group_id/$artifact_id/$version
 # - else 404
 ```
 
-##### Trigger a build for a project
+### Trigger a build for a project
 
 If the previous request returned a `404` you may want to trigger a build for
 the respective project. You can do so by sending the following request:
@@ -33,7 +35,7 @@ the respective project. You can do so by sending the following request:
 curl -X POST -d project=$group_id/$artifact_id -d version=$version https://cljdoc.xyz/api/request-build2
 ```
 
-##### Monitoring build progress
+### Monitoring build progress
 
 The previous will redirect you to a URL like `/builds/123` if everything worked correctly.
 Request this page with an appropriate `Accept` header to receive build information in JSON or EDN:
