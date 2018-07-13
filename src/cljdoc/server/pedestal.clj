@@ -45,6 +45,7 @@
                 (if cache-bundle
                   (ok-html! ctx (html/render page-type path-params cache-bundle))
                   (assoc ctx :response {:status 404
+                                        :headers {"Content-Type" "text/html"}
                                         :body (str (render-build-req/request-build-page path-params))})))))})
 
 (def doc-slug-parser
