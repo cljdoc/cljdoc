@@ -185,7 +185,7 @@
    :enter (fn build-show-render [ctx]
             (if-let [build-info (->> ctx :request :path-params :id
                                      (build-log/get-build build-tracker))]
-              (if (= "text/html" (get-in ctx [:request :accept :field]))
+              (if (= "text/html" (pu/accepted-type ctx))
                 (ok! ctx (cljdoc.render.build-log/build-page build-info))
                 (ok! ctx build-info))
               ;; Not setting :response implies 404 response
