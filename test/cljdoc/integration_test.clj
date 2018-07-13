@@ -20,6 +20,7 @@
     (reset! sys (ig/init (sys/system-config cfg)))
     (tests)
     (ig/halt! @sys)
+    (shutdown-agents)
     (util/delete-directory! (io/file dir))))
 
 (t/use-fixtures :once run-system)
