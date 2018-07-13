@@ -54,6 +54,12 @@
                                     (log/infof "Migrating %s %s" direction migration))})
   db-spec)
 
+(defn -main []
+  (integrant.core/init
+   (cljdoc.server.system/system-config
+    (cfg/config)))
+  (deref (promise)))
+
 (comment
   (require '[integrant.repl])
 
