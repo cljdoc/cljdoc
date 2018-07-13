@@ -1,0 +1,68 @@
+(ns cljdoc.cli
+  (:require [clojure.java.io :as io]
+            [unilog.config :as unilog]
+            [cljdoc.config :as config]
+            [cljdoc.server.ingest :as ingest]
+            [cljdoc.server.system :as system]
+            [cljdoc.analysis.task :as ana]
+            [cljdoc.util.repositories :as repositories]
+            [clojure.tools.logging :as log]
+            [cljdoc.storage.api :as storage]
+            [cli-matic.core :as cli-matic]))
+
+(defn build [{:keys [project version jar pom scm-url rev]}]
+  (unilog/start-logging! {:level :info :console true})
+  (let [project      (symbol project)
+        grimoire-dir (io/file (config/data-dir) "grimoire")
+        analysis-result (-> (ana/analyze-impl
+                             project
+                             version
+                             (or ;jar
+                                 (:jar (repositories/local-uris project version))
+                                 (:jar (repositories/artifact-uris project version)))
+                             (or ;pom
+                                 (:pom (repositories/local-uris project version))
+                                 (:pom (repositories/artifact-uris project version))))
+                            slurp read-string)
+        storage (storage/->GrimoireStorage grimoire-dir)
+        scm-info (ingest/scm-info project (:pom-str analysis-result))]
+    (log/infof "Generating Grimoire store for %s\n" project)
+    (ingest/ingest-cljdoc-edn storage analysis-result)
+    (ingest/ingest-git! storage
+                 {:project project
+                  :version version
+                  :scm-url (:url scm-info)
+                  :local-scm (or #_scm-url)
+                  :pom-revision (or #_rev (:sha scm-info))})
+    (shutdown-agents)))
+
+(defn run [{}]
+  (system/-main))
+
+(def CONFIGURATION
+  {:app         {:command     "cljdoc"
+                 :description "command-line utilities to use cljdoc"
+                 :version     "0.0.1"}
+
+   :global-opts []
+
+   :commands    [{:command     "ingest"
+                  :description "Ingest information about an artifact at a specific version"
+                  :opts        [{:option "project" :short "p" :as "Project to import" :type :string :default :present}
+                                {:option "version" :short "v" :as "Version to import" :type :string :default :present}
+                                {:option "jar" :short "j" :as "Jar file to use (may be local)" :type :string}
+                                {:option "pom" :as "POM file to use (may be local)" :type :string}
+                                {:option "scm-url" :short "s" :as "Git repo to use (may be local)" :type :string}
+                                {:option "rev" :short "r" :as "Git revision to use (inferred by default)" :type :string}]
+                  :runs        build}
+                 {:command     "run"
+                  :description "Run the cljdoc server (config in resources/config.edn)"
+                  :opts        []
+                  :runs        run}]})
+
+
+(defn -main
+  [& args]
+  (cli-matic/run-cmd args CONFIGURATION))
+
+
