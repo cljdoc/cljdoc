@@ -2,4 +2,4 @@
 
 cd $(git rev-parse --show-toplevel)
 
-clj -A:cli "$@"
+clojure -A:cli "$@"
