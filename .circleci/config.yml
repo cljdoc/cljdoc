@@ -30,13 +30,12 @@ jobs:
             chmod +x linux-install-1.9.0.381.sh
             sudo ./linux-install-1.9.0.381.sh
 
-      - run: boot show -d
-      - run: boot -B -d codox
+      - run: clj -Spath
 
-      - run: boot build-docs --project bidi --version 2.1.3
+      - run: ./script/cljdoc ingest --project bidi --version 2.1.3
       - run: ./script/analyze.sh bidi 2.1.3 ~/.m2/repository/bidi/bidi/2.1.3/bidi-2.1.3.jar ~/.m2/repository/bidi/bidi/2.1.3/bidi-2.1.3.pom
 
-      - run: boot test
+      - run: clj -A:eftest
       - store_test_results:
           path: target/
 
