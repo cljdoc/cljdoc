@@ -45,16 +45,14 @@
 
    :global-opts []
 
-   ;; "This task can be used to build docs for a project locally.
-
-   ;; A jar from the local maven repository will be used
-   ;; based on the project and version info.
-
-   ;; `:git` and `:rev` options can be used to supply a local git repository
-   ;; that will be used to extract additional data such as doc/cljdoc.edn
-   ;; config and Articles."
    :commands    [{:command     "ingest"
-                  :description "Ingest information about an artifact at a specific version"
+                  :description ["Ingest information about an artifact at a specific version"
+                                ""
+                                "By default this command will use jar/pom from local ~/.m2, download if needed."
+                                "You may specify full paths to those files using the --jar and --pom options."
+                                ""
+                                "To test how a Git repository gets incorporated without pushing new release,"
+                                "pass the --git option and use --rev to specify a revision to use (e.g. master)."]
                   :opts        [{:option "project" :short "p" :as "Project to import" :type :string :default :present}
                                 {:option "version" :short "v" :as "Version to import" :type :string :default :present}
                                 {:option "jar" :short "j" :as "Jar file to use (may be local)" :type :string}
