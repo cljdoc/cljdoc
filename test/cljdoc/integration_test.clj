@@ -52,15 +52,15 @@
       (t/is (true? (.contains (:body builds-page) "v0.8.1")))
       (t/is (true? (.contains (:body builds-page) "Analysis Requested")))
 
-      (loop [i 10]
-        (when (and (pos? i)
-                   (not (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri))
-                                   "Import Completed")))
-          (Thread/sleep 2000)
-          (recur (dec i))))
+      (loop [i 20]
+        (if (pos? i)
+          (when-not (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri))
+                               "Git Import Completed")
+            (do (Thread/sleep 2000)
+                (recur (dec i))))
+          (throw (Exception. "Import took too long"))))
 
-      (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri))
-                              "Import Completed")))
+      (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri)) "Git Import Completed")))
 
       (t/is (= 302 (:status (pdt/response-for (service-fn @sys) :get "/d/reagent/reagent/0.8.1"))))
 
