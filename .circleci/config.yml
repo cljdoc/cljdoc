@@ -20,7 +20,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "build.boot" }}
+          - v1-dependencies-{{ checksum "deps.edn" }}
           - v1-dependencies- # fallback if not cache found
 
       - run:
@@ -43,4 +43,4 @@ jobs:
           paths:
             - ~/.m2
             - ~/.boot
-          key: v1-dependencies-{{ checksum "build.boot" }}
+          key: v1-dependencies-{{ checksum "deps.edn" }}
