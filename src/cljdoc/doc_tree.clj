@@ -68,16 +68,42 @@
       t
       (recur (first (filter #(subseq? (:slug-path (:attrs %)) slug-path) t))))))
 
-(defn derive-toc [dir]
-  (when-let [readme (->> (.listFiles dir)
-                         (map #(.getName %))
-                         (filter #(.startsWith (.toLowerCase %) "readme."))
-                         (filter #(or (.endsWith % ".markdown")
-                                      (.endsWith % ".md")
-                                      (.endsWith % ".adoc")))
-                         first)]
-    [["Readme" {:file readme}]]))
+;; Deriving doctrees -----------------------------------------------------------
+
+(defn supported-file-type [path]
+  (cond
+    (.endsWith path ".markdown") :markdown
+    (.endsWith path ".md")       :markdown
+    (.endsWith path ".adoc")     :asciidoc))
+
+(defn readme? [path]
+  (and (.startsWith (.toLowerCase path) "readme.")
+       (supported-file-type path)))
+
+(defn doc? [path]
+  (and (supported-file-type path)
+       (or (.startsWith path "doc/")
+           (.startsWith path "docs/"))))
+
+(defn infer-title [path file-contents]
+  (or (case (supported-file-type path)
+        :markdown (second (re-find #"(?m)^\s*#+\s*(.*)\s*$" file-contents))
+        :asciidoc (second (re-find #"(?m)^\s*=+\s*(.*)\s*$" file-contents)))
+      (first (butlast (take-last 2 (cuerdas/split path #"[/\.]"))))
+      (throw (ex-info (format "No title found for %s" path)
+                      {:path path :contents file-contents}))))
+
+(defn derive-toc [files]
+  (let [readme (first (filter #(readme? (:path %)) files))]
+    (into (if readme [["Readme" {:file (:path readme)}]] [])
+          (->> (filter #(doc? (:path %)) files)
+               (sort-by :path)
+               (mapv (fn [{:keys [path object-loader]}]
+                      [(infer-title path (slurp object-loader))
+                       {:file path}]))))))
 
 (comment
+
+  (derive-toc cljdoc.git-repo/manifold-files)
 
   )

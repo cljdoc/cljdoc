@@ -2,12 +2,14 @@
   (:require [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
+            [clojure.spec.alpha :as s]
             [digest :as digest])
   (:import  (org.eclipse.jgit.lib RepositoryBuilder
                                   Repository
                                   ObjectIdRef$PeeledNonTag
                                   ObjectIdRef$PeeledTag
                                   ObjectIdRef$Unpeeled
+                                  ObjectLoader
                                   Constants)
             (org.eclipse.jgit.revwalk RevWalk)
             (org.eclipse.jgit.treewalk TreeWalk)
@@ -117,22 +119,46 @@
         (slurp (.openStream (.open repo (.getObjectId tree-walk 0))))))
     (log/warnf "Could not resolve revision %s in repo %s" rev g)))
 
+(s/def ::git #(instance? Git %))
+(s/def ::path string?)
+(s/def ::object-loader #(instance? ObjectLoader %))
+(s/def ::git-object (s/keys :req-un [::path ::object-loader]))
+
+(s/fdef ls-files
+  :args (s/cat :repository ::git :revision string?)
+  :ret (s/coll-of ::git-object))
+
 (defn ls-files
-  "Return a map of all filepaths and there SHA256
-  in the git repository at the given revision `rev`."
+  "Return a seq of maps {:path 'path-of-file :obj-loader 'ObjectLoader}
+  for files in the git repository at the given revision `rev`.
+  ObjectLoader instances can be consumed with slurp, input-stream, etc."
   [^Git g rev]
   (let [tree (tree-for g rev)
         repo (.getRepository g)
         tw   (TreeWalk. repo)]
     (.addTree tw tree)
     (.setRecursive tw true)
-    (loop [files {}]
+    (loop [files []]
       (if (.next tw)
-        (recur (assoc files (.getPathString tw)
-                            (digest/sha-256
-                             (.openStream
-                              (.open repo (.getObjectId tw 0))))))
+        (recur
+         (conj files {:path          (.getPathString tw)
+                      :object-loader (.open repo (.getObjectId tw 0))}))
         files))))
+
+(s/fdef path-sha-pairs
+  :args (s/cat :git-objects (s/coll-of ::git-object))
+  :ret (s/map-of string? string?))
+
+(defn path-sha-pairs [files]
+  (->> (for [{:keys [path object-loader]} files]
+         [path (digest/sha-256 (io/input-stream object-loader))])
+       (into {})))
+
+(extend ObjectLoader
+  io/IOFactory
+  (assoc io/default-streams-impl
+         :make-input-stream (fn [x opts] (.openStream x))
+         :make-reader (fn [x opts] (io/reader (.openStream x)))))
 
 (defn read-cljdoc-config
   [repo rev]
@@ -163,12 +189,19 @@
   (def r (->repo (io/file "data/git-repos/fulcrologic/fulcro/2.5.4/")))
 
   (def r (->repo (io/file "/Users/martin/code/02-oss/bidi")))
+  (def r (->repo (io/file "/Users/martin/code/02-oss/workflo-macros")))
   (slurp-file-at r "master" "bidi.cljc")
   (find-filepath-in-repo r "master" "project.clj")
   (find-filepath-in-repo r "master" "bidi.cljc")
 
-  (clojure.pprint/pprint
-   (ls-files r "master"))
+  (require 'clojure.spec.test.alpha)
+  (clojure.spec.test.alpha/instrument)
+
+  (def workflo-macros-files (ls-files (->repo (io/file "/Users/martin/code/02-oss/workflo-macros")) "master"))
+  (def yada-files (ls-files (->repo (io/file "/Users/martin/code/02-oss/yada")) "master"))
+  (def manifold-files (ls-files (->repo (io/file "/Users/martin/code/02-oss/manifold")) "master"))
+
+  (s/check-asserts?)
 
   (let [t (.getTree (.parseCommit (RevWalk. (.getRepository r))
                                   (.resolve (.getRepository r) "master")))

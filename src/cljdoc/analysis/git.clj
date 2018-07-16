@@ -25,6 +25,7 @@
                             (:name version-tag)
                             (when (.endsWith version "-SNAPSHOT")
                               "master"))
+            git-files   (git/ls-files repo revision)
             config-edn  (when revision
                           (->> (or (git/read-cljdoc-config repo revision)
                                    ;; in case people add the file later,
@@ -35,7 +36,7 @@
         (when config-edn
           (telegram/has-cljdoc-edn scm-url))
         (if revision
-          {:scm      {:files (git/ls-files repo revision)
+          {:scm      {:files (git/path-sha-pairs git-files)
                       :tag version-tag}
            :doc-tree (doctree/process-toc
                       (fn slurp-at-rev [f]
@@ -50,7 +51,7 @@
                       (or (:cljdoc.doc/tree config-edn)
                           (get-in util/hardcoded-config
                                   [(util/normalize-project project) :cljdoc.doc/tree])
-                          (doctree/derive-toc git-dir)))}
+                          (doctree/derive-toc git-files)))}
 
           {:error {:type "no-revision-found"
                    :version-tag version-tag

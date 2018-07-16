@@ -5,11 +5,13 @@
             [integrant.core :as ig]
             [ring.util.codec :as codec]
             [clojure.java.io :as io]
+            [clojure.spec.test.alpha :as st]
             [clojure.test :as t]))
 
 (defonce sys (atom nil))
 
 (defn run-system [tests]
+  (st/instrument)
   (let [dir "test-data/"
         cfg {:cljdoc/server {:port (+ 8000 (rand-int 1000))
                              :analysis-service :local
