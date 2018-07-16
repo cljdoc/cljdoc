@@ -1,2 +1,49 @@
-{:deps {}
- :paths ["src" "resources"]}
+{:deps {org.clojure/clojure {:mvn/version "1.9.0"},
+        spootnik/unilog {:mvn/version "0.7.22"},
+        org.clojure/tools.logging {:mvn/version "0.4.0"},
+        io.pedestal/pedestal.jetty {:mvn/version "0.5.3"},
+        tea-time {:mvn/version "1.0.0"},
+        com.jcraft/jsch.agentproxy.jsch {:mvn/version "0.0.9"},
+        integrant/repl {:mvn/version "0.3.0"},
+        zprint {:mvn/version "0.4.9"},
+        io.pedestal/pedestal.service {:mvn/version "0.5.3"},
+        aero {:mvn/version "1.1.2"},
+        cheshire {:mvn/version "5.8.0"},
+        ragtime {:mvn/version "0.7.2"},
+        funcool/cuerdas {:mvn/version "2.0.5"},
+        org.asciidoctor/asciidoctorj {:mvn/version "1.5.6"},
+        com.beust/jcommander {:mvn/version "1.35"} ; tools-deps issue?
+        org.jruby/jruby-complete {:mvn/version "1.7.26"} ; tools-deps issue?
+        com.atlassian.commonmark/commonmark {:mvn/version "0.11.0"},
+        com.atlassian.commonmark/commonmark-ext-autolink {:mvn/version "0.11.0"},
+        com.atlassian.commonmark/commonmark-ext-gfm-tables {:mvn/version "0.11.0"},
+        com.atlassian.commonmark/commonmark-ext-heading-anchor {:mvn/version "0.11.0"},
+        com.cognitect/transit-clj {:mvn/version "0.8.300"},
+        org.clojure/java.jdbc {:mvn/version "0.7.0"},
+        hiccup {:mvn/version "2.0.0-alpha1"},
+        digest {:mvn/version "1.4.8"},
+        integrant {:mvn/version "0.7.0-alpha1"},
+        clj-http-lite {:mvn/version "0.3.0"},
+        org.eclipse.jgit {:mvn/version "4.10.0.201712302008-r"},
+        io.sentry/sentry-logback {:mvn/version "1.7.5"},
+        com.jcraft/jsch.agentproxy.connector-factory {:mvn/version "0.0.9"},
+        org.clojure/core.match {:mvn/version "0.3.0-alpha5"},
+        org.jsoup/jsoup {:mvn/version "1.11.3"},
+        org.xerial/sqlite-jdbc {:mvn/version "3.20.0"},
+        org.slf4j/slf4j-api {:mvn/version "1.7.25"},
+        expound {:mvn/version "0.6.0"},
+        raven-clj {:mvn/version "1.6.0-alpha"},
+        org.clojure/test.check {:mvn/version "0.9.0"},
+        me.raynes/fs {:mvn/version "1.4.6"},
+        org.clojure-grimoire/lib-grimoire {:mvn/version "0.10.10"}}
+ :paths ["src" "resources"]
+ :aliases {:test
+           {:extra-paths ["test"]
+            :extra-deps {lambdaisland/kaocha
+                         {:git/url "https://github.com/lambdaisland/kaocha.git"
+                          :sha "3c85618509f8d476226273d587c21fa933381d5a"}}
+            :main-opts ["-m" "kaocha.runner"]}
+
+           :cli
+           {:extra-deps {cli-matic {:mvn/version "0.1.14"}}
+            :main-opts ["-m"  "cljdoc.cli"]}}}

@@ -18,4 +18,4 @@ fi
 pushd "cljdoc-$version"
 
 echo "Starting process"
-CLJDOC_PROFILE=prod CLJDOC_VERSION="$version" BOOT_JVM_OPTIONS=-Xmx1400m boot run
+CLJDOC_PROFILE=prod CLJDOC_VERSION="$version" clojure -J-Xmx1400m -m cljdoc.server.system

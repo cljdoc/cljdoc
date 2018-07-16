@@ -81,7 +81,8 @@
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
   (log/info "Stopping ReleaseMonitor")
   (tt/cancel! (:release-fetcher release-monitor))
-  (tt/cancel! (:build-queuer release-monitor)))
+  (tt/cancel! (:build-queuer release-monitor))
+  (tt/stop!))
 
 (comment
   (def db-spec (cljdoc.config/build-log-db))

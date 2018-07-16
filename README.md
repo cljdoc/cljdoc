@@ -54,7 +54,7 @@ I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blo
 To start the entire system, simply run:
 
 ```
-boot run
+./script/cljdoc run
 ```
 
 After that the server will start under http://localhost:8000/. You can

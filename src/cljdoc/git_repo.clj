@@ -32,7 +32,6 @@
                   (.setIdentityRepository (RemoteIdentityRepository. connector)))))))))))
 
 (defn clone [uri target-dir]
-  (printf "Cloning repo %s\n" uri)
   (.. Git
       cloneRepository
       (setURI uri)
