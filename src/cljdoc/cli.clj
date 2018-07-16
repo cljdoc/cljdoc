@@ -1,6 +1,5 @@
 (ns cljdoc.cli
   (:require [clojure.java.io :as io]
-            [unilog.config :as unilog]
             [cljdoc.config :as config]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.server.system :as system]
@@ -11,7 +10,6 @@
             [cli-matic.core :as cli-matic]))
 
 (defn build [{:keys [project version jar pom scm-url rev]}]
-  (unilog/start-logging! {:level :info :console true})
   (let [project      (symbol project)
         grimoire-dir (io/file (config/data-dir) "grimoire")
         analysis-result (-> (ana/analyze-impl
