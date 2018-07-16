@@ -202,8 +202,8 @@
                  (ok-html! ctx)))})
 
 (defn badge-url [status color]
-  (format "https://img.shields.io/badge/cljdoc-%s-%s.svg"
-          (-> status (string/replace #"-" "--") (string/replace #"/" "%2F"))
+  (format "https://badgen.now.sh/badge/cljdoc/%s/%s"
+          (string/replace status  #"/" "%2F")
           (name color)))
 
 (defn badge-interceptor []
