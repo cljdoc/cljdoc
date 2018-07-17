@@ -30,10 +30,10 @@
                  {:project project
                   :version version
                   :scm-url (:url scm-info)
-                  :local-scm (or #_scm-url)
-                  :pom-revision (or #_rev (:sha scm-info))})))
+                  :local-scm scm-url
+                  :pom-revision (or rev (:sha scm-info))})))
 
-(defn run [{}]
+(defn run [opts]
   (system/-main))
 
 (def CONFIGURATION

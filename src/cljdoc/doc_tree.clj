@@ -104,6 +104,6 @@
 
 (comment
 
-  (derive-toc cljdoc.git-repo/manifold-files)
+  (derive-toc cljdoc.git-repo/workflo-macros-files)
 
   )
