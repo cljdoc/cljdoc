@@ -114,7 +114,7 @@
   [project version jarpath pompath]
   (try
     (io/copy (analyze-impl (symbol project) version jarpath pompath)
-             (doto (io/file "analysis-out" (util/cljdoc-edn project version))
+             (doto (io/file "/tmp/cljdoc/analysis-out" (util/cljdoc-edn project version))
                (-> .getParentFile .mkdirs)))
     (catch Throwable t
       (println (.getMessage t))
