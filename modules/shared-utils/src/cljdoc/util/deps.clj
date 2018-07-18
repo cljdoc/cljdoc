@@ -36,7 +36,11 @@
        'org.clojure/java.classpath {:mvn/version "0.2.2"}
        'org.clojure/tools.namespace {:mvn/version "0.2.11"}
        'org.clojure/clojurescript {:mvn/version "1.10.238"}
-       'codox/codox {:mvn/version "0.10.4" :exclusions '[enlive hiccup org.pegdown/pegdown]}}
+       'codox/codox {:exclusions '[enlive hiccup org.pegdown/pegdown]
+                     ;; :mvn/version "0.10.4"
+                     :git/url "https://github.com/martinklepsch/codox"
+                     :sha "7059b20c344842643f64d6d7f90b97ab9012ad10"
+                     :deps/root "codox/"}}
       (merge (extra-deps pom))
       (ensure-recent-ish)))
 
