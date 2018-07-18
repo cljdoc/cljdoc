@@ -5,7 +5,7 @@
             [clojure.java.shell :as sh]
             [clojure.string]
             [cljdoc.util :as util]
-            [cljdoc.analysis.deps :as deps]
+            [cljdoc.util.deps :as deps]
             [cljdoc.spec])
   (:import (java.util.zip ZipFile GZIPInputStream)
            (java.net URI)
@@ -75,6 +75,8 @@
                          (let [f (util/system-temp-file project ".edn")]
                            (println "Analyzing" project platf "- used dependencies:")
                            (println (pr-str {:deps deps}))
+                           ;; (println "Classpath:" (:out (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps})
+                           ;;                                    "-Spath" :dir (.getParentFile f))))
                            (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps})
                                                 "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
