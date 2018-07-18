@@ -9,16 +9,16 @@
             [cljdoc.storage.api :as storage]
             [cli-matic.core :as cli-matic]))
 
-(defn build [{:keys [project version jar pom scm-url rev]}]
+(defn build [{:keys [project version jar pom git rev]}]
   (let [project      (symbol project)
         grimoire-dir (io/file (config/data-dir) "grimoire")
         analysis-result (-> (ana/analyze-impl
                              project
                              version
-                             (or ;jar
+                             (or jar
                                  (:jar (repositories/local-uris project version))
                                  (:jar (repositories/artifact-uris project version)))
-                             (or ;pom
+                             (or pom
                                  (:pom (repositories/local-uris project version))
                                  (:pom (repositories/artifact-uris project version))))
                             slurp read-string)
@@ -30,7 +30,7 @@
                  {:project project
                   :version version
                   :scm-url (:url scm-info)
-                  :local-scm scm-url
+                  :local-scm git
                   :pom-revision (or rev (:sha scm-info))})))
 
 (defn run [opts]
