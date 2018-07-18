@@ -37,6 +37,7 @@
   (let [config (codox-config namespaces jar-contents-path platf)]
     ;; TODO print versions for Clojure/CLJS and other important deps
     (printf "Analysing sources for platform %s\n" (pr-str platf))
+    (printf "Clojure version %s\n" (clojure-version))
     (printf "ClojureScript version %s\n" (cljs-util/clojurescript-version))
     (printf "Codox opts: %s\n" config)
     (->> (codox/generate-docs config)
