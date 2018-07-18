@@ -163,7 +163,8 @@
 (defn read-cljdoc-config
   [repo rev]
   {:pre [(some? repo) (string? rev) (seq rev)]}
-  (cljdoc.git-repo/slurp-file-at repo rev "doc/cljdoc.edn"))
+  (or (cljdoc.git-repo/slurp-file-at repo rev "doc/cljdoc.edn")
+      (cljdoc.git-repo/slurp-file-at repo rev "docs/cljdoc.edn")))
 
 (defn patch-level-info
   ;; Non API documentation should be updated with new Git revisions,
