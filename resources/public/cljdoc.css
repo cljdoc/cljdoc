@@ -16,6 +16,10 @@
   margin-top: .25em;
 }
 
+.markdown img[align="right"] {
+    padding-left: 20px;
+}
+
 .markdown pre, .literalblock > .content > pre, .listingblock > .content > pre {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
     monospace;
