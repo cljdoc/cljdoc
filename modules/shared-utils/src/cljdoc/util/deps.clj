@@ -1,4 +1,4 @@
-(ns cljdoc.analysis.deps
+(ns cljdoc.util.deps
   (:require [version-clj.core :as v]
             [cljdoc.util.pom :as pom]))
 
