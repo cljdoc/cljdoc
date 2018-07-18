@@ -9,6 +9,7 @@
 	- [Wikilinks](#wikilinks)
 	- [Intelligent Version Resolving](#intelligent-version-resolving)
 	- [Offline Docs](#offline-docs)
+    - [Building docs locally](#running-cljdoc-locally)
 
 ## Why cljdoc?
 
@@ -16,7 +17,7 @@ cljdoc aims to automate as much as possible of the process of publishing documen
 
 ## Basic Setup
 
-For basic docs to be available you don't have to do anything at all. cljdoc will pick up new releases as they are published to Clojars. 
+For basic docs to be available you don't have to do anything at all. cljdoc will pick up new releases as they are published to Clojars.
 
 **Building docs for older releases:** If you would like to build docs for a version that existed before cljdoc started building docs automatically just head to [the homepage](https://cljdoc.xyz), search for your project and pick it from the list. If we haven't built docs for it yet you'll be able to do so with the press of a button.
 
@@ -111,9 +112,9 @@ You can refer to other namespaces and functions inside your docstrings using `[[
 
 #### Intelligent Version Resolving
 
-If you want to refer to namespaces, vars or similar in an article you can use `CURRENT` instead of a specific version. 
+If you want to refer to namespaces, vars or similar in an article you can use `CURRENT` instead of a specific version.
 
-- If that link is clicked while viewing the project's docs on cljdoc the version will be resolved based on the referring URL. 
+- If that link is clicked while viewing the project's docs on cljdoc the version will be resolved based on the referring URL.
 - If that link is clicked outside of cljdoc the version will be resolved to the latest release version.
 
 An example linking to `reagent.core`:
@@ -124,3 +125,8 @@ https://cljdoc.xyz/d/reagent/reagent/CURRENT/api/reagent.core
 
 See [Offline Docs](for-users.md#offline-docs).
 
+#### Running cljdoc locally
+
+This may be useful to test your changes without pushing new releases
+to Clojars or commits to Github. See [Running cljdoc
+locally](/doc/running-cljdoc-locally.md) for details.
