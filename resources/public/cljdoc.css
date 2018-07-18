@@ -12,6 +12,10 @@
   color: #357edd;
 }
 
+.markdown li + li {
+  margin-top: .25em;
+}
+
 .markdown pre, .literalblock > .content > pre, .listingblock > .content > pre {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
     monospace;
