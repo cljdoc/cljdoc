@@ -8,8 +8,8 @@
         choose-version (fn choose-version [given-v min-v]
                          (if (pos? (v/version-compare min-v given-v)) min-v given-v))]
     (reduce (fn [dm [proj min-v]]
-              (if (get dm proj)
-                (update-in dm [proj :mvn/version] choose-version min-v)))
+              (cond-> dm
+                (get dm proj) (update-in [proj :mvn/version] choose-version min-v)))
             deps-map
             min-versions)))
 
