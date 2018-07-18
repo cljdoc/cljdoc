@@ -114,6 +114,28 @@ An example linking to `reagent.core`:
 
 https://cljdoc.xyz/d/reagent/reagent/CURRENT/api/reagent.core
 
+==== Hiding Namespaces & Vars in Documentation
+
+To hide namespaces or vars from documentation, annotate them with `:no-doc` metadata as in the examples below:
+
+[source,clojure]
+----
+(defn ^:no-doc hidden [x])
+----
+
+[source,clojure]
+----
+(ns ^:no-doc namespace.hidden
+  "This ns shouldn't show in the docs.")
+----
+
+[source,clojure]
+----
+(ns namespace.hidden
+  "This ns shouldn't show in the docs."
+  {:no-doc true})
+----
+
 ==== Offline Docs
 
 See link:for-users.md#offline-docs[Offline Docs]
