@@ -32,11 +32,17 @@
 
 (defn deps [pom project version]
   (-> {project {:mvn/version version}
-       'cljdoc/analysis-impl {:local/root (.getAbsolutePath (io/file "." "modules" "analysis-impl"))}}
+       'org.clojure/clojure {:mvn/version "1.9.0"}
+       'org.clojure/java.classpath {:mvn/version "0.2.2"}
+       'org.clojure/tools.namespace {:mvn/version "0.2.11"}
+       'org.clojure/clojurescript {:mvn/version "1.10.238"}
+       'codox/codox {:mvn/version "0.10.4" :exclusions '[enlive hiccup org.pegdown/pegdown]}}
       (merge (extra-deps pom))
       (ensure-recent-ish)))
 
 (comment
   (deps "/Users/martin/.m2/repository/manifold/manifold/0.1.6/manifold-0.1.6.pom" 'manifold/manifold "0.1.6")
+
+  (with-deps-edn {:deps {}} (io/file "."))
 
   )

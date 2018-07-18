@@ -36,8 +36,8 @@
         org.clojure/test.check {:mvn/version "0.9.0"},
         me.raynes/fs {:mvn/version "1.4.6"},
         org.clojure-grimoire/lib-grimoire {:mvn/version "0.10.10"}
-
-        version-clj {:mvn/version "0.1.2"}}
+        cljdoc/shared-utils {:local/root "modules/shared-utils"}
+        cljdoc/analysis-runner {:local/root "modules/analysis-runner"}}
  :paths ["src" "resources"]
  :aliases {:test
            {:extra-paths ["test"]

@@ -10,6 +10,8 @@ echo "Running build for $project v$version"
 echo "Jar: $jar_path"
 echo "POM: $pom_path"
 
+cd modules/analysis-runner
+
 clojure \
-    -m cljdoc.analysis.task \
+    -m cljdoc.analysis.runner \
     "$project" "$version" "$jar_path" "$pom_path"

@@ -1,4 +1,4 @@
-(ns cljdoc.analysis.task
+(ns cljdoc.analysis.runner
   {:boot/export-tasks true}
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
@@ -63,7 +63,12 @@
   [project version jar pom]
   {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
   (let [tmp-dir      (util/system-temp-dir (str "cljdoc-" project "-" version))
+        _            (println tmp-dir)
         jar-contents (io/file tmp-dir "jar-contents/")
+        impl-src-dir (io/file tmp-dir "impl-src/")
+        _            (copy (io/resource "impl.clj")
+                           (doto (io/file impl-src-dir "cljdoc" "analysis" "impl.clj")
+                             (-> .getParentFile .mkdirs)))
         _            (copy-jar-contents-impl (URI. jar) jar-contents)
         platforms    (get-in util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/platforms]
@@ -77,7 +82,8 @@
                            (println (pr-str {:deps deps}))
                            ;; (println "Classpath:" (:out (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps})
                            ;;                                    "-Spath" :dir (.getParentFile f))))
-                           (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps})
+                           (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps
+                                                                            :paths [(.getAbsolutePath impl-src-dir)]})
                                                 "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
                                                 ;; supplying :dir is necessary to avoid local deps.edn being included

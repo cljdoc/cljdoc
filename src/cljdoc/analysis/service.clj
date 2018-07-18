@@ -1,7 +1,7 @@
 (ns cljdoc.analysis.service
   (:require [clj-http.lite.client :as http]
             [clojure.tools.logging :as log]
-            [cljdoc.analysis.task :as analysis]))
+            [cljdoc.analysis.runner :as analysis]))
 
 (defprotocol IAnalysisService
   "Services that can run analysis of Clojure code for us
