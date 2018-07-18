@@ -20,6 +20,14 @@
     padding-left: 20px;
 }
 
+.markdown hr {
+    height: .25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
+
 .markdown pre, .literalblock > .content > pre, .listingblock > .content > pre {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
     monospace;
