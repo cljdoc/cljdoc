@@ -1,0 +1,6 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.9.0"}
+        org.clojure/java.classpath {:mvn/version "0.2.2"}
+        org.clojure/tools.namespace {:mvn/version "0.2.11"}
+        org.clojure/clojurescript {:mvn/version "1.10.238"}
+        codox/codox {:mvn/version "0.10.4" :exclusions [enlive hiccup org.pegdown/pegdown]}}}
