@@ -12,6 +12,8 @@
    :root-path    (System/getProperty "user.dir")
    :source-paths [jar-contents-path]
    :namespaces   (or namespaces :all)
+   :exception-handler (fn ex-handler [ex f-or-ns]
+                        (throw (ex-info (format "Could not analyze %s" f-or-ns) {} ex)))
    :metadata     {}
    :writer       'clojure.core/identity
    :exclude-vars #"^(map)?->\p{Upper}"})
@@ -37,6 +39,7 @@
   (let [config (codox-config namespaces jar-contents-path platf)]
     ;; TODO print versions for Clojure/CLJS and other important deps
     (printf "Analysing sources for platform %s\n" (pr-str platf))
+    (printf "Clojure version %s\n" (clojure-version))
     (printf "ClojureScript version %s\n" (cljs-util/clojurescript-version))
     (printf "Codox opts: %s\n" config)
     (->> (codox/generate-docs config)

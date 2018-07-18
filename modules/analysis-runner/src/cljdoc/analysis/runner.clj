@@ -1,35 +1,15 @@
-(ns cljdoc.analysis.task
+(ns cljdoc.analysis.runner
   {:boot/export-tasks true}
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
             [clojure.java.shell :as sh]
             [clojure.string]
             [cljdoc.util :as util]
+            [cljdoc.util.deps :as deps]
             [cljdoc.spec])
   (:import (java.util.zip ZipFile GZIPInputStream)
            (java.net URI)
            (java.nio.file Files)))
-
-(defn extra-deps
-  "Some projects require additional depenencies that have either been specified with
-  scope 'provided' or are specified via documentation, e.g. a README.
-  Maybe should be able to configure this via their cljdoc.edn configuration
-  file but this situation being an edge case this is a sufficient fix for now."
-  [project]
-  (get '{manifold/manifold {org.clojure/core.async {:mvn/version "RELEASE"}}
-         io.pedestal/pedestal.interceptor {org.clojure/tools.logging {:mvn/version "RELEASE"}}
-         compojure/compojure {javax.servlet/servlet-api {:mvn/version "2.5"}}
-         ring/ring-core {javax.servlet/servlet-api {:mvn/version "2.5"}}}
-       (symbol (util/normalize-project project))))
-
-(defn deps [project version]
-  (merge {project {:mvn/version version}
-          'org.clojure/clojure {:mvn/version "1.9.0"}
-          'org.clojure/java.classpath {:mvn/version "0.2.2"}
-          'org.clojure/tools.namespace {:mvn/version "0.2.11"}
-          'org.clojure/clojurescript {:mvn/version "1.10.238"}
-          'codox/codox {:mvn/version "0.10.3" :exclusions '[enlive hiccup org.pegdown/pegdown]}}
-         (extra-deps project)))
 
 (defn copy [uri file]
   (with-open [in  (io/input-stream uri)
@@ -83,29 +63,36 @@
   [project version jar pom]
   {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
   (let [tmp-dir      (util/system-temp-dir (str "cljdoc-" project "-" version))
+        _            (println tmp-dir)
         jar-contents (io/file tmp-dir "jar-contents/")
+        impl-src-dir (io/file tmp-dir "impl-src/")
+        _            (copy (io/resource "impl.clj")
+                           (doto (io/file impl-src-dir "cljdoc" "analysis" "impl.clj")
+                             (-> .getParentFile .mkdirs)))
         _            (copy-jar-contents-impl (URI. jar) jar-contents)
         platforms    (get-in util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/platforms]
                              (util/infer-platforms-from-src-dir jar-contents))
         namespaces   (get-in util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/namespaces])
+        deps           (deps/deps pom project version)
         build-cdx      (fn build-cdx [jar-contents-path platf]
-                         (let [f (util/system-temp-file project ".edn")
-                               deps (deps project version)]
-                           (println "Analyzing" project platf)
-                           (println "Dependencies:" deps)
-                           (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps})
+                         (let [f (util/system-temp-file project ".edn")]
+                           (println "Analyzing" project platf "- used dependencies:")
+                           (println (pr-str {:deps deps}))
+                           ;; (println "Classpath:" (:out (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps})
+                           ;;                                    "-Spath" :dir (.getParentFile f))))
+                           (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps
+                                                                            :paths [(.getAbsolutePath impl-src-dir)]})
                                                 "-m" "cljdoc.analysis.impl"
-                                                (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f))
+                                                (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
+                                                ;; supplying :dir is necessary to avoid local deps.edn being included
+                                                :dir (.getParentFile f))
                                  result (edn/read-string (slurp f))]
-                             (when-not (zero? (:exit process))
-                               (println (:out process))
-                               (println (:err process))
-                               (throw (Exception. "Process exited with non-zero exit code.")))
                              (print-process-result process)
-                             (assert result "No data was saved in output file")
-                             result)))]
+                             (when (zero? (:exit process))
+                               (assert result "No data was saved in output file")
+                               result))))]
 
     (let [cdx-namespaces (->> (map #(build-cdx (.getPath jar-contents) %) platforms)
                               (zipmap platforms))
@@ -116,17 +103,24 @@
                           :pom-str (slurp pom)}]
       (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
       (util/delete-directory! jar-contents)
-      (doto (io/file tmp-dir (util/cljdoc-edn project version))
-        (io/make-parents)
-        (spit (pr-str ana-result))))))
+      (if (every? some? (vals cdx-namespaces))
+        (doto (io/file tmp-dir (util/cljdoc-edn project version))
+          (io/make-parents)
+          (spit (pr-str ana-result)))
+        (throw (Exception. "Analysis failed"))))))
 
 (defn -main
   "Analyze the provided "
   [project version jarpath pompath]
-  (io/copy (analyze-impl (symbol project) version jarpath pompath)
-           (doto (io/file "analysis-out" (util/cljdoc-edn project version))
-             (-> .getParentFile .mkdirs)))
-  (shutdown-agents))
+  (try
+    (io/copy (analyze-impl (symbol project) version jarpath pompath)
+             (doto (io/file "analysis-out" (util/cljdoc-edn project version))
+               (-> .getParentFile .mkdirs)))
+    (catch Throwable t
+      (println (.getMessage t))
+      (System/exit 1))
+    (finally
+      (shutdown-agents))))
 
 (comment
   (deps 'bidi "2.1.3")

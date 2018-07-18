@@ -3,7 +3,7 @@
             [cljdoc.config :as config]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.server.system :as system]
-            [cljdoc.analysis.task :as ana]
+            [cljdoc.analysis.runner :as ana]
             [cljdoc.util.repositories :as repositories]
             [clojure.tools.logging :as log]
             [cljdoc.storage.api :as storage]

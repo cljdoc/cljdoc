@@ -22,7 +22,8 @@
   (for [d (.select doc "project > dependencies > dependency")]
     {:group-id    (text d "groupId")
      :artifact-id (text d "artifactId")
-     :version     (text d "version")}))
+     :version     (text d "version")
+     :scope       (text d "scope")}))
 
 (defn artifact-info [^Jsoup doc]
   ;; These `parent` fallbacks are a bit of a hack but
@@ -38,7 +39,7 @@
 
 (comment
   (def doc
-    (Jsoup/parse (slurp "https://repo.clojars.org/bidi/bidi/2.1.3/bidi-2.1.3.pom")))
+    (Jsoup/parse (slurp "https://repo.clojars.org/workflo/macros/0.2.63/macros-0.2.63.pom")))
 
   (def doc
     (parse (slurp "https://search.maven.org/remotecontent?filepath=org/clojure/clojure/1.9.0/clojure-1.9.0.pom")))
