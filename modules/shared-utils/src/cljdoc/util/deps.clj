@@ -1,5 +1,6 @@
 (ns cljdoc.util.deps
-  (:require [version-clj.core :as v]
+  (:require [clojure.java.io :as io]
+            [version-clj.core :as v]
             [cljdoc.util.pom :as pom]))
 
 (defn ensure-recent-ish [deps-map]
@@ -31,11 +32,7 @@
 
 (defn deps [pom project version]
   (-> {project {:mvn/version version}
-       'org.clojure/clojure {:mvn/version "1.9.0"}
-       'org.clojure/java.classpath {:mvn/version "0.2.2"}
-       'org.clojure/tools.namespace {:mvn/version "0.2.11"}
-       'org.clojure/clojurescript {:mvn/version "1.10.238"}
-       'codox/codox {:mvn/version "0.10.4" :exclusions '[enlive hiccup org.pegdown/pegdown]}}
+       'cljdoc/analysis-impl {:local/root (.getAbsolutePath (io/file "." "modules" "analysis-impl"))}}
       (merge (extra-deps pom))
       (ensure-recent-ish)))
 
