@@ -9,7 +9,7 @@
 	- [Wikilinks](#wikilinks)
 	- [Intelligent Version Resolving](#intelligent-version-resolving)
 	- [Offline Docs](#offline-docs)
-    - [Building docs locally](#running-cljdoc-locally)
+    - [Building Docs Locally](#building-docs-locally)
 
 ## Why cljdoc?
 
@@ -125,7 +125,7 @@ https://cljdoc.xyz/d/reagent/reagent/CURRENT/api/reagent.core
 
 See [Offline Docs](for-users.md#offline-docs).
 
-#### Running cljdoc locally
+#### Building Docs Locally
 
 This may be useful to test your changes without pushing new releases
 to Clojars or commits to Github. See [Running cljdoc
