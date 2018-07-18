@@ -63,7 +63,6 @@
   [project version jar pom]
   {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
   (let [tmp-dir      (util/system-temp-dir (str "cljdoc-" project "-" version))
-        _            (println tmp-dir)
         jar-contents (io/file tmp-dir "jar-contents/")
         impl-src-dir (io/file tmp-dir "impl-src/")
         _            (copy (io/resource "impl.clj")
