@@ -21,7 +21,7 @@ See https://github.com/cljdoc/cljdoc/issues/56 for some further discussion/statu
 
 == New Storage Backend
 
-cljdoc currently uses [Grimoire] for storage which has been designed to store metadata on namespaces and vars. While this has been extremely useful in the beginning it is now somewhat limiting when it comes to implementing features like the aforementioned `clojure.spec` integration, examples and more.
+cljdoc currently uses https://github.com/clojure-grimoire/lib-grimoire[Grimoire] for storage which has been designed to store metadata on namespaces and vars. While this has been extremely useful in the beginning it is now somewhat limiting when it comes to implementing features like the aforementioned `clojure.spec` integration, examples and more.
 
 Likely this issue will need to be tackled before those features can be built. The storage layer has already been refactored into a protocol so swapping it with something new should be possible without touching code in lots of places.
 
