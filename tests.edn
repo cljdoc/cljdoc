@@ -1,1 +1,2 @@
-#kaocha {}
+#kaocha
+{:reporter kaocha.report.progress/report}
