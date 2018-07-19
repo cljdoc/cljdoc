@@ -1,0 +1,24 @@
+= cljdoc roadmap
+:toc:
+
+== Spec Integration
+
+Integrating `clojure.spec` in some way could be very useful. With an appropriate storage and query layer we might even be able to provide https://www.haskell.org/hoogle/[Hoogle] style navigation from a functions args and return specs to functions returning/accepting data in that shape.
+
+See https://github.com/cljdoc/cljdoc/issues/67 for some further discussion/status.
+
+== Examples
+
+Examples have proven very useful, in particular for documenting `clojure.core` on https://clojuredocs.org. cljdoc could also provide ways to attach examples to namespaces, individual vars etc. While challenging interactive examples are also an interesting angle to explore.
+
+See https://github.com/cljdoc/cljdoc/issues/70 for some further discussion/status.
+
+== Documentation Highlights
+
+Some namespaces, vars or articles might be more interesting than others because they are better documented, or just display the core functionality of a library. cljdoc could infer (or provide ways to configure) items that should be highlighted for users, allowing them to find relevant documentation quicker.
+
+See https://github.com/cljdoc/cljdoc/issues/56 for some further discussion/status.
+
+---
+
+All of the above issues and perhaps more https://github.com/cljdoc/cljdoc/issues?q=is%3Aissue+is%3Aopen+label%3AHammock[are tagged with the `Hammock` label].
