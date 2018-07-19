@@ -19,6 +19,12 @@ Some namespaces, vars or articles might be more interesting than others because 
 
 See https://github.com/cljdoc/cljdoc/issues/56 for some further discussion/status.
 
+== New Storage Backend
+
+cljdoc currently uses [Grimoire] for storage which has been designed to store metadata on namespaces and vars. While this has been extremely useful in the beginning it is now somewhat limiting when it comes to implementing features like the aforementioned `clojure.spec` integration, examples and more.
+
+Likely this issue will need to be tackled before those features can be built. The storage layer has already been refactored into a protocol so swapping it with something new should be possible without touching code in lots of places.
+
 ---
 
 All of the above issues and perhaps more https://github.com/cljdoc/cljdoc/issues?q=is%3Aissue+is%3Aopen+label%3AHammock[are tagged with the `Hammock` label].
