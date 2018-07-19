@@ -38,17 +38,6 @@ interesting use-cases down the road.
 - Support API documentation, articles and examples.
 - Encourage the writing of more and better documentation.
 
-## Design
-
-- an ecosystem-encompassing Grimoire store serves as single source of truth
-- that Grimoire store is updated when new releases are published to Clojars or other relevant information changes
-- various tools can be built on top of data in this Grimoire store
-  - it acts as a repository for static analysis done on Clojure code
-
-#### ADRs
-
-I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions) for some time, you can find them all in [`doc/adr/`](https://github.com/cljdoc/cljdoc/tree/master/doc/adr).
-
 ## Contributing
 
 To start the entire system, simply run:
@@ -69,6 +58,11 @@ Logs can be viewed with `tail -f log/cljdoc.log`.
 the `cljdoc.server.system` namespace.
 
 **Tests:** There is a small amount of tests which can be ran with `boot test`.
+
+#### ADRs
+
+I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions) for some time, you can find them all in [`doc/adr/`](https://github.com/cljdoc/cljdoc/tree/master/doc/adr).
+
 
 ## License
 
