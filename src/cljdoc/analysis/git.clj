@@ -25,7 +25,8 @@
                             (:name version-tag)
                             (when (.endsWith version "-SNAPSHOT")
                               "master"))
-            git-files   (git/ls-files repo revision)
+            git-files   (when revision
+                          (git/ls-files repo revision))
             config-edn  (when revision
                           (->> (or (git/read-cljdoc-config repo revision)
                                    ;; in case people add the file later,

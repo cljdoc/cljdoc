@@ -100,6 +100,7 @@
 
 (defn- tree-for
   [g rev]
+  {:pre [(string? rev)]}
   (let [repo        (.getRepository g)
         last-commit (.resolve repo rev)]
     (when last-commit
