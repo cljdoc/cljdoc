@@ -24,6 +24,8 @@
                [:html {}
                 [:head
                  [:title (:title opts)]
+                 (when (:responsive? opts)
+                   [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}])
                  [:meta {:charset "utf-8"}]
                  (hiccup.page/include-css
                    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
