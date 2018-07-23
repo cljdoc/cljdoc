@@ -14,7 +14,7 @@
    [:p "cljdoc is created by its " [:a.link.blue {:href (util/github-url :contributors)} "contributors"]
     ". Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on "
     [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (util/github-url :home)} "GitHub"] "."]
-   [:p "Support us on " [:a.link.blue {:href "https://opencollective.com/cljdoc"} "OpenCollective"] "."]])
+   [:p "Support cljdoc on " [:a.link.blue {:href "https://opencollective.com/cljdoc"} "OpenCollective"] "."]])
 
 (defn feature-block [{:keys [title text link link-text]}]
   [:div.dtc-l.br.b--light-gray.pa4
@@ -74,7 +74,7 @@
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
          [:div.dtc-l.v-mid.ph5
-          [:p.f2.fw3.lh-copy "Docs for every Clojure library available at a predictable, consistent location."]]
+          [:p.f2.fw3.lh-copy.near-black "Docs for every Clojure library available at a predictable, consistent location."]]
          [:div.dtc-l.v-mid.ph5.pv5-l
           [:pre.lh-copy
            [:code
@@ -85,24 +85,24 @@
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
          [:div.dtc-l.v-mid.ph5
-          [:p.f2.fw3.lh-copy "Platform-aware documentation, clearly indicating when things differ between Clojure & Clojurescript."]]
+          [:p.f2.fw3.lh-copy.near-black "Platform-aware documentation, clearly indicating when things differ between Clojure & Clojurescript."]]
          [:div.dtc-l.v-mid.bt.bn-l.b--light-gray.pl5-l
           [:img.db {:src "/platform-differences-example.png" :alt "Example of platform aware documentation with rum.core"}]]]
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
          [:div.dtc-l.v-mid.ph5
-          [:p.f2.fw3.lh-copy "Documentation links are always tied to a specific version and old versions are kept available."]]
+          [:p.f2.fw3.lh-copy.near-black "Documentation links are always tied to a specific version and old versions are kept available."]]
          (into [:div.dtc-l.v-mid.ph5.pv5-l.lh-copy.mb4]
                (->> ["2.1.0" "2.1.1" "2.1.2" "2.1.3"]
                     (map (fn [v] [:code.db [:span.gray.o-70 "https://cljdoc.xyz/d/bidi/bidi/"] v]))))]
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
          [:div.dtc-l.v-mid.ph5
-          [:p.f2.fw3.lh-copy "Open Source, so the community can work together to improve or even fork cljdoc."]]
-         [:div.dtc-l.v-mid.ph5.pv5-l.lh-copy.mb4.tc
-          [:a.link.black {:href (util/github-url :home)}
-           [:img.v-mid.mr3 {:src "https://icon.now.sh/github/48"}]
-           [:span.f3 "cljdoc/cljdoc"]]]]
+          [:p.f2.fw3.lh-copy.near.black "Open Source, so the community can work together to improve or even fork cljdoc."]]
+         [:div.dtc-l.v-mid.ph5.pv5-l.lh-copy.mb4
+          [:a.dt.link.black.center.o-80.glow {:href (util/github-url :home)}
+           [:img.dtc.v-mid.mr3 {:src "https://icon.now.sh/github/38"}]
+           [:span.dtc.v-mid.f3 "cljdoc/cljdoc"]]]]
 
         (footer)
         [:script {:src "https://unpkg.com/preact@8.2.9/dist/preact.js"}]
