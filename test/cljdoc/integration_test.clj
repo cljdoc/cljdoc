@@ -33,7 +33,7 @@
 
 (t/deftest home-page-test
   (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get "/"))
-                          "is a website building & hosting documentation for Clojure/Script libraries"))))
+                          "is a website building &amp; hosting documentation for Clojure/Script libraries"))))
 
 (t/deftest full-cycle-test
   ;; (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get "/d/reagent/reagent/0.8.1"))
