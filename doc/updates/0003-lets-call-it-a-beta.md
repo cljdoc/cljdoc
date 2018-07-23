@@ -22,8 +22,9 @@ It's been a while that I posted an update here. Instead I recently just shared n
 - **A service to access Clojars stats.**   
   While not a next-week type thing I'd like to incorporate download stats and other information into cljdoc. A step in that direction has been made by creating a [public service](https://github.com/cljdoc/clojars-stats) to run specific queries over Clojars download stats. Contributing is as easy as writing SQL! Also there's probably a lot of optimisations to make things faster. 
 
-- **A new, much more beautiful website and logo.**   
-  [The website](https://cljdoc.xyz) now points to all kinds of relevant pieces of documentation and highlights core features of cljdoc.
+- **A new, much more beautiful and useful website and logo.**     
+  [The website](https://cljdoc.xyz) now points to all kinds of relevant pieces of documentation and highlights core features of cljdoc. 
+  <a href="https://cljdoc.xyz"><img  width="176" height="115" src="/resources/public/cljdoc-logo-beta.svg"></a>
 
 ## A Roadmap
 
@@ -35,4 +36,4 @@ Check out [the roadmap on GitHub](https://github.com/cljdoc/cljdoc/blob/master/d
 
 If you maintain or contribute to a library consider taking a closer look at cljdoc. It's already pretty awesome and it'll only get better (no bias here :slightly_smiling_face:)
 
-— Martin
+— [Martin](https://twitter.com/martinklepsch/), always happy to hear from you :slightly_smiling_face:

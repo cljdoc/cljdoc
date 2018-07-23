@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400px" height="400px" viewBox="0 0 400 400" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 51.1 (57501) - http://www.bohemiancoding.com/sketch -->
+    <title>doc-outlined beta</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="doc-outlined-beta" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-2" transform="translate(16.000000, 99.000000)">
+            <g id="Group">
+                <text id="cljdoc" font-family="FiraSans-Bold, Fira Sans" font-size="119.519998" font-weight="bold" fill="#000000">
+                    <tspan x="0" y="180">cljdoc</tspan>
+                </text>
+                <polygon id="Path" fill="#357EDD" fill-rule="nonzero" points="190.480004 15.3200002 190.480004 80.8241516 175.840003 79.1724453 175.840003 0.679999828 305.702192 0.679999828 355.121379 45.7711208 355.121379 227.017034 175.840003 227.017034 175.840003 189.717657 190.480004 189.717657 190.480004 212.377034 340.481379 212.377034 340.481379 52.2314893 300.026944 15.3200002"></polygon>
+            </g>
+            <text id="β" font-family="FiraSans-Bold, Fira Sans" font-size="53" font-weight="bold" fill="#357EDD">
+                <tspan x="200" y="67">β</tspan>
+            </text>
+        </g>
+    </g>
+</svg>
