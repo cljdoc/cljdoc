@@ -27,8 +27,8 @@
   (->> [:div.pt4
         [:div.mt5.mw7.center.pa4.pa0-l
          [:h1.ma0
-          [:span.dn "cljdoc alpha"]
-          [:img {:src "/cljdoc-logo.svg" :alt "cljdoc logo" :width "150px"}]]
+          [:span.dn "cljdoc beta"]
+          [:img {:src "/cljdoc-logo-beta.svg" :alt "cljdoc logo" :width "150px"}]]
          [:p.f2.mv3.w-90-l.lh-copy tagline]
          (search-app)
          [:p.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]

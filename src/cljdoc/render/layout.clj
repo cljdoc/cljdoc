@@ -66,7 +66,7 @@
     {:href (routes/url-for :artifact/index :path-params cache-id)}
     (:version cache-id)]
    [:a {:href "/"}
-    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Alpha"]]
+    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Beta"]]
    [:a.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
     {:href (util/github-url :issues)}
     "Have Feedback?"]
