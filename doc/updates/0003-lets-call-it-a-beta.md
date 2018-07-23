@@ -38,3 +38,7 @@ Check out [the roadmap on GitHub](https://github.com/cljdoc/cljdoc/blob/master/d
 If you maintain or contribute to a library consider taking a closer look at cljdoc. It's already pretty awesome and it'll only get better (no bias here :slightly_smiling_face:). If you're a user of Clojure libraries cljdoc provides human-friendly docs for all Clojure libraries out there; so if you ever use a library that doesn't provide it, check cljdoc.
 
 — [Martin](https://twitter.com/martinklepsch/), always happy to hear from you :slightly_smiling_face:
+
+---
+
+Also posted [to ClojureVerse](https://clojureverse.org/t/cljdoc-lets-call-it-a-beta/2523).
