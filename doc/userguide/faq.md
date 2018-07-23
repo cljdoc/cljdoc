@@ -6,7 +6,12 @@ Short answers to common questions.
 
 Source Control Management (SCM) info is information about where the source of your project is stored.
 
-- **Leiningen**: Add a `:scm` key to your `defproject`, see [sample.project.clj](https://github.com/technomancy/leiningen/blob/master/sample.project.clj#L476).
+- **Leiningen**: Add a `:scm` key to your `defproject`, see [sample.project.clj](https://github.com/technomancy/leiningen/blob/master/sample.project.clj#L476). Usually that might just look like
+
+    ```clojure
+    :scm {:name "git" :url "https://github.com/your-username/your-project"}
+    ```
+
 - **Boot**: Pass the `:scm` option to the `pom` task, see [example](https://github.com/martinklepsch/derivatives/blob/f9cc6be8eeaf21513641cb09d5a466e34ecdd565/build.boot#L18-L23).
 
 **Why do it?**
