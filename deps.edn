@@ -23,7 +23,8 @@
         hiccup {:mvn/version "2.0.0-alpha1"},
         digest {:mvn/version "1.4.8"},
         integrant {:mvn/version "0.7.0-alpha1"},
-        clj-http-lite {:mvn/version "0.3.0"},
+        clj-http-lite {:git/url "https://github.com/martinklepsch/clj-http-lite"
+                       :sha "81c50911dcd38d582a8c39a5d2a5ac429dfeb2d5"}
         org.eclipse.jgit {:mvn/version "4.10.0.201712302008-r"},
         io.sentry/sentry-logback {:mvn/version "1.7.5"},
         com.jcraft/jsch.agentproxy.connector-factory {:mvn/version "0.0.9"},
