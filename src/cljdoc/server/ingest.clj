@@ -53,7 +53,8 @@
           :doc-tree     (:doc-tree git-analysis)})
 
         {:scm-url scm-url
-         :commit  (or (-> git-analysis :scm :commit)
+         :commit  (or pom-revision
+                      (-> git-analysis :scm :commit)
                       (-> git-analysis :scm :tag :commit))}))))
 
 (comment
