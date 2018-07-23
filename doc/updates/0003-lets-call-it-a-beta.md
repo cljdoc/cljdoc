@@ -24,7 +24,8 @@ It's been a while that I posted an update here. Instead I recently just shared n
 
 - **A new, much more beautiful and useful website and logo.**     
   [The website](https://cljdoc.xyz) now points to all kinds of relevant pieces of documentation and highlights core features of cljdoc. 
-  <a href="https://cljdoc.xyz"><img  width="176" height="115" src="/resources/public/cljdoc-logo-beta.svg"></a>
+
+  <a href="https://cljdoc.xyz"><img height="80" src="/resources/public/cljdoc-logo-beta.svg"></a>
 
 ## A Roadmap
 
