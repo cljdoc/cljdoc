@@ -26,12 +26,13 @@
         scm-info (ingest/scm-info project (:pom-str analysis-result))]
     (log/infof "Generating Grimoire store for %s\n" project)
     (ingest/ingest-cljdoc-edn storage analysis-result)
-    (ingest/ingest-git! storage
-                 {:project project
-                  :version version
-                  :scm-url (:url scm-info)
-                  :local-scm git
-                  :pom-revision (or rev (:sha scm-info))})))
+    (when (or (:url scm-info) git)
+      (ingest/ingest-git! storage
+                          {:project project
+                           :version version
+                           :scm-url (:url scm-info)
+                           :local-scm git
+                           :pom-revision (or rev (:sha scm-info))}))))
 
 (defn run [opts]
   (system/-main))
