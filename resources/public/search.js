@@ -14,6 +14,12 @@ function debounced (delay, fn) {
   }
 }
 
+function cleanSearchStr (str) {
+  // replace square and curly brackets in case people copy from
+  // Leiningen/Boot files or deps.edn
+  return str.replace(/[\{\}\[\]\"]+/g, "")
+}
+
 const loadResults = (str, cb) => {
   const uri = 'https://clojars.org/search?q=' + str + '&format=json'
   fetch(uri)
@@ -30,7 +36,7 @@ class SearchInput extends Component {
       onFocus: e => props.focus(),
       onBlur: e => setTimeout(_ => props.unfocus(), 200),
       onKeyUp: e => (e.keyCode == 27 ? this.base.blur() : null),
-      onInput: e => debouncedLoader(e.target.value, props.newResultsCallback)
+      onInput: e => debouncedLoader(cleanSearchStr(e.target.value), props.newResultsCallback)
     })
   }
 }
