@@ -5,6 +5,7 @@
 
 (defn ensure-recent-ish [deps-map]
   (let [min-versions {'org.clojure/clojure "1.9.0"
+                      'org.clojure/clojurescript "1.10.339"
                       'org.clojure/core.async "0.4.474"}
         choose-version (fn choose-version [given-v min-v]
                          (if (pos? (v/version-compare min-v given-v)) min-v given-v))]
