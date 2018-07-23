@@ -29,7 +29,7 @@
          [:h1.ma0
           [:span.dn "cljdoc beta"]
           [:img {:src "/cljdoc-logo-beta.svg" :alt "cljdoc logo" :width "150px"}]]
-         [:p.f2.mv3.w-90-l.lh-copy tagline]
+         [:p.f2-ns.f3.mv3.w-90-l.lh-copy tagline]
          (search-app)
          [:p.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]
           " or check out some examples: "
@@ -57,7 +57,7 @@
                       :link-text "→ Roadmap"
                       :link (util/github-url :roadmap)}]))]
 
-        (let [container :div.dtc-l.pa5.white.b--light-blue.hover-bg-black-10.bg-animate
+        (let [container :div.dtc-l.pa5-ns.pa4.white.b--light-blue.hover-bg-black-10.bg-animate
               button    :a.dib.bg-white.blue.ph3.pv2.br1.no-underline.f5.fw5.grow]
           [:div.bg-blue.dt-l.dt--fixed.lh-copy
            [container
@@ -73,9 +73,9 @@
          [:span.o-50.dark-blue.f6 "↓ More Features ↓"]]
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
-         [:div.dtc-l.v-mid.ph5
-          [:p.f2.fw3.lh-copy.near-black "Docs for every Clojure library available at a predictable, consistent location."]]
-         [:div.dtc-l.v-mid.ph5.pv5-l
+         [:div.dtc-l.v-mid.ph5-ns.ph4
+          [:p.f2-ns.f3.fw3.lh-copy.near-black "Docs for every Clojure library available at a predictable, consistent location."]]
+         [:div.dtc-l.v-mid.ph5-ns.ph4.pv5-l
           [:pre.lh-copy
            [:code
             "(str \"https://cljdoc.xyz/d/\""
@@ -84,22 +84,22 @@
             "\n     (:version your-project))"]]]]
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
-         [:div.dtc-l.v-mid.ph5
-          [:p.f2.fw3.lh-copy.near-black "Platform-aware documentation, clearly indicating when things differ between Clojure & Clojurescript."]]
+         [:div.dtc-l.v-mid.ph5-ns.ph4
+          [:p.f2-ns.f3.fw3.lh-copy.near-black "Platform-aware documentation, clearly indicating when things differ between Clojure & Clojurescript."]]
          [:div.dtc-l.v-mid.bt.bn-l.b--light-gray.pl5-l
           [:img.db {:src "/platform-differences-example.png" :alt "Example of platform aware documentation with rum.core"}]]]
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
-         [:div.dtc-l.v-mid.ph5
-          [:p.f2.fw3.lh-copy.near-black "Documentation links are always tied to a specific version and old versions are kept available."]]
-         (into [:div.dtc-l.v-mid.ph5.pv5-l.lh-copy.mb4]
+         [:div.dtc-l.v-mid.ph5-ns.ph4
+          [:p.f2-ns.f3.fw3.lh-copy.near-black "Documentation links are always tied to a specific version and old versions are kept available."]]
+         (into [:div.dtc-l.v-mid.ph5-ns.ph4.pv5-l.lh-copy.mb4]
                (->> ["2.1.0" "2.1.1" "2.1.2" "2.1.3"]
                     (map (fn [v] [:code.db [:span.gray.o-70 "https://cljdoc.xyz/d/bidi/bidi/"] v]))))]
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
-         [:div.dtc-l.v-mid.ph5
-          [:p.f2.fw3.lh-copy.near.black "Open Source, so the community can work together to improve or even fork cljdoc."]]
-         [:div.dtc-l.v-mid.ph5.pv5-l.lh-copy.mb4
+         [:div.dtc-l.v-mid.ph5-ns.ph4
+          [:p.f2-ns.f3.fw3.lh-copy.near.black "Open Source, so the community can work together to improve or even fork cljdoc."]]
+         [:div.dtc-l.v-mid.ph5-ns.ph4.pv5-l.lh-copy.mb4
           [:a.dt.link.black.center.o-80.glow {:href (util/github-url :home)}
            [:img.dtc.v-mid.mr3 {:src "https://icon.now.sh/github/38"}]
            [:span.dtc.v-mid.f3 "cljdoc/cljdoc"]]]]
