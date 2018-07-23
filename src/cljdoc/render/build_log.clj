@@ -154,6 +154,7 @@
           [:script
            "setTimeout(function(){window.location.reload(1);}, 5000);"])
 
+        ;; [:p [:code [:pre (with-out-str (clojure.pprint/pprint build-info))]]] ;DEBUG
         [:p.lh-copy.dark-gray "Having trouble? Please reach out via "
         [:a.link.blue {:href
         "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "Slack"] "
