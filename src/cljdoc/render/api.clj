@@ -93,13 +93,15 @@
            (render-arglists (:name m) (:arglists m))
            (when (:doc m)
              [:p (docstring->html (:doc m) render-wiki-link)])])])
-     (if (platf/varies? def :src-uri)
-       (for [p (sort (platf/platforms def))
-             :when (platf/get-field def :src-uri p)]
-         [:a.link.f7.gray.hover-dark-gray.mr2
-          {:href (platf/get-field def :src-uri p)}
-          (format "source (%s)" p)])
-       [:a.link.f7.gray.hover-dark-gray {:href (platf/get-field def :src-uri)} "source"])]))
+     (when (or (platf/varies? def :src-uri) ; if it varies they can't be both nil
+               (platf/get-field def :src-uri)) ; if it doesn't vary, ensure non-nil
+       (if (platf/varies? def :src-uri)
+         (for [p (sort (platf/platforms def))
+               :when (platf/get-field def :src-uri p)]
+           [:a.link.f7.gray.hover-dark-gray.mr2
+            {:href (platf/get-field def :src-uri p)}
+            (format "source (%s)" p)])
+         [:a.link.f7.gray.hover-dark-gray {:href (platf/get-field def :src-uri)} "source"]))]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
