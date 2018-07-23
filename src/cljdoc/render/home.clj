@@ -6,59 +6,107 @@
   [:div.w-90.mb4
    [:div#cljdoc-search]])
 
+(def tagline
+  "is a website building & hosting documentation for Clojure/Script libraries")
+
+(defn footer []
+  [:div.b--light-gray.pa4.tc.f4.fw3
+   [:p "cljdoc is created by its " [:a.link.blue {:href (util/github-url :contributors)} "contributors"]
+    ". Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on "
+    [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (util/github-url :home)} "GitHub"] "."]
+   [:p "Support cljdoc on " [:a.link.blue {:href "https://opencollective.com/cljdoc"} "OpenCollective"] "."]])
+
+(defn feature-block [{:keys [title text link link-text]}]
+  [:div.dtc-l.br.b--light-gray.pa4
+   [:h2.ma0.fw4 title]
+   [:span.w3.bb.b--blue.bw3.dib " "]
+   [:p text]
+   [:p [:a.link.blue {:href link} link-text]]])
+
 (defn home []
-  (->> [:div.mw7.center.pv4.pa0-l.pa2
-        [:h1.mt5.mb0
-         [:span.dn "cljdoc alpha"]
-         [:img {:src "/cljdoc-logo.svg" :alt "cljdoc logo" :width "150px"}]]
-        [:p.f2.mv3.lh-copy "is a platform to build, host and view
-        documentation for Clojure/Script libraries."]
-        (search-app)
-        [:p.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]
-         " or check out some existing documentation:"]
-        (let [btn :a.dib.mr2.mb2.link.blue.pa2.ba.b--blue.br1]
-          [:div.pr4
-           [btn {:href "/d/bidi/bidi/2.1.3"}
-            [:code "[bidi \"2.1.3\"]"]]
-           ;; Not working, will need investigation
-           ;; [btn {:href "/d/funcool/cuerdas/2.0.5/"}
-           ;;  [:code "[funcool/cuerdas \"2.0.5\"]"]]
-           [btn {:href "/d/reagent/reagent/0.8.1"}
-            [:code "[reagent \"0.8.1\"]"]]
-           [btn {:href "/d/compojure/compojure/1.6.1"}
-            [:code "[compojure \"1.6.1\"]"]]
-           [btn {:href "/d/ring/ring-core/1.6.3"}
-            [:code "[ring/ring-core \"1.6.3\"]"]]
-           [btn {:href "/d/clj-time/clj-time/0.14.3"}
-            [:code "[clj-time \"0.14.3\"]"]]
-           [btn {:href "/d/rum/rum/0.11.2"}
-            [:code "[rum \"0.11.2\"]"]]
-           [btn {:href "/d/re-frame/re-frame/0.10.5"}
-            [:code "[re-frame \"0.10.5\"]"]]
-           ;; Disabling for now as namespace tree rendering
-           ;; is still pretty bad
-           ;; [btn {:href "/d/fulcrologic/fulcro/2.5.4/"}
-           ;;  [:code "[fulcrologic/fulcro \"2.5.4\"]"]]
-           ])
+  (->> [:div.pt4
+        [:div.mt5.mw7.center.pa4.pa0-l
+         [:h1.ma0
+          [:span.dn "cljdoc alpha"]
+          [:img {:src "/cljdoc-logo.svg" :alt "cljdoc logo" :width "150px"}]]
+         [:p.f2.mv3.w-90-l.lh-copy tagline]
+         (search-app)
+         [:p.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]
+          " or check out some examples: "
+          [:a.link.blue.nowrap {:href "/d/re-frame/re-frame/0.10.5"} "re-frame"] ", "
+          [:a.link.blue.nowrap {:href "/d/compojure/compojure/1.6.1"} "compojure"] ", "
+          [:a.link.blue.nowrap {:href "/d/clojure.java-time/clojure.java-time/0.3.2"} "clojure.java-time"] "."]]
 
-        [:div.mt4
-         [:p "If you would like to publish documentation yourself, go to the following url:"]
-         [:pre.lh-copy
-          [:code
-           "(str \"https://cljdoc.xyz/d/\""
-           "\n     (:group-id your-project) \"/\""
-           "\n     (:artifact-id your-project) \"/\""
-           "\n     (:version your-project))"]]
-         [:p.lh-copy.f6.mid-gray [:span.fw5 "Tip: "] "If your project name does not contain a slash, group and artifact ID are the same."]
-         [:p.lh-copy "After you've done that you may want to " [:a.link.blue {:href (util/github-url :userguide/articles)} "add additional articles to the sidebar."]]]
+        [:div.mt5.bg-white
+         (into [:div.dt-l.dt--fixed.bb.bt.b--light-gray.lh-copy]
+               (map feature-block
+                    [{:title "Automated Docs"
+                      :text "cljdoc builds documentation for new releases that are pushed to Clojars within minutes. Ever forgot to update your docs after a release? No more."
+                      :link-text "→ Basic Setup"
+                      :link (util/github-url :userguide/basic-setup)}
+                     {:title "Articles & More"
+                      :text "Seamless integration of articles and tutorials from Markdown and Asciidoc source files."
+                      :link-text "→ Articles"
+                      :link (util/github-url :userguide/articles)}
+                     {:title "Offline Docs"
+                      :text "Download documentation for any project in a zip file for easy offline use while travelling or swinging in your hammock."
+                      :link-text "→ Offline Docs"
+                      :link (util/github-url :userguide/offline-docs)}
+                     {:title "Specs, Examples, ..."
+                      :text "In the future cljdoc may incorporate more than just API docs and articles. Specs and examples are high on the list."
+                      :link-text "→ Roadmap"
+                      :link (util/github-url :roadmap)}]))]
 
-        [:div.mid-gray.mt4
-         [:span.db.nb3 "—"]
-         [:p.mid-gray "cljdoc is created by its " [:a.link.blue {:href (util/github-url :contributors) } "contributors"]
-          ". Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on "
-          [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (util/github-url :home)} "GitHub"] "."]]
+        (let [container :div.dtc-l.pa5.white.b--light-blue.hover-bg-black-10.bg-animate
+              button    :a.dib.bg-white.blue.ph3.pv2.br1.no-underline.f5.fw5.grow]
+          [:div.bg-blue.dt-l.dt--fixed.lh-copy
+           [container
+            [:h2.f5.ma0.fw5.ttu.tracked.o-70 "Library Authors"]
+            [:p.f4.mb4.fw3 "Learn how to publish your docs to cljdoc, integrate tutorials and other material and add a badge to your project's Readme."]
+            [button {:href (util/github-url :userguide/authors)} "Documentation for Library Authors →"]]
+           [container
+            [:h2.f5.ma0.fw5.ttu.tracked.o-70 "Library Users"]
+            [:p.f4.mb4.fw3 "Learn where to find documentation, how to download it for offline use and more."]
+            [button {:href (util/github-url :userguide/users)} "Documentation for Library Users →"]]])
+
+        [:div.tc.ttu.tracked.bb.b--light-gray.pa4
+         [:span.o-50.dark-blue.f6 "↓ More Features ↓"]]
+
+        [:div.dt-l.dt--fixed.bb.b--light-gray
+         [:div.dtc-l.v-mid.ph5
+          [:p.f2.fw3.lh-copy.near-black "Docs for every Clojure library available at a predictable, consistent location."]]
+         [:div.dtc-l.v-mid.ph5.pv5-l
+          [:pre.lh-copy
+           [:code
+            "(str \"https://cljdoc.xyz/d/\""
+            "\n     (:group-id your-project) \"/\""
+            "\n     (:artifact-id your-project) \"/\""
+            "\n     (:version your-project))"]]]]
+
+        [:div.dt-l.dt--fixed.bb.b--light-gray
+         [:div.dtc-l.v-mid.ph5
+          [:p.f2.fw3.lh-copy.near-black "Platform-aware documentation, clearly indicating when things differ between Clojure & Clojurescript."]]
+         [:div.dtc-l.v-mid.bt.bn-l.b--light-gray.pl5-l
+          [:img.db {:src "/platform-differences-example.png" :alt "Example of platform aware documentation with rum.core"}]]]
+
+        [:div.dt-l.dt--fixed.bb.b--light-gray
+         [:div.dtc-l.v-mid.ph5
+          [:p.f2.fw3.lh-copy.near-black "Documentation links are always tied to a specific version and old versions are kept available."]]
+         (into [:div.dtc-l.v-mid.ph5.pv5-l.lh-copy.mb4]
+               (->> ["2.1.0" "2.1.1" "2.1.2" "2.1.3"]
+                    (map (fn [v] [:code.db [:span.gray.o-70 "https://cljdoc.xyz/d/bidi/bidi/"] v]))))]
+
+        [:div.dt-l.dt--fixed.bb.b--light-gray
+         [:div.dtc-l.v-mid.ph5
+          [:p.f2.fw3.lh-copy.near.black "Open Source, so the community can work together to improve or even fork cljdoc."]]
+         [:div.dtc-l.v-mid.ph5.pv5-l.lh-copy.mb4
+          [:a.dt.link.black.center.o-80.glow {:href (util/github-url :home)}
+           [:img.dtc.v-mid.mr3 {:src "https://icon.now.sh/github/38"}]
+           [:span.dtc.v-mid.f3 "cljdoc/cljdoc"]]]]
+
+        (footer)
         [:script {:src "https://unpkg.com/preact@8.2.9/dist/preact.js"}]
         [:script {:src "/search.js"}]]
-       (layout/page {:title "cljdoc"})
+       (layout/page {:title "cljdoc — documentation for Clojure/Script libraries"
+                     :responsive? true})
        (str)))
-
