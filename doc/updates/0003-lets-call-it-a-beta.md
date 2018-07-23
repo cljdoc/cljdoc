@@ -33,8 +33,8 @@ Obviously it's a roadmap without dates but there's still some interesting stuff 
 
 Check out [the roadmap on GitHub](https://github.com/cljdoc/cljdoc/blob/master/doc/roadmap.adoc) and consider contributing if anything sounds worthwhile and/or interesting to you :slightly_smiling_face:
 
-## Give it a shot! 
+## Give it a shot!
 
-If you maintain or contribute to a library consider taking a closer look at cljdoc. It's already pretty awesome and it'll only get better (no bias here :slightly_smiling_face:)
+If you maintain or contribute to a library consider taking a closer look at cljdoc. It's already pretty awesome and it'll only get better (no bias here :slightly_smiling_face:). If you're a user of Clojure libraries cljdoc provides human-friendly docs for all Clojure libraries out there; so if you ever use a library that doesn't provide it, check cljdoc.
 
 — [Martin](https://twitter.com/martinklepsch/), always happy to hear from you :slightly_smiling_face:
