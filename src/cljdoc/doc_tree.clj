@@ -63,10 +63,13 @@
   "Return the node for the given slug-path (including its children).
   Again, this would probably be way simpler with Zippers :)"
   [doc-tree slug-path]
+  {:pre [(seq slug-path)]}
   (loop [t doc-tree]
-    (if (= (:slug-path (:attrs t)) slug-path)
-      t
-      (recur (first (filter #(subseq? (:slug-path (:attrs %)) slug-path) t))))))
+    (cond
+      (map? t) (do (assert (:slug-path (:attrs t)) (format "slug-path missing from doc-tree item, title %s" (:title t)))
+                   (when (= (:slug-path (:attrs t)) slug-path) t))
+
+      (seq t)  (recur (first (filter #(subseq? (:slug-path (:attrs %)) slug-path) t))))))
 
 ;; Deriving doctrees -----------------------------------------------------------
 
