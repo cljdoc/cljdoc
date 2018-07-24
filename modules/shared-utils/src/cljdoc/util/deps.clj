@@ -27,7 +27,11 @@
                              (and (= group-id "org.clojure")
                                   (= artifact-id "clojure")
                                   (or (not (.startsWith version "1.9"))
-                                      (not (.startsWith version "1.10")))))
+                                      (not (.startsWith version "1.10"))))
+                             ;; The version can be nil when pom's utilize dependencyManagement - this unsurprisingly breaks tools.deps
+                             ;; Remains to be seen if this causes any issues
+                             ;; http://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management
+                             (nil? version))
                  [(symbol group-id artifact-id) {:mvn/version version}])))
        (into {})))
 
