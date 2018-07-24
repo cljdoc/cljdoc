@@ -44,9 +44,13 @@
     (when (.exists (io/file target-dir "public"))
       (println "Deleting public/ dir")
       (util/delete-directory! (io/file target-dir "public")))
-    (when (.exists (io/file target-dir "deps.cljs"))
-      (println "Deleting deps.cljs")
-      (.delete (io/file target-dir "deps.cljs")))
+    (doseq [f ["deps.cljs" "data_readers.clj" "data_readers.cljc"]]
+      ;; codox returns {:publics ()} for deps.cljs, data_readers.cljc
+      ;; when present this should probably be fixed in codox as well
+      ;; but just deleting the file will also do the job for now
+      (when (.exists (io/file target-dir f))
+        (println "Deleting" f)
+        (.delete (io/file target-dir f))))
     (when remote-jar? (.delete (io/file jar-local)))))
 
 (defn print-process-result [proc]
