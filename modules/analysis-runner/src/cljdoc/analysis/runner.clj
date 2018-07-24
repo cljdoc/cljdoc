@@ -90,6 +90,7 @@
                                                 "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
                                                 ;; supplying :dir is necessary to avoid local deps.edn being included
+                                                ;; once -Srepro is finalized it might be useful for this purpose
                                                 :dir (.getParentFile f))
                                  result (edn/read-string (slurp f))]
                              (print-process-result process)
