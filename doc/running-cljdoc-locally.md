@@ -34,12 +34,12 @@ for `muuntaja` from a local Jar and Git repository:
 
     ```sh
     cd cljdoc/
-    ./script/cljdoc ingest -p muuntaja \
+    ./script/cljdoc ingest -p metosin/muuntaja \
                            -v 0.6.0-alpha1 \
                            --jar ~/.m2/repository/metosin/muuntaja/0.6.0-alpha1/muuntaja-0.6.0-alpha1.jar \
                            --pom ~/.m2/repository/metosin/muuntaja/0.6.0-alpha1/muuntaja-0.6.0-alpha1.pom \
                            --git /path/to/muuntaja/repo \
-                           --rev "master" \
+                           --rev "master"
     ```
 
     > **Tip:** See `./script/cljdoc ingest --help` for details.
