@@ -24,10 +24,9 @@
   (->> (pom/dependencies (pom/parse (slurp pom)))
        (keep (fn [{:keys [group-id artifact-id version]}]
                (when-not (or (.startsWith artifact-id "boot-")
+                             ;; Ensure that tools.reader version is used as specified by CLJS
                              (and (= group-id "org.clojure")
-                                  (= artifact-id "clojure")
-                                  (or (not (.startsWith version "1.9"))
-                                      (not (.startsWith version "1.10"))))
+                                  (= artifact-id "tools.reader"))
                              ;; The version can be nil when pom's utilize dependencyManagement - this unsurprisingly breaks tools.deps
                              ;; Remains to be seen if this causes any issues
                              ;; http://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management
