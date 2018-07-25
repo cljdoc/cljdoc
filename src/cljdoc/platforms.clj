@@ -7,7 +7,8 @@
   This namespace provides a `MultiPlatform` record that aims to expose
   a thing (namespace, var)'s properties while also retaining and exposing
   information about platform differences."
-  (:require [cljdoc.spec]))
+  (:require [clojure.tools.logging :as log]
+            [cljdoc.spec]))
 
 (defprotocol IMultiPlatform
   (get-field [this k] [this k platf]
@@ -22,9 +23,23 @@
   (get-field [this k]
     (let [ignore-nil #{:doc}
           uniq-vals (set ((if (ignore-nil k) keep map) k platforms))]
-      (assert (not (< 1 (count uniq-vals))) (format "%s varies: %s" k (pr-str platforms)))
-      (first uniq-vals)))
+      (cond
+        (and (= k :type) (second uniq-vals))
+        ;; Current codox doesn't return consistent results for mulitmethods that are defined
+        ;; by running a function, i.e. (defn x [a] (defmulti b first))
+        ;; This is kind of an unusual case but there are libraries doing that and until this issue
+        ;; is fixed we don't want to break docs for those libraries completetly, see precept 0.5.0-alpha for an example
+        ;; https://github.com/CoNarrative/precept/blob/73113feec5bff11f5195261a81a015f882544614/src/cljc/precept/core.cljc#L356
+        (do (log/warnf "Varying :type %s <> %s: %s" (first uniq-vals) (second uniq-vals) (pr-str platforms))
+            (get-field this k "cljs"))
+
+        (second uniq-vals)
+        (throw (Exception. (format "%s varies: %s" k (pr-str platforms))))
+
+        :else
+        (first uniq-vals))))
   (get-field [this k platf]
+    (assert (contains? #{"clj" "cljs"} platf) (format "unknown platform: %s" platf))
     (-> (filter #(= platf (:platform %)) platforms)
         (first)
         (get k)))
