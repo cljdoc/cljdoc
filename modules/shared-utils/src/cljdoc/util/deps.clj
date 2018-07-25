@@ -25,6 +25,8 @@
        (keep (fn [{:keys [group-id artifact-id version]}]
                (when-not (or (.startsWith artifact-id "boot-")
                              ;; Ensure that tools.reader version is used as specified by CLJS
+                             (and (= group-id "codox")
+                                  (= artifact-id "codox"))
                              (and (= group-id "org.clojure")
                                   (= artifact-id "tools.reader"))
                              ;; The version can be nil when pom's utilize dependencyManagement - this unsurprisingly breaks tools.deps
