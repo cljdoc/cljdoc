@@ -17,7 +17,7 @@
             min-versions)))
 
 (defn- hardcoded-deps [project]
-  (-> {"clj-time" {"clj-time" '{org.clojure/java.jdbc "0.7.7"}}}
+  (-> {"clj-time" {"clj-time" '{org.clojure/java.jdbc {:mvn/version "0.7.7"}}}}
       (get-in [(util/group-id project) (util/artifact-id project)])))
 
 (defn- extra-deps
