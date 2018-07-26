@@ -57,7 +57,7 @@ Logs can be viewed with `tail -f log/cljdoc.log`.
 :recycle: For a more REPL-driven workflow, check the comment block at the end of
 the `cljdoc.server.system` namespace.
 
-**Tests:** There is a small amount of tests which can be ran with `boot test`.
+**Tests:** There is a small amount of tests which can be ran with `clj -A:test`.
 
 #### ADRs
 
