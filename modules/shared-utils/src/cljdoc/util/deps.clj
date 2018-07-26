@@ -1,9 +1,10 @@
 (ns cljdoc.util.deps
   (:require [clojure.java.io :as io]
             [version-clj.core :as v]
+            [cljdoc.util :as util]
             [cljdoc.util.pom :as pom]))
 
-(defn ensure-recent-ish [deps-map]
+(defn- ensure-recent-ish [deps-map]
   (let [min-versions {'org.clojure/clojure "1.9.0"
                       'org.clojure/clojurescript "1.10.339"
                       'org.clojure/core.async "0.4.474"}
@@ -15,7 +16,11 @@
             deps-map
             min-versions)))
 
-(defn extra-deps
+(defn- hardcoded-deps [project]
+  (-> {"clj-time" {"clj-time" '{org.clojure/java.jdbc "0.7.7"}}}
+      (get-in [(util/group-id project) (util/artifact-id project)])))
+
+(defn- extra-deps
   "Some projects require additional depenencies that have either been specified with
   scope 'provided' or are specified via documentation, e.g. a README.
   Maybe should be able to configure this via their cljdoc.edn configuration
@@ -47,6 +52,7 @@
                      :git/url "https://github.com/martinklepsch/codox"
                      :sha "7059b20c344842643f64d6d7f90b97ab9012ad10"
                      :deps/root "codox/"}}
+      (merge (hardcoded-deps project))
       (merge (extra-deps pom))
       (ensure-recent-ish)))
 
