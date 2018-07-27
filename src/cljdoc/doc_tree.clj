@@ -83,6 +83,13 @@
   (and (.startsWith (.toLowerCase path) "readme.")
        (supported-file-type path)))
 
+(defn starts-with-any? [s coll]
+  (some #(.startsWith s %) coll))
+
+(defn changelog? [path]
+  (and (starts-with-any? (.toLowerCase path) ["changelog." "changes."  "history." "news." "releases."])
+       (supported-file-type path)))
+
 (defn doc? [path]
   (and (supported-file-type path)
        (or (.startsWith path "doc/")
@@ -96,9 +103,17 @@
       (throw (ex-info (format "No title found for %s" path)
                       {:path path :contents file-contents}))))
 
+(defn filter-first-path [conditional files]
+  (first (filter #(conditional (:path %)) files)))
+
 (defn derive-toc [files]
-  (let [readme (first (filter #(readme? (:path %)) files))]
-    (into (if readme [["Readme" {:file (:path readme)}]] [])
+  (let [readme    (filter-first-path readme? files)
+  	    changelog (filter-first-path changelog? files)]
+    (into (vec
+            (concat
+              [[]]
+              (when readme [["Readme" {:file (:path readme)}]])
+              (when changelog [["Changelog" {:file (:path changelog)}]])))
           (->> (filter #(doc? (:path %)) files)
                (sort-by :path)
                (mapv (fn [{:keys [path object-loader]}]
