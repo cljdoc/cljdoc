@@ -83,11 +83,8 @@
   (and (.startsWith (.toLowerCase path) "readme.")
        (supported-file-type path)))
 
-(defn starts-with-any? [s coll]
-  (some #(.startsWith s %) coll))
-
 (defn changelog? [path]
-  (and (starts-with-any? (.toLowerCase path) ["changelog." "changes."  "history." "news." "releases."])
+  (and (some #(.startsWith s %) (.toLowerCase path) ["changelog." "changes."  "history." "news." "releases."])
        (supported-file-type path)))
 
 (defn doc? [path]
@@ -107,13 +104,13 @@
   (first (filter #(conditional (:path %)) files)))
 
 (defn derive-toc [files]
-  (let [readme    (filter-first-path readme? files)
-  	    changelog (filter-first-path changelog? files)]
-    (into (vec
-            (concat
-              [[]]
-              (when readme [["Readme" {:file (:path readme)}]])
-              (when changelog [["Changelog" {:file (:path changelog)}]])))
+  (let [readme-path?    (comp readme? :path)
+        changelog-path? (comp changelog? :path)
+        readme          (first (filter readme-path? files))
+  	    changelog       (first (filter changelog-path? files))]
+    (into (cond-> []
+            readme    (conj ["Readme" {:file (:path readme)}])
+            changelog (conj ["Changelog" {:file (:path changelog)}]))
           (->> (filter #(doc? (:path %)) files)
                (sort-by :path)
                (mapv (fn [{:keys [path object-loader]}]
