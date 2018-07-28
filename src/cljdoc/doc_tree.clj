@@ -100,9 +100,6 @@
       (throw (ex-info (format "No title found for %s" path)
                       {:path path :contents file-contents}))))
 
-(defn filter-first-path [conditional files]
-  (first (filter #(conditional (:path %)) files)))
-
 (defn derive-toc [files]
   (let [readme-path?    (comp readme? :path)
         changelog-path? (comp changelog? :path)
