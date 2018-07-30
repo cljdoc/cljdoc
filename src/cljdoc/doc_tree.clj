@@ -84,7 +84,7 @@
        (supported-file-type path)))
 
 (defn changelog? [path]
-  (and (some #(.startsWith s %) (.toLowerCase path) ["changelog." "changes."  "history." "news." "releases."])
+  (and (some #(.startsWith (.toLowerCase path) %) ["changelog." "changes."  "history." "news." "releases."])
        (supported-file-type path)))
 
 (defn doc? [path]
