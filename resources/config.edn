@@ -13,5 +13,6 @@
                  :enable-sentry? #profile {:default false
                                            :prod true}
                  :dir #profile {:default "data/"
+                                :test "test-data/"
                                 :prod "/var/cljdoc/"}}
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}

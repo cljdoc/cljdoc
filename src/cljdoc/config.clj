@@ -5,7 +5,7 @@
             [aero.core :as aero]))
 
 (defn profile []
-  (let [known-profiles #{:live :local :prod}
+  (let [known-profiles #{:live :local :prod :test}
         profile        (keyword (System/getenv "CLJDOC_PROFILE"))]
     (or (known-profiles profile)
         (log/warnf "No known profile found in CLJDOC_PROFILE %s" profile))))
@@ -17,8 +17,9 @@
     (throw (ex-info (format "No config found for path %s\nDid you configure your secrets.edn file?" ks)
                     {:ks ks, :profile (profile)}))))
 
-(defn config []
-  (aero/read-config (io/resource "config.edn") {:profile (profile)}))
+(defn config
+  ([] (aero/read-config (io/resource "config.edn") {:profile (profile)}))
+  ([profile] (aero/read-config (io/resource "config.edn") {:profile profile})))
 
 ;; Accessors
 
@@ -35,6 +36,10 @@
 (defn data-dir
   ([] (data-dir (config)))
   ([config] (get-in config [:cljdoc/server :dir])))
+
+(defn grimoire-dir
+  [config]
+  (io/file (data-dir config) "grimoire"))
 
 (defn build-log-db
   ([] (build-log-db (config)))
