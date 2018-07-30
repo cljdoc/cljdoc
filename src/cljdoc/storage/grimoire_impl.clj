@@ -93,6 +93,15 @@
     {:versions (count versions)
      :artifacts (count (set (map things/thing->artifact versions)))}))
 
+(defn all-versions
+  [store]
+  (for [g (e/result (grim/list-groups store))
+        a (e/result (grim/list-artifacts store g))
+        v (e/result (grim/list-versions store a))]
+    {:group-id (things/thing->name g)
+     :artifact-id (things/thing->name a)
+     :version (things/thing->name v)}))
+
 ;; Writing -----------------------------------------------------------
 
 (defn grimoire-write
