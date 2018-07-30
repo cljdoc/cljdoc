@@ -50,6 +50,7 @@
   ([config]
    {:classname "org.sqlite.JDBC",
     :subprotocol "sqlite",
+    :foreign_keys true
     :subname (str (data-dir config) "build-log.db")}))
 
 (defn autobuild-clojars-releases?
