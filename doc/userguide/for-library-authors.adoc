@@ -137,6 +137,10 @@ To hide namespaces or vars from documentation, annotate them with `:no-doc` meta
   {:no-doc true})
 ----
 
+==== Getting Dependencies Right
+
+cljdoc will try to load all namespaces that are part of the jar for your artifact. If you include namespaces that require additional/optional dependencies, make sure you declare them in your `pom.xml` (commonly done via Leiningen/Boot). If you don't want these dependencies to be included by default, mark them with `:scope "provided"`. This will cause dependency resolution to skip those dependencies but allow cljdoc to inspect your `pom.xml` and load them.
+
 ==== Offline Docs
 
 See link:for-users.md#offline-docs[Offline Docs]
