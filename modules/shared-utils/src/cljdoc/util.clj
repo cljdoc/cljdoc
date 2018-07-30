@@ -3,6 +3,7 @@
 
   These are available in the analysis environment and thus
   should work without any additional dependencies."
+  (:refer-clojure :exclude [time])
   (:require [clojure.edn]
             [clojure.java.io :as io]
             [clojure.string :as string])
@@ -186,3 +187,11 @@
                      drop-last
                      vec
                      (conj target)))))
+
+(defmacro time
+  "Same as `clojure.core/time` but returns measured time (ms) instead of return value of expr."
+  {:added "1.0"}
+  [expr]
+  `(let [start# (. System (nanoTime))]
+     ~expr
+     (/ (double (- (. System (nanoTime)) start#)) 1000000.0)))
