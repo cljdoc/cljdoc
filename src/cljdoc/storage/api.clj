@@ -1,5 +1,7 @@
 (ns cljdoc.storage.api
-  (:require [cljdoc.storage.grimoire-impl :as grim]))
+  (:require [cljdoc.spec :as cljdoc-spec]
+            [cljdoc.storage.grimoire-impl :as grim]
+            [cljdoc.storage.sqlite-impl :as sqlite]))
 
 (defprotocol IStorage
   (import-api [_ version-entity codox])
@@ -12,6 +14,7 @@
 (defrecord GrimoireStorage [dir]
   IStorage
   (import-api [_ version-entity codox]
+    (cljdoc-spec/assert :cljdoc.cljdoc-edn/codox codox)
     (let [store     (grim/grimoire-store dir)
           version-t (grim/thing (:group-id version-entity)
                                 (:artifact-id version-entity)
@@ -41,11 +44,22 @@
     (-> (grim/grimoire-store dir)
         (grim/bundle-group (grim/thing group-id)))))
 
-(comment
-  (defprotocol ITest
-    (exists? [_ x]))
-
-  (defrecord TestImpl []
-    ITest
-    (exists? [_ x] false))
-  )
+(defrecord SQLiteStorage [db-spec]
+  IStorage
+  (import-api [_ version-entity codox]
+    (cljdoc-spec/assert :cljdoc.cljdoc-edn/codox codox)
+    (sqlite/store-artifact! db-spec
+                            (:group-id version-entity)
+                            (:artifact-id version-entity)
+                            [(:version version-entity)])
+    (sqlite/import-api db-spec version-entity codox))
+  (import-doc [_ version-entity {:keys [doc-tree scm jar] :as version-data}]
+    (sqlite/import-doc db-spec version-entity version-data))
+  (exists? [_ version-entity]
+    (sqlite/docs-available? (:group-id version-entity)
+                            (:artifact-id version-entity)
+                            (:version version-entity)))
+  (bundle-docs [_ {:keys [group-id artifact-id version] :as version-entity}]
+    (sqlite/bundle-docs db-spec version-entity))
+  (bundle-group [_ {:keys [group-id]}]
+    (sqlite/bundle-group db-spec group-id)))
