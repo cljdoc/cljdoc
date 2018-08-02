@@ -6,10 +6,12 @@
             [clojure.java.io :as io]
             [cljdoc.config :as cfg]
             [clojure.java.jdbc :as sql]
+            [cljdoc.server.system :as sys]
             [cljdoc.storage.grimoire-impl :as grim]
             [cljdoc.storage.sqlite-impl :as sqlite]
             [cljdoc.storage.api :as storage]
             [clojure.tools.logging :as log]
+            [integrant.core :as ig]
             [taoensso.tufte :as tufte :refer [defnp p profiled profile]]))
 
 (defn import-version [db-spec grimoire-dir {:keys [group-id artifact-id version] :as v-entity}]
@@ -28,6 +30,15 @@
            (#'sqlite/write-ns! tx v-id ns))
          (doseq [d (-> bundle :cache-contents :defs)]
            (#'sqlite/write-var! tx v-id d))))))
+
+(defn -main
+  []
+  (let [conf (cfg/config)
+        sys  (sys/system-config conf)]
+    (ig/init (select-keys sys [:cljdoc/sqlite]))
+    (doseq [v (grim/all-versions (grim/grimoire-store (cfg/grimoire-dir conf)))]
+      (println "Importing" v)
+      (time (import-version (cfg/build-log-db conf) (cfg/grimoire-dir conf) v)))))
 
 (comment
   (def conf (cfg/config))
