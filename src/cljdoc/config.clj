@@ -51,7 +51,13 @@
    {:classname "org.sqlite.JDBC",
     :subprotocol "sqlite",
     :foreign_keys true
-    :subname (str (data-dir config) "build-log.db")}))
+    :cache_size 10000
+    :subname (str (data-dir config) "build-log.db")
+    ;; These settings are permanent but it seems like
+    ;; this is the easiest way to set them. In a migration
+    ;; they fail because they return results.
+    :synchronous "NORMAL"
+    :journal_mode "WAL"}))
 
 (defn autobuild-clojars-releases?
   ([] (autobuild-clojars-releases? (config)))
