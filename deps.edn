@@ -37,7 +37,8 @@
         raven-clj {:mvn/version "1.6.0-alpha"},
         org.clojure/test.check {:mvn/version "0.9.0"},
         me.raynes/fs {:mvn/version "1.4.6"},
-        org.clojure-grimoire/lib-grimoire {:mvn/version "0.10.10"}
+        org.clojure-grimoire/lib-grimoire {:git/url "https://github.com/martinklepsch/lib-grimoire"
+                                           :sha "f413dc31fcedd96e052d60738370e6058a9bbf74"}
         cljdoc/shared-utils {:local/root "modules/shared-utils"}
         cljdoc/analysis-runner {:local/root "modules/analysis-runner"}}
  :paths ["src" "resources"]
