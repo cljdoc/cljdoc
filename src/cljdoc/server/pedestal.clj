@@ -15,10 +15,24 @@
             [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
+            [cognician.dogstatsd :as d]
             [integrant.core :as ig]
             [cheshire.core :as json]
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]))
+
+(d/configure! "127.0.0.1:8125" {:tags {:env "develop", :project "cljdoc"}})
+
+(comment
+  
+  (d/measure! "thread.sleep.time" {}
+              (Thread/sleep (rand-int 2000)))
+
+  (doseq [_ (range 10)]
+    (Thread/sleep (rand-int 500))
+    (d/gauge! "test.ws.connections" (rand-int 50)))
+
+  )
 
 (defn ok! [ctx body]
   (assoc ctx :response {:status 200 :body body}))
