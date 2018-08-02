@@ -57,10 +57,10 @@
             (->> (string/split (get-in ctx [:request :path-params :article-slug])  #"/")
                  (assoc-in ctx [:request :path-params :doc-slug-path])))})
 
-(defn grimoire-loader
-  "An interceptor to load relevant data for the request from our Grimoire store"
+(defn data-loader
+  "An interceptor to load relevant data for the request from our data store"
   [store route-name]
-  {:name  ::grimoire-loader
+  {:name  ::data-loader
    :enter (fn [{:keys [request] :as ctx}]
             (d/measure! "cljdoc.storage.read_time" {}
               (case route-name
@@ -114,7 +114,7 @@
 (defn view [storage route-name]
   (->> [(version-resolve-redirect)
         (when (= :artifact/doc route-name) doc-slug-parser)
-        (grimoire-loader storage route-name)
+        (data-loader storage route-name)
         render-interceptor]
        (keep identity)
        (vec)))
@@ -283,7 +283,7 @@
            :artifact/version   (view storage route-name)
            :artifact/namespace (view storage route-name)
            :artifact/doc       (view storage route-name)
-           :artifact/offline-bundle [(grimoire-loader storage route-name)
+           :artifact/offline-bundle [(data-loader storage route-name)
                                      (offline-bundle)]
            :jump-to-project    [(jump-interceptor)]
            :badge-for-project  [(badge-interceptor)])
