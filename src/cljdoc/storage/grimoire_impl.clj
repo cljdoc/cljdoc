@@ -20,6 +20,7 @@
 
   The format of the cache is defined in the spec :cljcdoc.spec/cache-bundle"
   (:require [cljdoc.spec]
+            [cljdoc.util]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [grimoire.api.fs]
@@ -38,8 +39,10 @@
 
 (defn- docs-cache-contents [store version-t]
   (let [platf-things (e/result (grim/list-platforms store version-t))
-        platforms    (for [platform  platf-things]
-                       (e/result (grim/read-meta store platform)))
+        ;; platforms    (doall (for [platform  platf-things]
+        ;;                       (do
+        ;;                         (println "read-meta" (grim/read-meta store platform))
+        ;;                         (e/result (grim/read-meta store platform)))))
         namespaces   (for [platform  platf-things
                            namespace (e/result (grim/list-namespaces store platform))]
                        (assoc (e/result (grim/read-meta store namespace))
@@ -55,9 +58,9 @@
     {:version   (e/result (grim/read-meta store version-t))
      :group     (e/result (grim/read-meta store (things/thing->group version-t)))
      :artifact  (e/result (grim/read-meta store (things/thing->artifact version-t)))
-     :platforms  platforms
-     :namespaces namespaces
-     :defs       defs}))
+     ;;:platforms  platforms
+     :namespaces (set namespaces)
+     :defs       (set defs)}))
 
 (defn bundle-docs
   [store version-t]
