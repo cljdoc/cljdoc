@@ -56,7 +56,8 @@
   (import-doc [_ version-entity {:keys [doc-tree scm jar] :as version-data}]
     (sqlite/import-doc db-spec version-entity version-data))
   (exists? [_ version-entity]
-    (sqlite/docs-available? (:group-id version-entity)
+    (sqlite/docs-available? db-spec
+                            (:group-id version-entity)
                             (:artifact-id version-entity)
                             (:version version-entity)))
   (bundle-docs [_ {:keys [group-id artifact-id version] :as version-entity}]
