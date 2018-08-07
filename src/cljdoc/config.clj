@@ -41,6 +41,10 @@
   [config]
   (io/file (data-dir config) "grimoire"))
 
+(defn statsd
+  [config]
+  (get config :statsd))
+
 (defn build-log-db
   ([] (build-log-db (config)))
   ([config]

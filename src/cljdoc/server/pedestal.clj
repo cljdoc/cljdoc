@@ -21,19 +21,6 @@
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]))
 
-(d/configure! "127.0.0.1:8125" {:tags {:env "develop", :project "cljdoc"}})
-
-(comment
-  
-  (d/measure! "thread.sleep.time" {}
-              (Thread/sleep (rand-int 2000)))
-
-  (doseq [_ (range 10)]
-    (Thread/sleep (rand-int 500))
-    (d/gauge! "test.ws.connections" (rand-int 50)))
-
-  )
-
 (defn ok! [ctx body]
   (assoc ctx :response {:status 200 :body body}))
 
@@ -57,7 +44,7 @@
                         :headers {"Location"  (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))}})
 
                 (if cache-bundle
-                  (ok-html! ctx (html/render page-type path-params cache-bundle))
+                  (d/measure! "cljdoc.views.render_time" {} (ok-html! ctx (html/render page-type path-params cache-bundle)))
                   (assoc ctx :response {:status 404
                                         :headers {"Content-Type" "text/html"}
                                         :body (str (render-build-req/request-build-page path-params))})))))})
@@ -75,16 +62,17 @@
   [store route-name]
   {:name  ::grimoire-loader
    :enter (fn [{:keys [request] :as ctx}]
-            (case route-name
-              (:group/index :artifact/index)
-              (do (log/info "Loading group cache bundle for" (:path-params request))
-                  (assoc ctx :cache-bundle (storage/bundle-group store (:path-params request))))
+            (d/measure! "cljdoc.storage.read_time" {}
+              (case route-name
+                (:group/index :artifact/index)
+                (do (log/info "Loading group cache bundle for" (:path-params request))
+                    (assoc ctx :cache-bundle (storage/bundle-group store (:path-params request))))
 
-              (:artifact/version :artifact/doc :artifact/namespace :artifact/offline-bundle)
-              (do (log/info "Loading artifact cache bundle for" (:path-params request))
-                  (if (storage/exists? store (:path-params request))
-                    (assoc ctx :cache-bundle (storage/bundle-docs store (:path-params request)))
-                    ctx))))})
+                (:artifact/version :artifact/doc :artifact/namespace :artifact/offline-bundle)
+                (do (log/info "Loading artifact cache bundle for" (:path-params request))
+                    (if (storage/exists? store (:path-params request))
+                      (assoc ctx :cache-bundle (storage/bundle-docs store (:path-params request)))
+                      ctx)))))})
 
 (defn- resolve-version [path-params referer]
   (assert (= "CURRENT" (:version path-params)))

@@ -2,6 +2,10 @@
 {:secrets #profile {:prod #include #join [ #env HOME "/secrets.edn"]
                     :live #include "secrets.edn"
                     :local {}}
+ :statsd {:uri "127.0.0.1:8125"
+          :tags {:env #profile {:default "develop"
+                                :prod "production"}
+                 :project "cljdoc"}}
  :cljdoc/version #or [#env CLJDOC_VERSION "dev"]
  :cljdoc/server {:port 8000
                  :host #profile {:prod "cljdoc.xyz"

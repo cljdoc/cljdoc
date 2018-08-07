@@ -7,6 +7,7 @@
             [cljdoc.util.sentry]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
+            [cognician.dogstatsd :as dogstatsd]
             [integrant.core :as ig]
             [unilog.config :as unilog]
             [ragtime.jdbc :as jdbc]
@@ -37,7 +38,8 @@
                        :dir              (cfg/data-dir env-config)}
      :cljdoc/analysis-service (case ana-service
                                 :local     [:local {:full-build-url (str "http://localhost:" port "/api/full-build")}]
-                                :circle-ci [:circle-ci (cfg/circle-ci env-config)])}))
+                                :circle-ci [:circle-ci (cfg/circle-ci env-config)])
+     :cljdoc/dogstats (cfg/statsd env-config)}))
 
 (defmethod ig/init-key :cljdoc/analysis-service [_ [type opts]]
   (log/infof "Starting Analysis Service %s" type)
@@ -53,6 +55,9 @@
                        {:reporter (fn [store direction migration]
                                     (log/infof "Migrating %s %s" direction migration))})
   db-spec)
+
+(defmethod ig/init-key :cljdoc/dogstats [_ {:keys [uri tags]}]
+  (dogstatsd/configure! uri {:tags tags}))
 
 (defn -main []
   (integrant.core/init
