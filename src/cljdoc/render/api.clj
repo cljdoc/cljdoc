@@ -145,7 +145,6 @@
 
 (defn platform-support-note [[[dominant-platf] :as platf-stats]]
   (let [node :span.f7.fw5.gray]
-    [node "Order as defined in namespace."]
     (if (= 1 (count platf-stats))
       (if (or (= dominant-platf #{"clj"})
               (= dominant-platf #{"cljs"}))
@@ -242,6 +241,9 @@
       namespace-list-component)
      (layout/sidebar-two
       (platform-support-note platf-stats)
+      [:br]
+      [:br]
+      [:span.f7.fw5.gray "Order as defined in namespace."]
       (definitions-list ns-entity defs
         {:indicate-platforms-other-than dominant-platf}))
      (layout/main-container
