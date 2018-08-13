@@ -4,6 +4,9 @@
             [clojure.pprint :as pprint]
             [cljs.util :as cljs-util]))
 
+(def ok-to-fail?
+  #{"clojure.parallel"})
+
 (defn codox-config [namespaces jar-contents-path platf]
   (assert (string? jar-contents-path) (str "was: " (pr-str jar-contents-path)))
   (assert (contains? #{"clj" "cljs"} platf) (str "was: " (pr-str platf)))
@@ -13,7 +16,8 @@
    :source-paths [jar-contents-path]
    :namespaces   (or namespaces :all)
    :exception-handler (fn ex-handler [ex f-or-ns]
-                        (throw (ex-info (format "Could not analyze %s" f-or-ns) {} ex)))
+                        (when-not (ok-to-fail? (str f-or-ns))
+                          (throw (ex-info (format "Could not analyze %s" f-or-ns) {} ex))))
    :metadata     {}
    :writer       'clojure.core/identity
    :exclude-vars #"^(map)?->\p{Upper}"})
