@@ -22,7 +22,13 @@ All of these are represented as maps and stored as `.edn` files.
 
 **Move data out of Grimoire into SQLite.**
 
-SQLite provides low operational complexity while still providing many of the benefits a proper SQL database would provide. In initial testing SQLite performed typical operations up to 15x faster than the filesystem-backed Grimoire store and performance did not degrade with more data being inserted.
+SQLite provides low operational complexity while still providing many of the benefits a proper SQL database would provide. These benefits include:
+
+- a more flexible schema
+- generic query language allowing the domain model to evolve regardless of Grimoire's future development
+- potentially better performance
+
+In initial testing SQLite performed typical operations up to 15x faster than the filesystem-backed Grimoire store and performance did not degrade with more data being inserted.
 
 Using SQLite will also allow a transition to Postgres (or similar) with relative ease if/when that becomes necessary.
 
