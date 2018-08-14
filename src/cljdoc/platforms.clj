@@ -53,7 +53,11 @@
 (defn multiplatform? [x]
   (instance? MultiPlatform x))
 
-(defn unify-defs [platforms]
+(defn unify-defs
+  "Takes a series of maps describing a single var across multiple
+  platforms. Returns an instance of the MultiPlatform record that
+  allows accessing fields in a platform-aware manner."
+  [platforms]
   (let [clean-members (fn clean-members [members]
                         (->> members
                              (sort-by :name)
