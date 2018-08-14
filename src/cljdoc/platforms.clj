@@ -56,7 +56,7 @@
 (defn unify-defs [platforms]
   (let [clean-members (fn clean-members [members]
                         (->> members
-                             (sort-by :line)
+                             (sort-by :name)
                              (map #(dissoc % :file :line))))]
     ;; todo assert names are equal
     (doseq [p platforms]
