@@ -23,7 +23,10 @@
   This function is idempotent and returns the analysis data in its
   original shape.
 
-  See https://dev.clojure.org/jira/browse/CLJS-2852"
+  See https://dev.clojure.org/jira/browse/CLJS-2852
+
+  nomad 0.9.0-alpha9 is a good example that exhibits this issue:
+  https://2950-119377591-gh.circle-artifacts.com/0/cljdoc-edn/jarohen/nomad/0.9.0-alpha9/cljdoc.edn"
   [{:strs [clj cljs] :as codox}]
   (if (and clj cljs)
     (let [clj-by-name  (index-by :name clj)

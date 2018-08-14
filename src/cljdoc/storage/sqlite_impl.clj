@@ -10,8 +10,6 @@
 
 (defn store-artifact! [db-spec group-id artifact-id versions]
   (assert (coll? versions))
-  (sql/execute! db-spec ["INSERT OR IGNORE INTO groups (id) VALUES (?)" group-id])
-  (sql/execute! db-spec ["INSERT OR IGNORE INTO artifacts (group_id, id) VALUES (?, ?)" group-id artifact-id])
   (doseq [v versions]
     (sql/execute! db-spec ["INSERT OR IGNORE INTO versions (group_id, artifact_id, name) VALUES (?, ?, ?)" group-id artifact-id v])))
 
@@ -140,17 +138,6 @@
 (comment
   (def data (clojure.edn/read-string (slurp "https://2941-119377591-gh.circle-artifacts.com/0/cljdoc-edn/stavka/stavka/0.4.1/cljdoc.edn")))
 
-  (clojure.pprint/pprint (:codox data))
-
-  (get (:codox data) "clj")
-  (for [[platf namespaces] (:codox data)]
-    (println namespaces))
-
-  (for [[platf namespaces] (:codox data)
-        ns namespaces]
-    (-> (dissoc ns :publics)
-        (assoc :platform platf)))
-
   (import-api db-spec
               (select-keys data [:group-id :artifact-id :version])
               (:codox data))
@@ -159,42 +146,11 @@
 
   (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data))
 
-  (tufte/add-basic-println-handler! {})
-
-  (def db-spec
-    {:classname "org.sqlite.JDBC"
-     :subprotocol "sqlite"
-     :foreign_keys true
-     :synchronous "NORMAL"
-     :journal_mode "WAL"
-     :cache_size 10000
-     :subname "test-data/build-log.db"})
-
-  (sql/query db-spec ["PRAGMA main.synchronous"])
-  (sql/query db-spec ["PRAGMA main.journal_mode"])
-
   (first (get-versions-by-group-id db-spec "amazonica"))
 
   (bundle-docs db-spec {:group-id "beam" :artifact-id "beam-es" :version "0.0.1"})
 
+  (tufte/add-basic-println-handler! {})
   (profile {} (doseq [i (range 50)] (bundle-group db-spec "amazonica")))
-
-  (profile {}
-           (doseq [i (range 50)]
-             (bundle-docs db-spec {:group-id "lt.tokenmill" :artifact-id "es-utils" :version "0.1.2"})))
-
-  (profile {}
-           (doseq [i (range 50)]
-             (bundle-docs db-spec {:group-id "re-frame" :artifact-id "re-frame" :version "0.10.5"})))
-
-  (profile {}
-           (doseq [i (range 50)]
-             (bundle-docs db-spec {:group-id "amazonica" :artifact-id "amazonica" :version "0.3.130"})))
-
-  (sql/query #_(assoc
-              (cljdoc.config/build-log-db)
-              :cache_size 10000)
-(cljdoc.config/build-log-db)
-             ["PRAGMA main.cache_size"])
 
   )

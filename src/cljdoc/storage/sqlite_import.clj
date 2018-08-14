@@ -47,19 +47,4 @@
                   (cfg/grimoire-dir conf)
                   (first (grim/all-versions (grim/grimoire-store grimoire-dir))))
 
-  (def timings
-    (->> (for [v (grim/all-versions (grim/grimoire-store (cfg/grimoire-dir conf)))]
-           [v (cljdoc.util/time (import-version (cfg/build-log-db conf) (cfg/grimoire-dir conf) v))])
-         (into {})))
-
-  (def timings2
-    (->> (for [v (keys (take 50 (sort-by val > timings)))]
-           [v (cljdoc.util/time (import-version (cfg/build-log-db conf) (cfg/grimoire-dir conf) v))])
-         (into {})))
-
-  (/ (reduce + (vals timings2)) 1000)
-
-  (/ (reduce + (vals (take 50 (sort-by val > timings)))) 1000)
-
-
   )
