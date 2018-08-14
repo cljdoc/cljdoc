@@ -34,7 +34,10 @@
 
 (defn- hardcoded-deps [project]
   (-> '{"clj-time" {"clj-time" {org.clojure/java.jdbc {:mvn/version "0.7.7"}}}
-        "com.taoensso" {"tufte" {com.taoensso/timbre {:mvn/version "4.10.0"}}}}
+        "com.taoensso" {"tufte" {com.taoensso/timbre {:mvn/version "4.10.0"}}}
+        "cider" {"cider-nrepl" {boot/core {:mvn/version "2.7.2"}
+                                boot/base {:mvn/version "2.7.2"}
+                                leiningen {:mvn/version "2.8.1"}}}}
       (get-in [(util/group-id project) (util/artifact-id project)])))
 
 (defn- extra-deps
