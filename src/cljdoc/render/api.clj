@@ -241,6 +241,7 @@
       namespace-list-component)
      (layout/sidebar-two
       (platform-support-note platf-stats)
+      [:span.db.mt2.f7.fw5.gray "Order as defined in namespace."]
       (definitions-list ns-entity defs
         {:indicate-platforms-other-than dominant-platf}))
      (layout/main-container
