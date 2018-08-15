@@ -97,7 +97,7 @@ Which will result in the following hierarchy being shown in your docs:
 
 ==== Wikilinks
 
-You can refer to other namespaces and functions inside your docstrings using `[[wikilink]]` syntax. Note that if you want to link to vars outside the current namespace you need to either fully qualify those vars or specify them relative to the current namespace. An example: if you want to link to `compojure.core/GET` from `compojure.route` you'll need to provide the wiki in one of the two forms below:
+You can refer to other namespaces and functions inside your docstrings using `+[[wikilink]]` syntax. Note that if you want to link to vars outside the current namespace you need to either fully qualify those vars or specify them relative to the current namespace. An example: if you want to link to `compojure.core/GET` from `compojure.route` you'll need to provide the wiki in one of the two forms below:
 
 ----
 [[compojure.core/GET]]
