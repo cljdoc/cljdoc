@@ -22,9 +22,10 @@
                                  (:pom (repositories/local-uris project version))
                                  (:pom (repositories/artifact-uris project version))))
                             slurp read-string)
-        storage (storage/->GrimoireStorage grimoire-dir)
+        storage  (case (config/storage-type)
+                   :grimoire (storage/->GrimoireStorage grimoire-dir)
+                   :sqlite   (storage/->SQLiteStorage (config/build-log-db)))
         scm-info (ingest/scm-info project (:pom-str analysis-result))]
-    (log/infof "Generating Grimoire store for %s\n" project)
     (ingest/ingest-cljdoc-edn storage analysis-result)
     (when (or (:url scm-info) git)
       (ingest/ingest-git! storage
