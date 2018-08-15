@@ -3,6 +3,7 @@
             [cljdoc.util :as util]
             [cljdoc.analysis.git :as ana-git]
             [cljdoc.util.pom :as pom]
+            [cljdoc.util.codox :as codox]
             [clojure.tools.logging :as log]
             [cljdoc.storage.api :as storage]
             [cljdoc.server.routes :as routes]
@@ -10,12 +11,12 @@
 
 (defn ingest-cljdoc-edn
   "Ingest all the API-related information in the passed `cljdoc-edn` data."
-  [storage cljdoc-edn]
+  [storage {:keys [codox] :as cljdoc-edn}]
   (let [artifact (pom/artifact-info (pom/parse (:pom-str cljdoc-edn)))]
     (log/info "Verifying cljdoc-edn contents against spec")
     (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
     (log/info "Importing API into Grimoire")
-    (storage/import-api storage artifact (:codox cljdoc-edn))))
+    (storage/import-api storage artifact (codox/sanitize-macros codox))))
 
 (defn scm-info
   [project pom-str]
