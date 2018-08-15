@@ -5,7 +5,8 @@
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
             [taoensso.nippy :as nippy]
-            [taoensso.tufte :as tufte :refer [defnp p profiled profile]]))
+            [taoensso.tufte :as tufte :refer [defnp p profiled profile]])
+  (:import (org.sqlite SQLiteException)))
 
 
 (defn store-artifact! [db-spec group-id artifact-id versions]
@@ -25,8 +26,13 @@
 (defn- write-var!
   [db-spec version-id {:keys [platform namespace name] :as data}]
   {:pre [(string? name) (string? namespace) (string? platform)]}
-  (sql/execute! db-spec ["INSERT INTO vars (version_id, platform, namespace, name, meta) VALUES (?, ?, ?, ?, ?)"
-                         version-id platform namespace name (nippy/freeze data)]))
+  (try
+    (sql/execute! db-spec ["INSERT INTO vars (version_id, platform, namespace, name, meta) VALUES (?, ?, ?, ?, ?)"
+                           version-id platform namespace name (nippy/freeze data)])
+    (catch SQLiteException e
+      (throw (ex-info (format "Failed to insert var %s" data)
+                      {:var data}
+                      e)))))
 
 (defn clear-vars-and-nss! [db-spec version-id]
   (sql/execute! db-spec ["DELETE FROM vars WHERE version_id = ?" version-id])
