@@ -3,12 +3,16 @@
 (defn- index-by [k xs]
   (->> (for [[k vs] (group-by k xs)]
          (if (second vs)
-           (throw (ex-info (format "Duplicate item for key %s: %s" k vs) {:vs vs}))
+           (throw (ex-info (format "Duplicate item for key %s: (files: %s)" k (mapv :file vs)) {:vs vs}))
            [k (first vs)]))
        (into {})))
 
 (defn- macro? [var]
   (= :macro (:type var)))
+
+(defn assert-no-duplicate-publics [namespaces]
+  (doseq [ns namespaces]
+    (index-by :name (:publics ns))))
 
 (defn sanitize-macros
   "Reading macros from Clojure's and ClojureScripts `ns-publics` may
@@ -28,6 +32,8 @@
   nomad 0.9.0-alpha9 is a good example that exhibits this issue:
   https://2950-119377591-gh.circle-artifacts.com/0/cljdoc-edn/jarohen/nomad/0.9.0-alpha9/cljdoc.edn"
   [{:strs [clj cljs] :as codox}]
+  (assert-no-duplicate-publics clj)
+  (assert-no-duplicate-publics cljs)
   (if (and clj cljs)
     (let [clj-by-name  (index-by :name clj)
           cljs-by-name (index-by :name cljs)]
