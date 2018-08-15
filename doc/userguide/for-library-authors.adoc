@@ -78,7 +78,7 @@ You can integrate those files into your cljdoc build by adding a file `doc/cljdo
 
 [source,clojure]
 ----
-{:cljdoc.doc/tree [["Readme" {:file "README.md"]
+{:cljdoc.doc/tree [["Readme" {:file "README.md"}]
                    ["Getting Started" {:file "doc/getting-started.md"}
                     ["Installation" {:file "doc/installation.md"}]]
                    ["Configuration" {:file "doc/configuration.md"}]]}
