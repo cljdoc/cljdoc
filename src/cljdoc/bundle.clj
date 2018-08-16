@@ -33,7 +33,7 @@
   [all-defs ns]
   (->> all-defs
        (filter #(= ns (:namespace %)))
-       (group-by :name)
+       (group-by :line)
        (vals)
        (map platf/unify-defs)
        (sort-by platf-name)))
