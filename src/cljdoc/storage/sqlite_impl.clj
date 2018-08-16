@@ -20,8 +20,13 @@
 (defn- write-ns!
   [db-spec version-id {:keys [platform name] :as data}]
   {:pre [(string? name) (string? platform)]}
-  (sql/execute! db-spec ["INSERT INTO namespaces (version_id, platform, name, meta) VALUES (?, ?, ?, ?)"
-                         version-id platform name (nippy/freeze data)]))
+  (try
+    (sql/execute! db-spec ["INSERT INTO namespaces (version_id, platform, name, meta) VALUES (?, ?, ?, ?)"
+                           version-id platform name (nippy/freeze data)])
+    (catch SQLiteException e
+      (throw (ex-info (format "Failed to insert namespace %s" data)
+                      {:var data}
+                      e)))))
 
 (defn- write-var!
   [db-spec version-id {:keys [platform namespace name] :as data}]
