@@ -22,9 +22,9 @@
 
 (def cases
   [#_{:group-id "" :artifact-id "" :version "" :analysis-file ""}
-   {:group-id "jarohen" :artifact-id "nomad" :version "0.9.0-alpha9" :analysis-file "https://2950-119377591-gh.circle-artifacts.com/0/cljdoc-edn/jarohen/nomad/0.9.0-alpha9/cljdoc.edn"}
+   {:group-id "jarohen" :artifact-id "nomad" :version "0.9.0-rc1" :analysis-file "https://3533-119377591-gh.circle-artifacts.com/0/cljdoc-edn/jarohen/nomad/0.9.0-rc1/cljdoc.edn"}
    {:group-id "amazonica" :artifact-id "amazonica" :version "0.3.130" :analysis-file "https://2395-119377591-gh.circle-artifacts.com/0/cljdoc-edn/amazonica/amazonica/0.3.130/cljdoc.edn"}
-   {:group-id "adamrenklint" :artifact-id "prost" :version "1.2.0" :analysis-file "https://2945-119377591-gh.circle-artifacts.com/0/cljdoc-edn/adamrenklint/prost/1.2.0/cljdoc.edn"}
+   {:group-id "adamrenklint" :artifact-id "prost" :version "1.2.0" :analysis-file "https://3536-119377591-gh.circle-artifacts.com/0/cljdoc-edn/adamrenklint/prost/1.2.0/cljdoc.edn"}
    {:group-id "coreagile" :artifact-id "itl" :version "0.0.9" :analysis-file "https://2942-119377591-gh.circle-artifacts.com/0/cljdoc-edn/coreagile/itl/0.0.9/cljdoc.edn"}
    {:group-id "stavka" :artifact-id "stavka" :version "0.4.1" :analysis-file "https://2941-119377591-gh.circle-artifacts.com/0/cljdoc-edn/stavka/stavka/0.4.1/cljdoc.edn"}
    {:group-id "techascent" :artifact-id "tech.io" :version "0.1.2" :analysis-file "https://2919-119377591-gh.circle-artifacts.com/0/cljdoc-edn/techascent/tech.io/0.1.2/cljdoc.edn"}
