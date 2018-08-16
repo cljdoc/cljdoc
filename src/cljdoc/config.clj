@@ -73,7 +73,8 @@
   ([config] (when (get-in config [:cljdoc/server :enable-sentry?])
               (get-in config [:secrets :sentry :dsn]))))
 
-(defn storage-type [] :sqlite)
+(defn storage-type []
+  (get-in (config) [:cljdoc/server :storage-type]))
 
 (comment
   (:cljdoc/server (config))

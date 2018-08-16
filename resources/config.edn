@@ -16,6 +16,7 @@
                                                         :prod true}
                  :enable-sentry? #profile {:default false
                                            :prod true}
+                 :storage-type :grimoire
                  :dir #profile {:default "data/"
                                 :test "test-data/"
                                 :prod "/var/cljdoc/"}}
