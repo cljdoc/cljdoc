@@ -45,17 +45,17 @@
        (into {})))
 
 (defn deps [pom project version]
-  (-> {'org.clojure/clojure {:mvn/version "1.9.0"}
-       'org.clojure/java.classpath {:mvn/version "0.2.2"}
-       'org.clojure/tools.namespace {:mvn/version "0.2.11"}
-       'org.clojure/clojurescript {:mvn/version "1.10.238"}
-       'codox/codox {:exclusions '[enlive hiccup org.pegdown/pegdown]
-                     ;; :mvn/version "0.10.4"
-                     :git/url "https://github.com/martinklepsch/codox"
-                     :sha "53b116ba8946e6f63d5a8a47ffe1809f98ac93cf"
-                     :deps/root "codox/"}}
+  (-> (extra-deps pom)
       (merge (hardcoded-deps project))
-      (merge (extra-deps pom))
+      (merge {'org.clojure/clojure {:mvn/version "1.9.0"}
+              'org.clojure/java.classpath {:mvn/version "0.2.2"}
+              'org.clojure/tools.namespace {:mvn/version "0.2.11"}
+              'org.clojure/clojurescript {:mvn/version "1.10.238"}
+              'codox/codox {:exclusions '[enlive hiccup org.pegdown/pegdown]
+                            ;; :mvn/version "0.10.4"
+                            :git/url "https://github.com/martinklepsch/codox"
+                            :sha "53b116ba8946e6f63d5a8a47ffe1809f98ac93cf"
+                            :deps/root "codox/"}})
       (ensure-recent-ish)
       (assoc project {:mvn/version version})))
 
