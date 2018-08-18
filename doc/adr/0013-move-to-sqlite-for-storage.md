@@ -87,3 +87,20 @@ PRAGMA main.cache_size=10000;
 Currently all artifacts cljdoc provides documentation for are in some maven repository — but we may want to expand do other sources (GitHub via tools.deps or similar).
 
 This may require additional namespacing as otherwise there might be conflicts between, e.g. GitHub and Clojars. 
+
+#### Why not X?
+
+> This isn't intended to be a full analysis but just some basic notes.
+
+**Postgres:** SQLite gives us the same basic abstractions, reasonable
+performance for our current usage patterns while being significantly
+easier to operate.
+
+**Datomic:** Datomic is aimed at domains where time is an important
+component, which is not the case for cljdoc. Except for the H2 variant
+it has the same operational complexity as Postgres. H2's performance
+degraded when testing with the approach (blobs and all) described above.
+
+While Clojure people might be familiar with Datomic it's probably fair
+to assume that more people are familiar with SQL. This is important if
+we try to optimize for a diverse crowd of contributors.
