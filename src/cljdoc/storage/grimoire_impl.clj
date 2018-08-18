@@ -168,6 +168,7 @@
     (doseq [ns namespaces
             :let [publics  (:publics ns)
                   ns-thing (things/->Ns platform (-> ns :name name))]]
+      (log/info "Writing namespace:" (:name ns))
       (write-docs-for-ns store ns-thing (dissoc ns :publics :name))
       (doseq [public publics]
         (try
@@ -177,8 +178,7 @@
           (catch Throwable e
             (throw (ex-info "Failed to write docs for def"
                             {:codox/public public}
-                            e)))))
-      (log/info "Finished namespace" (:name ns)))))
+                            e))))))))
 
 (defn write-bare
   [store version]
