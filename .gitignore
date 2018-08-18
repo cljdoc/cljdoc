@@ -11,3 +11,4 @@ ops/prod-backup/
 *.iml
 project.clj
 .cpcache
+.DS_Store

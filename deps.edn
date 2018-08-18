@@ -32,12 +32,15 @@
         org.clojure/core.match {:mvn/version "0.3.0-alpha5"},
         org.jsoup/jsoup {:mvn/version "1.11.3"},
         org.xerial/sqlite-jdbc {:mvn/version "3.20.0"},
+        com.taoensso/tufte {:mvn/version "2.0.1"}
+        com.taoensso/nippy {:mvn/version "2.14.0"}
         org.slf4j/slf4j-api {:mvn/version "1.7.25"},
         expound {:mvn/version "0.6.0"},
         raven-clj {:mvn/version "1.6.0-alpha"},
         org.clojure/test.check {:mvn/version "0.9.0"},
         me.raynes/fs {:mvn/version "1.4.6"},
-        org.clojure-grimoire/lib-grimoire {:mvn/version "0.10.10"}
+        org.clojure-grimoire/lib-grimoire {:git/url "https://github.com/martinklepsch/lib-grimoire"
+                                           :sha "f2db6f15ec17096b2f63beb0c106aea3908d96a6"}
         cljdoc/shared-utils {:local/root "modules/shared-utils"}
         cljdoc/analysis-runner {:local/root "modules/analysis-runner"}}
  :paths ["src" "resources"]

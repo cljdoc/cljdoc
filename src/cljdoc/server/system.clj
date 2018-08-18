@@ -32,10 +32,10 @@
                        :host             (get-in env-config [:cljdoc/server :host])
                        :build-tracker    (ig/ref :cljdoc/build-tracker)
                        :analysis-service (ig/ref :cljdoc/analysis-service)
-                       :storage          (storage/->GrimoireStorage (io/file (cfg/data-dir env-config) "grimoire"))
-                       ;; todo just pass storage component
-                       ;; see https://github.com/martinklepsch/cljdoc/issues/58
-                       :dir              (cfg/data-dir env-config)}
+                       :storage          (case (cfg/storage-type)
+                                           :grimoire (storage/->GrimoireStorage
+                                                      (io/file (cfg/data-dir env-config) "grimoire"))
+                                           :sqlite   (storage/->SQLiteStorage (cfg/build-log-db env-config)))}
      :cljdoc/analysis-service (case ana-service
                                 :local     [:local {:full-build-url (str "http://localhost:" port "/api/full-build")}]
                                 :circle-ci [:circle-ci (cfg/circle-ci env-config)])
