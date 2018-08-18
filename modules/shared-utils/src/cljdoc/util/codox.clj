@@ -38,14 +38,17 @@
     (let [clj-by-name  (index-by :name clj)
           cljs-by-name (index-by :name cljs)]
       {"clj" clj
-       "cljs" (for [[name {:keys [publics] :as ns-data}] cljs-by-name
-                    :let [cljs-publics-without-macros (remove macro? publics)
-                          clj-macros (->> (get-in clj-by-name [name :publics])
-                                          (filter macro?))]]
-                (do
-                  ;; Sanity check. Ensure we remove macros with the
-                  ;; same names as the macros we put back into the data.
-                  (assert (= (set (map :name (filter macro? publics)))
-                             (set (map :name clj-macros))))
-                  (assoc ns-data :publics (into cljs-publics-without-macros clj-macros))))})
+       "cljs" (doall
+               (for [[name {:keys [publics] :as ns-data}] cljs-by-name
+                     :let [cljs-publics-without-macros (remove macro? publics)
+                           clj-macros (->> (get-in clj-by-name [name :publics])
+                                           (filter macro?))]]
+                 (do
+
+                   ;; Sanity check. Ensure we remove macros with the
+                   ;; same names as the macros we put back into the data.
+                   (when-not (= (set (map :name (filter macro? publics)))
+                                (set (map :name clj-macros)))
+                     (throw (Exception. (format "Unexpected macros between clj and cljs in %s" name))))
+                   (assoc ns-data :publics (into cljs-publics-without-macros clj-macros)))))})
     codox))
