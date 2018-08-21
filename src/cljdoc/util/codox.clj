@@ -1,4 +1,5 @@
-(ns cljdoc.util.codox)
+(ns cljdoc.util.codox
+  (:require [clojure.tools.logging :as log]))
 
 (defn- index-by [k xs]
   (->> (for [[k vs] (group-by k xs)]
@@ -44,11 +45,14 @@
                            clj-macros (->> (get-in clj-by-name [name :publics])
                                            (filter macro?))]]
                  (do
-
-                   ;; Sanity check. Ensure we remove macros with the
-                   ;; same names as the macros we put back into the data.
+                   ;; This has previously been an assertion but there are situations
+                   ;; where an assert is not appropriate I believe.
+                   ;; For instance fulcro.client.localized-dom defines macros
+                   ;; in clojure but functions in cljs. Macros are
+                   ;; also not loaded into the cljs namespace.
+                   ;; see https://3616-119377591-gh.circle-artifacts.com/0/cljdoc-edn/fulcrologic/fulcro/2.6.0-RC8/cljdoc.edn
                    (when-not (= (set (map :name (filter macro? publics)))
                                 (set (map :name clj-macros)))
-                     (throw (Exception. (format "Unexpected macros between clj and cljs in %s" name))))
+                     (log/warnf "Unexpected macros between clj and cljs in %s" name))
                    (assoc ns-data :publics (into cljs-publics-without-macros clj-macros)))))})
     codox))
