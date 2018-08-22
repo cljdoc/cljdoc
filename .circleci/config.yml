@@ -15,6 +15,7 @@ jobs:
 
     environment:
       BOOT_JVM_OPTIONS: -Xmx2048m # Customize the JVM maximum heap limit
+      CLJDOC_PROFILE: test
 
     steps:
       - checkout
