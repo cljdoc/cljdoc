@@ -7,11 +7,13 @@
             [cljdoc.util.repositories :as repositories]
             [clojure.tools.logging :as log]
             [cljdoc.storage.api :as storage]
+            [integrant.core :as ig]
             [cli-matic.core :as cli-matic]))
 
 (defn build [{:keys [project version jar pom git rev]}]
   (let [project      (symbol project)
-        grimoire-dir (io/file (config/data-dir) "grimoire")
+        sys          (select-keys (system/system-config (config/config)) [:cljdoc/sqlite])
+        _            (ig/init sys)
         analysis-result (-> (ana/analyze-impl
                              project
                              version
@@ -22,9 +24,7 @@
                                  (:pom (repositories/local-uris project version))
                                  (:pom (repositories/artifact-uris project version))))
                             slurp read-string)
-        storage  (case (config/storage-type)
-                   :grimoire (storage/->GrimoireStorage grimoire-dir)
-                   :sqlite   (storage/->SQLiteStorage (config/build-log-db)))
+        storage  (storage/->SQLiteStorage (config/build-log-db))
         scm-info (ingest/scm-info project (:pom-str analysis-result))]
     (ingest/ingest-cljdoc-edn storage analysis-result)
     (when (or (:url scm-info) git)
