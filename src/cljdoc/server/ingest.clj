@@ -15,7 +15,7 @@
   (let [artifact (pom/artifact-info (pom/parse (:pom-str cljdoc-edn)))]
     (log/info "Verifying cljdoc-edn contents against spec")
     (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
-    (log/infof "Importing API into Grimoire %s/%s %s" group-id artifact-id version)
+    (log/infof "Importing API into database %s/%s %s" group-id artifact-id version)
     (storage/import-api storage artifact (codox/sanitize-macros codox))))
 
 (defn scm-info
@@ -41,7 +41,7 @@
     (if (:error git-analysis)
       {:scm-url scm-url :error (:error git-analysis)}
       (do
-        (log/info "Importing Articles into Grimoire" (or local-scm scm-url) pom-revision)
+        (log/info "Importing Articles" (or local-scm scm-url) pom-revision)
         (storage/import-doc
          storage
          {:group-id (util/group-id project)

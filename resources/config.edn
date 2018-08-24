@@ -16,7 +16,6 @@
                                                         :prod true}
                  :enable-sentry? #profile {:default false
                                            :prod true}
-                 :storage-type :sqlite
                  :dir #profile {:default "data/"
                                 :test "test-data/"
                                 :prod "/var/cljdoc/"}}

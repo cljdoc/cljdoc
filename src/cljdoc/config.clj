@@ -37,10 +37,6 @@
   ([] (data-dir (config)))
   ([config] (get-in config [:cljdoc/server :dir])))
 
-(defn grimoire-dir
-  [config]
-  (io/file (data-dir config) "grimoire"))
-
 (defn statsd
   [config]
   (get config :statsd))
@@ -72,9 +68,6 @@
   ([] (sentry-dsn (config)))
   ([config] (when (get-in config [:cljdoc/server :enable-sentry?])
               (get-in config [:secrets :sentry :dsn]))))
-
-(defn storage-type []
-  (get-in (config) [:cljdoc/server :storage-type]))
 
 (comment
   (:cljdoc/server (config))
