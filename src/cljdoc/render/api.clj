@@ -34,8 +34,9 @@
 (defn docstring->html [doc-str render-wiki-link]
   [:div.lh-copy.markdown
    (-> doc-str
-       (string/replace #"\[\[(.+?)\]\]" (comp render-wiki-link parse-wiki-link second))
-       (rich-text/markdown-to-html {:escape-html? true})
+       (rich-text/markdown-to-html
+         {:escape-html? true
+          :render-wiki-link (comp render-wiki-link parse-wiki-link)})
        hiccup/raw)])
 
 (defn render-wiki-link-fn
@@ -44,10 +45,8 @@
   a `[ns var]` tuple and will return a Markdown link to the specified ns/var."
   [current-ns ns-link-fn]
   (fn render-wiki-link-inner [[ns var]]
-    (format "[`%s`](%s)"
-            (str (str ns (when (and ns var) "/") var))
-            (str (ns-link-fn (if ns (util/replant-ns current-ns ns) current-ns))
-                 (when var (str "#" var))))))
+    (str (ns-link-fn (if ns (util/replant-ns current-ns ns) current-ns))
+         (when var (str "#" var)))))
 
 (defn render-doc [mp render-wiki-link]
   (if (platf/varies? mp :doc)
