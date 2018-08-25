@@ -11,11 +11,11 @@
 
 (defn ingest-cljdoc-edn
   "Ingest all the API-related information in the passed `cljdoc-edn` data."
-  [storage {:keys [codox] :as cljdoc-edn}]
+  [storage {:keys [codox group-id artifact-id version] :as cljdoc-edn}]
   (let [artifact (pom/artifact-info (pom/parse (:pom-str cljdoc-edn)))]
     (log/info "Verifying cljdoc-edn contents against spec")
     (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
-    (log/info "Importing API into Grimoire")
+    (log/infof "Importing API into Grimoire %s/%s %s" group-id artifact-id version)
     (storage/import-api storage artifact (codox/sanitize-macros codox))))
 
 (defn scm-info
