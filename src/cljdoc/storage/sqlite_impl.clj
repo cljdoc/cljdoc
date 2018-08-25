@@ -92,7 +92,8 @@
   (boolean
    (first
     (sql/query db-spec
-               ["select id from versions where group_id = ? and artifact_id = ? and name = ? and meta not null";TODO use build_id / merge with releases table?
+               ;;TODO use build_id / merge with releases table?
+               ["select id from versions where group_id = ? and artifact_id = ? and name = ? and meta not null"
                 group-id artifact-id version-name]
                {:row-fn :id}))))
 
