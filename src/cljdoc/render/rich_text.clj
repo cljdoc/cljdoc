@@ -1,19 +1,16 @@
 (ns cljdoc.render.rich-text
   (:require [clojure.string :as string])
-  (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory OptionsBuilder Attributes)
-           (org.commonmark.node Image Link)
-           (org.commonmark.parser Parser)
-           (org.commonmark.renderer.html HtmlRenderer AttributeProvider AttributeProviderFactory)
-           (org.commonmark.ext.gfm.tables TablesExtension)
-           (org.commonmark.ext.autolink AutolinkExtension)
-           (org.commonmark.ext.heading.anchor HeadingAnchorExtension)))
+  (:import (org.asciidoctor Asciidoctor$Factory)
+           (com.vladsch.flexmark.parser Parser)
+           (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver)
+           (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverContext)
+           (com.vladsch.flexmark.ext.gfm.tables TablesExtension)
+           (com.vladsch.flexmark.ext.autolink AutolinkExtension)
+           (com.vladsch.flexmark.ext.anchorlink AnchorLinkExtension)
+           (com.vladsch.flexmark.ext.wikilink WikiLinkExtension)))
 
 (def adoc-container
   (Asciidoctor$Factory/create ""))
-
-;; (doto (java.util.HashMap.)
-;;   (.put "attributes" (doto (java.util.HashMap.)
-;;                        (.put "source-highlighter" "pygments"))))
 
 (defn asciidoc-to-html [file-content]
   (.convert adoc-container file-content {}))
@@ -21,52 +18,35 @@
 (def md-extensions
   [(TablesExtension/create)
    (AutolinkExtension/create)
-   (HeadingAnchorExtension/create)])
+   (AnchorLinkExtension/create)
+   (WikiLinkExtension/create)])
 
 (def md-container
   (.. (Parser/builder)
       (extensions md-extensions)
       (build)))
 
-(defn- absolute-uri? [s]
-  (or (.startsWith s "https://")
-      (.startsWith s "http://")
-      (.startsWith s "//")))
-
-;; TODO implement these as xml.zipper/hiccup walkers
-
-#_(defn ->ImageUrlFixer
-  [ctx]
-  ;; TODO assertion that (:scm ctx) contains proper scm info
-  (proxy [AttributeProviderFactory] []
-    (create [_]
-      (reify AttributeProvider
-        (setAttributes [_ node tag-name attrs]
-          (when (and (instance? Image node)
-                     (not (absolute-uri? (get attrs "src"))))
-            (.put attrs "src"
-                  (str (-> ctx :scm :url)
-                       "/raw/" (-> ctx :scm :commit)
-                       "/" (get attrs "src")))))))))
-
-#_(defn ->LinkUrlFixer
-  [{:keys [uri-mapping]}]
-  (proxy [AttributeProviderFactory] []
-    (create [_]
-      (reify AttributeProvider
-        (setAttributes [_ node tag-name attrs]
-          (when (and (instance? Link node)
-                     (not (absolute-uri? (get attrs "href"))))
-            (if-let [corrected (get uri-mapping (string/replace (get attrs "href") #"^/" ""))]
-              (.put attrs "href" corrected)
-              (println "Could not fix link for uri" (get attrs "href")))))))))
-
-
 (defn- md-renderer
   "Create a Markdown renderer."
-  [{:keys [escape-html?] :as opts}]
+  [{:keys [escape-html?
+           render-wiki-link]
+    :as _opts}]
   (.. (HtmlRenderer/builder)
       (escapeHtml (boolean escape-html?))
+      (linkResolverFactory
+        (reify LinkResolverFactory
+          (getAfterDependents [_this] nil)
+          (getBeforeDependents [_this] nil)
+          (affectsGlobalScope [_this] false)
+          (^LinkResolver create [_this ^LinkResolverContext _ctx]
+            (reify LinkResolver
+              (resolveLink [_this _node _ctx link]
+                (if (= (.getLinkType link) WikiLinkExtension/WIKI_LINK)
+                  (ResolvedLink. LinkType/LINK
+                                 ((or render-wiki-link identity) (.getUrl link))
+                                 nil
+                                 LinkStatus/UNCHECKED)
+                  link))))))
       (extensions md-extensions)
       (build)))
 
@@ -87,6 +67,9 @@
   (markdown-to-html "*hello world* <code>x</code>")
 
   (markdown-to-html "*hello world* <code>x</code>" {:escape-html? true})
+
+  (markdown-to-html "*hello world* [[link]]" {:escape-html? true
+                                              :render-wiki-link (constantly "???")})
 
   )
 
