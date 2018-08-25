@@ -30,7 +30,8 @@
         ;; This is kind of an unusual case but there are libraries doing that and until this issue
         ;; is fixed we don't want to break docs for those libraries completetly, see precept 0.5.0-alpha for an example
         ;; https://github.com/CoNarrative/precept/blob/73113feec5bff11f5195261a81a015f882544614/src/cljc/precept/core.cljc#L356
-        (do (log/warnf "Varying :type %s <> %s: %s" (first uniq-vals) (second uniq-vals) (pr-str platforms))
+        (do (log/warnf "Varying :type %s <> %s: %s/%s" (first uniq-vals) (second uniq-vals)
+                       (get-field this :namespace) (get-field this :name))
             (get-field this k "cljs"))
 
         (second uniq-vals)
