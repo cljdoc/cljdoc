@@ -86,16 +86,23 @@
    :namespaces (p :get-namespaces (set (get-namespaces db-spec version-id)))
    :defs       (p :get-vars (set (get-vars db-spec version-id)))})
 
+(defn- sql-exists?
+  "A small helper to deal with the complex keys that sqlite returns for exists queries."
+  [db-spec sqlvec]
+  (case (val (first (first (sql/query db-spec sqlvec))))
+    0 false
+    1 true))
+
 ;; API --------------------------------------------------------------------------
 
 (defn docs-available? [db-spec group-id artifact-id version-name]
-  (boolean
-   (first
-    (sql/query db-spec
-               ;;TODO use build_id / merge with releases table?
-               ["select id from versions where group_id = ? and artifact_id = ? and name = ? and meta not null"
-                group-id artifact-id version-name]
-               {:row-fn :id}))))
+  (or (sql-exists? db-spec ["select exists(select id from versions where group_id = ? and artifact_id = ? and name = ? and meta not null)"
+                            group-id artifact-id version-name])
+      ;; meta should always be set to at least {} but hasn't been set for a while.
+      ;; this is a temporary fix for this that should get revisited when switching
+      ;; the order of GIT vs API imports.
+      (let [v-id (get-version-id db-spec group-id artifact-id version-name)]
+        (sql-exists? db-spec ["select exists(select id from vars where version_id = ?)" v-id]))))
 
 (defn bundle-docs
   [db-spec {:keys [group-id artifact-id version] :as v}]
