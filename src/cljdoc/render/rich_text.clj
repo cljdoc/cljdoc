@@ -7,7 +7,8 @@
            (com.vladsch.flexmark.ext.gfm.tables TablesExtension)
            (com.vladsch.flexmark.ext.autolink AutolinkExtension)
            (com.vladsch.flexmark.ext.anchorlink AnchorLinkExtension)
-           (com.vladsch.flexmark.ext.wikilink WikiLinkExtension)))
+           (com.vladsch.flexmark.ext.wikilink WikiLinkExtension)
+           (com.vladsch.flexmark.util.options MutableDataSet)))
 
 (def adoc-container
   (Asciidoctor$Factory/create ""))
@@ -26,12 +27,15 @@
       (extensions md-extensions)
       (build)))
 
+
 (defn- md-renderer
   "Create a Markdown renderer."
   [{:keys [escape-html?
            render-wiki-link]
     :as _opts}]
-  (.. (HtmlRenderer/builder)
+  (.. (HtmlRenderer/builder
+       (doto (MutableDataSet.)
+         (.set AnchorLinkExtension/ANCHORLINKS_ANCHOR_CLASS "md-anchor")))
       (escapeHtml (boolean escape-html?))
       (linkResolverFactory
         (reify LinkResolverFactory

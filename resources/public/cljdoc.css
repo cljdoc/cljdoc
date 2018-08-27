@@ -12,6 +12,10 @@
   color: #357edd;
 }
 
+.markdown a.md-anchor {
+  color: black
+}
+
 .markdown li + li {
   margin-top: .25em;
 }
