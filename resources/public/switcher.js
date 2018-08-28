@@ -33,27 +33,36 @@
     }
   }
 
-  const SwitcherSingleResultView = (r, isSelected) => {
-    const project = (r.group_id === r.artifact_id ? r.group_id : r.group_id + '/' + r.artifact_id)
-    const docsUri = '/d/' + r.group_id + '/' + r.artifact_id + '/' + r.version
-    return h('a', { className: 'no-underline black', href: docsUri }, [
-      h('div', { className: isSelected ? 'pa3 bb b--light-gray bg-washed-blue' : 'pa3 bb b--light-gray' }, [
-        h('h4', { className: 'dib ma0' }, [
-          project,
-          h('span', { className: 'ml2 gray normal' }, r.version)]),
-        h('a', {
-          className: 'link blue ml2',
-          href: docsUri
-        }, 'view docs')
+  class SwitcherSingleResultView extends Component {
+    // TODO properly scroll list items into view
+    // - should only scroll if necessary
+    // - should only scroll minimum distance
+    componentDidUpdate (prevProps, prevState) {}
+
+    render (props, state) {
+      let r = props.r
+      let isSelected = props.isSelected
+      const project = (r.group_id === r.artifact_id ? r.group_id : r.group_id + '/' + r.artifact_id)
+      const docsUri = '/d/' + r.group_id + '/' + r.artifact_id + '/' + r.version
+      return h('a', { className: 'no-underline black', href: docsUri , ref: n => this.domNode = n }, [
+        h('div', { className: isSelected ? 'pa3 bb b--light-gray bg-washed-blue' : 'pa3 bb b--light-gray' }, [
+          h('h4', { className: 'dib ma0' }, [
+            project,
+            h('span', { className: 'ml2 gray normal' }, r.version)]),
+          h('a', {
+            className: 'link blue ml2',
+            href: docsUri
+          }, 'view docs')
+        ])
       ])
-    ])
+    }
   }
 
   const SwitcherResultsView = (props) => {
     return h('div', {
       className: 'bg-white br1 br--bottom bb bl br b--blue overflow-y-scroll',
       style: { top: '2.3rem', maxHeight: '20rem' }
-    }, props.results.map((r,idx) => SwitcherSingleResultView(r, props.selectedIndex == idx)))
+    }, props.results.map((r,idx) => h(SwitcherSingleResultView, {r: r, isSelected: props.selectedIndex == idx})))
   }
 
   class Switcher extends Component {
@@ -85,7 +94,8 @@
                                 //keys: ['group_id', 'artifact_id']
                                }
         let results = fuzzysort.go(searchStr, this.state.previouslyOpened, fuzzysortOptions)
-        this.setState({results: results.map(r => r.obj)})
+        this.setState({results: results.map(r => r.obj),
+                       selectedIndex: 0})
       }
     }
 
