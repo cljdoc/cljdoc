@@ -54,7 +54,7 @@
               'codox/codox {:exclusions '[enlive hiccup org.pegdown/pegdown]
                             ;; :mvn/version "0.10.4"
                             :git/url "https://github.com/martinklepsch/codox"
-                            :sha "53b116ba8946e6f63d5a8a47ffe1809f98ac93cf"
+                            :sha "4b0720941083fda9643d905f0854fabea55b175f"
                             :deps/root "codox/"}})
       (ensure-recent-ish)
       (assoc project {:mvn/version version})))
