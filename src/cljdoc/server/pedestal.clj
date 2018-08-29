@@ -119,19 +119,26 @@
        (keep identity)
        (vec)))
 
+(defn redirect-to-build-page
+  [ctx build-id]
+  {:pre [(some? build-id)]}
+  (assoc ctx :response {:status 303 :headers {"Location" (str "/builds/" build-id)}}))
+
 (defn request-build
   [{:keys [analysis-service build-tracker]}]
   {:name ::request-build
-   :enter (fn [ctx]
-            (let [build-id (api/initiate-build
-                            {:analysis-service analysis-service
-                             :build-tracker    build-tracker
-                             :project          (get-in ctx [:request :form-params :project])
-                             :version          (get-in ctx [:request :form-params :version])})]
-              (assoc ctx
-                     :response
-                     {:status 303
-                      :headers {"Location" (str "/builds/" build-id)}})))})
+   :enter (fn request-build-handler [ctx]
+            (if-let [running (build-log/running-build build-tracker
+                                                      (-> ctx :request :form-params :project util/group-id)
+                                                      (-> ctx :request :form-params :project util/artifact-id)
+                                                      (-> ctx :request :form-params :version))]
+              (redirect-to-build-page ctx (:id running))
+              (let [build-id (api/initiate-build
+                              {:analysis-service analysis-service
+                               :build-tracker    build-tracker
+                               :project          (-> ctx :request :form-params :project)
+                               :version          (-> ctx :request :form-params :version)})]
+                (redirect-to-build-page ctx build-id))))})
 
 (defn full-build
   [{:keys [storage build-tracker]}]
