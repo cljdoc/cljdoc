@@ -18,12 +18,32 @@
          (string/join "\n")
          (hiccup/raw))]])
 
+(defn description
+  "Return a string to be used as description meta tag for a given project's documentation pages."
+  [{:keys [group-id artifact-id version] :as cache-id}]
+  (format "Documentation for %s v%s on cljdoc, a website that builds and hosts documentation for Clojure/Script libraries."
+          (util/clojars-id cache-id) version))
+
 (defn page [opts contents]
   (hiccup/html {:mode :html}
                (hiccup.page/doctype :html5)
                [:html {}
                 [:head
                  [:title (:title opts)]
+                 [:meta {:content (:description opts) :name "description"}]
+
+                 ;; Google / Search Engine Tags
+                 [:meta {:content (:title opts) :itemprop "name"}]
+                 [:meta {:content (:description opts) :itemprop "description"}]
+                 [:meta {:content "/cljdoc-logo-beta-square.png" :itemprop "image"}]
+
+                 ;; OpenGraph Meta Tags (should work for Twitter/Facebook)
+                 ;; TODO [:meta {:content "" :property "og:url"}]
+                 [:meta {:content "website" :property "og:type"}]
+                 [:meta {:content (:title opts) :property "og:title"}]
+                 [:meta {:content (:description opts) :property "og:description"}]
+                 [:meta {:content "/cljdoc-logo-beta-square.png" :property "og:image"}]
+
                  (when (:responsive? opts)
                    [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}])
                  [:meta {:charset "utf-8"}]
