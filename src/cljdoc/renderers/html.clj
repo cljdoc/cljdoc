@@ -148,39 +148,7 @@
          (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id cache-id) " " (:version cache-id))
                        :description (layout/description cache-id)}))))
 
-(defn write-docs* [{:keys [cache-contents cache-id] :as cache-bundle} ^java.io.File out-dir]
-  (cljdoc.spec/assert :cljdoc.spec/cache-bundle cache-bundle)
-  (let [top-bar-comp (layout/top-bar cache-id (-> cache-contents :version :scm-url))
-        doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))]
-
-    ;; Index page for given version
-    (log/info "Rendering index page for" cache-id)
-    (->> (str (render :artifact/version {} cache-bundle))
-         (spit (file-for out-dir :artifact/version cache-id)))
-
-    ;; Documentation Pages / Articles
-    (doseq [doc-p (-> doc-tree doctree/flatten*)
-            :when (:cljdoc/source-file doc-p)]
-      (log/info "Rendering Doc Page" (dissoc doc-p :attrs))
-      (->> (str (render :artifact/doc {:doc-slug-path (:slug-path (:attrs doc-p))} cache-bundle))
-           (spit (->> (-> doc-p :attrs :slug-path)
-                      (clojure.string/join "/")
-                      (assoc cache-id :article-slug)
-                      (file-for out-dir :artifact/doc)))))
-
-    ;; Namespace Pages
-    (doseq [ns-emap (bundle/ns-entities cache-bundle)
-            :let [defs (filter #(= (:namespace ns-emap)
-                                   (:namespace %))
-                               (:defs cache-contents))]]
-      (log/infof "Rendering namespace %s" (:namespace ns-emap))
-      (->> (str (render :artifact/namespace ns-emap cache-bundle))
-           (spit (file-for out-dir :artifact/namespace ns-emap))))))
-
 (comment
-
-
-  (write-docs store platf out)
 
   (defn namespace-hierarchy [ns-list]
     (reduce (fn [hierarchy ns-string]

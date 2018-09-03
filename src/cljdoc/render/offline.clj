@@ -214,9 +214,4 @@
                  :else (throw (Exception. (str "Unsupported value " (class v)))))]))
        (fs-compression/zip "offline-docs.zip"))
 
-  (do (cljdoc.util/delete-directory! (io/file "offline-docs"))
-      (write-docs* --c (io/file "offline-docs")))
-
- 
-
   )
