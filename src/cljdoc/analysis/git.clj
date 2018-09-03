@@ -38,7 +38,8 @@
           (telegram/has-cljdoc-edn scm-url))
         (if revision
           {:scm      {:files (git/path-sha-pairs git-files)
-                      :tag version-tag}
+                      :tag version-tag
+                      :rev revision}
            :doc-tree (doctree/process-toc
                       (fn slurp-at-rev [f]
                         ;; We are intentionally relaxed here for now

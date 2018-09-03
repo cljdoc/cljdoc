@@ -50,13 +50,11 @@
          {:jar          {}
           :scm          (merge (:scm git-analysis)
                                {:url scm-url
-                                :commit pom-revision})
+                                :commit (-> git-analysis :scm :rev)})
           :doc-tree     (:doc-tree git-analysis)})
 
         {:scm-url scm-url
-         :commit  (or pom-revision
-                      (-> git-analysis :scm :commit)
-                      (-> git-analysis :scm :tag :commit))}))))
+         :commit  (-> git-analysis :scm :rev)}))))
 
 (comment
 
