@@ -9,6 +9,7 @@
 (declare process-toc)
 
 (defn process-toc-entry [slurp-fn [title attrs & children]]
+  (assert (or (nil? attrs) (map? attrs)) "Doctree attribute map is missing")
   (cond-> {:title title}
 
     (:file attrs)
