@@ -67,7 +67,8 @@
 
   class Switcher extends Component {
     handleKeyUp(e) {
-      if (e.which == 75) {
+      // trigger on key 'k' but only if target is document body
+      if (e.which == 75 && e.target == document.body) {
         this.setState({show: true, results: this.state.previouslyOpened});
       } else if (e.which == 27) {
         this.setState({show: false, results: null});
