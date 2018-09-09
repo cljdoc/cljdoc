@@ -55,6 +55,9 @@
   {:name ::doc-slug-parser
    :enter (fn [ctx]
             (->> (string/split (get-in ctx [:request :path-params :article-slug])  #"/")
+                 ;; I feel like pedestal should take care of this url-decoding
+                 ;; https://github.com/cljdoc/cljdoc/issues/113
+                 (map #(java.net.URLDecoder/decode % "UTF-8"))
                  (assoc-in ctx [:request :path-params :doc-slug-path])))})
 
 (defn data-loader
