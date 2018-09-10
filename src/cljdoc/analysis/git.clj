@@ -37,23 +37,25 @@
         (when config-edn
           (telegram/has-cljdoc-edn scm-url))
         (if revision
-          {:scm      {:files (git/path-sha-pairs git-files)
-                      :tag version-tag
-                      :rev revision}
-           :doc-tree (doctree/process-toc
-                      (fn slurp-at-rev [f]
-                        ;; We are intentionally relaxed here for now
-                        ;; In principle we should only look at files at the tagged
-                        ;; revision but if a file has been added after the tagged
-                        ;; revision we might as well include it to allow a smooth,
-                        ;; even if slightly less correct, UX
-                        (or (when revision
-                              (git/slurp-file-at repo revision f))
-                            (git/slurp-file-at repo "master" f)))
-                      (or (:cljdoc.doc/tree config-edn)
-                          (get-in util/hardcoded-config
-                                  [(util/normalize-project project) :cljdoc.doc/tree])
-                          (doctree/derive-toc git-files)))}
+          (do
+            (log/info "Analyzing at revision:" revision)
+            {:scm      {:files (git/path-sha-pairs git-files)
+                        :tag version-tag
+                        :rev revision}
+             :doc-tree (doctree/process-toc
+                        (fn slurp-at-rev [f]
+                          ;; We are intentionally relaxed here for now
+                          ;; In principle we should only look at files at the tagged
+                          ;; revision but if a file has been added after the tagged
+                          ;; revision we might as well include it to allow a smooth,
+                          ;; even if slightly less correct, UX
+                          (or (when revision
+                                (git/slurp-file-at repo revision f))
+                              (git/slurp-file-at repo "master" f)))
+                        (or (:cljdoc.doc/tree config-edn)
+                            (get-in util/hardcoded-config
+                                    [(util/normalize-project project) :cljdoc.doc/tree])
+                            (doctree/derive-toc git-files)))})
 
           {:error {:type "no-revision-found"
                    :version-tag version-tag
