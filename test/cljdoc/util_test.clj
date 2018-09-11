@@ -39,7 +39,8 @@
 (t/deftest relativize-path-test
   (t/is (= "xyz.html" (util/relativize-path "doc/abc.html" "doc/xyz.html")))
   (t/is (= "common-xyz.html" (util/relativize-path "doc/common-abc.html" "doc/common-xyz.html")))
-  (t/is (= "common-xyz/test.html" (util/relativize-path "doc/common-xyz.html" "doc/common-xyz/test.html"))))
+  (t/is (= "common-xyz/test.html" (util/relativize-path "doc/common-xyz.html" "doc/common-xyz/test.html")))
+  (t/is (= "a/b.html" (util/relativize-path "a/b.html" "a/a/b.html"))))
 
 (t/deftest replant-ns-test
   (t/is (= "my.app.routes" (util/replant-ns "my.app.core" "routes")))

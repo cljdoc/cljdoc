@@ -168,7 +168,7 @@
   ;; => \"common-xyz.html\"
   ```"
   [s1 s2]
-  (->> (reduce #(drop-while (partial = %2) %1)
+  (->> (reduce #(cond-> %1 (= %2 (first %1)) rest)
                (string/split s2 #"/")
                (string/split s1 #"/"))
        (string/join "/")))
