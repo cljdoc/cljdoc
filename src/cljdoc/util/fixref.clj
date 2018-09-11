@@ -56,7 +56,7 @@
     (if-let [from-uri-map (get uri-map w-o-anchor)]
       (-> (get uri-map file-path)
           ;; TODO check if relative links will work consistently
-          (util/strip-common-start-string from-uri-map)
+          (util/relativize-path from-uri-map)
           (str anchor))
       (str scm-base root-relative))))
 

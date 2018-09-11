@@ -156,14 +156,22 @@
       :userguide/articles     (str (github-url :userguide/authors) "#articles")
       :userguide/offline-docs (str (github-url :userguide/users) "#offline-docs"))))
 
-(defn strip-common-start-string
-  "Remove the common substring from `s2` that both, `s1`
-  and `s2` start with."
+(defn relativize-path
+  "Remove the segments at the beginning of a path `s2` that are identical
+  to the beginning segments of `s1`. This is useful when wanting to render
+  relative links instead of absolute ones.
+
+  Example:
+
+  ```
+  (relativize-path \"doc/common-abc.html\" \"doc/common-xyz.html\")
+  ;; => \"common-xyz.html\"
+  ```"
   [s1 s2]
-  (->> (map vector s1 s2)
-       (take-while #(= (first %) (second %)))
-       (count)
-       (subs s2)))
+  (->> (reduce #(drop-while (partial = %2) %1)
+               (string/split s2 #"/")
+               (string/split s1 #"/"))
+       (string/join "/")))
 
 (defn uri-path
   "Return path part of a URL, this is probably part of pedestal in
