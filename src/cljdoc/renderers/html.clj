@@ -10,6 +10,7 @@
             [cljdoc.platforms :as platf]
             [cljdoc.spec]
             [cljdoc.server.routes :as routes]
+            [version-clj.core :as v]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
@@ -62,7 +63,7 @@
           [:ol.list.pl0.pv3
            (for [v (->> (:versions cache-contents)
                         (filter #(= (:artifact-id %) (:artifact-id route-params)))
-                        (sort-by :version)
+                        (sort-by :version v/version-compare)
                         (reverse))]
              [:li.dib.mr3.mb3
               [big-btn-link
