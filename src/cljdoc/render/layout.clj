@@ -64,22 +64,23 @@
 (defn sidebar-title [title]
   [:h4.ttu.f7.fw5.mt1.mb2.tracked.gray title])
 
-(def TOP-BAR-HEIGHT "57px")
+(def TOP-BAR-HEIGHT 57)
 
 (defn sidebar [& contents]
   [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10
    {:class "js--sidebar"
-    :style {:top TOP-BAR-HEIGHT}} ; CSS HACK
+    :style {:top (str TOP-BAR-HEIGHT "px")}} ; CSS HACK
    contents])
 
 (defn sidebar-two [& contents]
   [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10.sidebar-scroll-view
-   {:style {:top TOP-BAR-HEIGHT :left "16rem"}} ; CSS HACK
+   {:style {:top (str TOP-BAR-HEIGHT "px") :left "16rem"}} ; CSS HACK
    contents])
 
-(defn main-container [{:keys [offset]} & content]
+(defn main-container [{:keys [offset extra-height]} & content]
    [:div.absolute.bottom-0.right-0
-    {:style {:left offset :top TOP-BAR-HEIGHT}}
+    {:style {:left offset
+             :top (str (+ TOP-BAR-HEIGHT (or extra-height 0)) "px")}}
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
           content)])
 
