@@ -3,7 +3,8 @@
 var NSPage = document.querySelector(".ns-page")
 
 if (NSPage) {
-  initSrollIndicator()
+    initSrollIndicator()
+    initToggleRaw()
 }
 
 function initSrollIndicator() {
@@ -40,6 +41,28 @@ function initSrollIndicator() {
   mainScrollView.addEventListener("scroll", drawScrollIndicator)
 
   drawScrollIndicator()
+}
+
+function initToggleRaw() {
+    var toggles = Array.from(document.querySelectorAll(".toggle-raw"))
+
+    function addToggleHandlers() {
+        toggles.forEach((el, idx) => {
+            el.addEventListener("click", function () {
+                var parent = el.parentElement
+                var markdown = parent.querySelector(".markdown")
+                var raw = parent.querySelector(".raw")
+                if (markdown.classList.contains("hide")) {
+                    markdown.classList.remove("hide")
+                    raw.classList.add("hide")
+                } else {
+                    markdown.classList.add("hide")
+                    raw.classList.remove("hide")
+                }
+            })
+        })
+    }
+    addToggleHandlers()
 }
 
 window.onbeforeunload = function(){

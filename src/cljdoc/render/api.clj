@@ -32,12 +32,14 @@
       [nil m])))
 
 (defn docstring->html [doc-str render-wiki-link]
-  [:div.lh-copy.markdown
-   (-> doc-str
-       (rich-text/markdown-to-html
+  [:div
+   [:div.lh-copy.markdown
+    (-> doc-str
+        (rich-text/markdown-to-html
          {:escape-html? true
           :render-wiki-link (comp render-wiki-link parse-wiki-link)})
-       hiccup/raw)])
+        hiccup/raw)]
+   [:pre.lh-copy.raw.hide (hiccup/raw doc-str)]])
 
 (defn render-wiki-link-fn
   "Given the `current-ns` and a function `ns-link-fn` that is assumed
@@ -100,7 +102,8 @@
            [:a.link.f7.gray.hover-dark-gray.mr2
             {:href (platf/get-field def :src-uri p)}
             (format "source (%s)" p)])
-         [:a.link.f7.gray.hover-dark-gray {:href (platf/get-field def :src-uri)} "source"]))]))
+         [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"]))
+     [:a.link.f7.gray.hover-dark-gray.toggle-raw {:href "#"} "toggle raw"]]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
