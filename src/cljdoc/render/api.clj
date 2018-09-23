@@ -39,7 +39,8 @@
          {:escape-html? true
           :render-wiki-link (comp render-wiki-link parse-wiki-link)})
         hiccup/raw)]
-   [:pre.lh-copy.raw.hide (hiccup/raw doc-str)]])
+   [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.dn.raw
+    doc-str]])
 
 (defn render-wiki-link-fn
   "Given the `current-ns` and a function `ns-link-fn` that is assumed
@@ -103,7 +104,7 @@
             {:href (platf/get-field def :src-uri p)}
             (format "source (%s)" p)])
          [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"]))
-     [:a.link.f7.gray.hover-dark-gray.toggle-raw {:href "#"} "toggle raw"]]))
+     [:a.link.f7.gray.hover-dark-gray.js--toggle-raw {:href "#"} "raw docstring"]]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])

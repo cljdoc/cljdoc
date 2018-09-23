@@ -3,8 +3,8 @@
 var NSPage = document.querySelector(".ns-page")
 
 if (NSPage) {
-    initSrollIndicator()
-    initToggleRaw()
+  initSrollIndicator()
+  initToggleRaw()
 }
 
 function initSrollIndicator() {
@@ -44,25 +44,27 @@ function initSrollIndicator() {
 }
 
 function initToggleRaw() {
-    var toggles = Array.from(document.querySelectorAll(".toggle-raw"))
+  var toggles = Array.from(document.querySelectorAll(".js--toggle-raw"))
 
-    function addToggleHandlers() {
-        toggles.forEach((el, idx) => {
-            el.addEventListener("click", function () {
-                var parent = el.parentElement
-                var markdown = parent.querySelector(".markdown")
-                var raw = parent.querySelector(".raw")
-                if (markdown.classList.contains("hide")) {
-                    markdown.classList.remove("hide")
-                    raw.classList.add("hide")
-                } else {
-                    markdown.classList.add("hide")
-                    raw.classList.remove("hide")
-                }
-            })
-        })
-    }
-    addToggleHandlers()
+  function addToggleHandlers() {
+    toggles.forEach((el, idx) => {
+      el.addEventListener("click", function () {
+        var parent = el.parentElement
+        var markdown = parent.querySelector(".markdown")
+        var raw = parent.querySelector(".raw")
+        if (markdown.classList.contains("dn")) {
+          markdown.classList.remove("dn")
+          raw.classList.add("dn")
+          el.innerText = "raw docstring"
+        } else {
+          markdown.classList.add("dn")
+          raw.classList.remove("dn")
+          el.innerText = "formatted docstring"
+        }
+      })
+    })
+  }
+  addToggleHandlers()
 }
 
 window.onbeforeunload = function(){
