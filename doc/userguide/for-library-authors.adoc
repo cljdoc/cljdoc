@@ -34,6 +34,8 @@ In full it may look like this:
 
 link:https://cljdoc.xyz/d/manifold/manifold/CURRENT[image:https://cljdoc.xyz/badge/manifold/manifold[cljdoc badge]]
 
+IMPORTANT: In the cljdoc URLs above `$group-id` and `$artifact-id` always refer to the Clojars/Maven group/artifact ID, not e.g. GitHub's owner/repo names.
+
 *That's pretty much it.* Read on for some more advanced stuff that will make your docs extra awesome!
 
 == Articles
