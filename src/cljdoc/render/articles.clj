@@ -38,6 +38,11 @@
                      (doc-tree-view cache-id (:children doc-page) current-page)])))
          (into [:ul.list.pl2]))))
 
+(def doc-nav
+  [:div#doc-nav.bb.b--black-10 {:style {:left "16rem"}}
+   [:div#doc-section "Current Section:"]
+   [:a#doc-title.link.blue {:href "#"} ""]])
+
 (defn doc-page [{:keys [top-bar-component
                         doc-tree-component
                         namespace-list-component
@@ -48,12 +53,14 @@
    (layout/sidebar
     (article-list doc-tree-component)
     namespace-list-component)
+   (when doc-html doc-nav)
    (layout/main-container
-    {:offset "16rem"}
+    (cond-> {:offset "16rem"}
+      doc-html (assoc :extra-height 50))
     [:div.mw7.center
      ;; TODO dispatch on a type parameter that becomes part of the attrs map
      (if doc-html
-       [:div.markdown.lh-copy.pv4
+       [:div#doc-html.markdown.lh-copy.pv4
         (hiccup/raw doc-html)
         [:a.db.f7.tr {:href doc-scm-url} "Edit on GitHub"]]
        [:div.lh-copy.pv6.tc
