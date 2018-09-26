@@ -5,6 +5,7 @@ var DocPage = document.querySelector("#doc-html")
 
 if (NSPage) {
   initSrollIndicator()
+  initToggleRaw()
 }
 if (DocPage) {
     initDocTitle()
@@ -44,6 +45,30 @@ function initSrollIndicator() {
   mainScrollView.addEventListener("scroll", drawScrollIndicator)
 
   drawScrollIndicator()
+}
+
+function initToggleRaw() {
+  var toggles = Array.from(document.querySelectorAll(".js--toggle-raw"))
+
+  function addToggleHandlers() {
+    toggles.forEach((el, idx) => {
+      el.addEventListener("click", function () {
+        var parent = el.parentElement
+        var markdown = parent.querySelector(".markdown")
+        var raw = parent.querySelector(".raw")
+        if (markdown.classList.contains("dn")) {
+          markdown.classList.remove("dn")
+          raw.classList.add("dn")
+          el.innerText = "raw docstring"
+        } else {
+          markdown.classList.add("dn")
+          raw.classList.remove("dn")
+          el.innerText = "formatted docstring"
+        }
+      })
+    })
+  }
+  addToggleHandlers()
 }
 
 window.onbeforeunload = function(){
