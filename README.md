@@ -54,8 +54,16 @@ that is done you can reload the page and view the documentation.
 
 Logs can be viewed with `tail -f log/cljdoc.log`.
 
-:recycle: For a more REPL-driven workflow, check the comment block at the end of
-the `cljdoc.server.system` namespace.
+:recycle: For a more REPL-driven workflow, you can start a REPL with `clj`,
+then load the system and move into its namespace:
+
+```clj
+(require '[cljdoc.server.system])
+(in-ns 'cljdoc.server.system)
+```
+
+Now check the comment block at the end of
+[`cljdoc.server.system`](src/cljdoc/server/system.clj).
 
 **Tests:** There is a small amount of tests which can be ran with `clj -A:test`.
 
