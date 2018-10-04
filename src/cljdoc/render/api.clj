@@ -68,7 +68,8 @@
 (defn def-block
   [def render-wiki-link]
   {:pre [(platf/multiplatform? def)]}
-  (let [def-name (platf/get-field def :name)]
+  (let [def-name (platf/get-field def :name)
+        docstring (render-doc def render-wiki-link)]
     [:div.def-block
      [:hr.mv3.b--black-10]
      [:h4.def-block-title.mv0.pv3
@@ -86,7 +87,7 @@
            [:span.f7.ttu.gray.db.nb2 (get {"clj" "Clojure" "cljs" "ClojureScript"} p) " arglists"]
            (render-arglists def-name (platf/get-field def :arglists p))])
         (render-arglists def-name (platf/get-field def :arglists)))]
-     (render-doc def render-wiki-link)
+     docstring
      (when (seq (platf/get-field def :members))
        [:div.lh-copy.pl3.bl.b--black-10
         (for [m (platf/get-field def :members)]
@@ -104,7 +105,7 @@
             {:href (platf/get-field def :src-uri p)}
             (format "source (%s)" p)])
          [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"]))
-     (when (not (nil? (render-doc def render-wiki-link)))
+     (when (not (nil? docstring))
        [:a.link.f7.gray.hover-dark-gray.js--toggle-raw {:href "#"} "raw docstring"])]))
 
 (defn namespace-list [{:keys [current]} namespaces]
