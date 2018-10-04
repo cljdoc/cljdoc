@@ -104,7 +104,8 @@
             {:href (platf/get-field def :src-uri p)}
             (format "source (%s)" p)])
          [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"]))
-     [:a.link.f7.gray.hover-dark-gray.js--toggle-raw {:href "#"} "raw docstring"]]))
+     (when (seq (platf/all-vals def :doc))
+       [:a.link.f7.gray.hover-dark-gray.js--toggle-raw {:href "#"} "raw docstring"])]))
 
 (defn namespace-list [{:keys [current]} namespaces]
   (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
