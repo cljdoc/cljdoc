@@ -20,6 +20,17 @@ for `muuntaja` from a local Jar and Git repository:
     ./script/cljdoc run
     ```
 
+    Alternatively you can start a REPL with `clj`,
+    then load the system, move into its namespace and start the server:
+
+    ```clj
+    (require '[cljdoc.server.system])
+    (in-ns 'cljdoc.server.system)
+    (require '[integrant.repl])
+    (integrant.repl/set-prep! #(system-config (cfg/config)))
+    (integrant.repl/go)
+    ```
+
     > This will start the cljdoc server process, requiring you to open another shell for the following steps.
 
 1. Clone `muuntaja` to a direcory of your liking and install it into your local Maven repo:
