@@ -47,9 +47,7 @@
    :subprotocol "sqlite",
    :foreign_keys true
    :cache_size 10000
-   ;; That this file is named `build-log.db` is no longer accurate
-   ;; and will be changed in a subsequent commit
-   :subname (str (data-dir config) "build-log.db")
+   :subname (str (data-dir config) "cljdoc.db.sqlite")
    ;; These settings are permanent but it seems like
    ;; this is the easiest way to set them. In a migration
    ;; they fail because they return results.
