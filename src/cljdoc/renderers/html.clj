@@ -32,22 +32,26 @@
 (defmethod render :group/index
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (let [group-id (:group-id route-params)
+        artifacts (:artifacts cache-contents)
         big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
     (->> [:div.pa4-ns.pa2
           [:h1 group-id]
-          [:span.db "Known artifacts and versions under the group " group-id]
-          (for [a (:artifacts cache-contents)]
+          (if (empty? artifacts)
+            [:span.db "No known artifacts under the group " group-id]
             [:div
-             [:h3 (format "%s/%s" group-id a)]
-             [:ol.list.pl0.pv3
-              (for [version (->> (:versions cache-contents)
-                                 (filter #(= (:artifact-id %) a))
-                                 (sort-by :version)
-                                 (reverse))]
-                [:li.dib.mr3.mb3
-                 [big-btn-link
-                  {:href (routes/url-for :artifact/version :path-params (assoc version :group-id group-id))}
-                  (:version version)]])]])]
+             [:span.db "Known artifacts and versions under the group " group-id]
+             (for [a artifacts]
+               [:div
+                [:h3 (format "%s/%s" group-id a)]
+                [:ol.list.pl0.pv3
+                 (for [version (->> (:versions cache-contents)
+                                    (filter #(= (:artifact-id %) a))
+                                    (sort-by :version)
+                                    (reverse))]
+                   [:li.dib.mr3.mb3
+                    [big-btn-link
+                     {:href (routes/url-for :artifact/version :path-params (assoc version :group-id group-id))}
+                     (:version version)]])]])])]
          (layout/page {:title (str group-id " — cljdoc")
                        :description (format "All artifacts under the group-id %s for which there is documenation on cljdoc"
                                             (:group-id cache-id))}))))
