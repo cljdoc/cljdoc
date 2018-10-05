@@ -23,7 +23,7 @@
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)
         port        (cfg/get-in env-config [:cljdoc/server :port])]
-    {:cljdoc/sqlite          {:db-spec (cfg/build-log-db env-config)
+    {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
                               :dir     (cfg/data-dir env-config)}
      :cljdoc/build-tracker   (ig/ref :cljdoc/sqlite)
      :cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
@@ -32,7 +32,7 @@
                        :host             (get-in env-config [:cljdoc/server :host])
                        :build-tracker    (ig/ref :cljdoc/build-tracker)
                        :analysis-service (ig/ref :cljdoc/analysis-service)
-                       :storage          (storage/->SQLiteStorage (cfg/build-log-db env-config))}
+                       :storage          (storage/->SQLiteStorage (cfg/db env-config))}
      :cljdoc/analysis-service (case ana-service
                                 :local     [:local {:full-build-url (str "http://localhost:" port "/api/full-build")}]
                                 :circle-ci [:circle-ci (cfg/circle-ci env-config)])
