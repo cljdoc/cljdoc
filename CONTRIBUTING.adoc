@@ -1,0 +1,148 @@
+= Contributing to cljdoc
+
+Hello there :wave: — nice to have you here. This document is designed
+to make your experience contributing to cljdoc nice and painless.
+
+**TLDR:** I want to encourage as many people as possible to contribute
+  to cljdoc in order for the project to properly become
+  community-owned & operated. To achieve this the culture around
+  cljdoc should always be welcoming to first time contributors, even
+  if it sometimes means more work for existing maintainers.
+
+:toc:
+
+==== Code of Conduct
+
+cljdoc has adopted a [Code of Conduct](doc/CODE_OF_CONDUCT.adoc). Please read and adhere to it.
+
+==== Reporting Bugs & Issues
+
+Use Slack or open an issue on GitHub.
+
+Both are equally welcome. Slack may have slightly faster response times but
+if you really found a bug we'll likely ask you to create an issue anyways :)
+
+**Slack**: Go to http://clojurians.net and join the Clojurians Slack
+  team. You can then join the `#cljdoc` channel and report problems
+  or ask questions.
+
+**GitHub**: [cljdoc on GitHub](https://github.com/cljdoc/cljdoc/issues)
+
+== Ways to contribute
+
+There are many ways you can contribute. While code is the most obvious
+contribution there are many other ways you can contribute that will be
+equally impactful on the project.
+
+==== Code / Programming
+
+cljdoc is software and so a core component of creating it is writing
+code. If you want to contribute this way, take a look at the list of
+issues labelled ["Good First
+Issue"](https://github.com/cljdoc/cljdoc/issues?q=is%3Aissue+is%3Aopen+label%3A%22Good+First+Issue%22)
+and see if something is interesting to you or matches your experience.
+
+Mentoring is available via the Slack group mentioned above and can
+also be done in a more private manner (private messages or video chat).
+
+The "Good First Issue"s are often small and may not be the most rewarding
+in the long run but they are designed to get you up and running and make
+a meaningful change to cljdoc as soon as possible.
+
+Once you feel more comfortable navigating the codebase everyone is
+welcome to push their own ideas or take on larger projects.
+
+==== Fixing Builds
+
+cljdoc runs some code for each documentation build (watch a few minutes of [this
+talk](https://www.youtube.com/watch?v=mWrvd6SE7Vg&feature=youtu.be&t=449)
+if that is unfamilier) and there are various reasons this code can fail.
+
+Most of the time dependencies are missing or imporperly specified but
+there are other reasons too. This kind if issue prevents cljdoc from providing
+documentation for a project and that's not nice.
+
+So by invistigating a failing build and opening a pull request to the
+respective project you help to get more and more of the Clojure/Script
+ecosystem documented on cljdoc.
+
+There is a [full guide on fixing builds](doc/fixing-builds.md) available.
+
+==== Outreach
+
+cljdoc is _for_ the Clojure and ClojureScript community. In order to provide
+value people first need to know that it even exists and what it is all about.
+
+In the past I (Martin) have often noticed how things I thought I
+talked about a lot were still poorly understood by some of the people
+I met. And that's not their fault. Everyone needs a different impulse
+for things to "click" and I hope that by more people talking about cljdoc
+and advocating for it we can send out a more diverse set of impulses.
+
+So if you only have a few minutes to spare, consider the following actions:
+
+- tweet about cljdoc
+- open a PR to add [a badge](https://github.com/cljdoc/cljdoc/blob/master/doc/userguide/for-library-authors.adoc#basic-setup) to a project that you like or use
+- write a blogpost
+- give a talk about it at your local meetup
+- post links to documentation in your company's chat
+- refer people to cljdoc when appropriate
+- ...
+
+==== Issue Specification / Design Work
+
+Often interesting ideas come up that require some more thought or
+design work before being ready to be worked on. The better the cljdoc
+community manages to specify issues the easier it will be for new
+and existing contributors to implement them.
+
+Poorly specified issues lead to frustration because work might be done
+in a direction that was not intended, redundant or otherwise problematic.
+
+Contributing this way is probably harder for newcomers but as people
+become more familiar with cljdoc they should be able to collectively
+hash out the details of new features.
+
+Sometimes however the perspective of a relative newcomer can be especially
+useful and so if you like thinking about user experience or documentation
+in general your perspective might be valueable to the project regardless
+of your past experience with cljdoc specifically.
+
+== Why Contribute
+
+1. Warm fuzzy feelings of contributing to a project that benefits
+everyone using Clojure and ClojureScript.
+2. Mentoring, code reviews and pairing sessions with experienced Clojure
+developers that can help you learn and master Clojure.
+3. Some nice [die-cut Stickers](https://twitter.com/martinklepsch/status/1037802412680126464). (Send your address to Martin)
+
+== Maintainer's Playbook
+
+==== Becoming a Maintainer
+
+Contributors will be given write-access to the main cljdoc repository as soon as
+their first contribution was merged. This assumes good intentions and is obviously
+revoked if abused.
+
+After that you are welcome to close issues, merge PRs and so
+forth. The contributing guidelines documented here aim at creating a
+community of maintainers and regular contributors and so once you
+contributed you are explicitly invited to take over more
+responsibility as you please.
+
+==== Merging PR
+
+- Contributions should generally be reviewed and merged as fast as possible.
+- No bikeshedding in commit reviews, if a reviewer thinks fruther
+  non-functional changes are important they are invited to make them
+  while merging instead of introducing another review/change cycle.
+  (Ideally small changes like this are communicated to the original
+  author in the process.)
+- Once a user has contributed one commit they will become a maintainer
+  as described above.
+
+== Thoughts?
+
+This document is a work in progress, if you see any issues with it or
+have suggestions how to improve the cljdoc contributing experience,
+please open an issue or start a discussion on Slack.
