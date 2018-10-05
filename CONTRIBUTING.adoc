@@ -41,6 +41,8 @@ issues labelled https://github.com/cljdoc/cljdoc/issues?q=is%3Aissue+is%3Aopen+l
 Issue"]
 and see if something is interesting to you or matches your experience.
 
+To get up and running take a look at link:doc/running-cljdoc-locally.md[Running cljdoc locally].
+
 Mentoring is available via the Slack group mentioned above and can
 also be done in a more private manner (private messages or video chat).
 
