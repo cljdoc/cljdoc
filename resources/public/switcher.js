@@ -66,9 +66,18 @@
   }
 
   class Switcher extends Component {
-    handleKeyUp(e) {
-      // trigger on key 'k' but only if target is document body
-      if (e.which == 75 && e.target == document.body) {
+    handleKeyDown(e) {
+      // If target is document body, trigger  on key `cmd+k` for MacOs `ctrl+k` otherwise
+      let isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      let switcherShortcut;
+
+      if (e.which === 75) {
+        if (isMac && e.metaKey || !isMac && e.ctrlKey) {
+          switcherShortcut = true;
+        }
+      }
+
+      if (switcherShortcut && e.target == document.body) {
         this.setState({show: true, results: this.state.previouslyOpened});
       } else if (e.which == 27) {
         this.setState({show: false, results: null});
@@ -102,7 +111,7 @@
 
     constructor() {
       super()
-      this.handleKeyUp = this.handleKeyUp.bind(this)
+      this.handleKeyDown = this.handleKeyDown.bind(this)
       this.handleInputKeyUp = this.handleInputKeyUp.bind(this)
       this.updateResults = this.updateResults.bind(this)
     }
@@ -120,7 +129,7 @@
     }
 
     componentDidMount() {
-      document.addEventListener('keyup', this.handleKeyUp)
+      document.addEventListener('keydown', this.handleKeyDown)
       this.initializeState()
     }
 
