@@ -1,21 +1,21 @@
 = Contributing to cljdoc
 
+:toc:
+
 Hello there :wave: — nice to have you here. This document is designed
 to make your experience contributing to cljdoc nice and painless.
 
-**TLDR:** I want to encourage as many people as possible to contribute
+**TLDR:** We want to encourage as many people as possible to contribute
   to cljdoc in order for the project to properly become
   community-owned & operated. To achieve this the culture around
   cljdoc should always be welcoming to first time contributors, even
   if it sometimes means more work for existing maintainers.
 
-:toc:
+=== Code of Conduct
 
-==== Code of Conduct
+cljdoc has adopted a link:doc/CODE_OF_CONDUCT.adoc[Code of Conduct]. Please read and adhere to it.
 
-cljdoc has adopted a [Code of Conduct](doc/CODE_OF_CONDUCT.adoc). Please read and adhere to it.
-
-==== Reporting Bugs & Issues
+=== Reporting Bugs & Issues
 
 Use Slack or open an issue on GitHub.
 
@@ -26,7 +26,7 @@ if you really found a bug we'll likely ask you to create an issue anyways :)
   team. You can then join the `#cljdoc` channel and report problems
   or ask questions.
 
-**GitHub**: [cljdoc on GitHub](https://github.com/cljdoc/cljdoc/issues)
+**GitHub**: https://github.com/cljdoc/cljdoc/issues[cljdoc on GitHub]
 
 == Ways to contribute
 
@@ -34,12 +34,12 @@ There are many ways you can contribute. While code is the most obvious
 contribution there are many other ways you can contribute that will be
 equally impactful on the project.
 
-==== Code / Programming
+=== Code / Programming
 
 cljdoc is software and so a core component of creating it is writing
 code. If you want to contribute this way, take a look at the list of
-issues labelled ["Good First
-Issue"](https://github.com/cljdoc/cljdoc/issues?q=is%3Aissue+is%3Aopen+label%3A%22Good+First+Issue%22)
+issues labelled https://github.com/cljdoc/cljdoc/issues?q=is%3Aissue+is%3Aopen+label%3A%22Good+First+Issue%22["Good First
+Issue"]
 and see if something is interesting to you or matches your experience.
 
 Mentoring is available via the Slack group mentioned above and can
@@ -52,11 +52,13 @@ a meaningful change to cljdoc as soon as possible.
 Once you feel more comfortable navigating the codebase everyone is
 welcome to push their own ideas or take on larger projects.
 
-==== Fixing Builds
+=== Fixing Builds
 
-cljdoc runs some code for each documentation build (watch a few minutes of [this
-talk](https://www.youtube.com/watch?v=mWrvd6SE7Vg&feature=youtu.be&t=449)
-if that is unfamilier) and there are various reasons this code can fail.
+cljdoc runs some code for each documentation build (watch a few
+minutes of
+https://www.youtube.com/watch?v=mWrvd6SE7Vg&feature=youtu.be&t=449[this
+talk] if that is unfamilier) and there are various reasons this code
+can fail.
 
 Most of the time dependencies are missing or imporperly specified but
 there are other reasons too. This kind if issue prevents cljdoc from providing
@@ -66,9 +68,9 @@ So by invistigating a failing build and opening a pull request to the
 respective project you help to get more and more of the Clojure/Script
 ecosystem documented on cljdoc.
 
-There is a [full guide on fixing builds](doc/fixing-builds.md) available.
+There is a link:doc/fixing-builds.md[full guide on fixing builds] available.
 
-==== Outreach
+=== Outreach
 
 cljdoc is _for_ the Clojure and ClojureScript community. In order to provide
 value people first need to know that it even exists and what it is all about.
@@ -82,14 +84,14 @@ and advocating for it we can send out a more diverse set of impulses.
 So if you only have a few minutes to spare, consider the following actions:
 
 - tweet about cljdoc
-- open a PR to add [a badge](https://github.com/cljdoc/cljdoc/blob/master/doc/userguide/for-library-authors.adoc#basic-setup) to a project that you like or use
+- open a PR to add https://github.com/cljdoc/cljdoc/blob/master/doc/userguide/for-library-authors.adoc#basic-setup[a badge] to a project that you like or use
 - write a blogpost
 - give a talk about it at your local meetup
 - post links to documentation in your company's chat
 - refer people to cljdoc when appropriate
 - ...
 
-==== Issue Specification / Design Work
+=== Issue Specification / Design Work
 
 Often interesting ideas come up that require some more thought or
 design work before being ready to be worked on. The better the cljdoc
@@ -114,11 +116,11 @@ of your past experience with cljdoc specifically.
 everyone using Clojure and ClojureScript.
 2. Mentoring, code reviews and pairing sessions with experienced Clojure
 developers that can help you learn and master Clojure.
-3. Some nice [die-cut Stickers](https://twitter.com/martinklepsch/status/1037802412680126464). (Send your address to Martin)
+3. Some nice https://twitter.com/martinklepsch/status/1037802412680126464[die-cut Stickers]. (Send your address to Martin)
 
 == Maintainer's Playbook
 
-==== Becoming a Maintainer
+=== Becoming a Maintainer
 
 Contributors will be given write-access to the main cljdoc repository as soon as
 their first contribution was merged. This assumes good intentions and is obviously
@@ -130,7 +132,7 @@ community of maintainers and regular contributors and so once you
 contributed you are explicitly invited to take over more
 responsibility as you please.
 
-==== Merging PR
+=== Merging PRs
 
 - Contributions should generally be reviewed and merged as fast as possible.
 - No bikeshedding in commit reviews, if a reviewer thinks fruther
