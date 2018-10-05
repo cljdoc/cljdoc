@@ -1,5 +1,4 @@
 = Contributing to cljdoc
-
 :toc:
 
 Hello there :wave: — nice to have you here. This document is designed
@@ -57,7 +56,7 @@ welcome to push their own ideas or take on larger projects.
 cljdoc runs some code for each documentation build (watch a few
 minutes of
 https://www.youtube.com/watch?v=mWrvd6SE7Vg&feature=youtu.be&t=449[this
-talk] if that is unfamilier) and there are various reasons this code
+talk] if that is unfamiliar) and there are various reasons this code
 can fail.
 
 Most of the time dependencies are missing or imporperly specified but
