@@ -39,6 +39,7 @@
 
 (defn utility-routes []
   #{["/jump/release/*project" :get nop :route-name :jump-to-project]
+    ["/redirect-to-version" :post nop :route-name :redirect-to-version]
     ["/badge/*project" :get nop :route-name :badge-for-project]})
 
 (defn routes

@@ -59,16 +59,30 @@
         big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
     (->> [:div.pa4-ns.pa2
           [:h1 (util/clojars-id artifact-entity)]
-          [:span.db "Known versions on cljdoc:"]
-          [:ol.list.pl0.pv3
-           (for [v (->> (:versions cache-contents)
-                        (filter #(= (:artifact-id %) (:artifact-id route-params)))
-                        (sort-by :version v/version-compare)
-                        (reverse))]
-             [:li.dib.mr3.mb3
-              [big-btn-link
-               {:href (routes/url-for :artifact/version :path-params (merge cache-id v))}
-               (:version v)]])]
+          (let [versions (->> (:versions cache-contents)
+                              (filter #(= (:artifact-id %) (:artifact-id route-params)))
+                              (sort-by :version v/version-compare)
+                              (reverse))]
+            (if (empty? versions)
+              [:div
+               [:p "We currently don't have documentation built for " (util/clojars-id route-params)]
+               [:p "Which version are you looking for?"]
+               [:form.pv3 {:action "/redirect-to-version" :method "POST"}
+                [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden"
+                                                       :id "project"
+                                                       :name "project"
+                                                       :value (str (:group-id cache-id) "/" artifact-id)}]
+                [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "version" :name "version"}]
+                [:input.ph3.pv2.mr2.br2.ba.b--blue.bg-white.blue.ttu.pointer.b {:type "submit" :value "go"}]
+                ]]
+              [:div
+               [:span.db "Known versions on cljdoc:"]
+               [:ol.list.pl0.pv3
+                (for [v versions]
+                  [:li.dib.mr3.mb3
+                   [big-btn-link
+                    {:href (routes/url-for :artifact/version :path-params (merge cache-id v))}
+                    (:version v)]])]]))
           (when-not (= #{artifact-id} (set(:artifacts cache-contents)))
             [:div
              [:h3 "Other artifacts under the " (:group-id cache-id) " group"]

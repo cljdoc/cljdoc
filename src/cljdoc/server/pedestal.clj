@@ -184,10 +184,10 @@
                         (build-log/failed! build-tracker build-id "analysis-job-failed")))
                   (assoc-in ctx [:response :status] 200)))))})
 
-(def request-build-validate
+(def validate-project-form
   ;; TODO quick and dirty for now
-  {:name ::request-build-validate
-   :enter (fn request-build-validate [ctx]
+  {:name ::validate-project-form
+   :enter (fn validate-project-form [ctx]
             (if (and (some-> ctx :request :form-params :project string?)
                      (some-> ctx :request :form-params :version string?))
               ctx
@@ -255,6 +255,18 @@
                       :body (format "Could not find release for %s" project)})
                    (assoc ctx :response))))})
 
+(defn redirect-to-version []
+  {:name ::redirect-to-version
+   :enter (fn redirect-to-version [ctx]
+            (let [{:keys [project version]} (-> ctx :request :form-params)
+                  url (routes/url-for :artifact/version
+                                      :params
+                                      {:group-id (util/group-id project)
+                                       :artifact-id (util/artifact-id project)
+                                       :version version})]
+              (assoc ctx :response {:status 302
+                                    :headers {"Location" url}})))})
+
 (defn offline-bundle []
   {:name ::offline-bundle
    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
@@ -284,7 +296,7 @@
            :all-builds [(all-builds build-tracker)]
 
            :ping          [{:name ::pong :enter #(ok-html! % "pong")}]
-           :request-build [(body/body-params) request-build-validate (request-build deps)]
+           :request-build [(body/body-params) validate-project-form (request-build deps)]
            :full-build    [(body/body-params) (full-build deps)]
            :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]
 
@@ -295,8 +307,9 @@
            :artifact/doc       (view storage route-name)
            :artifact/offline-bundle [(data-loader storage route-name)
                                      (offline-bundle)]
-           :jump-to-project    [(jump-interceptor)]
-           :badge-for-project  [(badge-interceptor)])
+           :jump-to-project     [(jump-interceptor)]
+           :redirect-to-version [(body/body-params) validate-project-form (redirect-to-version)]
+           :badge-for-project   [(badge-interceptor)])
          (into default-interceptors)
          (assoc route :interceptors))))
 
