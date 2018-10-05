@@ -51,3 +51,12 @@ for some additional discussion.
 
 `SNAPSHOT` releases will use `master` as Git revision as they usually have no tag
 in your repo or sha in a `.pom`. This can be useful for experimenting with cljdoc.
+
+# How does cljdoc compare to clojuredocs.org?
+
+cljdoc has in many ways been inspired by clojuredocs.org but besides
+documenting Clojure itself, cljdoc tries to provide documentation for
+the library ecosystem around Clojure.
+
+The projects are not related besides both pushing documentation in the
+Clojure ecosystem forward :hugs:
