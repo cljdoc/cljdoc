@@ -39,7 +39,7 @@
           [:div.pa4-ns.pa2
            [:h1 group-id]
            (if (empty? artifacts)
-             [:span.db "No known artifacts under the group " group-id]
+             [:span.db "There have not been any documentation builds for artifacts under this group, to trigger a build please go the page of a specific artefact."]
              [:div
               [:span.db "Known artifacts and versions under the group " group-id]
               (for [a artifacts]
