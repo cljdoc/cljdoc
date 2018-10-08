@@ -32,22 +32,28 @@
 (defmethod render :group/index
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (let [group-id (:group-id route-params)
+        artifacts (:artifacts cache-contents)
         big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
-    (->> [:div.pa4-ns.pa2
-          [:h1 group-id]
-          [:span.db "Known artifacts and versions under the group " group-id]
-          (for [a (:artifacts cache-contents)]
-            [:div
-             [:h3 (format "%s/%s" group-id a)]
-             [:ol.list.pl0.pv3
-              (for [version (->> (:versions cache-contents)
-                                 (filter #(= (:artifact-id %) a))
-                                 (sort-by :version)
-                                 (reverse))]
-                [:li.dib.mr3.mb3
-                 [big-btn-link
-                  {:href (routes/url-for :artifact/version :path-params (assoc version :group-id group-id))}
-                  (:version version)]])]])]
+    (->> [:div
+          (layout/top-bar-generic)
+          [:div.pa4-ns.pa2
+           [:h1 group-id]
+           (if (empty? artifacts)
+             [:span.db "There have not been any documentation builds for artifacts under this group, to trigger a build please go the page of a specific artefact."]
+             [:div
+              [:span.db "Known artifacts and versions under the group " group-id]
+              (for [a artifacts]
+                [:div
+                 [:h3 (format "%s/%s" group-id a)]
+                 [:ol.list.pl0.pv3
+                  (for [version (->> (:versions cache-contents)
+                                     (filter #(= (:artifact-id %) a))
+                                     (sort-by :version)
+                                     (reverse))]
+                    [:li.dib.mr3.mb3
+                     [big-btn-link
+                      {:href (routes/url-for :artifact/version :path-params (assoc version :group-id group-id))}
+                      (:version version)]])]])])]]
          (layout/page {:title (str group-id " — cljdoc")
                        :description (format "All artifacts under the group-id %s for which there is documenation on cljdoc"
                                             (:group-id cache-id))}))))
@@ -56,28 +62,43 @@
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (let [artifact-id (:artifact-id route-params)
         artifact-entity (assoc cache-id :artifact-id artifact-id)
-        big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
-    (->> [:div.pa4-ns.pa2
-          [:h1 (util/clojars-id artifact-entity)]
-          [:span.db "Known versions on cljdoc:"]
-          [:ol.list.pl0.pv3
-           (for [v (->> (:versions cache-contents)
-                        (filter #(= (:artifact-id %) (:artifact-id route-params)))
-                        (sort-by :version v/version-compare)
-                        (reverse))]
-             [:li.dib.mr3.mb3
-              [big-btn-link
-               {:href (routes/url-for :artifact/version :path-params (merge cache-id v))}
-               (:version v)]])]
-          (when-not (= #{artifact-id} (set(:artifacts cache-contents)))
-            [:div
-             [:h3 "Other artifacts under the " (:group-id cache-id) " group"]
-             [:ol.list.pl0.pv3
-              (for [a (sort (:artifacts cache-contents))]
-                [:li.dib.mr3.mb3
-                 [big-btn-link
-                  {:href (routes/url-for :artifact/index :path-params (assoc cache-id :artifact-id a))}
-                  a]])]])]
+        artifacts (:artifacts cache-contents)
+        versions (->> (:versions cache-contents)
+                      (filter #(= (:artifact-id %) (:artifact-id route-params)))
+                      (sort-by :version v/version-compare)
+                      (reverse))
+        btn-link :a.dib.bg-blue.white.ph3.pv2.br1.no-underline.f5.fw5
+        big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2
+        ]
+    (->> [:div
+          (layout/top-bar-generic)
+          [:div.pa4-ns.pa2
+           [:h1 (util/clojars-id artifact-entity)]
+           (if (empty? versions)
+             [:div
+              [:p "We currently don't have documentation built for " (util/clojars-id route-params)]
+              [:p.mt4
+               [btn-link
+                {:href (routes/url-for :artifact/version :path-params (assoc artifact-entity :version "CURRENT"))}
+                "Go to the latest version of this artefact →"]]
+              ]
+             [:div
+              [:span.db "Known versions on cljdoc:"]
+              [:ol.list.pl0.pv3
+               (for [v versions]
+                 [:li.dib.mr3.mb3
+                  [big-btn-link
+                   {:href (routes/url-for :artifact/version :path-params (merge cache-id v))}
+                   (:version v)]])]])
+           (when-not (or (empty? artifacts) (= #{artifact-id} (set artifacts)))
+             [:div
+              [:h3 "Other artifacts under the " (:group-id cache-id) " group"]
+              [:ol.list.pl0.pv3
+               (for [a (sort  artifacts)]
+                 [:li.dib.mr3.mb3
+                  [big-btn-link
+                   {:href (routes/url-for :artifact/index :path-params (assoc cache-id :artifact-id a))}
+                   a]])]])]]
          (layout/page {:title (str (util/clojars-id artifact-entity) " — cljdoc")
                        :description (layout/description cache-id)}))))
 

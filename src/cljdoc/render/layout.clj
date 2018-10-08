@@ -84,6 +84,14 @@
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view]
           content)])
 
+(defn top-bar-generic []
+  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
+   [:a {:href "/"}
+    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Beta"]]
+   [:a.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
+    {:href (util/github-url :issues)}
+    "Have Feedback?"]])
+
 (defn top-bar [cache-id scm-url]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
    [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params cache-id)}
