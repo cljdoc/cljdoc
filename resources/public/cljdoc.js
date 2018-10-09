@@ -48,23 +48,26 @@ function initSrollIndicator() {
 }
 
 function initToggleRaw() {
-  var toggles = Array.from(document.querySelectorAll(".js--toggle-raw"))
+  let toggles = Array.from(document.querySelectorAll(".js--toggle-raw"));
 
   function addToggleHandlers() {
-    toggles.forEach((el, idx) => {
+    toggles.forEach((el) => {
       el.addEventListener("click", function () {
-        var parent = el.parentElement
-        var markdown = parent.querySelector(".markdown")
-        var raw = parent.querySelector(".raw")
-        if (markdown.classList.contains("dn")) {
-          markdown.classList.remove("dn")
-          raw.classList.add("dn")
-          el.innerText = "raw docstring"
-        } else {
-          markdown.classList.add("dn")
-          raw.classList.remove("dn")
-          el.innerText = "formatted docstring"
-        }
+        let parent = el.parentElement;
+        let markdowns = parent.querySelectorAll(".markdown");
+        let raws = parent.querySelectorAll(".raw");
+        markdowns.forEach((markdown, idx) => {
+          let raw = raws[idx];
+          if (markdown.classList.contains("dn")) {
+            markdown.classList.remove("dn");
+            raw.classList.add("dn");
+            el.innerText = "raw docstring"
+          } else {
+            markdown.classList.add("dn");
+            raw.classList.remove("dn");
+            el.innerText = "formatted docstring"
+          }
+        })
       })
     })
   }
