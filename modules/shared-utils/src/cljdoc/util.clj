@@ -131,14 +131,20 @@
 ;;                                (-> cljdoc-edn :pom :version))))))
 
 
-(defn gh-owner [gh-url]
-  (second (re-find #"^https*://github.com/([^\/]+)/" gh-url)))
+(defn scm-owner [scm-url]
+  (get (re-find #"^https*://(github|gitlab).com/([^\/]+)/" scm-url) 2))
 
-(defn gh-repo [gh-url]
-  (second (re-find #"^https*://github.com/[^\/]+/([^/]+)" gh-url)))
+(defn scm-repo [scm-url]
+  (get (re-find #"^https*://(github|gitlab).com/[^\/]+/([^/]+)" scm-url) 2))
 
-(defn gh-coordinate [gh-url]
-  (str (gh-owner gh-url) "/" (gh-repo gh-url)))
+(defn scm-coordinate [scm-url]
+  (str (scm-owner scm-url) "/" (scm-repo scm-url)))
+
+(defn scm-provider [scm-url]
+  (case (second (re-find #"^https*://(github|gitlab).com" scm-url))
+    "github" :github
+    "gitlab" :gitlab
+    nil))
 
 (defn github-url [type]
   (let [base "https://github.com/cljdoc/cljdoc"]

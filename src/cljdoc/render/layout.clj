@@ -105,6 +105,6 @@
     (if scm-url
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
-       [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
-       [:span.dib (util/gh-coordinate scm-url)]]
+       [:img.v-mid.mr2 {:src (str "https://icon.now.sh/" (name (util/scm-provider scm-url)))}]
+       [:span.dib (util/scm-coordinate scm-url)]]
       [:a.f6.link.blue {:href (util/github-url :userguide/scm-faq)} "SCM info missing"])]])

@@ -48,7 +48,7 @@
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
        [:img.v-mid.mr2 {:src "https://icon.now.sh/github"}]
-       [:span.dib (util/gh-coordinate scm-url)]])]])
+       [:span.dib (util/scm-coordinate scm-url)]])]])
 
 (defn page [{:keys [version-entity namespace article-title scm-url]} contents]
   (let [sub-page? (or namespace article-title)]

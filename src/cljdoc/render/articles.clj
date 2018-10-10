@@ -62,7 +62,9 @@
      (if doc-html
        [:div#doc-html.markdown.lh-copy.pv4
         (hiccup/raw doc-html)
-        [:a.db.f7.tr {:href doc-scm-url} "Edit on GitHub"]]
+        [:a.db.f7.tr {:href doc-scm-url} (if (= :gitlab (util/scm-provider doc-scm-url))
+                                           "Edit on GitLab"
+                                           "Edit on GitHub")]]
        [:div.lh-copy.pv6.tc
         #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
         [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
