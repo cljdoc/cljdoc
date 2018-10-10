@@ -149,6 +149,17 @@
                       :object-loader (.open repo (.getObjectId tw 0))}))
         files))))
 
+(defn get-commits
+  "Get a list of maps describing commits that included changes to file `f` up to revision `rev`"
+  [^Git g f rev]
+  (let [resolved-rev (.resolve (.getRepository g) rev)]
+    (->> (seq (.. g log (add resolved-rev) (addPath f) call))
+         (map (fn process-commit [commit]
+                {:name    (.. commit getAuthorIdent getName)
+                 :email   (.. commit getAuthorIdent getEmailAddress)
+                 :message (.. commit getFullMessage)
+                 :date    (.. commit getAuthorIdent getWhen)})))))
+
 (s/fdef path-sha-pairs
   :args (s/cat :git-objects (s/coll-of ::git-object))
   :ret (s/map-of string? string?))
