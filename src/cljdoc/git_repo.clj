@@ -152,7 +152,7 @@
 
 (defn get-commits
   "Get a list of maps describing commits that included changes to file `f` up to revision `rev`"
-  [^Git g f rev]
+  [^Git g rev f]
   (let [resolved-rev (.resolve (.getRepository g) rev)]
     (->> (seq (.. g log (add resolved-rev) (addPath f) call))
          (map (fn process-commit [commit]
@@ -160,6 +160,12 @@
                  :email   (.. commit getAuthorIdent getEmailAddress)
                  :message (.. commit getFullMessage)
                  :date    (.. commit getAuthorIdent getWhen)})))))
+
+(defn find-examples [^Git g rev]
+  (->> (ls-files g rev)
+       (map :path)
+       (filter #(re-seq #"docs*/examples/.+\.markdown" %))
+       (map #(vector "markdown" %))))
 
 (s/fdef path-sha-pairs
   :args (s/cat :git-objects (s/coll-of ::git-object))
