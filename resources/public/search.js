@@ -31,6 +31,7 @@ class SearchInput extends Component {
   render (props) {
     const debouncedLoader = debounced(300, loadResults)
     return h('input', {
+      autofocus: true,
       placeHolder: 'NEW! Jump to docs...',
       className: 'pa2 w-100 br1 border-box b--blue ba input-reset',
       onFocus: e => props.focus(),
