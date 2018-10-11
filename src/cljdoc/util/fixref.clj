@@ -90,8 +90,8 @@
       (.put broken-img "src" (fix-image file-path
                                         (.get broken-img "src")
                                         {:scm-base (str "https://raw.githubusercontent.com/"
-                                                        (util/gh-owner (:url scm)) "/"
-                                                        (util/gh-repo (:url scm)) "/"
+                                                        (util/scm-owner (:url scm)) "/"
+                                                        (util/scm-repo (:url scm)) "/"
                                                         scm-rev "/")})))
     (.toString doc)))
 
