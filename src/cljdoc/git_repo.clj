@@ -103,10 +103,13 @@
   {:pre [(string? rev)]}
   (let [repo        (.getRepository g)
         last-commit (.resolve repo rev)]
-    (when last-commit
+    (if last-commit
       (-> (RevWalk. repo)
           (.parseCommit last-commit)
-          (.getTree)))))
+          (.getTree))
+      (let [origin (read-origin g)]
+        (throw (ex-info (format "Could not find revision %s in repo %s" rev origin)
+                        {:rev rev :origin origin}))))))
 
 (defn slurp-file-at
   "Read a file `f` in the Git repository `g` at revision `rev`.
