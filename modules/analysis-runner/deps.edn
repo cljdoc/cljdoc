@@ -1,2 +1,3 @@
 {:paths ["src" "resources"]
- :deps {cljdoc/shared-utils {:local/root "../shared-utils"}}}
+ :deps {cljdoc/shared-utils {:mvn/version "0.1.0-SNAPSHOT"}}
+ :aliases {:local {:extra-deps {cljdoc/shared-utils {:local/root "../shared-utils"}}}}}

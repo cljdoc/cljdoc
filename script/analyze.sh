@@ -13,5 +13,6 @@ echo "POM: $pom_path"
 cd modules/analysis-runner
 
 clojure \
+    -A:local \
     -m cljdoc.analysis.runner \
     "$project" "$version" "$jar_path" "$pom_path"

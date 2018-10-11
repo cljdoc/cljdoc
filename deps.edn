@@ -41,8 +41,8 @@
         raven-clj {:mvn/version "1.6.0-alpha"},
         org.clojure/test.check {:mvn/version "0.9.0"},
         me.raynes/fs {:mvn/version "1.4.6"},
-        cljdoc/shared-utils {:local/root "modules/shared-utils"}
-        cljdoc/analysis-runner {:local/root "modules/analysis-runner"}}
+        cljdoc/shared-utils {:mvn/version "0.1.0-SNAPSHOT"}
+        cljdoc/analysis-runner {:mvn/version "0.1.0-SNAPSHOT"}}
  :paths ["src" "resources"]
  :aliases {:test
            {:extra-paths ["test"]
@@ -50,10 +50,6 @@
                          {:git/url "https://github.com/lambdaisland/kaocha.git"
                           :sha "e7af8b48aadb32da9dcd7a9e5eb50fe64eae8d62"}}
             :main-opts ["-m" "kaocha.runner"]}
-
-           :cursive
-           {:extra-deps {cljdoc/shared-utils {:mvn/version "0.1.0-SNAPSHOT"}
-                         cljdoc/analysis-runner {:mvn/version "0.1.0-SNAPSHOT"}}}
 
            :cli
            {:extra-deps {cli-matic {:mvn/version "0.1.14"}}
