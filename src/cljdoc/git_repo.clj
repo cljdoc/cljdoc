@@ -212,10 +212,36 @@
   (def r (->repo (io/file "data/git-repos/fulcrologic/fulcro/2.5.4/")))
 
   (def r (->repo (io/file "/Users/martin/code/02-oss/bidi")))
+  (def r (->repo (io/file "/Users/martinklepsch/code/02-oss/amazonica")))
   (def r (->repo (io/file "/Users/martin/code/02-oss/workflo-macros")))
   (slurp-file-at r "master" "bidi.cljc")
   (find-filepath-in-repo r "master" "project.clj")
   (find-filepath-in-repo r "master" "bidi.cljc")
+
+  (let [g r
+        rev "with-example"]
+    (for [[type path] (find-examples g rev)
+          :let [commits (get-commits g rev path)]]
+      {:cljdoc.example/type     type
+       :cljdoc.example/authors  (set (map #(select-keys % [:name :email]) commits))
+       :cljdoc.example/contents (slurp-file-at g rev path)
+       :cljdoc.example/created  (:date (last commits))}))
+
+  (find-examples r "with-example")
+
+  (map :date (get-commits r "project.clj" "0.3.7"))
+
+  (def s (slurp-file-at r "with-example" "doc/examples/s3-put.markdown"))
+
+  (if (.startsWith s "---\n")
+    (let [[_ yaml-lines _ content-lines] (partition-by #(= "---" %) (string/split-lines s))
+          yaml (string/join "\n" yaml-lines)
+          content (string/join "\n" content-lines)]
+      (assert (seq yaml-lines) "YAML metadata missing")
+      (assert (seq content-lines) "No content found in example")
+      (yaml/parse-string yaml)
+      #_(println content))
+    (throw (ex-info "Example is missing YAML metadata" {})))
 
   (require 'clojure.spec.test.alpha)
   (clojure.spec.test.alpha/instrument)
