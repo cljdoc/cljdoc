@@ -16,10 +16,12 @@
             [clojure.tools.logging :as log]
             [clojure.string :as string]
             [cognician.dogstatsd :as d]
+            [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
             [cheshire.core :as json]
             [io.pedestal.http :as http]
-            [io.pedestal.http.body-params :as body]))
+            [io.pedestal.http.body-params :as body]
+            [io.pedestal.http.ring-middlewares :as ring-middlewares]))
 
 (defn ok! [ctx body]
   (assoc ctx :response {:status 200 :body body}))
@@ -252,6 +254,12 @@
                       :body (format "Could not find release for %s" project)})
                    (assoc ctx :response))))})
 
+(def etag-interceptor
+  {:name ::etag
+   :leave (ring-middlewares/response-fn-adapter
+           (fn [request opts]
+             (etag/add-file-etag request false)))})
+
 (defn offline-bundle []
   {:name ::offline-bundle
    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
@@ -272,30 +280,28 @@
 (defn route-resolver
   [{:keys [build-tracker storage] :as deps}
    {:keys [route-name] :as route}]
-  (let [default-interceptors [sentry/interceptor]]
-    (->> (case route-name
-           :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
-           :show-build [pu/coerce-body
-                        (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
-                        (show-build build-tracker)]
-           :all-builds [(all-builds build-tracker)]
+  (->> (case route-name
+         :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
+         :show-build [pu/coerce-body
+                      (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
+                      (show-build build-tracker)]
+         :all-builds [(all-builds build-tracker)]
 
-           :ping          [{:name ::pong :enter #(ok-html! % "pong")}]
-           :request-build [(body/body-params) request-build-validate (request-build deps)]
-           :full-build    [(body/body-params) (full-build deps)]
-           :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]
+         :ping          [{:name ::pong :enter #(ok-html! % "pong")}]
+         :request-build [(body/body-params) request-build-validate (request-build deps)]
+         :full-build    [(body/body-params) (full-build deps)]
+         :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]
 
-           :group/index        (view storage route-name)
-           :artifact/index     (view storage route-name)
-           :artifact/version   (view storage route-name)
-           :artifact/namespace (view storage route-name)
-           :artifact/doc       (view storage route-name)
-           :artifact/offline-bundle [(data-loader storage route-name)
-                                     (offline-bundle)]
-           :jump-to-project    [(jump-interceptor)]
-           :badge-for-project  [(badge-interceptor)])
-         (into default-interceptors)
-         (assoc route :interceptors))))
+         :group/index        (view storage route-name)
+         :artifact/index     (view storage route-name)
+         :artifact/version   (view storage route-name)
+         :artifact/namespace (view storage route-name)
+         :artifact/doc       (view storage route-name)
+         :artifact/offline-bundle [(data-loader storage route-name)
+                                   (offline-bundle)]
+         :jump-to-project    [(jump-interceptor)]
+         :badge-for-project  [(badge-interceptor)])
+       (assoc route :interceptors)))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
   (log/info "Starting pedestal on port" (:port opts))
@@ -311,6 +317,8 @@
        ;; This breaks the homepage for whatever reason
        ;; ::http/file-path "resources/public"
        ::http/resource-path "public"}
+      http/default-interceptors
+      (update ::http/interceptors #(into [sentry/interceptor etag-interceptor] %))
       (http/create-server)
       (http/start)))
 
