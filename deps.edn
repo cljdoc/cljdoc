@@ -40,6 +40,7 @@
         raven-clj {:mvn/version "1.6.0-alpha2"},
         org.clojure/test.check {:mvn/version "0.9.0"},
         me.raynes/fs {:mvn/version "1.4.6"},
+        exoscale/clj-yaml {:mvn/version "0.5.6"}
 
         ;; These deps are dependencies of shared-utils and are
         ;; duplicated in the global modules/shared-utils/deps.edn,
