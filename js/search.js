@@ -1,5 +1,4 @@
-const { createElement, render, Component } = preact // or React
-const h = createElement
+import { Component, render, h } from 'preact';
 
 function debounced (delay, fn) {
   let timerId
@@ -83,4 +82,4 @@ class App extends Component {
   }
 }
 
-render(h(App), document.querySelector('#cljdoc-search'))
+export { App };

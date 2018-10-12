@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -eou pipefail
+in="js/index.js"
+out="resources-compiled/public/js/"
+
+echo "parcel $1 $in -d $out --public-url \".\""
+parcel $1 "$in" -d "$out" --public-url "."

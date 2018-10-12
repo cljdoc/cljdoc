@@ -48,7 +48,7 @@
  ;; We don't use :local/root dependencies because the interdependencies
  ;; between main, shared-utils and analysis runner don't work well with
  ;; Cursive: https://github.com/cljdoc/cljdoc/issues/134
- :paths ["src" "resources"
+ :paths ["src" "resources" "resources-compiled"
          "modules/shared-utils/src"
          "modules/shared-utils/resources"
          "modules/analysis-runner/src"
