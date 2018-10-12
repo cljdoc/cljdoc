@@ -54,11 +54,7 @@
                 [:div.sans-serif
                  contents]
                 [:div#cljdoc-switcher]
-                [:script {:src "https://unpkg.com/fuzzysort@1.1.4/fuzzysort.js"}]
-                [:script {:src "https://unpkg.com/preact@8.2.9/dist/preact.min.js"}]
-                [:script {:src "/search.js"}]
-                [:script {:src "/switcher.js"}]
-                (hiccup.page/include-js "/cljdoc.js")
+                [:script {:src "/js/index.js"}]
                 (highlight-js)]))
 
 (defn sidebar-title [title]

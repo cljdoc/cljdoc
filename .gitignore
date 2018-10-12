@@ -12,3 +12,7 @@ ops/prod-backup/
 project.clj
 .cpcache
 .DS_Store
+.cache
+node_modules
+.envrc
+resources-compiled

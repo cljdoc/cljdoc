@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "fuzzysort": "^1.1.4",
+    "preact": "^8.3.1"
+  }
+}

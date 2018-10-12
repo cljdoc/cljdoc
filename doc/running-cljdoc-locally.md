@@ -33,6 +33,19 @@ for `muuntaja` from a local Jar and Git repository:
     (integrant.repl/go)
     ```
 
+1. To build the Javascript files used by the cljdoc pages, run the following in a terminal:
+
+    ```sh
+    npm install              # install packages into node_modules
+    npm install -g parcel    # install parcel
+    ./script/parcel build    # production build
+    ./script/parcel watch    # watch mode
+    ```
+
+    > Note: You only need to run `build` or `watch`. Usually you would only use `watch` if you plan on working on JS files.
+
+# Importing a Project from Local Sources
+
 1. Clone `muuntaja` to a direcory of your liking and install it into your local Maven repo:
 
     ```sh

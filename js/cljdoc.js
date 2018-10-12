@@ -1,14 +1,9 @@
-"use strict"
-
-var NSPage = document.querySelector(".ns-page")
-var DocPage = document.querySelector("#doc-html")
-
-if (NSPage) {
-  initSrollIndicator()
-  initToggleRaw()
+function isNSPage() {
+  return document.querySelector(".ns-page")
 }
-if (DocPage) {
-    initDocTitle()
+
+function isDocPage() {
+  return document.querySelector("#doc-html")
 }
 
 function initSrollIndicator() {
@@ -74,17 +69,6 @@ function initToggleRaw() {
   addToggleHandlers()
 }
 
-window.onbeforeunload = function(){
-  var sidebar = Array.from(document.querySelectorAll(".js--sidebar"))[0]
-  if (sidebar) {
-    var scrollTop = sidebar.scrollTop
-    var page = window.location.pathname.split("/").slice(0,5).join("/")
-    var data = {"page": page, "scrollTop": scrollTop}
-    console.log(data)
-    localStorage.setItem("sidebarScrollPos", JSON.stringify(data))
-  }
-};
-
 function initDocTitle () {
     var mainScrollView = document.querySelector(".main-scroll-view")
     var docHtml = document.querySelector("#doc-html")
@@ -123,7 +107,7 @@ function initDocTitle () {
     changeTitle()
 }
 
-(function() {
+function restoreSidebarScrollPos() {
   var scrollPosData = JSON.parse(localStorage.getItem("sidebarScrollPos"))
   var page = window.location.pathname.split("/").slice(0,5).join("/")
 
@@ -132,4 +116,11 @@ function initDocTitle () {
   }
 
   localStorage.removeItem("sidebarScrollPos")
-})();
+}
+
+export { initSrollIndicator,
+         initToggleRaw,
+         initDocTitle,
+         restoreSidebarScrollPos,
+         isNSPage,
+         isDocPage }
