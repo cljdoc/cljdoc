@@ -1,3 +1,6 @@
 {:paths ["src" "resources" "../shared-utils/src" "../shared-utils/resources"]
+ ;; These deps are dependencies of shared-utils and are
+ ;; duplicated in the global deps.edn, updates should be
+ ;; done in both places
  :deps {org.jsoup/jsoup {:mvn/version "1.11.3"}
         version-clj {:mvn/version "0.1.2"}}}
