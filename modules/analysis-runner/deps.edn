@@ -1,3 +1,3 @@
-{:paths ["src" "resources"]
- :deps {cljdoc/shared-utils {:mvn/version "0.1.0-SNAPSHOT"}}
- :aliases {:local {:extra-deps {cljdoc/shared-utils {:local/root "../shared-utils"}}}}}
+{:paths ["src" "resources" "../shared-utils/src" "../shared-utils/resources"]
+ :deps {org.jsoup/jsoup {:mvn/version "1.11.3"}
+        version-clj {:mvn/version "0.1.2"}}}

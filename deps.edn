@@ -41,9 +41,14 @@
         raven-clj {:mvn/version "1.6.0-alpha"},
         org.clojure/test.check {:mvn/version "0.9.0"},
         me.raynes/fs {:mvn/version "1.4.6"},
-        cljdoc/shared-utils {:mvn/version "0.1.0-SNAPSHOT"}
-        cljdoc/analysis-runner {:mvn/version "0.1.0-SNAPSHOT"}}
- :paths ["src" "resources"]
+
+        ;; shared deps between server and analysis env (replicated below)
+        version-clj {:mvn/version "0.1.2"}}
+ :paths ["src" "resources"
+         "modules/shared-utils/src"
+         "modules/shared-utils/resources"
+         "modules/analysis-runner/src"
+         "modules/analysis-runner/resources"]
  :aliases {:test
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha
