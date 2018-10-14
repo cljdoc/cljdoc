@@ -59,12 +59,27 @@
                  [(symbol group-id artifact-id) {:mvn/version version}])))
        (into {})))
 
+(defn- extra-repos
+  [pom]
+  (->> (slurp pom)
+       (pom/parse)
+       (pom/repositories)
+       (map (fn [repo] [(:id repo) (dissoc repo :id)]))
+       (into {})))
+
+(defn- assoc-if-not-empty
+  [m k v]
+  (if (not-empty v)
+    (assoc m k v)
+    m))
+
 (defn deps [pom project version]
   (-> (extra-deps pom)
       (merge (hardcoded-deps project))
       (ensure-required-deps)
       (add-cljdoc-codox)
       (ensure-recent-ish)
+      (assoc-if-not-empty :mvn/repos (extra-repos pom))
       (assoc project {:mvn/version version})))
 
 (comment
@@ -72,6 +87,6 @@
 
   (deps "https://repo.clojars.org/lambdaisland/kaocha/0.0-113/kaocha-0.0-113.pom" 'lambdaisland/kaocha "0.0-113")
 
-  (with-deps-edn {:deps {}} (io/file "."))
+  (with-deps-edn {:deps {}} (io/file ".")))
 
-  )
+
