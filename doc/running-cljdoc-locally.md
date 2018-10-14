@@ -36,20 +36,24 @@ for `muuntaja` from a local Jar and Git repository:
 1. Clone `muuntaja` to a direcory of your liking and install it into your local Maven repo:
 
     ```sh
-    git clone https://github.com/metosin/muuntaja.git
+    git clone --branch 0.6.1 https://github.com/metosin/muuntaja.git
     cd muuntaja/
-    lein install
+    scripts/lein-modules install
     ```
+
+    > **Tip:** You can checkout the specific release version instead of 0.6.1.
+    > When you do so, remember to change the version number in the commend in the
+    > next step.
 
 1. Ingest all relevant information into the cljdoc system:
 
     ```sh
     cd cljdoc/
     ./script/cljdoc ingest -p metosin/muuntaja \
-                           -v 0.6.0-alpha1 \
-                           --jar ~/.m2/repository/metosin/muuntaja/0.6.0-alpha1/muuntaja-0.6.0-alpha1.jar \
-                           --pom ~/.m2/repository/metosin/muuntaja/0.6.0-alpha1/muuntaja-0.6.0-alpha1.pom \
-                           --git /path/to/muuntaja/repo \
+                           -v 0.6.1 \
+                           --jar ~/.m2/repository/metosin/muuntaja/0.6.1/muuntaja-0.6.1.jar \
+                           --pom ~/.m2/repository/metosin/muuntaja/0.6.1/muuntaja-0.6.1.pom \
+                           --git https://github.com/metosin/muuntaja.git \
                            --rev "master"
     ```
 
