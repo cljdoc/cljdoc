@@ -156,6 +156,7 @@
   (let [resolved-rev (.resolve (.getRepository g) rev)]
     (->> (seq (.. g log (add resolved-rev) (addPath f) call))
          (map (fn process-commit [commit]
+                ;; TODO spec this
                 {:name    (.. commit getAuthorIdent getName)
                  :email   (.. commit getAuthorIdent getEmailAddress)
                  :message (.. commit getFullMessage)
@@ -165,7 +166,12 @@
   (->> (ls-files g rev)
        (map :path)
        (filter #(re-seq #"docs*/examples/.+\.markdown" %))
-       (map #(vector "markdown" %))))
+       ;; TODO spec this
+       (map (fn read [path]
+              {:type :markdown
+               :path path
+               :content (slurp-file-at g rev path)
+               :commits (get-commits g rev path)}))))
 
 (s/fdef path-sha-pairs
   :args (s/cat :git-objects (s/coll-of ::git-object))
@@ -232,6 +238,27 @@
   (map :date (get-commits r "project.clj" "0.3.7"))
 
   (def s (slurp-file-at r "with-example" "doc/examples/s3-put.markdown"))
+
+  (defmulti process-example :type)
+
+  (defmethod process-example :markdown [{:keys [path type content commits]}]
+    (let [[_ yaml-lines _ content-lines] (partition-by #(= "---" %) (string/split-lines content))
+          yaml-raw (string/join "\n" yaml-lines)
+          content-raw (string/join "\n" content-lines)
+          {:keys [for-var for-namespace] :as yaml}
+          (if (.startsWith content "---\n")
+            (do (assert (seq yaml-lines) "YAML metadata missing")
+                (assert (seq content-lines) "No content found in example")
+                (yaml/parse-string yaml-raw))
+            (throw (ex-info "Example is missing YAML metadata" {})))]
+      (cond-> {:cljdoc.example/type type
+               :cljdoc.example/authors  (set (map #(select-keys % [:name :email]) commits))
+               :cljdoc.example/contents (string/trim content-raw)
+               :cljdoc.example/created  (:date (last commits))}
+        for-var       (assoc :cljdoc.example/for-var for-var)
+        for-namespace (assoc :cljdoc.example/for-namespace for-namespace))))
+
+  (process-example (first (find-examples r "with-example")))
 
   (if (.startsWith s "---\n")
     (let [[_ yaml-lines _ content-lines] (partition-by #(= "---" %) (string/split-lines s))
