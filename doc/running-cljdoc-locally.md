@@ -56,7 +56,7 @@ for `muuntaja` from a local Jar and Git repository:
     > **Tip:** See `./script/cljdoc ingest --help` for details.
 
     > **Note:** For Git-based changes to take effect you need to
-    > commit them so there is a revision that the repo can be analsed
+    > commit them so there is a revision that the repo can be analysed
     > at. This can be done in a branch of course.
 
 1. Open the docs for muuntaja on the local cljdoc server: http://localhost:8000/d/metosin/muuntaja
