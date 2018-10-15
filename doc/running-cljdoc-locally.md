@@ -53,7 +53,7 @@ for `muuntaja` from a local Jar and Git repository:
                            -v 0.6.1 \
                            --jar ~/.m2/repository/metosin/muuntaja/0.6.1/muuntaja-0.6.1.jar \
                            --pom ~/.m2/repository/metosin/muuntaja/0.6.1/muuntaja-0.6.1.pom \
-                           --git https://github.com/metosin/muuntaja.git \
+                           --git /path/to/muuntaja/repo \
                            --rev "master"
     ```
 
