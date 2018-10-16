@@ -24,7 +24,7 @@
                                  (:pom (repositories/local-uris project version))
                                  (:pom (repositories/artifact-uris project version))))
                             slurp read-string)
-        storage  (storage/->SQLiteStorage (config/db))
+        storage  (storage/->SQLiteStorage (config/db (config/config)))
         scm-info (ingest/scm-info project (:pom-str analysis-result))]
     (ingest/ingest-cljdoc-edn storage analysis-result)
     (when (or (:url scm-info) git)
