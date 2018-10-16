@@ -85,7 +85,7 @@
   (tt/stop!))
 
 (comment
-  (def db-spec (cljdoc.config/build-log-db))
+  (def db-spec (cljdoc.config/db))
 
   (build-queuer-job-fn db-spec true)
 
