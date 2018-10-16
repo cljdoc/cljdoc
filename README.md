@@ -1,12 +1,16 @@
-![cljdoc is a platform to build, host and view Clojure/Script library documentation](doc/assets/title.png)
-
-[![CircleCI](https://circleci.com/gh/cljdoc/cljdoc.svg?style=svg)](https://circleci.com/gh/cljdoc/cljdoc)
+<img src="resources/public/cljdoc-logo-beta-square.png" width=100 height=100>
 
 An effort to create a central documentation hub for the Clojure & ClojureScript ecosystem.
 
+[For Library Authors](doc/userguide/for-library-authors.adoc) | [Contributing](CONTRIBUTING.adoc) | [Website](https://cljdoc.xyz/) | [ClojuTRE Talk](https://www.youtube.com/watch?v=mWrvd6SE7Vg)
+
 > :wave: Need help getting started? Say hi on [Telegram](https://telegram.me/martinklepsch), [Twitter](https://twitter.com/martinklepsch) or [Clojurians Slack](http://clojurians.net/) in [#cljdoc](https://clojurians.slack.com/messages/C8V0BQ0M6/).
 
+[![CircleCI](https://circleci.com/gh/cljdoc/cljdoc.svg?style=svg)](https://circleci.com/gh/cljdoc/cljdoc)
+
 ## Rationale
+
+> :video_camera: I (Martin) gave [a talk at ClojuTRE](https://www.youtube.com/watch?v=mWrvd6SE7Vg) about cljdoc which is probably a good intro if you want to understand what cljdoc is and why it exists. If you prefer text, read on for the Rationale.
 
 Publishing Clojure library documentation is an often manual and error
 prone process. Library authors who want to provide documentation need
