@@ -86,6 +86,7 @@
                            ;; (println "Classpath:" (:out (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps})
                            ;;                                    "-Spath" :dir (.getParentFile f))))
                            (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps
+                                                                            :mvn/repos (deps/extra-repos pom)
                                                                             :paths [(.getAbsolutePath impl-src-dir)]})
                                                 "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
@@ -133,8 +134,8 @@
 
   (sh/sh "clj" "-Sdeps" (pr-str {:deps deps}) "-m" "cljdoc.analysis.impl" "1" "2" "3")
 
-  {:deps deps}
+  {:deps deps})
 
 
 
-  )
+

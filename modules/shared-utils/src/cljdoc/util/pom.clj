@@ -25,6 +25,11 @@
      :version     (text d "version")
      :scope       (text d "scope")}))
 
+(defn repositories [^Jsoup doc]
+  (for [r (.select doc "project > repositories > repository")]
+    {:id (text r "id")
+     :url (text r "url")}))
+
 (defn artifact-info [^Jsoup doc]
   ;; These `parent` fallbacks are a bit of a hack but
   ;; I didn't want to modify the data model and make this
@@ -50,4 +55,5 @@
   (scm-info doc)
   (dependencies doc)
   (artifact-info doc)
-  )
+  (repositories doc))
+

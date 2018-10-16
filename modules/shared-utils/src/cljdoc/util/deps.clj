@@ -59,6 +59,14 @@
                  [(symbol group-id artifact-id) {:mvn/version version}])))
        (into {})))
 
+(defn extra-repos
+  [pom]
+  (->> (slurp pom)
+       (pom/parse)
+       (pom/repositories)
+       (map (fn [repo] [(:id repo) (dissoc repo :id)]))
+       (into {})))
+
 (defn deps [pom project version]
   (-> (extra-deps pom)
       (merge (hardcoded-deps project))
@@ -72,6 +80,6 @@
 
   (deps "https://repo.clojars.org/lambdaisland/kaocha/0.0-113/kaocha-0.0-113.pom" 'lambdaisland/kaocha "0.0-113")
 
-  (with-deps-edn {:deps {}} (io/file "."))
+  (with-deps-edn {:deps {}} (io/file ".")))
 
-  )
+
