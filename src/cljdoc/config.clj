@@ -47,7 +47,12 @@
    :subprotocol "sqlite",
    :foreign_keys true
    :cache_size 10000
-   :subname (str (data-dir config) "cljdoc.db.sqlite")
+   :subname (let [new-path (str (data-dir config) "cljdoc.db.sqlite")
+                  old-path (str (data-dir config) "build-log.db")]
+              (if (.exists (io/file new-path))
+                new-path
+                (do (log/warnf "Database needs to be moved from %s to %s" old-path new-path)
+                    old-path)))
    ;; These settings are permanent but it seems like
    ;; this is the easiest way to set them. In a migration
    ;; they fail because they return results.
