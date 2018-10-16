@@ -63,6 +63,9 @@
   (deref (promise)))
 
 (comment
+  ;; This is the main REPL entry point into cljdoc.
+  ;; Run the forms one by one up to `go` and you should
+  ;; have a running server at http://localhost:8000
   (require '[integrant.repl])
 
   (integrant.repl/set-prep! #(system-config (cfg/config)))
@@ -71,6 +74,6 @@
 
   (integrant.repl/halt)
 
-  (integrant.repl/reset)
+  (integrant.repl/reset) ; currently a little broken, fix welcome
 
   )
