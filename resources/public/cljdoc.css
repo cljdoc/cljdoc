@@ -118,27 +118,3 @@
   bottom: 0;
   left: -2rem;
 }
-
-
-/** Doc Nav ------------------------------------------------ **/
-
-#doc-title {
-    text-align: left;
-    flex: 1;
-    margin-left: 10px;
-    overflow-x: hidden;
-}
-
-#doc-section {
-    text-align: right;
-    flex: 1;
-}
-
-#doc-nav {
-    height: 50px;
-    right: 0;
-    position: absolute;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-}

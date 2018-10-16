@@ -39,9 +39,10 @@
          (into [:ul.list.pl2]))))
 
 (def doc-nav
-  [:div#doc-nav.bb.b--black-10 {:style {:left "16rem"}}
-   [:div#doc-section "Current Section:"]
-   [:a#doc-title.link.blue {:href "#"} ""]])
+  [:div.bb.b--black-10.ml7
+   [:div.mw7.center.pv2
+    [:span "Current Section:"]
+    [:a#js--doc-title.link.blue.ml2 {:href "#"} ""]]])
 
 (defn doc-page [{:keys [top-bar-component
                         doc-tree-component
@@ -56,7 +57,7 @@
    (when doc-html doc-nav)
    (layout/main-container
     (cond-> {:offset "16rem"}
-      doc-html (assoc :extra-height 50))
+      doc-html (assoc :extra-height 34))
     [:div.mw7.center
      ;; TODO dispatch on a type parameter that becomes part of the attrs map
      (if doc-html

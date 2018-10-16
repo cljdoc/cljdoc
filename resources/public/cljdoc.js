@@ -89,7 +89,7 @@ function initDocTitle () {
     var mainScrollView = document.querySelector(".main-scroll-view")
     var docHtml = document.querySelector("#doc-html")
     var docHeaders = Array.from(docHtml.querySelectorAll("h1, h2, h3, h4, h5, h6"))
-    var docTitle = document.querySelector("#doc-title")
+    var docTitle = document.querySelector("#js--doc-title")
     var lastIndex = null
 
     function isBelow(container, element) {
