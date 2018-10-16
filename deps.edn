@@ -41,9 +41,19 @@
         raven-clj {:mvn/version "1.6.0-alpha"},
         org.clojure/test.check {:mvn/version "0.9.0"},
         me.raynes/fs {:mvn/version "1.4.6"},
-        cljdoc/shared-utils {:local/root "modules/shared-utils"}
-        cljdoc/analysis-runner {:local/root "modules/analysis-runner"}}
- :paths ["src" "resources"]
+
+        ;; These deps are dependencies of shared-utils and are
+        ;; duplicated in the global modules/shared-utils/deps.edn,
+        ;; updates should be done in both places
+        version-clj {:mvn/version "0.1.2"}}
+ ;; We don't use :local/root dependencies because the interdependencies
+ ;; between main, shared-utils and analysis runner don't work well with
+ ;; Cursive: https://github.com/cljdoc/cljdoc/issues/134
+ :paths ["src" "resources"
+         "modules/shared-utils/src"
+         "modules/shared-utils/resources"
+         "modules/analysis-runner/src"
+         "modules/analysis-runner/resources"]
  :aliases {:test
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha
