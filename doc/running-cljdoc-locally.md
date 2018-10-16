@@ -14,18 +14,6 @@ for `muuntaja` from a local Jar and Git repository:
    cd cljdoc/
    ```
 
-1. Install utility libraries into local repository
-
-    ```sh
-    ./script/build-libs.sh
-    ```
-
-    > **Note:** This will build and install two jars into your local `~/.m2` (Maven repo). Previously
-    > this was handled using `:local/root` dependencies as supported by tools.deps but these caused
-    > some problems when running cljdoc via Cursive. While they are now technically separate artifacts
-    > you should still be able to easily develop (i.e. redefine) the code of those artifacts in a REPL.
-    >  Related tickets: [TDEPS-74](https://dev.clojure.org/jira/browse/TDEPS-74) & [Cursive #2065](https://github.com/cursive-ide/cursive/issues/2065)
-
 1. Start the cljdoc server
 
     ```sh
