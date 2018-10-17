@@ -6,7 +6,8 @@
   what's on the classpath."
   (:require [clojure.edn]
             [clojure.java.io :as io]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [clojure.edn :as edn])
   (:import (java.nio.file Files)))
 
 (def hardcoded-config
@@ -35,6 +36,28 @@
   [project version]
   {:pre [(some? project) (string? version)]}
   (str "cljdoc-edn/" (group-id project) "/" (artifact-id project) "/" version "/cljdoc.edn"))
+
+(defn- wrap-regex-tag [potential-regex]
+  (if (instance? java.util.regex.Pattern potential-regex)
+    (tagged-literal 'regex (str potential-regex))
+    potential-regex))
+
+(defn- wrap-all-regex-tags [structure]
+  (clojure.walk/postwalk wrap-regex-tag structure))
+
+(defn- unwrap-regex-tag [regex-tagged-string]
+  (re-pattern regex-tagged-string))
+
+(defn serialize-cljdoc-edn [analyze-result]
+  ;; the analyzed structure can contain regex #"..." (e.g. in :arglists)
+  ;; and they can't be read in again using edn/read-string
+  ;; so there are changed to #regex"..." and read in with a custom reader
+  (-> analyze-result
+      (wrap-all-regex-tags)
+      (pr-str)))
+
+(defn read-cljdoc-edn [file]
+  (edn/read-string {:readers {'regex unwrap-regex-tag}} (slurp file)))
 
 (defn git-dir [project version]
   (str "git-repos/" (group-id project) "/" (artifact-id project) "/" version "/"))

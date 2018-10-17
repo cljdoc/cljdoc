@@ -3,7 +3,7 @@
             [cljdoc.util.telegram :as telegram]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.server.build-log :as build-log]
-            [cljdoc.util]
+            [cljdoc.util :as util]
             [cljdoc.util.repositories :as repositories]
             [cljdoc.config] ; should not be necessary but instead be passed as args
             [cljdoc.renderers.html :as html]
@@ -74,7 +74,7 @@
    {:keys [project version build-id cljdoc-edn] :as params}]
   (assert (and project version build-id cljdoc-edn)
           (format "Params insufficient %s" params))
-  (let [cljdoc-edn-contents (clojure.edn/read-string (slurp cljdoc-edn))
+  (let [cljdoc-edn-contents (util/read-cljdoc-edn cljdoc-edn)
         build-id            (Long. build-id)]
     (build-log/analysis-received! build-tracker build-id cljdoc-edn)
     ;; TODO put this back in place
