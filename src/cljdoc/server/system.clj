@@ -41,7 +41,7 @@
 (defmethod ig/init-key :cljdoc/analysis-service [_ [type opts]]
   (log/infof "Starting Analysis Service %s" type)
   (case type
-    :circle-ci (analysis-service/circle-ci (:api-token opts) (:builder-project opts))
+    :circle-ci (analysis-service/circle-ci opts)
     :local     (analysis-service/->Local (:full-build-url opts))))
 
 (defmethod ig/init-key :cljdoc/sqlite [_ {:keys [db-spec dir]}]
