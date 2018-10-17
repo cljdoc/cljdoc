@@ -1,5 +1,15 @@
 (ns cljdoc.analysis.runner
-  {:boot/export-tasks true}
+  "Prepares the environment to run analysis in.
+
+  The `-main` entry point will construct a directory
+  with the sources of the analyzed jar present as well
+  as some additional files that contain the actual code
+  used during analysis. That code is than ran by shelling
+  out to `clojure` providing all inputs via `-Sdeps`.
+
+  By shelling out to `clojure` we create an isolated
+  environment which does not have the dependencies of
+  this namespace (namely jsoup and version-clj)."
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
             [clojure.java.shell :as sh]
@@ -83,6 +93,9 @@
                              [(util/normalize-project project) :cljdoc.api/namespaces])
         deps           (deps/deps pom project version)
         build-cdx      (fn build-cdx [jar-contents-path platf]
+                         ;; TODO in theory we don't need to start this clojure process twice
+                         ;; and could just modify the code in `impl.clj` to immediately run analysis
+                         ;; for all requested platforms
                          (let [f (util/system-temp-file project ".edn")]
                            (println "Analyzing" project platf "- used dependencies:")
                            (println (pr-str {:deps deps}))
