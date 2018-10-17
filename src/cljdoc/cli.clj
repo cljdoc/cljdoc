@@ -1,6 +1,7 @@
 (ns cljdoc.cli
   (:require [clojure.java.io :as io]
             [cljdoc.config :as config]
+            [cljdoc.util :as util]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.server.system :as system]
             [cljdoc.analysis.runner :as ana]
@@ -23,7 +24,7 @@
                              (or pom
                                  (:pom (repositories/local-uris project version))
                                  (:pom (repositories/artifact-uris project version))))
-                            slurp read-string)
+                            util/read-cljdoc-edn)
         storage  (storage/->SQLiteStorage (config/db (config/config)))
         scm-info (ingest/scm-info project (:pom-str analysis-result))]
     (ingest/ingest-cljdoc-edn storage analysis-result)

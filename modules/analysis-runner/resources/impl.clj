@@ -59,6 +59,6 @@
           (pr-str namespaces) (pr-str jar-contents-path) (pr-str platf) (pr-str file))
   (let [ana-result (codox-namespaces (edn/read-string namespaces) jar-contents-path platf)]
     (printf "Writing %s\n" file)
-    (spit file (pr-str ana-result))))
+    (spit file (util/serialize-cljdoc-edn ana-result))))
 
 

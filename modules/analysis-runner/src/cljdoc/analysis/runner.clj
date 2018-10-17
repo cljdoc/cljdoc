@@ -109,7 +109,7 @@
                                                 ;; supplying :dir is necessary to avoid local deps.edn being included
                                                 ;; once -Srepro is finalized it might be useful for this purpose
                                                 :dir (.getParentFile f))
-                                 result (edn/read-string (slurp f))]
+                                 result (util/read-cljdoc-edn f)]
                              (print-process-result process)
                              (when (zero? (:exit process))
                                (assert result "No data was saved in output file")
@@ -127,7 +127,7 @@
       (if (every? some? (vals cdx-namespaces))
         (doto (io/file tmp-dir (util/cljdoc-edn project version))
           (io/make-parents)
-          (spit (pr-str ana-result)))
+          (spit (util/serialize-cljdoc-edn ana-result)))
         (throw (Exception. "Analysis failed"))))))
 
 (defn -main
