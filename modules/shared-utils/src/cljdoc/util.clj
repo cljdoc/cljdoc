@@ -4,17 +4,17 @@
   These are available in the analysis environment and thus should work
   without any additional dependencies or further assumptions about
   what's on the classpath."
-  (:require [clojure.edn]
+  (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.edn :as edn])
+            [clojure.walk :as walk])
   (:import (java.nio.file Files)))
 
 (def hardcoded-config
   ;; NOTE `delay` is used here because the stripped-down analysis env
   ;; doesn't have `hardcoded-projects-config.edn` on the classpath
   ;; TODO move elsewhere
-  (delay (clojure.edn/read-string (slurp (io/resource "hardcoded-projects-config.edn")))))
+  (delay (edn/read-string (slurp (io/resource "hardcoded-projects-config.edn")))))
 
 (defn group-id [project]
   (or (if (symbol? project)
@@ -37,27 +37,18 @@
   {:pre [(some? project) (string? version)]}
   (str "cljdoc-edn/" (group-id project) "/" (artifact-id project) "/" version "/cljdoc.edn"))
 
-(defn- wrap-regex-tag [potential-regex]
-  (if (instance? java.util.regex.Pattern potential-regex)
-    (tagged-literal 'regex (str potential-regex))
-    potential-regex))
-
-(defn- wrap-all-regex-tags [structure]
-  (clojure.walk/postwalk wrap-regex-tag structure))
-
-(defn- unwrap-regex-tag [regex-tagged-string]
-  (re-pattern regex-tagged-string))
-
 (defn serialize-cljdoc-edn [analyze-result]
   ;; the analyzed structure can contain regex #"..." (e.g. in :arglists)
   ;; and they can't be read in again using edn/read-string
   ;; so there are changed to #regex"..." and read in with a custom reader
-  (-> analyze-result
-      (wrap-all-regex-tags)
-      (pr-str)))
+  (->> analyze-result
+       (clojure.walk/postwalk #(if (instance? java.util.regex.Pattern %)
+                                 (tagged-literal 'regex (str %))
+                                 %))
+       (pr-str)))
 
 (defn read-cljdoc-edn [file]
-  (edn/read-string {:readers {'regex unwrap-regex-tag}} (slurp file)))
+  (edn/read-string {:readers {'regex re-pattern}} (slurp file)))
 
 (defn git-dir [project version]
   (str "git-repos/" (group-id project) "/" (artifact-id project) "/" version "/"))
