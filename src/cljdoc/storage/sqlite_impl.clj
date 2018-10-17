@@ -1,6 +1,7 @@
 (ns cljdoc.storage.sqlite-impl
   (:require [cljdoc.spec]
             [cljdoc.util :as util]
+            [cljdoc.examples :as examples]
             [clojure.java.io :as io]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
@@ -162,6 +163,19 @@
   (let [version-id (get-version-id db-spec group-id artifact-id version)]
     (update-version-meta! db-spec version-id {:jar jar :scm scm, :doc doc-tree})))
 
+(defn import-examples
+  [db-spec {:keys [group-id artifact-id version]} examples]
+  (cljdoc.spec/assert ::examples/examples examples)
+  (let [version-id (get-version-id db-spec group-id artifact-id version)
+        keys-to-serialize [::examples/content ::examples/authors ::examples/created]]
+    (sql/with-db-transaction [tx db-spec]
+      (doseq [e examples]
+        (sql/execute! tx ["INSERT INTO examples (version_id, namespace, var, example_data) VALUES (?, ?, ?, ?)"
+                          version-id
+                          (::examples/ns e)
+                          (::examples/var e)
+                          (nippy/freeze (select-keys e keys-to-serialize))])))))
+
 (comment
   (def data (clojure.edn/read-string (slurp "https://2941-119377591-gh.circle-artifacts.com/0/cljdoc-edn/stavka/stavka/0.4.1/cljdoc.edn")))
 
@@ -177,5 +191,11 @@
 
   (tufte/add-basic-println-handler! {})
   (profile {} (doseq [i (range 50)] (bundle-group db-spec "amazonica")))
+
+  (import-examples (cljdoc.config/db (cljdoc.config/config))
+                   {:group-id "event-data-common"
+                    :artifact-id "event-data-common"
+                    :version "0.1.57"}
+                   cljdoc.examples/exs)
 
   )
