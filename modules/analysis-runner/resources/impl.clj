@@ -1,5 +1,6 @@
 (ns cljdoc.analysis.impl
-  (:require [codox.main :as codox]
+  (:require [cljdoc.util :as util]
+            [codox.main :as codox]
             [clojure.edn :as edn]
             [clojure.pprint :as pprint]
             [cljs.util :as cljs-util]))

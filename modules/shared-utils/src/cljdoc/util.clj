@@ -1,15 +1,19 @@
 (ns cljdoc.util
   "Utility functions :)
 
-  These are available in the analysis environment and thus
-  should work without any additional dependencies."
+  These are available in the analysis environment and thus should work
+  without any additional dependencies or further assumptions about
+  what's on the classpath."
   (:require [clojure.edn]
             [clojure.java.io :as io]
             [clojure.string :as string])
   (:import (java.nio.file Files)))
 
 (def hardcoded-config
-  (clojure.edn/read-string (slurp (io/resource "hardcoded-projects-config.edn"))))
+  ;; NOTE `delay` is used here because the stripped-down analysis env
+  ;; doesn't have `hardcoded-projects-config.edn` on the classpath
+  ;; TODO move elsewhere
+  (delay (clojure.edn/read-string (slurp (io/resource "hardcoded-projects-config.edn")))))
 
 (defn group-id [project]
   (or (if (symbol? project)

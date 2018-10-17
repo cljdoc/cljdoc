@@ -53,7 +53,7 @@
                                 (git/slurp-file-at repo revision f))
                               (git/slurp-file-at repo "master" f)))
                         (or (:cljdoc.doc/tree config-edn)
-                            (get-in util/hardcoded-config
+                            (get-in @util/hardcoded-config
                                     [(util/normalize-project project) :cljdoc.doc/tree])
                             (doctree/derive-toc git-files)))})
 

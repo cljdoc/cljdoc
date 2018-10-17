@@ -72,11 +72,14 @@
         _            (copy (io/resource "impl.clj")
                            (doto (io/file impl-src-dir "cljdoc" "analysis" "impl.clj")
                              (-> .getParentFile .mkdirs)))
+        _            (copy (io/resource "cljdoc/util.clj")
+                           (doto (io/file impl-src-dir "cljdoc" "util.clj")
+                             (-> .getParentFile .mkdirs)))
         _            (copy-jar-contents-impl (URI. jar) jar-contents)
-        platforms    (get-in util/hardcoded-config
+        platforms    (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/platforms]
                              (util/infer-platforms-from-src-dir jar-contents))
-        namespaces   (get-in util/hardcoded-config
+        namespaces   (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/namespaces])
         deps           (deps/deps pom project version)
         build-cdx      (fn build-cdx [jar-contents-path platf]
