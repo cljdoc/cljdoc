@@ -4,7 +4,7 @@ set -euo pipefail
 project="$1"
 version="$2"
 jar_path="$3"
-pom_path="$3"
+pom_path="$4"
 cljdoc_version=$(git rev-parse HEAD)
 
 # $CIRCLE_BUILDER_PROJECT must be Circle CI project set up
