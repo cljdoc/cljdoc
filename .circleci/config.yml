@@ -7,7 +7,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/clojure:boot-2.7.1
+      - image: circleci/clojure:tools-deps-1.9.0.394-node
         # https://discuss.circleci.com/t/builds-getting-killed-with-vague-message-received-signal-killed/10214/9
         command: "/bin/bash"
 
@@ -23,13 +23,6 @@ jobs:
           - v1-dependencies-{{ checksum "deps.edn" }}
           - v1-dependencies- # fallback if not cache found
 
-      - run:
-          name: Install CLI tools
-          command: |
-            curl -O https://download.clojure.org/install/linux-install-1.9.0.381.sh
-            chmod +x linux-install-1.9.0.381.sh
-            sudo ./linux-install-1.9.0.381.sh
-
       - run: clojure -Spath
 
       - run: ./script/cljdoc ingest --project bidi --version 2.1.3
@@ -39,8 +32,11 @@ jobs:
       - store_test_results:
           path: target/
 
+      - run: npm ci
+      - run: sudo npm install -g parcel
+      - run: ./script/package
+
       - save_cache:
           paths:
             - ~/.m2
-            - ~/.boot
           key: v1-dependencies-{{ checksum "deps.edn" }}
