@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # TODO print instructions if file does not exist
-version=$1 #(cat "$HOME/CLJDOC_VERSION")
+version=$(cat "$HOME/CLJDOC_VERSION")
 archive="cljdoc-$version.zip"
 
 if [ ! -d "cljdoc-$version" ]; then
