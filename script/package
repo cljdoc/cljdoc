@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -eou pipefail
-rev=$(git rev-parse HEAD)
 dir="target"
 zipfile="$dir/cljdoc.zip"
 
