@@ -8,7 +8,7 @@
                  :project "cljdoc"}}
  :cljdoc/version #or [#env CLJDOC_VERSION "dev"]
  :cljdoc/server {:port 8000
-                 :host #profile {:prod "cljdoc.xyz"
+                 :host #profile {:prod "cljdoc.org"
                                  :default "localhost"}
                  :analysis-service #profile {:default :local
                                              :prod :circle-ci}
