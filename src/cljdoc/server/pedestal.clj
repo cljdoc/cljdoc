@@ -2,6 +2,7 @@
   (:require [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.home :as render-home]
+            [cljdoc.render.error :as error]
             [cljdoc.render.offline :as offline]
             [cljdoc.renderers.html :as html]
             [cljdoc.analysis.service :as analysis-service]
@@ -263,6 +264,16 @@
            (fn [request opts]
              (etag/add-file-etag request false)))})
 
+(def not-found-interceptor
+  {:name ::not-found-interceptor
+   :leave (fn [context]
+            (if-not (http/response? (:response context))
+              (do (log/info ::not-found-interceptor)
+                (assoc context :response {:status 404
+                                          :headers {"Content-Type" "text/html"}
+                                          :body (error/not-found-404)}))
+              context))})
+
 (defn offline-bundle []
   {:name ::offline-bundle
    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
@@ -319,7 +330,8 @@
        ;; updated as they change so in these cases using file path is easier
        ;; This breaks the homepage for whatever reason
        ;; ::http/file-path "resources/public"
-       ::http/resource-path "public"}
+       ::http/resource-path "public"
+       ::http/not-found-interceptor not-found-interceptor}
       http/default-interceptors
       (update ::http/interceptors #(into [sentry/interceptor etag-interceptor] %))
       (http/create-server)
