@@ -8,7 +8,6 @@ provider "aws" {
   secret_key = "${var.aws_secret_key}"
 }
 
-
 provider "digitalocean" {
   token = "${var.do_token}"
 }
@@ -38,11 +37,12 @@ module "backups_bucket" {
 # DigitalOcean Server ------------------------------------------------
 
 resource "digitalocean_droplet" "cljdoc_api" {
-  image  = "${file("image/image-id")}"
-  name   = "cljdoc-1"
-  region = "ams3"
-  size   = "2gb"
+  image      = "${file("image/image-id")}"
+  name       = "cljdoc-1"
+  region     = "ams3"
+  size       = "2gb"
   monitoring = true
+
   # supplying a key here seems to be the only way to
   # not get a root password via email, despite having
   # added SSH keys to the snapshot/image before
@@ -69,6 +69,24 @@ resource "aws_route53_record" "main" {
   provider = "aws.prod"
   zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
   name     = "${var.domain}"
+  type     = "A"
+  ttl      = "300"
+  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
+}
+
+resource "aws_route53_record" "xyz_api" {
+  provider = "aws.prod"
+  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
+  name     = "${var.api_xyz_domain}"
+  type     = "A"
+  ttl      = "300"
+  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
+}
+
+resource "aws_route53_record" "xyz_main" {
+  provider = "aws.prod"
+  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
+  name     = "${var.xyz_domain}"
   type     = "A"
   ttl      = "300"
   records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]

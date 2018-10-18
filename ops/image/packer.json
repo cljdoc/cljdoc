@@ -32,6 +32,11 @@
         },
         {
             "type": "file",
+            "source": "cljdoc.org.conf",
+            "destination": "/etc/nginx/sites-available/cljdoc.org.conf"
+        },
+        {
+            "type": "file",
             "source": "cljdoc-api.service",
             "destination": "/etc/systemd/system/cljdoc-api.service"
         }
