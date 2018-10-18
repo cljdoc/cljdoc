@@ -15,7 +15,7 @@
   purpose."
   (trigger-build [_ {:keys [build-id project version jarpath pompath]}]))
 
-(defrecord CircleCI [api-token builder-project]
+(defrecord CircleCI [api-token builder-project analyzer-version]
   IAnalysisService
   (trigger-build
     [_ {:keys [build-id project version jarpath pompath]}]
@@ -23,7 +23,8 @@
     (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
                {:accept "application/json"
                 ;; https://github.com/hiredman/clj-http-lite/issues/15
-                :form-params {"build_parameters[CLJDOC_BUILD_ID]" build-id
+                :form-params {"build_parameters[CLJDOC_ANALYZER_VERSION]" analyzer-version
+                              "build_parameters[CLJDOC_BUILD_ID]" build-id
                               "build_parameters[CLJDOC_PROJECT]" project
                               "build_parameters[CLJDOC_PROJECT_VERSION]" version
                               "build_parameters[CLJDOC_PROJECT_JAR]" jarpath
@@ -31,10 +32,11 @@
                 :basic-auth [api-token ""]})))
 
 (defn circle-ci
-  [api-token builder-project]
+  [{:keys [api-token builder-project analyzer-version]}]
   (assert (seq api-token) "blank or nil api-token passed to CircleCI component")
   (assert (seq builder-project) "blank or nil builder-project passed to CircleCI component")
-  (->CircleCI api-token builder-project))
+  (assert (seq analyzer-version) "blank or nil analyzer-version passed to CircleCI component")
+  (->CircleCI api-token builder-project analyzer-version))
 
 (defn circle-ci? [x]
   (instance? CircleCI x))

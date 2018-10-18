@@ -12,7 +12,7 @@
   (analysis-requested!
     ;; "Track a request for analysis and return the build's ID."
     [_ group-id artifact-id version])
-  (analysis-kicked-off! [_ build-id analysis-job-uri])
+  (analysis-kicked-off! [_ build-id analysis-job-uri analyzer-version])
   (analysis-received! [_ build-id cljdoc-edn-uri])
   (failed! [_ build-id error])
   (api-imported! [_ build-id])
@@ -32,11 +32,12 @@
                        :analysis_requested_ts (now)})
          (first)
          ((keyword "last_insert_rowid()"))))
-  (analysis-kicked-off! [_ build-id analysis-job-uri]
+  (analysis-kicked-off! [_ build-id analysis-job-uri analyzer-version]
     (sql/update! db-spec
                  "builds"
                  {:analysis_job_uri analysis-job-uri
-                  :analysis_triggered_ts (now)}
+                  :analysis_triggered_ts (now)
+                  :analyzer_version analyzer-version}
                  ["id = ?" build-id]))
   (analysis-received! [_ build-id cljdoc-edn-uri]
     (sql/update! db-spec

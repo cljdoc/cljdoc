@@ -59,14 +59,15 @@
                     :build-id build-id})]
     (if (analysis-service/circle-ci? analysis-service)
       (let [build-num (-> ana-resp :body json/parse-string (get "build_num"))
-            job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)]
+            job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)
+            ana-v     (:analyzer-version analysis-service)]
         (when (= 201 (:status ana-resp))
           (assert build-num "build number missing from CircleCI response")
-          (build-log/analysis-kicked-off! build-tracker build-id job-url)
+          (build-log/analysis-kicked-off! build-tracker build-id job-url ana-v)
           (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}" build-id job-url))
         build-id)
       (do
-        (build-log/analysis-kicked-off! build-tracker build-id nil)
+        (build-log/analysis-kicked-off! build-tracker build-id nil nil)
         build-id))))
 
 (defn full-build
