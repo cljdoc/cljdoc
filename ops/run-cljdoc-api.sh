@@ -3,16 +3,17 @@
 set -euo pipefail
 
 # TODO print instructions if file does not exist
-version=$(cat "$HOME/CLJDOC_VERSION")
+version=$1 #(cat "$HOME/CLJDOC_VERSION")
+archive="cljdoc-$version.zip"
 
 if [ ! -d "cljdoc-$version" ]; then
     echo "Downloading cljdoc v$version"
     # TODO fail if 404
-    curl -Ls "https://github.com/martinklepsch/cljdoc/archive/$version.tar.gz" -o "cljdoc-$version.tar.gz"
+    curl -Ls "https://s3.amazonaws.com/cljdoc-releases-hot-weevil/build-$version/cljdoc.zip" -o "$archive"
 
-    echo "Unpacking archive"
-    tar -xvf "cljdoc-$version.tar.gz"
-    rm "cljdoc-$version.tar.gz"
+    echo "Unpacking $archive"
+    unzip "$archive" -d "cljdoc-$version"
+    rm "$archive"
 fi
 
 pushd "cljdoc-$version"
