@@ -3,7 +3,7 @@
 set -eou pipefail
 rev=$(git rev-parse HEAD)
 dir="target"
-zipfile="$dir/cljdoc-$rev.zip"
+zipfile="$dir/cljdoc.zip"
 
 ./script/parcel build
 mkdir "$dir"

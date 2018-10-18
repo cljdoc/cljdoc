@@ -36,7 +36,42 @@ jobs:
       - run: sudo npm install -g parcel
       - run: ./script/package
 
+      - persist_to_workspace:
+          root: .
+          paths:
+            - target
+
       - save_cache:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
+
+  deploy:
+    docker:
+      - image: circleci/python:2.7-jessie
+    steps:
+      - attach_workspace:
+          at: workspace
+      - run: ls workspace
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Set AWS env vars
+          # vars are coming from terraform setup
+          command: |
+            echo 'export AWS_ACCESS_KEY_ID=$RELEASES_BUCKET_ACCESS_KEY' >> $BASH_ENV
+            echo 'export AWS_SECRET_ACCESS_KEY=$RELEASES_BUCKET_SECRET_KEY' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Deploy to S3
+          command: aws s3 sync workspace/target s3://$RELEASES_BUCKET_NAME/build-$CIRCLE_SHA1/ --delete
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
