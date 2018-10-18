@@ -29,7 +29,7 @@
   (assoc deps-map 'codox/codox {:exclusions '[enlive hiccup org.pegdown/pegdown]
                                 ;; :mvn/version "0.10.4"
                                 :git/url "https://github.com/martinklepsch/codox"
-                                :sha "4b0720941083fda9643d905f0854fabea55b175f"
+                                :sha "606eeb38b36cd3a700ba55ab66bef0a146dfb366"
                                 :deps/root "codox/"}))
 
 (defn- hardcoded-deps [project]
