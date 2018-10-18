@@ -2,7 +2,8 @@
   (:require [cljdoc.util :as util]
             [cljdoc.util.repositories :as repositories]
             [clojure.test :as t])
-  (:import (clojure.lang ExceptionInfo)))
+  (:import (clojure.lang ExceptionInfo)
+           (java.io StringReader)))
 
 (t/deftest scm-coordinate-test
   (t/is (= "circleci" (util/scm-owner "https://github.com/circleci/clj-yaml")))
@@ -54,6 +55,11 @@
   (t/is (= "my.app.routes" (util/replant-ns "my.app.core" "routes")))
   (t/is (= "my.app.api.routes" (util/replant-ns "my.app.core" "api.routes")))
   (t/is (= "my.app.api.handlers" (util/replant-ns "my.app.core" "my.app.api.handlers"))))
+
+(t/deftest serialize-read-cljdoc-edn
+    (t/is (= "{:or #regex \"^Test*\"}" (util/serialize-cljdoc-edn {:or #"^Test*"})))
+    ;; we need to compare the resulting string as two regex are equal (= #"" #"") => false
+    (t/is (= (str {:or #"^Test*"}) (str (util/read-cljdoc-edn (StringReader. "{:or #regex \"^Test*\"}"))))))
 
 (comment
   (t/run-tests)
