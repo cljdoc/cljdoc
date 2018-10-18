@@ -9,7 +9,7 @@ to create machine images for the cljdoc server.
 > The intention here is not just to make it easy to spin up an
 > environment but also to document what is needed.
 
-[Terraform](#terraform) | [Packer](#packer) | [Backups](#backing-up-data)
+[Terraform](#terraform) | [Packer](#packer) | [Backups](#backing-up-data) | [Deployment](#deployment)
 
 ## Required Secrets
 
@@ -28,15 +28,11 @@ export TF_VAR_do_token=digital-ocean-api-token
 
 Creating various resources on AWS and DigitalOcean:
 
-- an S3 bucket where HTML documentation is stored
-- a user with a policy that allows updating the bucket contents
-  - a keypair for the user
-- a Cloudfront distribution that serves the contents of this bucket
+- an S3 bucket for cljdoc releases (+ user & key)
+- an S3 bucket for cljdoc backups (+ user & key)
+- a DigitalOcean droplet to run cljdoc
 - a Route53 HostedZone for domain supplied in the configuration
-- a HostedZone RecordSet to point the domain to the Cloudfront distribution
-- a Droplet to run the cljdoc API
-
-For the Cloudfront distribution an AWS ACM certificate will be used which needs to be created manually.
+- a HostedZone RecordSet to point the domain to the droplet
 
 The used domain can be customized in `cljdoc.tfvars`. The domain will
 not be bought and it is expected that the domain's nameserver are set
@@ -95,3 +91,9 @@ The image is based on Fedora, additional provisioning steps can be found in `fed
 ## Backing Up Data
 
 See `backup.sh` and `restore.sh`.
+
+## Deployment
+
+- `script/package` runs various build steps and packages everything into a zip file.
+- CircleCI uploads that zip file to an S3 bucket (which is part of the Terraform setup)
+- `ops/run-cljdoc-api.sh` downloads this zip file and run it in the `prod` profile (see `resources/config.edn` for what this means specifically)

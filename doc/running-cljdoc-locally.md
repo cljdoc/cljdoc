@@ -42,7 +42,7 @@ for `muuntaja` from a local Jar and Git repository:
     ./script/parcel watch    # watch mode
     ```
 
-    > Note: You only need to run `build` or `watch`. Usually you would only use `watch` if you plan on working on JS files.
+    > Note: You only need to run `build` **or** `watch`. Usually you would only use `watch` if you plan on working on JS files.
 
 # Importing a Project from Local Sources
 
