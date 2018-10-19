@@ -50,7 +50,6 @@
       (and (= "org.akvo.flow" group_id)
            (= "akvo-flow" artifact_id))
       (= "lein-template" artifact_id)
-      (= "zcaudate" group_id)
       (.contains group_id "gradle-clojure")
       (.contains group_id "gradle-clj")))
 
