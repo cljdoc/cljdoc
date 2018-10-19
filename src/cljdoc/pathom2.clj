@@ -1,37 +1,51 @@
 ;; Another stab at using Pathom, this time just the core so
 ;; I can develop a better understanding of how it works
 (ns cljdoc.pathom2
-  (:require [com.wsscode.pathom.core :as p]))
+  (:require [com.wsscode.pathom.core :as p]
+            [clojure.set]
+            [cljdoc.util.repositories :as repos]
+            [cljdoc.util.pom :as pom]
+            [cljdoc.config :as config]
+            [cljdoc.storage.sqlite-impl :as cljdoc-sqlite]))
 
 (def computed
   {:artifact/pom-url
    (fn [env]
      (let [{:artifact/keys [name group version] :as x} (p/entity env)]
-       (str group "/" name "/" version)))
+       (:pom (repos/artifact-uris (symbol group name) version))))
+
+   :artifact/by-sql-id
+   (fn [{:keys [db] :as env}]
+     (let [{:artifact/keys [by-sql-id]} (p/entity env)]
+       (#'cljdoc-sqlite/get-version db by-sql-id)))
+
+   :artifact/sql-id
+   (fn [{:keys [db] :as env}]
+     (let [{:artifact/keys [name group version] :as x} (p/entity env)]
+       (#'cljdoc-sqlite/get-version-id db group name version)))
+
    :artifact/dependencies
    (fn [env]
      (let [{:artifact/keys [pom-url]} (p/entity env [:artifact/pom-url])]
-       [#:artifact{:name "cljdoc"
-                   :group "cljdoc"
-                   :version "1.0.0"}
-        #:artifact{:name "cljdoc"
-                   :group "cljdoc"
-                   :version "2.0.0"}]))})
+       (clojure.pprint/pprint (pom/dependencies (pom/parse (slurp pom-url))))
+       (->> (pom/dependencies (pom/parse (slurp pom-url)))
+            (filter :version) ;;dependencyManagement issues
+            (map #(clojure.set/rename-keys % {:group-id :artifact/group
+                                              :artifact-id :artifact/name
+                                              :version :artifact/version}))
+            (p/join-seq env))))})
 
 (def cljdoc-parser
   (p/parser {::p/plugins [(p/env-plugin {::p/reader [p/map-reader computed]})]}))
 
 (comment
-  (def artifact #:artifact{:name  "name" :group "group" :version "1.1.10"})
+  (def artifact #:artifact{:group "org.martinklepsch" :name "derivatives" :version "0.3.0"})
 
-  ;;
-  (cljdoc-parser {::p/entity artifact}
+  (cljdoc-parser {::p/entity artifact
+                  :db (config/db (config/config))}
                  '[:artifact/pom-url
-                   {:artifact/dependencies [:artifact/version :artifact/pom-url]}])
-
-  ;; I'd expect this return value:
-  #:artifact{:pom-url "name/group/1.1.10"
-             :dependencies [#:artifact{:version "..." :pom-url} ,,,]}
+                   :artifact/sql-id
+                   {:artifact/dependencies [* :artifact/sql-id]}])
 
   )
 
@@ -72,7 +86,7 @@
   (parser {::p/entity rick} ; start with rick (as current entity)
           '[:character/name
             {:character/voice [:actor/name]}
-            {:character/family [* :character/voice]}])
+            {:character/family [*]}])
 
   #:character{:name "Rick", :voice #:actor{:name "Justin Roiland"},
               :family [#:character{:name "Morty", :age 14, :voice #:actor{:name "Justin Roiland", :nationality "US"}}
