@@ -15,14 +15,6 @@
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]))
 
-(defn render-to [opts hiccup ^java.io.File file]
-  (log/info "Writing" (clojure.string/replace (.getPath file) #"^.+grimoire-html" "grimoire-html"))
-  (->> hiccup (layout/page opts) str (spit file)))
-
-(defn file-for [out-dir route-id route-params]
-  (doto (io/file out-dir (subs (routes/url-for route-id :path-params route-params) 1) "index.html")
-    io/make-parents))
-
 (defmulti render (fn [page-type route-params cache-bundle] page-type))
 
 (defmethod render :default
