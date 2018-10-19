@@ -226,7 +226,7 @@
          (assoc mp-var :platforms))
     mp-var))
 
-(defn namespace-page [{:keys [ns-entity ns-data defs scm-info top-bar-component article-list-component namespace-list-component]}]
+(defn namespace-page [{:keys [ns-entity ns-data defs scm-info top-bar-component upgrade-notice-component article-list-component namespace-list-component]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (assert (platf/multiplatform? ns-data))
   (let [[[dominant-platf] :as platf-stats] (platform-stats defs)
@@ -241,6 +241,7 @@
     [:div.ns-page
      top-bar-component
      (layout/sidebar
+      upgrade-notice-component
       article-list-component
       namespace-list-component)
      (layout/sidebar-two

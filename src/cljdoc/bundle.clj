@@ -38,6 +38,11 @@
        (map platf/unify-defs)
        (sort-by platf-name)))
 
+(defn more-recent-version
+  [{:keys [cache-contents cache-id]}]
+  (when-not (= (:version cache-id) (:latest cache-contents))
+    (assoc cache-id :version (:latest cache-contents))))
+
 (comment
   (defn cb [id]
     (cljdoc.storage.api/bundle-docs (cljdoc.storage.api/->GrimoireStorage (clojure.java.io/file "data" "grimoire")) id))
