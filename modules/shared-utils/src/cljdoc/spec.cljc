@@ -75,9 +75,10 @@
 ;; versioned artifact, e.g. [re-frame 0.10.5]
 (s/def ::defs (s/coll-of ::def-full :gen-max 2))
 (s/def ::namespaces (s/coll-of map? :gen-max 2))
+(s/def ::latest ::version)
 
 (s/def ::docs-cache
-  (s/keys :req-un [::defs ::namespaces]))
+  (s/keys :req-un [::defs ::namespaces ::latest]))
 
 (s/def ::artifacts (s/coll-of string?))
 (s/def ::versions (s/coll-of (s/keys :req-un [::version ::artifact-id])))

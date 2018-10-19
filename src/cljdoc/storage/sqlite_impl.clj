@@ -5,7 +5,8 @@
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
             [taoensso.nippy :as nippy]
-            [taoensso.tufte :as tufte :refer [defnp p profiled profile]])
+            [taoensso.tufte :as tufte :refer [defnp p profiled profile]]
+            [version-clj.core :as version-clj])
   (:import (org.sqlite SQLiteException)))
 
 
@@ -52,10 +53,13 @@
                group-id artifact-id version-name]
               {:row-fn :id})))
 
-(defn- get-documented-versions-by-group-id
-  "Get all known versions that also have some metadata (usually means that they have documentation)" ;TODO use build_id / merge with releases table?
-  [db-spec group-id]
-  (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and meta not null" group-id]))
+(defn- get-documented-versions
+  "Get all known versions that also have some metadata (usually means that they have documentation)"
+  ;; TODO use build_id / merge with releases table?
+  ([db-spec group-id]
+   (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and meta not null" group-id]))
+  ([db-spec group-id artifact-id]
+   (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and artifact_id = ? and meta not null" group-id artifact-id])))
 
 (defn- get-version [db-spec version-id]
   (first (sql/query db-spec ["select meta from versions where id = ?" version-id]
@@ -107,15 +111,19 @@
 (defn bundle-docs
   [db-spec {:keys [group-id artifact-id version] :as v}]
   (if-let [version-id (get-version-id db-spec group-id artifact-id version)]
-    (->> {:cache-contents (docs-cache-contents db-spec version-id)
-          :cache-id       {:group-id group-id, :artifact-id artifact-id, :version version}}
-         (cljdoc.spec/assert :cljdoc.spec/cache-bundle))
+    (let [versions-on-cljdoc (->> (get-documented-versions db-spec group-id artifact-id)
+                                  (map :name)
+                                  (version-clj/version-sort))]
+      (->> {:cache-contents (-> (docs-cache-contents db-spec version-id)
+                                (assoc :latest (last versions-on-cljdoc)))
+            :cache-id       {:group-id group-id, :artifact-id artifact-id, :version version}}
+           (cljdoc.spec/assert :cljdoc.spec/cache-bundle)))
     (throw (Exception. (format "Could not find version %s" v)))))
 
 (defn bundle-group
   [db-spec group-id]
-  (let [versions (p :get-documented-versions-by-group-id
-                    (get-documented-versions-by-group-id db-spec group-id))]
+  (let [versions (p :get-documented-versions
+                    (get-documented-versions db-spec group-id))]
     (->> {:cache-contents {:versions  (for [v versions]
                                         {:artifact-id (:artifact_id v)
                                          :version     (:name v)})
@@ -164,8 +172,6 @@
   (store-artifact! db-spec (:group-id data) (:artifact-id data) [(:version data)])
 
   (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data))
-
-  (first (get-versions-by-group-id db-spec "amazonica"))
 
   (bundle-docs db-spec {:group-id "beam" :artifact-id "beam-es" :version "0.0.1"})
 
