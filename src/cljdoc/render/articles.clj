@@ -45,6 +45,7 @@
     [:a#js--doc-title.link.blue.ml2 {:href "#"} ""]]])
 
 (defn doc-page [{:keys [top-bar-component
+                        upgrade-notice-component
                         doc-tree-component
                         namespace-list-component
                         doc-scm-url
@@ -52,6 +53,7 @@
   [:div
    top-bar-component
    (layout/sidebar
+    upgrade-notice-component
     (article-list doc-tree-component)
     namespace-list-component)
    (when doc-html doc-nav)

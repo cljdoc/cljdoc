@@ -115,22 +115,25 @@
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
         doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
-                     (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))]
+                     (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
+        common {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
+                :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
+                :namespace-list-component (api/namespace-list {} (bundle/ns-entities cache-bundle))
+                :upgrade-notice-component (if-let [newer-v (bundle/more-recent-version cache-bundle)]
+                                            (layout/upgrade-notice newer-v))}]
     (->> (if doc-html
-           (articles/doc-page {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-                               :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
-                               :namespace-list-component (api/namespace-list {} (bundle/ns-entities cache-bundle))
-                               :doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
-                                                 (-> doc-p :attrs :cljdoc.doc/source-file))
-                               :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
-                                                     doc-html
-                                                     {:scm (:scm (:version cache-contents))
-                                                      :uri-map (fixref/uri-mapping cache-id (doctree/flatten* doc-tree))})})
-           (articles/doc-overview {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-                                   :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
-                                   :namespace-list-component (api/namespace-list {} (bundle/ns-entities cache-bundle))
-                                   :cache-id cache-id
-                                   :doc-tree (doctree/get-subtree doc-tree doc-slug-path)}))
+           (articles/doc-page
+            (merge common
+                   {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
+                                      (-> doc-p :attrs :cljdoc.doc/source-file))
+                    :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
+                                          doc-html
+                                          {:scm (:scm (:version cache-contents))
+                                           :uri-map (fixref/uri-mapping cache-id (doctree/flatten* doc-tree))})}))
+           (articles/doc-overview
+            (merge common
+                   {:cache-id cache-id
+                    :doc-tree (doctree/get-subtree doc-tree doc-slug-path)})))
          (layout/page {:title (str (:title doc-p) " — " (util/clojars-id cache-id) " " (:version cache-id))
                        :description (layout/description cache-id)}))))
 
@@ -148,7 +151,9 @@
                                                                         []))
                        :namespace-list-component (api/namespace-list
                                                   {:current (:namespace ns-emap)}
-                                                  (bundle/ns-entities cache-bundle))}]
+                                                  (bundle/ns-entities cache-bundle))
+                       :upgrade-notice-component (if-let [newer-v (bundle/more-recent-version cache-bundle)]
+                                                   (layout/upgrade-notice newer-v))}]
     (->> (if ns-data
            (api/namespace-page (merge common-params
                                       {:scm-info (:scm (:version cache-contents))
