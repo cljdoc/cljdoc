@@ -27,12 +27,18 @@
     ["/builds" :get nop :route-name :all-builds]})
 
 (defn documentation-routes []
-  #{["/d/:group-id/:artifact-id/:version" :get nop :route-name :artifact/version]
-    ["/d/:group-id" :get nop :route-name :group/index]
-    ["/d/:group-id/:artifact-id" :get nop :route-name :artifact/index]
+  ;; param :group-id of first route is a bit misleading
+  ;; see https://github.com/pedestal/pedestal/issues/337
+  #{["/d/:group-id" :get nop :route-name :artifact/current-via-short-id]
+    ["/d/:group-id/:artifact-id" :get nop :route-name :artifact/current]
+    ["/d/:group-id/:artifact-id/:version" :get nop :route-name :artifact/version]
     ["/d/:group-id/:artifact-id/:version/doc/*article-slug" :get nop :route-name :artifact/doc]
     ["/d/:group-id/:artifact-id/:version/api/:namespace" :get nop :route-name :artifact/namespace]
     ["/download/:group-id/:artifact-id/:version" :get nop :route-name :artifact/offline-bundle]})
+
+(defn index-routes []
+  #{["/versions/:group-id" :get nop :route-name :group/index]
+    ["/versions/:group-id/:artifact-id" :get nop :route-name :artifact/index]})
 
 (defn info-pages-routes []
   #{["/" :get nop :route-name :home]})
@@ -51,6 +57,7 @@
           ;; https://github.com/pedestal/pedestal/issues/570
           #{(select-keys opts [:host :port :scheme])})
         (documentation-routes)
+        (index-routes)
         (api-routes)
         (build-log-routes)
         (info-pages-routes)

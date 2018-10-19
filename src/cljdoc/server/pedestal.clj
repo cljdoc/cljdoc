@@ -241,7 +241,10 @@
 (defn jump-interceptor []
   {:name ::jump
    :enter (fn jump [ctx]
-            (let [project (-> ctx :request :path-params :project)
+            (let [{:keys [project artifact-id group-id] :as params} (-> ctx :request :path-params)
+                  project (cond project project
+                                artifact-id (util/clojars-id params)
+                                group-id group-id)
                   release (try (repos/latest-release-version project)
                                (catch Exception e
                                  (log/warnf "Could not find release for %s" project)))]
@@ -302,6 +305,9 @@
          :artifact/doc       (view storage route-name)
          :artifact/offline-bundle [(data-loader storage route-name)
                                    (offline-bundle)]
+
+         :artifact/current-via-short-id [(jump-interceptor)]
+         :artifact/current [(jump-interceptor)]
          :jump-to-project    [(jump-interceptor)]
          :badge-for-project  [(badge-interceptor)])
        (assoc route :interceptors)))
