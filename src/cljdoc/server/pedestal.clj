@@ -268,10 +268,9 @@
   {:name ::not-found-interceptor
    :leave (fn [context]
             (if-not (http/response? (:response context))
-              (do (log/info ::not-found-interceptor)
-                (assoc context :response {:status 404
-                                          :headers {"Content-Type" "text/html"}
-                                          :body (error/not-found-404)}))
+              (assoc context :response {:status 404
+                                        :headers {"Content-Type" "text/html"}
+                                        :body (error/not-found-404)})
               context))})
 
 (defn offline-bundle []
