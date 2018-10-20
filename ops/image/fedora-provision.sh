@@ -5,17 +5,9 @@ set -euo pipefail
 username="cljdoc"
 prod_data_dir="/var/cljdoc"
 
-jdk_rpm="/tmp/jdk.rpm"
-curl -L -o "$jdk_rpm" \
-     -H "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" \
-     "http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/jdk-8u172-linux-x64.rpm"
-
-dnf install -y "$jdk_rpm"
-rm "$jdk_rpm"
-
 dnf update -y
 
-dnf install -y git curl tmux htop nginx certbot-nginx sqlite
+dnf install -y git curl tmux htop nginx certbot-nginx sqlite java-9-openjdk rlwrap unzip
 
 # User setup
 
@@ -44,11 +36,11 @@ chown -R $username:$username /home/$username/.ssh
 # sed -i '/PasswordAuthentication yes/c\PasswordAuthentication no' /etc/ssh/sshd_config
 # cat /etc/ssh/sshd_config
 
-# Boot installation -------------------------------------------------------------
+# Clojure CLI Tools -------------------------------------------------------------
 
-bootpath=/usr/local/bin/boot
-curl -sL "https://github.com/boot-clj/boot-bin/releases/download/2.7.2/boot.sh" -o "$bootpath"
-chmod +x "$bootpath"
+curl -O https://download.clojure.org/install/linux-install-1.9.0.397.sh
+chmod +x linux-install-1.9.0.397.sh
+sudo ./linux-install-1.9.0.397.sh
 
 # Nginx
 
