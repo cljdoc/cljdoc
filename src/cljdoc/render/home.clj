@@ -1,10 +1,13 @@
 (ns cljdoc.render.home
   (:require [cljdoc.render.layout :as layout]
-            [cljdoc.util :as util]))
+            [cljdoc.util :as util]
+            [cljdoc.config :as cfg]))
 
 (defn search-app []
   [:div.w-90.mb4
-   [:div#cljdoc-search]])
+   [:div#cljdoc-search
+    (when-not (= :prod (cfg/profile))
+      [:p#search-is-not-compiled.red "if you are seeing this, javascript files haven't been compiled"])]])
 
 (def tagline
   "is a website building & hosting documentation for Clojure/Script libraries")

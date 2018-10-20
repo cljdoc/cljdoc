@@ -69,6 +69,7 @@ class App extends Component {
   constructor (props) {
     super(props)
     this.state = { results: [], focused: false }
+    document.querySelector("#search-is-not-compiled").remove()
     // loadResults('reagent', rs => this.setState({results: rs}))
   }
 
