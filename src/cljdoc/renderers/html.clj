@@ -135,6 +135,9 @@
                    {:cache-id cache-id
                     :doc-tree (doctree/get-subtree doc-tree doc-slug-path)})))
          (layout/page {:title (str (:title doc-p) " — " (util/clojars-id cache-id) " " (:version cache-id))
+                       :canonical-url (some->> (bundle/more-recent-version cache-bundle)
+                                               (merge route-params)
+                                               (routes/url-for :artifact/doc :path-params))
                        :description (layout/description cache-id)}))))
 
 (defmethod render :artifact/namespace
@@ -165,6 +168,9 @@
                                                     :namespaces (bundle/namespaces cache-bundle)
                                                     :defs (:defs cache-contents)})))
          (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id cache-id) " " (:version cache-id))
+                       :canonical-url (some->> (bundle/more-recent-version cache-bundle)
+                                               (merge route-params)
+                                               (routes/url-for :artifact/namespace :path-params))
                        :description (layout/description cache-id)}))))
 
 (comment
