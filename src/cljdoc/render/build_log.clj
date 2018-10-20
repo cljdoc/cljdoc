@@ -170,8 +170,21 @@
             (Instant/parse d2)))]
     (str "+" s "s")))
 
+(defn build-analytics
+  [build-aggregates]
+  [:div.mb2
+   (->> build-aggregates
+        (take 6)
+        (map (fn [{:keys [date total failed percent-failed]}]
+               [:dl.dib.mr5
+                [:dd.f6.f6-ns.ml0 date]
+                [:dd.f4.f4-ns.b.ml0
+                 {:class (when (> percent-failed 30) "dark-red")}
+                 (str percent-failed "% failed")]
+                [:dd.f6.f6-ns.ml0 (str failed "/" total)]])))])
+
 (defn builds-page [builds]
-  (->> (for [b builds]
+  (->> (for [b (:builds builds)]
          [:div.br2.ba.b--moon-gray.mb2
           [:div.cf.pa3
            [:div.fl
@@ -217,6 +230,7 @@
               (:error b)               "failed"
               :else                    "in progress")]]])
        (into [:div.mw8.center.pv3.ph2
-              [:h1 "Recent cljdoc builds"]])
+              [:h1 "Recent cljdoc builds"]
+              (build-analytics (:aggregates builds))])
 
    (layout/page {:title "cljdoc builds"})))

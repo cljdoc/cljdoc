@@ -14,12 +14,15 @@
             [cljdoc.util :as util]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
+            [cljdoc.util.datetime :as dt]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
             [cognician.dogstatsd :as d]
             [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
             [cheshire.core :as json]
+            [clj-time.core :as t]
+            [clj-time.format :as time-fmt]
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]
             [io.pedestal.http.ring-middlewares :as ring-middlewares]))
@@ -208,13 +211,33 @@
               ;; Not setting :response implies 404 response
               ctx))})
 
-(defn all-builds
-  [build-tracker]
+(defn build-aggregates
+  "Given builds, calculate aggregate values.
+  Returns a map containing total builds, failed builds, failure percentage."
+  [builds]
+  (let [build-cnt (count builds)
+        failed-build-cnt (->> builds
+                              (filter #(some? (:error %)))
+                              count)]
+    {:date (-> builds
+               first
+               :analysis_triggered_ts
+               dt/->analytics-format)
+     :total build-cnt
+     :failed failed-build-cnt
+     :percent-failed (* 100 (/ failed-build-cnt build-cnt))}))
+
+(defn all-builds  [build-tracker]
   {:name ::build-index
    :enter (fn build-index-render [ctx]
-            (->> (build-log/recent-builds build-tracker 100)
-                 (cljdoc.render.build-log/builds-page)
-                 (ok-html! ctx)))})
+            (let [builds (build-log/recent-builds build-tracker 30)
+                  builds-per-day (->> builds
+                                      (group-by #(-> % :analysis_triggered_ts time-fmt/parse t/day))
+                                      vals)]
+              (->> {:builds builds
+                    :aggregates (map build-aggregates builds-per-day)}
+                   (cljdoc.render.build-log/builds-page)
+                   (ok-html! ctx))))})
 
 (defn badge-url [status color]
   (format "https://badgen.now.sh/badge/cljdoc/%s/%s"
