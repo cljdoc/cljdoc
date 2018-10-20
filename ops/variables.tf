@@ -8,11 +8,8 @@ variable "aws_region" {
 
 variable "domain" {}
 variable "domainAlias" {}
-variable "api_domain" {}
 
 variable "xyz_domain" {}
-
-variable "api_xyz_domain" {}
 
 variable "cf_alias_zone_id" {
   description = "Fixed hardcoded constant zone_id that is used for all CloudFront distributions"
