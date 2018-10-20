@@ -45,7 +45,7 @@
                       (printf "Downloading remote jar...\n")
                       (copy jar-uri jar-f)
                       (.getPath jar-f))
-                    (str jar-uri))]
+                    (str (io/file jar-uri)))]
     (printf "Unpacking %s\n" jar-local)
     (unzip! jar-local target-dir)
     ;; Some projects include their `out` directories in their jars,
