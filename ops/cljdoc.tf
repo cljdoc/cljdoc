@@ -56,28 +56,10 @@ resource "aws_route53_zone" "cljdoc_zone" {
   name     = "${var.domain}"
 }
 
-resource "aws_route53_record" "api" {
-  provider = "aws.prod"
-  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
-  name     = "${var.api_domain}"
-  type     = "A"
-  ttl      = "300"
-  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
-}
-
 resource "aws_route53_record" "main" {
   provider = "aws.prod"
   zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
   name     = "${var.domain}"
-  type     = "A"
-  ttl      = "300"
-  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
-}
-
-resource "aws_route53_record" "xyz_api" {
-  provider = "aws.prod"
-  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
-  name     = "${var.api_xyz_domain}"
   type     = "A"
   ttl      = "300"
   records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
