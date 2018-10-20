@@ -44,6 +44,9 @@
                  [:meta {:content (:description opts) :property "og:description"}]
                  [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :property "og:image"}]
 
+                 ;; Canonical URL -- TODO replace with config
+                 [:link {:rel "canonical" :href (str "https://cljdoc.org" (:canonical-url opts))}]
+
                  (when (:responsive? opts)
                    [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}])
                  [:meta {:charset "utf-8"}]
