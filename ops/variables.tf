@@ -9,7 +9,7 @@ variable "aws_region" {
 variable "domain" {}
 variable "domainAlias" {}
 
-variable "xyz_domain" {}
+variable "org_domain" {}
 
 variable "cf_alias_zone_id" {
   description = "Fixed hardcoded constant zone_id that is used for all CloudFront distributions"

@@ -22,7 +22,8 @@ resource "random_pet" "server" {
   }
 }
 
-# Policies -----------------------------------------------------
+# S3 Buckets ---------------------------------------------------------
+# Todo consider not parameterizing those with the pet name stuff
 
 module "releases_bucket" {
   source      = "./public_bucket"
@@ -36,8 +37,8 @@ module "backups_bucket" {
 
 # DigitalOcean Server ------------------------------------------------
 
-resource "digitalocean_droplet" "cljdoc_api" {
-  image      = "${file("image/image-id")}"
+resource "digitalocean_droplet" "cljdoc_api_old" {
+  image      = "34859710" # ${file("image/image-id")}
   name       = "cljdoc-1"
   region     = "ams3"
   size       = "2gb"
@@ -62,16 +63,7 @@ resource "aws_route53_record" "main" {
   name     = "${var.domain}"
   type     = "A"
   ttl      = "300"
-  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
-}
-
-resource "aws_route53_record" "xyz_main" {
-  provider = "aws.prod"
-  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
-  name     = "${var.xyz_domain}"
-  type     = "A"
-  ttl      = "300"
-  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
+  records  = ["${digitalocean_droplet.cljdoc_api_old.ipv4_address}"]
 }
 
 resource "aws_route53_record" "dokku" {
@@ -81,4 +73,20 @@ resource "aws_route53_record" "dokku" {
   type     = "A"
   ttl      = "300"
   records  = ["167.99.133.5"]
+}
+
+// Org zone and records
+
+resource "aws_route53_zone" "cljdoc_org_zone" {
+  provider = "aws.prod"
+  name     = "${var.org_domain}"
+}
+
+resource "aws_route53_record" "cljdoc_org_main" {
+  provider = "aws.prod"
+  zone_id  = "${aws_route53_zone.cljdoc_org_zone.zone_id}"
+  name     = "${var.org_domain}"
+  type     = "A"
+  ttl      = "300"
+  records  = ["${digitalocean_droplet.cljdoc_api_old.ipv4_address}"]
 }
