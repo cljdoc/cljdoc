@@ -8,8 +8,13 @@ archive="cljdoc-$version.zip"
 
 if [ ! -d "cljdoc-$version" ]; then
     echo "Downloading cljdoc v$version"
-    # TODO fail if 404
-    curl -Ls "https://s3.amazonaws.com/cljdoc-releases-hot-weevil/build-$version/cljdoc.zip" -o "$archive"
+    uri="https://s3.amazonaws.com/cljdoc-releases-hot-weevil/build-$version/cljdoc.zip"
+    echo $uri
+
+    if ! curl --fail -Ls "$uri" -o "$archive"; then
+      echo "ERROR Failed to download build."
+      exit 1
+    fi
 
     echo "Unpacking $archive"
     unzip "$archive" -d "cljdoc-$version"
