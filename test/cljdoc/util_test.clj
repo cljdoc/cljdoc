@@ -57,7 +57,6 @@
   (t/is (= "my.app.api.routes" (util/replant-ns "my.app.core" "api.routes")))
   (t/is (= "my.app.api.handlers" (util/replant-ns "my.app.core" "my.app.api.handlers"))))
 
-
 (t/deftest serialize-read-cljdoc-edn
     (t/is (= "{:or #regex \"^Test*\"}" (util/serialize-cljdoc-edn {:or #"^Test*"})))
     ;; we need to compare the resulting string as two regex are equal (= #"" #"") => false
