@@ -25,7 +25,7 @@
     [:a.link.blue {:href cljdoc-uri}
      (when icon?
        [:img.v-mid.mr2 {:src "https://icon.now.sh/chevron/20"}])
-     (str "cljdoc.xyz" cljdoc-uri)]))
+     (str "cljdoc.org" cljdoc-uri)]))
 
 (defn scm-info [build-info]
   (if (and (:scm_url build-info) (:commit_sha build-info))

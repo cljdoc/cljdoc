@@ -17,7 +17,7 @@ repository containing something like this:
 ```
 
 For a more real-world example, see the [`metosin/reitit`
-docs](https://cljdoc.xyz/d/metosin/reitit/0.1.0/doc/introduction/) and
+docs](https://cljdoc.org/d/metosin/reitit/0.1.0/doc/introduction/) and
 it's corresponding
 [`doc/cljdoc.edn`](https://github.com/metosin/reitit/blob/master/doc/cljdoc.edn)
 

@@ -28,18 +28,18 @@
 
 (defn build-requested
   [project version build-id]
-  (->> (format "Build requested for %s v%s: https://cljdoc.xyz/builds/%s" project version build-id)
+  (->> (format "Build requested for %s v%s: https://cljdoc.org/builds/%s" project version build-id)
        (send-text bot-token chat-id)))
 
 (defn build-failed
   [{:keys [group_id artifact_id version error id]}]
-  (->> (format "%c %s while processing %s/%s: https://cljdoc.xyz/builds/%s" (int 10060) error group_id artifact_id id)
+  (->> (format "%c %s while processing %s/%s: https://cljdoc.org/builds/%s" (int 10060) error group_id artifact_id id)
        (send-text bot-token chat-id)))
 
 (defn import-completed
   [{:keys [group_id artifact_id version]} git-error]
   (->> (when git-error (format "\n%c SCM issue: %s" (int 65039) git-error))
-       (str (format "%c Import completed: https://cljdoc.xyz/d/%s/%s/%s" (int 9989) group_id artifact_id version))
+       (str (format "%c Import completed: https://cljdoc.org/d/%s/%s/%s" (int 9989) group_id artifact_id version))
        (send-text bot-token chat-id)))
 
 (defn has-cljdoc-edn

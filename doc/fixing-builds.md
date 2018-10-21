@@ -11,7 +11,7 @@ This document aims to outline some ways for the community to help fix those brok
 
 ## Find a broken build
 
-1. Go to https://cljdoc.xyz/builds
+1. Go to https://cljdoc.org/builds
 2. Find any build with a red marker on the right (usually "analysis-job-failed")
 3. Get to the build page by clicking on the build ID next to the project name: 
 4. On the build page you can go the the CI job where you will be  able to see a stack trace and other output that was made during the build.
