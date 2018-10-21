@@ -47,6 +47,8 @@
   file but this situation being an edge case this is a sufficient fix for now."
   [pom]
   (->> (pom/dependencies (pom/parse (slurp pom)))
+       ;; compile/runtime scopes will be included by the normal dependency resolution.
+       (filter #(#{"provided" "system" "test"} (:scope %)))
        (keep (fn [{:keys [group-id artifact-id version]}]
                (when-not (or (.startsWith artifact-id "boot-")
                              ;; Ensure that tools.reader version is used as specified by CLJS

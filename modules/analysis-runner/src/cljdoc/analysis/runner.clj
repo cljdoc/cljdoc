@@ -109,8 +109,8 @@
                                                 ;; supplying :dir is necessary to avoid local deps.edn being included
                                                 ;; once -Srepro is finalized it might be useful for this purpose
                                                 :dir (.getParentFile f))
+                                 _ (print-process-result process)
                                  result (util/read-cljdoc-edn f)]
-                             (print-process-result process)
                              (when (zero? (:exit process))
                                (assert result "No data was saved in output file")
                                result))))]
