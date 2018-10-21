@@ -32,7 +32,7 @@ module "releases_bucket" {
 
 module "backups_bucket" {
   source      = "./public_bucket"
-  bucket_name = "cljdoc-backups-${random_pet.server.id}"
+  bucket_name = "${var.backups_bucket_name}"
 }
 
 # DigitalOcean Server ------------------------------------------------

@@ -6,3 +6,5 @@ domain = "cljdoc.xyz"
 domainAlias = "cljdoc_org"
 
 org_domain = "cljdoc.org"
+
+backups_bucket_name = "cljdoc-backups"
