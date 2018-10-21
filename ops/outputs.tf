@@ -27,8 +27,8 @@ output "backups_bucket_user_secret_key" {
 }
 
 # Hosted Zone / IP
-output "hosted_zone_name_servers" {
-  value = "${aws_route53_zone.cljdoc_zone.name_servers}"
+output "xyz_hosted_zone_name_servers" {
+  value = "${aws_route53_zone.cljdoc_xyz_zone.name_servers}"
 }
 
 output "org_hosted_zone_name_servers" {
@@ -36,9 +36,5 @@ output "org_hosted_zone_name_servers" {
 }
 
 output "api_ip" {
-  value = "${digitalocean_droplet.cljdoc_api_old.ipv4_address}"
-}
-
-output "api_ip_new" {
   value = "${digitalocean_droplet.cljdoc_api.ipv4_address}"
 }
