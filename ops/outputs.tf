@@ -31,6 +31,10 @@ output "hosted_zone_name_servers" {
   value = "${aws_route53_zone.cljdoc_zone.name_servers}"
 }
 
+output "org_hosted_zone_name_servers" {
+  value = "${aws_route53_zone.cljdoc_org_zone.name_servers}"
+}
+
 output "api_ip" {
-  value = "${digitalocean_droplet.cljdoc_api.ipv4_address}"
+  value = "${digitalocean_droplet.cljdoc_api_old.ipv4_address}"
 }
