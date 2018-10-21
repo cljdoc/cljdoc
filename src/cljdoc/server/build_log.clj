@@ -66,7 +66,7 @@
     (sql/query db-spec [(str "SELECT * FROM builds "
                              "WHERE analysis_triggered_ts "
                              "BETWEEN DATETIME('now', 'localtime', ?)"
-                             "AND DATETIME('now', 'localtime', '+1 days');")
+                             "AND DATETIME('now', 'localtime', '+1 days')")
                         (str "-" days " days")]))
   (running-build [_ group-id artifact-id version]
     (first
