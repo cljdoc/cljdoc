@@ -35,14 +35,14 @@
                  ;; Google / Search Engine Tags
                  [:meta {:content (:title opts) :itemprop "name"}]
                  [:meta {:content (:description opts) :itemprop "description"}]
-                 [:meta {:content "https://cljdoc.xyz/cljdoc-logo-beta-square.png" :itemprop "image"}]
+                 [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :itemprop "image"}]
 
                  ;; OpenGraph Meta Tags (should work for Twitter/Facebook)
                  ;; TODO [:meta {:content "" :property "og:url"}]
                  [:meta {:content "website" :property "og:type"}]
                  [:meta {:content (:title opts) :property "og:title"}]
                  [:meta {:content (:description opts) :property "og:description"}]
-                 [:meta {:content "https://cljdoc.xyz/cljdoc-logo-beta-square.png" :property "og:image"}]
+                 [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :property "og:image"}]
 
                  (when (:responsive? opts)
                    [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}])

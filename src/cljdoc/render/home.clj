@@ -78,7 +78,7 @@
          [:div.dtc-l.v-mid.ph5-ns.ph4.pv5-l
           [:pre.lh-copy
            [:code
-            "(str \"https://cljdoc.xyz/d/\""
+            "(str \"https://cljdoc.org/d/\""
             "\n     (:group-id your-project) \"/\""
             "\n     (:artifact-id your-project) \"/\""
             "\n     (:version your-project))"]]]]
@@ -94,7 +94,7 @@
           [:p.f2-ns.f3.fw3.lh-copy.near-black "Documentation links are always tied to a specific version and old versions are kept available."]]
          (into [:div.dtc-l.v-mid.ph5-ns.ph4.pv5-l.lh-copy.mb4]
                (->> ["2.1.0" "2.1.1" "2.1.2" "2.1.3"]
-                    (map (fn [v] [:code.db [:span.gray.o-70 "https://cljdoc.xyz/d/bidi/bidi/"] v]))))]
+                    (map (fn [v] [:code.db [:span.gray.o-70 "https://cljdoc.org/d/bidi/bidi/"] v]))))]
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
          [:div.dtc-l.v-mid.ph5-ns.ph4

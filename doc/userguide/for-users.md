@@ -2,14 +2,14 @@
 
 ## Finding Documentation
 
-To find documentation use the search field on the [cljdoc homepage](https://cljdoc.xyz)
+To find documentation use the search field on the [cljdoc homepage](https://cljdoc.org)
 or navigate to documentation directly by entering the appropriate URL.
 
 URLs are formed like this:
 
 ```sh
-# https://cljdoc.xyz/d/$group_id/$artifact_id/$version
-https://cljdoc/.xyz/d/ring/ring-core/1.6.0
+# https://cljdoc.org/d/$group_id/$artifact_id/$version
+https://cljdoc.org/d/ring/ring-core/1.6.0
 ```
 
 If we haven't built documentation for the requested project yet you'll
@@ -21,14 +21,14 @@ longer than 1-2 minutes.
 cljdoc allows users to download bundles of documentation for offline use. To do so just navigate to
 
 ```sh
-# https://cljdoc.xyz/download/$group_id/$artifact_id/$version
-https://cljdoc.xyz/download/reagent/reagent/0.8.1
+# https://cljdoc.org/download/$group_id/$artifact_id/$version
+https://cljdoc.org/download/reagent/reagent/0.8.1
 ```
 
 or download the bundle using curl (note the `-OJ` flags):
 
 ```sh
-curl -OJ https://cljdoc.xyz/download/reagent/reagent/0.8.1
+curl -OJ https://cljdoc.org/download/reagent/reagent/0.8.1
 ```
 
 Also see the [Docsets](/doc/docsets.md) page for more information.

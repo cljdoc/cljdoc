@@ -35,13 +35,13 @@ The resulting `pom.xml` should look somewhat like this although the exact fields
 Sure thing! cljdoc provides badges that will show the latest release
 version as well as an endpoint that redirects to it.
 
-- Badge URL: https://cljdoc.xyz/badge/re-frame
-- Redirect URL: https://cljdoc.xyz/jump/release/re-frame
+- Badge URL: https://cljdoc.org/badge/re-frame
+- Redirect URL: https://cljdoc.org/jump/release/re-frame
 
 Using it in a Markdown file may look like this:
 
 ```markdown
-[![](https://cljdoc.xyz/badge/re-frame)](https://cljdoc.xyz/jump/release/re-frame)
+[![](https://cljdoc.org/badge/re-frame)](https://cljdoc.org/jump/release/re-frame)
 ```
 
 # How to update documentation?

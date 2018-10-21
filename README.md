@@ -2,7 +2,7 @@
 
 An effort to create a central documentation hub for the Clojure & ClojureScript ecosystem.
 
-[For Library Authors](doc/userguide/for-library-authors.adoc) | [Contributing](CONTRIBUTING.adoc) | [Website](https://cljdoc.xyz/) | [ClojuTRE Talk](https://www.youtube.com/watch?v=mWrvd6SE7Vg)
+[For Library Authors](doc/userguide/for-library-authors.adoc) | [Contributing](CONTRIBUTING.adoc) | [Website](https://cljdoc.org/) | [ClojuTRE Talk](https://www.youtube.com/watch?v=mWrvd6SE7Vg)
 
 > :wave: Need help getting started? Say hi on [Telegram](https://telegram.me/martinklepsch), [Twitter](https://twitter.com/martinklepsch) or [Clojurians Slack](http://clojurians.net/) in [#cljdoc](https://clojurians.slack.com/messages/C8V0BQ0M6/).
 
