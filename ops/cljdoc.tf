@@ -12,22 +12,12 @@ provider "digitalocean" {
   token = "${var.do_token}"
 }
 
-# Random -------------------------------------------------------------
-
-resource "random_pet" "server" {
-  # https://www.terraform.io/docs/providers/random/r/pet.html
-  keepers = {
-    # Generate a new pet name each time we switch to a new domain
-    domain = "${var.domain}"
-  }
-}
-
 # S3 Buckets ---------------------------------------------------------
 # Todo consider not parameterizing those with the pet name stuff
 
 module "releases_bucket" {
   source      = "./public_bucket"
-  bucket_name = "cljdoc-releases-${random_pet.server.id}"
+  bucket_name = "${var.releases_bucket_name}"
 }
 
 module "backups_bucket" {
@@ -65,30 +55,30 @@ resource "digitalocean_droplet" "cljdoc_api" {
 
 # Route53 ------------------------------------------------------------
 
-resource "aws_route53_zone" "cljdoc_zone" {
+resource "aws_route53_zone" "cljdoc_xyz_zone" {
   provider = "aws.prod"
-  name     = "${var.domain}"
+  name     = "${var.xyz_domain}"
 }
 
 resource "aws_route53_record" "main" {
   provider = "aws.prod"
-  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
-  name     = "${var.domain}"
+  zone_id  = "${aws_route53_zone.cljdoc_xyz_zone.zone_id}"
+  name     = "${var.xyz_domain}"
   type     = "A"
   ttl      = "300"
-  records  = ["${digitalocean_droplet.cljdoc_api_old.ipv4_address}"]
+  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
 }
 
 resource "aws_route53_record" "dokku" {
   provider = "aws.prod"
-  zone_id  = "${aws_route53_zone.cljdoc_zone.zone_id}"
-  name     = "clojars-stats.${var.domain}"
+  zone_id  = "${aws_route53_zone.cljdoc_xyz_zone.zone_id}"
+  name     = "clojars-stats.${var.xyz_domain}"
   type     = "A"
   ttl      = "300"
   records  = ["167.99.133.5"]
 }
 
-// Org zone and records
+# Org zone and records
 
 resource "aws_route53_zone" "cljdoc_org_zone" {
   provider = "aws.prod"

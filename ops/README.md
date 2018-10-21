@@ -97,3 +97,21 @@ See `backup.sh` and `restore.sh`.
 - `script/package` runs various build steps and packages everything into a zip file.
 - CircleCI uploads that zip file to an S3 bucket (which is part of the Terraform setup)
 - `ops/run-cljdoc-api.sh` downloads this zip file and run it in the `prod` profile (see `resources/config.edn` for what this means specifically)
+
+## Migrating Hosts
+
+When the image is updated it is expected that cljdoc is moved to a new host. Below is
+a rough checklist what stuff should be done when doing so.
+
+- [ ] Create new image
+  - [ ] Create server from that image
+  - [ ] Deploy to that server, check if dependencies are met
+  - [ ] Shut down test server
+
+- [ ] Stop service on current server
+- [ ] Backup data
+- [ ] Restore data to production server
+- [ ] Start cljdoc service on new server
+- [ ] Swap IP in R53 record
+- [ ] Generate certs (or copy if necessary)
+- [ ] link sites-enabled server block (see `get-certs.sh`)

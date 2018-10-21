@@ -4,7 +4,7 @@ set -eou pipefail
 
 file="$1"
 ip=$(terraform output api_ip)
-restore_target="/var/cljdoc2/"
+restore_target="/var/cljdoc/"
 
 data_dir_exists=$(ssh root@$ip test -d "$restore_target"; echo $?)
 
