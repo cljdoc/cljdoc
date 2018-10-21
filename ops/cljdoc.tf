@@ -50,6 +50,19 @@ resource "digitalocean_droplet" "cljdoc_api_old" {
   ssh_keys = ["18144068"]
 }
 
+resource "digitalocean_droplet" "cljdoc_api" {
+  image      = "${file("image/image-id")}"
+  name       = "cljdoc-2"
+  region     = "ams3"
+  size       = "s-1vcpu-2gb"
+  monitoring = true
+
+  # supplying a key here seems to be the only way to
+  # not get a root password via email, despite having
+  # added SSH keys to the snapshot/image before
+  ssh_keys = ["18144068"]
+}
+
 # Route53 ------------------------------------------------------------
 
 resource "aws_route53_zone" "cljdoc_zone" {
@@ -88,5 +101,5 @@ resource "aws_route53_record" "cljdoc_org_main" {
   name     = "${var.org_domain}"
   type     = "A"
   ttl      = "300"
-  records  = ["${digitalocean_droplet.cljdoc_api_old.ipv4_address}"]
+  records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
 }

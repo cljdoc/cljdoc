@@ -38,3 +38,7 @@ output "org_hosted_zone_name_servers" {
 output "api_ip" {
   value = "${digitalocean_droplet.cljdoc_api_old.ipv4_address}"
 }
+
+output "api_ip_new" {
+  value = "${digitalocean_droplet.cljdoc_api.ipv4_address}"
+}
