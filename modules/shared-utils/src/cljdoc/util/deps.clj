@@ -47,7 +47,7 @@
   file but this situation being an edge case this is a sufficient fix for now."
   [pom]
   (->> (pom/dependencies (pom/parse (slurp pom)))
-       (keep (fn [{:keys [group-id artifact-id version]}]
+       (keep (fn [{:keys [group-id artifact-id version scope]}]
                (when-not (or (.startsWith artifact-id "boot-")
                              ;; Ensure that tools.reader version is used as specified by CLJS
                              (and (= group-id "org.clojure")
@@ -55,7 +55,9 @@
                              ;; The version can be nil when pom's utilize dependencyManagement - this unsurprisingly breaks tools.deps
                              ;; Remains to be seen if this causes any issues
                              ;; http://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management
-                             (nil? version))
+                             (nil? version)
+                             ;; compile/runtime scopes will be included by the normal dependency resolution.
+                             (not (#{"provided" "system" "test"} scope)))
                  [(symbol group-id artifact-id) {:mvn/version version}])))
        (into {})))
 
