@@ -212,7 +212,7 @@
   [build-tracker]
   {:name ::build-index
    :enter (fn build-index-render [ctx]
-            (->> (build-log/recent-builds build-tracker 100)
+            (->> (build-log/recent-builds build-tracker 30)
                  (cljdoc.render.build-log/builds-page)
                  (ok-html! ctx)))})
 

@@ -1,8 +1,9 @@
 (ns cljdoc.render.build-log
   (:require [cljdoc.render.layout :as layout]
             [cljdoc.util :as util]
+            [cljdoc.util.datetime :as dt]
             [cljdoc.server.routes :as routes])
-  (:import [java.time Instant Duration]))
+  (:import [java.time Instant Duration ZoneId]))
 
 (defn done? [build-info]
   (boolean
@@ -170,6 +171,35 @@
             (Instant/parse d2)))]
     (str "+" s "s")))
 
+(defn build-aggregates
+  "Given builds, calculate aggregate values.
+  Returns a map containing total builds, failed builds, failure percentage."
+  [builds]
+  (let [build-cnt (count builds)
+        failed-build-cnt (->> builds
+                              (filter #(some? (:error %)))
+                              count)]
+    {:date (-> builds
+               first
+               :analysis_triggered_ts
+               dt/->analytics-format)
+     :total build-cnt
+     :failed failed-build-cnt
+     :percent-failed (* 100 (/ failed-build-cnt build-cnt))}))
+
+(defn build-analytics
+  [build-aggregates]
+  [:div.mb2
+   (->> build-aggregates
+        (take 5)
+        (map (fn [{:keys [date total failed percent-failed]}]
+               [:dl.dib.w-20
+                [:dd.f6.ml0 date]
+                [:dd.f4.b.ml0
+                 {:class (when (> percent-failed 30) "dark-red")}
+                 (str (int percent-failed) "% failed")]
+                [:dd.f6.ml0 (str failed "/" total)]])))])
+
 (defn builds-page [builds]
   (->> (for [b builds]
          [:div.br2.ba.b--moon-gray.mb2
@@ -217,6 +247,15 @@
               (:error b)               "failed"
               :else                    "in progress")]]])
        (into [:div.mw8.center.pv3.ph2
-              [:h1 "Recent cljdoc builds"]])
+              [:h1 "Recent cljdoc builds"]
+              (->> builds
+                   (group-by (fn [b]
+                               (.getDayOfMonth
+                                (.atZone
+                                 (-> b :analysis_triggered_ts Instant/parse)
+                                 (ZoneId/systemDefault)))))
+                   (vals)
+                   (map build-aggregates)
+                   (build-analytics))])
 
    (layout/page {:title "cljdoc builds"})))

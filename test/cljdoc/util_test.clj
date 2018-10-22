@@ -1,6 +1,7 @@
 (ns cljdoc.util-test
   (:require [cljdoc.util :as util]
             [cljdoc.util.repositories :as repositories]
+            [cljdoc.util.datetime :as dt]
             [clojure.test :as t])
   (:import (clojure.lang ExceptionInfo)
            (java.io StringReader)))
@@ -60,6 +61,16 @@
     (t/is (= "{:or #regex \"^Test*\"}" (util/serialize-cljdoc-edn {:or #"^Test*"})))
     ;; we need to compare the resulting string as two regex are equal (= #"" #"") => false
     (t/is (= (str {:or #"^Test*"}) (str (util/read-cljdoc-edn (StringReader. "{:or #regex \"^Test*\"}"))))))
+
+(t/deftest day-suffix-test
+  (t/is (= "st" (dt/day-suffix 1)))
+  (t/is (= "nd" (dt/day-suffix 2)))
+  (t/is (= "rd" (dt/day-suffix 3)))
+  (t/is (= "th" (dt/day-suffix 15))))
+
+(t/deftest analytics-format-test
+  (t/is (= "Wed, Oct 17th" (dt/->analytics-format "2018-10-17T20:58:21.491730Z"))))
+
 
 (comment
   (t/run-tests)

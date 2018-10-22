@@ -18,7 +18,7 @@
   (api-imported! [_ build-id])
   (completed! [_ build-id git-result])
   (get-build [_ build-id])
-  (recent-builds [_ limit])
+  (recent-builds [_ days])
   (running-build [_ group-id artifact-id version]))
 
 (defrecord SQLBuildTracker [db-spec]
@@ -62,8 +62,12 @@
                  ["id = ?" build-id]))
   (get-build [_ build-id]
     (first (sql/query db-spec ["SELECT * FROM builds WHERE id = ?" build-id])))
-  (recent-builds [_ limit]
-    (sql/query db-spec ["SELECT * FROM builds ORDER BY id DESC LIMIT ?" limit]))
+  (recent-builds [_ days]
+    (sql/query db-spec [(str "SELECT * FROM builds "
+                             "WHERE analysis_triggered_ts "
+                             "BETWEEN DATETIME('now', 'localtime', ?) "
+                             "AND DATETIME('now', 'localtime', '+1 days')")
+                        (str "-" days " days")]))
   (running-build [_ group-id artifact-id version]
     (first
      (sql/query db-spec [(str "select * from builds where error is null "
