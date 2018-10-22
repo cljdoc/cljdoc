@@ -9,7 +9,7 @@
         (layout/top-bar-generic)
         [:div.pa4-ns.pa2
          [:h1 "Want to build some documentation?"]
-         [:p "We currently don't have documentation built for " (util/clojars-id route-params) " v" (:version route-params)]
+         [:p "We currently don't have documentation built for " [:b (util/clojars-id route-params)] " version " [:b (:version route-params)]]
          (if (repositories/find-artifact-repository (util/clojars-id route-params) (:version route-params))
            [:form.pv3 {:action "/api/request-build2" :method "POST"}
             [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "project" :name "project" :value (str (:group-id route-params) "/" (:artifact-id route-params))}]
