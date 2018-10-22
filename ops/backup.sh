@@ -4,13 +4,19 @@ set -eou pipefail
 
 ip=$(terraform output api_ip)
 date=$(date "+%Y-%m-%d")
-file="backup-$date.tar.gz"
+tar_file="backup-$date.tar.gz"
 
-ssh root@$ip tar -cazf "$file" -C /var/cljdoc/ .
 
-entry_count=$(ssh root@$ip tar -tf "$file" | wc -l)
+ssh root@$ip mkdir /tmp/cljdoc-backup/
 
-echo "Stored $entry_count files in $file"
+ssh root@$ip sqlite3 /var/cljdoc/cljdoc.db.sqlite \".backup '/tmp/cljdoc-backup/cljdoc.db.sqlite'\"
 
-scp root@$ip:"$file" prod-backup/
-ssh root@$ip rm "$file"
+ssh root@$ip tar -cazf "$tar_file" -C /tmp/cljdoc-backup/ .
+
+entry_count=$(ssh root@$ip tar -tf "$tar_file" | wc -l)
+
+echo "Stored $entry_count files in $tar_file"
+
+scp root@$ip:"$tar_file" prod-backup/
+ssh root@$ip rm "$tar_file"
+ssh root@$ip rm -rf /tmp/cljdoc-backup
