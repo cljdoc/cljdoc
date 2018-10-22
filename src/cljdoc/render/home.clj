@@ -33,9 +33,9 @@
          (search-app)
          [:p.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]
           " or check out some examples: "
-          [:a.link.blue.nowrap {:href "/d/re-frame/re-frame/0.10.5"} "re-frame"] ", "
-          [:a.link.blue.nowrap {:href "/d/compojure/compojure/1.6.1"} "compojure"] ", "
-          [:a.link.blue.nowrap {:href "/d/clojure.java-time/clojure.java-time/0.3.2"} "clojure.java-time"] "."]]
+          [:a.link.blue.nowrap {:href "/d/re-frame/re-frame/CURRENT"} "re-frame"] ", "
+          [:a.link.blue.nowrap {:href "/d/compojure/compojure/CURRENT"} "compojure"] ", "
+          [:a.link.blue.nowrap {:href "/d/clojure.java-time/clojure.java-time/CURRENT"} "clojure.java-time"] "."]]
 
         [:div.mt5.bg-white
          (into [:div.dt-l.dt--fixed.bb.bt.b--light-gray.lh-copy]
