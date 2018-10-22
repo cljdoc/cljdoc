@@ -21,17 +21,18 @@
       ;; Stuff that depends on a SCM url being present
       (let [repo        (git/->repo git-dir)
             version-tag (git/version-tag repo version)
+            default-branch (.getFullBranch (.getRepository repo))
             revision    (or pom-revision
                             (:name version-tag)
                             (when (.endsWith version "-SNAPSHOT")
-                              "master"))
+                              default-branch))
             git-files   (when revision
                           (git/ls-files repo revision))
             config-edn  (when revision
                           (->> (or (git/read-cljdoc-config repo revision)
                                    ;; in case people add the file later,
-                                   ;; also check in master branch
-                                   (git/read-cljdoc-config repo "master"))
+                                   ;; also check in default branch
+                                   (git/read-cljdoc-config repo default-branch))
                                (edn/read-string)))]
 
         (when config-edn
