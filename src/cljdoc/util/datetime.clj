@@ -13,12 +13,10 @@
 (defn ->analytics-format
   "Turns timestamp to a nice, human readable date format."
   [ts]
-  (let [datetime (Instant/parse ts)]
-    (str (.format (.withZone (DateTimeFormatter/ofPattern "EEE, MMM dd")
-                             (ZoneId/systemDefault)) datetime)
-         (day-suffix (.getDayOfMonth
-                      (.atZone datetime
-                               (ZoneId/systemDefault)))))))
+  (let [datetime (Instant/parse ts)
+        utc      (ZoneId/of "UTC")]
+    (str (.format (.withZone (DateTimeFormatter/ofPattern "EEE, MMM dd") utc) datetime)
+         (day-suffix (.getDayOfMonth (.atZone datetime utc))))))
 
 (comment
 

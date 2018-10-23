@@ -3,7 +3,8 @@
             [cljdoc.util :as util]
             [cljdoc.util.datetime :as dt]
             [cljdoc.server.routes :as routes])
-  (:import [java.time Instant Duration ZoneId]))
+  (:import [java.time Instant Duration ZoneId]
+           [java.time.temporal ChronoUnit]))
 
 (defn done? [build-info]
   (boolean
@@ -249,12 +250,8 @@
        (into [:div.mw8.center.pv3.ph2
               [:h1 "Recent cljdoc builds"]
               (->> builds
-                   (group-by (fn [b]
-                               (.getDayOfMonth
-                                (.atZone
-                                 (-> b :analysis_triggered_ts Instant/parse)
-                                 (ZoneId/systemDefault)))))
-                   (vals)
+                   (partition-by #(-> % :analysis_triggered_ts Instant/parse
+                                      (.truncatedTo  ChronoUnit/DAYS)))
                    (map build-aggregates)
                    (build-analytics))])
 
