@@ -7,13 +7,20 @@ if [[ $# -eq 0 ]] || [ -z "$1" ] ; then
     exit 1
 fi
 
+version="$1"
+
+if ! curl -sfI "https://s3.amazonaws.com/cljdoc-releases-hot-weevil/build-$version/cljdoc.zip";
+then
+  echo "ERROR: Requested version not available on S3: $version"
+  exit 1
+fi
+
 tf_opts="-state=ops/terraform.tfstate"
 api_ip=$(terraform output "$tf_opts" api_ip)
 tf_out_json=$(terraform output "$tf_opts" -json)
 
 secrets_file=$(mktemp -t cljdoc-secrets.edn)
 version_file=$(mktemp -t CLJDOC_VERSION)
-version="$1"
 
 
 echo -e "\nDeploying $version to $api_ip"
