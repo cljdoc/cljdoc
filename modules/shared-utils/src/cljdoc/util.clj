@@ -218,3 +218,15 @@
                      drop-last
                      vec
                      (conj target)))))
+
+(defn mean [coll]
+  (if (seq coll) (/ (reduce + coll) (count coll)) 0))
+
+(defn variance
+  "Returns the variance for a collection of values."
+  ;; we should probably just use some libarry for this...
+  [coll]
+  (when (seq coll)
+    (let [sqr  (fn sqr [x] (* x x))
+          avg  (mean coll)]
+      (mean (map #(sqr (- % avg)) coll)))))

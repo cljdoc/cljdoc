@@ -190,16 +190,20 @@
 
 (defn build-analytics
   [build-aggregates]
-  [:div.mb2
-   (->> build-aggregates
-        (take 5)
-        (map (fn [{:keys [date total failed percent-failed]}]
-               [:dl.dib.w-20
-                [:dd.f6.ml0 date]
-                [:dd.f4.b.ml0
-                 {:class (when (> percent-failed 30) "dark-red")}
-                 (str (int percent-failed) "% failed")]
-                [:dd.f6.ml0 (str failed "/" total)]])))])
+  (let [days   (take 5 build-aggregates)
+        stddev (Math/sqrt (util/variance (map :percent-failed days)))
+        mean   (util/mean (map :percent-failed days))
+        too-high? (fn [v] (< (+ mean stddev) v))]
+    [:div.mb2
+     (->> build-aggregates
+          (take 5)
+          (map (fn [{:keys [date total failed percent-failed]}]
+                 [:dl.dib.w-20
+                  [:dd.f6.ml0 date]
+                  [:dd.f4.b.ml0
+                   {:class (when (too-high? percent-failed) "dark-red")}
+                   (str (int percent-failed) "% failed")]
+                  [:dd.f6.ml0 (str failed "/" total)]])))]))
 
 (defn builds-page [builds]
   (->> (for [b (take 100 builds)]
