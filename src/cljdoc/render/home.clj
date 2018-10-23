@@ -25,7 +25,7 @@
 
 (defn home []
   (->> [:div.pt4
-        [:div.mt5.mw7.center.pa4.pa0-l
+        [:div.mt5-ns.mw7.center.pa4.pa0-l
          [:h1.ma0
           [:span.dn "cljdoc beta"]
           [:img {:src "/cljdoc-logo-beta.svg" :alt "cljdoc logo" :width "150px"}]]
@@ -37,7 +37,7 @@
           [:a.link.blue.nowrap {:href "/d/compojure/compojure/CURRENT"} "compojure"] ", "
           [:a.link.blue.nowrap {:href "/d/clojure.java-time/clojure.java-time/CURRENT"} "clojure.java-time"] "."]]
 
-        [:div.mt5.bg-white
+        [:div.mt5-ns.bg-white
          (into [:div.dt-l.dt--fixed.bb.bt.b--light-gray.lh-copy]
                (map feature-block
                     [{:title "Automated Docs"
