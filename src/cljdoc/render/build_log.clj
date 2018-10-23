@@ -201,7 +201,7 @@
                 [:dd.f6.ml0 (str failed "/" total)]])))])
 
 (defn builds-page [builds]
-  (->> (for [b builds]
+  (->> (for [b (take 100 builds)]
          [:div.br2.ba.b--moon-gray.mb2
           [:div.cf.pa3
            [:div.fl
