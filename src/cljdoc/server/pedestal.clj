@@ -113,9 +113,10 @@
 (def article-locator
   {:name ::article-locator
    :enter (fn article-locator [ctx]
-            ;; TOOD read correct article from cache-bundle, put
+            ;; TODO read correct article from cache-bundle, put
             ;; somewhere in ctx if not found 404
             )})
+
 
 (defn view [storage route-name]
   (->> [(version-resolve-redirect)
@@ -328,10 +329,10 @@
        ::http/type   :jetty
        ::http/join?  false
        ::http/port   (:port opts)
-       ;; TODO look into this somre more:
+       ;; TODO look into this some more:
        ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
        ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-       ;; When runnning with boot repl the resources on the classpath are not
+       ;; When running with boot repl the resources on the classpath are not
        ;; updated as they change so in these cases using file path is easier
        ;; This breaks the homepage for whatever reason
        ;; ::http/file-path "resources/public"
