@@ -27,19 +27,6 @@ module "backups_bucket" {
 
 # DigitalOcean Server ------------------------------------------------
 
-resource "digitalocean_droplet" "cljdoc_api_old" {
-  image      = "34859710" # ${file("image/image-id")}
-  name       = "cljdoc-1"
-  region     = "ams3"
-  size       = "2gb"
-  monitoring = true
-
-  # supplying a key here seems to be the only way to
-  # not get a root password via email, despite having
-  # added SSH keys to the snapshot/image before
-  ssh_keys = ["18144068"]
-}
-
 resource "digitalocean_droplet" "cljdoc_api" {
   image      = "${file("image/image-id")}"
   name       = "cljdoc-2"
