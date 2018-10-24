@@ -20,3 +20,7 @@ echo "Stored $entry_count files in $tar_file"
 scp root@$ip:"$tar_file" prod-backup/
 ssh root@$ip rm "$tar_file"
 ssh root@$ip rm -rf /tmp/cljdoc-backup
+
+AWS_ACCESS_KEY_ID=$(terraform output backups_bucket_user_access_key) \
+  AWS_SECRET_ACCESS_KEY=$(terraform output backups_bucket_user_secret_key) \
+  aws s3 sync prod-backup/ s3://$(terraform output backups_bucket_name)/
