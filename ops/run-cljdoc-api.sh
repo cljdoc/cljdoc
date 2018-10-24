@@ -11,7 +11,7 @@ if [ ! -d "cljdoc-$version" ]; then
     uri="https://s3.amazonaws.com/cljdoc-releases-hot-weevil/build-$version/cljdoc.zip"
     echo $uri
 
-    if ! curl --fail -Ls "$uri" -o "$archive"; then
+    if ! curl --fail --location --silent "$uri" -o "$archive"; then
       echo "ERROR Failed to download build."
       exit 1
     fi
