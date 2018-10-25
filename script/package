@@ -4,7 +4,7 @@ set -eou pipefail
 dir="target"
 zipfile="$dir/cljdoc.zip"
 
-./script/parcel build
+npm run build
 mkdir "$dir"
 git archive HEAD -o "$zipfile"
 zip -ur "$zipfile" resources-compiled

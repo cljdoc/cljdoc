@@ -20,8 +20,16 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "deps.edn" }}
-          - v1-dependencies- # fallback if not cache found
+            - v1-npm-dependencies-{{ checksum "package-lock.json" }}
+            - v1-npm-dependencies- # fallback if cache not found
+
+      - run: npm ci
+      - run: npm run lint
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "deps.edn" }}
+            - v1-dependencies- # fallback if cache not found
 
       - run: clojure -Spath
 
@@ -32,8 +40,6 @@ jobs:
       - store_test_results:
           path: target/
 
-      - run: npm ci
-      - run: sudo npm install -g parcel
       - run: ./script/package
 
       - persist_to_workspace:
@@ -45,6 +51,10 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
+      - save_cache:
+          paths:
+            - ./node_modules
+          key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
 
   deploy:
     docker:

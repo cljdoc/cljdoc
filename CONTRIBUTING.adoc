@@ -10,6 +10,8 @@ to make your experience contributing to cljdoc nice and painless.
   cljdoc should always be welcoming to first time contributors, even
   if it sometimes means more work for existing maintainers.
 
+NOTE: To get the code up and running take a look at link:doc/running-cljdoc-locally.md[Running cljdoc locally].
+
 === Code of Conduct
 
 cljdoc has adopted a link:doc/CODE_OF_CONDUCT.adoc[Code of Conduct]. Please read and adhere to it.
