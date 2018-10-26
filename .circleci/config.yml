@@ -24,7 +24,6 @@ jobs:
             - v1-npm-dependencies- # fallback if cache not found
 
       - run: npm ci
-      - run: npm run lint
 
       - restore_cache:
           keys:
@@ -56,6 +55,17 @@ jobs:
             - ./node_modules
           key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
 
+  prettier:
+    docker:
+      - image: circleci/node:latest
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-npm-dependencies-{{ checksum "package-lock.json" }}
+      - run: npm ci
+      - run: npm run lint
+
   deploy:
     docker:
       - image: circleci/python:2.7-jessie
@@ -82,6 +92,7 @@ workflows:
   build-and-deploy:
     jobs:
       - build
+      - prettier
       - deploy:
           requires:
             - build
