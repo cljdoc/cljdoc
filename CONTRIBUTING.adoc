@@ -158,7 +158,7 @@ to document important* decisions. You can find these in link:doc/adr/[`doc/adr/`
 invited to write ADRs as well.
 
 NOTE: **What's important?** There's no easy or perfect answer here, one thing
-I often do is asking myself if the decision can be easily reversed later on.
+I often do is asking myself if the decision can be easily reverted later on.
 If it can, then an ADR might not be necessary — but could still be useful.
 When in doubt, just discuss with other contributors :slightly_smiling_face:.
 
