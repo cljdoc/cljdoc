@@ -9,7 +9,7 @@ fi
 
 version="$1"
 
-if ! curl -sfI "https://s3.amazonaws.com/cljdoc-releases-hot-weevil/build-$version/cljdoc.zip";
+if ! curl --silent --fail --head "https://s3.amazonaws.com/cljdoc-releases-hot-weevil/build-$version/cljdoc.zip";
 then
   echo "ERROR: Requested version not available on S3: $version"
   exit 1
