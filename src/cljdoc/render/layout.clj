@@ -1,6 +1,7 @@
 (ns cljdoc.render.layout
   "Components to layout cljdoc pages"
   (:require [cljdoc.server.routes :as routes]
+            [cljdoc.config :as config]
             [cljdoc.util :as util]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]
@@ -23,6 +24,13 @@
   [{:keys [group-id artifact-id version] :as cache-id}]
   (format "Documentation for %s v%s on cljdoc, a website that builds and hosts documentation for Clojure/Script libraries."
           (util/clojars-id cache-id) version))
+
+(defn no-js-warning []
+  [:div.fixed.left-0.right-0.bottom-0.bg-washed-red.code.b--light-red.bw3.ba.dn
+   {:id "no-js-warning"}
+   [:script
+    (hiccup/raw "fetch(\"/js/index.js\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
+   [:p.ph4 "Could not find JavaScript assets, please refer to " [:a.fw7.link {:href (util/github-url :running-locally)} "the documentation"] " for how to build JS assets."]])
 
 (defn page [opts contents]
   (hiccup/html {:mode :html}
@@ -56,11 +64,14 @@
                    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
                    "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
                    "/cljdoc.css")]
-                [:div.sans-serif
-                 contents]
-                [:div#cljdoc-switcher]
-                [:script {:src "/js/index.js"}]
-                (highlight-js)]))
+                [:body
+                 [:div.sans-serif
+                  contents]
+                 (when (not= :prod (config/profile))
+                   (no-js-warning))
+                 [:div#cljdoc-switcher]
+                 [:script {:src "/js/index.js"}]
+                 (highlight-js)]]))
 
 (defn sidebar-title [title]
   [:h4.ttu.f7.fw5.mt1.mb2.tracked.gray title])
