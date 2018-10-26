@@ -44,37 +44,9 @@ interesting use-cases down the road.
 
 ## Contributing
 
-To start the entire system, simply run:
-
-```
-./script/cljdoc run
-```
-
-After that the server will start under http://localhost:8000/. You can
-navigate to a projects documentation page like
-http://localhost:8000/d/bidi/bidi/2.1.3/ and request a build. This
-will analyze Bidi's source code locally and store the result. After
-that is done you can reload the page and view the documentation.
-
-Logs can be viewed with `tail -f log/cljdoc.log`.
-
-:recycle: For a more REPL-driven workflow, you can start a REPL with `clj`,
-then load the system and move into its namespace:
-
-```clj
-(require '[cljdoc.server.system])
-(in-ns 'cljdoc.server.system)
-```
-
-Now check the comment block at the end of
-[`cljdoc.server.system`](src/cljdoc/server/system.clj).
-
-**Tests:** There is a small amount of tests which can be ran with `clj -A:test`.
-
-#### ADRs
-
-I've been looking for an opportunity to use [ADRs](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions) for some time, you can find them all in [`doc/adr/`](https://github.com/cljdoc/cljdoc/tree/master/doc/adr).
-
+1. Take look at our [Contributing file](doc/CONTRIBUTING.md)
+1. Get up and running by following the steps in [Running cljdoc locally](doc/running-cljdoc-locally.md)
+1. Understand why things are the way they are by reading our [Architecture Decision Records](doc/CONTRIBUTING.md#architecture-decision-records)
 
 ## License
 

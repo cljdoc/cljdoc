@@ -45,6 +45,12 @@ for `muuntaja` from a local Jar and Git repository:
 
     > Note: You only need to run `build` **or** `dev`. Usually you would only use `dev` if you plan on working on JS files.
 
+1. Run tests using [Kaocha](https://github.com/lambdaisland/kaocha):
+
+    ```
+    clj -A:test
+    ```
+
 # Importing a Project from Local Sources
 
 1. Clone `muuntaja` to a direcory of your liking and install it into your local Maven repo:

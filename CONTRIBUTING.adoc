@@ -146,6 +146,24 @@ responsibility as you please.
 - Once a user has contributed one commit they will become a maintainer
   as described above.
 
+=== (Architecture) Decision Records
+
+In any project like this people make decisions that sometimes confuse
+others later on. Sometimes this is because a constraint that was previously
+present is no longer there. Sometimes it is better options becoming available
+or something else entirely.
+
+In order to avoid such confusion cljdoc uses http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions:[Architecture Decision Records]
+to document important* decisions. You can find these in link:doc/adr/[`doc/adr/`] and are
+invited to write ADRs as well.
+
+NOTE: **What's important?** There's no easy or perfect answer here, one thing
+I often do is asking myself if the decision can be easily reversed later on.
+If it can, then an ADR might not be necessary — but could still be useful.
+When in doubt, just discuss with other contributors :slightly_smiling_face:.
+
+It may also be worth documenting decisions outside of software architecture.
+
 == Thoughts?
 
 This document is a work in progress, if you see any issues with it or
