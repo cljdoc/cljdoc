@@ -44,9 +44,9 @@ interesting use-cases down the road.
 
 ## Contributing
 
-1. Take look at our [Contributing file](CONTRIBUTING.md)
+1. Take look at our [Contributing file](CONTRIBUTING.adoc)
 1. Get up and running by following the steps in [Running cljdoc locally](doc/running-cljdoc-locally.md)
-1. Understand why things are the way they are by reading our [Architecture Decision Records](CONTRIBUTING.md#architecture-decision-records)
+1. Understand why things are the way they are by reading our [Architecture Decision Records](CONTRIBUTING.adoc#architecture-decision-records)
 
 ## License
 
