@@ -126,6 +126,18 @@ function restoreSidebarScrollPos() {
   localStorage.removeItem("sidebarScrollPos");
 }
 
+if (document.querySelector(".main-scroll-view")) {
+  document.getElementById("meta-icon").onclick = function() {
+    document.getElementById("meta-icon").style.display = "none";
+    document.getElementById("meta-dialog").style.display = "block";
+  };
+
+  document.getElementById("close").onclick = function() {
+    document.getElementById("meta-dialog").style.display = "none";
+    document.getElementById("meta-icon").style.display = "block";
+  };
+}
+
 export {
   initSrollIndicator,
   initToggleRaw,
