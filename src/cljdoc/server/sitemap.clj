@@ -1,16 +1,30 @@
 (ns cljdoc.server.sitemap
   (:require [sitemap.core :refer [generate-sitemap]]
             [clojure.tools.logging :as log]
-            [cljdoc.storage.sqlite_impl :as storage]))
+            [cljdoc.config :as cfg]
+            [cljdoc.storage.api :as storage]
+            [cljdoc.server.routes :as routes]))
 
 
-(defn sitemap [var]
-  (generate-sitemap [{:loc "http://hashobject.com/about"
-                      :lastmod "2013-05-31"
-                      :changefreq "monthly"
-                      :priority "0.8"}
-                     {:loc "http://hashobject.com/team"
-                      :lastmod "2013-06-01"
-                      :changefreq "monthly"
-                      :priority "0.9"}]))
+(defn sitemap [db-spec]
+  (generate-sitemap
+   (for [{:keys [group_id artifact_id] :as doc} (storage/all-distinct-docs db-spec)]
+     {:loc
+      (routes/url-for :artifact/current :path-params {:group-id group_id
+                                                      :artifact-id artifact_id})}))
+  )
+
+(comment
+  (def db-spec
+    (-> (cfg/config)
+        (cfg/db)
+        (storage/->SQLiteStorage)))
+
+  (routes/url-for :artifact/current :path-params {:group-id "a" :artifact-id "b"})
+
+  (storage/all-distinct-docs db-spec)
+
+  (sitemap db-spec)
+
+  )
 
