@@ -307,7 +307,7 @@
   (->> (case route-name
          :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
          :shortcuts  [{:name ::shortcuts :enter #(ok-html! % (render-meta/shortcuts))}]
-         :sitemap    [{:name ::sitemap :enter #(ok-xml! % (sitemap/sitemap %))}]
+         :sitemap    [{:name ::sitemap :enter #(ok-xml! % (sitemap/sitemap storage))}]
          :show-build [pu/coerce-body
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
