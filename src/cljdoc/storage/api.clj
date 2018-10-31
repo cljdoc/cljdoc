@@ -8,6 +8,7 @@
   (exists? [_ entity])
   (bundle-docs [_ version-entity])
   (bundle-group [_ group-entity])
+  (all-distinct-docs [_])
   )
 
 (defrecord SQLiteStorage [db-spec]
@@ -29,4 +30,6 @@
   (bundle-docs [_ {:keys [group-id artifact-id version] :as version-entity}]
     (sqlite/bundle-docs db-spec version-entity))
   (bundle-group [_ {:keys [group-id]}]
-    (sqlite/bundle-group db-spec group-id)))
+    (sqlite/bundle-group db-spec group-id))
+  (all-distinct-docs [_]
+    (sqlite/all-distinct-docs db-spec)))
