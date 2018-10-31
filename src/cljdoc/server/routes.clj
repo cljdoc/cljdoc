@@ -42,7 +42,8 @@
 
 (defn info-pages-routes []
   #{["/" :get nop :route-name :home]
-    ["/shortcuts" :get nop :route-name :shortcuts]})
+    ["/shortcuts" :get nop :route-name :shortcuts]}
+  #{["/sitemap.xml" :get nop :route-name :sitemap]})
 
 (defn utility-routes []
   #{["/jump/release/*project" :get nop :route-name :jump-to-project]

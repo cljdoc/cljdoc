@@ -11,6 +11,7 @@
             [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
+            [cljdoc.server.sitemap :as sitemap]
             [cljdoc.storage.api :as storage]
             [cljdoc.util :as util]
             [cljdoc.util.repositories :as repos]
@@ -32,6 +33,11 @@
   (assoc ctx :response {:status 200
                         :body (str body)
                         :headers {"Content-Type" "text/html"}}))
+
+(defn ok-xml! [ctx body]
+  (assoc ctx :response {:status 200
+                        :body (str body)
+                        :headers {"Content-Type" "text/xml"}}))
 
 (def render-interceptor
   {:name  ::render
@@ -301,6 +307,7 @@
   (->> (case route-name
          :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
          :shortcuts  [{:name ::shortcuts :enter #(ok-html! % (render-meta/shortcuts))}]
+         :sitemap    [{:name ::sitemap :enter #(ok-xml! % (sitemap/sitemap %))}]
          :show-build [pu/coerce-body
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
