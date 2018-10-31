@@ -92,41 +92,23 @@
    {:style {:top (str TOP-BAR-HEIGHT "px") :left "16rem"}} ; CSS HACK
    contents])
 
-(defn meta-info-icon []
-  [:img#meta-icon.ma3
-   {:src "/meta-info-icon.svg"
-    :alt "meta info icon"
-    :width "60px"
-    :style {:position "fixed"
-            :right 0
-            :bottom 0
-            :background "white"}}])
-
-(defn meta-element [description link]
-  [:div.mv1.pv3.tc.br2
-   {:style {:background-color "#ECF2FB"}}
-   [:a.link.black
-    {:href link}
-    description]])
-
 (defn meta-info-dialog []
-  [:div#meta-dialog.ma3.pa3.ba.br3.b--blue.bw2.w-20
-   {:style {:display "none"
-            :position "fixed"
-            :right 0
-            :bottom 0
-            :background "white"}}
+  [:div#js--meta-dialog.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
    [:p.ma0
     [:b "cljdoc"]
     " is a website building & hosting documentation for Clojure/Script libraries"]
    (into [:div.mv3]
          (map (fn [[description link]]
-                (meta-element description link))
+                [:div.mv1.pv3.tc.br2
+                 {:style {:background-color "#ECF2FB"}}
+                 [:a.link.black
+                  {:href link}
+                  description]])
               [["Keyboard shortcuts"  "#"]
                ["Report a problem"    (util/github-url :issues)]
-               ["Recent improvements" "#"]
+               ;; ["Recent improvements" "#"] TODO add link once it exists
                ["cljdoc on GitHub"    (util/github-url :home)]]))
-   [:a#close.link.black.fr
+   [:a#js--meta-close.link.black.fr
     "× close"]])
 
 (defn main-container [{:keys [offset extra-height]} & content]
@@ -134,7 +116,8 @@
     {:style {:left offset
              :top (str (+ TOP-BAR-HEIGHT (or extra-height 0)) "px")}}
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view
-           (meta-info-icon)
+           [:img#js--meta-icon.ma3.fixed.right-0.bottom-0.bg-white.db-ns
+            {:src "https://icon.now.sh/explore/60/357edd"}]
            (meta-info-dialog)]
           content)])
 

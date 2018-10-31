@@ -8,7 +8,8 @@ import {
   initSrollIndicator,
   initToggleRaw,
   initDocTitle,
-  restoreSidebarScrollPos
+  restoreSidebarScrollPos,
+  toggleMetaDialog
 } from "./cljdoc";
 
 trackProjectOpened();
@@ -25,6 +26,7 @@ if (isNSPage()) {
 
 if (isDocPage()) {
   initDocTitle();
+  toggleMetaDialog();
 }
 
 window.onbeforeunload = function() {
