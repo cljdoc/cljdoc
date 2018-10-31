@@ -99,6 +99,9 @@
 
 ;; API --------------------------------------------------------------------------
 
+(defn all-distinct-docs [db-spec]
+  (sql/query db-spec ["select distinct group_id, artifact_id from versions"]))
+
 (defn docs-available? [db-spec group-id artifact-id version-name]
   (or (sql-exists? db-spec ["select exists(select id from versions where group_id = ? and artifact_id = ? and name = ? and meta not null)"
                             group-id artifact-id version-name])
@@ -164,6 +167,11 @@
 
 (comment
   (def data (clojure.edn/read-string (slurp "https://2941-119377591-gh.circle-artifacts.com/0/cljdoc-edn/stavka/stavka/0.4.1/cljdoc.edn")))
+
+  (def db-spec
+   (cljdoc.config/db (cljdoc.config/config)))
+
+  (all-distinct-docs db-spec)
 
   (import-api db-spec
               (select-keys data [:group-id :artifact-id :version])
