@@ -126,16 +126,22 @@ function restoreSidebarScrollPos() {
   localStorage.removeItem("sidebarScrollPos");
 }
 
-if (document.querySelector(".main-scroll-view")) {
-  document.getElementById("meta-icon").onclick = function() {
-    document.getElementById("meta-icon").style.display = "none";
-    document.getElementById("meta-dialog").style.display = "block";
-  };
+function toggleMetaDialog() {
+  if (document.querySelector(".main-scroll-view")) {
+    document.getElementById("js--meta-icon").onclick = function() {
+      document.getElementById("js--meta-icon").classList.replace("db-ns", "dn");
+      document
+        .getElementById("js--meta-dialog")
+        .classList.replace("dn", "db-ns");
+    };
 
-  document.getElementById("close").onclick = function() {
-    document.getElementById("meta-dialog").style.display = "none";
-    document.getElementById("meta-icon").style.display = "block";
-  };
+    document.getElementById("js--meta-close").onclick = function() {
+      document
+        .getElementById("js--meta-dialog")
+        .classList.replace("db-ns", "dn");
+      document.getElementById("js--meta-icon").classList.replace("dn", "db-ns");
+    };
+  }
 }
 
 export {
@@ -143,6 +149,7 @@ export {
   initToggleRaw,
   initDocTitle,
   restoreSidebarScrollPos,
+  toggleMetaDialog,
   isNSPage,
   isDocPage
 };
