@@ -40,7 +40,8 @@
 
 (defn more-recent-version
   [{:keys [cache-contents cache-id]}]
-  (when-not (= (:version cache-id) (:latest cache-contents))
+  (when (and (:latest cache-contents)
+             (not= (:version cache-id) (:latest cache-contents)))
     (assoc cache-id :version (:latest cache-contents))))
 
 (comment
