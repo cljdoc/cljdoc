@@ -284,6 +284,24 @@
                                         :body (error/not-found-404)})
               context))})
 
+(defn sitemap-cache
+  "This is a stateful function that caches the sitemap in memory for 60 minutes."
+  [storage state]
+  (let [prev (:last-generated @state)
+        now  (java.util.Date.)]
+    (when (or (not prev)
+              (> (- (.getTime now) (.getTime prev)) 360000))
+      (swap! state assoc :last-generated (java.util.Date.))
+      (swap! state assoc :sitemap (sitemap/build storage)))
+    (:sitemap @state)))
+
+(defn sitemap-interceptor
+  [storage]
+  (let [state (atom {:last-generated nil
+                     :sitemap        nil})]
+    {:name  ::sitemap
+     :enter #(ok-xml! % (sitemap-cache storage state))}))
+
 (defn offline-bundle []
   {:name ::offline-bundle
    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
@@ -307,7 +325,7 @@
   (->> (case route-name
          :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
          :shortcuts  [{:name ::shortcuts :enter #(ok-html! % (render-meta/shortcuts))}]
-         :sitemap    [{:name ::sitemap :enter #(ok-xml! % (sitemap/sitemap storage))}]
+         :sitemap    [(sitemap-interceptor storage)]
          :show-build [pu/coerce-body
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
