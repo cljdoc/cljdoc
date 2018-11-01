@@ -1,19 +1,24 @@
 (ns cljdoc.server.sitemap
-  (:require [sitemap.core :refer [generate-sitemap]]
+  (:require [sitemap.core :refer [generate-sitemap-and-save validate-sitemap]]
             [clojure.tools.logging :as log]
             [cljdoc.config :as cfg]
             [cljdoc.storage.api :as storage]
             [cljdoc.server.routes :as routes]))
 
 
+(defn- query->url-entries
+  [{:keys [group_id artifact_id name]}]
+  {:loc     (routes/url-for :artifact/version :path-params {:group-id group_id
+                                                            :artifact-id artifact_id
+                                                            :version name})
+   :lastmod (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") (java.util.Date.))})
+
 (defn sitemap [db-spec]
-  (generate-sitemap
-   (for [{:keys [group_id artifact_id name] :as doc} (storage/all-distinct-docs db-spec)]
-     {:loc
-      (routes/url-for :artifact/version :path-params {:group-id group_id
-                                                      :artifact-id artifact_id
-                                                      :version name})}))
-  )
+  (->>
+   (storage/all-distinct-docs db-spec)
+   (map query->url-entries)
+   (generate-sitemap-and-save "sitemap.xml")
+  ))
 
 (comment
   (def db-spec
@@ -23,9 +28,15 @@
 
   (routes/url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
 
-  (storage/all-distinct-docs db-spec)
+  (def docs
+    (storage/all-distinct-docs db-spec)
+    )
 
-  (sitemap db-spec)
+  (query->url-entries (first docs))
+
+  (validate-sitemap
+   (sitemap db-spec)
+   )
 
   )
 
