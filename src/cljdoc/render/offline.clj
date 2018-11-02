@@ -18,7 +18,8 @@
             [me.raynes.fs.compression :as fs-compression]
             [hiccup2.core :as hiccup]
             [hiccup.page])
-  (:import (java.nio.file Files)))
+  (:import (java.nio.file Files)
+           (java.net URL)))
 
 (defn ns-url
   [ns]
@@ -62,17 +63,19 @@
                      (util/clojars-id version-entity) " v"
                      (:version version-entity))]
                    [:meta {:charset "utf-8"}]
-                   (hiccup.page/include-css
-                    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
-                    "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
-                    (if sub-page? "../cljdoc.css" "cljdoc.css"))]
+                   (->> ["assets/cljdoc.css" "assets/github-gist.min.css" "assets/tachyons.min.css"]
+                        (map #(cond->> % sub-page? (str "../")))
+                        (apply hiccup.page/include-css))]
                   [:div.sans-serif
                    (top-bar version-entity scm-url sub-page?)
                    [:div.absolute.bottom-0.left-0.right-0.overflow-scroll
                     {:style {:top "52px"}}
                     [:div.mw7.center.pa2.pb4
                      contents]]]
-                  (layout/highlight-js)])))
+                  (->> ["assets/highlight.min.js" "assets/clojure.min.js" "assets/clojure-repl.min.js"]
+                       (map #(cond->> % sub-page? (str "../")))
+                       (apply hiccup.page/include-js))
+                  (layout/highlight-js-customization)])))
 
 (defn article-toc
   "Very similar to `doc-tree-view` but uses the offline-docs
@@ -153,7 +156,13 @@
 
     (reduce
      into
-     [[["cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]
+     [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]
+       ["assets/tachyons.min.css" (URL. "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css")]
+       ["assets/github-gist.min.css" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css")]
+       ["assets/highlight.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js")]
+       ["assets/clojure.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js")]
+       ["assets/clojure-repl.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")]
+
        ["index.html" (->> (index-page cache-bundle)
                           (page' nil nil))]]
 
@@ -180,6 +189,7 @@
          (map (fn [[k v]]
                 [(str prefix k)
                  (cond
+                   (instance? URL v)                  (slurp v)
                    (instance? java.io.File v)         (Files/readAllBytes (.toPath v))
                    (instance? hiccup.util.RawString v) (.getBytes (str v))
                    :else (throw (Exception. (str "Unsupported value " (class v)))))]))
@@ -191,7 +201,7 @@
 
   (i/inspect-tree --c)
 
-  (def --c (storage/bundle-docs (storage/->SQLiteStorage ,,,)
+  (def --c (storage/bundle-docs (storage/->SQLiteStorage (cljdoc.config/db (cljdoc.config/config)))
                                 #_{:group-id "reagent" :artifact-id "reagent" :version "0.8.1"}
                                 {:group-id "re-frame" :artifact-id "re-frame" :version "0.10.5"}
                                 #_{:group-id "manifold" :artifact-id "manifold" :version "0.1.6"}))
@@ -199,7 +209,8 @@
   (defn hiccup-raw-str? [x]
     (instance? hiccup.util.RawString x))
 
-  (zip-stream --c)
+  (io/copy (zip-stream --c)
+           (io/file "offline.zip"))
 
   (map first (docs-files --c))
 
@@ -213,5 +224,10 @@
                  (instance? hiccup.util.RawString v) (.getBytes (str v))
                  :else (throw (Exception. (str "Unsupported value " (class v)))))]))
        (fs-compression/zip "offline-docs.zip"))
+
+
+  (slurp (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"))
+
+  (slurp (io/input-stream "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"))
 
   )

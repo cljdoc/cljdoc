@@ -7,17 +7,20 @@
             [hiccup2.core :as hiccup]
             [hiccup.page]))
 
+(defn highlight-js-customization []
+  [:script
+   (->> ["hljs.initHighlightingOnLoad();"
+         "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });"]
+        (string/join "\n")
+        (hiccup/raw))])
+
 (defn highlight-js []
   [:div
    (hiccup.page/include-js
     "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"
     "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js"
     "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")
-   [:script
-    (->> ["hljs.initHighlightingOnLoad();"
-          "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });"]
-         (string/join "\n")
-         (hiccup/raw))]])
+   (highlight-js-customization)])
 
 (defn description
   "Return a string to be used as description meta tag for a given project's documentation pages."
