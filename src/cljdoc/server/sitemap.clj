@@ -8,9 +8,10 @@
 
 (defn- query->url-entries
   [{:keys [group_id artifact_id name]}]
-  {:loc     (routes/url-for :artifact/version :path-params {:group-id    group_id
-                                                            :artifact-id artifact_id
-                                                            :version     name})
+  {:loc     (str "https://cljdoc.org"
+                 (routes/url-for :artifact/version :path-params {:group-id    group_id
+                                                                 :artifact-id artifact_id
+                                                                 :version     name}))
    :lastmod (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") (java.util.Date.))})
 
 (defn build [db-spec]
