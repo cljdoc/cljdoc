@@ -164,6 +164,32 @@ When in doubt, just discuss with other contributors :slightly_smiling_face:.
 
 It may also be worth documenting decisions outside of software architecture.
 
+=== Evaluating What To Work On
+
+Our time is limited and bigger features should always be evaluated by
+the impact they will have on the project and the overall community.
+
+Some thoughts which may help to decide what to work on:
+
+- cljdoc's impact could be measured as the productivity boost it gives
+  to Clojure/Script developers using it. Obviously this is hard to actually
+  measure but it's a good foundational assumption.
+- Initially cljdoc boosted that productivity by providing API documentation
+  for libraries without requiring any extra work from library authors.
+- Each productivity boost comes with costs:
+  1. cost of writing the code
+  1. cost of educating users about a feature
+  1. cost of using a feature (e.g. library authors having to opt-in to
+     something) - Some costs can be thought of as **one-time** whereas
+     others may be **recurring**, e.g. incurring each time a library author
+     opts-in to the feature.
+
+Good features:
+
+- **impact** scales with the number of users,
+- while educating users about the feature is easy and
+- **costs** are mostly one-time.
+
 == Thoughts?
 
 This document is a work in progress, if you see any issues with it or
