@@ -48,6 +48,10 @@ interesting use-cases down the road.
 1. Get up and running by following the steps in [Running cljdoc locally](doc/running-cljdoc-locally.md)
 1. Understand why things are the way they are by reading our [Architecture Decision Records](CONTRIBUTING.adoc#architecture-decision-records)
 
+## Contributors
+
+![cljdoc contributors](https://opencollective.com/cljdoc/contributors.svg?width=890)
+
 ## License
 
 `EPL-2.0` see `LICENSE`
