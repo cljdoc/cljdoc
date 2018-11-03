@@ -4,7 +4,7 @@ Date: 2018-10-14
 
 ## Status
 
-Accepted
+Superseded by [ADR #0015](0015-cancel-work-on-examples.md)
 
 ## Context
 
