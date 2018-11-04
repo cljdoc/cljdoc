@@ -33,7 +33,7 @@ More details in [ADR-0014](https://github.com/cljdoc/cljdoc/blob/master/doc/adr/
 
 With examples on hold and spec integration [still being semi-blocked](https://github.com/cljdoc/cljdoc/issues/67) there is some time to explore other areas. Some things I'm looking forward to in particular: 
 
-- A ubiquitous search interface to find functions, articles and switch between recently viewed projects. ([#194](https://github.com/cljdoc/cljdoc/issues/194)
+- A ubiquitous search interface to find functions, articles and switch between recently viewed projects. ([#194](https://github.com/cljdoc/cljdoc/issues/194))
 - Integration of download statistics from Clojars ([#68](https://github.com/cljdoc/cljdoc/issues/68))
 - Showing a project's dependencies and license (also [#68](https://github.com/cljdoc/cljdoc/issues/68))
 - Various search engine optimisations ([#192](https://github.com/cljdoc/cljdoc/issues/192), [#164](https://github.com/cljdoc/cljdoc/issues/164) & [#160](https://github.com/cljdoc/cljdoc/issues/160))
@@ -41,7 +41,7 @@ With examples on hold and spec integration [still being semi-blocked](https://gi
 
 ## Tell people about cljdoc
 
-Quoting somebody who came by the [#cljdoc Slack channel](https://clojurians.slack.com/messages/C8V0BQ0M6/) recently:
+Quoting somebody who came by the [#cljdoc Slack channel](https://clojurians.slack.com/messages/C8V0BQ0M6/) recently (emphasis mine :P):
 
 > Hey. Just wanted to say thanks to the authors. Was looking for a way to document my cljs library, tested a few other tools, none of them would document the (hundreds of) dynamically generated functions. Even thought about writing my own. Forgot about it until I stumbled on cljdoc and the docs are already built! And it works perfectly! **This project needs more promotion.**
 
