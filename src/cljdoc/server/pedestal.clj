@@ -2,6 +2,7 @@
   (:require [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.home :as render-home]
+            [cljdoc.render.meta :as render-meta]
             [cljdoc.render.error :as error]
             [cljdoc.render.offline :as offline]
             [cljdoc.renderers.html :as html]
@@ -299,6 +300,7 @@
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
+         :shortcuts  [{:name ::shortcuts :enter #(ok-html! % (render-meta/shortcuts))}]
          :show-build [pu/coerce-body
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
