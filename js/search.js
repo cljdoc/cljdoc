@@ -35,7 +35,7 @@ class SearchInput extends Component {
       className: "pa2 w-100 br1 border-box b--blue ba input-reset",
       onFocus: e => props.focus(),
       onBlur: e => setTimeout(_ => props.unfocus(), 200),
-      onKeyUp: e => (e.keyCode == 27 ? this.base.blur() : null),
+      onKeyDown: e => props.onKeyDown(e),
       onInput: e =>
         debouncedLoader(
           cleanSearchStr(e.target.value),
@@ -45,28 +45,45 @@ class SearchInput extends Component {
   }
 }
 
-const SingleResultView = r => {
+function resultUri(result) {
+  return (
+    "/d/" + result.group_name + "/" + result.jar_name + "/" + result.version
+  );
+}
+
+const SingleResultView = (r, idx, isSelected, onMouseOver) => {
   const project =
     r.group_name === r.jar_name
       ? r.group_name
       : r.group_name + "/" + r.jar_name;
-  const docsUri = "/d/" + r.group_name + "/" + r.jar_name + "/" + r.version;
+  const docsUri = resultUri(r);
   return h("a", { className: "no-underline black", href: docsUri }, [
-    h("div", { className: "pa3 bb b--light-gray" }, [
-      h("h4", { className: "dib ma0" }, [
-        project,
-        h("span", { className: "ml2 gray normal" }, r.version)
-      ]),
-      h(
-        "a",
-        {
-          className: "link blue ml2",
-          href: docsUri
-        },
-        "view docs"
-      )
-      // h('span', {}, r.created)
-    ])
+    h(
+      "div",
+      {
+        className: isSelected
+          ? "pa3 bb b--light-gray bg-light-blue"
+          : "pa3 bb b--light-gray",
+        onMouseOver: () => {
+          onMouseOver(idx);
+        }
+      },
+      [
+        h("h4", { className: "dib ma0" }, [
+          project,
+          h("span", { className: "ml2 gray normal" }, r.version)
+        ]),
+        h(
+          "a",
+          {
+            className: "link blue ml2",
+            href: docsUri
+          },
+          "view docs"
+        )
+        // h('span', {}, r.created)
+      ]
+    )
   ]);
 };
 
@@ -84,26 +101,57 @@ const ResultsView = props => {
     },
     props.results
       .sort((a, b) => b.created - a.created)
-      .map(r => SingleResultView(r))
+      .map((r, idx) =>
+        SingleResultView(r, idx, props.selectedIndex == idx, props.onMouseOver)
+      )
   );
 };
 
 class App extends Component {
+  handleInputKeyDown(e) {
+    if (e.which === 13 && this.state.focused) {
+      let result = this.state.results[this.state.selectedIndex];
+      window.open(resultUri(result), "_self");
+    } else if (e.which === 27) {
+      this.setState({ focused: false });
+    } else if (e.which === 38) {
+      // arrow up
+      e.preventDefault(); // prevents caret from moving in input field
+      this.setState({
+        selectedIndex: Math.max(this.state.selectedIndex - 1, 0)
+      });
+    } else if (e.which === 40) {
+      // arrow down
+      e.preventDefault();
+      this.setState({
+        selectedIndex: Math.min(
+          this.state.selectedIndex + 1,
+          this.state.results.length - 1
+        )
+      });
+    }
+  }
+
   constructor(props) {
     super(props);
-    this.state = { results: [], focused: false };
-    // loadResults('reagent', rs => this.setState({results: rs}))
+    this.handleInputKeyDown = this.handleInputKeyDown.bind(this);
+    this.state = { results: [], focused: false, selectedIndex: 0 };
   }
 
   render(props, state) {
     return h("div", { className: "relative system-sans-serif" }, [
       h(SearchInput, {
         newResultsCallback: rs => this.setState({ focused: true, results: rs }),
+        onKeyDown: this.handleInputKeyDown,
         focus: () => this.setState({ focused: true }),
         unfocus: () => this.setState({ focused: false })
       }),
       state.focused && state.results.length > 0
-        ? h(ResultsView, { results: state.results })
+        ? h(ResultsView, {
+            results: state.results,
+            selectedIndex: state.selectedIndex,
+            onMouseOver: idx => this.setState({ selectedIndex: idx })
+          })
         : null
     ]);
   }
