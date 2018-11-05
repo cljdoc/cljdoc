@@ -104,7 +104,7 @@
                  [:a.link.black
                   {:href link}
                   description]])
-              [["Keyboard shortcuts"  "#"]
+              [["Keyboard shortcuts"  (routes/url-for :shortcuts)]
                ["Report a problem"    (util/github-url :issues)]
                ;; ["Recent improvements" "#"] TODO add link once it exists
                ["cljdoc on GitHub"    (util/github-url :home)]]))
