@@ -63,7 +63,7 @@ class SwitcherSingleResultView extends Component {
           "div",
           {
             className: isSelected
-              ? "pa3 bb b--light-gray bg-washed-blue"
+              ? "pa3 bb b--light-gray bg-light-blue"
               : "pa3 bb b--light-gray"
           },
           [
