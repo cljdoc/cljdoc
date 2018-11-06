@@ -284,23 +284,22 @@
                                         :body (error/not-found-404)})
               context))})
 
-(defn sitemap-cache
-  "This is a stateful function that caches the sitemap in memory for 60 minutes."
-  [storage state]
-  (let [prev (:last-generated @state)
-        now  (java.util.Date.)]
-    (when (or (not prev)
-              (> (- (.getTime now) (.getTime prev)) 360000))
-      (swap! state assoc :last-generated (java.util.Date.))
-      (swap! state assoc :sitemap (sitemap/build storage)))
-    (:sitemap @state)))
+(defn build-sitemap
+  "Build a new sitemap if previous one was built longer than 60 minutes ago."
+  [{:keys [last-generated sitemap] :as state} storage]
+  (let [now (java.util.Date.)]
+    (if (or (not last-generated)
+            (> (- (.getTime now) (.getTime last-generated)) 360000))
+      ;; Return updated state
+      {:last-generated now :sitemap (sitemap/build storage)}
+      ;; Return identical state
+      state)))
 
 (defn sitemap-interceptor
   [storage]
-  (let [state (atom {:last-generated nil
-                     :sitemap        nil})]
+  (let [state (atom {})]
     {:name  ::sitemap
-     :enter #(ok-xml! % (sitemap-cache storage state))}))
+     :enter #(ok-xml! % (:sitemap (swap! state build-sitemap storage)))}))
 
 (defn offline-bundle []
   {:name ::offline-bundle

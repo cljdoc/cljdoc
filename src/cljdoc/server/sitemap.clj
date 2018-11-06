@@ -1,6 +1,6 @@
 (ns cljdoc.server.sitemap
   (:require [clojure.java.io :as io]
-            [sitemap.core :refer [generate-sitemap validate-sitemap]]
+            [sitemap.core :as sitemap]
             [clojure.tools.logging :as log]
             [cljdoc.config :as cfg]
             [cljdoc.storage.api :as storage]
@@ -18,7 +18,7 @@
   (->>
    (storage/all-distinct-docs db-spec)
    (map query->url-entries)
-   (generate-sitemap)))
+   (sitemap/generate-sitemap)))
 
 (comment
   (def db-spec
@@ -34,7 +34,7 @@
 
   (query->url-entries (first docs))
 
-  (validate-sitemap
+  (sitemap/validate-sitemap
    (build db-spec)
    )
 
