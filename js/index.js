@@ -26,6 +26,9 @@ if (isNSPage()) {
 
 if (isDocPage()) {
   initDocTitle();
+}
+
+if (isDocPage() || isNSPage()) {
   toggleMetaDialog();
 }
 
