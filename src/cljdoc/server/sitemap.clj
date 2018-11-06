@@ -11,8 +11,7 @@
   {:loc     (str "https://cljdoc.org"
                  (routes/url-for :artifact/version :path-params {:group-id    group_id
                                                                  :artifact-id artifact_id
-                                                                 :version     name}))
-   :lastmod (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") (java.util.Date.))})
+                                                                 :version     name}))})
 
 (defn- assert-valid-sitemap [sitemap]
   (if (seq (sitemap/validate-sitemap sitemap))
