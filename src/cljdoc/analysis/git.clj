@@ -8,7 +8,34 @@
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
             [clojure.edn :as edn]
+            [clojure.spec.alpha :as spec]
             [clojure.tools.logging :as log]))
+
+(spec/def ::files (spec/map-of string? string?))
+(spec/def ::name string?)
+(spec/def ::sha string?)
+(spec/def ::rev ::sha)
+(spec/def ::commit ::sha)
+
+(spec/def ::tag
+  (spec/keys :req-un [::name ::sha ::commit]))
+
+(spec/def ::scm
+  (spec/keys :req-un [::files ::tag ::rev]))
+
+(spec/def ::doc-tree ::doctree/doctree)
+
+(spec/def ::type string?)
+(spec/def ::error
+  (spec/keys :req-un [::type]))
+
+(spec/fdef analyze-git-repo
+  :args (spec/cat :project string?
+                  :version string?
+                  :scm-url string?
+                  :pom-revision (spec/nilable string?))
+  :ret (spec/or :ok (spec/keys :req-un [::scm ::doc-tree])
+                :err (spec/keys :req-un [::error])))
 
 (defn analyze-git-repo
   [project version scm-url pom-revision]
@@ -73,3 +100,10 @@
       (finally
         (when (.exists git-dir)
           (util/delete-directory! git-dir))))))
+
+(comment
+  (def r (analyze-git-repo "metosin/reitit" "0.2.5" "https://github.metosin/reitit" nil))
+
+  (spec/explain (:ret (spec/get-spec `analyze-git-repo)) r)
+
+  )
