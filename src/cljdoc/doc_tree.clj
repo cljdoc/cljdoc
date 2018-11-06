@@ -1,12 +1,51 @@
 (ns cljdoc.doc-tree
-  (:require [clojure.java.io :as io]
+  (:require [clojure.spec.alpha :as spec]
+            [clojure.java.io :as io]
             [cuerdas.core :as cuerdas]))
 
-(defn read-file [f]
-  (assert (.exists f) (format "File supplied in doctree does not exist %s" f))
-  (-> f slurp #_(subs 0 20)))
+(spec/def :cljdoc.doc/source-file string?)
+(spec/def :cljdoc/asiidoc string?)
+(spec/def :cljdoc/markdown string?)
+(spec/def ::slug string?)
+(spec/def ::title string?)
+(spec/def ::file string?)
+
+;; Specs for the fully unfurled doctree that is eventually stored in
+;; the database. This includes the documents content, slug and more.
+(spec/def ::entry
+  (spec/keys :req-un [::title ::attrs]
+             :opt-un [::children]))
+
+(spec/def ::attrs
+  (spec/keys :req-un [::slug]
+             :opt [:cljdoc.doc/source-file
+                   :cljdoc/asciidoc
+                   :cljdoc/markdown]))
+
+
+(spec/def ::children
+  (spec/coll-of ::entry))
+
+(spec/def ::doctree
+  (spec/coll-of ::entry))
+
+;; Specs for the Hiccup style configuration format that library authors
+;; may use to specify articles and their hierarchy.
+(spec/def ::hiccup-attrs
+  (spec/keys :opt-un [::file]))
+
+(spec/def ::hiccup-entry
+  (spec/spec
+   (spec/cat :title ::title
+             :attrs ::hiccup-attrs
+             :children (spec/* ::hiccup-entry))))
 
 (declare process-toc)
+
+(spec/fdef process-toc-entry
+  :args (spec/cat :slurp-fn fn?
+                  :entry ::hiccup-entry)
+  :ret ::entry)
 
 (defn process-toc-entry [slurp-fn [title attrs & children]]
   (assert (or (nil? attrs) (map? attrs)) "Doctree attribute map is missing")
@@ -27,6 +66,11 @@
 
     (seq children)
     (assoc :children (process-toc slurp-fn children))))
+
+(spec/fdef process-toc
+  :args (spec/cat :slurp-fn fn?
+                  :entry (spec/* ::hiccup-entry))
+  :ret ::doctree)
 
 (defn process-toc [slurp-fn toc]
   (let [slurp! (fn [file] (or (slurp-fn file)
