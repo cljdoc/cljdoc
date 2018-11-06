@@ -100,7 +100,7 @@
 ;; API --------------------------------------------------------------------------
 
 (defn all-distinct-docs [db-spec]
-  (sql/query db-spec ["select distinct group_id, artifact_id, name from versions"]))
+  (sql/query db-spec ["select group_id, artifact_id, name from versions"]))
 
 (defn docs-available? [db-spec group-id artifact-id version-name]
   (or (sql-exists? db-spec ["select exists(select id from versions where group_id = ? and artifact_id = ? and name = ? and meta not null)"
