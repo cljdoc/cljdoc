@@ -14,11 +14,17 @@
                                                                  :version     name}))
    :lastmod (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") (java.util.Date.))})
 
+(defn- assert-valid-sitemap [sitemap]
+  (if (seq (sitemap/validate-sitemap sitemap))
+    (throw (ex-info "Invalide sitemap generated" {}))
+    sitemap))
+
 (defn build [db-spec]
   (->>
    (storage/all-distinct-docs db-spec)
    (map query->url-entries)
-   (sitemap/generate-sitemap)))
+   (sitemap/generate-sitemap)
+   (assert-valid-sitemap)))
 
 (comment
   (def db-spec
@@ -38,5 +44,20 @@
    (build db-spec)
    )
 
+  (->>
+   (sitemap/generate-sitemap [{:loc "http://example.com/about"
+                       :lastmod "2014-07-00"
+                       :changefreq "monthly"
+                       :priority "0.5"}])
+   (assert-valid-sitemap)
   )
 
+  (->>
+   (sitemap/generate-sitemap [{:loc "http://example.com/about"
+                               :lastmod "2014-07-24"
+                               :changefreq "monthly"
+                               :priority "0.5"}])
+   (assert-valid-sitemap)
+   )
+
+)
