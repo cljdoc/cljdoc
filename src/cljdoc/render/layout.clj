@@ -99,16 +99,14 @@
     " is a website building & hosting documentation for Clojure/Script libraries"]
    (into [:div.mv3]
          (map (fn [[description link]]
-                [:div.mv1.pv3.tc.br2
-                 {:style {:background-color "#ECF2FB"}}
-                 [:a.link.black
-                  {:href link}
-                  description]])
+                [:a.db.link.black.mv1.pv3.tc.br2.pointer
+                 {:href link, :style {:background-color "#ECF2FB"}}
+                 description])
               [["Keyboard shortcuts"  (routes/url-for :shortcuts)]
                ["Report a problem"    (util/github-url :issues)]
                ;; ["Recent improvements" "#"] TODO add link once it exists
                ["cljdoc on GitHub"    (util/github-url :home)]]))
-   [:a#js--meta-close.link.black.fr
+   [:a#js--meta-close.link.black.fr.pointer
     "× close"]])
 
 (defn main-container [{:keys [offset extra-height]} & content]
@@ -116,8 +114,8 @@
     {:style {:left offset
              :top (str (+ TOP-BAR-HEIGHT (or extra-height 0)) "px")}}
     (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view
-           [:img#js--meta-icon.ma3.fixed.right-0.bottom-0.bg-white.db-ns
-            {:src "https://icon.now.sh/explore/60/357edd"}]
+           [:img#js--meta-icon.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
+            {:src "https://icon.now.sh/explore/48/357edd"}]
            (meta-info-dialog)]
           content)])
 
