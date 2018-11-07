@@ -8,7 +8,7 @@
 
   Services that implement this interface will receive all relevant information
   via their `trigger-build` method. The expectation then is that the services
-  will eventually call `/api/full-build` with the appropriate params.
+  will eventually call `/api/ingest-api` with the appropriate params.
 
   Initially this has been done with CircleCI but this is tricky during local
   development (webhooks and all). A local service is now implemented for this
@@ -49,7 +49,7 @@
    {:accept "application/json"
     :basic-auth [(:api-token circle-ci) ""]}))
 
-(defrecord Local [full-build-url]
+(defrecord Local [ingest-api-url]
   IAnalysisService
   (trigger-build
     [_ {:keys [build-id project version jarpath pompath]}]
@@ -59,8 +59,8 @@
         (log/infof "Starting local analysis for %s %s %s" project version jarpath)
         (let [cljdoc-edn-file (analysis/analyze-impl (symbol project) version jarpath pompath)]
           (log/infof "Got file from Local AnalysisService %s" cljdoc-edn-file)
-          (log/info "Posting to" full-build-url)
-          (http/post full-build-url
+          (log/info "Posting to" ingest-api-url)
+          (http/post ingest-api-url
                      {:form-params {:project project
                                     :version version
                                     :build-id build-id

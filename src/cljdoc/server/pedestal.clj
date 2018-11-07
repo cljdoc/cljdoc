@@ -25,6 +25,7 @@
             [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
             [cljdoc.server.sitemap :as sitemap]
+            [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
             [cljdoc.util :as util]
             [cljdoc.util.repositories :as repos]
@@ -148,7 +149,7 @@
   "Create an interceptor that will initiate documentation builds based
   on provided form params using `analysis-service` for analysis and tracking
   build progress/state via `build-tracker`."
-  [{:keys [analysis-service build-tracker]}]
+  [{:keys [analysis-service build-tracker] :as deps}]
   {:name ::request-build
    :enter (fn request-build-handler [ctx]
             (if-let [running (build-log/running-build build-tracker
@@ -156,27 +157,28 @@
                                                       (-> ctx :request :form-params :project util/artifact-id)
                                                       (-> ctx :request :form-params :version))]
               (redirect-to-build-page ctx (:id running))
-              (let [build-id (api/initiate-build
-                              {:analysis-service analysis-service
-                               :build-tracker    build-tracker
-                               :project          (-> ctx :request :form-params :project)
+              (let [build-id (api/kick-off-build!
+                              deps
+                              {:project          (-> ctx :request :form-params :project)
                                :version          (-> ctx :request :form-params :version)})]
                 (redirect-to-build-page ctx build-id))))})
 
-(defn full-build
+(defn ingest-api
   [{:keys [storage build-tracker]}]
-  {:name ::full-build
-   :enter (fn [ctx]
-            (api/full-build
-             {:storage       storage
-              :build-tracker build-tracker}
-             (get-in ctx [:request :form-params]))
+  {:name ::ingest-api
+   :enter (fn ingest-api-handler [ctx]
+            (let [{:keys [project version cljdoc-edn]} (-> ctx :request :form-params)
+                  build-id (Long. (-> ctx :request :form-params :build-id))]
+              (build-log/analysis-received! build-tracker build-id cljdoc-edn)
+              (ingest/ingest-cljdoc-edn storage (util/read-cljdoc-edn cljdoc-edn))
+              (build-log/api-imported! build-tracker build-id)
+              (build-log/completed! build-tracker build-id))
             (pu/ok ctx nil))})
 
 (defn circle-ci-webhook
   [{:keys [analysis-service build-tracker]}]
   {:name ::circle-ci-webhook
-   :enter (fn [ctx]
+   :enter (fn circle-ci-webhook [ctx]
             (let [build-num (get-in ctx [:request :json-params :payload :build_num])
                   project   (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_PROJECT])
                   version   (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_PROJECT_VERSION])
@@ -191,10 +193,11 @@
                                      (= cljdoc-edn (get (first artifacts) "path"))
                                      (first artifacts))]
                 (do
-                  (api/run-full-build {:project project
-                                       :version version
-                                       :build-id build-id
-                                       :cljdoc-edn (get artifact "url")})
+                  (api/post-api-data-via-http
+                   {:project project
+                    :version version
+                    :build-id build-id
+                    :cljdoc-edn (get artifact "url")})
                   (assoc-in ctx [:response] {:status 200 :headers {}}))
 
                 (do
@@ -351,7 +354,7 @@
 
          :ping          [{:name ::pong :enter #(pu/ok-html % "pong")}]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
-         :full-build    [(body/body-params) (full-build deps)]
+         :ingest-api    [(body/body-params) (ingest-api deps)]
          :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]
 
          :group/index        (view storage route-name)

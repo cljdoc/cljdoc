@@ -22,8 +22,8 @@
 
 ;; cljdoc API client functions ---------------------------------------
 
-(defn run-full-build [params]
-  (http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/full-build")
+(defn post-api-data-via-http [params]
+  (http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/ingest-api")
              {:throw-exceptions false
               :form-params params
               :content-type "application/x-www-form-urlencoded"
@@ -35,64 +35,53 @@
                {:body (json/generate-string {"payload" payload})
                 :content-type "application/json"})))
 
-(defn initiate-build
-  "Kick of a build for the given project and version
-
-  If successful, return build-id, otherwise throws."
-  [{:keys [analysis-service build-tracker project version]}]
-  {:pre [(some? analysis-service) (some? build-tracker)]}
-  ;; WARN using `artifact-uris` here introduces some coupling to
-  ;; clojars, making it a little less easy to build documentation for
-  ;; artifacts only existing in local ~/.m2
+(defn kick-off-build!
+  "Run the Git analysis for the provided `project` and kick of an
+  analysis build for `project` using the provided `analysis-service`."
+  [{:keys [storage build-tracker analysis-service] :as deps}
+   {:keys [project version] :as project}]
   (let [a-uris    (repositories/artifact-uris project version)
         build-id  (build-log/analysis-requested!
                    build-tracker
                    (cljdoc.util/group-id project)
                    (cljdoc.util/artifact-id project)
                    version)
-        ana-resp  (analysis-service/trigger-build
-                   analysis-service
-                   {:project project
-                    :version version
-                    :jarpath (:jar a-uris)
-                    :pompath (:pom a-uris)
-                    :build-id build-id})]
-    (if (analysis-service/circle-ci? analysis-service)
-      (let [build-num (-> ana-resp :body json/parse-string (get "build_num"))
-            job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)
-            ana-v     (:analyzer-version analysis-service)]
-        (when (= 201 (:status ana-resp))
-          (assert build-num "build number missing from CircleCI response")
-          (build-log/analysis-kicked-off! build-tracker build-id job-url ana-v)
-          (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}" build-id job-url))
-        build-id)
-      (do
-        (build-log/analysis-kicked-off! build-tracker build-id nil nil)
-        build-id))))
+        kick-off-job! (fn kick-off-job! []
+                        ;; More work is TBD here in order to pass the configuration
+                        ;; received from a users Git repository into the analysis service
+                        ;; https://github.com/cljdoc/cljdoc/issues/107
+                        (let [ana-resp (analysis-service/trigger-build
+                                        analysis-service
+                                        {:project project
+                                         :version version
+                                         :jarpath (:jar a-uris)
+                                         :pompath (:pom a-uris)
+                                         :build-id build-id})]
+                          (if (analysis-service/circle-ci? analysis-service)
+                            (let [build-num (-> ana-resp :body json/parse-string (get "build_num"))
+                                  job-url   (str "https://circleci.com/gh/martinklepsch/cljdoc-builder/" build-num)
+                                  ana-v     (:analyzer-version analysis-service)]
+                              (when (= 201 (:status ana-resp))
+                                (assert build-num "build number missing from CircleCI response")
+                                (build-log/analysis-kicked-off! build-tracker build-id job-url ana-v)
+                                (log/infof "Kicked of analysis job {:build-id %s :circle-url %s}" build-id job-url)))
+                              (build-log/analysis-kicked-off! build-tracker build-id nil nil))))]
+    (future
+      (try
+        (if-let [scm-info (ingest/scm-info project (slurp (:pom a-uris)))]
+          (let [{:keys [error scm-url commit] :as git-result}
+                (ingest/ingest-git! storage {:project project
+                                             :version version
+                                             :scm-url (:url scm-info)
+                                             :pom-revision (:sha scm-info)})]
+            (when error (log/warnf "Error while processing %s %s: %s" project version error))
+            (build-log/git-completed! build-tracker build-id (update git-result :error :type))
+            (kick-off-job!))
+          (kick-off-job!))
+        (catch Throwable e
+          ;; TODO store in column for internal exception
+          (log/error e (format "Exception while processing %s %s (build %s)" project version build-id))
+          (build-log/failed! build-tracker build-id "exception-during-import")
+          (throw e))))
 
-(defn full-build
-  [{:keys [storage build-tracker] :as deps}
-   {:keys [project version build-id cljdoc-edn] :as params}]
-  (assert (and project version build-id cljdoc-edn)
-          (format "Params insufficient %s" params))
-  (let [cljdoc-edn-contents (util/read-cljdoc-edn cljdoc-edn)
-        build-id            (Long. build-id)]
-    (build-log/analysis-received! build-tracker build-id cljdoc-edn)
-    ;; TODO put this back in place
-    ;; (cljdoc.util/assert-match project version cljdoc-edn)
-    (try
-      (ingest/ingest-cljdoc-edn storage cljdoc-edn-contents)
-      (build-log/api-imported! build-tracker build-id)
-      (if-let [scm-info (ingest/scm-info project (:pom-str cljdoc-edn-contents))]
-        (let [{:keys [error scm-url commit] :as git-result}
-              (ingest/ingest-git! storage {:project project
-                                           :version version
-                                           :scm-url (:url scm-info)
-                                           :pom-revision (:sha scm-info)})]
-          (when error
-            (log/warnf "Error while processing %s %s: %s" project version error))
-          (build-log/completed! build-tracker build-id (update git-result :error :type)))
-        (build-log/completed! build-tracker build-id nil))
-      (catch Throwable e
-        (build-log/failed! build-tracker build-id "exception-during-import")
-        (throw e)))))
+    build-id))
