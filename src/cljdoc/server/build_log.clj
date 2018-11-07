@@ -16,7 +16,8 @@
   (analysis-received! [_ build-id cljdoc-edn-uri])
   (failed! [_ build-id error])
   (api-imported! [_ build-id])
-  (completed! [_ build-id git-result])
+  (git-completed! [_ build-id git-result])
+  (completed! [_ build-id])
   (get-build [_ build-id])
   (recent-builds [_ days])
   (running-build [_ group-id artifact-id version]))
@@ -50,16 +51,16 @@
     (sql/update! db-spec "builds" {:error error} ["id = ?" build-id]))
   (api-imported! [this build-id]
     (sql/update! db-spec "builds" {:api_imported_ts (now)} ["id = ?" build-id]))
-  (completed! [this build-id {:keys [scm-url error commit] :as git-result}]
-    (telegram/import-completed (get-build this build-id) (if git-result error "repo-not-provided"))
+  (git-completed! [this build-id {:keys [scm-url error commit] :as git-result}]
     (sql/update! db-spec
                  "builds"
                  {:scm_url scm-url
                   :commit_sha commit
                   :git_imported_ts (when (and git-result (nil? error)) (now))
-                  :git_problem (if git-result error "repo-not-provided")
-                  :import_completed_ts (now)}
+                  :git_problem (if git-result error "repo-not-provided")}
                  ["id = ?" build-id]))
+  (completed! [this build-id]
+    (sql/update! db-spec "builds" {:import_completed_ts (now)} ["id = ?" build-id]))
   (get-build [_ build-id]
     (first (sql/query db-spec ["SELECT * FROM builds WHERE id = ?" build-id])))
   (recent-builds [_ days]

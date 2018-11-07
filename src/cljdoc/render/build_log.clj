@@ -149,6 +149,15 @@
          (:analysis_requested_ts build-info)
          [:h3.mt0 "Analysis Requested"])
 
+        ;; NOTE Slight mess ahead. Up until around 2018-11-08 builds
+        ;; first ran API analysis on CircleCI and only then continued
+        ;; with Git analysis. Now it's the other way around but
+        ;; covering all these cases with conditionals would have made
+        ;; this namespace even more annoying than it already is and so
+        ;; I just changed the order of the sections, ignoring that
+        ;; older builds will show stuff in an order that is not
+        ;; chronological.
+        (git-import-section build-info)
         (api-import-section build-info)
 
         (when (:error build-info)
@@ -160,8 +169,6 @@
            build-info)} "build job"] " to understand why this build
            failed and reach out if you aren't sure how to fix the issue."]
            #_[:p (cljdoc-link build-info true)]))
-
-        (git-import-section build-info)
 
         (when-not (done? build-info)
           [:script

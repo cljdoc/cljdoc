@@ -26,14 +26,14 @@
                             util/read-cljdoc-edn)
         storage  (storage/->SQLiteStorage (config/db (config/config)))
         scm-info (ingest/scm-info project (:pom-str analysis-result))]
-    (ingest/ingest-cljdoc-edn storage analysis-result)
     (when (or (:url scm-info) git)
       (ingest/ingest-git! storage
                           {:project project
                            :version version
                            :scm-url (:url scm-info)
                            :local-scm git
-                           :pom-revision (or rev (:sha scm-info))}))))
+                           :pom-revision (or rev (:sha scm-info))}))
+    (ingest/ingest-cljdoc-edn storage analysis-result)))
 
 (defn run [opts]
   (system/-main))
