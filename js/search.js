@@ -91,6 +91,7 @@ const ResultsView = props => {
   return h(
     "div",
     {
+      id: "results-view",
       className:
         "bg-white br1 br--bottom bb bl br b--blue absolute w-100 overflow-y-scroll",
       style: {
@@ -107,6 +108,18 @@ const ResultsView = props => {
   );
 };
 
+function restrictToViewport(container, selectedIndex) {
+  let containerRect = container.getBoundingClientRect();
+  let selectedRect = container.children[selectedIndex].getBoundingClientRect();
+  let deltaTop = selectedRect.top - containerRect.top;
+  let deltaBottom = selectedRect.bottom - containerRect.bottom;
+  if (deltaTop < 0) {
+    container.scrollBy(0, deltaTop);
+  } else if (deltaBottom > 0) {
+    container.scrollBy(0, deltaBottom);
+  }
+}
+
 class App extends Component {
   handleInputKeyDown(e) {
     if (e.which === 13 && this.state.focused) {
@@ -120,6 +133,10 @@ class App extends Component {
       this.setState({
         selectedIndex: Math.max(this.state.selectedIndex - 1, 0)
       });
+      restrictToViewport(
+        this.base.querySelector("#results-view"),
+        this.state.selectedIndex
+      );
     } else if (e.which === 40) {
       // arrow down
       e.preventDefault();
@@ -129,6 +146,10 @@ class App extends Component {
           this.state.results.length - 1
         )
       });
+      restrictToViewport(
+        this.base.querySelector("#results-view"),
+        this.state.selectedIndex
+      );
     }
   }
 
