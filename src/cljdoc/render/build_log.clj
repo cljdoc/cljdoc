@@ -48,16 +48,20 @@
       [:dd.ml0 (or (:commit_sha build-info) "nil")]]]))
 
 (defn git-import-explainer [build-info]
-  [:div
-   [:p.lh-copy "cljdoc allows you to combine API docs with "
+  [:div.lh-copy
+   [:p "cljdoc allows you to combine API docs with "
     [:a.link.blue {:href (util/github-url :userguide/articles)} "articles"]
     " from your Git repository. By default we import just the Readme."
     (when (:git_problem build-info)
       [:span " In this case there was a problem " [:code.f7.bg-washed-red.br2.pa1.ph2 (:git_problem build-info)]
        " importing from Git, but don't worry — "
        [:b.fw6 "API docs will work regardless."]])]
+   (when (= "unknown-revision" (:git_problem build-info))
+     [:p [:code.f7.bg-washed-red.br2.pa1.ph2 (:git_problem build-info)]
+      " This issue may occur if you deployed to Clojars before
+     pushing the Git commit the release was made at."])
    (when (:git_problem build-info)
-     [:p.lh-copy "To fix this issue, check out the FAQ on "
+     [:p "To fix this issue, check out the FAQ on "
       [:a.link.blue {:href (util/github-url :userguide/scm-faq)} "properly setting SCM information"]])])
 
 (defn build-page [build-info]
