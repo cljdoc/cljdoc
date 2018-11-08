@@ -289,7 +289,7 @@
   [{:keys [last-generated sitemap] :as state} storage]
   (let [now (java.util.Date.)]
     (if (or (not last-generated)
-            (> (- (.getTime now) (.getTime last-generated)) 360000))
+            (> (- (.getTime now) (.getTime last-generated)) (* 60 60 1000)))
       ;; Return updated state
       {:last-generated now :sitemap (sitemap/build storage)}
       ;; Return identical state
