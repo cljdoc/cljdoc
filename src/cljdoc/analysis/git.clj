@@ -21,7 +21,8 @@
   (spec/keys :req-un [::name ::sha ::commit]))
 
 (spec/def ::scm
-  (spec/keys :req-un [::files ::tag ::rev]))
+  (spec/keys :req-un [::files ::rev]
+             :opt-un [::tag]))
 
 (spec/def ::doc-tree ::doctree/doctree)
 
@@ -67,9 +68,9 @@
         (if revision
           (do
             (log/info "Analyzing at revision:" revision)
-            {:scm      {:files (git/path-sha-pairs git-files)
-                        :tag version-tag
-                        :rev revision}
+            {:scm      (cond-> {:files (git/path-sha-pairs git-files)
+                                :rev revision}
+                         version-tag (assoc :tag version-tag))
              :doc-tree (doctree/process-toc
                         (fn slurp-at-rev [f]
                           ;; We are intentionally relaxed here for now
