@@ -1,6 +1,6 @@
 (ns cljdoc.render.rich-text
   (:require [clojure.string :as string])
-  (:import (org.asciidoctor Asciidoctor$Factory)
+  (:import (org.asciidoctor Asciidoctor$Factory Options)
            (com.vladsch.flexmark.parser Parser)
            (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver)
            (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverContext)
@@ -14,7 +14,9 @@
   (Asciidoctor$Factory/create ""))
 
 (defn asciidoc-to-html [file-content]
-  (.convert adoc-container file-content {}))
+  (let [opts (doto (Options.)
+               (.setAttributes (java.util.HashMap. {"env-cljdoc" true})))]
+    (.convert adoc-container file-content opts)))
 
 (def md-extensions
   [(TablesExtension/create)
@@ -74,6 +76,8 @@
 
   (markdown-to-html "*hello world* [[link]]" {:escape-html? true
                                               :render-wiki-link (constantly "???")})
+
+  (asciidoc-to-html "ifdef::env-cljdoc[]\nCLJDOC\nendif::[]\nifndef::env-cljdoc[]\nNOT_CLJDOC\nendif::[]")
 
   )
 

@@ -40,7 +40,7 @@ IMPORTANT: In the cljdoc URLs above `$group-id` and `$artifact-id` always refer 
 
 == Articles
 
-Some libraries may want to publish additional guides, tutorials or, as they are called in cljdoc: articles.
+Some libraries may want to publish additional guides, tutorials or, as they are called in cljdoc: articles. They can be written in **Markdown** or **Asciidoc** and you can mix and match the two formats as you please.
 
 In order to do so the following prerequisites must be met:
 
@@ -158,3 +158,19 @@ See link:for-users.md#offline-docs[Offline Docs]
 
 This may be useful to test your changes without pushing new releases
 to Clojars or commits to Github. See link:/doc/running-cljdoc-locally.md[Running cljdoc locally] for details.
+
+==== Asciidoc Environment
+
+Similar to GitHub, cljdoc will set an `env-cljdoc` attribute when
+rendering your Asciidoc file. This allows you to hide or show sections
+of your document or set configuration parameters.
+
+[source,asciidoc]
+----
+ifdef::env-cljdoc[]
+THIS WILL BE SHOWN ON CLJDOC
+endif::[]
+ifndef::env-cljdoc[]
+THIS WILL BE SHOWN EVERYWHERE ELSE
+endif::[]
+----

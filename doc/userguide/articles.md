@@ -6,6 +6,8 @@ provided through your projects Git repository using a configuration
 file `doc/cljdoc.edn` (if this file is not present we will try to
 infer the list of articles based on files in your Git repository).
 
+cljdoc supports **Markdown** and **Asciidoc**.
+
 To make articles available add a file `doc/cljdoc.edn` to your
 repository containing something like this:
 
@@ -24,7 +26,22 @@ it's corresponding
 - For articles to work you need to specify a Git SCM in your pom.xml.
 - Articles can be written in Markdown and Asciidoc.
 
-#### Limitations
+### Asciidoc Specifics
+
+Similar to GitHub, cljdoc will set an `env-cljdoc` attribute when
+rendering your Asciidoc file. This allows you to hide or show sections
+of your document or set configuration parameters.
+
+```adoc
+ifdef::env-cljdoc[]
+THIS WILL BE SHOWN ON CLJDOC
+endif::[]
+ifndef::env-cljdoc[]
+THIS WILL BE SHOWN EVERYWHERE ELSE
+endif::[]
+```
+
+### Limitations
 
 Relative links in the article source file may not always work.
 We try our best to adjust them to their new location but if you find
