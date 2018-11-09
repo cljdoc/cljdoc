@@ -64,6 +64,68 @@
      [:p "To fix this issue, check out the FAQ on "
       [:a.link.blue {:href (util/github-url :userguide/scm-faq)} "properly setting SCM information"]])])
 
+(defn git-import-section [build-info]
+  (cond
+    (and (:api_imported_ts build-info)
+         (not (or (:git_problem build-info) (:git_imported_ts build-info))))
+    (section
+     ""
+     [:h3.mt0 "Git Import"]
+     (git-import-explainer build-info)
+     [:p.ba.b--blue.pa3.br2.ma0 "in progress.."])
+
+    (:git_imported_ts build-info)
+    (section
+     (:git_imported_ts build-info)
+     [:h3.mt0 "Git Import Completed"]
+     (git-import-explainer build-info)
+
+     (scm-info build-info)
+
+     [:p (cljdoc-link build-info true)]
+     (when (and (:scm_url build-info) (:commit_sha build-info))
+       [:p
+        [:a.link.blue {:href (:scm_url build-info)}
+         [:img.v-mid.mr2 {:src "https://icon.now.sh/github/20"}]
+         (subs (:scm_url build-info) 19)]
+        " @ "
+        [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
+         (if (< (count (:commit_sha build-info)) 8)
+           (:commit_sha build-info)
+           (subs (:commit_sha build-info) 0 8))]]))
+
+    (:git_problem build-info)
+    (section
+     ""
+     [:h3.mt0 "Git Import"]
+     (git-import-explainer build-info)
+     [:p (cljdoc-link build-info true)])))
+
+(defn api-import-section [build-info]
+  [:div
+   (section
+    (:analysis_triggered_ts build-info)
+    [:h3.mt0 "Analysis Kicked Off"]
+    (when-let [job-uri (:analysis_job_uri build-info)]
+      [:a.link.blue {:href job-uri}
+       [:img.v-mid.mr2 {:src "https://icon.now.sh/circleci/20"}]
+       "View job on CircleCI"]))
+
+   (section
+    (:analysis_received_ts build-info)
+    [:h3.mt0 "Analysis Received"]
+    [:a.link.blue
+     {:href (if (some-> (:analysis_result_uri build-info) (.startsWith  "/"))
+              (str "file://" (:analysis_result_uri build-info))
+              (:analysis_result_uri build-info))}
+     "view result"])
+
+   (section
+    (:api_imported_ts build-info)
+    [:h3.mt0 "API Import"]
+    [:p.bg-washed-green.pa3.br2.ma0 "API imported successfully"]
+    [:p.mb0 (cljdoc-link build-info true)])])
+
 (defn build-page [build-info]
   (->> [:div.mw8.center.pa2.pv5
         ;; [:pre.pa3 (pr-str build-info)]
@@ -87,28 +149,7 @@
          (:analysis_requested_ts build-info)
          [:h3.mt0 "Analysis Requested"])
 
-        (section
-         (:analysis_triggered_ts build-info)
-         [:h3.mt0 "Analysis Kicked Off"]
-         (when-let [job-uri (:analysis_job_uri build-info)]
-           [:a.link.blue {:href job-uri}
-            [:img.v-mid.mr2 {:src "https://icon.now.sh/circleci/20"}]
-            "View job on CircleCI"]))
-
-        (section
-         (:analysis_received_ts build-info)
-         [:h3.mt0 "Analysis Received"]
-         [:a.link.blue
-          {:href (if (some-> (:analysis_result_uri build-info) (.startsWith  "/"))
-                   (str "file://" (:analysis_result_uri build-info))
-                   (:analysis_result_uri build-info))}
-          "view result"])
-
-        (section
-         (:api_imported_ts build-info)
-         [:h3.mt0 "API Import"]
-         [:p.bg-washed-green.pa3.br2.ma0 "API imported successfully"]
-         [:p.mb0 (cljdoc-link build-info true)])
+        (api-import-section build-info)
 
         (when (:error build-info)
           (section
@@ -120,41 +161,7 @@
            failed and reach out if you aren't sure how to fix the issue."]
            #_[:p (cljdoc-link build-info true)]))
 
-        (cond
-          (and (:api_imported_ts build-info)
-               (not (or (:git_problem build-info) (:git_imported_ts build-info))))
-          (section
-           ""
-           [:h3.mt0 "Git Import"]
-           (git-import-explainer build-info)
-           [:p.ba.b--blue.pa3.br2.ma0 "in progress.."])
-
-          (:git_imported_ts build-info)
-          (section
-           (:git_imported_ts build-info)
-           [:h3.mt0 "Git Import Completed"]
-           (git-import-explainer build-info)
-
-           (scm-info build-info)
-
-           [:p (cljdoc-link build-info true)]
-           (when (and (:scm_url build-info) (:commit_sha build-info))
-             [:p
-              [:a.link.blue {:href (:scm_url build-info)}
-               [:img.v-mid.mr2 {:src "https://icon.now.sh/github/20"}]
-               (subs (:scm_url build-info) 19)]
-              " @ "
-              [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
-               (if (< (count (:commit_sha build-info)) 8)
-                 (:commit_sha build-info)
-                 (subs (:commit_sha build-info) 0 8))]]))
-
-          (:git_problem build-info)
-          (section
-           ""
-           [:h3.mt0 "Git Import"]
-           (git-import-explainer build-info)
-           [:p (cljdoc-link build-info true)]))
+        (git-import-section build-info)
 
         (when-not (done? build-info)
           [:script
