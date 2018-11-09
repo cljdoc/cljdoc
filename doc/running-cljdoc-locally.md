@@ -69,6 +69,13 @@ for `muuntaja` from a local Jar and Git repository:
 
     ```sh
     cd cljdoc/
+    ./script/cljdoc ingest -p metosin/muuntaja -v 0.6.1
+    ```
+
+    Or, if you want to specify the jar, pom, git repo and revision explicitly:
+
+    ```sh
+    cd cljdoc/
     ./script/cljdoc ingest -p metosin/muuntaja \
                            -v 0.6.1 \
                            --jar ~/.m2/repository/metosin/muuntaja/0.6.1/muuntaja-0.6.1.jar \
