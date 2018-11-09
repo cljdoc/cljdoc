@@ -12,11 +12,10 @@
             [cli-matic.core :as cli-matic]))
 
 (defn build [{:keys [project version jar pom git rev]}]
-  (let [project      (symbol project)
-        sys          (select-keys (system/system-config (config/config)) [:cljdoc/sqlite])
+  (let [sys          (select-keys (system/system-config (config/config)) [:cljdoc/sqlite])
         _            (ig/init sys)
         analysis-result (-> (ana/analyze-impl
-                             project
+                             (symbol project)
                              version
                              (or jar
                                  (:jar (repositories/local-uris project version))
