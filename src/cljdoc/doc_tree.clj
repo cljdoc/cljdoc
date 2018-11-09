@@ -69,7 +69,7 @@
 
 (spec/fdef process-toc
   :args (spec/cat :slurp-fn fn?
-                  :entry (spec/* ::hiccup-entry))
+                  :entries (spec/coll-of ::hiccup-entry))
   :ret ::doctree)
 
 (defn process-toc [slurp-fn toc]
