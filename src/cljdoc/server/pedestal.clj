@@ -55,10 +55,8 @@
                                                (-> cache-bundle :cache-contents :version :doc first :attrs :slug))]
                 ;; instead of rendering a mostly white page we
                 ;; redirect to the README/first listed article
-                (let [resp {:status 302
-                            :headers {"Location"  (-> (assoc path-params :article-slug first-article-slug)
-                                                      (routes/url-for :artifact/doc :params))}}]
-                  (assoc ctx :response resp))
+                (let [location (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))]
+                  (assoc ctx :response {:status 302, :headers {"Location" location}}))
 
                 (if cache-bundle
                   (d/measure! "cljdoc.views.render_time" {}
