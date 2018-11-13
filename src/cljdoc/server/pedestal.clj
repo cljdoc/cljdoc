@@ -104,14 +104,6 @@
                                                 (resolve-version (:path-params request))
                                                 (routes/url-for (:route-name route) :path-params))}})))})
 
-(def article-locator
-  {:name ::article-locator
-   :enter (fn article-locator [ctx]
-            ;; TODO read correct article from cache-bundle, put
-            ;; somewhere in ctx if not found 404
-            )})
-
-
 (defn view [storage route-name]
   (->> [(version-resolve-redirect)
         (when (= :artifact/doc route-name) doc-slug-parser)
