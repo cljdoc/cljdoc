@@ -1,4 +1,6 @@
 (ns cljdoc.server.ingest
+  "A collection of small helpers to ingest data provided via API analysis
+  or Git repositories into the database (see [[cljdoc.storage.api]])"
   (:require [clojure.java.io :as io]
             [cljdoc.util :as util]
             [cljdoc.analysis.git :as ana-git]
@@ -10,7 +12,7 @@
             [cljdoc.spec]))
 
 (defn ingest-cljdoc-edn
-  "Ingest all the API-related information in the passed `cljdoc-edn` data."
+  "Store all the API-related information in the passed `cljdoc-edn` data"
   [storage {:keys [codox group-id artifact-id version] :as cljdoc-edn}]
   (let [artifact (pom/artifact-info (pom/parse (:pom-str cljdoc-edn)))]
     (log/info "Verifying cljdoc-edn contents against spec")
@@ -35,7 +37,8 @@
        :sha (:sha scm-info)})))
 
 (defn ingest-git!
-  [storage {:keys [project version scm-url local-scm pom-revision]}]
+  "Analyze the git repository `repo` and store the result in `storage`"
+  [storage {:keys [project version scm-url local-scm pom-revision] :as repo}]
   {:pre [(string? scm-url)]}
   (let [git-analysis (ana-git/analyze-git-repo project version (or local-scm scm-url) pom-revision)]
     (if (:error git-analysis)

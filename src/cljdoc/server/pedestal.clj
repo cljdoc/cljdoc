@@ -1,4 +1,17 @@
 (ns cljdoc.server.pedestal
+  "Weaves together the various HTTP components of cljdoc.
+
+  Routing and HTTP concerns are handled via Pedestal and
+  endpoints are implemented as [intereceptors](http://pedestal.io/reference/interceptors).
+  For more details on routing see [[cljdoc.server.routes]].
+
+  The main aspects handlded via HTTP (and thus through this namespace) are:
+
+  - Rendering documentation pages (see [[view]])
+  - Rendering build logs (see [[show-build]] & [[all-builds]])
+  - Rendering a sitemap (see [[sitemap-interceptor]])
+  - Handling build requests (see [[request-build]], [[full-build]] & [[circle-ci-webhook]])
+  - Redirecting to newer releases (see [[version-resolve-redirect]] & [[jump-interceptor]])"
   (:require [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.home :as render-home]
@@ -27,6 +40,13 @@
             [io.pedestal.http.ring-middlewares :as ring-middlewares]))
 
 (def render-interceptor
+  "This interceptor will render the documentation page for the current route
+  based on the cache-bundle that has been injected into the context previously
+  by the [[data-loader]] interceptor.
+
+  If the request is for the root page (e.g. /d/group/artifact/0.1.0) this interceptor
+  will also lookup the first article that's part of the cache-bundle and return a 302
+  redirecting to that page."
   {:name  ::render
    :enter (fn render-doc [{:keys [cache-bundle] :as ctx}]
             (let [path-params (-> ctx :request :path-params)
@@ -34,21 +54,26 @@
               (if-let [first-article-slug (and (= page-type :artifact/version)
                                                (-> cache-bundle :cache-contents :version :doc first :attrs :slug))]
                 ;; instead of rendering a mostly white page we
-                ;; redirect to the README/first listed article for now
-                (assoc ctx
-                       :response
-                       {:status 302
-                        :headers {"Location"  (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))}})
+                ;; redirect to the README/first listed article
+                (let [resp {:status 302
+                            :headers {"Location"  (-> (assoc path-params :article-slug first-article-slug)
+                                                      (routes/url-for :artifact/doc :params))}}]
+                  (assoc ctx :response resp))
 
                 (if cache-bundle
-                  (d/measure! "cljdoc.views.render_time" {} (pu/ok-html ctx (html/render page-type path-params cache-bundle)))
-                  (assoc ctx :response {:status 404
-                                        :headers {"Content-Type" "text/html"}
-                                        :body (str (render-build-req/request-build-page path-params))})))))})
+                  (d/measure! "cljdoc.views.render_time" {}
+                              (pu/ok-html ctx (html/render page-type path-params cache-bundle)))
+                  (let [resp {:status 404
+                              :headers {"Content-Type" "text/html"}
+                              :body (str (render-build-req/request-build-page path-params))}]
+                    (assoc ctx :response resp))))))})
 
 (def doc-slug-parser
-  "Because articles may reside in a nested hierarchy we need to manually parse
-  some of the request URI"
+  "Further process the `article-slug` URL segment by splitting on `/` characters.
+
+  This is necessary because we want to allow arbitrary nesting in user
+  provided doctrees and Pedestal's router will return a single string
+  for everything that comes after a wildcard path segment."
   {:name ::doc-slug-parser
    :enter (fn [ctx]
             (->> (string/split (get-in ctx [:request :path-params :article-slug])  #"/")
@@ -58,7 +83,8 @@
                  (assoc-in ctx [:request :path-params :doc-slug-path])))})
 
 (defn data-loader
-  "An interceptor to load relevant data for the request from our data store"
+  "Return an interceptor that loads all data from `store` that is
+  relevant for the provided route `route-name`."
   [store route-name]
   {:name  ::data-loader
    :enter (fn [{:keys [request] :as ctx}]
@@ -104,7 +130,10 @@
                                                 (resolve-version (:path-params request))
                                                 (routes/url-for (:route-name route) :path-params))}})))})
 
-(defn view [storage route-name]
+(defn view
+  "Combine various interceptors into an interceptor chain for
+  rendering views for `route-name`."
+  [storage route-name]
   (->> [(version-resolve-redirect)
         (when (= :artifact/doc route-name) doc-slug-parser)
         (data-loader storage route-name)
@@ -118,6 +147,9 @@
   (assoc ctx :response {:status 303 :headers {"Location" (str "/builds/" build-id)}}))
 
 (defn request-build
+  "Create an interceptor that will initiate documentation builds based
+  on provided form params using `analysis-service` for analysis and tracking
+  build progress/state via `build-tracker`."
   [{:keys [analysis-service build-tracker]}]
   {:name ::request-build
    :enter (fn request-build-handler [ctx]
@@ -280,7 +312,9 @@
     {:name  ::sitemap
      :enter #(pu/ok-xml % (:sitemap (swap! state build-sitemap storage)))}))
 
-(defn offline-bundle []
+(def offline-bundle
+  "Creates an HTTP response with a zip file containing offline docs
+  for the project that has been injected into the context by [[data-loader]]."
   {:name ::offline-bundle
    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
             (log/info "Bundling" (str (-> cache-bundle :cache-id :artifact-id) "-"
@@ -298,6 +332,14 @@
                  (assoc ctx :response)))})
 
 (defn route-resolver
+  "Given a route name return a list of interceptors to handle requests
+  to that route.
+
+  This has been put into place to better separate route-definitions
+  from handler implementation in case route-definitions become
+  interesting for ClojureScript where Pededestal can't go.
+
+  For more details see `cljdoc.server.routes`."
   [{:keys [build-tracker storage] :as deps}
    {:keys [route-name] :as route}]
   (->> (case route-name
@@ -320,7 +362,7 @@
          :artifact/namespace (view storage route-name)
          :artifact/doc       (view storage route-name)
          :artifact/offline-bundle [(data-loader storage route-name)
-                                   (offline-bundle)]
+                                   offline-bundle]
 
          :artifact/current-via-short-id [(jump-interceptor)]
          :artifact/current [(jump-interceptor)]
@@ -337,10 +379,6 @@
        ;; TODO look into this some more:
        ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
        ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-       ;; When running with boot repl the resources on the classpath are not
-       ;; updated as they change so in these cases using file path is easier
-       ;; This breaks the homepage for whatever reason
-       ;; ::http/file-path "resources/public"
        ::http/resource-path "public"
        ::http/not-found-interceptor not-found-interceptor}
       http/default-interceptors
