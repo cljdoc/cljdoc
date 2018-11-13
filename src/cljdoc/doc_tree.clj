@@ -55,7 +55,7 @@
 (spec/def ::hiccup-entry
   (spec/spec
    (spec/cat :title ::title
-             :attrs ::hiccup-attrs
+             :attrs (spec/* ::hiccup-attrs)
              :children (spec/* ::hiccup-entry))))
 
 (declare process-toc)
@@ -66,7 +66,7 @@
   :ret ::entry)
 
 (defn- process-toc-entry [slurp-fn [title attrs & children]]
-  (assert (or (nil? attrs) (map? attrs)) "Doctree attribute map is missing")
+  #_(assert (or (nil? attrs) (map? attrs)) "Doctree attribute map is missing")
   (cond-> {:title title}
 
     (:file attrs)
@@ -196,9 +196,14 @@
 
   (derive-toc cljdoc.git-repo/workflo-macros-files)
 
+  (spec/conform
+   ::hiccup-entry
+   ["Readme"
+    ["Example" {:file "x"}]])
+
   (process-toc
    identity
-   [["Readme" {}
+   [["Readme"
      ["Example" {:file "x"}]]])
 
   )
