@@ -26,19 +26,6 @@
             [io.pedestal.http.body-params :as body]
             [io.pedestal.http.ring-middlewares :as ring-middlewares]))
 
-(defn ok! [ctx body]
-  (assoc ctx :response {:status 200 :body body}))
-
-(defn ok-html! [ctx body]
-  (assoc ctx :response {:status 200
-                        :body (str body)
-                        :headers {"Content-Type" "text/html"}}))
-
-(defn ok-xml! [ctx body]
-  (assoc ctx :response {:status 200
-                        :body (str body)
-                        :headers {"Content-Type" "text/xml"}}))
-
 (def render-interceptor
   {:name  ::render
    :enter (fn render-doc [{:keys [cache-bundle] :as ctx}]
@@ -54,7 +41,7 @@
                         :headers {"Location"  (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))}})
 
                 (if cache-bundle
-                  (d/measure! "cljdoc.views.render_time" {} (ok-html! ctx (html/render page-type path-params cache-bundle)))
+                  (d/measure! "cljdoc.views.render_time" {} (pu/ok-html ctx (html/render page-type path-params cache-bundle)))
                   (assoc ctx :response {:status 404
                                         :headers {"Content-Type" "text/html"}
                                         :body (str (render-build-req/request-build-page path-params))})))))})
@@ -162,7 +149,7 @@
              {:storage       storage
               :build-tracker build-tracker}
              (get-in ctx [:request :form-params]))
-            (ok! ctx nil))})
+            (pu/ok ctx nil))})
 
 (defn circle-ci-webhook
   [{:keys [analysis-service build-tracker]}]
@@ -211,8 +198,8 @@
             (if-let [build-info (->> ctx :request :path-params :id
                                      (build-log/get-build build-tracker))]
               (if (= "text/html" (pu/accepted-type ctx))
-                (ok! ctx (cljdoc.render.build-log/build-page build-info))
-                (ok! ctx build-info))
+                (pu/ok ctx (cljdoc.render.build-log/build-page build-info))
+                (pu/ok ctx build-info))
               ;; Not setting :response implies 404 response
               ctx))})
 
@@ -222,7 +209,7 @@
    :enter (fn build-index-render [ctx]
             (->> (build-log/recent-builds build-tracker 30)
                  (cljdoc.render.build-log/builds-page)
-                 (ok-html! ctx)))})
+                 (pu/ok-html ctx)))})
 
 (defn badge-url [status color]
   (format "https://badgen.now.sh/badge/cljdoc/%s/%s"
@@ -299,7 +286,7 @@
   [storage]
   (let [state (atom {})]
     {:name  ::sitemap
-     :enter #(ok-xml! % (:sitemap (swap! state build-sitemap storage)))}))
+     :enter #(pu/ok-xml % (:sitemap (swap! state build-sitemap storage)))}))
 
 (defn offline-bundle []
   {:name ::offline-bundle
@@ -322,15 +309,15 @@
   [{:keys [build-tracker storage] :as deps}
    {:keys [route-name] :as route}]
   (->> (case route-name
-         :home       [{:name ::home :enter #(ok-html! % (render-home/home))}]
-         :shortcuts  [{:name ::shortcuts :enter #(ok-html! % (render-meta/shortcuts))}]
+         :home       [{:name ::home :enter #(pu/ok-html % (render-home/home))}]
+         :shortcuts  [{:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts))}]
          :sitemap    [(sitemap-interceptor storage)]
          :show-build [pu/coerce-body
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]
 
-         :ping          [{:name ::pong :enter #(ok-html! % "pong")}]
+         :ping          [{:name ::pong :enter #(pu/ok-html % "pong")}]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
          :full-build    [(body/body-params) (full-build deps)]
          :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]

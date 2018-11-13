@@ -28,3 +28,24 @@
             (cond-> context
               (nil? (get-in context [:response :body :headers "Content-Type"]))
               (update-in [:response] coerce-to (accepted-type context))))})
+
+(defn ok
+  "Return the context `ctx` with response `body` and status 200"
+  [ctx body]
+  (assoc ctx :response {:status 200 :body body}))
+
+(defn ok-html
+  "Return the context `ctx` with response `body`, status 200
+  and the Content-Type header set to `text/html`"
+  [ctx body]
+  (assoc ctx :response {:status 200
+                        :body (str body)
+                        :headers {"Content-Type" "text/html"}}))
+
+(defn ok-xml
+  "Return the context `ctx` with response `body`, status 200
+  and the Content-Type header set to `text/xml`"
+  [ctx body]
+  (assoc ctx :response {:status 200
+                        :body (str body)
+                        :headers {"Content-Type" "text/xml"}}))
