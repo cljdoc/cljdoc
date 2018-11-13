@@ -1,6 +1,24 @@
 (ns cljdoc.doc-tree
+  "Process doctrees provided by projects via a `doc/cljdoc.edn` file.
+
+  Projects can provide a tree of articles via the `:cljdoc.doc/tree` key.
+  The data that's provided via this key roughly follows the familiar Hiccup format:
+
+      [[\"Readme\" {:file \"Readme.md\"}
+        [\"Child Of Readme\" {:file \"child.md\"}]]]
+
+  Reading the files that are specified in this tree is outside of the
+  concern of this namespace and handled via a passed-in function `slurp-fn`.
+  Usually this function will read the specified file from a Git repository
+  at a specified revision. This was done to keep this namespace free of any
+  Git/IO-related aspects.
+
+  The return format is described in the `::doctree` spec that's part of this namespace.
+
+  There also is some additional code `derive-toc` that will return a
+  doctree based on a list of files. This is used to derive the doctree
+  for projects that haven't provided one explicitly."
   (:require [clojure.spec.alpha :as spec]
-            [clojure.java.io :as io]
             [cuerdas.core :as cuerdas]))
 
 (spec/def :cljdoc.doc/source-file string?)
@@ -47,7 +65,7 @@
                   :entry ::hiccup-entry)
   :ret ::entry)
 
-(defn process-toc-entry [slurp-fn [title attrs & children]]
+(defn- process-toc-entry [slurp-fn [title attrs & children]]
   (assert (or (nil? attrs) (map? attrs)) "Doctree attribute map is missing")
   (cond-> {:title title}
 
@@ -72,7 +90,14 @@
                   :entries (spec/coll-of ::hiccup-entry))
   :ret ::doctree)
 
-(defn process-toc [slurp-fn toc]
+(defn process-toc
+  "Process a doctree `toc` and inline all file contents via `slurp-fn`.
+
+  The `toc` should be a collection of `::hiccup-entry`s.
+  The return value will be a `::doctree`. Individual nodes will have
+  an `:attrs` key with additional metadata such as the original file
+  name, the file contents and a slug derived from the entry title."
+  [slurp-fn toc]
   (let [slurp! (fn [file] (or (slurp-fn file)
                               (throw (Exception. (format "Could not read contents of %s" file)))))]
     (mapv (partial process-toc-entry slurp!) toc)))
@@ -118,26 +143,26 @@
 
 ;; Deriving doctrees -----------------------------------------------------------
 
-(defn supported-file-type [path]
+(defn- supported-file-type [path]
   (cond
     (.endsWith path ".markdown") :markdown
     (.endsWith path ".md")       :markdown
     (.endsWith path ".adoc")     :asciidoc))
 
-(defn readme? [path]
+(defn- readme? [path]
   (and (.startsWith (.toLowerCase path) "readme.")
        (supported-file-type path)))
 
-(defn changelog? [path]
+(defn- changelog? [path]
   (and (some #(.startsWith (.toLowerCase path) %) ["changelog." "changes."  "history." "news." "releases."])
        (supported-file-type path)))
 
-(defn doc? [path]
+(defn- doc? [path]
   (and (supported-file-type path)
        (or (.startsWith path "doc/")
            (.startsWith path "docs/"))))
 
-(defn infer-title [path file-contents]
+(defn- infer-title [path file-contents]
   (or (case (supported-file-type path)
         :markdown (second (re-find #"(?m)^\s*#+\s*(.*)\s*$" file-contents))
         :asciidoc (second (re-find #"(?m)^\s*=+\s*(.*)\s*$" file-contents)))
@@ -145,11 +170,19 @@
       (throw (ex-info (format "No title found for %s" path)
                       {:path path :contents file-contents}))))
 
-(defn derive-toc [files]
+(defn derive-toc
+  "Given a list of `files` (as strings) return a doctree that can be
+  passed to `process-toc`. By default this function will return a
+  doctree consisting of the project's Readme and Changelog as well as
+  other files in `doc/` or `docs/`.
+
+  Only files written in supported formats (Markdown or Asciidoc) will
+  be taken into account during this process."
+  [files]
   (let [readme-path?    (comp readme? :path)
         changelog-path? (comp changelog? :path)
         readme          (first (filter readme-path? files))
-  	    changelog       (first (filter changelog-path? files))]
+        changelog       (first (filter changelog-path? files))]
     (into (cond-> []
             readme    (conj ["Readme" {:file (:path readme)}])
             changelog (conj ["Changelog" {:file (:path changelog)}]))
@@ -162,5 +195,10 @@
 (comment
 
   (derive-toc cljdoc.git-repo/workflo-macros-files)
+
+  (process-toc
+   identity
+   [["Readme" {}
+     ["Example" {:file "x"}]]])
 
   )
