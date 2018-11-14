@@ -9,7 +9,7 @@ export function hideNestedArticles() {
   }
 
   function isDocLink(link) {
-    return link.pathname.startsWith("/d/")
+    return link.pathname.startsWith("/d/");
   }
 
   articleLinks.filter(isDocLink).map(hideNested);
