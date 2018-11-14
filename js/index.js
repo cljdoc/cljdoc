@@ -4,10 +4,9 @@ import { hideNestedArticles } from "./doctree";
 import { App } from "./search";
 import {
   isNSPage,
-  isDocPage,
+  isProjectDocumentationPage,
   initSrollIndicator,
   initToggleRaw,
-  initDocTitle,
   restoreSidebarScrollPos,
   toggleMetaDialog
 } from "./cljdoc";
@@ -24,16 +23,12 @@ if (isNSPage()) {
   initToggleRaw();
 }
 
-if (isDocPage()) {
-  initDocTitle();
-}
-
-if (isDocPage() || isNSPage()) {
+if (isProjectDocumentationPage()) {
   toggleMetaDialog();
 }
 
 window.onbeforeunload = function() {
-  var sidebar = Array.from(document.querySelectorAll(".js--sidebar"))[0];
+  var sidebar = Array.from(document.querySelectorAll(".js--main-sidebar"))[0];
   if (sidebar) {
     var scrollTop = sidebar.scrollTop;
     var page = window.location.pathname

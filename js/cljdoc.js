@@ -2,8 +2,9 @@ function isNSPage() {
   return document.querySelector(".ns-page");
 }
 
-function isDocPage() {
-  return document.querySelector("#doc-html");
+function isProjectDocumentationPage() {
+  let pathSegs = window.location.pathname.split("/");
+  return pathSegs.length >= 5 && pathSegs[1] == "d";
 }
 
 function initSrollIndicator() {
@@ -71,46 +72,6 @@ function initToggleRaw() {
   addToggleHandlers();
 }
 
-function initDocTitle() {
-  var mainScrollView = document.querySelector(".main-scroll-view");
-  var docHtml = document.querySelector("#doc-html");
-  var docHeaders = Array.from(
-    docHtml.querySelectorAll("h1, h2, h3, h4, h5, h6")
-  );
-  var docTitle = document.querySelector("#js--doc-title");
-  var lastIndex = null;
-
-  function isBelow(container, element) {
-    var containerTop = container.getBoundingClientRect().top;
-    var elementTop = element.getBoundingClientRect().top - 1;
-    // minus one for anchors to be correct
-    return containerTop > elementTop;
-  }
-
-  function immediatelyAbove(container, elements) {
-    for (let j = 0; j < elements.length - 1; j++) {
-      if (!isBelow(container, elements[j + 1])) {
-        return j;
-      }
-    }
-    return elements.length - 1;
-  }
-
-  function changeTitle() {
-    var index = immediatelyAbove(mainScrollView, docHeaders);
-    if (index !== lastIndex) {
-      var anchor = docHeaders[index].querySelector("a");
-      var url = new URL(anchor.href);
-      docTitle.innerText = anchor.innerText;
-      docTitle.href = url.hash;
-      // set last index so it doesn't trigger super often
-      lastIndex = index;
-    }
-  }
-  mainScrollView.addEventListener("scroll", changeTitle);
-  changeTitle();
-}
-
 function restoreSidebarScrollPos() {
   var scrollPosData = JSON.parse(localStorage.getItem("sidebarScrollPos"));
   var page = window.location.pathname
@@ -147,9 +108,8 @@ function toggleMetaDialog() {
 export {
   initSrollIndicator,
   initToggleRaw,
-  initDocTitle,
   restoreSidebarScrollPos,
   toggleMetaDialog,
   isNSPage,
-  isDocPage
+  isProjectDocumentationPage
 };
