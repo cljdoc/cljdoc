@@ -1,4 +1,5 @@
 import { Component, render, h } from "preact";
+import * as listSelect from "./listselect";
 
 function debounced(delay, fn) {
   let timerId;
@@ -27,6 +28,22 @@ const loadResults = (str, cb) => {
 };
 
 class SearchInput extends Component {
+  onKeyDown(e) {
+    if (e.which === 13) {
+      this.props.onEnter();
+    } else if (e.which === 27) {
+      this.props.unfocus();
+    } else if (e.which === 38) {
+      // arrow up
+      e.preventDefault(); // prevents caret from moving in input field
+      this.props.onArrowUp();
+    } else if (e.which === 40) {
+      // arrow down
+      e.preventDefault();
+      this.props.onArrowDown();
+    }
+  }
+
   render(props) {
     const debouncedLoader = debounced(300, loadResults);
     return h("input", {
@@ -35,7 +52,7 @@ class SearchInput extends Component {
       className: "pa2 w-100 br1 border-box b--blue ba input-reset",
       onFocus: e => props.focus(),
       onBlur: e => setTimeout(_ => props.unfocus(), 200),
-      onKeyDown: e => props.onKeyDown(e),
+      onKeyDown: e => this.onKeyDown(e),
       onInput: e =>
         debouncedLoader(
           cleanSearchStr(e.target.value),
@@ -85,96 +102,57 @@ const SingleResultView = (r, isSelected, selectResult) => {
   ]);
 };
 
-class ResultsView extends Component {
-  componentDidUpdate(prevProps, _) {
-    if (this.props.selectedIndex != prevProps.selectedIndex) {
-      restrictToViewport(this.resultsViewNode, this.props.selectedIndex);
-    }
-  }
-
-  render(props, state) {
-    return h(
-      "div",
-      {
-        className:
-          "bg-white br1 br--bottom bb bl br b--blue absolute w-100 overflow-y-scroll",
-        ref: node => (this.resultsViewNode = node),
-        style: {
-          top: "2.3rem",
-          maxHeight: "20rem",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
-        }
-      },
-      props.results
-        .sort((a, b) => b.created - a.created)
-        .map((r, idx) =>
-          SingleResultView(r, props.selectedIndex == idx, () =>
-            props.onMouseOver(idx)
-          )
-        )
-    );
-  }
-}
-
-function restrictToViewport(container, selectedIndex) {
-  let containerRect = container.getBoundingClientRect();
-  let selectedRect = container.children[selectedIndex].getBoundingClientRect();
-  let deltaTop = selectedRect.top - containerRect.top;
-  let deltaBottom = selectedRect.bottom - containerRect.bottom;
-  if (deltaTop < 0) {
-    container.scrollBy(0, deltaTop);
-  } else if (deltaBottom > 0) {
-    container.scrollBy(0, deltaBottom);
-  }
-}
-
 class App extends Component {
-  handleInputKeyDown(e) {
-    if (e.which === 13 && this.state.focused) {
-      let result = this.state.results[this.state.selectedIndex];
-      window.open(resultUri(result), "_self");
-    } else if (e.which === 27) {
-      this.setState({ focused: false });
-    } else if (e.which === 38) {
-      // arrow up
-      e.preventDefault(); // prevents caret from moving in input field
-      this.setState({
-        selectedIndex: Math.max(this.state.selectedIndex - 1, 0)
-      });
-    } else if (e.which === 40) {
-      // arrow down
-      e.preventDefault();
-      this.setState({
-        selectedIndex: Math.min(
-          this.state.selectedIndex + 1,
-          this.state.results.length - 1
-        )
-      });
-    }
-  }
-
   constructor(props) {
     super(props);
-    this.handleInputKeyDown = this.handleInputKeyDown.bind(this);
     this.state = { results: [], focused: false, selectedIndex: 0 };
   }
 
-  // TODO unset selectedIndex when results change
   render(props, state) {
+    function resultsView() {
+      return h(
+        "div",
+        {
+          className:
+            "bg-white br1 br--bottom bb bl br b--blue w-100 absolute overflow-y-scroll",
+          style: {
+            top: "2.3rem",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
+          }
+        },
+        h(listSelect.ResultsView, {
+          resultView: SingleResultView,
+          results: state.results,
+          selectedIndex: state.selectedIndex,
+          onMouseOver: idx => this.setState({ selectedIndex: idx })
+        })
+      );
+    }
+
     return h("div", { className: "relative system-sans-serif" }, [
       h(SearchInput, {
-        newResultsCallback: rs => this.setState({ focused: true, results: rs }),
-        onKeyDown: this.handleInputKeyDown,
+        newResultsCallback: rs =>
+          this.setState({ focused: true, results: rs, selectedIndex: 0 }),
+        onEnter: () =>
+          window.open(
+            resultUri(this.state.results[this.state.selectedIndex]),
+            "_self"
+          ),
+        onArrowUp: () =>
+          this.setState({
+            selectedIndex: Math.max(this.state.selectedIndex - 1, 0)
+          }),
+        onArrowDown: () =>
+          this.setState({
+            selectedIndex: Math.min(
+              this.state.selectedIndex + 1,
+              this.state.results.length - 1
+            )
+          }),
         focus: () => this.setState({ focused: true }),
         unfocus: () => this.setState({ focused: false })
       }),
-      state.focused && state.results.length > 0
-        ? h(ResultsView, {
-            results: state.results,
-            selectedIndex: state.selectedIndex,
-            onMouseOver: idx => this.setState({ selectedIndex: idx })
-          })
-        : null
+      state.focused && state.results.length > 0 ? resultsView() : null
     ]);
   }
 }
