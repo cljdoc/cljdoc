@@ -41,6 +41,7 @@
                [:html {}
                 [:head
                  [:title (:title opts)]
+                 [:meta {:charset "utf-8"}]
                  [:meta {:content (:description opts) :name "description"}]
 
                  ;; Google / Search Engine Tags
@@ -60,9 +61,7 @@
                    (assert (.startsWith url "/"))
                    [:link {:rel "canonical" :href (str "https://cljdoc.org" url)}]); TODO read domain from config
 
-                 (when (:responsive? opts)
-                   [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}])
-                 [:meta {:charset "utf-8"}]
+                 [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (hiccup.page/include-css
                    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
                    "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
@@ -78,19 +77,6 @@
 
 (defn sidebar-title [title]
   [:h4.ttu.f7.fw5.mt1.mb2.tracked.gray title])
-
-(def TOP-BAR-HEIGHT 57)
-
-(defn sidebar [& contents]
-  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10
-   {:class "js--sidebar"
-    :style {:top (str TOP-BAR-HEIGHT "px")}} ; CSS HACK
-   contents])
-
-(defn sidebar-two [& contents]
-  [:div.absolute.w5.bottom-0.left-0.pa3.pa4-ns.overflow-scroll.br.b--black-10.sidebar-scroll-view
-   {:style {:top (str TOP-BAR-HEIGHT "px") :left "16rem"}} ; CSS HACK
-   contents])
 
 (defn meta-info-dialog []
   [:div#js--meta-dialog.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
@@ -109,16 +95,6 @@
    [:a#js--meta-close.link.black.fr.pointer
     "× close"]])
 
-(defn main-container [{:keys [offset extra-height]} & content]
-   [:div.absolute.bottom-0.right-0
-    {:style {:left offset
-             :top (str (+ TOP-BAR-HEIGHT (or extra-height 0)) "px")}}
-    (into [:div.absolute.top-0.bottom-0.left-0.right-0.overflow-y-scroll.ph4-ns.ph2.main-scroll-view
-           [:img#js--meta-icon.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
-            {:src "https://icon.now.sh/explore/48/357edd"}]
-           (meta-info-dialog)]
-          content)])
-
 (defn top-bar-generic []
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
    [:a {:href "/"}
@@ -128,7 +104,7 @@
     "Have Feedback?"]])
 
 (defn top-bar [cache-id scm-url]
-  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
+  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center.bg-white
    [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params cache-id)}
     (util/clojars-id cache-id)]
    [:a.dib.v-mid.link.dim.gray.f6.mr3
@@ -156,3 +132,72 @@
   [:a.link {:href (routes/url-for :artifact/version :path-params version-map)}
    [:div.bg-washed-yellow.pa2.f7.mb4.dark-gray.lh-title
     "A newer version " [:span.blue "(" version ")"] " for this library is available"]])
+
+;; Responsive Layout -----------------------------------------------------------
+
+(def r-main-container
+  "Everything that's rendered on cljdoc goes into this container.
+
+  On desktop screens it fills the viewport forcing child nodes
+  to scroll. On smaller screens it grows with the content allowing
+  Safari to properly condense the URL bar when scrolling.
+
+  In contrast if the container was fixed on mobile as well Safari
+  would perceive the scroll events as if the user scrolled in a
+  smaller portion of the UI.
+
+  While `height: 100vh` would also work on desktop screens there are some
+  known issues around [using viewport height units on mobile](https://nicolas-hoizey.com/2015/02/viewport-height-is-taller-than-the-visible-part-of-the-document-in-some-mobile-browsers.html)."
+  :div.flex.flex-column.fixed-ns.bottom-0.left-0.right-0.top-0)
+
+(def r-sidebar-container
+  :nav.js--main-sidebar.w5.pa3.pa4-ns.br.b--black-10.db-ns.dn.overflow-y-scroll.border-box.flex-shrink-0)
+
+(def r-api-sidebar-container
+  :div.js--namespace-contents-scroll-view.w5.pa3.pa4-ns.br.b--black-10.db-ns.dn.overflow-y-scroll.flex-shrink-0)
+
+(def r-content-container
+  :div.js--main-scroll-view.ph4-ns.ph3.flex-grow-1.overflow-y-scroll)
+
+(def r-top-bar-container
+  "Additional wrapping to make the top bar responsive
+
+  On small screens we render the top bar and mobile navigation as a
+  `fixed` div so that the main container can be scrolled without the
+  navigation being scrolled out of view.
+
+  On regular sized screens we use the default positioning setting of
+  `static` so that the top bar is rendered as a row of the main
+  container.
+
+  The z-index `z3` setting is necessary to ensure `fixed` elements
+  appear above other elements"
+  :div.fixed.top-0.left-0.right-0.static-ns.flex-shrink-0.z3)
+
+(def mobile-nav-spacer
+  "Spacer so fixed navigation elements don't overlap content
+  This is only needed on small screens so `dn-ns` hides it
+  on non-small screens
+
+  The height has been found by trial and error."
+  [:div.bg-blue.dn-ns.pt4.tc
+   {:style {:height "5.2rem"}}
+   ;; TODO render different fun messages for each request
+   [:span.b.white.mt3 "Liking cljdoc? Tell your friends :D"]])
+
+(defn layout
+  [{:keys [top-bar
+           main-sidebar-contents
+           vars-sidebar-contents
+           content]}]
+  [r-main-container
+   [r-top-bar-container
+    top-bar
+    [:div#js--mobile-nav.db.dn-ns]]
+   mobile-nav-spacer
+   [:div.flex.flex-row
+    (into [r-sidebar-container] main-sidebar-contents)
+    (when (seq vars-sidebar-contents)
+      (into [r-api-sidebar-container] vars-sidebar-contents))
+    ;; (when doc-html doc-nav)
+    [r-content-container content]]])

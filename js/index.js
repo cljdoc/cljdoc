@@ -2,6 +2,7 @@ import { render, h } from "preact";
 import { trackProjectOpened, Switcher } from "./switcher";
 import { hideNestedArticles } from "./doctree";
 import { App } from "./search";
+import { MobileNav } from "./mobile";
 import {
   isNSPage,
   isProjectDocumentationPage,
@@ -24,6 +25,7 @@ if (isNSPage()) {
 }
 
 if (isProjectDocumentationPage()) {
+  render(h(MobileNav), document.querySelector("#js--mobile-nav"));
   toggleMetaDialog();
 }
 
