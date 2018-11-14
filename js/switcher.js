@@ -1,15 +1,15 @@
-import { Component, createElement, render, h } from "preact";
+import { Component, createElement, h } from "preact";
 import fuzzysort from "fuzzysort";
 import * as listSelect from "./listselect";
 
 function isSameProject(p1, p2) {
   // I can't believe you have to do this
-  return p1.group_id == p2.group_id && p1.artifact_id == p2.artifact_id; //&& p1.version == p2.version
+  return p1.group_id === p2.group_id && p1.artifact_id === p2.artifact_id; //&& p1.version == p2.version
 }
 
 function parseCljdocURI(uri) {
   const splitted = uri.split("/");
-  if (splitted.length >= 5 && splitted[1] == "d") {
+  if (splitted.length >= 5 && splitted[1] === "d") {
     return {
       group_id: splitted[2],
       artifact_id: splitted[3],
@@ -80,6 +80,25 @@ const SwitcherSingleResultView = (r, isSelected, selectResult) => {
 
 class Switcher extends Component {
   handleKeyDown(e) {
+    if (e.target === this.inputNode) {
+      if (e.which === 38) {
+        //arrow up
+        e.preventDefault(); // prevents caret from moving in input field
+        this.setState({
+          selectedIndex: Math.max(this.state.selectedIndex - 1, 0)
+        });
+      } else if (e.which === 40) {
+        // arrow down
+        e.preventDefault();
+        this.setState({
+          selectedIndex: Math.min(
+            this.state.selectedIndex + 1,
+            this.state.results.length - 1
+          )
+        });
+      }
+    }
+
     // If target is document body, trigger  on key `cmd+k` for MacOs `ctrl+k` otherwise
     let isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
     let switcherShortcut;
@@ -90,36 +109,23 @@ class Switcher extends Component {
       }
     }
 
-    if (switcherShortcut && e.target == document.body) {
+    if (switcherShortcut && e.target === document.body) {
       this.setState({ show: true, results: this.state.previouslyOpened });
-    } else if (e.which == 27) {
+    } else if (e.which === 27) {
       this.setState({ show: false, results: null });
     }
   }
 
   handleInputKeyUp(e) {
-    if (e.which == 13) {
+    if (e.which === 13) {
       const r = this.state.results[this.state.selectedIndex];
       window.location =
         "/d/" + r.group_id + "/" + r.artifact_id + "/" + r.version;
-    } else if (e.which == 38) {
-      //arrow up
-      this.setState({
-        selectedIndex: Math.max(this.state.selectedIndex - 1, 0)
-      });
-    } else if (e.which == 40) {
-      // arrow down
-      this.setState({
-        selectedIndex: Math.min(
-          this.state.selectedIndex + 1,
-          this.state.results.length - 1
-        )
-      });
     }
   }
 
   updateResults(searchStr) {
-    if (searchStr == "") {
+    if (searchStr === "") {
       this.initializeState();
     } else {
       let fuzzysortOptions = {
@@ -152,7 +158,7 @@ class Switcher extends Component {
     previouslyOpened.forEach(
       r =>
         (r.project_id =
-          r.group_id == r.artifact_id
+          r.group_id === r.artifact_id
             ? r.group_id
             : r.group_id + "/" + r.artifact_id)
     );
@@ -172,6 +178,12 @@ class Switcher extends Component {
     this.initializeState();
   }
 
+  componentDidUpdate(previousProps, previousState, previousContext) {
+    if (!previousState.show && this.state.show) {
+      this.inputNode.focus();
+    }
+  }
+
   render(props, state) {
     if (state.show) {
       return h(
@@ -181,7 +193,7 @@ class Switcher extends Component {
             "bg-black-30 fixed top-0 right-0 bottom-0 left-0 sans-serif",
           ref: node => (this.backgroundNode = node),
           onClick: e =>
-            e.target == this.backgroundNode
+            e.target === this.backgroundNode
               ? this.setState({ show: false })
               : null
         },
@@ -189,7 +201,6 @@ class Switcher extends Component {
           "div",
           { className: "mw7 center mt6 bg-white pa3 br2 shadow-3" },
           h("input", {
-            autofocus: true,
             placeHolder: "Jump to recently viewed docs...",
             className: "pa2 w-100 br1 border-box b--blue ba input-reset",
             ref: node => (this.inputNode = node),

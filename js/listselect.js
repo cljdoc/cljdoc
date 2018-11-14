@@ -1,4 +1,4 @@
-import { Component, render, h } from "preact";
+import { Component, h } from "preact";
 
 // Various functions and components used to show lists of results
 
@@ -31,12 +31,12 @@ function restrictToViewport(container, selectedIndex) {
 //   - onMouseOver: a no-args function to call when hovering the result
 export class ResultsView extends Component {
   componentDidUpdate(prevProps, _) {
-    if (this.props.selectedIndex != prevProps.selectedIndex) {
+    if (this.props.selectedIndex !== prevProps.selectedIndex) {
       restrictToViewport(this.resultsViewNode, this.props.selectedIndex);
     }
   }
 
-  render(props, state) {
+  render(props, _) {
     return h(
       "div",
       {
@@ -48,7 +48,7 @@ export class ResultsView extends Component {
       props.results
         .sort((a, b) => b.created - a.created)
         .map((r, idx) =>
-          props.resultView(r, props.selectedIndex == idx, () =>
+          props.resultView(r, props.selectedIndex === idx, () =>
             props.onMouseOver(idx)
           )
         )

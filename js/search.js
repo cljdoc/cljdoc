@@ -109,7 +109,7 @@ class App extends Component {
   }
 
   render(props, state) {
-    function resultsView() {
+    function resultsView(parent) {
       return h(
         "div",
         {
@@ -124,7 +124,7 @@ class App extends Component {
           resultView: SingleResultView,
           results: state.results,
           selectedIndex: state.selectedIndex,
-          onMouseOver: idx => this.setState({ selectedIndex: idx })
+          onMouseOver: idx => parent.setState({ selectedIndex: idx })
         })
       );
     }
@@ -152,7 +152,7 @@ class App extends Component {
         focus: () => this.setState({ focused: true }),
         unfocus: () => this.setState({ focused: false })
       }),
-      state.focused && state.results.length > 0 ? resultsView() : null
+      state.focused && state.results.length > 0 ? resultsView(this) : null
     ]);
   }
 }
