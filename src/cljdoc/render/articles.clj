@@ -35,7 +35,8 @@
                  (let [slug-path (-> doc-page :attrs :slug-path)]
                    [:li
                     [:a.link.blue.hover-dark-blue.dib.pa1
-                     {:href  (doc-link cache-id slug-path)
+                     {:style {:word-wrap "break-word"}
+                      :href  (doc-link cache-id slug-path)
                       :class (when (= current-page slug-path) "fw7")}
                      (:title doc-page)]
                     (doc-tree-view cache-id (:children doc-page) current-page (inc level))])))
