@@ -39,7 +39,7 @@
            (util/artifact-id project)))
   ([repository project version]
    (str (version-directory-uri repository project version)
-        "/maven-metadata.xml")))
+        "maven-metadata.xml")))
 
 (defn resolve-snapshot [repository project version]
   (let [{:keys [body status]} (http/get (metadata-xml-uri repository project version)
