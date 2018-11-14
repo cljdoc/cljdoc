@@ -51,7 +51,7 @@ function resultUri(result) {
   );
 }
 
-const SingleResultView = (r, idx, isSelected, onMouseOver) => {
+const SingleResultView = (r, isSelected, selectResult) => {
   const project =
     r.group_name === r.jar_name
       ? r.group_name
@@ -64,9 +64,7 @@ const SingleResultView = (r, idx, isSelected, onMouseOver) => {
         className: isSelected
           ? "pa3 bb b--light-gray bg-light-blue"
           : "pa3 bb b--light-gray",
-        onMouseOver: () => {
-          onMouseOver(idx);
-        }
+        onMouseOver: selectResult
       },
       [
         h("h4", { className: "dib ma0" }, [
@@ -87,26 +85,36 @@ const SingleResultView = (r, idx, isSelected, onMouseOver) => {
   ]);
 };
 
-const ResultsView = props => {
-  return h(
-    "div",
-    {
-      id: "results-view",
-      className:
-        "bg-white br1 br--bottom bb bl br b--blue absolute w-100 overflow-y-scroll",
-      style: {
-        top: "2.3rem",
-        maxHeight: "20rem",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
-      }
-    },
-    props.results
-      .sort((a, b) => b.created - a.created)
-      .map((r, idx) =>
-        SingleResultView(r, idx, props.selectedIndex == idx, props.onMouseOver)
-      )
-  );
-};
+class ResultsView extends Component {
+  componentDidUpdate(prevProps, _) {
+    if (this.props.selectedIndex != prevProps.selectedIndex) {
+      restrictToViewport(this.resultsViewNode, this.props.selectedIndex);
+    }
+  }
+
+  render(props, state) {
+    return h(
+      "div",
+      {
+        className:
+          "bg-white br1 br--bottom bb bl br b--blue absolute w-100 overflow-y-scroll",
+        ref: node => (this.resultsViewNode = node),
+        style: {
+          top: "2.3rem",
+          maxHeight: "20rem",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
+        }
+      },
+      props.results
+        .sort((a, b) => b.created - a.created)
+        .map((r, idx) =>
+          SingleResultView(r, props.selectedIndex == idx, () =>
+            props.onMouseOver(idx)
+          )
+        )
+    );
+  }
+}
 
 function restrictToViewport(container, selectedIndex) {
   let containerRect = container.getBoundingClientRect();
@@ -133,10 +141,6 @@ class App extends Component {
       this.setState({
         selectedIndex: Math.max(this.state.selectedIndex - 1, 0)
       });
-      restrictToViewport(
-        this.base.querySelector("#results-view"),
-        this.state.selectedIndex
-      );
     } else if (e.which === 40) {
       // arrow down
       e.preventDefault();
@@ -146,10 +150,6 @@ class App extends Component {
           this.state.results.length - 1
         )
       });
-      restrictToViewport(
-        this.base.querySelector("#results-view"),
-        this.state.selectedIndex
-      );
     }
   }
 
@@ -159,6 +159,7 @@ class App extends Component {
     this.state = { results: [], focused: false, selectedIndex: 0 };
   }
 
+  // TODO unset selectedIndex when results change
   render(props, state) {
     return h("div", { className: "relative system-sans-serif" }, [
       h(SearchInput, {
