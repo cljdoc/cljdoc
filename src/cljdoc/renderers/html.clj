@@ -96,12 +96,15 @@
 
 (defmethod render :artifact/version
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
-  (->> [:div
-        (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-        (layout/sidebar
-         (articles/article-list
-          (articles/doc-tree-view cache-id (doctree/add-slug-path (-> cache-contents :version :doc)) []))
-         (api/namespace-list {} (bundle/ns-entities cache-bundle)))]
+  (->> (layout/layout
+        ;; TODO on mobile this will effectively be rendered as a blank page
+        ;; We could instead show a message and the namespace tree.
+        {:top-bar (layout/top-bar cache-id (-> cache-contents :version :scm :url))
+         :main-sidebar-contents [(articles/article-list
+                                  (articles/doc-tree-view cache-id
+                                                          (doctree/add-slug-path (-> cache-contents :version :doc))
+                                                          []))
+                                 (api/namespace-list {} (bundle/ns-entities cache-bundle))]})
        (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))
                      :description (layout/description cache-id)})))
 

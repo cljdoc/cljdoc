@@ -8,8 +8,10 @@ function isProjectDocumentationPage() {
 }
 
 function initSrollIndicator() {
-  var mainScrollView = document.querySelector(".main-scroll-view");
-  var sidebarScrollView = document.querySelector(".sidebar-scroll-view");
+  var mainScrollView = document.querySelector(".js--main-scroll-view");
+  var sidebarScrollView = document.querySelector(
+    ".js--namespace-contents-scroll-view"
+  );
   var defBlockTitles = Array.from(
     document.querySelectorAll(".def-block-title")
   );
@@ -80,7 +82,7 @@ function restoreSidebarScrollPos() {
     .join("/");
 
   if (scrollPosData && page == scrollPosData.page) {
-    Array.from(document.querySelectorAll(".js--sidebar"))[0].scrollTop =
+    Array.from(document.querySelectorAll(".js--main-sidebar"))[0].scrollTop =
       scrollPosData.scrollTop;
   }
 

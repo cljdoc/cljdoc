@@ -49,44 +49,38 @@
                         namespace-list-component
                         doc-scm-url
                         doc-html] :as args}]
-  [:div
-   top-bar-component
-   (layout/sidebar
-    upgrade-notice-component
-    (article-list doc-tree-component)
-    namespace-list-component)
-   (layout/main-container
-    (cond-> {:offset "16rem"}
-      doc-html (assoc :extra-height 34))
-    [:div.mw7.center
-     ;; TODO dispatch on a type parameter that becomes part of the attrs map
-     (if doc-html
-       [:div#doc-html.markdown.lh-copy.pv4
-        (hiccup/raw doc-html)
-        [:a.db.f7.tr {:href doc-scm-url} (if (= :gitlab (util/scm-provider doc-scm-url))
-                                           "Edit on GitLab"
-                                           "Edit on GitHub")]]
-       [:div.lh-copy.pv6.tc
-        #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
-        [:span.f4.serif.gray.i "Space intentionally left blank."]])])])
+  (layout/layout
+   {:top-bar top-bar-component
+    :main-sidebar-contents [upgrade-notice-component
+                            (article-list doc-tree-component)
+                            namespace-list-component]
+    :content [:div.mw7.center
+              ;; TODO dispatch on a type parameter that becomes part of the attrs map
+              (if doc-html
+                [:div#doc-html.markdown.lh-copy.pv4
+                 (hiccup/raw doc-html)
+                 [:a.db.f7.tr {:href doc-scm-url} (if (= :gitlab (util/scm-provider doc-scm-url))
+                                                    "Edit on GitLab"
+                                                    "Edit on GitHub")]]
+                [:div.lh-copy.pv6.tc
+                 #_[:pre (pr-str (dissoc args :top-bar-component :doc-tree-component :namespace-list-component))]
+                 [:span.f4.serif.gray.i "Space intentionally left blank."]])]}))
 
 (defn doc-overview [{:keys [top-bar-component
                             doc-tree-component
                             namespace-list-component
                             cache-id
                             doc-tree] :as args}]
-  [:div
-   top-bar-component
-   (layout/sidebar
-    (article-list doc-tree-component)
-    namespace-list-component)
-   (layout/main-container
-    {:offset "16rem"}
-    [:div.mw7.center.pv4
-     [:h1 (:title doc-tree)]
-     [:ol
-      (for [c (:children doc-tree)]
-        [:li.mv2
-         [:a.link.blue
-          {:href (doc-link cache-id (-> c :attrs :slug-path))}
-          (-> c :title)]])]])])
+  [:div.doc-page
+   (layout/layout
+    {:top-bar top-bar-component
+     :main-sidebar-contents [(article-list doc-tree-component)
+                             namespace-list-component]
+     :content [:div.mw7.center.pv4
+               [:h1 (:title doc-tree)]
+               [:ol
+                (for [c (:children doc-tree)]
+                  [:li.mv2
+                   [:a.link.blue
+                    {:href (doc-link cache-id (-> c :attrs :slug-path))}
+                    (-> c :title)]])]]})])

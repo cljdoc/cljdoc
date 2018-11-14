@@ -201,20 +201,17 @@
 
 (defn sub-namespace-overview-page
   [{:keys [ns-entity namespaces defs top-bar-component article-list-component namespace-list-component]}]
-  [:div.ns-page
-   top-bar-component
-   (layout/sidebar
-    article-list-component
-    namespace-list-component)
-   (layout/main-container
-    {:offset "16rem"}
-    [:div.w-80-ns.pv5
-     (for [mp-ns (->> namespaces
-                     (filter #(.startsWith (platf/get-field % :name) (:namespace ns-entity))))
-           :let [ns (platf/get-field mp-ns :name)
-                 ns-url-fn #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %))
-                 defs (bundle/defs-for-ns defs ns)]]
-       (namespace-overview ns-url-fn mp-ns defs))])])
+  (layout/layout
+   {:top-bar top-bar-component
+    :main-sidebar-contents [article-list-component
+                            namespace-list-component]
+    :content [:div.mw7.center.pv4
+              (for [mp-ns (->> namespaces
+                               (filter #(.startsWith (platf/get-field % :name) (:namespace ns-entity))))
+                    :let [ns (platf/get-field mp-ns :name)
+                          ns-url-fn #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %))
+                          defs (bundle/defs-for-ns defs ns)]]
+                (namespace-overview ns-url-fn mp-ns defs))]}))
 
 (defn add-src-uri
   [{:keys [platforms] :as mp-var} scm-base file-mapping]
@@ -239,24 +236,21 @@
         render-wiki-link (render-wiki-link-fn (:namespace ns-entity)
                                               #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %)))]
     [:div.ns-page
-     top-bar-component
-     (layout/sidebar
-      upgrade-notice-component
-      article-list-component
-      namespace-list-component)
-     (layout/sidebar-two
-      (platform-support-note platf-stats)
-      (definitions-list ns-entity defs
-        {:indicate-platforms-other-than dominant-platf}))
-     (layout/main-container
-      {:offset "32rem"}
-      [:div.w-80-ns.pv4
-       [:h2 (:namespace ns-entity)]
-       (render-doc ns-data render-wiki-link)
-       (for [def defs]
-         (def-block
-           (add-src-uri def scm-base file-mapping)
-           render-wiki-link))])]))
+     (layout/layout
+      {:top-bar top-bar-component
+       :main-sidebar-contents [upgrade-notice-component
+                               article-list-component
+                               namespace-list-component]
+       :vars-sidebar-contents [(platform-support-note platf-stats)
+                               (definitions-list ns-entity defs
+                                 {:indicate-platforms-other-than dominant-platf})]
+       :content [:div.w-80-ns.pv4
+                 [:h2 (:namespace ns-entity)]
+                 (render-doc ns-data render-wiki-link)
+                 (for [def defs]
+                   (def-block
+                     (add-src-uri def scm-base file-mapping)
+                     render-wiki-link))]})]))
 
 (comment
   (:platforms --d)
