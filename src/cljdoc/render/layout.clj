@@ -134,14 +134,14 @@
    [:a.dib.v-mid.link.dim.gray.f6.mr3
     {:href (routes/url-for :artifact/index :path-params cache-id)}
     (:version cache-id)]
-   [:a {:href "/"}
+   [:a.dn.dib-ns {:href "/"}
     [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Beta"]]
-   [:a.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
+   [:a.dn.dib-ns.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
     {:href (util/github-url :issues)}
     "Have Feedback?"]
    [:div.tr
     {:style {:flex-grow 1}}
-    [:form.dib.mr3 {:action "/api/request-build2" :method "POST"}
+    [:form.dn.dib-ns.mr3 {:action "/api/request-build2" :method "POST"}
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id cache-id) "/" (:artifact-id cache-id))}]
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version cache-id)}]
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
