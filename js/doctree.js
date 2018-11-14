@@ -7,5 +7,10 @@ export function hideNestedArticles() {
       link.nextSibling.classList.add("dn");
     }
   }
-  articleLinks.map(hideNested);
+
+  function isDocLink(link) {
+    return link.pathname.startsWith("/d/")
+  }
+
+  articleLinks.filter(isDocLink).map(hideNested);
 }
