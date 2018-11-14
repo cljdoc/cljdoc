@@ -1,5 +1,6 @@
 import { Component, createElement, render, h } from "preact";
 import fuzzysort from "fuzzysort";
+import * as listSelect from "./listselect";
 
 function isSameProject(p1, p2) {
   // I can't believe you have to do this
@@ -37,68 +38,43 @@ function trackProjectOpened() {
   }
 }
 
-class SwitcherSingleResultView extends Component {
-  // TODO properly scroll list items into view
-  // - should only scroll if necessary
-  // - should only scroll minimum distance
-  componentDidUpdate(prevProps, prevState) {}
-
-  render(props, state) {
-    let r = props.r;
-    let isSelected = props.isSelected;
-    const project =
-      r.group_id === r.artifact_id
-        ? r.group_id
-        : r.group_id + "/" + r.artifact_id;
-    const docsUri = "/d/" + r.group_id + "/" + r.artifact_id + "/" + r.version;
-    return h(
-      "a",
-      {
-        className: "no-underline black",
-        href: docsUri,
-        ref: n => (this.domNode = n)
-      },
-      [
-        h(
-          "div",
-          {
-            className: isSelected
-              ? "pa3 bb b--light-gray bg-light-blue"
-              : "pa3 bb b--light-gray"
-          },
-          [
-            h("h4", { className: "dib ma0" }, [
-              project,
-              h("span", { className: "ml2 gray normal" }, r.version)
-            ]),
-            h(
-              "a",
-              {
-                className: "link blue ml2",
-                href: docsUri
-              },
-              "view docs"
-            )
-          ]
-        )
-      ]
-    );
-  }
-}
-
-const SwitcherResultsView = props => {
+const SwitcherSingleResultView = (r, isSelected, selectResult) => {
+  const project =
+    r.group_id === r.artifact_id
+      ? r.group_id
+      : r.group_id + "/" + r.artifact_id;
+  const docsUri = "/d/" + r.group_id + "/" + r.artifact_id + "/" + r.version;
   return h(
-    "div",
+    "a",
     {
-      className: "bg-white br1 br--bottom bb bl br b--blue overflow-y-scroll",
-      style: { top: "2.3rem", maxHeight: "20rem" }
+      className: "no-underline black",
+      href: docsUri,
+      onMouseOver: selectResult
     },
-    props.results.map((r, idx) =>
-      h(SwitcherSingleResultView, {
-        r: r,
-        isSelected: props.selectedIndex == idx
-      })
-    )
+    [
+      h(
+        "div",
+        {
+          className: isSelected
+            ? "pa3 bb b--light-gray bg-light-blue"
+            : "pa3 bb b--light-gray"
+        },
+        [
+          h("h4", { className: "dib ma0" }, [
+            project,
+            h("span", { className: "ml2 gray normal" }, r.version)
+          ]),
+          h(
+            "a",
+            {
+              className: "link blue ml2",
+              href: docsUri
+            },
+            "view docs"
+          )
+        ]
+      )
+    ]
   );
 };
 
@@ -196,15 +172,8 @@ class Switcher extends Component {
     this.initializeState();
   }
 
-  componentDidUpdate() {
-    console.log(this.state.selectedIndex);
-    if (this.state.show) {
-      this.inputNode.focus();
-    }
-  }
-
   render(props, state) {
-    if (state.show === true) {
+    if (state.show) {
       return h(
         "div",
         {
@@ -220,6 +189,7 @@ class Switcher extends Component {
           "div",
           { className: "mw7 center mt6 bg-white pa3 br2 shadow-3" },
           h("input", {
+            autofocus: true,
             placeHolder: "Jump to recently viewed docs...",
             className: "pa2 w-100 br1 border-box b--blue ba input-reset",
             ref: node => (this.inputNode = node),
@@ -227,9 +197,11 @@ class Switcher extends Component {
             onInput: e => this.updateResults(e.target.value)
           }),
           state.results.length > 0
-            ? h(SwitcherResultsView, {
+            ? h(listSelect.ResultsView, {
                 results: state.results,
-                selectedIndex: state.selectedIndex
+                selectedIndex: state.selectedIndex,
+                onMouseOver: idx => this.setState({ selectedIndex: idx }),
+                resultView: SwitcherSingleResultView
               })
             : null
         )
