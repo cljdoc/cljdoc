@@ -4,7 +4,7 @@
             [cljdoc.util :as util]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.server.system :as system]
-            [cljdoc.analysis.runner :as ana]
+            [cljdoc.analysis.service :as ana-service]
             [cljdoc.util.repositories :as repositories]
             [clojure.tools.logging :as log]
             [cljdoc.storage.api :as storage]
@@ -14,18 +14,14 @@
 (defn build [{:keys [project version jar pom git rev]}]
   (let [sys          (select-keys (system/system-config (config/config)) [:cljdoc/sqlite])
         _            (ig/init sys)
-        analysis-result (-> (ana/analyze-impl
-                             (symbol project)
-                             version
-                             (or jar
-                                 (:jar (repositories/local-uris project version))
-                                 (:jar (repositories/artifact-uris project version)))
-                             (or pom
-                                 (:pom (repositories/local-uris project version))
-                                 (:pom (repositories/artifact-uris project version))))
-                            util/read-cljdoc-edn)
+        jar          (or jar
+                         (:jar (repositories/local-uris project version))
+                         (:jar (repositories/artifact-uris project version)))
+        pom          (or pom
+                         (:pom (repositories/local-uris project version))
+                         (:pom (repositories/artifact-uris project version)))
         storage  (storage/->SQLiteStorage (config/db (config/config)))
-        scm-info (ingest/scm-info project (:pom-str analysis-result))]
+        scm-info (ingest/scm-info project (slurp pom))]
     (when (or (:url scm-info) git)
       (ingest/ingest-git! storage
                           {:project project
@@ -33,7 +29,10 @@
                            :scm-url (:url scm-info)
                            :local-scm git
                            :pom-revision (or rev (:sha scm-info))}))
-    (ingest/ingest-cljdoc-edn storage analysis-result)))
+    (log/info "Analyzing project jar to extract API information")
+    (->> (ana-service/run-analyze-script project version jar pom)
+         util/read-cljdoc-edn
+         (ingest/ingest-cljdoc-edn storage))))
 
 (defn run [opts]
   (system/-main))

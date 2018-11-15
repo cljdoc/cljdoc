@@ -32,6 +32,15 @@
   ;; TODO maybe delete, currently not used (like other codox stuff)
   (str "codox-edn/" project "/" version "/codox.edn"))
 
+(def analysis-output-prefix
+  "The -main of `cljdoc.analysis.runner` will write files to this directory.
+
+  Be careful when changing it since that path is also hardcoded in the
+  [cljdoc-builder](https://github.com/martinklepsch/cljdoc-builder)
+  CircleCI configuration"
+  ;; ---
+  "/tmp/cljdoc/analysis-out/")
+
 (defn cljdoc-edn
   [project version]
   {:pre [(some? project) (string? version)]}

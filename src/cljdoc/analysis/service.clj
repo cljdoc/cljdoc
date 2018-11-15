@@ -1,7 +1,9 @@
 (ns cljdoc.analysis.service
   (:require [clj-http.lite.client :as http]
             [clojure.tools.logging :as log]
-            [cljdoc.analysis.runner :as analysis]))
+            [clojure.string :as string]
+            [clojure.java.shell :as sh]
+            [cljdoc.util :as util]))
 
 (defprotocol IAnalysisService
   "Services that can run analysis of Clojure code for us
@@ -49,6 +51,16 @@
    {:accept "application/json"
     :basic-auth [(:api-token circle-ci) ""]}))
 
+(defn run-analyze-script
+  "Run ./script/analyze.sh and return the path to the file containing
+  analysis results. This is also the script that is used in the \"production\"
+  [cljdoc-builder project](https://github.com/martinklepsch/cljdoc-builder)"
+  [project version jarpath pompath]
+  (let [args ["./script/analyze.sh" project version jarpath pompath]]
+    (when-not (zero? (:exit (apply sh/sh args)))
+      (throw (Exception. (str "Error running: " (string/join " " args)))))
+    (str util/analysis-output-prefix (util/cljdoc-edn project version))))
+
 (defrecord Local [ingest-api-url]
   IAnalysisService
   (trigger-build
@@ -57,15 +69,21 @@
     (future
       (try
         (log/infof "Starting local analysis for %s %s %s" project version jarpath)
-        (let [cljdoc-edn-file (analysis/analyze-impl (symbol project) version jarpath pompath)]
+        (let [cljdoc-edn-file (run-analyze-script project version jarpath pompath)]
           (log/infof "Got file from Local AnalysisService %s" cljdoc-edn-file)
           (log/info "Posting to" ingest-api-url)
           (http/post ingest-api-url
                      {:form-params {:project project
                                     :version version
                                     :build-id build-id
-                                    :cljdoc-edn (.getPath cljdoc-edn-file)}
+                                    :cljdoc-edn cljdoc-edn-file}
                       :content-type "application/x-www-form-urlencoded"
                       :basic-auth ["cljdoc" "cljdoc"]}))
         (catch Throwable t
-          (log/errorf t "Exception while analyzing %s %s" project version))))))
+          (log/errorf t "Exception while analyzing %s %s, see cljdoc.analysis.service for help" project version))))))
+
+(comment
+  (def r
+    (let [b "http://repo.clojars.org/speculative/speculative/0.0.2/speculative-0.0.2"]
+      (sh/sh "./script/analyze.sh" "speculative"  "0.0.2" (str b ".jar") (str b ".pom"))))
+  )

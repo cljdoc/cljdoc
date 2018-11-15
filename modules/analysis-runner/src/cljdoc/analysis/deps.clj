@@ -1,4 +1,4 @@
-(ns cljdoc.util.deps
+(ns cljdoc.analysis.deps
   (:require [clojure.java.io :as io]
             [version-clj.core :as v]
             [cljdoc.util :as util]
