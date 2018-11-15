@@ -32,6 +32,21 @@
   (format "%s%s/%s/%s/" repository (group-path project) (util/artifact-id project) version))
 
 (defn metadata-xml-uri
+  "Returns a URI to read metadata for the `project`.
+
+  For example:
+
+  ```
+  (metadata-xml-uri \"https://repo.clojars.org/\" 'bidi)
+  => https://repo.clojars.org/bidi/bidi/maven-metadata.xml
+
+  (metadata-xml-uri \"https://repo.clojars.org/\" 'bidi \"2.1.3-SNAPSHOT\")
+  => https://repo.clojars.org/bidi/bidi/2.1.3-SNAPSHOT/maven-metadata.xml
+  ```
+
+  `version` as the third argument should only be provided for SNAPSHOTS.
+  URIs with non snapshot versions will result in 404.
+  "
   ([repository project]
    (format "%s%s/%s/maven-metadata.xml"
            repository
@@ -122,6 +137,8 @@
   (latest-release-version "org.clojure/clojure")
 
   (http/head (metadata-xml-uri (:clojars repositories) 'bidi "2.1.3-SNAPSHOT") {:throw-exceptions? false})
+
+  (metadata-xml-uri "https://repo.clojars.org/" 'bidi "2.1.3-SNAPSHOT")
 
   (exists? maven-central 'bidi "2.1.3-SNAPSHOT")
   (exists? clojars 'bidi "2.0.9-SNAPSHOT")
