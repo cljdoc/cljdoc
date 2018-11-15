@@ -15,7 +15,7 @@
             [clojure.java.shell :as sh]
             [clojure.string]
             [cljdoc.util :as util]
-            [cljdoc.util.deps :as deps]
+            [cljdoc.analysis.deps :as deps]
             [cljdoc.spec])
   (:import (java.util.zip ZipFile GZIPInputStream)
            (java.net URI)
@@ -36,7 +36,8 @@
         (.mkdirs (.getParentFile f))
         (io/copy (.getInputStream zip entry) f)))))
 
-(defn copy-jar-contents-impl
+(defn- copy-jar-contents!
+  "Copy the contents of a jar specified via `jar-uri` into a directory `target-dir`."
   [jar-uri target-dir]
   (let [remote-jar? (boolean (.getHost jar-uri))  ; basic check if jar is at remote location
         jar-local (if remote-jar?
@@ -48,20 +49,27 @@
                     (str jar-uri))]
     (printf "Unpacking %s\n" jar-local)
     (unzip! jar-local target-dir)
-    ;; Some projects include their `out` directories in their jars,
-    ;; usually somewhere under public/, this tries to clear those.
-    ;; NOTE this means projects with the group-id `public` will fail to build.
-    (when (.exists (io/file target-dir "public"))
-      (println "Deleting public/ dir")
-      (util/delete-directory! (io/file target-dir "public")))
-    (doseq [f ["deps.cljs" "data_readers.clj" "data_readers.cljc"]]
-      ;; codox returns {:publics ()} for deps.cljs, data_readers.cljc
-      ;; when present this should probably be fixed in codox as well
-      ;; but just deleting the file will also do the job for now
-      (when (.exists (io/file target-dir f))
-        (println "Deleting" f)
-        (.delete (io/file target-dir f))))
     (when remote-jar? (.delete (io/file jar-local)))))
+
+(defn- clean-jar-contents!
+  "Some projects include their `out` directories in their jars,
+  usually somewhere under public/, this tries to clear those.
+
+  It also deletes various files that frequently trip up analysis.
+
+  NOTE this means projects with the group-id `public` will fail to build."
+  [unpacked-jar-dir]
+  (when (.exists (io/file unpacked-jar-dir "public"))
+    (println "Deleting public/ dir")
+    (util/delete-directory! (io/file unpacked-jar-dir "public")))
+  (doseq [path ["deps.cljs" "data_readers.clj" "data_readers.cljc"]
+          :let [file (io/file unpacked-jar-dir path)]]
+    ;; codox returns {:publics ()} for deps.cljs, data_readers.cljc
+    ;; when present this should probably be fixed in codox as well
+    ;; but just deleting the file will also do the job for now
+    (when (.exists file)
+      (println "Deleting" path)
+      (.delete file))))
 
 (defn print-process-result [proc]
   (printf "exit-code %s ---------------------------------------------------------------\n" (:exit proc))
@@ -85,7 +93,8 @@
         _            (copy (io/resource "cljdoc/util.clj")
                            (doto (io/file impl-src-dir "cljdoc" "util.clj")
                              (-> .getParentFile .mkdirs)))
-        _            (copy-jar-contents-impl (URI. jar) jar-contents)
+        _            (copy-jar-contents! (URI. jar) jar-contents)
+        _            (clean-jar-contents! jar-contents)
         platforms    (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/platforms]
                              (util/infer-platforms-from-src-dir jar-contents))
@@ -135,7 +144,7 @@
   [project version jarpath pompath]
   (try
     (io/copy (analyze-impl (symbol project) version jarpath pompath)
-             (doto (io/file "/tmp/cljdoc/analysis-out" (util/cljdoc-edn project version))
+             (doto (io/file util/analysis-output-prefix (util/cljdoc-edn project version))
                (-> .getParentFile .mkdirs)))
     (catch Throwable t
       (println (.getMessage t))
