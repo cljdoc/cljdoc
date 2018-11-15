@@ -236,7 +236,7 @@
             (when (done? b)
               (cond
                 (:error b) [:span.db.bg-washed-red.pa3.br2 (:error b)]
-                (and (:api_imported_ts build-info)
+                (and (:api_imported_ts b)
                      (:scm_url b)
                      (:commit_sha b)) [:span.db.bg-washed-green.pa3.br2 "Good"]
                 (and (:import_completed_ts b)
