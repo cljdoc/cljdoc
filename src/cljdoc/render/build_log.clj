@@ -137,10 +137,10 @@
 
         (when-not (done? build-info)
           [:div.pa3.ba.b--blue.mb3.lh-copy.ma0.br2.bw1.f4
-           [:p.ma0.mb2 "We will now queue a job on CircleCI that will analyze
-           your code in an isolated environment. Once this is done we
-           will process the result of the analysis and integrate
-           additional sources like your Git repository."]
+           [:p.ma0.mb2
+            "We will now analyze the Git repository for this project and
+             then queue a job on CircleCI analyzing your code in an isolated
+             environment. The resulting data will be stored on cljdoc."]
            [:p.ma0 " You can follow the build's progress here. This
            page will automatically reload until your build is
            done."]])
