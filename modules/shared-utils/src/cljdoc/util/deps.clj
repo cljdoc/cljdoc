@@ -54,7 +54,10 @@
   [pom]
   (->> (pom/dependencies (pom/parse (slurp pom)))
        ;; compile/runtime scopes will be included by the normal dependency resolution.
-       (filter #(#{"provided" "system" "test"} (:scope %)))
+       ;; Previously this also included "test" but test dependencies sometimes
+       ;; included dependencies from non-standard Maven repos causing the build
+       ;; to fail. An example of this: metosin/compojure-api 2.0.0-alpha27
+       (filter #(#{"provided" "system"} (:scope %)))
        (keep (fn [{:keys [group-id artifact-id version]}]
                (when-not (or (.startsWith artifact-id "boot-")
                              ;; Ensure that tools.reader version is used as specified by CLJS
