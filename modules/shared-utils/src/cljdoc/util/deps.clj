@@ -27,7 +27,6 @@
 (defn- ensure-required-deps [deps-map]
   (merge {'org.clojure/clojure {:mvn/version "1.9.0"}
           'org.clojure/java.classpath {:mvn/version "0.2.2"}
-          'org.clojure/tools.namespace {:mvn/version "0.2.11"}
           'org.clojure/clojurescript {:mvn/version "1.10.238"}}
          deps-map))
 
