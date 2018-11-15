@@ -235,14 +235,16 @@
            [:div.fr
             (when (done? b)
               (cond
-                (and (:scm_url b) (:commit_sha b)) [:span.db.bg-washed-green.pa3.br2 "Good"]
+                (:error b) [:span.db.bg-washed-red.pa3.br2 (:error b)]
+                (and (:api_imported_ts build-info)
+                     (:scm_url b)
+                     (:commit_sha b)) [:span.db.bg-washed-green.pa3.br2 "Good"]
                 (and (:import_completed_ts b)
                      (:git_problem b))        [:span.db.bg-washed-yellow.pa3.br2 (str "Git: " (:git_problem b))]
                 (and (:import_completed_ts b)
                      (not (:scm_url b)))           [:span.db.bg-washed-yellow.pa3.br2 "SCM URL missing"]
                 (some-> (:error b)
-                        (.startsWith "cljdoc.analysis.git")) [:span.db.bg-washed-yellow.pa3.br2 (:error b)]
-                (:error b) [:span.db.bg-washed-red.pa3.br2 (:error b)]))]]
+                        (.startsWith "cljdoc.analysis.git")) [:span.db.bg-washed-yellow.pa3.br2 (:error b)]))]]
           [:div.cf.tc.bt.b--moon-gray.pa2.o-30
            ;; (def requested (:analysis_requested_ts b))
            ;; (def completed (:import_completed_ts b))
