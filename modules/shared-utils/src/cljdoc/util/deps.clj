@@ -8,7 +8,13 @@
   (let [min-versions {'org.clojure/clojure "1.9.0"
                       'org.clojure/clojurescript "1.10.339"
                       'org.clojure/java.classpath "0.2.2"
-                      'org.clojure/tools.namespace "0.2.11"
+                      ;; Because codox already depends on this version
+                      ;; and tools.deps generally selects newer versions
+                      ;; it might be ok to not check for this explicitly
+                      ;; This allows newer versions to be used through
+                      ;; transitive dependencies. For an example see:
+                      ;; iced-nrepl (0.2.5) -> orchard -> tools.namespace
+                      ;; 'org.clojure/tools.namespace "0.2.11"
                       'org.clojure/core.async "0.4.474"}
         choose-version (fn choose-version [given-v min-v]
                          (if (pos? (v/version-compare min-v given-v)) min-v given-v))]
