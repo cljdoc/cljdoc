@@ -100,20 +100,14 @@
                              (util/infer-platforms-from-src-dir jar-contents))
         namespaces   (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/namespaces])
-        deps           (deps/deps pom project version)
+        {:keys [classpath resolved-deps]} (deps/resolved-and-cp pom [(.getAbsolutePath impl-src-dir)])
         build-cdx      (fn build-cdx [jar-contents-path platf]
                          ;; TODO in theory we don't need to start this clojure process twice
                          ;; and could just modify the code in `impl.clj` to immediately run analysis
                          ;; for all requested platforms
                          (let [f (util/system-temp-file project ".edn")]
-                           (println "Analyzing" project platf "- used dependencies:")
-                           (println (pr-str {:deps deps}))
-                           ;; (println "Classpath:" (:out (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps})
-                           ;;                                    "-Spath" :dir (.getParentFile f))))
-                           (let [process (sh/sh "clojure" "-Sdeps" (pr-str {:deps deps
-                                                                            :mvn/repos (deps/extra-repos pom)
-                                                                            :paths [(.getAbsolutePath impl-src-dir)]})
-                                                "-m" "cljdoc.analysis.impl"
+                           (println "Analyzing" project platf)
+                           (let [process (sh/sh "clojure" "-Scp" classpath "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
                                                 ;; supplying :dir is necessary to avoid local deps.edn being included
                                                 ;; once -Srepro is finalized it might be useful for this purpose
@@ -123,6 +117,10 @@
                              (when (zero? (:exit process))
                                (assert result "No data was saved in output file")
                                result))))]
+
+    (println "Used dependencies for analysis:")
+    (deps/print-tree resolved-deps)
+    (println "---------------------------------------------------------------------------")
 
     (let [cdx-namespaces (->> (map #(build-cdx (.getPath jar-contents) %) platforms)
                               (zipmap platforms))
