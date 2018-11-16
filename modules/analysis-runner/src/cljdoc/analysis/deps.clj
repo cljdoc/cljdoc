@@ -53,7 +53,9 @@
   other more test-focused dependencies are kept out."
   [{:keys [group-id artifact-id]}]
   (contains? #{'javax.servlet/javax.servlet-api
-               'org.clojure/core.async}
+               'org.clojure/core.async
+               ;; https://dev.clojure.org/jira/browse/CLJS-2964
+               'org.clojure/test.check}
              (symbol group-id artifact-id)))
 
 (defn- extra-deps
