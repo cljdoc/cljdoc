@@ -196,6 +196,10 @@
     [:div#js--mobile-nav.db.dn-ns]]
    mobile-nav-spacer
    [:div.flex.flex-row
+    ;; Without min-height: 0 the sidebar and main content area won't
+    ;; be scrollable in Firefox, see this SO comment:
+    ;; https://stackoverflow.com/q/44948158/#comment76873071_44948158
+    {:style {:min-height 0}}
     (into [r-sidebar-container] main-sidebar-contents)
     (when (seq vars-sidebar-contents)
       (into [r-api-sidebar-container] vars-sidebar-contents))
