@@ -74,32 +74,22 @@ const SingleResultView = (r, isSelected, selectResult) => {
       ? r.group_name
       : r.group_name + "/" + r.jar_name;
   const docsUri = resultUri(r);
-  return h("a", { className: "no-underline black", href: docsUri }, [
-    h(
-      "div",
-      {
-        className: isSelected
-          ? "pa3 bb b--light-gray bg-light-blue"
-          : "pa3 bb b--light-gray",
-        onMouseOver: selectResult
-      },
-      [
-        h("h4", { className: "dib ma0" }, [
-          project,
-          h("span", { className: "ml2 gray normal" }, r.version)
-        ]),
-        h(
-          "a",
-          {
-            className: "link blue ml2",
-            href: docsUri
-          },
-          "view docs"
-        )
-        // h('span', {}, r.created)
-      ]
-    )
-  ]);
+  const rowClass = isSelected
+    ? "pa3 bb b--light-gray bg-light-blue"
+    : "pa3 bb b--light-gray";
+  return (
+    <a class="no-underline black" href={docsUri}>
+      <div class={rowClass} onMouseOver={selectResult}>
+        <h4 class="dib ma0">
+          {project}
+          <span class="ml2 gray normal">{r.version}</span>
+        </h4>
+        <a class="link blue ml2" href={docsUri}>
+          view docs
+        </a>
+      </div>
+    </a>
+  );
 };
 
 class App extends Component {
