@@ -109,23 +109,19 @@ class App extends Component {
   }
 
   render(props, state) {
-    function resultsView(parent) {
-      return h(
-        "div",
-        {
-          className:
-            "bg-white br1 br--bottom bb bl br b--blue w-100 absolute overflow-y-scroll",
-          style: {
-            top: "2.3rem",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
-          }
-        },
-        h(listSelect.ResultsView, {
-          resultView: SingleResultView,
-          results: state.results,
-          selectedIndex: state.selectedIndex,
-          onMouseOver: idx => parent.setState({ selectedIndex: idx })
-        })
+    function resultsView(selectResult) {
+      return (
+        <div
+          class="bg-white br1 br--bottom bb bl br b--blue w-100 absolute overflow-y-scroll"
+          style="top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"
+        >
+          <listSelect.ResultsView
+            resultView={SingleResultView}
+            results={state.results}
+            selectedIndex={state.selectedIndex}
+            onMouseOver={selectResult}
+          />
+        </div>
       );
     }
 
@@ -152,7 +148,9 @@ class App extends Component {
         focus: () => this.setState({ focused: true }),
         unfocus: () => this.setState({ focused: false })
       }),
-      state.focused && state.results.length > 0 ? resultsView(this) : null
+      state.focused && state.results.length > 0
+        ? resultsView(idx => this.setState({ selectedIndex: idx }))
+        : null
     ]);
   }
 }
