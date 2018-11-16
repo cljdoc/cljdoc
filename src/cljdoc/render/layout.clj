@@ -28,7 +28,10 @@
   (format "Documentation for %s v%s on cljdoc, a website that builds and hosts documentation for Clojure/Script libraries."
           (util/clojars-id cache-id) version))
 
-(defn no-js-warning []
+(defn no-js-warning
+  "A small development utility component that will show a warning when
+  the browser can't retrieve the application's JS sources."
+  []
   [:div.fixed.left-0.right-0.bottom-0.bg-washed-red.code.b--light-red.bw3.ba.dn
    {:id "no-js-warning"}
    [:script
