@@ -10,18 +10,22 @@ export class MobileNav extends Component {
   toggleNav() {
     let mainScrollView = document.querySelector(".js--main-scroll-view");
     let mainSidebar = document.querySelector(".js--main-sidebar");
-    let isMainContentHidden = mainScrollView.classList.contains("dn");
-    if (isMainContentHidden) {
+    let isNavShown = mainScrollView.classList.contains("dn");
+    if (isNavShown) {
+      let scrollPos = window.scrollY;
       mainScrollView.classList.remove("dn"); // show main scroll view / content area
       mainSidebar.classList.replace("db", "dn"); // hide sidebar
       doctree.hideNestedArticles();
-      this.setState({ showNav: false });
+      window.scrollTo(0, this.state.mainViewScrollPos); // scroll after(!) swapping content
+      this.setState({ showNav: false, navViewScrollPos: scrollPos });
     } else {
+      let scrollPos = window.scrollY;
+      doctree.showNestedArticles();
       mainScrollView.classList.add("dn"); // hide main scroll view / content area
       mainSidebar.classList.add("flex-grow-1"); // make sure nav fills width of screen
       mainSidebar.classList.replace("dn", "db"); // show sidebar
-      doctree.showNestedArticles();
-      this.setState({ showNav: true });
+      window.scrollTo(0, this.state.navViewScrollPos); // scroll after(!) swapping content
+      this.setState({ showNav: true, mainViewScrollPos: scrollPos });
     }
   }
 
