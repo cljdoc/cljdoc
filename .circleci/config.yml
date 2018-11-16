@@ -13,9 +13,6 @@ jobs:
 
     working_directory: ~/repo
 
-    environment:
-      BOOT_JVM_OPTIONS: -Xmx2048m # Customize the JVM maximum heap limit
-
     steps:
       - checkout
       - restore_cache:
@@ -34,6 +31,7 @@ jobs:
 
       - run: ./script/cljdoc ingest --project bidi --version 2.1.3
       - run: ./script/analyze.sh bidi 2.1.3 ~/.m2/repository/bidi/bidi/2.1.3/bidi-2.1.3.jar ~/.m2/repository/bidi/bidi/2.1.3/bidi-2.1.3.pom
+      - run: ./.circleci/run_if_changed.sh modules/analysis-runner/ "cd modules/analysis-runner/; clojure extended-test.clj"
 
       - run: clojure -A:test
       - store_test_results:
