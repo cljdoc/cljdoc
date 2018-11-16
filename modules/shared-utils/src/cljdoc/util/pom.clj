@@ -1,9 +1,13 @@
 (ns cljdoc.util.pom
   (:require [clojure.string :as string])
-  (:import (org.jsoup Jsoup)))
+  (:import (org.jsoup Jsoup)
+           (org.jsoup.nodes Document)))
 
 (defn parse [pom-str]
   (Jsoup/parse pom-str))
+
+(defn jsoup? [x]
+  (instance? Document x))
 
 (defn text [^Jsoup doc sel]
   (when-let [t (some-> (.select doc sel) (first) (.ownText))]

@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [version-clj.core :as v]
             [cljdoc.util :as util]
-            [cljdoc.util.pom :as pom]))
+            [cljdoc.util.pom :as pom]
+            [clojure.tools.deps.alpha :as tdeps]))
 
 (defn- ensure-recent-ish [deps-map]
   (let [min-versions {'org.clojure/clojure "1.9.0"
@@ -26,24 +27,34 @@
 
 (defn- ensure-required-deps [deps-map]
   (merge {'org.clojure/clojure {:mvn/version "1.9.0"}
-          'org.clojure/java.classpath {:mvn/version "0.2.2"}
           'org.clojure/clojurescript {:mvn/version "1.10.238"}}
          deps-map))
 
-(defn- add-cljdoc-codox [deps-map]
-  (assoc deps-map 'codox/codox {:exclusions '[enlive hiccup org.pegdown/pegdown]
-                                ;; :mvn/version "0.10.4"
-                                :git/url "https://github.com/martinklepsch/codox"
-                                :sha "e0cd26910704c416611fc81f43f890a26861c221"
-                                :deps/root "codox/"}))
+(def cljdoc-codox
+  {'codox/codox {:exclusions '[enlive hiccup org.pegdown/pegdown]
+                 ;; :mvn/version "0.10.4"
+                 :git/url "https://github.com/cljdoc/codox"
+                 :sha "e0cd26910704c416611fc81f43f890a26861c221"
+                 :deps/root "codox/"}})
 
-(defn- hardcoded-deps [project]
-  (-> '{"clj-time" {"clj-time" {org.clojure/java.jdbc {:mvn/version "0.7.7"}}}
-        "com.taoensso" {"tufte" {com.taoensso/timbre {:mvn/version "4.10.0"}}}
-        "cider" {"cider-nrepl" {boot/core {:mvn/version "2.7.2"}
-                                boot/base {:mvn/version "2.7.2"}
-                                leiningen {:mvn/version "2.8.1"}}}}
-      (get-in [(util/group-id project) (util/artifact-id project)])))
+(def hardcoded-deps
+  ;; Make sure to always use group-id/artifact-id even if they're the same
+  '{clj-time/clj-time {org.clojure/java.jdbc {:mvn/version "0.7.7"}}
+    com.taoensso/tufte {com.taoensso/timbre {:mvn/version "4.10.0"}}
+    cider/cider-nrepl {boot/core {:mvn/version "2.7.2"}
+                       boot/base {:mvn/version "2.7.2"}
+                       leiningen {:mvn/version "2.8.1"}}})
+
+(defn whitelisted-test-dep?
+  "While `provided` is usually more appropriate for optional runtime
+  dependencies some projects put them in their leiningen :dev
+  :dependencies causing them to be added to the `pom.xml` with scope
+  `test`. This function whitelists some of those dependencies so
+  other more test-focused dependencies are kept out."
+  [{:keys [group-id artifact-id]}]
+  (contains? #{'javax.servlet/javax.servlet-api
+               'org.clojure/core.async}
+             (symbol group-id artifact-id)))
 
 (defn- extra-deps
   "Some projects require additional depenencies that have either been specified with
@@ -51,39 +62,64 @@
   Maybe should be able to configure this via their cljdoc.edn configuration
   file but this situation being an edge case this is a sufficient fix for now."
   [pom]
-  (->> (pom/dependencies (pom/parse (slurp pom)))
+  {:pre [(pom/jsoup? pom)]}
+  (->> (pom/dependencies pom)
        ;; compile/runtime scopes will be included by the normal dependency resolution.
-       ;; Previously this also included "test" but test dependencies sometimes
-       ;; included dependencies from non-standard Maven repos causing the build
-       ;; to fail. An example of this: metosin/compojure-api 2.0.0-alpha27
-       (filter #(#{"provided" "system"} (:scope %)))
-       (keep (fn [{:keys [group-id artifact-id version]}]
-               (when-not (or (.startsWith artifact-id "boot-")
-                             ;; Ensure that tools.reader version is used as specified by CLJS
-                             (and (= group-id "org.clojure")
-                                  (= artifact-id "tools.reader"))
-                             ;; The version can be nil when pom's utilize dependencyManagement - this unsurprisingly breaks tools.deps
-                             ;; Remains to be seen if this causes any issues
-                             ;; http://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management
-                             (nil? version))
-                 [(symbol group-id artifact-id) {:mvn/version version}])))
+       (filter #(#{"provided" "system" "test"} (:scope %)))
+       (remove #(and (= "test" (:scope %))
+                     (not (whitelisted-test-dep? %))))
+       ;; The version can be nil when pom's utilize
+       ;; dependencyManagement this unsurprisingly breaks tools.deps
+       ;; Remains to be seen if this causes any issues
+       ;; http://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management
+       (remove #(nil? (:version %)))
+       (remove #(.startsWith (:artifact-id %) "boot-"))
+       ;; Ensure that tools.reader version is used as specified by CLJS
+       (remove #(and (= (:group-id %) "org.clojure")
+                     (= (:artifact-id %) "tools.reader")))
+       (map (fn [{:keys [group-id artifact-id version]}]
+               [(symbol group-id artifact-id) {:mvn/version version}]))
        (into {})))
 
-(defn extra-repos
+(defn- extra-repos
   [pom]
-  (->> (slurp pom)
-       (pom/parse)
-       (pom/repositories)
+  {:pre [(pom/jsoup? pom)]}
+  (->> (pom/repositories pom)
        (map (fn [repo] [(:id repo) (dissoc repo :id)]))
        (into {})))
 
-(defn deps [pom project version]
-  (-> (extra-deps pom)
-      (merge (hardcoded-deps project))
-      (ensure-required-deps)
-      (add-cljdoc-codox)
-      (ensure-recent-ish)
-      (assoc project {:mvn/version version})))
+(defn- deps
+  "Create a deps.edn style :deps map for the project specified by the
+  Jsoup document `pom`."
+  [pom]
+  {:pre [(pom/jsoup? pom)]}
+  (let [{:keys [group-id artifact-id version]} (pom/artifact-info pom)
+        project (symbol group-id artifact-id)]
+    (-> (extra-deps pom)
+        (merge (get hardcoded-deps project))
+        (ensure-required-deps)
+        (ensure-recent-ish)
+        (merge cljdoc-codox)
+        (assoc project {:mvn/version version}))))
+
+(def ^:private default-repos
+  {"central" {:url "https://repo1.maven.org/maven2/"},
+   "clojars" {:url "https://repo.clojars.org/"}})
+
+(defn resolved-and-cp [pom-url extra-paths]
+  "Build a classpath for the project specified by `pom-url`."
+  [pom-url extra-paths]
+  {:pre [(string? pom-url) (coll? extra-paths)]}
+  (let [pom (pom/parse (slurp pom-url))
+        resolved (tdeps/resolve-deps {:deps (deps pom),
+                                      :mvn/repos (merge default-repos (extra-repos pom))}
+                                     {:verbose false})]
+    {:resolved-deps resolved
+     :classpath (tdeps/make-classpath resolved extra-paths nil)}))
+
+(defn print-tree [resolved-deps]
+  (tdeps/print-tree resolved-deps))
+
 
 (comment
   (deps "/Users/martin/.m2/repository/manifold/manifold/0.1.6/manifold-0.1.6.pom" 'manifold/manifold "0.1.6")
