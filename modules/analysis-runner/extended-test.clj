@@ -12,7 +12,9 @@
    ;; had some issues with older ClojureScript and analysis env
    ["orchestra" "2018.11.07-1" "http://repo.clojars.org/orchestra/orchestra/2018.11.07-1/orchestra-2018.11.07-1"]
    ;; might have had some issues related to old versions of core.async in the past
-   ["manifold" "0.1.8" "http://repo.clojars.org/manifold/manifold/0.1.8/manifold-0.1.8"]])
+   ["manifold" "0.1.8" "http://repo.clojars.org/manifold/manifold/0.1.8/manifold-0.1.8"]
+   ;; https://dev.clojure.org/jira/browse/CLJS-2964
+   ["speculative" "0.0.3-SNAPSHOT" "http://repo.clojars.org/speculative/speculative/0.0.3-SNAPSHOT/speculative-0.0.3-20181116.104047-47"]])
 
 (def sep
   "\n---------------------------------------------------------------------------")
