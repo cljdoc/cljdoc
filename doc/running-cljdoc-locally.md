@@ -53,7 +53,7 @@ for `muuntaja` from a local Jar and Git repository:
 
 # Importing a Project from Local Sources
 
-1. Clone `muuntaja` to a direcory of your liking and install it into your local Maven repo:
+1. Clone `muuntaja` to a directory of your liking and install it into your local Maven repo:
 
     ```sh
     git clone --branch 0.6.1 https://github.com/metosin/muuntaja.git
@@ -62,7 +62,7 @@ for `muuntaja` from a local Jar and Git repository:
     ```
 
     > **Tip:** You can checkout the specific release version instead of 0.6.1.
-    > When you do so, remember to change the version number in the commend in the
+    > When you do so, remember to change the version number in the command in the
     > next step.
 
 1. Ingest all relevant information into the cljdoc system:
