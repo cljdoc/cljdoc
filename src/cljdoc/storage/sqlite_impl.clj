@@ -116,6 +116,7 @@
   (if-let [version-id (get-version-id db-spec group-id artifact-id version)]
     (let [versions-on-cljdoc (->> (get-documented-versions db-spec group-id artifact-id)
                                   (map :name)
+                                  (remove #(.endsWith % "-SNAPSHOT"))
                                   (version-clj/version-sort))]
       (->> {:cache-contents (-> (docs-cache-contents db-spec version-id)
                                 (assoc :latest (last versions-on-cljdoc)))
