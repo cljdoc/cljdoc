@@ -32,7 +32,7 @@
 (defn scm-info [build-info]
   (if (and (:scm_url build-info) (:commit_sha build-info))
     [:p.bg-washed-green.pa3.br2
-     "Everything looking splendid!"]
+     "Everything is looking splendid!"]
     [:div
      [:p.bg-washed-red.pa3.br2
       "We could not find the git repository for your project or

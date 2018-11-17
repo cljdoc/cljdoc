@@ -153,7 +153,7 @@ others later on. Sometimes this is because a constraint that was previously
 present is no longer there. Sometimes it is better options becoming available
 or something else entirely.
 
-In order to avoid such confusion cljdoc uses http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions:[Architecture Decision Records]
+In order to avoid such confusion cljdoc uses http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions[Architecture Decision Records]
 to document important* decisions. You can find these in link:doc/adr/[`doc/adr/`] and are
 invited to write ADRs as well.
 
