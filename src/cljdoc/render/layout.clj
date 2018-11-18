@@ -64,6 +64,10 @@
                    (assert (.startsWith url "/"))
                    [:link {:rel "canonical" :href (str "https://cljdoc.org" url)}]); TODO read domain from config
 
+                 ;; Open Search
+                 [:link {:rel "search" :type "application/opensearchdescription+xml"
+                         :href "/opensearch.xml" :title "Cljdoc"}]
+
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (hiccup.page/include-css
                    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
