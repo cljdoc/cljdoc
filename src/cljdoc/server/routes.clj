@@ -40,6 +40,10 @@
   #{["/versions/:group-id" :get nop :route-name :group/index]
     ["/versions/:group-id/:artifact-id" :get nop :route-name :artifact/index]})
 
+(defn open-search-routes []
+  #{["/search" :get nop :route-name :search]
+    ["/suggest" :get nop :route-name :suggest]})
+
 (defn info-pages-routes []
   #{["/" :get nop :route-name :home]
     ["/shortcuts" :get nop :route-name :shortcuts]
@@ -60,6 +64,7 @@
           #{(select-keys opts [:host :port :scheme])})
         (documentation-routes)
         (index-routes)
+        (open-search-routes)
         (api-routes)
         (build-log-routes)
         (info-pages-routes)

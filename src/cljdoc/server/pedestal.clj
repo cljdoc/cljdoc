@@ -15,6 +15,7 @@
   (:require [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.home :as render-home]
+            [cljdoc.render.search :as search]
             [cljdoc.render.meta :as render-meta]
             [cljdoc.render.error :as error]
             [cljdoc.render.offline :as offline]
@@ -345,6 +346,8 @@
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [{:name ::home :enter #(pu/ok-html % (render-home/home))}]
+         :search     [{:name ::search :enter #(pu/ok-html % (search/search-page %))}]
+         :suggest    [{:name ::suggest :enter search/suggest-api}]
          :shortcuts  [{:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts))}]
          :sitemap    [(sitemap-interceptor storage)]
          :show-build [pu/coerce-body

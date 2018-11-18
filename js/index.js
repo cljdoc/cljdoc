@@ -17,7 +17,14 @@ restoreSidebarScrollPos();
 hideNestedArticles();
 
 render(h(Switcher), document.querySelector("#cljdoc-switcher"));
-render(h(App), document.querySelector("#cljdoc-search"));
+
+const searchNode = document.querySelector("#cljdoc-search");
+if (searchNode) {
+  render(
+    h(App, { initialValue: searchNode.getAttribute("initial-value") }),
+    searchNode
+  );
+}
 
 if (isNSPage()) {
   initSrollIndicator();
