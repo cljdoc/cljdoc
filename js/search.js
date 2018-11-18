@@ -44,11 +44,22 @@ class SearchInput extends Component {
     }
   }
 
+  componentDidMount() {
+    if (this.props.initialValue) {
+      loadResults(
+        cleanSearchStr(this.props.initialValue),
+        this.props.newResultsCallback
+      );
+    }
+  }
+
   render(props) {
     const debouncedLoader = debounced(300, loadResults);
+
     return h("input", {
       autofocus: true,
       placeHolder: "NEW! Jump to docs...",
+      defaultValue: props.initialValue,
       className: "pa2 w-100 br1 border-box b--blue ba input-reset",
       onFocus: e => props.focus(),
       onBlur: e => setTimeout(_ => props.unfocus(), 200),
@@ -117,6 +128,7 @@ class App extends Component {
 
     return h("div", { className: "relative system-sans-serif" }, [
       h(SearchInput, {
+        initialValue: this.props.initialValue,
         newResultsCallback: rs =>
           this.setState({ focused: true, results: rs, selectedIndex: 0 }),
         onEnter: () =>
