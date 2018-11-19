@@ -31,8 +31,8 @@
 ;; Specs for the fully unfurled doctree that is eventually stored in
 ;; the database. This includes the documents content, slug and more.
 (spec/def ::entry
-  (spec/keys :req-un [::title ::attrs]
-             :opt-un [::children]))
+  (spec/keys :req-un [::title]
+             :opt-un [::attrs ::children]))
 
 (spec/def ::attrs
   (spec/keys :req-un [::slug]
@@ -55,7 +55,7 @@
 (spec/def ::hiccup-entry
   (spec/spec
    (spec/cat :title ::title
-             :attrs (spec/* ::hiccup-attrs)
+             :attrs (spec/? ::hiccup-attrs)
              :children (spec/* ::hiccup-entry))))
 
 (declare process-toc)
@@ -65,25 +65,25 @@
                   :entry ::hiccup-entry)
   :ret ::entry)
 
-(defn- process-toc-entry [slurp-fn [title attrs & children]]
-  #_(assert (or (nil? attrs) (map? attrs)) "Doctree attribute map is missing")
-  (cond-> {:title title}
+(defn- process-toc-entry [slurp-fn toc-entry]
+  (let [{:keys [title attrs children]} (spec/conform ::hiccup-entry toc-entry)]
+    (cond-> {:title title}
 
-    (:file attrs)
-    (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
+      (:file attrs)
+      (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
 
-    (and (:file attrs) (.endsWith (:file attrs) ".adoc"))
-    (assoc-in [:attrs :cljdoc/asciidoc] (slurp-fn (:file attrs)))
+      (and (:file attrs) (.endsWith (:file attrs) ".adoc"))
+      (assoc-in [:attrs :cljdoc/asciidoc] (slurp-fn (:file attrs)))
 
-    (and (:file attrs) (or (.endsWith (:file attrs) ".md")
-                           (.endsWith (:file attrs) ".markdown")))
-    (assoc-in [:attrs :cljdoc/markdown] (slurp-fn (:file attrs)))
+      (and (:file attrs) (or (.endsWith (:file attrs) ".md")
+                             (.endsWith (:file attrs) ".markdown")))
+      (assoc-in [:attrs :cljdoc/markdown] (slurp-fn (:file attrs)))
 
-    (nil? (:slug attrs))
-    (assoc-in [:attrs :slug] (cuerdas/uslug title))
+      (nil? (:slug attrs))
+      (assoc-in [:attrs :slug] (cuerdas/uslug title))
 
-    (seq children)
-    (assoc :children (process-toc slurp-fn children))))
+      (seq children)
+      (assoc :children children))))
 
 (spec/fdef process-toc
   :args (spec/cat :slurp-fn fn?
@@ -205,5 +205,13 @@
    identity
    [["Readme"
      ["Example" {:file "x"}]]])
+
+  (process-toc-entry
+   identity
+   ["Readme"
+    {:file "README.md"}
+    ["Nested"
+     {:file "nested.adoc"}]
+    ["jungle"]])
 
   )
