@@ -66,13 +66,16 @@
   ;; This is the main REPL entry point into cljdoc.
   ;; Run the forms one by one up to `go` and you should
   ;; have a running server at http://localhost:8000
-  (require '[integrant.repl])
+  (require '[integrant.repl]
+           '[clojure.spec.test.alpha :as st])
 
   (integrant.repl/set-prep! #(system-config (cfg/config)))
 
   (integrant.repl/go)
 
-  (integrant.repl/halt)
+  (do (integrant.repl/halt)
+      (st/instrument)
+      (integrant.repl/go))
 
   (integrant.repl/reset) ; currently a little broken, fix welcome
 
