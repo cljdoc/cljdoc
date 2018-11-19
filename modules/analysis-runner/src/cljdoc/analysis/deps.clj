@@ -45,19 +45,6 @@
                        boot/base {:mvn/version "2.7.2"}
                        leiningen {:mvn/version "2.8.1"}}})
 
-(defn whitelisted-test-dep?
-  "While `provided` is usually more appropriate for optional runtime
-  dependencies some projects put them in their leiningen :dev
-  :dependencies causing them to be added to the `pom.xml` with scope
-  `test`. This function whitelists some of those dependencies so
-  other more test-focused dependencies are kept out."
-  [{:keys [group-id artifact-id]}]
-  (contains? #{'javax.servlet/javax.servlet-api
-               'org.clojure/core.async
-               ;; https://dev.clojure.org/jira/browse/CLJS-2964
-               'org.clojure/test.check}
-             (symbol group-id artifact-id)))
-
 (defn- extra-deps
   "Some projects require additional depenencies that have either been specified with
   scope 'provided' or are specified via documentation, e.g. a README.
@@ -68,8 +55,6 @@
   (->> (pom/dependencies pom)
        ;; compile/runtime scopes will be included by the normal dependency resolution.
        (filter #(#{"provided" "system" "test"} (:scope %)))
-       (remove #(and (= "test" (:scope %))
-                     (not (whitelisted-test-dep? %))))
        ;; The version can be nil when pom's utilize
        ;; dependencyManagement this unsurprisingly breaks tools.deps
        ;; Remains to be seen if this causes any issues
@@ -106,7 +91,11 @@
 
 (def ^:private default-repos
   {"central" {:url "https://repo1.maven.org/maven2/"},
-   "clojars" {:url "https://repo.clojars.org/"}})
+   "clojars" {:url "https://repo.clojars.org/"}
+   ;; Included to account for https://dev.clojure.org/jira/browse/TDEPS-46
+   ;; specifically anything depending on org.immutant/messaging will fail
+   ;; this includes compojure-api
+   "jboss"   {:url "https://repository.jboss.org/nexus/content/groups/public/"}})
 
 (defn resolved-and-cp [pom-url extra-paths]
   "Build a classpath for the project specified by `pom-url`."
