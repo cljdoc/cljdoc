@@ -82,21 +82,24 @@
   [:h4.ttu.f7.fw5.mt1.mb2.tracked.gray title])
 
 (defn meta-info-dialog []
-  [:div#js--meta-dialog.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
-   [:p.ma0
-    [:b "cljdoc"]
-    " is a website building & hosting documentation for Clojure/Script libraries"]
-   (into [:div.mv3]
-         (map (fn [[description link]]
-                [:a.db.link.black.mv1.pv3.tc.br2.pointer
-                 {:href link, :style {:background-color "#ECF2FB"}}
-                 description])
-              [["Keyboard shortcuts"  (routes/url-for :shortcuts)]
-               ["Report a problem"    (util/github-url :issues)]
-               ;; ["Recent improvements" "#"] TODO add link once it exists
-               ["cljdoc on GitHub"    (util/github-url :home)]]))
-   [:a#js--meta-close.link.black.fr.pointer
-    "× close"]])
+  [:div
+   [:img#js--meta-icon.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
+    {:src "https://icon.now.sh/explore/48/357edd"}]
+   [:div#js--meta-dialog.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
+    [:p.ma0
+     [:b "cljdoc"]
+     " is a website building & hosting documentation for Clojure/Script libraries"]
+    (into [:div.mv3]
+          (map (fn [[description link]]
+                 [:a.db.link.black.mv1.pv3.tc.br2.pointer
+                  {:href link, :style {:background-color "#ECF2FB"}}
+                  description])
+               [["Keyboard shortcuts"  (routes/url-for :shortcuts)]
+                ["Report a problem"    (util/github-url :issues)]
+                ;; ["Recent improvements" "#"] TODO add link once it exists
+                ["cljdoc on GitHub"    (util/github-url :home)]]))
+    [:a#js--meta-close.link.black.fr.pointer
+     "× close"]]])
 
 (defn top-bar-generic []
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
@@ -207,4 +210,5 @@
     (when (seq vars-sidebar-contents)
       (into [r-api-sidebar-container] vars-sidebar-contents))
     ;; (when doc-html doc-nav)
-    [r-content-container content]]])
+    [r-content-container content]
+    (meta-info-dialog)]])

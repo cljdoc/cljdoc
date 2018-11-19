@@ -90,7 +90,7 @@ function restoreSidebarScrollPos() {
 }
 
 function toggleMetaDialog() {
-  if (document.querySelector(".main-scroll-view")) {
+  if (document.querySelector(".js--main-scroll-view")) {
     document.getElementById("js--meta-icon").onclick = function() {
       document.getElementById("js--meta-icon").classList.replace("db-ns", "dn");
       document
