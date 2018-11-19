@@ -45,7 +45,7 @@
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
   based on the cache-bundle that has been injected into the context previously
-  by the [[data-loader]] interceptor.
+  by the [[artifact-data-loader]] interceptor.
 
   If the request is for the root page (e.g. /d/group/artifact/0.1.0) this interceptor
   will also lookup the first article that's part of the cache-bundle and return a 302
@@ -83,23 +83,27 @@
                  (map #(java.net.URLDecoder/decode % "UTF-8"))
                  (assoc-in ctx [:request :path-params :doc-slug-path])))})
 
-(defn data-loader
+(defn index-page
+  "Return a list of interceptors suitable to render an group or
+  artifact index page as specified by `render-fn`."
+  [store render-fn]
+  [{:name ::releases-loader
+    :enter (fn releases-loader-inner [ctx]
+             (assoc ctx ::releases (storage/list-versions store (-> ctx :request :path-params :group-id))))}
+   (pu/html #(render-fn (-> % :request :path-params) (::releases %)))])
+
+(defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
-  relevant for the provided route `route-name`."
-  [store route-name]
-  {:name  ::data-loader
-   :enter (fn [ctx]
+  relevant for the artifact identified via the entity map in `:path-params`."
+  [store]
+  {:name  ::artifact-data-loader
+   :enter (fn artifact-data-loader-inner [ctx]
             (let [params (-> ctx :request :path-params)]
               (d/measure! "cljdoc.storage.read_time" {}
-                          (case route-name
-                            (:group/index :artifact/index)
-                            (assoc ctx ::releases (storage/list-versions store (:group-id params)))
-
-                            (:artifact/version :artifact/doc :artifact/namespace :artifact/offline-bundle)
-                            (do (log/info "Loading artifact cache bundle for" params)
-                                (if (storage/exists? store params)
-                                  (assoc ctx :cache-bundle (storage/bundle-docs store params))
-                                  ctx))))))})
+                          (log/info "Loading artifact cache bundle for" params)
+                          (if (storage/exists? store params)
+                            (assoc ctx :cache-bundle (storage/bundle-docs store params))
+                            ctx))))})
 
 (defn- resolve-version [path-params referer]
   (assert (= "CURRENT" (:version path-params)))
@@ -137,7 +141,7 @@
   [storage route-name]
   (->> [(version-resolve-redirect)
         (when (= :artifact/doc route-name) doc-slug-parser)
-        (data-loader storage route-name)
+        (artifact-data-loader storage)
         render-interceptor]
        (keep identity)
        (vec)))
@@ -317,7 +321,7 @@
 
 (def offline-bundle
   "Creates an HTTP response with a zip file containing offline docs
-  for the project that has been injected into the context by [[data-loader]]."
+  for the project that has been injected into the context by [[artifact-data-loader]]."
   {:name ::offline-bundle
    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
             (log/info "Bundling" (str (-> cache-bundle :cache-id :artifact-id) "-"
@@ -361,19 +365,13 @@
          :ingest-api    [(body/body-params) (ingest-api deps)]
          :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]
 
-         :group/index        [(data-loader storage route-name)
-                              (pu/html #(index-pages/group-index
-                                         (-> % :request :path-params)
-                                         (::releases %)))]
-         :artifact/index     [(data-loader storage route-name)
-                              (pu/html #(index-pages/artifact-index
-                                         (-> % :request :path-params)
-                                         (::releases %)))]
+         :group/index     (index-page storage index-pages/group-index)
+         :artifact/index  (index-page storage index-pages/artifact-index)
 
          :artifact/version   (view storage route-name)
          :artifact/namespace (view storage route-name)
          :artifact/doc       (view storage route-name)
-         :artifact/offline-bundle [(data-loader storage route-name)
+         :artifact/offline-bundle [(artifact-data-loader storage)
                                    offline-bundle]
 
          :artifact/current-via-short-id [(jump-interceptor)]
