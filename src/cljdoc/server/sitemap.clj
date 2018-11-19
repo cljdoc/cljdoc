@@ -1,17 +1,20 @@
 (ns cljdoc.server.sitemap
   (:require [clojure.java.io :as io]
+            [clojure.spec.alpha :as spec]
             [sitemap.core :as sitemap]
             [clojure.tools.logging :as log]
             [cljdoc.config :as cfg]
             [cljdoc.storage.api :as storage]
             [cljdoc.server.routes :as routes]))
 
+(spec/fdef query->url-entries
+  :args (spec/cat :version :cljdoc.spec/version-entity)
+  :ret map?)
+
 (defn- query->url-entries
-  [{:keys [group_id artifact_id name]}]
-  {:loc     (str "https://cljdoc.org"
-                 (routes/url-for :artifact/version :path-params {:group-id    group_id
-                                                                 :artifact-id artifact_id
-                                                                 :version     name}))})
+  [version-entity]
+  {:loc (str "https://cljdoc.org"
+             (routes/url-for :artifact/version :path-params version-entity))})
 
 (defn- assert-valid-sitemap [sitemap]
   (if (seq (sitemap/validate-sitemap sitemap))
@@ -26,6 +29,8 @@
    (assert-valid-sitemap)))
 
 (comment
+  (require '[clojure.spec.test.alpha :as st])
+
   (def db-spec
     (-> (cfg/config)
         (cfg/db)

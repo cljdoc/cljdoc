@@ -1,6 +1,7 @@
 (ns cljdoc.storage.sqlite-impl
   (:require [cljdoc.spec]
             [cljdoc.util :as util]
+            [clojure.set :as cset]
             [clojure.java.io :as io]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
@@ -53,14 +54,6 @@
                group-id artifact-id version-name]
               {:row-fn :id})))
 
-(defn- get-documented-versions
-  "Get all known versions that also have some metadata (usually means that they have documentation)"
-  ;; TODO use build_id / merge with releases table?
-  ([db-spec group-id]
-   (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and meta not null" group-id]))
-  ([db-spec group-id artifact-id]
-   (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and artifact_id = ? and meta not null" group-id artifact-id])))
-
 (defn- get-version [db-spec version-id]
   (first (sql/query db-spec ["select meta from versions where id = ?" version-id]
                     {:row-fn (fn [r] (some-> r :meta nippy/thaw))})))
@@ -99,8 +92,21 @@
 
 ;; API --------------------------------------------------------------------------
 
+(defn- version-row-fn [r]
+  (cset/rename-keys r {:group_id :group-id, :artifact_id :artifact-id, :name :version}))
+
+(defn get-documented-versions
+  "Get all known versions that also have some metadata (usually means that they have documentation)"
+  ;; TODO use build_id / merge with releases table?
+  ([db-spec group-id]
+   {:pre [(string? group-id)]}
+   (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and meta not null" group-id] {:row-fn version-row-fn}))
+  ([db-spec group-id artifact-id]
+   {:pre [(string? group-id) (string? artifact-id)]}
+   (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and artifact_id = ? and meta not null" group-id artifact-id] {:row-fn version-row-fn})))
+
 (defn all-distinct-docs [db-spec]
-  (sql/query db-spec ["select group_id, artifact_id, name from versions"]))
+  (sql/query db-spec ["select group_id, artifact_id, name from versions"] {:row-fn version-row-fn}))
 
 (defn docs-available? [db-spec group-id artifact-id version-name]
   (or (sql-exists? db-spec ["select exists(select id from versions where group_id = ? and artifact_id = ? and name = ? and meta not null)"
@@ -115,7 +121,7 @@
   [db-spec {:keys [group-id artifact-id version] :as v}]
   (if-let [version-id (get-version-id db-spec group-id artifact-id version)]
     (let [versions-on-cljdoc (->> (get-documented-versions db-spec group-id artifact-id)
-                                  (map :name)
+                                  (map :version)
                                   (remove #(.endsWith % "-SNAPSHOT"))
                                   (version-clj/version-sort))]
       (->> {:cache-contents (-> (docs-cache-contents db-spec version-id)
@@ -123,17 +129,6 @@
             :cache-id       {:group-id group-id, :artifact-id artifact-id, :version version}}
            (cljdoc.spec/assert :cljdoc.spec/cache-bundle)))
     (throw (Exception. (format "Could not find version %s" v)))))
-
-(defn bundle-group
-  [db-spec group-id]
-  (let [versions (p :get-documented-versions
-                    (get-documented-versions db-spec group-id))]
-    (->> {:cache-contents {:versions  (for [v versions]
-                                        {:artifact-id (:artifact_id v)
-                                         :version     (:name v)})
-                           :artifacts (set (map :artifact_id versions))}
-          :cache-id       {:group-id  group-id}}
-         (cljdoc.spec/assert :cljdoc.spec/cache-bundle))))
 
 (defn import-api [db-spec
                   {:keys [group-id artifact-id version]}
@@ -184,7 +179,8 @@
 
   (bundle-docs db-spec {:group-id "beam" :artifact-id "beam-es" :version "0.0.1"})
 
+  (get-documented-versions db-spec "metosin")
+
   (tufte/add-basic-println-handler! {})
-  (profile {} (doseq [i (range 50)] (bundle-group db-spec "amazonica")))
 
   )

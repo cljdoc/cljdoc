@@ -14,6 +14,7 @@
   - Redirecting to newer releases (see [[version-resolve-redirect]] & [[jump-interceptor]])"
   (:require [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
+            [cljdoc.render.index-pages :as index-pages]
             [cljdoc.render.home :as render-home]
             [cljdoc.render.search :as search]
             [cljdoc.render.meta :as render-meta]
@@ -87,18 +88,18 @@
   relevant for the provided route `route-name`."
   [store route-name]
   {:name  ::data-loader
-   :enter (fn [{:keys [request] :as ctx}]
-            (d/measure! "cljdoc.storage.read_time" {}
-              (case route-name
-                (:group/index :artifact/index)
-                (do (log/info "Loading group cache bundle for" (:path-params request))
-                    (assoc ctx :cache-bundle (storage/bundle-group store (:path-params request))))
+   :enter (fn [ctx]
+            (let [params (-> ctx :request :path-params)]
+              (d/measure! "cljdoc.storage.read_time" {}
+                          (case route-name
+                            (:group/index :artifact/index)
+                            (assoc ctx ::releases (storage/list-versions store (:group-id params)))
 
-                (:artifact/version :artifact/doc :artifact/namespace :artifact/offline-bundle)
-                (do (log/info "Loading artifact cache bundle for" (:path-params request))
-                    (if (storage/exists? store (:path-params request))
-                      (assoc ctx :cache-bundle (storage/bundle-docs store (:path-params request)))
-                      ctx)))))})
+                            (:artifact/version :artifact/doc :artifact/namespace :artifact/offline-bundle)
+                            (do (log/info "Loading artifact cache bundle for" params)
+                                (if (storage/exists? store params)
+                                  (assoc ctx :cache-bundle (storage/bundle-docs store params))
+                                  ctx))))))})
 
 (defn- resolve-version [path-params referer]
   (assert (= "CURRENT" (:version path-params)))
@@ -360,8 +361,15 @@
          :ingest-api    [(body/body-params) (ingest-api deps)]
          :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]
 
-         :group/index        (view storage route-name)
-         :artifact/index     (view storage route-name)
+         :group/index        [(data-loader storage route-name)
+                              (pu/html #(index-pages/group-index
+                                         (-> % :request :path-params)
+                                         (::releases %)))]
+         :artifact/index     [(data-loader storage route-name)
+                              (pu/html #(index-pages/artifact-index
+                                         (-> % :request :path-params)
+                                         (::releases %)))]
+
          :artifact/version   (view storage route-name)
          :artifact/namespace (view storage route-name)
          :artifact/doc       (view storage route-name)
