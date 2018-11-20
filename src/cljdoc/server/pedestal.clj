@@ -169,55 +169,6 @@
                                :version          (-> ctx :request :form-params :version)})]
                 (redirect-to-build-page ctx build-id))))})
 
-(defn ingest-api
-  [{:keys [storage build-tracker]}]
-  {:name ::ingest-api
-   :enter (fn ingest-api-handler [ctx]
-            (let [{:keys [project version cljdoc-edn]} (-> ctx :request :form-params)
-                  build-id (Long. (-> ctx :request :form-params :build-id))]
-              (build-log/analysis-received! build-tracker build-id cljdoc-edn)
-              (let [data (util/read-cljdoc-edn cljdoc-edn)]
-                (ingest/ingest-cljdoc-edn storage data)
-                (build-log/api-imported!
-                 build-tracker
-                 build-id
-                 (let [{:strs [clj cljs]} (:codox data)]
-                   (count (set (into (map :name cljs) (map :name clj)))))))
-              (build-log/completed! build-tracker build-id))
-            (pu/ok ctx nil))})
-
-(defn circle-ci-webhook
-  [{:keys [analysis-service build-tracker]}]
-  {:name ::circle-ci-webhook
-   :enter (fn circle-ci-webhook [ctx]
-            (let [build-num (get-in ctx [:request :json-params :payload :build_num])
-                  project   (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_PROJECT])
-                  version   (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_PROJECT_VERSION])
-                  build-id  (get-in ctx [:request :json-params :payload :build_parameters :CLJDOC_BUILD_ID])
-                  status    (get-in ctx [:request :json-params :payload :status])
-                  success?  (contains? #{"success" "fixed"} status)
-                  cljdoc-edn (cljdoc.util/cljdoc-edn project version)
-                  artifacts  (-> (analysis-service/get-circle-ci-build-artifacts analysis-service build-num)
-                                 :body json/parse-string)]
-              (if-let [artifact (and success?
-                                     (= 1 (count artifacts))
-                                     (= cljdoc-edn (get (first artifacts) "path"))
-                                     (first artifacts))]
-                (do
-                  (api/post-api-data-via-http
-                   {:project project
-                    :version version
-                    :build-id build-id
-                    :cljdoc-edn (get artifact "url")})
-                  (assoc-in ctx [:response] {:status 200 :headers {}}))
-
-                (do
-                  (if success?
-                    (build-log/failed! build-tracker build-id "unexpected-artifacts")
-                    (do (log/error :analysis-job-failed status)
-                        (build-log/failed! build-tracker build-id "analysis-job-failed")))
-                  (assoc-in ctx [:response :status] 200)))))})
-
 (def request-build-validate
   ;; TODO quick and dirty for now
   {:name ::request-build-validate
@@ -367,8 +318,6 @@
 
          :ping          [{:name ::pong :enter #(pu/ok-html % "pong")}]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
-         :ingest-api    [(body/body-params) (ingest-api deps)]
-         :circle-ci-webhook [(body/body-params) (circle-ci-webhook deps)]
 
          :group/index     (index-page storage index-pages/group-index)
          :artifact/index  (index-page storage index-pages/artifact-index)

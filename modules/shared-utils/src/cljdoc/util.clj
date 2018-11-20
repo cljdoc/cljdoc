@@ -56,7 +56,9 @@
                          %))
        (pr-str)))
 
-(defn read-cljdoc-edn [file]
+(defn read-cljdoc-edn
+  [file]
+  {:pre [(some? file)]}
   (edn/read-string {:readers {'regex re-pattern}} (slurp file)))
 
 (defn git-dir [project version]

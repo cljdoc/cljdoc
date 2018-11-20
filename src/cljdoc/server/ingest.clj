@@ -21,8 +21,9 @@
     (storage/import-api storage artifact (codox/sanitize-macros codox))))
 
 (defn scm-info
-  [project pom-str]
-  (let [pom-doc  (pom/parse pom-str)
+  [pom-url]
+  {:pre [(string? pom-url)]}
+  (let [pom-doc  (pom/parse (slurp pom-url))
         artifact (pom/artifact-info pom-doc)
         scm-info (pom/scm-info pom-doc)
         project  (str (:group-id artifact) "/" (:artifact-id artifact))

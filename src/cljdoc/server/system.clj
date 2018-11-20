@@ -34,7 +34,7 @@
                        :analysis-service (ig/ref :cljdoc/analysis-service)
                        :storage          (storage/->SQLiteStorage (cfg/db env-config))}
      :cljdoc/analysis-service (case ana-service
-                                :local     [:local {:ingest-api-url (str "http://localhost:" port "/api/ingest-api")}]
+                                :local     [:local]
                                 :circle-ci [:circle-ci (cfg/circle-ci env-config)])
      :cljdoc/dogstats (cfg/statsd env-config)}))
 
@@ -42,7 +42,7 @@
   (log/infof "Starting Analysis Service %s" type)
   (case type
     :circle-ci (analysis-service/circle-ci opts)
-    :local     (analysis-service/->Local (:ingest-api-url opts))))
+    :local     (analysis-service/->Local)))
 
 (defmethod ig/init-key :cljdoc/sqlite [_ {:keys [db-spec dir]}]
   (.mkdirs (io/file dir))

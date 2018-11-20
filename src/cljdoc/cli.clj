@@ -20,8 +20,9 @@
         pom          (or pom
                          (:pom (repositories/local-uris project version))
                          (:pom (repositories/artifact-uris project version)))
+        ana-service  (ana-service/->Local)
         storage  (storage/->SQLiteStorage (config/db (config/config)))
-        scm-info (ingest/scm-info project (slurp pom))]
+        scm-info (ingest/scm-info pom)]
     (when (or (:url scm-info) git)
       (ingest/ingest-git! storage
                           {:project project
@@ -30,7 +31,11 @@
                            :local-scm git
                            :pom-revision (or rev (:sha scm-info))}))
     (log/info "Analyzing project jar to extract API information")
-    (->> (ana-service/run-analyze-script project version jar pom)
+    (->> (ana-service/trigger-build
+          ana-service
+          {:project project, :version version, :jarpath jar, :pompath pom})
+         (ana-service/wait-for-build ana-service)
+         :analysis-result
          util/read-cljdoc-edn
          (ingest/ingest-cljdoc-edn storage))))
 
