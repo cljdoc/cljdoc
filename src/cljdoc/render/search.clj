@@ -1,12 +1,11 @@
 (ns cljdoc.render.search
-  (:require [cljdoc.render.layout :as layout]
-            [cljdoc.util :as util]))
+  (:require [cljdoc.render.layout :as layout]))
 
 (defn search-form
   ([] (search-form ""))
   ([search-terms]
    [:div.w-90.mb4
-    [:div#cljdoc-search {:initial-value search-terms}]]))
+    [:div#cljdoc-search {:data-initial-value search-terms}]]))
 
 
 (defn search-page [context]
@@ -24,9 +23,16 @@
        (str)))
 
 ;; TODO: complete this function later.
-;; See https://developer.mozilla.org/en-US/docs/Web/OpenSearch for more information.
 (defn suggest-api
+  "Provides suggestions for auto-completing the search terms the user is typing.
+   Note: In Firefox, the response needs to reach the browser within 500ms otherwise it will be discarded.
+
+   For more information, see:
+   - https://developer.mozilla.org/en-US/docs/Web/OpenSearch
+   - https://developer.mozilla.org/en-US/docs/Archive/Add-ons/Supporting_search_suggestions_in_search_plugins
+   "
   [context]
-  (assoc context :response {:status 200
-                            :body "{\"TODO\": \"Provide some JSON\"}"
-                            :headers {"Content-Type" "application/x-suggestions+json"}}))
+  (assoc context
+         :response {:status 501
+                    :body "[]"
+                    :headers {"Content-Type" "application/x-suggestions+json"}}))

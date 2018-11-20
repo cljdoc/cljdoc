@@ -66,7 +66,7 @@
 
                  ;; Open Search
                  [:link {:rel "search" :type "application/opensearchdescription+xml"
-                         :href "/opensearch.xml" :title "Cljdoc"}]
+                         :href "/opensearch.xml" :title "cljdoc"}]
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (hiccup.page/include-css

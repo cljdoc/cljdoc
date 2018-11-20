@@ -20,10 +20,7 @@ render(h(Switcher), document.querySelector("#cljdoc-switcher"));
 
 const searchNode = document.querySelector("#cljdoc-search");
 if (searchNode) {
-  render(
-    h(App, { initialValue: searchNode.getAttribute("initial-value") }),
-    searchNode
-  );
+  render(h(App, { initialValue: searchNode.dataset.initialValue }), searchNode);
 }
 
 if (isNSPage()) {
