@@ -58,14 +58,9 @@
              :attrs (spec/? ::hiccup-attrs)
              :children (spec/* ::hiccup-entry))))
 
-(declare process-toc)
-
-(spec/fdef process-toc-entry
-  :args (spec/cat :slurp-fn fn?
-                  :entry ::entry)
-  :ret ::entry)
-
-(defn- process-toc-entry [slurp-fn {:keys [title attrs children]}]
+(defn- process-toc-entry
+  [slurp-fn {:keys [title attrs children]}]
+  {:pre [(string? title)]}
   (cond-> {:title title}
 
     (:file attrs)
@@ -82,7 +77,7 @@
     (assoc-in [:attrs :slug] (cuerdas/uslug title))
 
     (seq children)
-    (assoc :children children)))
+    (assoc :children (mapv (partial process-toc-entry slurp-fn) children))))
 
 (spec/fdef process-toc
   :args (spec/cat :slurp-fn fn?
@@ -100,7 +95,7 @@
   (let [slurp! (fn [file] (or (slurp-fn file)
                               (throw (Exception. (format "Could not read contents of %s" file)))))]
     (->> toc
-         (map (partial spec/conform ::hiccup-entry))
+         (spec/conform (spec/coll-of ::hiccup-entry))
          (mapv (partial process-toc-entry slurp!)))))
 
 (defn add-slug-path
@@ -198,16 +193,15 @@
   (derive-toc cljdoc.git-repo/workflo-macros-files)
 
   (spec/conform
-   ::hiccup-entry
-   ["Readme"
-    ["Example" {:file "x"}]])
+   (spec/coll-of ::hiccup-entry)
+   [["Readme"
+     ["Example" {:file "x"}]]])
 
   (process-toc
    identity
-   [["Readme"
+   [["Readme" {}
      ["Example" {:file "x"}]]])
 
   (process-toc-entry
    identity
-   (spec/conform ::hiccup-entry
-                 ["Changelog" {:file "CHANGELOG.md"}])))
+   (spec/conform ::hiccup-entry ["Changelog" {:file "CHANGELOG.md"}])))
