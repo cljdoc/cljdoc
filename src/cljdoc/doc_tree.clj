@@ -62,7 +62,7 @@
 
 (spec/fdef process-toc-entry
   :args (spec/cat :slurp-fn fn?
-                  :entry ::hiccup-entry)
+                  :entry ::entry)
   :ret ::entry)
 
 (defn- process-toc-entry [slurp-fn {:keys [title attrs children]}]
