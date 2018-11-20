@@ -76,6 +76,10 @@
    {:accept "application/json", :basic-auth [(:api-token circle-ci) ""]}))
 
 (defn- get-circle-ci-build
+  "Retrieve information about the build identified by `build-num`. The project
+  is retrieved from the `circle-ci` AnalysisService instance.
+
+  Also see: https://circleci.com/docs/api/v1-reference/#build"
   [circle-ci build-num]
   (assert (circle-ci? circle-ci) (format "not a CircleCI instance: %s" circle-ci))
   (http/get
@@ -124,7 +128,22 @@
                         {:service :local, :proc proc}))))))
 
 (comment
-  (def r
-    (let [b "http://repo.clojars.org/speculative/speculative/0.0.2/speculative-0.0.2"]
-      (sh/sh "./script/analyze.sh" "speculative"  "0.0.2" (str b ".jar") (str b ".pom"))))
+
+  (def p-succeed
+    {:project "bidi"
+     :version "2.1.3"
+     :jarpath "http://repo.clojars.org/bidi/bidi/2.1.3/bidi-2.1.3.jar"
+     :pompath "http://repo.clojars.org/bidi/bidi/2.1.3/bidi-2.1.3.pom"})
+
+  (def p-fail
+    {:project "com.lemondronor/ads-b"
+     :version "0.1.3"
+     :jarpath "https://repo.clojars.org/com/lemondronor/ads-b/0.1.3/ads-b-0.1.3.jar"
+     :pompath "https://repo.clojars.org/com/lemondronor/ads-b/0.1.3/ads-b-0.1.3.pom"})
+
+  (let [service (or #_(circle-ci (cljdoc.config/circle-ci))
+                    (->Local))
+        build   (trigger-build service p-fail)]
+    (wait-for-build service build))
+
   )
