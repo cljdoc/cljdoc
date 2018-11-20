@@ -176,8 +176,13 @@
             (let [{:keys [project version cljdoc-edn]} (-> ctx :request :form-params)
                   build-id (Long. (-> ctx :request :form-params :build-id))]
               (build-log/analysis-received! build-tracker build-id cljdoc-edn)
-              (ingest/ingest-cljdoc-edn storage (util/read-cljdoc-edn cljdoc-edn))
-              (build-log/api-imported! build-tracker build-id)
+              (let [data (util/read-cljdoc-edn cljdoc-edn)]
+                (ingest/ingest-cljdoc-edn storage data)
+                (build-log/api-imported!
+                 build-tracker
+                 build-id
+                 (or (-> data :codox (get "clj") seq)
+                     (-> data :codox (get "cljs") seq))))
               (build-log/completed! build-tracker build-id))
             (pu/ok ctx nil))})
 

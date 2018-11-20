@@ -1,0 +1,1 @@
+-- column removal not supported in sqlite
