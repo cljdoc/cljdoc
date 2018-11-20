@@ -89,10 +89,6 @@
                          group-id artifact-id version
                          (str (.minus (Instant/now) (Duration/ofMinutes 10)))]))))
 
-(defmethod ig/init-key :cljdoc/build-tracker [_ db-spec]
-  (log/info "Starting BuildTracker")
-  (->SQLBuildTracker db-spec))
-
 (comment
   (require 'ragtime.repl 'ragtime.jdbc)
   (def config {:datastore  (ragtime.jdbc/sql-database (cljdoc.config/db))
