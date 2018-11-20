@@ -18,9 +18,7 @@
 
 (defn api-routes []
   #{["/api/ping" :get nop :route-name :ping]
-    ["/api/request-build2" :post nop :route-name :request-build]
-    ["/api/ingest-api" :post nop :route-name :ingest-api]
-    ["/api/hooks/circle-ci" :post nop :route-name :circle-ci-webhook]})
+    ["/api/request-build2" :post nop :route-name :request-build]})
 
 (defn build-log-routes []
   #{["/builds/:id" :get nop :route-name :show-build]
