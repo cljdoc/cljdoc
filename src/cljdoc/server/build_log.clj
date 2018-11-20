@@ -15,7 +15,7 @@
   (analysis-kicked-off! [_ build-id analysis-job-uri analyzer-version])
   (analysis-received! [_ build-id cljdoc-edn-uri])
   (failed! [_ build-id error])
-  (api-imported! [_ build-id])
+  (api-imported! [_ build-id namespaces-count])
   (git-completed! [_ build-id git-result])
   (completed! [_ build-id])
   (get-build [_ build-id])
@@ -49,8 +49,12 @@
   (failed! [this build-id error]
     (telegram/build-failed (assoc (get-build this build-id) :error error))
     (sql/update! db-spec "builds" {:error error} ["id = ?" build-id]))
-  (api-imported! [this build-id]
-    (sql/update! db-spec "builds" {:api_imported_ts (now)} ["id = ?" build-id]))
+  (api-imported! [this build-id namespaces-count]
+    (sql/update! db-spec
+                 "builds"
+                 {:api_imported_ts (now)
+                  :namespaces_count namespaces-count}
+                 ["id = ?" build-id]))
   (git-completed! [this build-id {:keys [scm-url error commit] :as git-result}]
     (sql/update! db-spec
                  "builds"

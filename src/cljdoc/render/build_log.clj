@@ -123,7 +123,12 @@
    (section
     (:api_imported_ts build-info)
     [:h3.mt0 "API Import"]
-    [:p.bg-washed-green.pa3.br2.ma0 "API imported successfully"]
+    (if (some-> build-info :namespaces_count zero?)
+      [:p.bg-washed-red.pa3.br2.ma0 "No namespaces found"]
+      [:p.bg-washed-green.pa3.br2.ma0
+       "Successfully imported "
+       (:namespaces_count build-info)
+       " namespaces"])
     [:p.mb0 (cljdoc-link build-info true)])])
 
 (defn build-page [build-info]
