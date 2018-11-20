@@ -65,25 +65,24 @@
                   :entry ::hiccup-entry)
   :ret ::entry)
 
-(defn- process-toc-entry [slurp-fn toc-entry]
-  (let [{:keys [title attrs children]} (spec/conform ::hiccup-entry toc-entry)]
-    (cond-> {:title title}
+(defn- process-toc-entry [slurp-fn {:keys [title attrs children]}]
+  (cond-> {:title title}
 
-      (:file attrs)
-      (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
+    (:file attrs)
+    (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
 
-      (and (:file attrs) (.endsWith (:file attrs) ".adoc"))
-      (assoc-in [:attrs :cljdoc/asciidoc] (slurp-fn (:file attrs)))
+    (and (:file attrs) (.endsWith (:file attrs) ".adoc"))
+    (assoc-in [:attrs :cljdoc/asciidoc] (slurp-fn (:file attrs)))
 
-      (and (:file attrs) (or (.endsWith (:file attrs) ".md")
-                             (.endsWith (:file attrs) ".markdown")))
-      (assoc-in [:attrs :cljdoc/markdown] (slurp-fn (:file attrs)))
+    (and (:file attrs) (or (.endsWith (:file attrs) ".md")
+                           (.endsWith (:file attrs) ".markdown")))
+    (assoc-in [:attrs :cljdoc/markdown] (slurp-fn (:file attrs)))
 
-      (nil? (:slug attrs))
-      (assoc-in [:attrs :slug] (cuerdas/uslug title))
+    (nil? (:slug attrs))
+    (assoc-in [:attrs :slug] (cuerdas/uslug title))
 
-      (seq children)
-      (assoc :children children))))
+    (seq children)
+    (assoc :children children)))
 
 (spec/fdef process-toc
   :args (spec/cat :slurp-fn fn?
@@ -100,7 +99,9 @@
   [slurp-fn toc]
   (let [slurp! (fn [file] (or (slurp-fn file)
                               (throw (Exception. (format "Could not read contents of %s" file)))))]
-    (mapv (partial process-toc-entry slurp!) toc)))
+    (->> toc
+         (map (partial spec/conform ::hiccup-entry))
+         (mapv (partial process-toc-entry slurp!)))))
 
 (defn add-slug-path
   "For various purposes it is useful to know the path to a given document
@@ -208,10 +209,5 @@
 
   (process-toc-entry
    identity
-   ["Readme"
-    {:file "README.md"}
-    ["Nested"
-     {:file "nested.adoc"}]
-    ["jungle"]])
-
-  )
+   (spec/conform ::hiccup-entry
+                 ["Changelog" {:file "CHANGELOG.md"}])))
