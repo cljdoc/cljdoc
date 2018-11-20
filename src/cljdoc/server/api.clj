@@ -75,7 +75,7 @@
 
 (comment
   (kick-off-build!
-   {:storage (cljdoc.storage.api/->SQLiteStorage (cljdoc.config/db (cljdoc.config/config)))
+   {:storage (:cljdoc/storage integrant.repl.state/system)
     :analysis-service (:cljdoc/analysis-service integrant.repl.state/system)
     :build-tracker (:cljdoc/build-tracker integrant.repl.state/system)}
    {:project "bidi" :version "2.1.3"})

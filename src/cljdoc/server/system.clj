@@ -3,6 +3,7 @@
             [cljdoc.config :as cfg]
             [cljdoc.server.release-monitor]
             [cljdoc.server.pedestal]
+            [cljdoc.server.build-log :as build-log]
             [cljdoc.storage.api :as storage]
             [cljdoc.util.sentry]
             [clojure.tools.logging :as log]
@@ -25,24 +26,33 @@
         port        (cfg/get-in env-config [:cljdoc/server :port])]
     {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
                               :dir     (cfg/data-dir env-config)}
-     :cljdoc/build-tracker   (ig/ref :cljdoc/sqlite)
      :cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
                               :dry-run? (not (cfg/autobuild-clojars-releases? env-config))}
      :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
                        :host             (get-in env-config [:cljdoc/server :host])
                        :build-tracker    (ig/ref :cljdoc/build-tracker)
                        :analysis-service (ig/ref :cljdoc/analysis-service)
-                       :storage          (storage/->SQLiteStorage (cfg/db env-config))}
-     :cljdoc/analysis-service (case ana-service
-                                :local     [:local]
-                                :circle-ci [:circle-ci (cfg/circle-ci env-config)])
+                       :storage          (ig/ref :cljdoc/storage)}
+     :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
+     :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
+     :cljdoc/analysis-service {:service-type ana-service
+                               :opts (when (= ana-service :cicle-ci)
+                                       (cfg/circle-ci env-config))}
      :cljdoc/dogstats (cfg/statsd env-config)}))
 
-(defmethod ig/init-key :cljdoc/analysis-service [_ [type opts]]
-  (log/infof "Starting Analysis Service %s" type)
-  (case type
+(defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
+  (log/info "Starting" k)
+  (case service-type
     :circle-ci (analysis-service/circle-ci opts)
     :local     (analysis-service/->Local)))
+
+(defmethod ig/init-key :cljdoc/storage [k {:keys [db-spec]}]
+  (log/info "Starting" k)
+  (storage/->SQLiteStorage db-spec))
+
+(defmethod ig/init-key :cljdoc/build-tracker [k {:keys [db-spec]}]
+  (log/info "Starting" k)
+  (build-log/->SQLBuildTracker db-spec))
 
 (defmethod ig/init-key :cljdoc/sqlite [_ {:keys [db-spec dir]}]
   (.mkdirs (io/file dir))
