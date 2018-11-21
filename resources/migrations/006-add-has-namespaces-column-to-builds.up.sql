@@ -1,1 +1,1 @@
-ALTER TABLE builds ADD has_namespaces;
+ALTER TABLE builds ADD namespaces_count;
