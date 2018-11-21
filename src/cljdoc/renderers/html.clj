@@ -40,9 +40,9 @@
   (assert (:doc-slug-path route-params))
   (let [doc-slug-path (:doc-slug-path route-params)
         doc-tree (doctree/add-slug-path (-> cache-contents :version :doc))
-        [doc-tree-with-readme-and-changelog doc-tree-with-rest] (partition-by (fn is-readme-or-changelog [entry]
-                                                                                (contains? #{"Readme" "Changelog"} (:title entry)))
-                                                                              doc-tree)
+        [doc-tree-with-readme-and-changelog doc-tree-with-rest] ((juxt filter remove) (fn is-readme-or-changelog [entry]
+                                                                                        (contains? #{"Readme" "Changelog"} (:title entry)))
+                                                                 doc-tree)
         doc-p (->> doc-tree
                    doctree/flatten*
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
