@@ -8,6 +8,10 @@
          '[clojure.java.io :as io]
          '[clojure.spec.alpha :as spec])
 
+;; These Specs are also defined in `cljdoc.doc-tree`, duplicated here
+;; to keep this namespace lean, I assume these specs to be stable but
+;; eventually we might want to consider alternative ways to handle this
+
 (spec/def ::title string?)
 (spec/def ::file string?)
 
@@ -22,13 +26,10 @@
 
 ;; Validation -------------------------------------------------------------------
 
-(defn all-files [toc]
-  (->> (tree-seq coll? seq toc)
-       (keep :file)))
-
 (defn files-present? [base-dir toc]
-  (let [missing (remove #(.exists (io/file base-dir %))
-                        (all-files toc))]
+  (let [missing (->> (tree-seq coll? seq toc)
+                     (keep :file)
+                     (remove #(.exists (io/file base-dir %))))]
     (doseq [m missing]
       (println m "is missing"))
     (not (seq missing))))
