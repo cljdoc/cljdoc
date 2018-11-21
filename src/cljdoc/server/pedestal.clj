@@ -181,8 +181,8 @@
                 (build-log/api-imported!
                  build-tracker
                  build-id
-                 (or (-> data :codox (get "clj") seq)
-                     (-> data :codox (get "cljs") seq))))
+                 (+ (-> data :codox (get "clj") count)
+                    (-> data :codox (get "cljs") count))))
               (build-log/completed! build-tracker build-id))
             (pu/ok ctx nil))})
 
