@@ -57,13 +57,13 @@
       (loop [i 20]
         (if (pos? i)
           (when-not (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri))
-                               "API imported successfully")
+                               "Successfully imported 10 namespaces")
             (do (Thread/sleep 2000)
                 (recur (dec i))))
           (throw (Exception. "Import took too long"))))
 
       (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri)) "Git Import Completed")))
-      (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri)) "API imported successfully")))
+      (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri)) "Successfully imported 10 namespaces")))
 
       (t/is (= 302 (:status (pdt/response-for (service-fn @sys) :get "/d/reagent/reagent/0.8.1"))))
 
