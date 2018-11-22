@@ -181,8 +181,8 @@
                 (build-log/api-imported!
                  build-tracker
                  build-id
-                 (+ (-> data :codox (get "clj") count)
-                    (-> data :codox (get "cljs") count))))
+                 (let [{:strs [clj cljs]} (:codox data)]
+                   (count (set (into (map :name cljs) (map :name clj)))))))
               (build-log/completed! build-tracker build-id))
             (pu/ok ctx nil))})
 
