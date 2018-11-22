@@ -36,7 +36,7 @@
      :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
      :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
      :cljdoc/analysis-service {:service-type ana-service
-                               :opts (when (= ana-service :cicle-ci)
+                               :opts (when (= ana-service :circle-ci)
                                        (cfg/circle-ci env-config))}
      :cljdoc/dogstats (cfg/statsd env-config)}))
 
