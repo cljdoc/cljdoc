@@ -39,45 +39,47 @@
 
 (defn kick-off-build!
   "Run the Git analysis for the provided `project` and kick of an
-  analysis build for `project` using the provided `analysis-service`."
+  analysis build for `project` using the provided `analysis-service`.
+
+  Optional `:jar` and `:pom` keys can be provided via the `coords` map
+  to supply non-default paths like local files."
   [{:keys [storage build-tracker analysis-service] :as deps}
-   {:keys [project version] :as coords}]
+   {:keys [project version jar pom scm-url scm-rev] :as coords}]
   (let [a-uris    (repositories/artifact-uris project version)
+        v-entity  (util/version-entity project version)
         build-id  (build-log/analysis-requested!
-                   build-tracker
-                   (cljdoc.util/group-id project)
-                   (cljdoc.util/artifact-id project)
-                   version)
-        ana-args  (merge coords a-uris {:build-id build-id})]
+                   build-tracker (:group-id v-entity) (:artifact-id v-entity) version)
+        ;; override default artifact-uris if they have been provided
+        ;; as part of `coords` (nice to provide a local jar/pom)
+        ana-args  (merge a-uris coords {:build-id build-id})]
 
-    (future
-      (try
-        ;; Store meta {} and description
-        (if-let [scm-info (ingest/scm-info (:pom a-uris))]
-          (let [{:keys [error scm-url commit] :as git-result}
-                (ingest/ingest-git! storage {:project project
-                                             :version version
-                                             :scm-url (:url scm-info)
-                                             :pom-revision (:sha scm-info)})]
-            (when error
-              (log/warnf "Error while processing %s %s: %s" project version error))
-            (build-log/git-completed! build-tracker build-id (update git-result :error :type))
-            (analyze-and-import-api! deps ana-args))
-          (analyze-and-import-api! deps ana-args))
+    {:build-id build-id
+     :future (future
+               (try
+                 (if-let [scm-info (ingest/scm-info (:pom a-uris))]
+                   (let [{:keys [error scm-url commit] :as git-result}
+                         (ingest/ingest-git! storage {:project project
+                                                      :version version
+                                                      :scm-url (or scm-url (:url scm-info))
+                                                      :pom-revision (or scm-rev (:sha scm-info))})]
+                     (when error
+                       (log/warnf "Error while processing %s %s: %s" project version error))
+                     (build-log/git-completed! build-tracker build-id (update git-result :error :type))
+                     (analyze-and-import-api! deps ana-args))
+                   (analyze-and-import-api! deps ana-args))
 
-        (catch Throwable e
-          ;; TODO store in column for internal exception
-          (log/error e (format "Exception while processing %s %s (build %s)" project version build-id))
-          (build-log/failed! build-tracker build-id "exception-during-import")
-          (throw e))))
-
-    build-id))
+                 (catch Throwable e
+                   ;; TODO store in column for internal exception
+                   (log/error e (format "Exception while processing %s %s (build %s)" project version build-id))
+                   (build-log/failed! build-tracker build-id "exception-during-import")
+                   (throw e))))}))
 
 (comment
-  (kick-off-build!
-   {:storage (:cljdoc/storage integrant.repl.state/system)
-    :analysis-service (:cljdoc/analysis-service integrant.repl.state/system)
-    :build-tracker (:cljdoc/build-tracker integrant.repl.state/system)}
-   {:project "bidi" :version "2.1.3"})
+  (-> (kick-off-build!
+       {:storage (:cljdoc/storage integrant.repl.state/system)
+        :analysis-service (:cljdoc/analysis-service integrant.repl.state/system)
+        :build-tracker (:cljdoc/build-tracker integrant.repl.state/system)}
+       {:project "bidi" :version "2.1.3"})
+      :job deref)
 
   )
