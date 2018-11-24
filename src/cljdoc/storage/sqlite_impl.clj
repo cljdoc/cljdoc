@@ -11,10 +11,13 @@
   (:import (org.sqlite SQLiteException)))
 
 
-(defn store-artifact! [db-spec group-id artifact-id versions]
-  (assert (coll? versions))
-  (doseq [v versions]
-    (sql/execute! db-spec ["INSERT OR IGNORE INTO versions (group_id, artifact_id, name) VALUES (?, ?, ?)" group-id artifact-id v])))
+(defn store-artifact!
+  [db-spec {:keys [group-id artifact-id version] :as version-entity} description release-date]
+  (sql/with-db-transaction [tx db-spec]
+    (sql/execute! tx ["INSERT OR IGNORE INTO versions (group_id, artifact_id, name) VALUES (?, ?, ?)"
+                      group-id artifact-id version])
+    (sql/execute! tx ["UPDATE versions SET description = ?, release_date = ? WHERE group_id = ? AND artifact_id = ? AND name = ?"
+                      description release-date group-id artifact-id version])))
 
 (defn- update-version-meta! [db-spec version-id data]
   (sql/execute! db-spec ["UPDATE versions SET meta = ? WHERE id = ?" (nippy/freeze data) version-id]))
@@ -157,7 +160,6 @@
                   {:keys [group-id artifact-id version]}
                   {:keys [doc-tree scm jar]}]
   {:pre [(string? group-id) (string? artifact-id) (string? version)]}
-  (store-artifact! db-spec group-id artifact-id [version])
   (let [version-id (get-version-id db-spec group-id artifact-id version)]
     (update-version-meta! db-spec version-id {:jar jar :scm scm, :doc doc-tree})))
 
@@ -172,8 +174,6 @@
   (import-api db-spec
               (select-keys data [:group-id :artifact-id :version])
               (:codox data))
-
-  (store-artifact! db-spec (:group-id data) (:artifact-id data) [(:version data)])
 
   (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data))
 

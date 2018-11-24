@@ -11,6 +11,7 @@
             [cljdoc.storage.sqlite-impl :as sqlite]))
 
 (defprotocol IStorage
+  (import-release [_ version-entity description release-date])
   (import-api [_ version-entity codox])
   (import-doc [_ version-entity {:keys [doc-tree scm jar]}])
   (exists? [_ entity])
@@ -20,12 +21,10 @@
 
 (defrecord SQLiteStorage [db-spec]
   IStorage
+  (import-release [_ version-entity description release-date]
+    (sqlite/store-artifact! db-spec version-entity description release-date))
   (import-api [_ version-entity codox]
     (cljdoc-spec/assert :cljdoc.cljdoc-edn/codox codox)
-    (sqlite/store-artifact! db-spec
-                            (:group-id version-entity)
-                            (:artifact-id version-entity)
-                            [(:version version-entity)])
     (sqlite/import-api db-spec version-entity codox))
   (import-doc [_ version-entity {:keys [doc-tree scm jar] :as version-data}]
     (sqlite/import-doc db-spec version-entity version-data))

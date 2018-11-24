@@ -1,8 +1,14 @@
 (ns cljdoc.server.api
+  "Functions to run builds and track their lifecycle via a `build-tracker`.
+
+  WARNING The name of this namespace is confusing/wrong and should be changed."
   (:require [cljdoc.analysis.service :as analysis-service]
             [cljdoc.server.ingest :as ingest]
+            [cljdoc.util.pom :as pom]
+            [cljdoc.storage.api :as storage]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.util :as util]
+            [clj-http.lite.client :as http]
             [cljdoc.util.repositories :as repositories]
             [clojure.tools.logging :as log]))
 
@@ -37,6 +43,11 @@
       (catch Exception e
         (build-log/failed! build-tracker build-id "analysis-job-failed")))))
 
+(defn- release-info [pom-url]
+  (let [{:keys [body headers]} (http/get pom-url)]
+    {:release-date (-> headers (get "last-modified") util/parse-rfc-1123)
+     :description  (-> body pom/parse pom/artifact-info :description)}))
+
 (defn kick-off-build!
   "Run the Git analysis for the provided `project` and kick of an
   analysis build for `project` using the provided `analysis-service`.
@@ -51,11 +62,15 @@
                    build-tracker (:group-id v-entity) (:artifact-id v-entity) version)
         ;; override default artifact-uris if they have been provided
         ;; as part of `coords` (nice to provide a local jar/pom)
-        ana-args  (merge a-uris coords {:build-id build-id})]
+        ana-args  (merge a-uris coords {:build-id build-id})
+        ;; NOTE this uses the remote artifact-uri since we rely
+        ;; on http headers to properly determine the release date
+        r-info    (release-info (:pom a-uris))]
 
     {:build-id build-id
      :future (future
                (try
+                 (storage/import-release storage v-entity (:description r-info) (:release-date r-info))
                  (if-let [scm-info (ingest/scm-info (:pom a-uris))]
                    (let [{:keys [error scm-url commit] :as git-result}
                          (ingest/ingest-git! storage {:project project
