@@ -31,8 +31,8 @@
 ;; Specs for the fully unfurled doctree that is eventually stored in
 ;; the database. This includes the documents content, slug and more.
 (spec/def ::entry
-  (spec/keys :req-un [::title ::attrs]
-             :opt-un [::children]))
+  (spec/keys :req-un [::title]
+             :opt-un [::attrs ::children]))
 
 (spec/def ::attrs
   (spec/keys :req-un [::slug]
@@ -55,18 +55,12 @@
 (spec/def ::hiccup-entry
   (spec/spec
    (spec/cat :title ::title
-             :attrs ::hiccup-attrs
+             :attrs (spec/? ::hiccup-attrs)
              :children (spec/* ::hiccup-entry))))
 
-(declare process-toc)
-
-(spec/fdef process-toc-entry
-  :args (spec/cat :slurp-fn fn?
-                  :entry ::hiccup-entry)
-  :ret ::entry)
-
-(defn- process-toc-entry [slurp-fn [title attrs & children]]
-  (assert (or (nil? attrs) (map? attrs)) "Doctree attribute map is missing")
+(defn- process-toc-entry
+  [slurp-fn {:keys [title attrs children]}]
+  {:pre [(string? title)]}
   (cond-> {:title title}
 
     (:file attrs)
@@ -83,7 +77,7 @@
     (assoc-in [:attrs :slug] (cuerdas/uslug title))
 
     (seq children)
-    (assoc :children (process-toc slurp-fn children))))
+    (assoc :children (mapv (partial process-toc-entry slurp-fn) children))))
 
 (spec/fdef process-toc
   :args (spec/cat :slurp-fn fn?
@@ -100,7 +94,9 @@
   [slurp-fn toc]
   (let [slurp! (fn [file] (or (slurp-fn file)
                               (throw (Exception. (format "Could not read contents of %s" file)))))]
-    (mapv (partial process-toc-entry slurp!) toc)))
+    (->> toc
+         (spec/conform (spec/coll-of ::hiccup-entry))
+         (mapv (partial process-toc-entry slurp!)))))
 
 (defn add-slug-path
   "For various purposes it is useful to know the path to a given document
@@ -196,9 +192,16 @@
 
   (derive-toc cljdoc.git-repo/workflo-macros-files)
 
+  (spec/conform
+   (spec/coll-of ::hiccup-entry)
+   [["Readme"
+     ["Example" {:file "x"}]]])
+
   (process-toc
    identity
    [["Readme" {}
      ["Example" {:file "x"}]]])
 
-  )
+  (process-toc-entry
+   identity
+   (spec/conform ::hiccup-entry ["Changelog" {:file "CHANGELOG.md"}])))
