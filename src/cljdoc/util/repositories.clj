@@ -99,13 +99,14 @@
 
 (def maven-central "http://central.maven.org/maven2/")
 (def clojars "https://repo.clojars.org/")
-(def repositories [maven-central clojars])
 
 (defn find-artifact-repository
   ([project]
-   (first (filter #(exists? % project) repositories)))
+   (cond (exists? clojars project) clojars
+         (exists? maven-central project) maven-central))
   ([project version]
-   (first (filter #(exists? % project version) repositories))))
+   (cond (exists? clojars project version) clojars
+         (exists? maven-central project version) maven-central)))
 
 (defn artifact-uris [project version]
   (if-let [repository (find-artifact-repository project version)]
