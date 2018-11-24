@@ -163,11 +163,11 @@
                                                       (-> ctx :request :form-params :project util/artifact-id)
                                                       (-> ctx :request :form-params :version))]
               (redirect-to-build-page ctx (:id running))
-              (let [build-id (api/kick-off-build!
-                              deps
-                              {:project          (-> ctx :request :form-params :project)
-                               :version          (-> ctx :request :form-params :version)})]
-                (redirect-to-build-page ctx build-id))))})
+              (let [build (api/kick-off-build!
+                           deps
+                           {:project (-> ctx :request :form-params :project)
+                            :version (-> ctx :request :form-params :version)})]
+                (redirect-to-build-page ctx (:build-id build)))))})
 
 (def request-build-validate
   ;; TODO quick and dirty for now
