@@ -15,12 +15,10 @@ export class MobileNav extends Component {
       let scrollPos = window.scrollY;
       mainScrollView.classList.remove("dn"); // show main scroll view / content area
       mainSidebar.classList.replace("db", "dn"); // hide sidebar
-      doctree.hideNestedArticles();
       window.scrollTo(0, this.state.mainViewScrollPos); // scroll after(!) swapping content
       this.setState({ showNav: false, navViewScrollPos: scrollPos });
     } else {
       let scrollPos = window.scrollY;
-      doctree.showNestedArticles();
       mainScrollView.classList.add("dn"); // hide main scroll view / content area
       mainSidebar.classList.add("flex-grow-1"); // make sure nav fills width of screen
       mainSidebar.classList.replace("dn", "db"); // show sidebar

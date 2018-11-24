@@ -1,6 +1,5 @@
 import { render, h } from "preact";
 import { trackProjectOpened, Switcher } from "./switcher";
-import { hideNestedArticles } from "./doctree";
 import { App } from "./search";
 import { MobileNav } from "./mobile";
 import {
@@ -14,7 +13,6 @@ import {
 
 trackProjectOpened();
 restoreSidebarScrollPos();
-hideNestedArticles();
 
 render(h(Switcher), document.querySelector("#cljdoc-switcher"));
 
