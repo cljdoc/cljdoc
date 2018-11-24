@@ -8,7 +8,9 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.walk :as walk])
-  (:import (java.nio.file Files)))
+  (:import (java.nio.file Files)
+           (java.time Instant)
+           (java.time.format DateTimeFormatter)))
 
 (def hardcoded-config
   ;; NOTE `delay` is used here because the stripped-down analysis env
@@ -247,3 +249,16 @@
     (let [sqr  (fn sqr [x] (* x x))
           avg  (mean coll)]
       (mean (map #(sqr (- % avg)) coll)))))
+
+(defn parse-rfc-1123
+  "Parse an RFC1123 string as it appears in HTTP headers to a Java Instant."
+  [rfc-1123-str]
+  ;; Sometimes headers are returned with hour amounts missing a leading 0
+  ;; e.g. "Wed, 25 Apr 2018  3:52:33 GMT", an example:
+  ;; http://central.maven.org/maven2/org/clojure/java.jdbc/0.7.6/java.jdbc-0.7.6.pom
+  ;; https://issues.sonatype.org/browse/MVNCENTRAL-4192
+  (->> (if (= \space (nth rfc-1123-str 17))
+         (str (doto (StringBuilder. rfc-1123-str) (.setCharAt 17 \0)))
+         rfc-1123-str)
+       (.parse DateTimeFormatter/RFC_1123_DATE_TIME)
+       (Instant/from)))
