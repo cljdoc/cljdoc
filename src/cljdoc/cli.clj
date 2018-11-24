@@ -1,43 +1,28 @@
 (ns cljdoc.cli
-  (:require [clojure.java.io :as io]
+  (:require [cli-matic.core :as cli-matic]
+            [clojure.java.io :as io]
+            [clojure.set :as cset]
+            [clojure.tools.logging :as log]
+            [integrant.core :as ig]
             [cljdoc.config :as config]
             [cljdoc.util :as util]
-            [cljdoc.server.ingest :as ingest]
             [cljdoc.server.system :as system]
-            [cljdoc.analysis.service :as ana-service]
-            [cljdoc.util.repositories :as repositories]
-            [clojure.tools.logging :as log]
-            [cljdoc.storage.api :as storage]
-            [integrant.core :as ig]
-            [cli-matic.core :as cli-matic]))
+            [cljdoc.server.api :as api]
+            [cljdoc.util.repositories :as repositories]))
 
-(defn build [{:keys [project version jar pom git rev]}]
-  (let [sys          (select-keys (system/system-config (config/config)) [:cljdoc/sqlite])
-        _            (ig/init sys)
-        jar          (or jar
-                         (:jar (repositories/local-uris project version))
-                         (:jar (repositories/artifact-uris project version)))
-        pom          (or pom
-                         (:pom (repositories/local-uris project version))
-                         (:pom (repositories/artifact-uris project version)))
-        ana-service  (ana-service/->Local)
-        storage  (storage/->SQLiteStorage (config/db (config/config)))
-        scm-info (ingest/scm-info pom)]
-    (when (or (:url scm-info) git)
-      (ingest/ingest-git! storage
-                          {:project project
-                           :version version
-                           :scm-url (:url scm-info)
-                           :local-scm git
-                           :pom-revision (or rev (:sha scm-info))}))
-    (log/info "Analyzing project jar to extract API information")
-    (->> (ana-service/trigger-build
-          ana-service
-          {:project project, :version version, :jarpath jar, :pompath pom})
-         (ana-service/wait-for-build ana-service)
-         :analysis-result
-         util/read-cljdoc-edn
-         (ingest/ingest-cljdoc-edn storage))))
+(defn build [{:keys [project version jar pom git rev] :as args}]
+  (let [sys        (select-keys (system/system-config (config/config))
+                                [:cljdoc/storage :cljdoc/build-tracker :cljdoc/analysis-service :cljdoc/sqlite])
+        sys        (ig/init sys)
+        deps       {:storage (:cljdoc/storage sys)
+                    :build-tracker (:cljdoc/build-tracker sys)
+                    :analysis-service (:cljdoc/analysis-service sys)}]
+    (deref
+     (:future
+      (api/kick-off-build!
+       deps
+       (-> (merge args (repositories/local-uris project version))
+           (cset/rename-keys {:git :scm-url, :rev :scm-rev})))))))
 
 (defn run [opts]
   (system/-main))

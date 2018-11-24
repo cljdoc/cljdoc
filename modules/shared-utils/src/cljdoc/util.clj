@@ -28,6 +28,11 @@
 (defn normalize-project [project]
   (str (group-id project) "/" (artifact-id project)))
 
+(defn version-entity [project version]
+  {:group-id (group-id project)
+   :artifact-id (artifact-id project)
+   :version version})
+
 (defn codox-edn [project version]
   ;; TODO maybe delete, currently not used (like other codox stuff)
   (str "codox-edn/" project "/" version "/codox.edn"))
