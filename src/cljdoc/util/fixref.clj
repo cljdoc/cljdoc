@@ -4,6 +4,7 @@
   (:require [clojure.tools.logging :as log]
             [clojure.string :as string]
             [cljdoc.util :as util]
+            [cljdoc.util.scm :as scm]
             [cljdoc.server.routes :as routes])
   (:import (org.jsoup Jsoup)))
 
@@ -90,8 +91,8 @@
       (.put broken-img "src" (fix-image file-path
                                         (.get broken-img "src")
                                         {:scm-base (str "https://raw.githubusercontent.com/"
-                                                        (util/scm-owner (:url scm)) "/"
-                                                        (util/scm-repo (:url scm)) "/"
+                                                        (scm/owner (:url scm)) "/"
+                                                        (scm/repo (:url scm)) "/"
                                                         scm-rev "/")})))
     (.toString doc)))
 

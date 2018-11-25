@@ -3,6 +3,7 @@
   (:require [cljdoc.server.routes :as routes]
             [cljdoc.config :as config]
             [cljdoc.util :as util]
+            [cljdoc.util.scm :as scm]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]
             [hiccup.page]))
@@ -134,8 +135,9 @@
     (if scm-url
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
-       [:img.v-mid.mr2 {:src (str "https://icon.now.sh/" (name (util/scm-provider scm-url)))}]
-       [:span.dib (util/scm-coordinate scm-url)]]
+       (let [icon (or (scm/provider scm-url) :code)]
+         [:img.v-mid.mr2 {:src (str "https://icon.now.sh/" (name icon))}])
+       [:span.dib (scm/coordinate scm-url)]]
       [:a.f6.link.blue {:href (util/github-url :userguide/scm-faq)} "SCM info missing"])]])
 
 (defn upgrade-notice [{:keys [version] :as version-map}]

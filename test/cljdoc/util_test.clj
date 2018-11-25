@@ -6,19 +6,6 @@
   (:import (clojure.lang ExceptionInfo)
            (java.io StringReader)))
 
-(t/deftest scm-coordinate-test
-  (t/is (= "circleci" (util/scm-owner "https://github.com/circleci/clj-yaml")))
-  (t/is (= "eval" (util/scm-owner "https://gitlab.com/eval/otarta")))
-  (t/is (= "clj-yaml" (util/scm-repo "https://github.com/circleci/clj-yaml")))
-  (t/is (= "otarta" (util/scm-repo "https://gitlab.com/eval/otarta")))
-  (t/is (= "circleci/clj-yaml" (util/scm-coordinate "https://github.com/circleci/clj-yaml")))
-  (t/is (= "eval/otarta" (util/scm-coordinate "https://gitlab.com/eval/otarta"))))
-
-(t/deftest scm-provider-test
-  (t/is (= :github (util/scm-provider "https://github.com/circleci/clj-yaml")))
-  (t/is (= :gitlab (util/scm-provider "https://gitlab.com/eval/otarta")))
-  (t/is (= nil (util/scm-provider "https://unknown-scm.com/circleci/clj-yaml"))))
-
 (t/deftest find-artifact-repository-test
   (t/is (= (repositories/find-artifact-repository "org.clojure/clojure" "1.9.0")
            repositories/maven-central))
