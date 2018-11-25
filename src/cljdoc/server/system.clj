@@ -2,6 +2,7 @@
   (:require [cljdoc.analysis.service :as analysis-service]
             [cljdoc.config :as cfg]
             [cljdoc.server.release-monitor]
+            [cljdoc.server.clojars-stats]
             [cljdoc.server.pedestal]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.storage.api :as storage]
@@ -14,7 +15,8 @@
             [unilog.config :as unilog]
             [ragtime.jdbc :as jdbc]
             [ragtime.core :as ragtime]
-            [taoensso.nippy :as nippy]))
+            [taoensso.nippy :as nippy]
+            [tea-time.core :as tt]))
 
 (unilog/start-logging!
  {:level   :info
@@ -30,7 +32,8 @@
       (log/info "Loading extension namespace" ns)
       (require ns))
     (merge
-     {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
+     {:cljdoc/tea-time        {}
+      :cljdoc/sqlite          {:db-spec (cfg/db env-config)
                                :dir     (cfg/data-dir env-config)}
       :cljdoc/cache           (merge (cfg/cache env-config)
                                      {:cache-dir      (cfg/data-dir env-config)
@@ -51,7 +54,9 @@
                                                     (map (fn [{:keys [id url]}] [id {:url url}]))
                                                     (into {}))}
                                        (when (= ana-service :circle-ci)
-                                         (cfg/circle-ci env-config)))}}
+                                         (cfg/circle-ci env-config)))}
+      :cljdoc/clojars-stats   {:db-spec (ig/ref :cljdoc/sqlite)
+                               :retention-days 380}}
 
      (when (cfg/enable-release-monitor? env-config)
        {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
@@ -66,6 +71,14 @@
 (defmethod ig/init-key :cljdoc/storage [k {:keys [db-spec]}]
   (log/info "Starting" k)
   (storage/->SQLiteStorage db-spec))
+
+(defmethod ig/init-key :cljdoc/tea-time [k _]
+  (log/info "Starting" k)
+  (tt/start!))
+
+(defmethod ig/halt-key! :cljdoc/tea-time [k _]
+  (log/info "Starting" k)
+  (tt/stop!))
 
 (defmethod ig/init-key :cljdoc/build-tracker [k {:keys [db-spec]}]
   (log/info "Starting" k)
