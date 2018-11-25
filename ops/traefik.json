@@ -1,0 +1,34 @@
+{
+  "backends": {
+    "cljdoc": {
+      "healthcheck": {
+        "path": "/ping",
+        "interval": "10s"
+      },
+      "servers": {
+        "server1": {
+          "url": "http://127.0.0.1:8001"
+        },
+        "server2": {
+          "url": "http://127.0.0.1:8002"
+        },
+        "server3": {
+          "url": "http://127.0.0.1:8003"
+        }
+      }
+    }
+  },
+  "frontends": {
+    "cljdoc": {
+      "backend": "cljdoc",
+      "entryPoints": [
+        "https"
+      ],
+      "routes": {
+        "main": {
+          "rule": "Host:traefik.cljdoc.org"
+        }
+      }
+    }
+  }
+}
