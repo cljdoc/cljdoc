@@ -1,0 +1,64 @@
+{
+  "variables": {
+    "do_token": "{{env `TF_VAR_do_token`}}"
+  },
+  "builders": [
+    {
+      "type": "digitalocean",
+      "api_token": "{{user `do_token`}}",
+      "image": "fedora-28-x64",
+      "region": "ams3",
+      "size": "2gb",
+      "ssh_username": "root",
+      "snapshot_name": "cljdoc-nomad-{{isotime}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "environment_vars": [
+        "CONSUL_VERSION=1.4.0",
+        "NOMAD_VERSION=0.8.6"
+      ],
+      "inline": [
+        "dnf -y install dnf-plugins-core unzip",
+        "dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo",
+        "dnf -y install docker-ce",
+        "mkdir /tmp/dl",
+        "curl -sSL https://releases.hashicorp.com/nomad/${NOMAD_VERSION}/nomad_${NOMAD_VERSION}_linux_amd64.zip -o /tmp/dl/nomad.zip",
+        "unzip /tmp/dl/nomad.zip -d /tmp",
+        "install /tmp/nomad /usr/bin/nomad",
+        "mkdir -p /etc/nomad.d",
+        "chmod a+w /etc/nomad.d",
+
+        "curl -sSL https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip > /tmp/dl/consul.zip",
+        "unzip /tmp/dl/consul.zip -d /tmp",
+        "install /tmp/consul /usr/bin/consul"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "nomad.server.hcl",
+      "destination": "/etc/nomad/server.hcl"
+    },
+    {
+      "type": "file",
+      "source": "consul.service",
+      "destination": "/etc/systemd/system/consul.service"
+    },
+    {
+      "type": "file",
+      "source": "nomad.service",
+      "destination": "/etc/systemd/system/nomad.service"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "systemctl enable docker",
+        "systemctl enable consul",
+        "systemctl enable nomad",
+        "nomad -autocomplete-install"
+      ]
+    }
+  ]
+}
