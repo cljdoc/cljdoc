@@ -38,9 +38,13 @@ IMPORTANT: In the cljdoc URLs above `$group-id` and `$artifact-id` always refer 
 
 *That's pretty much it.* Read on for some more advanced stuff that will make your docs extra awesome!
 
+== Docstrings
+
+Docstrings are rendered as **Markdown** in the https://commonmark.org/[CommonMark] dialect.
+
 == Articles
 
-Some libraries may want to publish additional guides, tutorials or, as they are called in cljdoc: articles. They can be written in **Markdown** or **Asciidoc** and you can mix and match the two formats as you please.
+Some libraries may want to publish additional guides, tutorials or, as they are called in cljdoc: articles. They can be written in **Markdown** (in the https://commonmark.org/[CommonMark] dialect, file extension `.md`) or **http://asciidoc.org/[AsciiDoc]** (in the https://asciidoctor.org/[Asciidoctor] dialect, file extension `.adoc`) and you can mix and match the two formats as you please.
 
 In order to do so the following prerequisites must be met:
 
@@ -174,3 +178,12 @@ ifndef::env-cljdoc[]
 THIS WILL BE SHOWN EVERYWHERE ELSE
 endif::[]
 ----
+
+==== Supported rich text formats
+
+Our https://github.com/cljdoc/cljdoc/blob/master/src/cljdoc/render/rich_text.clj[rich text render] supports two formats:
+
+* Markdown
+  - We use https://github.com/vsch/flexmark-java[flexmark-java] to render Markdown, which implements the latest version of the https://commonmark.org/[CommonMark] dialect.
+* AsciiDoc
+  - We use https://asciidoctor.org/[Asciidoctor] to render http://asciidoc.org/[AsciiDoc], which implements a https://asciidoctor.org/docs/asciidoc-asciidoctor-diffs/[custom dialect] of it.
