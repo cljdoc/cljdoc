@@ -63,4 +63,8 @@
            :cli
            {:extra-paths ["modules/cli/src"]
             :extra-deps {cli-matic {:mvn/version "0.1.14"}}
-            :main-opts ["-m"  "cljdoc.cli"]}}}
+            :main-opts ["-m"  "cljdoc.cli"]}
+
+           :depstar
+           {:extra-deps {seancorfield/depstar {:mvn/version "0.1.5"}}
+            :main-opts ["-m" "hf.depstar.uberjar"]}}}

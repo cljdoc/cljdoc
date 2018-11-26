@@ -34,10 +34,12 @@ jobs:
       - run: ./.circleci/run_if_changed.sh modules/analysis-runner/ "cd modules/analysis-runner/; clojure extended-test.clj"
 
       - run: clojure -A:test
+
       - store_test_results:
           path: target/
 
       - run: ./script/package
+      - run: clojure -A:depstar target/cljdoc.uber.jar
 
       - persist_to_workspace:
           root: .
@@ -85,12 +87,26 @@ jobs:
           name: Deploy to S3
           command: aws s3 sync workspace/target s3://$RELEASES_BUCKET_NAME/build-$CIRCLE_SHA1/ --delete
 
+  docker-deploy:
+    machine: true
+    steps:
+      - checkout
+      - attach_workspace:
+          at: workspace
+      - run: mv workspace/target/cljdoc.uber.jar .
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: cd ops/docker && make image
+      - run: docker push cljdoc/cljdoc
+
 workflows:
   version: 2
   build-and-deploy:
     jobs:
       - build
       - prettier
+      - docker-deploy:
+          requires:
+            - build
       - deploy:
           requires:
             - build
