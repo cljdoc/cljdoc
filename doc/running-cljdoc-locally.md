@@ -14,6 +14,24 @@ for `muuntaja` from a local Jar and Git repository:
    cd cljdoc/
    ```
 
+1. Build the Javascript files used by the cljdoc pages:
+
+    ```sh
+    npm ci                 # reproducibly install packages into node_modules
+    npm run format         # format JS code with Prettier
+    npm run build          # production build
+    ```
+
+    Check that `resources-compiled` folder was generated.
+
+    If you plan to work on JS files, instead of `npm run build` run `dev`:
+
+    ```
+    npm ci                 # reproducibly install packages into node_modules
+    npm run format         # format JS code with Prettier
+    npm run dev            # watch mode
+    ```
+
 1. Start the cljdoc server
 
     ```sh
@@ -33,19 +51,7 @@ for `muuntaja` from a local Jar and Git repository:
     (integrant.repl/go)
     ```
 
-1. To build the Javascript files used by the cljdoc pages, run the following in a terminal:
-
-    ```sh
-    npm ci                 # reproducibly install packages into node_modules
-    npm run format         # format JS code with Prettier
-    npm run lint-format    # check if JS code is properly formatted (used in CI)
-    npm run build          # production build
-    npm run dev            # watch mode
-    ```
-
-    > Note: You only need to run `build` **or** `dev`. Usually you would only use `dev` if you plan on working on JS files.
-
-1. Run tests using [Kaocha](https://github.com/lambdaisland/kaocha):
+1. (Optional) Run tests using [Kaocha](https://github.com/lambdaisland/kaocha):
 
     ```
     clj -A:test
@@ -69,7 +75,7 @@ for `muuntaja` from a local Jar and Git repository:
 
     ```sh
     cd cljdoc/
-    ./script/cljdoc ingest -p metosin/muuntaja -v 0.6.1
+    ./script/cljdoc ingest -p metosin/muuntaja -v 0.6.1 --git /path/to/muuntaja/repo
     ```
 
     Or, if you want to specify the jar, pom, git repo and revision explicitly:
