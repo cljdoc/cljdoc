@@ -115,3 +115,8 @@ a rough checklist what stuff should be done when doing so.
 - [ ] Swap IP in R53 record
 - [ ] Generate certs (or copy if necessary)
 - [ ] link sites-enabled server block (see `get-certs.sh`)
+
+
+# Nomad / Consul notes and questions
+
+- What address to bind to for single instance cluster?
