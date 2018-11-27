@@ -45,7 +45,8 @@
   to supply non-default paths like local files."
   [{:keys [storage build-tracker analysis-service] :as deps}
    {:keys [project version jar pom scm-url scm-rev] :as coords}]
-  (let [a-uris    (repositories/artifact-uris project version)
+  (let [a-uris    (when-not (and jar pom)
+                    (repositories/artifact-uris project version))
         v-entity  (util/version-entity project version)
         build-id  (build-log/analysis-requested!
                    build-tracker (:group-id v-entity) (:artifact-id v-entity) version)
@@ -56,7 +57,7 @@
     {:build-id build-id
      :future (future
                (try
-                 (if-let [scm-info (ingest/scm-info (:pom a-uris))]
+                 (if-let [scm-info (ingest/scm-info (:pom ana-args))]
                    (let [{:keys [error scm-url commit] :as git-result}
                          (ingest/ingest-git! storage {:project project
                                                       :version version
