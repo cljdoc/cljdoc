@@ -124,8 +124,10 @@
       (log/infof "Got file from Local AnalysisService %s" analysis-result)
       (if (zero? (:exit proc))
         {:analysis-result analysis-result}
-        (throw (ex-info "Analysis with local AnalysisService failed"
-                        {:service :local, :proc proc}))))))
+        (let [err (ex-info "Analysis with local AnalysisService failed"
+                           {:service :local, :proc proc})]
+          (log/error err (:out proc))
+          (throw err))))))
 
 (comment
 
