@@ -10,7 +10,8 @@
 
 (defn highlight-js-customization []
   [:script
-   (->> ["hljs.initHighlightingOnLoad();"
+   (->> ["hljs.configure({languages: ['clj', 'cljs']});"
+         "hljs.initHighlightingOnLoad();"
          "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });"]
         (string/join "\n")
         (hiccup/raw))])
