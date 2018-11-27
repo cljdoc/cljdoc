@@ -103,7 +103,7 @@
   (let [tmp-dir      (util/system-temp-dir (str "cljdoc-" project "-" version))
         jar-contents (io/file tmp-dir "jar-contents/")
         impl-src-dir (io/file tmp-dir "impl-src/")
-        _            (copy (io/resource "impl.clj")
+        _            (copy (io/resource "impl.clj.tpl")
                            (doto (io/file impl-src-dir "cljdoc" "analysis" "impl.clj")
                              (-> .getParentFile .mkdirs)))
         _            (copy (io/resource "cljdoc/util.clj")
