@@ -87,6 +87,6 @@
       (st/instrument)
       (integrant.repl/go))
 
-  (integrant.repl/reset) ; currently a little broken, fix welcome
+  (integrant.repl/reset)
 
   )
