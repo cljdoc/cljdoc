@@ -15,7 +15,7 @@
        (string/join "/")))
 
 (defn provider [scm-url]
-  (let [host (:host (uri/uri scm-url))]
+  (when-some [host (:host (uri/uri scm-url))]
     (cond
       (.endsWith host "github.com") :github
       (.endsWith host "gitlab.com") :gitlab)))
