@@ -13,7 +13,7 @@
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
             [clojure.java.shell :as sh]
-            [clojure.string]
+            [clojure.string :as string]
             [cljdoc.util :as util]
             [cljdoc.analysis.deps :as deps]
             [cljdoc.spec])
@@ -62,6 +62,22 @@
   (when (.exists (io/file unpacked-jar-dir "public"))
     (println "Deleting public/ dir")
     (util/delete-directory! (io/file unpacked-jar-dir "public")))
+  ;; Delete .class files that have a corresponding .clj or .cljc file
+  ;; to circle around https://dev.clojure.org/jira/browse/CLJ-130
+  ;; This only affects Jars with AOT compiled namespaces where the
+  ;; version of Clojure used during compilation is < 1.8.
+  ;; This hast mostly been put into place for datascript and might
+  ;; get deleted if datascript changes it's packaging strategy.
+  (doseq [class-file (->> (file-seq unpacked-jar-dir)
+                          (map #(.getAbsolutePath %))
+                          (filter (fn clj-or-cljc [path]
+                                    (or (.endsWith path ".cljc")
+                                        (.endsWith path ".clj"))))
+                          (map #(string/replace % #"(\.clj$|\.cljc$)" "__init.class"))
+                          (map io/file))]
+    (when (.exists class-file)
+      (println "Deleting" (.getPath class-file))
+      (.delete class-file)))
   (doseq [path ["deps.cljs" "data_readers.clj" "data_readers.cljc"]
           :let [file (io/file unpacked-jar-dir path)]]
     ;; codox returns {:publics ()} for deps.cljs, data_readers.cljc
@@ -159,7 +175,3 @@
   (sh/sh "clj" "-Sdeps" (pr-str {:deps deps}) "-m" "cljdoc.analysis.impl" "1" "2" "3")
 
   {:deps deps})
-
-
-
-
