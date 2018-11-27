@@ -46,4 +46,8 @@ echo -e "\nFiles updated, restarting..."
 
 ssh "root@$api_ip" systemctl restart cljdoc-api
 
+echo -e "\nTagging release..."
+git tag -f live "$version"
+git push --tags -f
+
 echo -e "\nDone"
