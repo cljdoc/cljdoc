@@ -24,4 +24,4 @@ fi
 pushd "cljdoc-$version"
 
 echo "Starting process"
-CLJDOC_PROFILE=prod CLJDOC_VERSION="$version" clojure -J-Xmx1400m -m cljdoc.server.system
+CLJDOC_PROFILE=prod CLJDOC_VERSION="$version" CLJDOC_SECRETS="$HOME/secrets.edn" clojure -J-Xmx1400m -m cljdoc.server.system
