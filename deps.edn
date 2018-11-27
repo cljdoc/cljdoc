@@ -52,9 +52,7 @@
  ;; Cursive: https://github.com/cljdoc/cljdoc/issues/134
  :paths ["src" "resources" "resources-compiled"
          "modules/shared-utils/src"
-         "modules/shared-utils/resources"
-         "modules/analysis-runner/src"
-         "modules/analysis-runner/resources"]
+         "modules/shared-utils/resources"]
  :aliases {:test
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha
@@ -63,5 +61,6 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :cli
-           {:extra-deps {cli-matic {:mvn/version "0.1.14"}}
+           {:extra-paths ["modules/cli/src"]
+            :extra-deps {cli-matic {:mvn/version "0.1.14"}}
             :main-opts ["-m"  "cljdoc.cli"]}}}
