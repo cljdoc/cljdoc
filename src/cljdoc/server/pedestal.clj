@@ -249,6 +249,17 @@
            (fn [request opts]
              (etag/add-file-etag request false)))})
 
+(def redirect-trailing-slash-interceptor
+  ;; Needed because https://github.com/containous/traefik/issues/4247
+  {:name ::redirect-trailing-slash
+   :leave (fn [ctx]
+            (let [uri (-> ctx :request :uri)]
+              (cond-> ctx
+                (and (.endsWith uri "/")
+                     (not= uri "/"))
+                (assoc :response {:status 301
+                                  :headers {"Location" (subs uri 0 (dec (.length uri)))}}))))})
+
 (def not-found-interceptor
   {:name ::not-found-interceptor
    :leave (fn [context]
@@ -347,6 +358,7 @@
        ::http/not-found-interceptor not-found-interceptor}
       http/default-interceptors
       (update ::http/interceptors #(into [sentry/interceptor
+                                          redirect-trailing-slash-interceptor
                                           (ring-middlewares/not-modified)
                                           etag-interceptor]
                                          %))
