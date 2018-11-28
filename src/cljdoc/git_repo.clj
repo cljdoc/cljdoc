@@ -44,7 +44,6 @@
 
 (defn read-origin
   [^Git git-repo]
-  {:post [(.startsWith % "https://")]}
   (let [remotes (->> (.. git-repo remoteList call)
                      (map (fn [remote]
                             [(keyword (.getName remote))
