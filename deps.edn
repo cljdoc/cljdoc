@@ -42,6 +42,7 @@
         me.raynes/fs {:mvn/version "1.4.6"},
         sitemap {:mvn/version "0.2.4"},
         lambdaisland/uri {:mvn/version "1.1.0"}
+        clucie {:mvn/version "0.4.1"}
 
         ;; These deps are dependencies of shared-utils and are
         ;; duplicated in the global modules/shared-utils/deps.edn,
@@ -52,7 +53,9 @@
  ;; Cursive: https://github.com/cljdoc/cljdoc/issues/134
  :paths ["src" "resources" "resources-compiled"
          "modules/shared-utils/src"
-         "modules/shared-utils/resources"]
+         "modules/shared-utils/resources"
+         "modules/analysis-runner/src"
+         "modules/analysis-runner/resources"]
  :aliases {:test
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha
@@ -61,6 +64,5 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :cli
-           {:extra-paths ["modules/cli/src"]
-            :extra-deps {cli-matic {:mvn/version "0.1.14"}}
+           {:extra-deps {cli-matic {:mvn/version "0.1.14"}}
             :main-opts ["-m"  "cljdoc.cli"]}}}
