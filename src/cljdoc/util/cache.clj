@@ -17,10 +17,6 @@
             [clojure.java.jdbc :as sql]
             [taoensso.nippy :as nippy]))
 
-(defn key-for
-  [prefix separator k]
-  (str prefix separator (pr-str k)))
-
 (defn value->
   [result]
   (some-> result
@@ -32,45 +28,36 @@
   cache/CacheProtocol
   (lookup [_ k]
           (delay
-           (let [{:keys [spec key-prefix key-separator]} (:db state)
-                 key (key-for key-prefix key-separator k)
-                 query "SELECT * FROM CACHE WHERE KEY = ?"]
-             (value->
-              (sql/query spec [query key])))))
+           (let [{:keys [spec key-prefix]} (:db state)
+                 query "SELECT * FROM CACHE WHERE PREFIX = ? AND KEY = ?"]
+             (value-> (sql/query spec [query key-prefix (pr-str k)])))))
   (lookup [_ k not-found]
           (delay
-           (let [{:keys [spec key-prefix key-separator]} (:db state)
-                 key (key-for key-prefix key-separator k)
-                 query "SELECT * FROM CACHE WHERE KEY = ?"]
+           (let [{:keys [spec key-prefix]} (:db state)
+                 query "SELECT * FROM CACHE WHERE PREFIX = ? AND KEY = ?"]
              (or
-              (value->
-               (sql/query spec [query key]))
+              (value-> (sql/query spec [query key-prefix (pr-str k)]))
               not-found))))
   (has? [_ k]
-        (let [{:keys [spec key-prefix key-separator]} (:db state)
-              key (key-for key-prefix key-separator k)
-              query "SELECT * FROM CACHE WHERE KEY = ?"]
+        (let [{:keys [spec key-prefix]} (:db state)
+              query "SELECT * FROM CACHE WHERE PREFIX = ? AND KEY = ?"]
           (boolean
-           (value->
-            (sql/query spec [query key])))))
+           (value-> (sql/query spec [query key-prefix (pr-str k)])))))
   (hit [_ k]
        (SQLCache. state))
   (miss [_ k v]
-        (let [{:keys [spec key-prefix key-separator]} (:db state)
-              key (key-for key-prefix key-separator k)
+        (let [{:keys [spec key-prefix]} (:db state)
               value (nippy/freeze @v)
-              query "INSERT OR IGNORE INTO CACHE (KEY, VALUE) VALUES (?, ?)"]
-          (sql/execute! spec [query key value])
+              query "INSERT OR IGNORE INTO CACHE (PREFIX, KEY, VALUE) VALUES (?, ?, ?)"]
+          (sql/execute! spec [query key-prefix (pr-str k) value])
           (SQLCache. state)))
   (evict [_ k]
-         (let [{:keys [spec key-prefix key-separator]} (:db state)
-               key (key-for key-prefix key-separator k)
-               query "DELETE FROM CACHE WHERE KEY = ?"]
-           (sql/execute! spec [query key])
+         (let [{:keys [spec key-prefix]} (:db state)
+               query "DELETE FROM CACHE WHERE KEY = ? AND PREFIX = ?"]
+           (sql/execute! spec [query key-prefix (pr-str k)])
            (SQLCache. state)))
   (seed [_ base]
         (SQLCache. base))
-
   Object
   (toString [_] (str state)))
 
@@ -83,7 +70,6 @@
   (def memo-f
     (memo-sqlite (fn [arg] (Thread/sleep 5000) arg)
                  {:key-prefix         \"artifact-repository\"
-                  :key-separator      \":\"
                   :spec {:dbtype      \"sqlite\"
                          :classname   \"org.sqlite.JDBC\"
                          :subprotocol \"sqlite\"
@@ -101,11 +87,8 @@
 
 (comment
 
-  (key-for "!-1" "XYZ" (list "github"))
-
   (def db-artifact-repository
     {:key-prefix         "artifact-repository"
-     :key-separator      ":"
      :spec {:dbtype      "sqlite"
             :classname   "org.sqlite.JDBC"
             :subprotocol "sqlite"
@@ -124,7 +107,6 @@
 
   (def db-artifact-uris
     {:key-prefix         "artifact-uris"
-     :key-separator      ":"
      :spec {:dbtype      "sqlite"
             :classname   "org.sqlite.JDBC"
             :subprotocol "sqlite"
