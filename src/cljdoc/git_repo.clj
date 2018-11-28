@@ -98,6 +98,9 @@
        (.call)
        (map #(->> % .getName (re-matches #"refs/tags/(.*)") second))))
 
+(defn exists? [^Git g rev]
+  (some? (.resolve (.getRepository g) rev)))
+
 (defn- tree-for
   [g rev]
   {:pre [(string? rev)]}
@@ -114,9 +117,9 @@
 (defn slurp-file-at
   "Read a file `f` in the Git repository `g` at revision `rev`.
 
-  If the file cannot be found, return `nil`."
+   If the file cannot be found, return `nil`."
   [^Git g rev f]
-  (if-let [tree (tree-for g rev)]
+  (if-some [tree (tree-for g rev)]
     (let [repo      (.getRepository g)
           tree-walk (TreeWalk/forPath repo f tree)]
       (when tree-walk
