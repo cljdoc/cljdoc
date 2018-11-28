@@ -50,9 +50,8 @@
         doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
         common {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-                :doc-tree-component [:div
-                                     (articles/doc-tree-view cache-id doc-tree-with-readme-and-changelog doc-slug-path)
-                                     (articles/doc-tree-view cache-id doc-tree-with-rest doc-slug-path)]
+                :main-list-component (articles/doc-tree-view cache-id doc-tree-with-readme-and-changelog doc-slug-path)
+                :article-list-component (articles/doc-tree-view cache-id doc-tree-with-rest doc-slug-path)
                 :namespace-list-component (api/namespace-list {} (bundle/ns-entities cache-bundle))
                 :upgrade-notice-component (if-let [newer-v (bundle/more-recent-version cache-bundle)]
                                             (layout/upgrade-notice newer-v))}]

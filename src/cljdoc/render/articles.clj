@@ -19,6 +19,11 @@
         [:a.blue.link {:href (util/github-url :userguide/scm-faq)} "properly set SCM info"]
         " in your project."])])
 
+(defn main-list [doc-tree]
+  [:div.mb4.js--articles
+   (layout/sidebar-title "Main")
+   doc-tree])
+
 (defn doc-link [cache-id slugs]
   (assert (seq slugs) "Slug path missing")
   (->> (string/join "/" slugs)
@@ -47,14 +52,16 @@
 
 (defn doc-page [{:keys [top-bar-component
                         upgrade-notice-component
-                        doc-tree-component
+                        main-list-component
+                        article-list-component
                         namespace-list-component
                         doc-scm-url
                         doc-html] :as args}]
   (layout/layout
    {:top-bar top-bar-component
     :main-sidebar-contents [upgrade-notice-component
-                            (article-list doc-tree-component)
+                            (main-list main-list-component)
+                            (article-list article-list-component)
                             namespace-list-component]
     :content [:div.mw7.center
               ;; TODO dispatch on a type parameter that becomes part of the attrs map
