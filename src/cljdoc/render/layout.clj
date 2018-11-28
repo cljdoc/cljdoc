@@ -10,11 +10,15 @@
 
 (defn highlight-js-customization []
   [:script
-   (->> ["hljs.configure({languages: ['clj', 'cljs']});"
-         "hljs.initHighlightingOnLoad();"
-         "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });"]
-        (string/join "\n")
-        (hiccup/raw))])
+   (hiccup/raw
+     "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });
+      addEventListener('load', function() {
+        var code = document.querySelectorAll('pre code');
+        code.forEach(function (el) {
+          el.classList.add('language-clj');
+          hljs.highlightBlock(el);
+        });
+      });")])
 
 (defn highlight-js []
   [:div
