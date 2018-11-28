@@ -20,9 +20,10 @@
         " in your project."])])
 
 (defn main-list [doc-tree]
-  [:div.mb4.js--articles
-   (layout/sidebar-title "Main")
-   doc-tree])
+  (when doc-tree
+    [:div.mb4.js--articles
+     (layout/sidebar-title "Main")
+     doc-tree]))
 
 (defn doc-link [cache-id slugs]
   (assert (seq slugs) "Slug path missing")
