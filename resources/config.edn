@@ -5,7 +5,8 @@
           :tags {:env #profile {:default "develop"
                                 :prod "production"}
                  :project "cljdoc"}}
- :cljdoc/version #or [#env CLJDOC_VERSION "dev"]
+ :cljdoc/version #profile {:prod #slurp "CLJDOC_VERSION"
+                           :default "dev"}
  :cljdoc/server {:port 8000
                  :host #profile {:prod "cljdoc.org"
                                  :default "localhost"}

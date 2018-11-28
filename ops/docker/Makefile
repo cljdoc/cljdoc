@@ -2,12 +2,13 @@ CLJDOC_VERSION := $(shell ./../../script/version.sh)
 
 .PHONY: image
 
-../../.dockerignore: .dockerignore
-	cp .dockerignore $@
+../../target/cljdoc.zip:
+	./../../script/package
 
-../../Dockerfile: Dockerfile
-	cp Dockerfile $@
+cljdoc-build: ../../target/cljdoc.zip
+	unzip ../../target/cljdoc.zip -d cljdoc-build/
 
-image: ../../.dockerignore ../../Dockerfile
-	docker build -t cljdoc/cljdoc:$(CLJDOC_VERSION) ../../
-	rm $^
+image: cljdoc-build
+	cp Dockerfile cljdoc-build/
+	docker build -t cljdoc/cljdoc:$(CLJDOC_VERSION) cljdoc-build/
+	rm -rf $^

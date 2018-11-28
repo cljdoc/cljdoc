@@ -4,6 +4,12 @@
             [clojure.java.io :as io]
             [aero.core :as aero]))
 
+(defmethod aero/reader 'slurp
+  [_ tag value]
+  (try (.trim (slurp (io/resource value)))
+       (catch Exception e
+         (throw (Exception. (str "Exception reading " value  " from classpath") e)))))
+
 (defn profile []
   (let [known-profiles #{:live :local :prod :test nil}
         profile        (keyword (System/getenv "CLJDOC_PROFILE"))]
