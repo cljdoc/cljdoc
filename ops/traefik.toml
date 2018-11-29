@@ -2,7 +2,7 @@ debug = true
 logLevel = "DEBUG"
 
 [accessLog]
-  filePath = "traefik-access.log"
+  filePath = "access.log"
 
 [entryPoints]
   [entryPoints.http]
@@ -10,13 +10,13 @@ logLevel = "DEBUG"
     [entryPoints.http.redirect]
     entryPoint = "https"
   [entryPoints.https]
-  compress = true
+  #compress = true
   address = ":443"
     [entryPoints.https.tls]
 
 [acme]
 email = "martinklepsch@googlemail.com"
-storage = "acme.json"
+storage = "/data/acme.json"
 entryPoint = "https"
 onHostRule = true
 [acme.tlsChallenge]
@@ -24,24 +24,12 @@ onHostRule = true
 [[acme.domains]]
 main = "traefik.cljdoc.org"
 
-[file]
+[api]
+[ping]
+
+[consulCatalog]
+prefix = "traefik"
+constraints = ["tag==cljdoc"]
 watch = true
 
-[backends]
-  [backends.cljdoc]
-    [backends.cljdoc.healthcheck]
-    path = "/ping"
-    interval = "10s"
-    [backends.cljdoc.servers.server1]
-    url = "http://127.0.0.1:8001"
-    [backends.cljdoc.servers.server2]
-    url = "http://127.0.0.1:8002"
-    [backends.cljdoc.servers.server3]
-    url = "http://127.0.0.1:8003"
-
-[frontends]
-  [frontends.cljdoc]
-  backend = "cljdoc"
-  entryPoints = ["https"]
-  [frontends.cljdoc.routes.main]
-    rule = "Host:traefik.cljdoc.org"
+#TODO strip trailing /
