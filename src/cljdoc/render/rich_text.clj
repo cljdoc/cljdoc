@@ -37,7 +37,8 @@
     :as _opts}]
   (.. (HtmlRenderer/builder
        (doto (MutableDataSet.)
-         (.set AnchorLinkExtension/ANCHORLINKS_ANCHOR_CLASS "md-anchor")))
+         (.set AnchorLinkExtension/ANCHORLINKS_ANCHOR_CLASS "md-anchor")
+         (.set HtmlRenderer/FENCED_CODE_NO_LANGUAGE_CLASS "language-clojure")))
       (escapeHtml (boolean escape-html?))
       (linkResolverFactory
         (reify LinkResolverFactory
