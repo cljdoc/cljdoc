@@ -12,22 +12,19 @@ function initSrollIndicator() {
   var sidebarScrollView = document.querySelector(
     ".js--namespace-contents-scroll-view"
   );
-  var defBlockTitles = Array.from(
-    document.querySelectorAll(".def-block-title")
-  );
+  var defBlocks = Array.from(document.querySelectorAll(".def-block"));
   var defItems = Array.from(document.querySelectorAll(".def-item"));
 
   function isElementVisible(container, el) {
-    var st = container.scrollTop;
-    var y = el.getBoundingClientRect().y;
-    var wh = window.innerHeight;
-    var h = container.clientHeight;
-    var top = wh - h;
-    return y > top && y < wh;
+    var { y: etop, height } = el.getBoundingClientRect(),
+      ebottom = etop + height,
+      cbottom = window.innerHeight,
+      ctop = cbottom - container.clientHeight;
+    return etop <= cbottom && ebottom >= ctop;
   }
 
   function drawScrollIndicator() {
-    defBlockTitles.forEach((el, idx) => {
+    defBlocks.forEach((el, idx) => {
       var defItem = defItems[idx];
       if (isElementVisible(mainScrollView, el)) {
         defItem.classList.add("scroll-indicator");
