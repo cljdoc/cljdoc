@@ -79,8 +79,8 @@
                           ;; revision we might as well include it to allow a smooth,
                           ;; even if slightly less correct, UX
                           (or (git/slurp-file-at repo revision f)
-                              (and (git/exists? repo "master")
-                                   (git/slurp-file-at repo "master" f))))
+                              (when (git/exists? repo "master")
+                                (git/slurp-file-at repo "master" f))))
                         (or (:cljdoc.doc/tree config-edn)
                             (get-in @util/hardcoded-config
                                     [(util/normalize-project project) :cljdoc.doc/tree])

@@ -12,13 +12,7 @@
   [:script
    (hiccup/raw
      "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });
-      addEventListener('load', function() {
-        var code = document.querySelectorAll('pre code');
-        code.forEach(function (el) {
-          el.classList.add('language-clj');
-          hljs.highlightBlock(el);
-        });
-      });")])
+      hljs.initHighlightingOnLoad();")])
 
 (defn highlight-js []
   [:div
