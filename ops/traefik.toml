@@ -10,7 +10,7 @@ logLevel = "DEBUG"
     [entryPoints.http.redirect]
     entryPoint = "https"
   [entryPoints.https]
-  #compress = true
+  compress = true
   address = ":443"
     [entryPoints.https.tls]
     [entryPoints.https.redirect]
