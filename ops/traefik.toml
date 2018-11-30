@@ -13,6 +13,10 @@ logLevel = "DEBUG"
   #compress = true
   address = ":443"
     [entryPoints.https.tls]
+    [entryPoints.https.redirect]
+      regex = "^https://test.cljdoc.xyz/(.*)"
+      replacement = "https://test.cljdoc.org/$1"
+      permanent = true
 
 [acme]
 email = "martinklepsch@googlemail.com"
@@ -22,7 +26,10 @@ onHostRule = true
 [acme.tlsChallenge]
 
 [[acme.domains]]
-main = "traefik.cljdoc.org"
+main = "test.cljdoc.org"
+
+[[acme.domains]]
+main = "test.cljdoc.xyz"
 
 [api]
 [ping]
