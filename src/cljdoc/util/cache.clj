@@ -21,31 +21,35 @@
   cache/CacheProtocol
   (lookup [_ k]
           (delay
-           (let [{:keys [spec key-prefix]} (:db state)
-                 row-fn #(some-> % :value nippy/thaw)
+           (let [{:keys [db key-prefix de-serialize-fn]} (:cache-spec state)
+                 row-fn #(some-> % :value de-serialize-fn)
                  query "SELECT * FROM cache WHERE prefix = ? AND key = ?"]
-             (sql/query spec [query key-prefix (pr-str k)] {:row-fn row-fn}))))
+             (sql/query db
+                        [query key-prefix (pr-str k)]
+                        {:row-fn row-fn :result-set-fn first}))))
   (lookup [this k not-found]
-          (delay (or (deref (.lookup this k))) not-found))
+          (delay (or (deref (cache/lookup this k))) not-found))
   (has? [_ k]
-        (let [{:keys [spec key-prefix]} (:db state)
+        (let [{:keys [db key-prefix de-serialize-fn]} (:cache-spec state)
               query "SELECT * FROM cache WHERE prefix = ? AND key = ?"
-              row-fn #(some-> % :value nippy/thaw)]
+              row-fn #(some-> % :value de-serialize-fn)]
           (not
            (empty?
-            (sql/query spec [query key-prefix (pr-str k)] {:row-fn row-fn})))))
+            (sql/query db
+                       [query key-prefix (pr-str k)]
+                       {:row-fn row-fn :result-set-fn first})))))
   (hit [_ k]
        (SQLCache. state))
   (miss [_ k v]
-        (let [{:keys [spec key-prefix]} (:db state)
-              value (nippy/freeze @v)
+        (let [{:keys [db key-prefix serialize-fn]} (:cache-spec state)
+              value (serialize-fn @v)
               query "INSERT OR IGNORE INTO cache (prefix, key, value) VALUES (?, ?, ?)"]
-          (sql/execute! spec [query key-prefix (pr-str k) value])
+          (sql/execute! db [query key-prefix (pr-str k) value])
           (SQLCache. state)))
   (evict [_ k]
-         (let [{:keys [spec key-prefix]} (:db state)
+         (let [{:keys [db key-prefix]} (:cache-spec state)
                query "DELETE FROM cache WHERE key = ? AND prefix = ?"]
-           (sql/execute! spec [query key-prefix (pr-str k)])
+           (sql/execute! db [query key-prefix (pr-str k)])
            (SQLCache. state)))
   (seed [_ base]
         (SQLCache. base))
@@ -61,7 +65,9 @@
   (def memo-f
     (memo-sqlite (fn [arg] (Thread/sleep 5000) arg)
                  {:key-prefix         \"artifact-repository\"
-                  :spec {:dbtype      \"sqlite\"
+                  :serialize-fn       identity
+                  :de-serialize-fn    read-string
+                  :db   {:dbtype      \"sqlite\"
                          :classname   \"org.sqlite.JDBC\"
                          :subprotocol \"sqlite\"
                          :subname     \"data/my-cache.db\"}}))
@@ -73,14 +79,16 @@
   [f cache-spec]
   (memo/build-memoizer
    #(memo/->PluggableMemoization
-     % (SQLCache. {:db cache-spec}))
+     % (SQLCache. {:cache-spec cache-spec}))
    f))
 
 (comment
 
   (def db-artifact-repository
     {:key-prefix         "artifact-repository"
-     :spec {:dbtype      "sqlite"
+     :serialize-fn       nippy/freeze
+     :de-serialize-fn    nippy/thaw
+     :db   {:dbtype      "sqlite"
             :classname   "org.sqlite.JDBC"
             :subprotocol "sqlite"
             :subname     "data/cache.db"}})
@@ -98,7 +106,9 @@
 
   (def db-artifact-uris
     {:key-prefix         "artifact-uris"
-     :spec {:dbtype      "sqlite"
+     :serialize-fn       identity
+     :de-serialize-fn    read-string
+     :db {:dbtype      "sqlite"
             :classname   "org.sqlite.JDBC"
             :subprotocol "sqlite"
             :subname     "data/cache.db"}})
