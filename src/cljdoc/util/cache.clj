@@ -17,43 +17,34 @@
             [clojure.java.jdbc :as sql]
             [taoensso.nippy :as nippy]))
 
-(defn value->
-  [result]
-  (some-> result
-          first
-          :value
-          nippy/thaw))
-
 (cache/defcache SQLCache [state]
   cache/CacheProtocol
   (lookup [_ k]
           (delay
            (let [{:keys [spec key-prefix]} (:db state)
-                 query "SELECT * FROM CACHE WHERE PREFIX = ? AND KEY = ?"]
-             (value-> (sql/query spec [query key-prefix (pr-str k)])))))
-  (lookup [_ k not-found]
-          (delay
-           (let [{:keys [spec key-prefix]} (:db state)
-                 query "SELECT * FROM CACHE WHERE PREFIX = ? AND KEY = ?"]
-             (or
-              (value-> (sql/query spec [query key-prefix (pr-str k)]))
-              not-found))))
+                 row-fn #(some-> % :value nippy/thaw)
+                 query "SELECT * FROM cache WHERE prefix = ? AND key = ?"]
+             (sql/query spec [query key-prefix (pr-str k)] {:row-fn row-fn}))))
+  (lookup [this k not-found]
+          (delay (or (deref (.lookup this k))) not-found))
   (has? [_ k]
         (let [{:keys [spec key-prefix]} (:db state)
-              query "SELECT * FROM CACHE WHERE PREFIX = ? AND KEY = ?"]
-          (boolean
-           (value-> (sql/query spec [query key-prefix (pr-str k)])))))
+              query "SELECT * FROM cache WHERE prefix = ? AND key = ?"
+              row-fn #(some-> % :value nippy/thaw)]
+          (not
+           (empty?
+            (sql/query spec [query key-prefix (pr-str k)] {:row-fn row-fn})))))
   (hit [_ k]
        (SQLCache. state))
   (miss [_ k v]
         (let [{:keys [spec key-prefix]} (:db state)
               value (nippy/freeze @v)
-              query "INSERT OR IGNORE INTO CACHE (PREFIX, KEY, VALUE) VALUES (?, ?, ?)"]
+              query "INSERT OR IGNORE INTO cache (prefix, key, value) VALUES (?, ?, ?)"]
           (sql/execute! spec [query key-prefix (pr-str k) value])
           (SQLCache. state)))
   (evict [_ k]
          (let [{:keys [spec key-prefix]} (:db state)
-               query "DELETE FROM CACHE WHERE KEY = ? AND PREFIX = ?"]
+               query "DELETE FROM cache WHERE key = ? AND prefix = ?"]
            (sql/execute! spec [query key-prefix (pr-str k)])
            (SQLCache. state)))
   (seed [_ base]
@@ -82,7 +73,7 @@
   [f cache-spec]
   (memo/build-memoizer
    #(memo/->PluggableMemoization
-     % (cache/seed (SQLCache. {}) {:db cache-spec}))
+     % (SQLCache. {:db cache-spec}))
    f))
 
 (comment
