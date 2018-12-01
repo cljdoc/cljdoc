@@ -28,7 +28,7 @@ module "backups_bucket" {
 # DigitalOcean Server ------------------------------------------------
 
 resource "digitalocean_droplet" "cljdoc_api" {
-  image      = "${file("image/image-id")}"
+  image      = "${file("../image/image-id")}"
   name       = "cljdoc-2"
   region     = "ams3"
   size       = "s-1vcpu-2gb"
@@ -41,7 +41,7 @@ resource "digitalocean_droplet" "cljdoc_api" {
 }
 
 resource "digitalocean_droplet" "cljdoc_01" {
-  image      = "${file("image/nomad-image-id")}"
+  image      = "${file("../image/nomad-image-id")}"
   name       = "cljdoc-3"
   region     = "ams3"
   size       = "s-1vcpu-2gb"
