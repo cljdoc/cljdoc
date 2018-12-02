@@ -30,7 +30,8 @@
          :main-sidebar-contents [(articles/article-list
                                   (articles/doc-tree-view cache-id
                                                           (doctree/add-slug-path (-> cache-contents :version :doc))
-                                                          []))
+                                                          []
+                                                          true))
                                  (api/namespace-list {} (bundle/ns-entities cache-bundle))]})
        (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))
                      :description (layout/description cache-id)})))
@@ -50,8 +51,8 @@
         doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
         common {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-                :main-list-component (articles/doc-tree-view cache-id doc-tree-with-readme-and-changelog doc-slug-path)
-                :article-list-component (articles/doc-tree-view cache-id doc-tree-with-rest doc-slug-path)
+                :main-list-component (articles/doc-tree-view cache-id doc-tree-with-readme-and-changelog doc-slug-path false)
+                :article-list-component (articles/doc-tree-view cache-id doc-tree-with-rest doc-slug-path true)
                 :namespace-list-component (api/namespace-list {} (bundle/ns-entities cache-bundle))
                 :upgrade-notice-component (if-let [newer-v (bundle/more-recent-version cache-bundle)]
                                             (layout/upgrade-notice newer-v))}]
@@ -85,7 +86,8 @@
                        :article-list-component (articles/article-list
                                                 (articles/doc-tree-view cache-id
                                                                         (doctree/add-slug-path (-> cache-contents :version :doc))
-                                                                        []))
+                                                                        []
+                                                                        true))
                        :namespace-list-component (api/namespace-list
                                                   {:current (:namespace ns-emap)}
                                                   (bundle/ns-entities cache-bundle))
