@@ -2,7 +2,13 @@
 
 set -eou pipefail
 
-ip=$(terraform output api_ip)
+git_root=$(git rev-parse --show-toplevel)
+
+tf_out () {
+  terraform output -state="$git_root/ops/infrastructure/terraform.tfstate" $1
+}
+
+ip=$(tf_out api_ip)
 date=$(date "+%Y-%m-%d")
 tar_file="backup-$date.tar.gz"
 
@@ -21,6 +27,6 @@ scp root@$ip:"$tar_file" prod-backup/
 ssh root@$ip rm "$tar_file"
 ssh root@$ip rm -rf /tmp/cljdoc-backup
 
-AWS_ACCESS_KEY_ID=$(terraform output backups_bucket_user_access_key) \
-  AWS_SECRET_ACCESS_KEY=$(terraform output backups_bucket_user_secret_key) \
-  aws s3 sync prod-backup/ s3://$(terraform output backups_bucket_name)/
+AWS_ACCESS_KEY_ID=$(tf_out backups_bucket_user_access_key) \
+  AWS_SECRET_ACCESS_KEY=$(tf_out backups_bucket_user_secret_key) \
+  aws s3 sync prod-backup/ s3://$(tf_out backups_bucket_name)/
