@@ -1,5 +1,6 @@
 = cljdoc Operations
 :toc:
+
 ________________________________________________________________________
 The intention here is not just to make it easy to spin up an environment
 but also to document what is needed.
