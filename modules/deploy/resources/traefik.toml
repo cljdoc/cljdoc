@@ -14,8 +14,8 @@ logLevel = "DEBUG"
   address = ":443"
     [entryPoints.https.tls]
     [entryPoints.https.redirect]
-      regex = "^https://test.cljdoc.xyz/(.*)"
-      replacement = "https://test.cljdoc.org/$1"
+      regex = "^https://.*cljdoc.xyz/(.*)"
+      replacement = "https://.*cljdoc.org/$1"
       permanent = true
 
 [acme]
@@ -27,9 +27,12 @@ onHostRule = true
 
 [[acme.domains]]
 main = "test.cljdoc.org"
-
 [[acme.domains]]
 main = "test.cljdoc.xyz"
+[[acme.domains]]
+main = "cljdoc.org"
+[[acme.domains]]
+main = "cljdoc.xyz"
 
 [api]
 [ping]
