@@ -1,8 +1,5 @@
-debug = true
-logLevel = "DEBUG"
-
 [accessLog]
-  filePath = "access.log"
+  filePath = "/data/access.log"
 
 [entryPoints]
   [entryPoints.http]
@@ -34,12 +31,10 @@ main = "cljdoc.org"
 [[acme.domains]]
 main = "cljdoc.xyz"
 
-[api]
+# [api] # this should never be enabled in production
 [ping]
 
 [consulCatalog]
 prefix = "traefik"
 constraints = ["tag==cljdoc"]
 watch = true
-
-#TODO strip trailing /

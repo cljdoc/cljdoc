@@ -38,10 +38,7 @@
                            "traefik.frontends.blue.rule=PathPrefix:/"
                            "traefik.frontends.blue.entryPoints=http,https"]}],
             :Templates [{:DestPath "secrets/secrets.edn",
-                         :EmbeddedTmpl "{{key \"config/cljdoc/secrets-edn\"}}"}
-                        #_{:DestPath "secrets/file.env",
-                         :EmbeddedTmpl "DOCKER_TAG={{key \"config/cljdoc/docker-tag\"}}"
-                         :Envvars true}]}],
+                         :EmbeddedTmpl "{{key \"config/cljdoc/secrets-edn\"}}"}]}],
         :Update {:Canary 1
                  :MaxParallel 1
                  :HealthyDeadline #nomad/seconds 180
@@ -51,7 +48,8 @@
           [{:Config {:image "traefik:1.7.4-alpine"
                      :network_mode "host"
                      :port_map [{:api 8080, :http 80, :https 443}]
-                     :volumes ["local:/etc/traefik" "/data/traefik:/data"]}
+                     :volumes ["local:/etc/traefik"
+                               "/data/traefik:/data"]}
             :Driver "docker"
             :Name "traefik"
             :Resources
