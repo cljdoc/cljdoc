@@ -123,6 +123,25 @@ This will fail unless the https://hub.docker.com/r/cljdoc/cljdoc/[cljdoc Docker 
 has an image with the provided tag. The tag names are determined based on Git commit count,
 branch and HEAD and images are pushed to Docker Hub as part of CI.
 
+=== Accessing Nomad
+
+[source,sh]
+----
+./ops/nomad.sh
+----
+
+The script above will launch an SSH process forwarding port 4646 and 8500 from the host
+specified by `main_ip` in the Terraform outputs.
+
+With Nomad installed you can now run `nomad` comands like the following:
+
+[source,sh]
+----
+nomad status cljdoc
+nomad alloc logs -f 683ade58
+nomad deployment list
+----
+
 == Backing Up Data
 
 See `backup.sh` and `restore.sh`.
