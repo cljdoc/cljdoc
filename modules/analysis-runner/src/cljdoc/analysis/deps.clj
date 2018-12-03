@@ -95,7 +95,9 @@
    ;; Included to account for https://dev.clojure.org/jira/browse/TDEPS-46
    ;; specifically anything depending on org.immutant/messaging will fail
    ;; this includes compojure-api
-   "jboss"   {:url "https://repository.jboss.org/nexus/content/groups/public/"}})
+   "jboss" {:url "https://repository.jboss.org/nexus/content/groups/public/"}
+   ;; included for https://github.com/FundingCircle/jackdaw
+   "confluent" {:url "https://packages.confluent.io/maven/"}})
 
 (defn resolved-and-cp [pom-url extra-paths]
   "Build a classpath for the project specified by `pom-url`."
