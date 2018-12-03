@@ -2,9 +2,8 @@
 
 set -eou pipefail
 
-git_root=$(git rev-parse --show-toplevel)
-
 tf_out () {
+  git_root=$(git rev-parse --show-toplevel)
   terraform output -state="$git_root/ops/infrastructure/terraform.tfstate" $1
 }
 
