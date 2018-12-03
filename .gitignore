@@ -6,6 +6,7 @@ data/
 ops/infrastructure/.terraform
 ops/infrastructure/terraform.tfstate*
 ops/image/image-id
+ops/image/nomad-image-id
 ops/prod-backup/
 .idea
 *.iml
