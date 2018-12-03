@@ -1,8 +1,5 @@
 = cljdoc Operations
-
 :toc:
-
-This directory contains all necessary tooling to deploy cljdoc.
 ________________________________________________________________________
 The intention here is not just to make it easy to spin up an environment
 but also to document what is needed.
@@ -66,7 +63,7 @@ outputs.
 
 === Common Commands
 
-NOTE: These commands require the environment variables mentioned an
+NOTE: These commands require the environment variables mentioned in
 link:#prerequisites[Prerequisites] to be set.
 
 [source,sh]
@@ -96,7 +93,7 @@ make image
 
 This will package the cljdoc application in a Docker container. A tag will be determined
 based on number of commits, branch and commit SHA. Images are published to Docker Hub during
-CI. See link:/.circleci/config.yml[.circleci/config.yml].
+CI. See link:/.circleci/config.yml[`.circleci/config.yml`].
 
 == Packaging (Uberjar)
 
@@ -126,7 +123,7 @@ This will fail unless the https://hub.docker.com/r/cljdoc/cljdoc/[cljdoc Docker 
 has an image with the provided tag. The tag names are determined based on Git commit count,
 branch and HEAD and images are pushed to Docker Hub as part of CI.
 
-=== Backing Up Data
+== Backing Up Data
 
 See `backup.sh` and `restore.sh`.
 
