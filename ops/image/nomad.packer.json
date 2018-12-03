@@ -41,18 +41,18 @@
     },
     {
       "type": "file",
-      "source": "nomad-conf",
+      "source": "conf",
       "destination": "/tmp/"
     },
     {
       "type": "shell",
       "inline": [
         "ls /tmp",
-        "ls /tmp/nomad-conf",
-        "install -Dm644 /tmp/nomad-conf/nomad.server.hcl /etc/nomad/server.hcl",
-        "install -Dm644 /tmp/nomad-conf/nomad.service /etc/systemd/system/nomad.service",
-        "install -Dm644 /tmp/nomad-conf/consul.service /etc/systemd/system/consul.service",
-        "rm -rf /tmp/nomad-conf",
+        "ls /tmp/conf",
+        "install -Dm644 /tmp/conf/nomad.server.hcl /etc/nomad/server.hcl",
+        "install -Dm644 /tmp/conf/nomad.service /etc/systemd/system/nomad.service",
+        "install -Dm644 /tmp/conf/consul.service /etc/systemd/system/consul.service",
+        "rm -rf /tmp/conf",
         "systemctl enable docker",
         "systemctl enable consul",
         "systemctl enable nomad"
