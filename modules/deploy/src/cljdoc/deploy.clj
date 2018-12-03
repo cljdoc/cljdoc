@@ -1,6 +1,14 @@
 (ns cljdoc.deploy
   "This namespace schedules the cljdoc Clojure service and the Traefik
-  load balancer via Nomad."
+  load balancer via Nomad.
+
+  It communicates with Nomad and Consul by establishing an SSH port forwarding
+  so the Nomad and Consul ports can be accessed on the local machine.
+
+  The deploy is happening in two stages:
+
+  1. Create a new Nomad deployment with the new version running as a canary.
+  2. Promote the Nomad deployment, resulting in a shut down of previous deployments."
   (:require [aero.core :as aero]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
@@ -156,9 +164,6 @@
   {:app         {:command     "cljdoc-deploy"
                  :description "command-line utilities to deploy cljdoc"
                  :version     "0.0.1"}
-
-   :global-opts []
-
    :commands    [{:command     "deploy"
                   :description ["Deploy cljdoc to production"]
                   :opts        [{:option "ssh-key" :short "k" :as "SSH private key to use for accessing host" :type :string :default "~/.ssh/id_rsa"}
