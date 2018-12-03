@@ -1,0 +1,140 @@
+= cljdoc Operations
+
+:toc:
+
+This directory contains all necessary tooling to deploy cljdoc.
+________________________________________________________________________
+The intention here is not just to make it easy to spin up an environment
+but also to document what is needed.
+________________________________________________________________________
+
+== Prerequsites
+
+AWS and DigitalOcean access tokens:
+
+[source,bash]
+----
+export TF_VAR_aws_access_key_id=foo
+export TF_VAR_aws_secret_key=foo
+export TF_VAR_do_token=digital-ocean-api-token
+----
+
+https://www.terraform.io[Terraform] and https://www.packer.io[Packer] should be installed on
+your system. https://www.nomadproject.io[Nomad] and https://consul.io[Consul] are optional
+and only needed if you want to interact with those systems through the CLI.
+
+== Server Images (Packer)
+
+We use Packer to create machine images for the cljdoc server. All
+required files can be found in `./image/`. The images are based on CentOS 7.
+On top of the base OS the following things are added:
+
+- Docker
+- Nomad
+- Consul
+
+For details see configuration and Systemd service files in link:image/conf[`conf/`]. All
+code that is ran to prepare the image can be found in link:image/nomad.packer.json[`nomad.packer.json`].
+
+=== Creating an Image
+
+This requires `TF_VAR_do_token` to contain a valid DigitalOcean token.
+
+[source,sh]
+----
+cd ops/image
+make nomad-image-id
+----
+
+This will create an image and the image-id will be saved to `nomad-image-id`. This file is
+required to proceed with the Terraform steps below.
+
+== Infrastructure (Terraform)
+
+We use Terraform to create various resources on AWS and DigitalOcean:
+
+* an S3 bucket for cljdoc releases (+ user & key)
+* an S3 bucket for cljdoc backups (+ user & key)
+* a DigitalOcean droplet to run cljdoc
+* a Route53 HostedZone for domain supplied in the configuration
+* a HostedZone RecordSet to point the domain to the droplet
+
+NOTE: The used domain can be customized in `cljdoc.tfvars`. The domain will
+not be bought and it is expected that the domain’s nameserver are set to
+the nameservers of the Route53 HostedZone, which are part of the
+outputs.
+
+=== Common Commands
+
+NOTE: These commands require the environment variables mentioned an
+link:#prerequisites[Prerequisites] to be set.
+
+[source,sh]
+----
+cd ops/infrastructure
+terraform plan -var-file cljdoc.tfvars
+terraform apply -var-file cljdoc.tfvars
+terraform refresh -var-file cljdoc.tfvars
+----
+
+Retrieving outputs:
+
+[source,sh]
+----
+terraform output
+terraform output -json
+terraform output main_ip
+----
+
+== Packaging (Docker)
+
+[source,sh]
+----
+cd ops/docker
+make image
+----
+
+This will package the cljdoc application in a Docker container. A tag will be determined
+based on number of commits, branch and commit SHA. Images are published to Docker Hub during
+CI. See link:/.circleci/config.yml[.circleci/config.yml].
+
+== Packaging (Uberjar)
+
+To be implemented. Some refactoring will be necessary to ensure the necessary script files
+(particularly `./script/analyze.sh`) are available on the classpath or aren't needed.
+
+== Orchestration (Nomad)
+
+To deploy the cljdoc service to the provisioned infrastructure we use
+https://www.nomadproject.io[Nomad]. While Nomad also provides a convenient
+CLI interface it has proven easier to generate Nomad
+https://www.nomadproject.io/docs/job-specification/index.html[job specs]
+using Clojure and submit them to the Nomad server via HTTP.
+
+The code to do this can be found in link:/modules/deploy/[`modules/deploy`].
+
+To run it the following commands can be used:
+
+[source,sh]
+----
+cd modules/deploy/
+docker_tag=$(../../script/version.sh)
+clojure -m cljdoc.deploy deploy --docker-tag $docker_tag
+----
+
+This will fail unless the https://hub.docker.com/r/cljdoc/cljdoc/[cljdoc Docker repository]
+has an image with the provided tag. The tag names are determined based on Git commit count,
+branch and HEAD and images are pushed to Docker Hub as part of CI.
+
+=== Backing Up Data
+
+See `backup.sh` and `restore.sh`.
+
+== SSL Certificates
+
+https://traefik.io[Traefik] generates SSL certificates on demand but seems to have minor
+bugs here and there. If we need to drop Traefik for some reason we could look into acme.sh:
+
+* https://github.com/Neilpang/acme.sh
+* https://github.com/Neilpang/acme.sh/wiki/How-to-issue-a-cert
+* https://github.com/Neilpang/acme.sh/wiki/Run-acme.sh-in-docker
