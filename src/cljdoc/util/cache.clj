@@ -10,61 +10,90 @@
   (:require [clojure.core.cache :as cache]
             [clojure.core.memoize :as memo]
             [taoensso.nippy :as nippy]
-            [clojure.java.jdbc :as sql]))
+            [clojure.java.jdbc :as sql])
+  (:import (java.time Instant)))
 
 (def query-templates
   {:select "SELECT * FROM %s WHERE prefix = ? AND %s = ?"
    :delete "DELETE FROM %s WHERE prefix = ? AND %s = ?"
-   :insert "INSERT OR IGNORE INTO %s (prefix, %s, %S) VALUES (?, ?, ?)"})
+   :update "UPDATE %s SET cached_ts = ?, ttl = ?, %s = ? WHERE prefix = ? and %s = ?"
+   :insert "INSERT OR IGNORE INTO %s (prefix, cached_ts, ttl ,%s, %S) VALUES (?, ?, ?, ?, ?)"})
+
+(defn fetch-item!
+  "Performs lookup by querying on the cache table.
+  Retuens deserialized cached item."
+  [k {:keys [db key-prefix de-serialize-fn table key-col value-col]}]
+  (let [query (format (:select query-templates) table key-col)
+        row-fn #(some-> % (get (keyword value-col)) de-serialize-fn)]
+    (sql/query db
+               [query key-prefix (pr-str k)]
+               {:row-fn row-fn :result-set-fn first})))
+
+(defn fetch!
+  [k {:keys [db key-prefix de-serialize-fn table key-col value-col]}]
+  (let [query (format (:select query-templates) table key-col)]
+    (sql/query db [query key-prefix (pr-str k)] {:result-set-fn first})))
+
+(defn stale?
+  [{:keys [ttl cached_ts :as item]}]
+  (let [ttl (or ttl (Instant/MAX))]
+    (> (- (System/currentTimeMillis)
+          (.toEpochMilli (Instant/parse cached_ts)))
+       ttl)))
+
+(defn refresh!
+  [k v {:keys [db key-prefix table key-col value-col serialize-fn ttl]}]
+  (let [query (format (:update query-templates) table value-col key-col)
+        value (serialize-fn @v)]
+    (sql/execute! db [query (Instant/now) ttl value key-prefix (pr-str k)])))
+
+(defn cache!
+  [k v {:keys [db key-prefix serialize-fn table key-col value-col ttl]}]
+  (let [query (format (:insert query-templates) table key-col value-col)
+        value (serialize-fn @v)]
+    (sql/execute! db [query key-prefix (Instant/now) ttl (pr-str k) value])))
+
+(defn evict!
+  [k {:keys [db key-prefix de-serialize-fn table key-col value-col]}]
+  (let [query (format (:delete query-templates) table key-col)]
+    (sql/execute! db [query key-prefix (pr-str k)])))
+
+(defn seed*
+  [{:keys [db key-prefix de-serialize-fn table key-col value-col]}]
+  (let [column-specs [[:ttl "integer"]
+                      [:prefix "text"]
+                      [:cached_ts "text"]
+                      [(keyword key-col) "text"]
+                      [(keyword value-col) "text"]]
+        query (sql/create-table-ddl table
+                                    column-specs
+                                    {:conditional? true})]
+    (sql/execute! db [query])))
 
 (cache/defcache SQLCache [state]
   cache/CacheProtocol
   (lookup [_ k]
-          (delay
-           (let [{:keys [db key-prefix de-serialize-fn table key-col value-col]}
-                 (:cache-spec state)
-                 query (format (:select query-templates) table key-col)
-                 row-fn #(some-> % (get (keyword value-col)) de-serialize-fn)]
-             (sql/query db
-                        [query key-prefix (pr-str k)]
-                        {:row-fn row-fn :result-set-fn first}))))
+          (delay (fetch-item! k (:cache-spec state))))
   (lookup [this k not-found]
           (delay (or (deref (cache/lookup this k))) not-found))
   (has? [_ k]
-        (let [{:keys [db key-prefix de-serialize-fn table key-col value-col]}
-              (:cache-spec state)
-              query (format (:select query-templates) table key-col)
-              row-fn #(some-> % (get (keyword value-col)) de-serialize-fn)]
-          (not
-           (empty?
-            (sql/query db
-                       [query key-prefix (pr-str k)]
-                       {:row-fn row-fn :result-set-fn first})))))
+        (let [item (fetch! k (:cache-spec state))]
+          (and (not (nil? item))
+               (not (stale? item)))))
   (hit [_ k]
        (SQLCache. state))
   (miss [_ k v]
-        (let [{:keys [db key-prefix serialize-fn table key-col value-col]}
-              (:cache-spec state)
-              value (serialize-fn @v)
-              query (format (:insert query-templates) table key-col value-col)]
-          (sql/execute! db [query key-prefix (pr-str k) value])
-          (SQLCache. state)))
+        (let [item (fetch! k (:cache-spec state))]
+          (if (and (not (nil? item)) (stale? item))
+            (refresh! k v (:cache-spec state))
+            (cache! k v (:cache-spec state))))
+        (SQLCache. state))
   (evict [_ k]
-         (let [{:keys [db key-prefix table key-col]} (:cache-spec state)
-               query (format (:delete query-templates) table key-col)]
-           (sql/execute! db [query key-prefix (pr-str k)])
-           (SQLCache. state)))
+         (evict! k (:cache-spec state))
+         (SQLCache. state))
   (seed [_ base]
-        (let [{:keys [db table key-col value-col]} (:cache-spec base)
-              column-specs {:prefix             "text"
-                            (keyword key-col)   "text"
-                            (keyword value-col) "text"}
-              query (sql/create-table-ddl table
-                                          column-specs
-                                          {:conditional? true})]
-          (sql/execute! db [query])
-          (SQLCache. base)))
-
+        (seed* (:cache-spec base))
+        (SQLCache. base))
   Object
   (toString [_] (str state)))
 
@@ -79,6 +108,7 @@
                  {:key-prefix         \"artifact-repository\"
                   :key-col            \"key\"
                   :value-col          \"value\"
+                  :ttl                2000
                   :table              \"cache\"
                   :serialize-fn       identity
                   :de-serialize-fn    read-string
@@ -104,6 +134,7 @@
      :table              "cache2"
      :key-col            "key"
      :value-col          "val"
+     :ttl                2000
      :serialize-fn       taoensso.nippy/freeze
      :de-serialize-fn    taoensso.nippy/thaw
      :db   {:dbtype      "sqlite"
