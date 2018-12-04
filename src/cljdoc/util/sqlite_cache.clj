@@ -1,4 +1,4 @@
-(ns cljdoc.util.cache
+(ns cljdoc.util.sqlite-cache
   "Provides `SQLCache`, an implementation of `clojure.core.cache/CacheProtocol`.
 
   It is used with `clojure.core.memoize/PluggableMemoization`
@@ -14,27 +14,16 @@
   (:import (java.time Instant)))
 
 (def query-templates
-  {:select "SELECT * FROM %s WHERE prefix = ? AND %s = ?"
-   :delete "DELETE FROM %s WHERE prefix = ? AND %s = ?"
-   :update "UPDATE %s SET cached_ts = ?, ttl = ?, %s = ? WHERE prefix = ? and %s = ?"
-   :insert "INSERT OR IGNORE INTO %s (prefix, cached_ts, ttl ,%s, %S) VALUES (?, ?, ?, ?, ?)"})
-
-(defn fetch-item!
-  "Performs lookup by querying on the cache table.
-  Retuens deserialized cached item."
-  [k {:keys [db key-prefix de-serialize-fn table key-col value-col]}]
-  (let [query (format (:select query-templates) table key-col)
-        row-fn #(some-> % (get (keyword value-col)) de-serialize-fn)]
-    (sql/query db
-               [query key-prefix (pr-str k)]
-               {:row-fn row-fn :result-set-fn first})))
-
-(defn fetch!
-  [k {:keys [db key-prefix de-serialize-fn table key-col value-col]}]
-  (let [query (format (:select query-templates) table key-col)]
-    (sql/query db [query key-prefix (pr-str k)] {:result-set-fn first})))
+  {:fetch   "SELECT * FROM %s WHERE prefix = ? AND %s = ?"
+   :evict   "DELETE FROM %s WHERE prefix = ? AND %s = ?"
+   :cache   "INSERT OR IGNORE INTO %s (prefix, cached_ts, ttl ,%s, %S) VALUES (?, ?, ?, ?, ?)"
+   :refresh "UPDATE %s SET cached_ts = ?, ttl = ?, %s = ? WHERE prefix = ? and %s = ?"})
 
 (defn stale?
+  "Tests if `ttl` has expired for a cached item.
+
+  When `ttl` is `nil` item is not stale.
+  Otherwise `ttl` is compared with `cached_ts`."
   [{:keys [ttl cached_ts]}]
   (if (nil? ttl)
     false
@@ -42,25 +31,40 @@
           (.toEpochMilli (Instant/parse cached_ts)))
        ttl)))
 
+(defn fetch-item!
+  "Performs lookup by querying on the cache table.
+  Retuens deserialized cached item."
+  [k {:keys [db-spec key-prefix deserialize-fn table key-col value-col]}]
+  (let [query (format (:fetch query-templates) table key-col)
+        row-fn #(some-> % (get (keyword value-col)) deserialize-fn)]
+    (sql/query db-spec
+               [query key-prefix (pr-str k)]
+               {:row-fn row-fn :result-set-fn first})))
+
+(defn fetch!
+  [k {:keys [db-spec key-prefix table key-col]}]
+  (let [query (format (:fetch query-templates) table key-col)]
+    (sql/query db-spec [query key-prefix (pr-str k)] {:result-set-fn first})))
+
 (defn refresh!
-  [k v {:keys [db key-prefix table key-col value-col serialize-fn ttl]}]
-  (let [query (format (:update query-templates) table value-col key-col)
+  [k v {:keys [db-spec key-prefix table key-col value-col serialize-fn ttl]}]
+  (let [query (format (:refresh query-templates) table value-col key-col)
         value (serialize-fn @v)]
-    (sql/execute! db [query (Instant/now) ttl value key-prefix (pr-str k)])))
+    (sql/execute! db-spec [query (Instant/now) ttl value key-prefix (pr-str k)])))
 
 (defn cache!
-  [k v {:keys [db key-prefix serialize-fn table key-col value-col ttl]}]
-  (let [query (format (:insert query-templates) table key-col value-col)
+  [k v {:keys [db-spec key-prefix serialize-fn table key-col value-col ttl]}]
+  (let [query (format (:cache query-templates) table key-col value-col)
         value (serialize-fn @v)]
-    (sql/execute! db [query key-prefix (Instant/now) ttl (pr-str k) value])))
+    (sql/execute! db-spec [query key-prefix (Instant/now) ttl (pr-str k) value])))
 
 (defn evict!
-  [k {:keys [db key-prefix de-serialize-fn table key-col value-col]}]
-  (let [query (format (:delete query-templates) table key-col)]
-    (sql/execute! db [query key-prefix (pr-str k)])))
+  [k {:keys [db-spec key-prefix table key-col]}]
+  (let [query (format (:evict query-templates) table key-col)]
+    (sql/execute! db-spec [query key-prefix (pr-str k)])))
 
-(defn seed*
-  [{:keys [db key-prefix de-serialize-fn table key-col value-col]}]
+(defn seed!
+  [{:keys [db-spec key-prefix table key-col value-col]}]
   (let [column-specs [[:ttl "integer"]
                       [:prefix "text"]
                       [:cached_ts "text"]
@@ -69,7 +73,7 @@
         query (sql/create-table-ddl table
                                     column-specs
                                     {:conditional? true})]
-    (sql/execute! db [query])))
+    (sql/execute! db-spec [query])))
 
 (cache/defcache SQLCache [state]
   cache/CacheProtocol
@@ -93,7 +97,7 @@
          (evict! k (:cache-spec state))
          (SQLCache. state))
   (seed [_ base]
-        (seed* (:cache-spec base))
+        (seed! (:cache-spec base))
         (SQLCache. base))
   Object
   (toString [_] (str state)))
@@ -112,8 +116,8 @@
                   :ttl                2000
                   :table              \"cache\"
                   :serialize-fn       identity
-                  :de-serialize-fn    read-string
-                  :db   {:dbtype      \"sqlite\"
+                  :deserialize-fn     read-string
+                  :db-spec   {:dbtype      \"sqlite\"
                          :classname   \"org.sqlite.JDBC\"
                          :subprotocol \"sqlite\"
                          :subname     \"data/my-cache.db\"}}))
@@ -137,11 +141,11 @@
      :value-col          "val"
      :ttl                2000
      :serialize-fn       taoensso.nippy/freeze
-     :de-serialize-fn    taoensso.nippy/thaw
-     :db   {:dbtype      "sqlite"
-            :classname   "org.sqlite.JDBC"
-            :subprotocol "sqlite"
-            :subname     "data/cache.db"}})
+     :deserialize-fn     taoensso.nippy/thaw
+     :db-spec            {:dbtype      "sqlite"
+                          :classname   "org.sqlite.JDBC"
+                          :subprotocol "sqlite"
+                          :subname     "data/cache.db"}})
 
   (time (cljdoc.util.repositories/find-artifact-repository 'bidi "2.1.3"))
 
@@ -156,6 +160,8 @@
   (memo/memo-clear!
    memoized-find-artifact-repository '(com.bhauman/spell-spec "0.1.0"))
 
+  (memo/memo-clear! memoized-find-artifact-repository)
+
   (time (memoized-find-artifact-repository 'com.bhauman/spell-spec "0.1.0"))
 
   (time (cljdoc.util.repositories/artifact-uris 'bidi "2.0.9-SNAPSHOT"))
@@ -166,11 +172,11 @@
      :key-col            "key"
      :value-col          "val"
      :serialize-fn       identity
-     :de-serialize-fn    read-string
-     :db   {:dbtype      "sqlite"
-            :classname   "org.sqlite.JDBC"
-            :subprotocol "sqlite"
-            :subname     "data/cache.db"}})
+     :deserialize-fn     read-string
+     :db-spec            {:dbtype      "sqlite"
+                          :classname   "org.sqlite.JDBC"
+                          :subprotocol "sqlite"
+                          :subname     "data/cache.db"}})
 
   (def memoized-artifact-uris
     (memo-sqlite cljdoc.util.repositories/artifact-uris
