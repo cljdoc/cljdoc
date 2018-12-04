@@ -40,5 +40,5 @@ output "api_ip" {
 }
 
 output "main_ip" {
-  value = "${digitalocean_droplet.cljdoc_01.ipv4_address}"
+  value = "${module.main_server.ip}"
 }
