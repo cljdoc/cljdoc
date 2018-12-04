@@ -35,8 +35,9 @@
     (sql/query db [query key-prefix (pr-str k)] {:result-set-fn first})))
 
 (defn stale?
-  [{:keys [ttl cached_ts :as item]}]
-  (let [ttl (or ttl (Instant/MAX))]
+  [{:keys [ttl cached_ts]}]
+  (if (nil? ttl)
+    false
     (> (- (System/currentTimeMillis)
           (.toEpochMilli (Instant/parse cached_ts)))
        ttl)))
