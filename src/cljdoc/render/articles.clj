@@ -11,21 +11,18 @@
 (defn article-list [doc-tree]
   [:div.mb4.js--articles
    (layout/sidebar-title "Articles")
-   (or doc-tree
-       [:p.pl2.f7.gray
-        [:a.blue.link {:href (util/github-url :userguide/articles)} "Articles"]
-        " are a practical way to provide additional guidance beyond
+   [:div.mv3
+    (or doc-tree
+        [:p.f7.gray
+         [:a.blue.link {:href (util/github-url :userguide/articles)} "Articles"]
+         " are a practical way to provide additional guidance beyond
        API documentation. To use them, please ensure you "
-        [:a.blue.link {:href (util/github-url :userguide/scm-faq)} "properly set SCM info"]
-        " in your project."])])
+         [:a.blue.link {:href (util/github-url :userguide/scm-faq)} "properly set SCM info"]
+         " in your project."])]])
 
 (defn main-list [doc-tree]
   (when doc-tree
-    [:div.mb4
-     (update doc-tree 0 #(-> %
-                             (name)
-                             (clojure.string/replace ".pl2" ".pl0")
-                             (keyword)))]))
+    [:div.mb4 doc-tree]))
 
 (defn doc-link [cache-id slugs]
   (assert (seq slugs) "Slug path missing")
@@ -50,8 +47,7 @@
                       :class (when (= current-page slug-path) "fw7")}
                      (:title doc-page)]
                     (doc-tree-view cache-id (:children doc-page) current-page (inc level))])))
-          (into [:ul.list.pl2
-                 {:class (when (pos? level) "f6-ns")}])))))
+          (into [:ul.list.ma0 {:class (if (pos? level) "f6-ns pl2" "pl0")}])))))
 
 (defn doc-page [{:keys [top-bar-component
                         upgrade-notice-component
