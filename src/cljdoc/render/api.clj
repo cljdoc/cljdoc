@@ -112,7 +112,7 @@
         namespaces  (ns-tree/index-by :namespace namespaces)]
     [:div.mb4
      (layout/sidebar-title "Namespaces")
-     [:ul.list.pl2
+     [:ul.list.pl0
       (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))
             :let [style {:margin-left (str (* (dec level) 10) "px")}]]
         [:li
