@@ -44,12 +44,13 @@ cleanup () {
 trap cleanup EXIT ERR INT TERM
 
 # Start SSH port forwarding process for consul (8500) and nomad (4646)
-ssh -M -S ${socket} -fNT -L 8500:localhost:8500 -L 4646:localhost:4646 root@${ip}
+ssh -M -S ${socket} -fNT -L 8080:localhost:8080 -L 8500:localhost:8500 -L 4646:localhost:4646 root@${ip}
 
 ssh -S ${socket} -O check root@${ip}
 
 echo "You can now open Nomad or Consul:"
 echo "Nomad: http://localhost:4646/"
 echo "Consul: http://localhost:8500/"
+echo "Traefik: http://localhost:8080/"
 
 bash --rcfile <(echo 'PS1="\nnomad> "')

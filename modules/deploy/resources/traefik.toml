@@ -31,7 +31,7 @@ main = "cljdoc.org"
 [[acme.domains]]
 main = "cljdoc.xyz"
 
-# [api] # this should never be enabled in production
+[api]
 [ping]
 
 [consulCatalog]
