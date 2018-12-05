@@ -83,7 +83,11 @@
                  (highlight-js)]]))
 
 (defn sidebar-title [title]
-  [:h4.ttu.f7.fw5.mt1.mb2.tracked.gray title])
+  [:h4.relative.ttu.f7.fw5.mt1.mb2.tracked.gray
+   ;; .nl4 and .nr4 are negative margins based on the global padding used in the sidebar
+   [:hr.absolute.left-0.right-0.nl4.nr4.b--solid.b--black-10]
+   ;; again negative margins are used to make the background reach over the text container
+   [:span.relative.nl2.nr2.ph2.bg-white title]])
 
 (defn meta-info-dialog []
   [:div
