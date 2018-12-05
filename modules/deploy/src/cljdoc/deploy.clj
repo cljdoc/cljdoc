@@ -111,6 +111,8 @@
                  "config/cljdoc/secrets-edn" (with-out-str
                                                (pp/pprint
                                                 (aero/read-config (io/resource "secrets.edn"))))}]
+
+    (log/info "Syncing configuration:" k)
     (consul-put! k v)))
 
 (defn deploy!
