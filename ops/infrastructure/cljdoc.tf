@@ -67,15 +67,6 @@ resource "aws_route53_record" "main" {
   records  = ["${digitalocean_droplet.cljdoc_api.ipv4_address}"]
 }
 
-resource "aws_route53_record" "dokku" {
-  provider = "aws.prod"
-  zone_id  = "${aws_route53_zone.cljdoc_xyz_zone.zone_id}"
-  name     = "clojars-stats.${var.xyz_domain}"
-  type     = "A"
-  ttl      = "300"
-  records  = ["167.99.133.5"]
-}
-
 # Org zone and records
 
 resource "aws_route53_zone" "cljdoc_org_zone" {
