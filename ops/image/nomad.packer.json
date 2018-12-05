@@ -16,6 +16,16 @@
   "provisioners": [
     {
       "type": "shell",
+      "inline": [
+        "yum upgrade -y",
+        "yum install -y firewalld",
+        "systemctl start firewalld",
+        "firewall-cmd --permanent --add-service=http",
+        "firewall-cmd --permanent --add-service=https"
+      ]
+    },
+    {
+      "type": "shell",
       "environment_vars": [
         "CONSUL_VERSION=1.4.0",
         "NOMAD_VERSION=0.8.6"
