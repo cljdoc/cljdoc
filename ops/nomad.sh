@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# This is largely inspired by http://mpharrigan.com/2016/05/17/background-ssh.html
+# An SSH process is launched to forward Nomad and Consul ports and backgrounded
+# That process uses a tmp-file as socket which allows us to later terminate the
+# forwarding by via `-O exit`.
+
+# To ensure the SSH process is always terminated `trap` is used to run `-O exit`
+# when the process exits, fails or is interrupted
+
 set -eou pipefail
 
 tf_out () {
