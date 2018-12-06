@@ -102,7 +102,13 @@
               (d/measure! "cljdoc.storage.read_time" {}
                           (log/info "Loading artifact cache bundle for" params)
                           (if (storage/exists? store params)
-                            (assoc ctx :cache-bundle (storage/bundle-docs store params))
+                            (let [repo (str (-> params :group-id) "/" (-> params :artifact-id))
+                                  version (-> params :version)
+                                  cache-bundle (assoc-in
+                                                (storage/bundle-docs store params)
+                                                [:cache-contents :version :pom]
+                                                (repos/get-pom-xml repo version))]
+                              (assoc ctx :cache-bundle cache-bundle))
                             ctx))))})
 
 (defn- resolve-version [path-params referer]
@@ -378,4 +384,12 @@
 
   (io.pedestal.test/response-for (:io.pedestal.http/service-fn s) :post "/api/request-build2")
 
+  (time
+   ((:enter
+     (artifact-data-loader
+      (cljdoc.storage.api/->SQLiteStorage (cljdoc.config/db (cljdoc.config/config)))))
+    {:request {:path-params
+               {:group-id "clj-time"
+                :artifact-id "clj-time"
+                :version "0.15.1"}}}))
   )
