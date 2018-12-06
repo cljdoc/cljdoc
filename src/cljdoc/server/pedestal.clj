@@ -346,7 +346,10 @@
        ::http/resource-path "public"
        ::http/not-found-interceptor not-found-interceptor}
       http/default-interceptors
-      (update ::http/interceptors #(into [sentry/interceptor etag-interceptor] %))
+      (update ::http/interceptors #(into [sentry/interceptor
+                                          (ring-middlewares/not-modified)
+                                          etag-interceptor]
+                                         %))
       (http/create-server)
       (http/start)))
 
