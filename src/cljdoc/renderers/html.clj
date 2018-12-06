@@ -40,6 +40,11 @@
   (assert (:doc-slug-path route-params))
   (let [doc-slug-path (:doc-slug-path route-params)
         doc-tree (doctree/add-slug-path (-> cache-contents :version :doc))
+        split-doc-tree ((juxt filter remove)
+                        #(contains? #{"Readme" "Changelog"} (:title %))
+                        doc-tree)
+        doc-tree-with-readme-and-changelog (first split-doc-tree)
+        doc-tree-with-rest (second split-doc-tree)
         doc-p (->> doc-tree
                    doctree/flatten*
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
@@ -47,7 +52,8 @@
         doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
         common {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-                :doc-tree-component (articles/doc-tree-view cache-id doc-tree doc-slug-path)
+                :main-list-component (articles/doc-tree-view cache-id doc-tree-with-readme-and-changelog doc-slug-path)
+                :article-list-component (articles/doc-tree-view cache-id doc-tree-with-rest doc-slug-path)
                 :namespace-list-component (api/namespace-list {} (bundle/ns-entities cache-bundle))
                 :upgrade-notice-component (if-let [newer-v (bundle/more-recent-version cache-bundle)]
                                             (layout/upgrade-notice newer-v))}]
