@@ -26,13 +26,17 @@
         port        (cfg/get-in env-config [:cljdoc/server :port])]
     {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
                               :dir     (cfg/data-dir env-config)}
+     ;;:cljdoc/cache           {:cache-dir (cfg/data-dir env-config)}
      :cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
+                              ;;:cache    (ig/ref :cljdoc/cache)
                               :dry-run? (not (cfg/autobuild-clojars-releases? env-config))}
      :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
                        :host             (get-in env-config [:cljdoc/server :host])
                        :build-tracker    (ig/ref :cljdoc/build-tracker)
                        :analysis-service (ig/ref :cljdoc/analysis-service)
-                       :storage          (ig/ref :cljdoc/storage)}
+                       :storage          (ig/ref :cljdoc/storage)
+                       ;;:cache            (ig/ref :cljdoc/cache)
+                       }
      :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
      :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
      :cljdoc/analysis-service {:service-type ana-service
@@ -69,6 +73,9 @@
 
 (defmethod ig/init-key :cljdoc/dogstats [_ {:keys [uri tags]}]
   (dogstatsd/configure! uri {:tags tags}))
+
+;; (defmethod ig/init-key :cljdoc/cache [_ {:keys [cache-dir]}]
+;;   (.mkdirs (io/file cache-dir)))
 
 (defn -main []
   (integrant.core/init
