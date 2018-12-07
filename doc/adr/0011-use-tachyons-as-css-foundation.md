@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-A primary component of OpenBounty is a web application. As part of our
+A primary component of cljdoc is a web application. As part of our
 work on this web application we regularly need to implement new UI
 elements or flows to support overall product development. This
 frontend work requires usage of CSS to specify positioning, text
