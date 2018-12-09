@@ -5,10 +5,7 @@
             [clj-http.lite.client :as http]
             [cheshire.core :as json]
             [clojure.tools.logging :as log]
-            [clojure.java.io :as io]
-            [taoensso.nippy :as nippy]
-            [cljdoc.config :as cfg]
-            [cljdoc.util.sqlite-cache :as sqlite-cache])
+            [clojure.java.io :as io])
   (:import (org.jsoup Jsoup)
            (java.time Instant Duration)))
 
@@ -132,18 +129,13 @@
     (when (.exists (io/file (:jar uris)))
       uris)))
 
-(def get-pom-xml
-  "Fetches contents of pom.xml. Memoize it in sqllite."
-  (sqlite-cache/memo-sqlite
-   (fn [repo version]
-     (-> (artifact-uris repo version)
-         :pom
-         http/get
-         :body))
-   (assoc (cfg/cache (cfg/config))
-          :key-prefix         "get-pom-xml"
-          :serialize-fn       nippy/freeze
-          :deserialize-fn     nippy/thaw)))
+(defn get-pom-xml
+  "Fetches contents of pom.xml for a particular artifact version."
+  [repo version]
+  (-> (artifact-uris repo version)
+      :pom
+      http/get
+      :body))
 
 (comment
   (find-artifact-repository "org.clojure/clojure" "1.9.0")

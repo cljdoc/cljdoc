@@ -65,11 +65,12 @@
 
 (defn seed!
   [{:keys [db-spec key-prefix table key-col value-col]}]
-  (let [column-specs [[:ttl "integer"]
-                      [:prefix "text"]
-                      [:cached_ts "text"]
-                      [(keyword key-col) "text"]
-                      [(keyword value-col) "text"]]
+  (let [column-specs [[:ttl "INTEGER"]
+                      [:prefix "TEXT" "NOT NULL"]
+                      [:cached_ts "TEXT" "NOT NULL"]
+                      [(keyword key-col) "TEXT" "NOT NULL"]
+                      [(keyword value-col) "TEXT"]
+                      [(format "CONSTRAINT unique_prefix_and_key UNIQUE (prefix, %s)" key-col)]]
         query (sql/create-table-ddl table
                                     column-specs
                                     {:conditional? true})]
@@ -78,27 +79,27 @@
 (cache/defcache SQLCache [state]
   cache/CacheProtocol
   (lookup [_ k]
-          (delay (fetch-item! k (:cache-spec state))))
+    (delay (fetch-item! k (:cache-spec state))))
   (lookup [this k not-found]
-          (delay (or (deref (cache/lookup this k))) not-found))
+    (delay (or (deref (cache/lookup this k))) not-found))
   (has? [_ k]
-        (let [item (fetch! k (:cache-spec state))]
-          (and (not (nil? item))
-               (not (stale? item)))))
+    (let [item (fetch! k (:cache-spec state))]
+      (and (not (nil? item))
+           (not (stale? item)))))
   (hit [_ k]
-       (SQLCache. state))
+    (SQLCache. state))
   (miss [_ k v]
-        (let [item (fetch! k (:cache-spec state))]
-          (if (and (not (nil? item)) (stale? item))
-            (refresh! k v (:cache-spec state))
-            (cache! k v (:cache-spec state))))
-        (SQLCache. state))
+    (let [item (fetch! k (:cache-spec state))]
+      (if (and (not (nil? item)) (stale? item))
+        (refresh! k v (:cache-spec state))
+        (cache! k v (:cache-spec state))))
+    (SQLCache. state))
   (evict [_ k]
-         (evict! k (:cache-spec state))
-         (SQLCache. state))
+    (evict! k (:cache-spec state))
+    (SQLCache. state))
   (seed [_ base]
-        (seed! (:cache-spec base))
-        (SQLCache. base))
+    (seed! (:cache-spec base))
+    (SQLCache. base))
   Object
   (toString [_] (str state)))
 
