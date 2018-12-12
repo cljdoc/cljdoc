@@ -26,6 +26,8 @@ scp root@$ip:"$tar_file" prod-backup/
 ssh root@$ip rm "$tar_file"
 ssh root@$ip rm -rf /tmp/cljdoc-backup
 
+echo "Syncing to S3"
+
 AWS_ACCESS_KEY_ID=$(tf_out backups_bucket_user_access_key) \
   AWS_SECRET_ACCESS_KEY=$(tf_out backups_bucket_user_secret_key) \
   aws s3 sync prod-backup/ s3://$(tf_out backups_bucket_name)/
