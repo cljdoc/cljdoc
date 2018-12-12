@@ -52,5 +52,6 @@ echo "You can now open Nomad or Consul:"
 echo "Nomad: http://localhost:4646/"
 echo "Consul: http://localhost:8500/"
 echo "Traefik: http://localhost:8080/"
+echo "SSH: ssh root@$ip"
 
 bash --rcfile <(echo 'PS1="\nnomad> "')
