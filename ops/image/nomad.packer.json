@@ -16,22 +16,13 @@
   "provisioners": [
     {
       "type": "shell",
-      "inline": [
-        "yum upgrade -y",
-        "yum install -y firewalld",
-        "systemctl start firewalld",
-        "firewall-cmd --permanent --add-service=http",
-        "firewall-cmd --permanent --add-service=https"
-      ]
-    },
-    {
-      "type": "shell",
       "environment_vars": [
         "CONSUL_VERSION=1.4.0",
         "NOMAD_VERSION=0.8.6"
       ],
       "inline": [
-        "yum install -y yum-utils device-mapper-persistent-data lvm2 unzip",
+        "yum upgrade -y",
+        "yum install -y firewalld yum-utils device-mapper-persistent-data lvm2 unzip",
         "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
         "yum install -y docker-ce",
 
@@ -66,6 +57,16 @@
         "systemctl enable docker",
         "systemctl enable consul",
         "systemctl enable nomad"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "systemctl start firewalld",
+        "firewall-cmd --permanent --add-service=http",
+        "firewall-cmd --permanent --add-service=https",
+        "firewall-cmd --permanent --zone=trusted --change-interface=docker0",
+        "firewall-cmd --reload"
       ]
     }
   ]
