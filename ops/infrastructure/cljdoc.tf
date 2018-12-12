@@ -32,8 +32,8 @@ module "main_server" {
   image_id   = "${file("../image/nomad-image-id")}"
   org_zone   = "${aws_route53_zone.cljdoc_org_zone.zone_id}"
   xyz_zone   = "${aws_route53_zone.cljdoc_xyz_zone.zone_id}"
-  org_domain = "test.cljdoc.org"
-  xyz_domain = "test.cljdoc.xyz"
+  org_domain = "test2.cljdoc.org"
+  xyz_domain = "test2.cljdoc.xyz"
 }
 
 # DigitalOcean Server ------------------------------------------------
