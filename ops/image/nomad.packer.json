@@ -1,0 +1,73 @@
+{
+  "variables": {
+    "do_token": "{{env `TF_VAR_do_token`}}"
+  },
+  "builders": [
+    {
+      "type": "digitalocean",
+      "api_token": "{{user `do_token`}}",
+      "image": "centos-7-x64",
+      "region": "ams3",
+      "size": "2gb",
+      "ssh_username": "root",
+      "snapshot_name": "cljdoc-nomad-{{isotime}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "environment_vars": [
+        "CONSUL_VERSION=1.4.0",
+        "NOMAD_VERSION=0.8.6"
+      ],
+      "inline": [
+        "yum upgrade -y",
+        "yum install -y firewalld yum-utils device-mapper-persistent-data lvm2 unzip",
+        "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
+        "yum install -y docker-ce",
+
+        "mkdir /tmp/dl",
+        "curl -sSL https://releases.hashicorp.com/nomad/${NOMAD_VERSION}/nomad_${NOMAD_VERSION}_linux_amd64.zip -o /tmp/dl/nomad.zip",
+        "unzip /tmp/dl/nomad.zip -d /tmp/dl",
+        "install /tmp/dl/nomad /usr/bin/nomad",
+        "mkdir -p /etc/nomad.d",
+        "chmod a+w /etc/nomad.d",
+
+        "curl -sSL https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip > /tmp/dl/consul.zip",
+        "unzip /tmp/dl/consul.zip -d /tmp/dl",
+        "install /tmp/dl/consul /usr/bin/consul",
+
+        "rm -rf /tmp/dl"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "conf",
+      "destination": "/tmp/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "ls /tmp",
+        "ls /tmp/conf",
+        "install -Dm644 /tmp/conf/nomad.server.hcl /etc/nomad/server.hcl",
+        "install -Dm644 /tmp/conf/nomad.service /etc/systemd/system/nomad.service",
+        "install -Dm644 /tmp/conf/consul.service /etc/systemd/system/consul.service",
+        "rm -rf /tmp/conf",
+        "systemctl enable docker",
+        "systemctl enable consul",
+        "systemctl enable nomad"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "systemctl start firewalld",
+        "firewall-cmd --permanent --add-service=http",
+        "firewall-cmd --permanent --add-service=https",
+        "firewall-cmd --permanent --zone=trusted --change-interface=docker0",
+        "firewall-cmd --reload"
+      ]
+    }
+  ]
+}

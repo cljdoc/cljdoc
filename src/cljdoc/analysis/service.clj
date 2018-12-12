@@ -62,7 +62,8 @@
   [{:keys [api-token builder-project analyzer-version]}]
   (assert (seq api-token) "blank or nil api-token passed to CircleCI component")
   (assert (seq builder-project) "blank or nil builder-project passed to CircleCI component")
-  (assert (seq analyzer-version) "blank or nil analyzer-version passed to CircleCI component")
+  (assert (= 40 (.length analyzer-version))
+          (str "analyzer-version doesn't look like a valid SHA: " analyzer-version))
   (->CircleCI api-token builder-project analyzer-version))
 
 (defn circle-ci? [x]

@@ -1,0 +1,40 @@
+[accessLog]
+  filePath = "/data/access.log"
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  compress = true
+  address = ":443"
+    [entryPoints.https.tls]
+    [entryPoints.https.redirect]
+      regex = "^https://.*cljdoc.xyz/(.*)"
+      replacement = "https://.*cljdoc.org/$1"
+      permanent = true
+
+[acme]
+email = "martinklepsch@googlemail.com"
+storage = "/data/acme.json"
+entryPoint = "https"
+onHostRule = true
+[acme.tlsChallenge]
+
+[[acme.domains]]
+main = "test2.cljdoc.org"
+[[acme.domains]]
+main = "test2.cljdoc.xyz"
+[[acme.domains]]
+main = "cljdoc.org"
+[[acme.domains]]
+main = "cljdoc.xyz"
+
+[api]
+[ping]
+
+[consulCatalog]
+prefix = "traefik"
+constraints = ["tag==cljdoc"]
+watch = true

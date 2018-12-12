@@ -1,0 +1,14 @@
+[Unit]
+Description=consul agent
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Restart=on-failure
+# Bind to the IP in the docker0 network interface, not sure if this is the right thing to do
+# More discussion here: https://groups.google.com/forum/#!topic/consul-tool/HgCXRY7C8FY
+ExecStart=/usr/bin/consul agent -data-dir=/var/consul -bootstrap -server -ui -bind 172.17.0.1
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

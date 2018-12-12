@@ -41,7 +41,7 @@
      :cljdoc/dogstats (cfg/statsd env-config)}))
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
-  (log/info "Starting" k)
+  (log/info "Starting" k (:analyzer-version opts))
   (case service-type
     :circle-ci (analysis-service/circle-ci opts)
     :local     (analysis-service/->Local)))

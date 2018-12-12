@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 
 set -eou pipefail
+
+cd $(git rev-parse --show-toplevel)
 dir="target"
 zipfile="$dir/cljdoc.zip"
 
 npm run build
-mkdir "$dir"
-git archive HEAD -o "$zipfile"
-zip -ur "$zipfile" resources-compiled
+
+echo "Packaging $(./script/version.sh)"
+git rev-parse HEAD > resources-compiled/CLJDOC_VERSION
+#./script/version.sh > resources-compiled/CLJDOC_VERSION
+
+mkdir -p "$dir"
+zip -q -r "$zipfile" src modules script resources resources-compiled deps.edn

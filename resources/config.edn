@@ -1,12 +1,12 @@
-;; TODO change this so prod reads path from ENV
-{:secrets #profile {:prod #include #join [ #env HOME "/secrets.edn"]
-                    :live #include "secrets.edn"
-                    :local {}}
+{;; read secrets from file specified via CLJDOC_SECRETS
+ ;; or from resources/secrets if CLJDOC secrets isn't set
+ :secrets #include #or [#env CLJDOC_SECRETS "secrets.edn"]
  :statsd {:uri "127.0.0.1:8125"
           :tags {:env #profile {:default "develop"
                                 :prod "production"}
                  :project "cljdoc"}}
- :cljdoc/version #or [#env CLJDOC_VERSION "dev"]
+ :cljdoc/version #profile {:prod #slurp "CLJDOC_VERSION"
+                           :default "dev"}
  :cljdoc/server {:port 8000
                  :host #profile {:prod "cljdoc.org"
                                  :default "localhost"}

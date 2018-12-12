@@ -15,16 +15,18 @@ then
   exit 1
 fi
 
-tf_opts="-state=ops/terraform.tfstate"
-api_ip=$(terraform output "$tf_opts" api_ip)
-tf_out_json=$(terraform output "$tf_opts" -json)
+tf_out () {
+  git_root=$(git rev-parse --show-toplevel)
+  terraform output -state="$git_root/ops/infrastructure/terraform.tfstate" $1
+}
+
+api_ip=$(tf_out api_ip)
+tf_out_json=$(tf_out -json)
 
 secrets_file=$(mktemp -t cljdoc-secrets.edn)
 version_file=$(mktemp -t CLJDOC_VERSION)
 
-
 echo -e "\nDeploying $version to $api_ip"
-
 
 echo "$tf_out_json" | ./ops/create-secrets.cljs > "$secrets_file"
 echo -e "\nSecrets written to $secrets_file"
@@ -45,5 +47,9 @@ ssh "cljdoc@$api_ip" chmod +x run-cljdoc-api.sh
 echo -e "\nFiles updated, restarting..."
 
 ssh "root@$api_ip" systemctl restart cljdoc-api
+
+echo -e "\nTagging release..."
+git tag -f live "$version"
+git push --tags -f
 
 echo -e "\nDone"
