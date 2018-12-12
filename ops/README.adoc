@@ -147,6 +147,16 @@ nomad deployment list
 
 See `backup.sh` and `restore.sh`.
 
+Restoring from backups stored on S3:
+
+[source,sh]
+----
+data_dir="/data/cljdoc/"
+curl https://s3.amazonaws.com/cljdoc-backups/backup-2018-12-12.tar.gz -o backup.tar.gz
+tar -xf backup.tar.gz -C "${data_dir}"
+rm backup.tar.gz
+----
+
 == SSL Certificates
 
 https://traefik.io[Traefik] generates SSL certificates on demand but seems to have minor
