@@ -3,6 +3,7 @@
             [cljdoc.render.rich-text :as rich-text]
             [cljdoc.render.layout :as layout]
             [cljdoc.render.articles :as articles]
+            [cljdoc.render.sidebar :as sidebar]
             [cljdoc.render.api :as api]
             [cljdoc.util :as util]
             [cljdoc.util.fixref :as fixref]
@@ -27,11 +28,7 @@
         ;; TODO on mobile this will effectively be rendered as a blank page
         ;; We could instead show a message and the namespace tree.
         {:top-bar (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-         :main-sidebar-contents [(articles/article-list
-                                  (articles/doc-tree-view cache-id
-                                                          (doctree/add-slug-path (-> cache-contents :version :doc))
-                                                          []))
-                                 (api/namespace-list {} (bundle/ns-entities cache-bundle))]})
+         :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)})
        (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))
                      :description (layout/description cache-id)})))
 
@@ -40,36 +37,34 @@
   (assert (:doc-slug-path route-params))
   (let [doc-slug-path (:doc-slug-path route-params)
         doc-tree (doctree/add-slug-path (-> cache-contents :version :doc))
-        split-doc-tree ((juxt filter remove)
-                        #(contains? #{"Readme" "Changelog"} (:title %))
-                        doc-tree)
-        doc-tree-with-readme-and-changelog (first split-doc-tree)
-        doc-tree-with-rest (second split-doc-tree)
         doc-p (->> doc-tree
                    doctree/flatten*
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
         doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
-        common {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-                :main-list-component (articles/doc-tree-view cache-id doc-tree-with-readme-and-changelog doc-slug-path)
-                :article-list-component (articles/doc-tree-view cache-id doc-tree-with-rest doc-slug-path)
-                :namespace-list-component (api/namespace-list {} (bundle/ns-entities cache-bundle))
-                :upgrade-notice-component (if-let [newer-v (bundle/more-recent-version cache-bundle)]
-                                            (layout/upgrade-notice newer-v))}]
+        top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
+        sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)]
+    ;; If we can find an article for the provided `doc-slug-path` render that article,
+    ;; if there's no article then the page should display a list of all child-pages
     (->> (if doc-html
-           (articles/doc-page
-            (merge common
-                   {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
-                                      (-> doc-p :attrs :cljdoc.doc/source-file))
-                    :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
-                                          doc-html
-                                          {:scm (:scm (:version cache-contents))
-                                           :uri-map (fixref/uri-mapping cache-id (doctree/flatten* doc-tree))})}))
-           (articles/doc-overview
-            (merge common
-                   {:cache-id cache-id
-                    :doc-tree (doctree/get-subtree doc-tree doc-slug-path)})))
+           (layout/layout
+            {:top-bar top-bar-component
+             :main-sidebar-contents sidebar-contents
+             :content (articles/doc-page
+                       {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
+                                          (-> doc-p :attrs :cljdoc.doc/source-file))
+                        :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
+                                              doc-html
+                                              {:scm (:scm (:version cache-contents))
+                                               :uri-map (fixref/uri-mapping cache-id (doctree/flatten* doc-tree))})})})
+           (layout/layout
+            {:top-bar top-bar-component
+             :main-sidebar-contents sidebar-contents
+             :content (articles/doc-overview
+                       {:cache-id cache-id
+                        :doc-tree (doctree/get-subtree doc-tree doc-slug-path)})}))
+
          (layout/page {:title (str (:title doc-p) " — " (util/clojars-id cache-id) " " (:version cache-id))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
@@ -81,28 +76,27 @@
   (assert (:namespace route-params))
   (let [ns-emap route-params
         defs    (bundle/defs-for-ns (:defs cache-contents) (:namespace ns-emap))
+        [[dominant-platf] :as platf-stats] (api/platform-stats defs)
         ns-data (first (filter #(= (:namespace ns-emap) (platf/get-field % :name))
                                (bundle/namespaces cache-bundle)))
-        common-params {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-                       :article-list-component (articles/article-list
-                                                (articles/doc-tree-view cache-id
-                                                                        (doctree/add-slug-path (-> cache-contents :version :doc))
-                                                                        []))
-                       :namespace-list-component (api/namespace-list
-                                                  {:current (:namespace ns-emap)}
-                                                  (bundle/ns-entities cache-bundle))
-                       :upgrade-notice-component (if-let [newer-v (bundle/more-recent-version cache-bundle)]
-                                                   (layout/upgrade-notice newer-v))}]
+        top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
+        common-params {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))}]
     (->> (if ns-data
-           (api/namespace-page (merge common-params
-                                      {:scm-info (:scm (:version cache-contents))
-                                       :ns-entity ns-emap
-                                       :ns-data ns-data
-                                       :defs defs}))
-           (api/sub-namespace-overview-page (merge common-params
-                                                   {:ns-entity ns-emap
-                                                    :namespaces (bundle/namespaces cache-bundle)
-                                                    :defs (:defs cache-contents)})))
+           (layout/layout
+            {:top-bar top-bar-component
+             :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)
+             :vars-sidebar-contents [(api/platform-support-note platf-stats)
+                                     (api/definitions-list ns-emap defs {:indicate-platforms-other-than dominant-platf})]
+             :content (api/namespace-page {:scm-info (:scm (:version cache-contents))
+                                           :ns-entity ns-emap
+                                           :ns-data ns-data
+                                           :defs defs})})
+           (layout/layout
+            {:top-bar top-bar-component
+             :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)
+             :content (api/sub-namespace-overview-page {:ns-entity ns-emap
+                                                        :namespaces (bundle/namespaces cache-bundle)
+                                                        :defs (:defs cache-contents)})}))
          (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id cache-id) " " (:version cache-id))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
