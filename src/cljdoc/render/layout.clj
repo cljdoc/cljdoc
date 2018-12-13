@@ -22,11 +22,24 @@
     "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")
    (highlight-js-customization)])
 
+(defn generic-description
+  "Returns a generic description of a project."
+  [{:keys [group-id artifact-id version] :as cache-id}]
+  (format "Documentation for %s v%s on cljdoc." (util/clojars-id cache-id) version))
+
 (defn description
   "Return a string to be used as description meta tag for a given project's documentation pages."
-  [{:keys [group-id artifact-id version] :as cache-id}]
-  (format "Documentation for %s v%s on cljdoc, a website that builds and hosts documentation for Clojure/Script libraries."
-          (util/clojars-id cache-id) version))
+  [cache-id]
+  (str (generic-description cache-id)
+       " "
+       "A website that builds and hosts documentation for Clojure/Script libraries."))
+
+(defn artifact-description
+  "Return a string to be used as description meta tag for a given project's documentation pages.
+
+  This description is same as the description in project's pom.xml file."
+  [cache-id artifact-desc]
+  (str (util/clojars-id cache-id) ": " artifact-desc " " (generic-description cache-id)))
 
 (defn no-js-warning
   "A small development utility component that will show a warning when
