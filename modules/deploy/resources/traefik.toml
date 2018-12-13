@@ -12,7 +12,7 @@
     [entryPoints.https.tls]
     [entryPoints.https.redirect]
       regex = "^https://.*cljdoc.xyz/(.*)"
-      replacement = "https://.*cljdoc.org/$1"
+      replacement = "https://cljdoc.org/$1"
       permanent = true
 
 [acme]
