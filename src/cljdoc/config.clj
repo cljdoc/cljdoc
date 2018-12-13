@@ -6,9 +6,10 @@
 
 (defmethod aero/reader 'slurp
   [_ tag value]
-  (try (.trim (slurp (io/resource value)))
-       (catch Exception e
-         (throw (Exception. (str "Exception reading " value  " from classpath") e)))))
+  (aero/deferred
+    (try (.trim (slurp (io/resource value)))
+         (catch Exception e
+           (throw (Exception. (str "Exception reading " value  " from classpath") e))))))
 
 (defn profile []
   (let [known-profiles #{:live :local :prod :test nil}
@@ -30,6 +31,10 @@
 
 ;; Accessors
 
+(defn version
+  ([] (version (config)))
+  ([config] (get-in config [:cljdoc/version])))
+
 (defn circle-ci
   ([] (circle-ci (config)))
   ([config]
@@ -40,7 +45,7 @@
     ;; This would allow us to update the analyzer without
     ;; redeploying the cljdoc server. See GitHub API:
     ;; https://developer.github.com/v3/repos/commits/
-    :analyzer-version (get-in config [:cljdoc/version])}))
+    :analyzer-version (version config)}))
 
 (defn analysis-service
   ([] (analysis-service (config)))
@@ -75,10 +80,6 @@
 (defn autobuild-clojars-releases?
   ([] (autobuild-clojars-releases? (config)))
   ([config] (get-in config [:cljdoc/server :autobuild-clojars-releases?])))
-
-(defn version
-  ([] (version (config)))
-  ([config] (get-in config [:cljdoc/version])))
 
 (defn sentry-dsn
   ([] (sentry-dsn (config)))
