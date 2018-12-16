@@ -27,7 +27,8 @@
     {:group-id    (text d "groupId")
      :artifact-id (text d "artifactId")
      :version     (text d "version")
-     :scope       (text d "scope")}))
+     :scope       (text d "scope")
+     :optional    (text d "optional")}))
 
 (defn repositories [^Jsoup doc]
   (for [r (.select doc "project > repositories > repository")]

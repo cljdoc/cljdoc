@@ -47,14 +47,15 @@
 
 (defn- extra-deps
   "Some projects require additional depenencies that have either been specified with
-  scope 'provided' or are specified via documentation, e.g. a README.
+  scope 'provided', 'system', 'test', are marked 'optional' or are specified via documentation, e.g. a README.
   Maybe should be able to configure this via their cljdoc.edn configuration
   file but this situation being an edge case this is a sufficient fix for now."
   [pom]
   {:pre [(pom/jsoup? pom)]}
   (->> (pom/dependencies pom)
        ;; compile/runtime scopes will be included by the normal dependency resolution.
-       (filter #(#{"provided" "system" "test"} (:scope %)))
+       (filter #(or (#{"provided" "system" "test"} (:scope %))
+                    (:optional %)))
        ;; The version can be nil when pom's utilize
        ;; dependencyManagement this unsurprisingly breaks tools.deps
        ;; Remains to be seen if this causes any issues
