@@ -15,6 +15,25 @@
   (trigger-build [_ {:keys [build-id project version jarpath pompath]}])
   (wait-for-build [_ build-info]))
 
+(defn- ng-analysis-args
+  "Previously all analysis parameters were passed as positional arguments to a tiny shell
+  script around `clojure`. Supplying more complex parameters this way quickly becomes cumbersome
+  and error prone. For this reason the `ng` analysis code always receives only a single
+  argument which is expected to be an EDN map (encoded as string)
+
+  See [[cljdoc.analysis.runner-ng]] for more details."
+  [trigger-build-arg repos]
+  ;; TODO add a spec for this
+  (assert (:project trigger-build-arg))
+  (assert (:version trigger-build-arg))
+  (assert (:jarpath trigger-build-arg))
+  (assert (:pompath trigger-build-arg))
+  {:project (:project trigger-build-arg)
+   :version (:version trigger-build-arg)
+   :jarpath (:jarpath trigger-build-arg)
+   :pompath (:pompath trigger-build-arg)
+   :repos   repos})
+
 ;; CircleCI AnalysisService -----------------------------------------------------
 
 (declare get-circle-ci-build-artifacts get-circle-ci-build poll-circle-ci-build)
@@ -23,7 +42,7 @@
 (defrecord CircleCI [api-token builder-project analyzer-version repos]
   IAnalysisService
   (trigger-build
-    [_ {:keys [build-id project version jarpath pompath]}]
+    [_ {:keys [build-id project version jarpath pompath] :as arg}]
     {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (log/infof "Starting CircleCI analysis for %s %s %s" project version jarpath)
     (let [build (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
@@ -109,18 +128,14 @@
 (defrecord Local [repos]
   IAnalysisService
   (trigger-build
-    [_ {:keys [build-id project version jarpath pompath]}]
+    [_ {:keys [build-id project version jarpath pompath] :as arg}]
     {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (future
       (log/infof "Starting local analysis for %s %s %s" project version jarpath)
       ;; Run ./script/analyze.sh and return the path to the file containing
       ;; analysis results. This is also the script that is used in the "production"
       ;; [cljdoc-builder project](https://github.com/martinklepsch/cljdoc-builder)
-      (let [proc            (apply sh/sh ["./script/analyze-ng.sh" (pr-str {:project project
-                                                                            :version version
-                                                                            :jarpath jarpath
-                                                                            :pompath pompath
-                                                                            :repos repos})])
+      (let [proc            (apply sh/sh ["./script/analyze-ng.sh" (pr-str (ng-analysis-args arg repos))])
             cljdoc-edn-file (str util/analysis-output-prefix (util/cljdoc-edn project version))]
         {:analysis-result cljdoc-edn-file
          :proc proc})))
