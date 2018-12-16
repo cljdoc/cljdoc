@@ -86,6 +86,9 @@
   ([config] (when (get-in config [:cljdoc/server :enable-sentry?])
               (get-in config [:secrets :sentry :dsn]))))
 
+(defn maven-repositories []
+  (get-in (config) [:maven-repositories]))
+
 (comment
   (:cljdoc/server (config))
 

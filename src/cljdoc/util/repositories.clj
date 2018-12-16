@@ -1,5 +1,6 @@
 (ns cljdoc.util.repositories
   (:require [cljdoc.util :as util]
+            [cljdoc.config :as config]
             [clojure.string :as string]
             [clj-http.lite.client :as http]
             [cheshire.core :as json]
@@ -99,15 +100,11 @@
                   (util/artifact-id project)
                   version')}))
 
-(def repositories
-  [{:id "clojars" :url "https://repo.clojars.org/"}
-   {:id "central" :url "http://central.maven.org/maven2/"}])
-
 (defn find-artifact-repository
   ([project]
-   (reduce #(when (exists? (:url %2) project) (reduced (:url %2))) [] repositories))
+   (reduce #(when (exists? (:url %2) project) (reduced (:url %2))) [] (config/maven-repositories)))
   ([project version]
-   (reduce #(when (exists? (:url %2) project version) (reduced (:url %2))) [] repositories)))
+   (reduce #(when (exists? (:url %2) project version) (reduced (:url %2))) [] (config/maven-repositories))))
 
 (defn artifact-uris [project version]
   (if-let [repository (find-artifact-repository project version)]
@@ -137,8 +134,6 @@
   (artifact-uris "org.clojure/clojure" "1.9.0")
 
   (latest-release-version "org.clojure/clojure")
-
-  (http/head (metadata-xml-uri (:clojars repositories) 'bidi "2.1.3-SNAPSHOT") {:throw-exceptions? false})
 
   (metadata-xml-uri "https://repo.clojars.org/" 'bidi "2.1.3-SNAPSHOT")
 
