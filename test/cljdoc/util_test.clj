@@ -7,15 +7,17 @@
            (java.io StringReader)))
 
 (t/deftest find-artifact-repository-test
-  (t/is (= (repositories/find-artifact-repository "org.clojure/clojure" "1.9.0")
-           repositories/maven-central))
-  (t/is (false? (repositories/exists? repositories/maven-central 'bidi "2.1.3-SNAPSHOT")))
-  (t/is (true? (repositories/exists? repositories/clojars 'bidi "2.0.9-SNAPSHOT")))
-  (t/is (true? (repositories/exists? repositories/clojars 'bidi "2.0.0")))
-  (t/is (true? (repositories/exists? repositories/maven-central 'org.clojure/clojure "1.9.0")))
-  (t/is (true? (repositories/exists? repositories/clojars 'bidi)))
-  (t/is (true? (repositories/exists? repositories/clojars 'org.clojure/clojure)))
-  (t/is (true? (repositories/exists? repositories/maven-central 'org.clojure/clojure)))
+  (let [central "http://central.maven.org/maven2/"
+        clojars "https://repo.clojars.org/"]
+    (t/is (= (repositories/find-artifact-repository "org.clojure/clojure" "1.9.0")
+             central))
+    (t/is (false? (repositories/exists? central 'bidi "2.1.3-SNAPSHOT")))
+    (t/is (true? (repositories/exists? clojars 'bidi "2.0.9-SNAPSHOT")))
+    (t/is (true? (repositories/exists? clojars 'bidi "2.0.0")))
+    (t/is (true? (repositories/exists? central 'org.clojure/clojure "1.9.0")))
+    (t/is (true? (repositories/exists? clojars 'bidi)))
+    (t/is (true? (repositories/exists? clojars 'org.clojure/clojure)))
+    (t/is (true? (repositories/exists? central 'org.clojure/clojure))))
   (t/is (thrown-with-msg? ExceptionInfo #"Requested version cannot be found on Clojars or Maven Central"
                           (repositories/artifact-uris 'bidi "2.1.3-SNAPSHOT")))
   (t/is (= (repositories/artifact-uris 'bidi "2.0.9-SNAPSHOT")
