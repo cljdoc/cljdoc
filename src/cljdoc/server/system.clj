@@ -36,15 +36,19 @@
      :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
      :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
      :cljdoc/analysis-service {:service-type ana-service
-                               :opts (when (= ana-service :circle-ci)
-                                       (cfg/circle-ci env-config))}
+                               :opts (merge
+                                      {:repos (->> (cfg/maven-repositories)
+                                                   (map (fn [{:keys [id url]}] [id {:url url}]))
+                                                   (into {}))}
+                                      (when (= ana-service :circle-ci)
+                                        (cfg/circle-ci env-config)))}
      :cljdoc/dogstats (cfg/statsd env-config)}))
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
   (log/info "Starting" k (:analyzer-version opts))
   (case service-type
     :circle-ci (analysis-service/circle-ci opts)
-    :local     (analysis-service/->Local)))
+    :local     (analysis-service/local opts)))
 
 (defmethod ig/init-key :cljdoc/storage [k {:keys [db-spec]}]
   (log/info "Starting" k)

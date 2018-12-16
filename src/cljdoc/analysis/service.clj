@@ -19,7 +19,8 @@
 
 (declare get-circle-ci-build-artifacts get-circle-ci-build poll-circle-ci-build)
 
-(defrecord CircleCI [api-token builder-project analyzer-version]
+;; TODO repos not yet supported for CircleCI
+(defrecord CircleCI [api-token builder-project analyzer-version repos]
   IAnalysisService
   (trigger-build
     [_ {:keys [build-id project version jarpath pompath]}]
@@ -59,12 +60,12 @@
                           {:service :circle-ci, :build done-build})))))))
 
 (defn circle-ci
-  [{:keys [api-token builder-project analyzer-version]}]
+  [{:keys [api-token builder-project analyzer-version] :as args}]
   (assert (seq api-token) "blank or nil api-token passed to CircleCI component")
   (assert (seq builder-project) "blank or nil builder-project passed to CircleCI component")
   (assert (= 40 (.length analyzer-version))
           (str "analyzer-version doesn't look like a valid SHA: " analyzer-version))
-  (->CircleCI api-token builder-project analyzer-version))
+  (map->CircleCI args))
 
 (defn circle-ci? [x]
   (instance? CircleCI x))
@@ -105,7 +106,7 @@
 
 ;; Local Analysis Service -------------------------------------------------------
 
-(defrecord Local []
+(defrecord Local [repos]
   IAnalysisService
   (trigger-build
     [_ {:keys [build-id project version jarpath pompath]}]
@@ -115,7 +116,11 @@
       ;; Run ./script/analyze.sh and return the path to the file containing
       ;; analysis results. This is also the script that is used in the "production"
       ;; [cljdoc-builder project](https://github.com/martinklepsch/cljdoc-builder)
-      (let [proc            (apply sh/sh ["./script/analyze.sh" project version jarpath pompath])
+      (let [proc            (apply sh/sh ["./script/analyze-ng.sh" (pr-str {:project project
+                                                                            :version version
+                                                                            :jarpath jarpath
+                                                                            :pompath pompath
+                                                                            :repos repos})])
             cljdoc-edn-file (str util/analysis-output-prefix (util/cljdoc-edn project version))]
         {:analysis-result cljdoc-edn-file
          :proc proc})))
@@ -129,6 +134,9 @@
                            {:service :local, :proc proc})]
           (log/error err (:out proc))
           (throw err))))))
+
+(defn local [opts]
+  (map->Local opts))
 
 (comment
 
