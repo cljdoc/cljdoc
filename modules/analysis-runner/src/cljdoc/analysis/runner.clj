@@ -86,7 +86,7 @@
       (println "Deleting" path)
       (.delete file))))
 
-(defn print-process-result [proc]
+(defn- print-process-result [proc]
   (printf "exit-code %s ---------------------------------------------------------------\n" (:exit proc))
   (println "stdout --------------------------------------------------------------------")
   (println (:out proc))
@@ -126,7 +126,9 @@
                          ;; for all requested platforms
                          (let [f (util/system-temp-file project ".edn")]
                            (println "Analyzing" project platf)
-                           (let [process (sh/sh "clojure" "-Scp" classpath* "-m" "cljdoc.analysis.impl"
+                           (let [process (sh/sh "java"
+                                                "-cp" classpath*
+                                                "clojure.main" "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
                                                 ;; supplying :dir is necessary to avoid local deps.edn being included
                                                 ;; once -Srepro is finalized it might be useful for this purpose
