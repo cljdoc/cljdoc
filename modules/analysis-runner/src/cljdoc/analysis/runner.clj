@@ -11,7 +11,6 @@
   environment which does not have the dependencies of
   this namespace (namely jsoup and version-clj)."
   (:require [clojure.java.io :as io]
-            [clojure.edn :as edn]
             [clojure.java.shell :as sh]
             [clojure.string :as string]
             [cljdoc.util :as util]
