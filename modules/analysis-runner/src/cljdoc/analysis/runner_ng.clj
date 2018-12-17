@@ -5,6 +5,7 @@
   In addition this runner also allows more customizations such as custom repositories
   and eventually namespace exclusions and more."
   (:require [clojure.java.io :as io]
+            [clojure.pprint :as pp]
             [clojure.edn :as edn]
             [cljdoc.util :as util]
             [cljdoc.analysis.deps :as deps]
@@ -15,6 +16,7 @@
   "Analyze the provided project"
   [arg]
   (try
+    (pp/pprint (edn/read-string arg))
     (let [{:keys [project version jarpath pompath repos] :as args} (edn/read-string arg)
           {:keys [classpath resolved-deps]} (deps/resolved-and-cp pompath repos)]
       (println "Used dependencies for analysis:")
