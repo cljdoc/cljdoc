@@ -152,9 +152,6 @@
           (log/error err (:out proc))
           (throw err))))))
 
-(defn local [opts]
-  (map->Local opts))
-
 (comment
 
   (def p-succeed

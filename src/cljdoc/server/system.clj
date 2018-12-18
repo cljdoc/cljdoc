@@ -48,7 +48,7 @@
   (log/info "Starting" k (:analyzer-version opts))
   (case service-type
     :circle-ci (analysis-service/circle-ci opts)
-    :local     (analysis-service/local opts)))
+    :local     (analysis-service/map->Local opts)))
 
 (defmethod ig/init-key :cljdoc/storage [k {:keys [db-spec]}]
   (log/info "Starting" k)
