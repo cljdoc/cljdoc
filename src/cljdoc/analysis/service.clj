@@ -2,6 +2,7 @@
   (:require [clj-http.lite.client :as http]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
+            [clojure.java.io :as io]
             [clojure.java.shell :as sh]
             [cheshire.core :as json]
             [cljdoc.util :as util]))
@@ -38,7 +39,6 @@
 
 (declare get-circle-ci-build-artifacts get-circle-ci-build poll-circle-ci-build)
 
-;; TODO repos not yet supported for CircleCI
 (defrecord CircleCI [api-token builder-project analyzer-version repos]
   IAnalysisService
   (trigger-build
@@ -133,10 +133,11 @@
     {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (future
       (log/infof "Starting local analysis for %s %s %s" project version jarpath)
-      ;; Run ./script/analyze.sh and return the path to the file containing
+      ;; Run the analysis-runner (yeah) and return the path to the file containing
       ;; analysis results. This is also the script that is used in the "production"
       ;; [cljdoc-builder project](https://github.com/martinklepsch/cljdoc-builder)
-      (let [proc            (apply sh/sh ["./script/analyze-ng.sh" (pr-str (ng-analysis-args arg repos))])
+      (let [proc            (sh/sh "clojure" "-m" "cljdoc.analysis.runner-ng" (pr-str (ng-analysis-args arg repos))
+                                   :dir (io/file "./modules/analysis-runner/"))
             cljdoc-edn-file (str util/analysis-output-prefix (util/cljdoc-edn project version))]
         {:analysis-result cljdoc-edn-file
          :proc proc})))
