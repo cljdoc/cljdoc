@@ -1,5 +1,3 @@
-# TODO consider moving that into a file that is packaged
-# as part of script/package, e.g. resources-compiled/CLJDOC_VERSION
 CLJDOC_VERSION := $(shell ./../../script/version.sh)
 
 .PHONY: image
