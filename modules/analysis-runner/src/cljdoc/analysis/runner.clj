@@ -163,11 +163,11 @@
       (println "Used dependencies for analysis:")
       (deps/print-tree resolved-deps)
       (println "---------------------------------------------------------------------------")
-      (io/copy (analyze-impl (merge {:project (symbol project)
-                                     :version version
-                                     :jar jarpath
-                                     :pom pompath
-                                     :classpath classpath}))
+      (io/copy (analyze-impl {:project (symbol project)
+                              :version version
+                              :jar jarpath
+                              :pom pompath
+                              :classpath classpath})
                (doto (io/file util/analysis-output-prefix (util/cljdoc-edn project version))
                  (-> .getParentFile .mkdirs))))
     (catch Throwable t
