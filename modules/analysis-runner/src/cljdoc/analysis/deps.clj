@@ -43,7 +43,8 @@
     com.taoensso/tufte {com.taoensso/timbre {:mvn/version "4.10.0"}}
     cider/cider-nrepl {boot/core {:mvn/version "2.7.2"}
                        boot/base {:mvn/version "2.7.2"}
-                       leiningen {:mvn/version "2.8.1"}}})
+                       leiningen {:mvn/version "2.8.1"}}
+    io.aviso/pretty {leiningen {:mvn/version "2.8.1"}}})
 
 (defn- extra-deps
   "Some projects require additional depenencies that have either been specified with
