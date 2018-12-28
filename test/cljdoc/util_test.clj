@@ -37,7 +37,9 @@
   (t/is (= "xyz.html" (util/relativize-path "doc/abc.html" "doc/xyz.html")))
   (t/is (= "common-xyz.html" (util/relativize-path "doc/common-abc.html" "doc/common-xyz.html")))
   (t/is (= "common-xyz/test.html" (util/relativize-path "doc/common-xyz.html" "doc/common-xyz/test.html")))
-  (t/is (= "a/b.html" (util/relativize-path "a/b.html" "a/a/b.html"))))
+  (t/is (= "a/b.html" (util/relativize-path "a/b.html" "a/a/b.html")))
+  (t/is (= "../basics/route-syntax" (util/relativize-path "/d/metosin/reitit/0.2.10-alpha1/doc/http/pedestal"
+                                                          "/d/metosin/reitit/0.2.10-alpha1/doc/basics/route-syntax"))))
 
 (t/deftest replant-ns-test
   (t/is (= "my.app.routes" (util/replant-ns "my.app.core" "routes")))
