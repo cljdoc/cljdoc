@@ -8,7 +8,7 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.walk :as walk])
-  (:import (java.nio.file Files)))
+  (:import (java.nio.file Files Paths)))
 
 (def hardcoded-config
   ;; NOTE `delay` is used here because the stripped-down analysis env
@@ -193,10 +193,11 @@
   ;; => \"common-xyz.html\"
   ```"
   [s1 s2]
-  (->> (reduce #(cond-> %1 (= %2 (first %1)) rest)
-               (string/split s2 #"/")
-               (string/split s1 #"/"))
-       (string/join "/")))
+  (let [->path #(Paths/get % (make-array String 0))
+        relative (.relativize (->path s1) (->path s2))]
+    ;; Not entirely sure why `relativize` returns a path with
+    ;; this extra nesting but we just use `subpath` to get rid of it
+    (str (.subpath relative 1 (.getNameCount relative)))))
 
 (defn uri-path
   "Return path part of a URL, this is probably part of pedestal in
