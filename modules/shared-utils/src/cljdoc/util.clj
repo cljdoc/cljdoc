@@ -194,10 +194,16 @@
   ```"
   [s1 s2]
   (let [->path #(Paths/get % (make-array String 0))
-        relative (.relativize (->path s1) (->path s2))]
+        p1 (->path s1)
+        p2 (->path s2)
+        relative (.relativize p1 p2)]
     ;; Not entirely sure why `relativize` returns a path with
     ;; this extra nesting but we just use `subpath` to get rid of it
-    (str (.subpath relative 1 (.getNameCount relative)))))
+    ;; This extra nesting isn't present if one path is contained in the other
+    (if (or (.startsWith p1 p2)
+            (.startsWith p2 p1))
+      (str relative)
+      (str (.subpath relative 1 (.getNameCount relative))))))
 
 (defn uri-path
   "Return path part of a URL, this is probably part of pedestal in
