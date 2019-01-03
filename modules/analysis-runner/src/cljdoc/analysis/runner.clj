@@ -11,7 +11,6 @@
   environment which does not have the dependencies of
   this namespace (namely jsoup and version-clj)."
   (:require [clojure.java.io :as io]
-            [clojure.edn :as edn]
             [clojure.java.shell :as sh]
             [clojure.string :as string]
             [cljdoc.util :as util]
@@ -87,7 +86,7 @@
       (println "Deleting" path)
       (.delete file))))
 
-(defn print-process-result [proc]
+(defn- print-process-result [proc]
   (printf "exit-code %s ---------------------------------------------------------------\n" (:exit proc))
   (println "stdout --------------------------------------------------------------------")
   (println (:out proc))
@@ -97,8 +96,12 @@
     (println (:err proc))
     (println "---------------------------------------------------------------------------")))
 
-(defn analyze-impl
-  [project version jar pom]
+(defn- analyze-impl
+  "Analyze a project specified by it's id, version, jar and pom.
+
+  The `classpath` will be used and is expected to contain all necessary dependencies to analyze
+  the project. This also requires that all dependencies are already downloaded in advance."
+  [{:keys [project version jar pom classpath]}]
   {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
   (let [tmp-dir      (util/system-temp-dir (str "cljdoc-" project "-" version))
         jar-contents (io/file tmp-dir "jar-contents/")
@@ -116,14 +119,16 @@
                              (util/infer-platforms-from-src-dir jar-contents))
         namespaces   (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/namespaces])
-        {:keys [classpath resolved-deps]} (deps/resolved-and-cp pom [(.getAbsolutePath impl-src-dir)])
+        classpath*   (str (.getAbsolutePath impl-src-dir) ":" classpath)
         build-cdx      (fn build-cdx [jar-contents-path platf]
                          ;; TODO in theory we don't need to start this clojure process twice
                          ;; and could just modify the code in `impl.clj` to immediately run analysis
                          ;; for all requested platforms
                          (let [f (util/system-temp-file project ".edn")]
                            (println "Analyzing" project platf)
-                           (let [process (sh/sh "clojure" "-Scp" classpath "-m" "cljdoc.analysis.impl"
+                           (let [process (sh/sh "java"
+                                                "-cp" classpath*
+                                                "clojure.main" "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
                                                 ;; supplying :dir is necessary to avoid local deps.edn being included
                                                 ;; once -Srepro is finalized it might be useful for this purpose
@@ -134,10 +139,6 @@
                                  (assert result "No data was saved in output file")
                                  result)
                                (throw (ex-info (str "Analysis failed with code " (:exit process)) {:code (:exit process)}))))))]
-
-    (println "Used dependencies for analysis:")
-    (deps/print-tree resolved-deps)
-    (println "---------------------------------------------------------------------------")
 
     (let [cdx-namespaces (->> (map #(build-cdx (.getPath jar-contents) %) platforms)
                               (zipmap platforms))
@@ -158,9 +159,17 @@
   "Analyze the provided "
   [project version jarpath pompath]
   (try
-    (io/copy (analyze-impl (symbol project) version jarpath pompath)
-             (doto (io/file util/analysis-output-prefix (util/cljdoc-edn project version))
-               (-> .getParentFile .mkdirs)))
+    (let [{:keys [classpath resolved-deps]} (deps/resolved-and-cp pompath nil)]
+      (println "Used dependencies for analysis:")
+      (deps/print-tree resolved-deps)
+      (println "---------------------------------------------------------------------------")
+      (io/copy (analyze-impl {:project (symbol project)
+                              :version version
+                              :jar jarpath
+                              :pom pompath
+                              :classpath classpath})
+               (doto (io/file util/analysis-output-prefix (util/cljdoc-edn project version))
+                 (-> .getParentFile .mkdirs))))
     (catch Throwable t
       (println (.getMessage t))
       (System/exit 1))

@@ -101,16 +101,19 @@
    ;; included for https://github.com/FundingCircle/jackdaw
    "confluent" {:url "https://packages.confluent.io/maven/"}})
 
-(defn resolved-and-cp [pom-url extra-paths]
+(defn resolved-and-cp
   "Build a classpath for the project specified by `pom-url`."
-  [pom-url extra-paths]
-  {:pre [(string? pom-url) (coll? extra-paths)]}
+  [pom-url repos]
+  {:pre [(string? pom-url)]}
+  (println pom-url repos)
   (let [pom (pom/parse (slurp pom-url))
         resolved (tdeps/resolve-deps {:deps (deps pom),
-                                      :mvn/repos (merge default-repos (extra-repos pom))}
+                                      :mvn/repos (merge default-repos
+                                                        (extra-repos pom)
+                                                        repos)}
                                      {:verbose false})]
     {:resolved-deps resolved
-     :classpath (tdeps/make-classpath resolved extra-paths nil)}))
+     :classpath (tdeps/make-classpath resolved [] nil)}))
 
 (defn print-tree [resolved-deps]
   (tdeps/print-tree resolved-deps))

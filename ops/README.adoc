@@ -98,8 +98,7 @@ CI. See link:/.circleci/config.yml[`.circleci/config.yml`].
 
 == Packaging (Uberjar)
 
-To be implemented. Some refactoring will be necessary to ensure the necessary script files
-(particularly `./script/analyze.sh`) are available on the classpath or aren't needed.
+TBD.
 
 == Orchestration (Nomad)
 

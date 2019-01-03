@@ -5,6 +5,8 @@
           :tags {:env #profile {:default "develop"
                                 :prod "production"}
                  :project "cljdoc"}}
+ :maven-repositories [{:id "clojars" :url "https://repo.clojars.org/"}
+                      {:id "central" :url "http://central.maven.org/maven2/"}]
  :cljdoc/version #profile {:prod #slurp "CLJDOC_VERSION"
                            :default "dev"}
  :cljdoc/server {:port 8000

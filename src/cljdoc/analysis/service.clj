@@ -2,6 +2,7 @@
   (:require [clj-http.lite.client :as http]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
+            [clojure.java.io :as io]
             [clojure.java.shell :as sh]
             [cheshire.core :as json]
             [cljdoc.util :as util]))
@@ -15,14 +16,33 @@
   (trigger-build [_ {:keys [build-id project version jarpath pompath]}])
   (wait-for-build [_ build-info]))
 
+(defn- ng-analysis-args
+  "Previously all analysis parameters were passed as positional arguments to a tiny shell
+  script around `clojure`. Supplying more complex parameters this way quickly becomes cumbersome
+  and error prone. For this reason the `ng` analysis code always receives only a single
+  argument which is expected to be an EDN map (encoded as string)
+
+  See [[cljdoc.analysis.runner-ng]] for more details."
+  [trigger-build-arg repos]
+  ;; TODO add a spec for this
+  (assert (:project trigger-build-arg))
+  (assert (:version trigger-build-arg))
+  (assert (:jarpath trigger-build-arg))
+  (assert (:pompath trigger-build-arg))
+  {:project (:project trigger-build-arg)
+   :version (:version trigger-build-arg)
+   :jarpath (:jarpath trigger-build-arg)
+   :pompath (:pompath trigger-build-arg)
+   :repos   repos})
+
 ;; CircleCI AnalysisService -----------------------------------------------------
 
 (declare get-circle-ci-build-artifacts get-circle-ci-build poll-circle-ci-build)
 
-(defrecord CircleCI [api-token builder-project analyzer-version]
+(defrecord CircleCI [api-token builder-project analyzer-version repos]
   IAnalysisService
   (trigger-build
-    [_ {:keys [build-id project version jarpath pompath]}]
+    [_ {:keys [build-id project version jarpath pompath] :as arg}]
     {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (log/infof "Starting CircleCI analysis for %s %s %s" project version jarpath)
     (let [build (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
@@ -30,10 +50,7 @@
                             ;; https://github.com/hiredman/clj-http-lite/issues/15
                             :form-params {"build_parameters[CLJDOC_ANALYZER_VERSION]" analyzer-version
                                           "build_parameters[CLJDOC_BUILD_ID]" build-id
-                                          "build_parameters[CLJDOC_PROJECT]" project
-                                          "build_parameters[CLJDOC_PROJECT_VERSION]" version
-                                          "build_parameters[CLJDOC_PROJECT_JAR]" jarpath
-                                          "build_parameters[CLJDOC_PROJECT_POM]" pompath}
+                                          "build_parameters[CLJDOC_ANALYZER_ARGS]" (pr-str (ng-analysis-args arg repos))}
                             :basic-auth [api-token ""]})
           build-data (-> build :body json/parse-string)]
       {:build-num (get build-data "build_num")
@@ -59,12 +76,12 @@
                           {:service :circle-ci, :build done-build})))))))
 
 (defn circle-ci
-  [{:keys [api-token builder-project analyzer-version]}]
+  [{:keys [api-token builder-project analyzer-version] :as args}]
   (assert (seq api-token) "blank or nil api-token passed to CircleCI component")
   (assert (seq builder-project) "blank or nil builder-project passed to CircleCI component")
   (assert (= 40 (.length analyzer-version))
           (str "analyzer-version doesn't look like a valid SHA: " analyzer-version))
-  (->CircleCI api-token builder-project analyzer-version))
+  (map->CircleCI args))
 
 (defn circle-ci? [x]
   (instance? CircleCI x))
@@ -105,17 +122,18 @@
 
 ;; Local Analysis Service -------------------------------------------------------
 
-(defrecord Local []
+(defrecord Local [repos]
   IAnalysisService
   (trigger-build
-    [_ {:keys [build-id project version jarpath pompath]}]
+    [_ {:keys [build-id project version jarpath pompath] :as arg}]
     {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (future
       (log/infof "Starting local analysis for %s %s %s" project version jarpath)
-      ;; Run ./script/analyze.sh and return the path to the file containing
+      ;; Run the analysis-runner (yeah) and return the path to the file containing
       ;; analysis results. This is also the script that is used in the "production"
       ;; [cljdoc-builder project](https://github.com/martinklepsch/cljdoc-builder)
-      (let [proc            (apply sh/sh ["./script/analyze.sh" project version jarpath pompath])
+      (let [proc            (sh/sh "clojure" "-m" "cljdoc.analysis.runner-ng" (pr-str (ng-analysis-args arg repos))
+                                   :dir (io/file "./modules/analysis-runner/"))
             cljdoc-edn-file (str util/analysis-output-prefix (util/cljdoc-edn project version))]
         {:analysis-result cljdoc-edn-file
          :proc proc})))

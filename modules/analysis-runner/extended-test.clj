@@ -29,7 +29,10 @@
     (System/exit 0)))
 
 (->> (for [[project version url-base] candidates]
-       (let [args ["clojure" "-m" "cljdoc.analysis.runner" project version (str url-base ".jar") (str url-base ".pom")]
+       (let [args ["clojure" "-m" "cljdoc.analysis.runner-ng" (pr-str {:project project
+                                                                       :version version
+                                                                       :jarpath (str url-base ".jar")
+                                                                       :pompath (str url-base ".pom")})]
              _ (do (println "Analyzing" project version) (println (string/join " " args) sep))
              {:keys [exit out]} (apply sh/sh args)]
          (when-not (zero? exit)
