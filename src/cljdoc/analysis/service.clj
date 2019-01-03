@@ -50,10 +50,6 @@
                             ;; https://github.com/hiredman/clj-http-lite/issues/15
                             :form-params {"build_parameters[CLJDOC_ANALYZER_VERSION]" analyzer-version
                                           "build_parameters[CLJDOC_BUILD_ID]" build-id
-                                          "build_parameters[CLJDOC_PROJECT]" project
-                                          "build_parameters[CLJDOC_PROJECT_VERSION]" version
-                                          "build_parameters[CLJDOC_PROJECT_JAR]" jarpath
-                                          "build_parameters[CLJDOC_PROJECT_POM]" pompath
                                           "build_parameters[CLJDOC_ANALYZER_ARGS]" (pr-str (ng-analysis-args arg repos))}
                             :basic-auth [api-token ""]})
           build-data (-> build :body json/parse-string)]
