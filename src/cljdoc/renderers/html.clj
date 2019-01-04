@@ -7,6 +7,7 @@
             [cljdoc.render.api :as api]
             [cljdoc.util :as util]
             [cljdoc.util.fixref :as fixref]
+            [cljdoc.util.pom :as pom]
             [cljdoc.bundle :as bundle]
             [cljdoc.platforms :as platf]
             [cljdoc.spec]
@@ -33,9 +34,9 @@
        (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))
                      :description (layout/artifact-description
                                    cache-id
-                                   (-> (Jsoup/parse (-> cache-contents :version :pom))
-                                       (.select "description")
-                                       (.text)))})))
+                                   (:description
+                                    (pom/artifact-info
+                                     (Jsoup/parse (-> cache-contents :version :pom)))))})))
 
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -77,9 +78,9 @@
                        ;; update desctiption by extracting it from XML (:pom cache-bundle)
                        :description (layout/artifact-description
                                      cache-id
-                                     (-> (Jsoup/parse (-> cache-contents :version :pom))
-                                         (.select "description")
-                                         (.text)))}))))
+                                     (:description
+                                      (pom/artifact-info
+                                       (Jsoup/parse (-> cache-contents :version :pom)))))}))))
 
 (defmethod render :artifact/namespace
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -113,9 +114,9 @@
                                                (routes/url-for :artifact/namespace :path-params))
                        :description (layout/artifact-description
                                      cache-id
-                                     (-> (Jsoup/parse (-> cache-contents :version :pom))
-                                         (.select "description")
-                                         (.text)))}))))
+                                     (:description
+                                      (pom/artifact-info
+                                       (Jsoup/parse (-> cache-contents :version :pom)))))}))))
 
 (comment
 
