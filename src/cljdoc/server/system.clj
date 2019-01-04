@@ -7,6 +7,7 @@
             [cljdoc.storage.api :as storage]
             [cljdoc.util.sentry]
             [cljdoc.util.repositories :as repos]
+            [cljdoc.util.sqlite-cache :as sqlite-cache]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [cognician.dogstatsd :as dogstatsd]
@@ -14,8 +15,7 @@
             [unilog.config :as unilog]
             [ragtime.jdbc :as jdbc]
             [ragtime.core :as ragtime]
-            [taoensso.nippy :as nippy]
-            [cljdoc.util.sqlite-cache :as sqlite-cache]))
+            [taoensso.nippy :as nippy]))
 
 (unilog/start-logging!
  {:level   :info
