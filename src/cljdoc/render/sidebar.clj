@@ -67,6 +67,6 @@
           [:p.f7.gray.lh-title
            "We couldn't find any namespaces in this artifact. Most often the reason for this is
            that the analysis failed or that the artifact has been mispackaged and does not
-           conain any Clojure source files. The latter might be on purpose for uber-module
+           contain any Clojure source files. The latter might be on purpose for uber-module
            style artifacts. " "Please " [:a.blue.link {:href (util/github-url :issues)} "open
            an issue"] " and we'll be happy to look into it."])])]))
