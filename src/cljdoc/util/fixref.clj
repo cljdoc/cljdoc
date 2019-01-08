@@ -22,6 +22,9 @@
 (defn- anchor-uri? [s]
   (.startsWith s "#"))
 
+(defn- own-uri? [s]
+  (.startsWith s "https://cljdoc.org"))
+
 (defn uri-mapping [cache-id docs]
   (->> docs
        (map (fn [d]
@@ -78,6 +81,7 @@
                     (:commit scm))]
     (doseq [ext-link (->> (.select doc "a")
                           (map #(.attributes %))
+                          (remove #(own-uri? (.get % "href")))
                           (filter #(absolute-uri? (.get % "href"))))]
       (.put ext-link "rel" "nofollow"))
 
