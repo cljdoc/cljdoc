@@ -6,7 +6,9 @@
             [ring.util.codec :as codec]
             [clojure.java.io :as io]
             [clojure.spec.test.alpha :as st]
-            [clojure.test :as t]))
+            [clojure.test :as t]
+            [clojure.string :as string])
+  (:import (org.jsoup Jsoup)))
 
 (defonce sys (atom nil))
 
@@ -69,7 +71,21 @@
 
       (doseq [[p str] {"/d/reagent/reagent/0.8.1/api/reagent.core" "adapt-react-class"
                        "/d/reagent/reagent/0.8.1/doc/tutorials/when-do-components-update-" "In this, more intermediate, Reagent tutorial"}]
-        (t/is (.contains (:body (pdt/response-for (service-fn @sys) :get p)) str))))))
+        (t/is (.contains (:body (pdt/response-for (service-fn @sys) :get p)) str)))))
+
+  ;; test if atleast one meta tag has the project's description
+  (t/is
+   (true?
+    (-> (pdt/response-for
+         (service-fn @sys)
+         :get
+         "/d/reagent/reagent/0.8.1/doc/documentation-index")
+        (:body)
+        (Jsoup/parse)
+        (.select "head > meta")
+        (str)
+        (string/includes? "reagent: A simple ClojureScript interface to React Documentation for reagent v0.8.1 on cljdoc.")))))
+
 
 (comment
   (def s (ig/init (sys/system-config (test-config))))
