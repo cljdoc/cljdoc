@@ -72,6 +72,10 @@
       (str scm-base (subs src 1) suffix)
       (str scm-base (rebase file-path src) suffix))))
 
+;; This namespace's scope was mostly around fixing broken links, but since it
+;; preprocesses a document before rendering, it's also handy for other things.
+;; Below, a `nofollow` attribute is added to external links for SEO purposes.
+
 (defn fix
   [file-path html-str {:keys [git-ls scm uri-map] :as fix-opts}]
   ;; (def fp file-path)
