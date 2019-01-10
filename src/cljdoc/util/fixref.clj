@@ -23,7 +23,8 @@
   (.startsWith s "#"))
 
 (defn- own-uri? [s]
-  (.startsWith s "https://cljdoc.org"))
+  (or (.startsWith s "https://cljdoc.org")
+      (.startsWith s "https://cljdoc.xyz")))
 
 (defn uri-mapping [cache-id docs]
   (->> docs
