@@ -84,12 +84,6 @@
   (let [doc     (Jsoup/parse html-str)
         scm-rev (or (:name (:tag scm))
                     (:commit scm))]
-    (doseq [ext-link (->> (.select doc "a")
-                          (map #(.attributes %))
-                          (filter #(absolute-uri? (.get % "href")))
-                          (remove #(own-uri? (.get % "href"))))]
-      (.put ext-link "rel" "nofollow"))
-
     (doseq [broken-link (->> (.select doc "a")
                              (map #(.attributes %))
                              (remove #(absolute-uri? (.get % "href")))
@@ -108,6 +102,13 @@
                                                         (scm/owner (:url scm)) "/"
                                                         (scm/repo (:url scm)) "/"
                                                         scm-rev "/")})))
+
+    (doseq [ext-link (->> (.select doc "a")
+                          (map #(.attributes %))
+                          (filter #(absolute-uri? (.get % "href")))
+                          (remove #(own-uri? (.get % "href"))))]
+      (.put ext-link "rel" "nofollow"))
+
     (.toString doc)))
 
 
