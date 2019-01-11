@@ -86,8 +86,8 @@
                     (:commit scm))]
     (doseq [ext-link (->> (.select doc "a")
                           (map #(.attributes %))
-                          (remove #(own-uri? (.get % "href")))
-                          (filter #(absolute-uri? (.get % "href"))))]
+                          (filter #(absolute-uri? (.get % "href")))
+                          (remove #(own-uri? (.get % "href"))))]
       (.put ext-link "rel" "nofollow"))
 
     (doseq [broken-link (->> (.select doc "a")
