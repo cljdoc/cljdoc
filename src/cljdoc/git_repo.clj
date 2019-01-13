@@ -10,6 +10,7 @@
                                   ObjectIdRef$PeeledTag
                                   ObjectIdRef$Unpeeled
                                   ObjectLoader
+                                  FileMode
                                   Constants)
             (org.eclipse.jgit.revwalk RevWalk)
             (org.eclipse.jgit.treewalk TreeWalk)
@@ -146,7 +147,9 @@
 (defn ls-files
   "Return a seq of maps {:path 'path-of-file :obj-loader 'ObjectLoader}
   for files in the git repository at the given revision `rev`.
-  ObjectLoader instances can be consumed with slurp, input-stream, etc."
+  ObjectLoader instances can be consumed with slurp, input-stream, etc.
+
+  Files in submodules are skipped."
   [^Git g rev]
   (let [tree (tree-for g rev)
         repo (.getRepository g)
@@ -156,8 +159,10 @@
     (loop [files []]
       (if (.next tw)
         (recur
-         (conj files {:path          (.getPathString tw)
-                      :object-loader (.open repo (.getObjectId tw 0))}))
+         (if (= FileMode/GITLINK (.getFileMode tw))
+           files ; Submodule reference, skip
+           (conj files {:path          (.getPathString tw)
+                        :object-loader (.open repo (.getObjectId tw 0))})))
         files))))
 
 (s/fdef path-sha-pairs

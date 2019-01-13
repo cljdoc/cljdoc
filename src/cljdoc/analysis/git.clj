@@ -43,7 +43,7 @@
   {:post [(map? %)]}
   (let [git-dir (util/system-temp-dir (str "git-" project))]
     (try
-      (log/info "Cloning Git repo" scm-url)
+      (log/infof "Cloning Git repo {:url %s :revision %s}" scm-url pom-revision)
       (git/clone scm-url git-dir)
 
       ;; Stuff that depends on a SCM url being present
