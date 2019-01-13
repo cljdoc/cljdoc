@@ -29,7 +29,7 @@
         port        (cfg/get-in env-config [:cljdoc/server :port])]
     {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
                               :dir     (cfg/data-dir env-config)}
-     :cljdoc/cache            {:cache-dir (cfg/data-dir env-config)}
+     :cljdoc/cache           {:cache-dir (cfg/data-dir env-config)}
      :cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
                               :dry-run? (not (cfg/autobuild-clojars-releases? env-config))}
      :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
