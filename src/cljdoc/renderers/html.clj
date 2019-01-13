@@ -15,8 +15,7 @@
             [version-clj.core :as v]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
-            [clojure.java.io :as io])
-  (:import (org.jsoup Jsoup)))
+            [clojure.java.io :as io]))
 
 (defmulti render (fn [page-type route-params cache-bundle] page-type))
 
@@ -34,9 +33,7 @@
        (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))
                      :description (layout/artifact-description
                                    cache-id
-                                   (:description
-                                    (pom/artifact-info
-                                     (Jsoup/parse (-> cache-contents :version :pom)))))})))
+                                   (-> cache-contents :version :pom pom/parse pom/artifact-info :description))})))
 
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -78,9 +75,7 @@
                        ;; update desctiption by extracting it from XML (:pom cache-bundle)
                        :description (layout/artifact-description
                                      cache-id
-                                     (:description
-                                      (pom/artifact-info
-                                       (Jsoup/parse (-> cache-contents :version :pom)))))}))))
+                                     (-> cache-contents :version :pom pom/parse pom/artifact-info :description))}))))
 
 (defmethod render :artifact/namespace
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -114,9 +109,7 @@
                                                (routes/url-for :artifact/namespace :path-params))
                        :description (layout/artifact-description
                                      cache-id
-                                     (:description
-                                      (pom/artifact-info
-                                       (Jsoup/parse (-> cache-contents :version :pom)))))}))))
+                                     (-> cache-contents :version :pom pom/parse pom/artifact-info :description))}))))
 
 (comment
 
