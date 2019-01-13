@@ -170,9 +170,10 @@
            ""
            [:h3.mt0 "There was an error"]
            [:p.bg-washed-red.pa3.br2 (:error build-info)]
-           [:p.lh-copy "Please see the " [:a.link.blue {:href (:analysis_job_uri
-           build-info)} "build job"] " to understand why this build
-           failed and reach out if you aren't sure how to fix the issue."]
+           (when (:analysis_job_uri build-info)
+             [:p.lh-copy "Please see the " [:a.link.blue {:href (:analysis_job_uri build-info)}
+              "build job"] " to understand why this build failed and reach out if you aren't
+              sure how to fix the issue."])
            #_[:p (cljdoc-link build-info true)]))
 
         (when-not (done? build-info)
