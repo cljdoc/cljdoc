@@ -102,14 +102,12 @@
               (d/measure! "cljdoc.storage.read_time" {}
                           (log/info "Loading artifact cache bundle for" params)
                           (if (storage/exists? store params)
-                            (let [repo         (str (-> params :group-id) "/" (-> params :artifact-id))
-                                  version      (-> params :version)
-                                  ;; Memoized version of `cljdoc.util.repositories/get-pom-xml`
-                                  pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
+                            (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
                                   cache-bundle (assoc-in
                                                 (storage/bundle-docs store params)
                                                 [:cache-contents :version :pom]
-                                                (pom-xml-memo repo version))]
+                                                (pom-xml-memo (util/clojars-id params)
+                                                              (:version params)))]
                               (assoc ctx :cache-bundle cache-bundle))
                             ctx))))})
 

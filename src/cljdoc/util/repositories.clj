@@ -131,8 +131,8 @@
 
 (defn get-pom-xml
   "Fetches contents of pom.xml for a particular artifact version."
-  [repo version]
-  (-> (artifact-uris repo version)
+  [project version]
+  (-> (artifact-uris project version)
       :pom
       http/get
       :body))
