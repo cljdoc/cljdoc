@@ -375,29 +375,3 @@
 
 (defmethod ig/halt-key! :cljdoc/pedestal [_ server]
   (http/stop server))
-
-(comment
-
-  (def s (http/start (create-server (routes {}))))
-
-  (http/stop s)
-
-  (require 'io.pedestal.test)
-
-  (io.pedestal.test/response-for (:io.pedestal.http/service-fn s) :post "/api/request-build2")
-
-  (time
-   ((:enter
-     (artifact-data-loader
-      (cljdoc.storage.api/->SQLiteStorage (cljdoc.config/db (cljdoc.config/config)))
-      {:cljdoc.util.repositories/get-pom-xml (cljdoc.util.sqlite-cache/memo-sqlite
-                                              cljdoc.util.repositories/get-pom-xml
-                                              (assoc (cljdoc.config/cache (cljdoc.config/config))
-                                                     :key-prefix         "get-pom-xml"
-                                                     :serialize-fn       taoensso.nippy/freeze
-                                                     :deserialize-fn     taoensso.nippy/thaw))}))
-    {:request {:path-params
-               {:group-id "clj-time"
-                :artifact-id "clj-time"
-                :version "0.15.1"}}}))
-  )
