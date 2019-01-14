@@ -95,14 +95,22 @@
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
   relevant for the artifact identified via the entity map in `:path-params`."
-  [store]
+  [store cache]
   {:name  ::artifact-data-loader
    :enter (fn artifact-data-loader-inner [ctx]
             (let [params (-> ctx :request :path-params)]
               (d/measure! "cljdoc.storage.read_time" {}
                           (log/info "Loading artifact cache bundle for" params)
                           (if (storage/exists? store params)
-                            (assoc ctx :cache-bundle (storage/bundle-docs store params))
+                            (let [repo         (str (-> params :group-id) "/" (-> params :artifact-id))
+                                  version      (-> params :version)
+                                  ;; Memoized version of `cljdoc.util.repositories/get-pom-xml`
+                                  pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
+                                  cache-bundle (assoc-in
+                                                (storage/bundle-docs store params)
+                                                [:cache-contents :version :pom]
+                                                (pom-xml-memo repo version))]
+                              (assoc ctx :cache-bundle cache-bundle))
                             ctx))))})
 
 (defn- resolve-version [path-params referer]
@@ -138,10 +146,10 @@
 (defn view
   "Combine various interceptors into an interceptor chain for
   rendering views for `route-name`."
-  [storage route-name]
+  [storage cache route-name]
   (->> [(version-resolve-redirect)
         (when (= :artifact/doc route-name) doc-slug-parser)
-        (artifact-data-loader storage)
+        (artifact-data-loader storage cache)
         render-interceptor]
        (keep identity)
        (vec)))
@@ -314,7 +322,7 @@
   interesting for ClojureScript where Pededestal can't go.
 
   For more details see `cljdoc.server.routes`."
-  [{:keys [build-tracker storage] :as deps}
+  [{:keys [build-tracker storage cache] :as deps}
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [{:name ::home :enter #(pu/ok-html % (render-home/home))}]
@@ -333,10 +341,10 @@
          :group/index     (index-page storage index-pages/group-index)
          :artifact/index  (index-page storage index-pages/artifact-index)
 
-         :artifact/version   (view storage route-name)
-         :artifact/namespace (view storage route-name)
-         :artifact/doc       (view storage route-name)
-         :artifact/offline-bundle [(artifact-data-loader storage)
+         :artifact/version   (view storage cache route-name)
+         :artifact/namespace (view storage cache route-name)
+         :artifact/doc       (view storage cache route-name)
+         :artifact/offline-bundle [(artifact-data-loader storage cache)
                                    offline-bundle]
 
          :artifact/current-via-short-id [(jump-interceptor)]
@@ -367,15 +375,3 @@
 
 (defmethod ig/halt-key! :cljdoc/pedestal [_ server]
   (http/stop server))
-
-(comment
-
-  (def s (http/start (create-server (routes {}))))
-
-  (http/stop s)
-
-  (require 'io.pedestal.test)
-
-  (io.pedestal.test/response-for (:io.pedestal.http/service-fn s) :post "/api/request-build2")
-
-  )

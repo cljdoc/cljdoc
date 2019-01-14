@@ -7,6 +7,7 @@
             [cljdoc.render.api :as api]
             [cljdoc.util :as util]
             [cljdoc.util.fixref :as fixref]
+            [cljdoc.util.pom :as pom]
             [cljdoc.bundle :as bundle]
             [cljdoc.platforms :as platf]
             [cljdoc.spec]
@@ -30,7 +31,9 @@
         {:top-bar (layout/top-bar cache-id (-> cache-contents :version :scm :url))
          :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)})
        (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))
-                     :description (layout/description cache-id)})))
+                     :description (layout/artifact-description
+                                   cache-id
+                                   (-> cache-contents :version :pom pom/parse pom/artifact-info :description))})))
 
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -69,7 +72,10 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
-                       :description (layout/description cache-id)}))))
+                       ;; update desctiption by extracting it from XML (:pom cache-bundle)
+                       :description (layout/artifact-description
+                                     cache-id
+                                     (-> cache-contents :version :pom pom/parse pom/artifact-info :description))}))))
 
 (defmethod render :artifact/namespace
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -101,7 +107,9 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/namespace :path-params))
-                       :description (layout/description cache-id)}))))
+                       :description (layout/artifact-description
+                                     cache-id
+                                     (-> cache-contents :version :pom pom/parse pom/artifact-info :description))}))))
 
 (comment
 

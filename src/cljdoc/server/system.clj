@@ -6,13 +6,16 @@
             [cljdoc.server.build-log :as build-log]
             [cljdoc.storage.api :as storage]
             [cljdoc.util.sentry]
+            [cljdoc.util.repositories :as repos]
+            [cljdoc.util.sqlite-cache :as sqlite-cache]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [cognician.dogstatsd :as dogstatsd]
             [integrant.core :as ig]
             [unilog.config :as unilog]
             [ragtime.jdbc :as jdbc]
-            [ragtime.core :as ragtime]))
+            [ragtime.core :as ragtime]
+            [taoensso.nippy :as nippy]))
 
 (unilog/start-logging!
  {:level   :info
@@ -26,13 +29,15 @@
         port        (cfg/get-in env-config [:cljdoc/server :port])]
     {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
                               :dir     (cfg/data-dir env-config)}
+     :cljdoc/cache           {:cache-dir (cfg/data-dir env-config)}
      :cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
                               :dry-run? (not (cfg/autobuild-clojars-releases? env-config))}
      :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
                        :host             (get-in env-config [:cljdoc/server :host])
                        :build-tracker    (ig/ref :cljdoc/build-tracker)
                        :analysis-service (ig/ref :cljdoc/analysis-service)
-                       :storage          (ig/ref :cljdoc/storage)}
+                       :storage          (ig/ref :cljdoc/storage)
+                       :cache            (ig/ref :cljdoc/cache)}
      :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
      :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
      :cljdoc/analysis-service {:service-type ana-service
@@ -69,6 +74,15 @@
 
 (defmethod ig/init-key :cljdoc/dogstats [_ {:keys [uri tags]}]
   (dogstatsd/configure! uri {:tags tags}))
+
+(defmethod ig/init-key :cljdoc/cache [_ {:keys [cache-dir]}]
+  (.mkdirs (io/file cache-dir))
+  {:cljdoc.util.repositories/get-pom-xml (sqlite-cache/memo-sqlite
+                                          repos/get-pom-xml
+                                          (assoc (cfg/cache (cfg/config))
+                                                 :key-prefix         "get-pom-xml"
+                                                 :serialize-fn       nippy/freeze
+                                                 :deserialize-fn     nippy/thaw))})
 
 (defn -main []
   (integrant.core/init

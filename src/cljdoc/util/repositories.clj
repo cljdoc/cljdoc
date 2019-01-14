@@ -129,6 +129,14 @@
     (when (.exists (io/file (:jar uris)))
       uris)))
 
+(defn get-pom-xml
+  "Fetches contents of pom.xml for a particular artifact version."
+  [repo version]
+  (-> (artifact-uris repo version)
+      :pom
+      http/get
+      :body))
+
 (comment
   (find-artifact-repository "org.clojure/clojure" "1.9.0")
   (artifact-uris "org.clojure/clojure" "1.9.0")
@@ -171,5 +179,8 @@
   ;;        clojure.pprint/pprint))
 
   ;;   (def all-poms "http://repo.clojars.org/all-poms.txt")
+
+  (time (get-pom-xml "org.clojure/clojure" "1.9.0"))
+  (clojure.core.memoize/memo-clear! get-pom-xml '("org.clojure/clojure" "1.9.0"))
 
   )
