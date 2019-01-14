@@ -29,7 +29,11 @@
         port        (cfg/get-in env-config [:cljdoc/server :port])]
     {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
                               :dir     (cfg/data-dir env-config)}
-     :cljdoc/cache           {:cache-dir (cfg/data-dir env-config)}
+     :cljdoc/cache           (merge (cfg/cache env-config)
+                                    {:cache-dir      (cfg/data-dir env-config)
+                                     :key-prefix     "get-pom-xml"
+                                     :serialize-fn   nippy/freeze
+                                     :deserialize-fn nippy/thaw})
      :cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
                               :dry-run? (not (cfg/autobuild-clojars-releases? env-config))}
      :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
@@ -75,14 +79,9 @@
 (defmethod ig/init-key :cljdoc/dogstats [_ {:keys [uri tags]}]
   (dogstatsd/configure! uri {:tags tags}))
 
-(defmethod ig/init-key :cljdoc/cache [_ {:keys [cache-dir]}]
+(defmethod ig/init-key :cljdoc/cache [_ {:keys [cache-dir] :as cache-opts}]
   (.mkdirs (io/file cache-dir))
-  {:cljdoc.util.repositories/get-pom-xml (sqlite-cache/memo-sqlite
-                                          repos/get-pom-xml
-                                          (assoc (cfg/cache (cfg/config))
-                                                 :key-prefix         "get-pom-xml"
-                                                 :serialize-fn       nippy/freeze
-                                                 :deserialize-fn     nippy/thaw))})
+  {:cljdoc.util.repositories/get-pom-xml (sqlite-cache/memo-sqlite repos/get-pom-xml cache-opts)})
 
 (defn -main []
   (integrant.core/init
