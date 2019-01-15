@@ -105,19 +105,24 @@
   display: block;
 }
 
-.asciidoc .admonitionblock.note, .asciidoc .admonitionblock.important {
+.asciidoc .admonitionblock.tip {
+  background-color: #e8fdf5; /** tachyons washed-green **/
+  border-color: #9eebcf; /** tachyons light-green **/
+}
+
+.asciidoc .admonitionblock.note {
+  background-color: #cdecff; /** tachyons light-blue **/
+  border-color: #357edd /** tachyons blue **/
+}
+
+.asciidoc .admonitionblock.important {
   background-color: #fffceb; /** tachyons washed-yellow **/
-  border-color: yellow /** tachyons yellow **/
+  border-color: #ffd700 /** tachyons yellow **/
 }
 
 .asciidoc .admonitionblock.warning {
   background-color: #ffdfdf; /** tachyons washed-red **/
   border-color: #ff725c; /** tachyons light-red **/
-}
-
-.asciidoc .admonitionblock.tip {
-  background-color: #e8fdf5; /** tachyons washed-green **/
-  border-color: #9eebcf; /** tachyons light-green **/
 }
 
 /** Scroll Indicator ------------------------------------------------ **/
