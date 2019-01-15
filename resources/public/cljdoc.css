@@ -90,19 +90,34 @@
 .asciidoc .admonitionblock {
   padding: 1rem;
   border-radius: 3px;
+  border-left: 3px solid;
 }
 
 .asciidoc .admonitionblock .icon {
-  padding-right: 1rem;
-  font-weight: 500;
+  display: block;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: #777;
+  font-weight: 600;
 }
 
-.asciidoc .admonitionblock.note {
-  background-color: #fbf1a9;
+.asciidoc .admonitionblock .content {
+  display: block;
+}
+
+.asciidoc .admonitionblock.note, .asciidoc .admonitionblock.important {
+  background-color: #fffceb; /** tachyons washed-yellow **/
+  border-color: yellow /** tachyons yellow **/
+}
+
+.asciidoc .admonitionblock.warning {
+  background-color: #ffdfdf; /** tachyons washed-red **/
+  border-color: #ff725c; /** tachyons light-red **/
 }
 
 .asciidoc .admonitionblock.tip {
-  background-color: #e8fdf5;
+  background-color: #e8fdf5; /** tachyons washed-green **/
+  border-color: #9eebcf; /** tachyons light-green **/
 }
 
 /** Scroll Indicator ------------------------------------------------ **/
