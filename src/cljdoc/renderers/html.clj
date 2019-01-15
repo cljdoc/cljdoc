@@ -46,6 +46,9 @@
                    first)
         doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
+        doc-type (cond
+                   (-> doc-p :attrs :cljdoc/markdown) :markdown
+                   (-> doc-p :attrs :cljdoc/asciidoc) :asciidoc)
         top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
         sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
@@ -57,6 +60,7 @@
              :content (articles/doc-page
                        {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
                                           (-> doc-p :attrs :cljdoc.doc/source-file))
+                        :doc-type doc-type
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                               doc-html
                                               {:scm (:scm (:version cache-contents))

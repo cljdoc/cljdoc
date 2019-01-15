@@ -33,11 +33,13 @@
                     (doc-tree-view cache-id (:children doc-page) current-page (inc level))])))
           (into [:ul.list.ma0 {:class (if (pos? level) "f6-ns pl2" "pl0")}])))))
 
-(defn doc-page [{:keys [doc-scm-url doc-html]}]
+(defn doc-page [{:keys [doc-scm-url doc-html doc-type]}]
+  (assert doc-type)
   [:div.mw7.center
    ;; TODO dispatch on a type parameter that becomes part of the attrs map
    (if doc-html
-     [:div#doc-html.markdown.lh-copy.pv4
+     [:div#doc-html.lh-copy.pv4
+      {:class (name doc-type)}
       (hiccup/raw doc-html)
       [:a.db.f7.tr
        {:href doc-scm-url}
