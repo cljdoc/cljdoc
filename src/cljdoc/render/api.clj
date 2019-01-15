@@ -232,10 +232,12 @@
      [:div.w-80-ns.pv4
       [:h2 (:namespace ns-entity)]
       (render-doc ns-data render-wiki-link)
-      (for [def defs]
-        (def-block
-          (add-src-uri def scm-base file-mapping)
-          render-wiki-link))]]))
+      (if (seq defs)
+        (for [def defs]
+          (def-block
+            (add-src-uri def scm-base file-mapping)
+            render-wiki-link))
+        [:p "No vars found in this namespace."])]]))
 
 (comment
   (:platforms --d)

@@ -95,8 +95,9 @@
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)
-             :vars-sidebar-contents [(api/platform-support-note platf-stats)
-                                     (api/definitions-list ns-emap defs {:indicate-platforms-other-than dominant-platf})]
+             :vars-sidebar-contents (when (seq defs)
+                                      [(api/platform-support-note platf-stats)
+                                       (api/definitions-list ns-emap defs {:indicate-platforms-other-than dominant-platf})])
              :content (api/namespace-page {:scm-info (:scm (:version cache-contents))
                                            :ns-entity ns-emap
                                            :ns-data ns-data
