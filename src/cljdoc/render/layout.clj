@@ -83,7 +83,6 @@
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (hiccup.page/include-css
-                   "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
                    "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
                    "/cljdoc.css")]
                 [:body
