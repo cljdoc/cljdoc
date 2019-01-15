@@ -101,7 +101,7 @@
    [:h4.relative.ttu.f7.fw5.mt1.mb2.tracked.gray
     (when separator-line?
       ;; .nl4 and .nr4 are negative margins based on the global padding used in the sidebar
-      [:hr.absolute.left-0.right-0.nl4.nr4.b--solid.b--black-10])
+      [:hr.absolute.left-0.right-0.nl3.nr3.nl4-ns.nr4-ns.b--solid.b--black-10])
     ;; again negative margins are used to make the background reach over the text container
     [:span.relative.nl2.nr2.ph2.bg-white title]]))
 
@@ -201,9 +201,9 @@
   `static` so that the top bar is rendered as a row of the main
   container.
 
-  The z-index `z3` setting is necessary to ensure `fixed` elements
+  The z-index `z-3` setting is necessary to ensure `fixed` elements
   appear above other elements"
-  :div.fixed.top-0.left-0.right-0.static-ns.flex-shrink-0.z3)
+  :div.fixed.top-0.left-0.right-0.static-ns.flex-shrink-0.z-3)
 
 (def mobile-nav-spacer
   "Spacer so fixed navigation elements don't overlap content
