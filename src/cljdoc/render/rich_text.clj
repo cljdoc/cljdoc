@@ -71,6 +71,9 @@
         (.render (md-renderer opts)))))
 
 (defmulti render-text
+  "An extension point for the rendering of different article types.
+
+  `type` is determined by [[cljdoc.doc-tree/filepath->type]]."
   (fn [[type contents]]
     type))
 

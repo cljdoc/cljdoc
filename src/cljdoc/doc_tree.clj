@@ -168,12 +168,6 @@
 
 ;; Deriving doctrees -----------------------------------------------------------
 
-(defn- supported-file-type [path]
-  (cond
-    (.endsWith path ".markdown") :markdown
-    (.endsWith path ".md")       :markdown
-    (.endsWith path ".adoc")     :asciidoc))
-
 (defn- readme? [path]
   (and (.startsWith (.toLowerCase path) "readme.")
        (filepath->type path)))
