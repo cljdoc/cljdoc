@@ -36,7 +36,6 @@
 (defn doc-page [{:keys [doc-scm-url doc-html doc-type]}]
   (assert doc-type)
   [:div.mw7.center
-   ;; TODO dispatch on a type parameter that becomes part of the attrs map
    (if doc-html
      [:div#doc-html.lh-copy.pv4
       {:class (name doc-type)}

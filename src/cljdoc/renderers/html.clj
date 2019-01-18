@@ -44,11 +44,8 @@
                    doctree/flatten*
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
-        doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
-                     (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
-        doc-type (cond
-                   (-> doc-p :attrs :cljdoc/markdown) :markdown
-                   (-> doc-p :attrs :cljdoc/asciidoc) :asciidoc)
+        [doc-type contents] (doctree/entry->type-and-content doc-p)
+        doc-html (rich-text/render-text [doc-type contents])
         top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
         sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
@@ -61,7 +58,7 @@
                        {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/"
                                           (or (-> cache-contents :version :scm :branch) "master")
                                           "/" (-> doc-p :attrs :cljdoc.doc/source-file))
-                        :doc-type doc-type
+                        :doc-type (name doc-type)
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                               doc-html
                                               {:scm (:scm (:version cache-contents))

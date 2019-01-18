@@ -70,6 +70,16 @@
    (->> (.parse md-container input-str)
         (.render (md-renderer opts)))))
 
+(defmulti render-text
+  (fn [[type contents]]
+    type))
+
+(defmethod render-text :cljdoc/markdown [[_ content]]
+  (markdown-to-html content))
+
+(defmethod render-text :cljdoc/asciidoc [[_ content]]
+  (markdown-to-html content))
+
 (comment
   (markdown-to-html "*hello world* <code>x</code>")
 
