@@ -170,16 +170,16 @@
 
 (defn- readme? [path]
   (and (.startsWith (.toLowerCase path) "readme.")
-       (filepath->type path)))
+       (try (filepath->type path) (catch Exception _ false))))
 
 (defn- changelog? [path]
   (and (some #(.startsWith (.toLowerCase path) %) ["changelog." "changes."  "history." "news." "releases."])
-       (filepath->type path)))
+       (try (filepath->type path) (catch Exception _ false))))
 
 (defn- doc? [path]
-  (and (filepath->type path)
-       (or (.startsWith path "doc/")
-           (.startsWith path "docs/"))))
+  (and (or (.startsWith path "doc/")
+           (.startsWith path "docs/"))
+       (try (filepath->type path) (catch Exception _ false))))
 
 (defn- infer-title [path file-contents]
   (or (case (filepath->type path)
