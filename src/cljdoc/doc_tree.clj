@@ -184,8 +184,8 @@
 (defn- infer-title [path file-contents]
   (or (case (filepath->type path)
         ;; NOTE infer-title will fail with non adoc/md files
-        :markdown (second (re-find #"(?m)^\s*#+\s*(.*)\s*$" file-contents))
-        :asciidoc (second (re-find #"(?m)^\s*=+\s*(.*)\s*$" file-contents)))
+        :cljdoc/markdown (second (re-find #"(?m)^\s*#+\s*(.*)\s*$" file-contents))
+        :cljdoc/asciidoc (second (re-find #"(?m)^\s*=+\s*(.*)\s*$" file-contents)))
       (first (butlast (take-last 2 (cuerdas/split path #"[/\.]"))))
       (throw (ex-info (format "No title found for %s" path)
                       {:path path :contents file-contents}))))
