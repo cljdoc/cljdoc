@@ -18,7 +18,7 @@
     (t/is (true? (repositories/exists? clojars 'bidi)))
     (t/is (true? (repositories/exists? clojars 'org.clojure/clojure)))
     (t/is (true? (repositories/exists? central 'org.clojure/clojure))))
-  (t/is (thrown-with-msg? ExceptionInfo #"Requested version cannot be found on Clojars or Maven Central"
+  (t/is (thrown-with-msg? ExceptionInfo #"Requested version cannot be found in configured repositories"
                           (repositories/artifact-uris 'bidi "2.1.3-SNAPSHOT")))
   (t/is (= (repositories/artifact-uris 'bidi "2.0.9-SNAPSHOT")
            {:pom "https://repo.clojars.org/bidi/bidi/2.0.9-SNAPSHOT/bidi-2.0.9-20160426.224252-1.pom",

@@ -109,7 +109,7 @@
 (defn artifact-uris [project version]
   (if-let [repository (find-artifact-repository project version)]
     (artifact-uris* repository project version)
-    (throw (ex-info (format "Requested version cannot be found on Clojars or Maven Central: [%s %s]" project version)
+    (throw (ex-info (format "Requested version cannot be found in configured repositories: [%s %s]" project version)
                     {:project project :version version}))))
 
 (defn latest-release-version [project]
@@ -120,7 +120,7 @@
           (->> (.select d "metadata > versioning > release")
                (map #(.ownText %))
                (util/assert-first)))))
-    (throw (ex-info (format "Requested project cannot be found on Clojars or Maven Central: %s" project)
+    (throw (ex-info (format "Requested project cannot be found in configured repositories: %s" project)
                     {:project project}))))
 
 (defn local-uris [project version]
