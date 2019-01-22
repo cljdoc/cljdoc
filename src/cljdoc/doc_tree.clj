@@ -37,6 +37,7 @@
 (spec/def ::attrs
   (spec/keys :req-un [::slug]
              :opt [:cljdoc.doc/source-file
+                   :cljdoc.doc/type
                    :cljdoc/asciidoc
                    :cljdoc/markdown]))
 
@@ -62,7 +63,7 @@
   "An extension point for custom doctree items. Dispatching is done based on file extensions.
   The return value is used for two things:
 
-    - It's stored as `:type` in the doctree entry map
+    - It's stored as `:cljdoc.doc/type` in the doctree entry map
     - The contents of a file will be stored at the returned value
 
   See [[process-toc-entry]] for the specifics."
@@ -78,17 +79,17 @@
   {:pre [(string? title)]}
   ;; If there is a file it has to be matched by filepath->type's dispatch-fn
   ;; Otherwise the line below will throw an exception (intentionally so)
-  (let [type (some-> attrs :file filepath->type)]
+  (let [entry-type (some-> attrs :file filepath->type)]
     (cond-> {:title title}
 
       (:file attrs)
       (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
 
-      type
-      (assoc-in [:attrs type] (slurp-fn (:file attrs)))
+      entry-type
+      (assoc-in [:attrs entry-type] (slurp-fn (:file attrs)))
 
-      type
-      (assoc-in [:attrs :type] type)
+      entry-type
+      (assoc-in [:attrs :cljdoc.doc/type] entry-type)
 
       (nil? (:slug attrs))
       (assoc-in [:attrs :slug] (cuerdas/uslug title))
@@ -118,9 +119,9 @@
 (defn entry->type-and-content
   "Given a single doctree entry return a tuple with the type of the to be rendered document and
   it's content. This is a layer of indirection to enable backwards compatibility with doctrees
-  that do not contain a :type key."
+  that do not contain a :cljdoc.doc/type key."
   [doctree-entry]
-  (if-let [t (:type doctree-entry)]
+  (if-let [t (:cljdoc.doc/type doctree-entry)]
     [t (get doctree-entry t)]
     (when-let [file (get-in doctree-entry [:attrs :cljdoc.doc/source-file])]
       (assert (filepath->type file) (str "unsupported extension: " file))

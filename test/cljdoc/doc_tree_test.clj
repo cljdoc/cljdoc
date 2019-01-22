@@ -9,10 +9,12 @@
   (t/is (=
          [{:title "Readme"
            :attrs {:cljdoc.doc/source-file "README.md",
+                   :cljdoc.doc/type :cljdoc/markdown
                    :cljdoc/markdown "README.md",
                    :slug "readme"}
            :children [{:title "Nested"
                        :attrs {:cljdoc.doc/source-file "nested.adoc"
+                               :cljdoc.doc/type :cljdoc/asciidoc
                                :cljdoc/asciidoc "nested.adoc"
                                :slug "nested"}}]}]
          (doctree/process-toc
