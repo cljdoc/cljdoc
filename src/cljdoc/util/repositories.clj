@@ -132,10 +132,9 @@
 (defn get-pom-xml
   "Fetches contents of pom.xml for a particular artifact version."
   [project version]
-  (-> (artifact-uris project version)
-      :pom
-      http/get
-      :body))
+  (if-let [local-pom (:pom (local-uris project version))]
+    (slurp local-pom)
+    (-> (artifact-uris project version) :pom http/get :body)))
 
 (comment
   (find-artifact-repository "org.clojure/clojure" "1.9.0")
