@@ -44,6 +44,7 @@
   (.. Git
       cloneRepository
       (setURI uri)
+      (setCloneAllBranches true)
       (setDirectory target-dir)
       (setTransportConfigCallback
        (reify TransportConfigCallback
