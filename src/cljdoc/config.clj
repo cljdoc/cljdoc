@@ -90,9 +90,11 @@
              :subprotocol "sqlite"
              :subname (str (data-dir config) "cache.db")}})
 
-(defn autobuild-clojars-releases?
-  ([] (autobuild-clojars-releases? (config)))
-  ([config] (get-in config [:cljdoc/server :autobuild-clojars-releases?])))
+(defn autobuild-clojars-releases? [config]
+  (get-in config [:cljdoc/server :autobuild-clojars-releases?]))
+
+(defn enable-release-monitor? [config]
+  (not (clojure.core/get-in config [:cljdoc/server :disable-release-monitor?])))
 
 (defn sentry-dsn
   ([] (sentry-dsn (config)))
