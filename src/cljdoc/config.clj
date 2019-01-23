@@ -25,9 +25,13 @@
     (throw (ex-info (format "No config found for path %s\nDid you configure your secrets.edn file?" ks)
                     {:ks ks, :profile (profile)}))))
 
+(defn config-file []
+  (or (some-> (System/getenv "CLJDOC_CONFIG_EDN") io/file)
+      (io/resource "config.edn")))
+
 (defn config
-  ([] (aero/read-config (io/resource "config.edn") {:profile (profile)}))
-  ([profile] (aero/read-config (io/resource "config.edn") {:profile profile})))
+  ([] (aero/read-config (config-file) {:profile (profile)}))
+  ([profile] (aero/read-config (config-file) {:profile profile})))
 
 ;; Accessors
 
