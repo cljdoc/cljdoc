@@ -153,10 +153,10 @@
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
     (if scm-url
       [:a.link.dim.gray.f6.tr
-       {:href scm-url}
-       (let [icon (or (scm/provider scm-url) :code)]
+       {:href (scm/http-uri scm-url)}
+       (let [icon (or (scm/provider scm-url) :git)]
          [:img.v-mid.mr2 {:src (str "https://icon.now.sh/" (name icon))}])
-       [:span.dib (scm/coordinate scm-url)]]
+       [:span.dib (scm/coordinate (scm/http-uri scm-url))]]
       [:a.f6.link.blue {:href (util/github-url :userguide/scm-faq)} "SCM info missing"])]])
 
 (defn upgrade-notice [{:keys [version] :as version-map}]
