@@ -26,30 +26,33 @@
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)
         port        (cfg/get-in env-config [:cljdoc/server :port])]
-    {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
-                              :dir     (cfg/data-dir env-config)}
-     :cljdoc/cache           (merge (cfg/cache env-config)
-                                    {:cache-dir      (cfg/data-dir env-config)
-                                     :key-prefix     "get-pom-xml"
-                                     :serialize-fn   nippy/freeze
-                                     :deserialize-fn nippy/thaw})
-     :cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
-                              :dry-run? (not (cfg/autobuild-clojars-releases? env-config))}
-     :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
-                       :host             (get-in env-config [:cljdoc/server :host])
-                       :build-tracker    (ig/ref :cljdoc/build-tracker)
-                       :analysis-service (ig/ref :cljdoc/analysis-service)
-                       :storage          (ig/ref :cljdoc/storage)
-                       :cache            (ig/ref :cljdoc/cache)}
-     :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
-     :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
-     :cljdoc/analysis-service {:service-type ana-service
-                               :opts (merge
-                                      {:repos (->> (cfg/maven-repositories)
-                                                   (map (fn [{:keys [id url]}] [id {:url url}]))
-                                                   (into {}))}
-                                      (when (= ana-service :circle-ci)
-                                        (cfg/circle-ci env-config)))}}))
+    (merge
+     {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
+                               :dir     (cfg/data-dir env-config)}
+      :cljdoc/cache           (merge (cfg/cache env-config)
+                                     {:cache-dir      (cfg/data-dir env-config)
+                                      :key-prefix     "get-pom-xml"
+                                      :serialize-fn   nippy/freeze
+                                      :deserialize-fn nippy/thaw})
+      :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
+                        :host             (get-in env-config [:cljdoc/server :host])
+                        :build-tracker    (ig/ref :cljdoc/build-tracker)
+                        :analysis-service (ig/ref :cljdoc/analysis-service)
+                        :storage          (ig/ref :cljdoc/storage)
+                        :cache            (ig/ref :cljdoc/cache)}
+      :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
+      :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
+      :cljdoc/analysis-service {:service-type ana-service
+                                :opts (merge
+                                       {:repos (->> (cfg/maven-repositories)
+                                                    (map (fn [{:keys [id url]}] [id {:url url}]))
+                                                    (into {}))}
+                                       (when (= ana-service :circle-ci)
+                                         (cfg/circle-ci env-config)))}}
+
+     (when (cfg/enable-release-monitor? env-config)
+       {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
+                                 :dry-run? (not (cfg/autobuild-clojars-releases? env-config))}}))))
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
   (log/info "Starting" k (:analyzer-version opts))
