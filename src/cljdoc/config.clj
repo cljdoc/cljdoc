@@ -104,6 +104,9 @@
 (defn maven-repositories []
   (get-in (config) [:maven-repositories]))
 
+(defn extension-namespaces [config]
+  (clojure.core/get-in config [:extension-namespaces]))
+
 (comment
   (:cljdoc/server (config))
 
