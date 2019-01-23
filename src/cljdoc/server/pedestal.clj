@@ -34,7 +34,6 @@
             [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
-            [cognician.dogstatsd :as d]
             [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
             [cheshire.core :as json]
@@ -62,8 +61,7 @@
                   (assoc ctx :response {:status 302, :headers {"Location" location}}))
 
                 (if cache-bundle
-                  (d/measure! "cljdoc.views.render_time" {}
-                              (pu/ok-html ctx (html/render page-type path-params cache-bundle)))
+                  (pu/ok-html ctx (html/render page-type path-params cache-bundle))
                   (let [resp {:status 404
                               :headers {"Content-Type" "text/html"}
                               :body (str (render-build-req/request-build-page path-params))}]
@@ -99,17 +97,16 @@
   {:name  ::artifact-data-loader
    :enter (fn artifact-data-loader-inner [ctx]
             (let [params (-> ctx :request :path-params)]
-              (d/measure! "cljdoc.storage.read_time" {}
-                          (log/info "Loading artifact cache bundle for" params)
-                          (if (storage/exists? store params)
-                            (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
-                                  cache-bundle (assoc-in
-                                                (storage/bundle-docs store params)
-                                                [:cache-contents :version :pom]
-                                                (pom-xml-memo (util/clojars-id params)
-                                                              (:version params)))]
-                              (assoc ctx :cache-bundle cache-bundle))
-                            ctx))))})
+              (log/info "Loading artifact cache bundle for" params)
+              (if (storage/exists? store params)
+                (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
+                      cache-bundle (assoc-in
+                                    (storage/bundle-docs store params)
+                                    [:cache-contents :version :pom]
+                                    (pom-xml-memo (util/clojars-id params)
+                                                  (:version params)))]
+                  (assoc ctx :cache-bundle cache-bundle))
+                ctx)))})
 
 (defn- resolve-version [path-params referer]
   (assert (= "CURRENT" (:version path-params)))
