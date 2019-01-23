@@ -10,7 +10,6 @@
             [cljdoc.util.sqlite-cache :as sqlite-cache]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
-            [cognician.dogstatsd :as dogstatsd]
             [integrant.core :as ig]
             [unilog.config :as unilog]
             [ragtime.jdbc :as jdbc]
@@ -50,8 +49,7 @@
                                                    (map (fn [{:keys [id url]}] [id {:url url}]))
                                                    (into {}))}
                                       (when (= ana-service :circle-ci)
-                                        (cfg/circle-ci env-config)))}
-     :cljdoc/dogstats (cfg/statsd env-config)}))
+                                        (cfg/circle-ci env-config)))}}))
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
   (log/info "Starting" k (:analyzer-version opts))
@@ -75,9 +73,6 @@
                        {:reporter (fn [store direction migration]
                                     (log/infof "Migrating %s %s" direction migration))})
   db-spec)
-
-(defmethod ig/init-key :cljdoc/dogstats [_ {:keys [uri tags]}]
-  (dogstatsd/configure! uri {:tags tags}))
 
 (defmethod ig/init-key :cljdoc/cache [_ {:keys [cache-dir] :as cache-opts}]
   (.mkdirs (io/file cache-dir))
