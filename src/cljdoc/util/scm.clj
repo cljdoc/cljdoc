@@ -19,3 +19,29 @@
     (cond
       (.endsWith host "github.com") :github
       (.endsWith host "gitlab.com") :gitlab)))
+
+(defn http-uri
+  "Given a URI pointing to a git remote, normalize that URI to an HTTP one."
+  [scm-url]
+  (cond
+    (.startsWith scm-url "http")
+    scm-url
+
+    (or (.startsWith scm-url "git@")
+        (.startsWith scm-url "ssh://"))
+    (-> scm-url
+        (string/replace #":" "/")
+        (string/replace #"\.git$" "")
+        ;; three slashes because of prior :/ replace
+        (string/replace #"^(ssh///)*git@" "http://"))))
+
+(defn ssh-uri
+  "Given a URI pointing to a git remote, normalize that URI to an SSH one."
+  [scm-url]
+  (cond
+    (.startsWith scm-url "git@")
+    scm-url
+
+    (.startsWith scm-url "http")
+    (let [{:keys [host path]} (uri/uri scm-url)]
+      (str "git@" host ":" (subs path 1) ".git"))))
