@@ -70,7 +70,8 @@
                  [:meta {:content "website" :property "og:type"}]
                  [:meta {:content (:title opts) :property "og:title"}]
                  [:meta {:content (:description opts) :property "og:description"}]
-                 [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :property "og:image"}]
+                 ;; Disable image for now; doesn't add much and occupies a lot of space in Slack and similar
+                 ;; [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :property "og:image"}]
 
                  ;; Canonical URL
                  (when-let [url (:canonical-url opts)]
