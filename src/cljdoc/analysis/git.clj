@@ -82,6 +82,7 @@
                                 :rev revision
                                 :branch (.. repo getRepository getBranch)}
                          version-tag (assoc :tag version-tag))
+             :config   config-edn
              :doc-tree (doctree/process-toc
                         (fn [f]
                           ;; We are intentionally relaxed here for now

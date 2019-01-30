@@ -27,7 +27,7 @@
                             (:artifact-id version-entity)
                             [(:version version-entity)])
     (sqlite/import-api db-spec version-entity codox))
-  (import-doc [_ version-entity {:keys [doc-tree scm jar] :as version-data}]
+  (import-doc [_ version-entity {:keys [doc-tree scm jar config] :as version-data}]
     (sqlite/import-doc db-spec version-entity version-data))
   (exists? [_ version-entity]
     (sqlite/docs-available? db-spec

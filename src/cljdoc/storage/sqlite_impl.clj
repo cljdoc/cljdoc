@@ -155,11 +155,11 @@
 
 (defn import-doc [db-spec
                   {:keys [group-id artifact-id version]}
-                  {:keys [doc-tree scm jar]}]
+                  {:keys [jar scm doc-tree config]}]
   {:pre [(string? group-id) (string? artifact-id) (string? version)]}
   (store-artifact! db-spec group-id artifact-id [version])
   (let [version-id (get-version-id db-spec group-id artifact-id version)]
-    (update-version-meta! db-spec version-id {:jar jar :scm scm, :doc doc-tree})))
+    (update-version-meta! db-spec version-id {:jar jar :scm scm, :doc doc-tree, :config config})))
 
 (comment
   (def data (clojure.edn/read-string (slurp "https://2941-119377591-gh.circle-artifacts.com/0/cljdoc-edn/stavka/stavka/0.4.1/cljdoc.edn")))
