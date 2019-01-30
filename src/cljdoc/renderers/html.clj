@@ -83,7 +83,10 @@
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (assert (:namespace route-params))
   (let [ns-emap route-params
-        defs    (bundle/defs-for-ns-with-src-uri cache-contents (:namespace ns-emap))
+        defs    (bundle/defs-for-ns-with-src-uri
+                  (:defs cache-contents)
+                  (:scm (:version cache-contents))
+                  (:namespace ns-emap))
         [[dominant-platf] :as platf-stats] (api/platform-stats defs)
         ns-data (first (filter #(= (:namespace ns-emap) (platf/get-field % :name))
                                (bundle/namespaces cache-bundle)))

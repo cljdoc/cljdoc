@@ -50,9 +50,8 @@
     mp-var))
 
 (defn defs-for-ns-with-src-uri
-  [cache-contents ns]
-  (let [defs         (defs-for-ns (:defs cache-contents) ns)
-        scm-info     (:scm (:version cache-contents))
+  [defs scm-info ns]
+  (let [defs         (defs-for-ns defs ns)
         blob         (or (:name (:tag scm-info)) (:commit scm-info))
         scm-base     (str (:url scm-info) "/blob/" blob "/")
         file-mapping (when (:files scm-info)
