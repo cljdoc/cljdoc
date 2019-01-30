@@ -70,7 +70,7 @@
                   :description ["Builds an offline documentation bundle for previously ingested project"]
                   :opts        [{:option "project" :short "p" :as "Project to export" :type :string :default :present}
                                 {:option "version" :short "v" :as "Version to export" :type :string :default :present}
-                                {:option "output" :short "o" :as "Output bundle path" :type :string :default :present}]
+                                {:option "output" :short "o" :as "Path of output zipfile" :type :string :default :present}]
                   :runs        offline-bundle}
                  {:command     "run"
                   :description "Run the cljdoc server (config in resources/config.edn)"
