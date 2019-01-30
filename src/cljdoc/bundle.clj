@@ -1,6 +1,7 @@
 (ns cljdoc.bundle
   "Functions to operate on cache bundles"
   (:require [cljdoc.spec]
+            [cljdoc.util.fixref :as fixref]
             [cljdoc.platforms :as platf]
             [clojure.string :as string]))
 
@@ -37,6 +38,28 @@
        (vals)
        (map platf/unify-defs)
        (sort-by platf-name)))
+
+(defn- add-src-uri
+  [{:keys [platforms] :as mp-var} scm-base file-mapping]
+  {:pre [(platf/multiplatform? mp-var)]}
+  (if file-mapping
+    (->> platforms
+         (map (fn [{:keys [file line] :as p}]
+                (assoc p :src-uri (str scm-base (get file-mapping file) "#L" line))))
+         (assoc mp-var :platforms))
+    mp-var))
+
+(defn defs-for-ns-with-src-uri
+  [cache-contents ns]
+  (let [defs         (defs-for-ns (:defs cache-contents) ns)
+        scm-info     (:scm (:version cache-contents))
+        blob         (or (:name (:tag scm-info)) (:commit scm-info))
+        scm-base     (str (:url scm-info) "/blob/" blob "/")
+        file-mapping (when (:files scm-info)
+                       (fixref/match-files
+                        (keys (:files scm-info))
+                        (set (mapcat #(platf/all-vals % :file) defs))))]
+    (map #(add-src-uri % scm-base file-mapping) defs)))
 
 (defn more-recent-version
   [{:keys [cache-contents cache-id]}]

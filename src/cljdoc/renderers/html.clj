@@ -83,7 +83,7 @@
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
   (assert (:namespace route-params))
   (let [ns-emap route-params
-        defs    (bundle/defs-for-ns (:defs cache-contents) (:namespace ns-emap))
+        defs    (bundle/defs-for-ns-with-src-uri cache-contents (:namespace ns-emap))
         [[dominant-platf] :as platf-stats] (api/platform-stats defs)
         ns-data (first (filter #(= (:namespace ns-emap) (platf/get-field % :name))
                                (bundle/namespaces cache-bundle)))
@@ -96,8 +96,7 @@
              :vars-sidebar-contents (when (seq defs)
                                       [(api/platform-support-note platf-stats)
                                        (api/definitions-list ns-emap defs {:indicate-platforms-other-than dominant-platf})])
-             :content (api/namespace-page {:scm-info (:scm (:version cache-contents))
-                                           :ns-entity ns-emap
+             :content (api/namespace-page {:ns-entity ns-emap
                                            :ns-data ns-data
                                            :defs defs})})
            (layout/layout

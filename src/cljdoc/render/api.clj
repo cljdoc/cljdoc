@@ -207,36 +207,19 @@
                defs (bundle/defs-for-ns defs ns)]]
      (namespace-overview ns-url-fn mp-ns defs))])
 
-(defn add-src-uri
-  [{:keys [platforms] :as mp-var} scm-base file-mapping]
-  {:pre [(platf/multiplatform? mp-var)]}
-  (if file-mapping
-    (->> platforms
-         (map (fn [{:keys [file line] :as p}]
-                (assoc p :src-uri (str scm-base (get file-mapping file) "#L" line))))
-         (assoc mp-var :platforms))
-    mp-var))
-
-(defn namespace-page [{:keys [ns-entity ns-data defs scm-info]}]
+(defn namespace-page [{:keys [ns-entity ns-data defs]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (assert (platf/multiplatform? ns-data))
-  (let [blob             (or (:name (:tag scm-info)) (:commit scm-info))
-        scm-base         (str (:url scm-info) "/blob/" blob "/")
-        file-mapping     (when (:files scm-info)
-                           (fixref/match-files
-                            (keys (:files scm-info))
-                            (set (mapcat #(platf/all-vals % :file) defs))))
-        render-wiki-link (render-wiki-link-fn (:namespace ns-entity)
-                                              #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %)))]
+  (let [render-wiki-link (render-wiki-link-fn
+                          (:namespace ns-entity)
+                          #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %)))]
     [:div.ns-page
      [:div.w-80-ns.pv4
       [:h2 (:namespace ns-entity)]
       (render-doc ns-data render-wiki-link)
       (if (seq defs)
-        (for [def defs]
-          (def-block
-            (add-src-uri def scm-base file-mapping)
-            render-wiki-link))
+        (for [adef defs]
+          (def-block adef render-wiki-link))
         [:p "No vars found in this namespace."])]]))
 
 (comment
