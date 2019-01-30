@@ -84,13 +84,6 @@
        (version-clj/version-sort)
        (last)))
 
-(defn- docs-cache-contents [db-spec version-id]
-  {:version    (p :get-version (or (get-version db-spec version-id) {}))
-   :group      {}
-   :artifact   {}
-   :namespaces (p :get-namespaces (set (get-namespaces db-spec version-id)))
-   :defs       (p :get-vars (set (get-vars db-spec version-id)))})
-
 (defn- sql-exists?
   "A small helper to deal with the complex keys that sqlite returns for exists queries."
   [db-spec sqlvec]
@@ -128,7 +121,11 @@
 (defn bundle-docs
   [db-spec {:keys [group-id artifact-id version] :as v}]
   (if-let [version-id (get-version-id db-spec group-id artifact-id version)]
-    (-> (docs-cache-contents db-spec version-id)
+    (-> {:version    (p :get-version (or (get-version db-spec version-id) {}))
+         :group      {}
+         :artifact   {}
+         :namespaces (p :get-namespaces (set (get-namespaces db-spec version-id)))
+         :defs       (p :get-vars (set (get-vars db-spec version-id)))}
         (assoc :latest (latest-release-version db-spec v))
         (assoc :version-entity {:group-id group-id, :artifact-id artifact-id, :version version}))
     (throw (Exception. (format "Could not find version %s" v)))))
