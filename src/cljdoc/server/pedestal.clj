@@ -30,6 +30,7 @@
             [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
             [cljdoc.util :as util]
+            [cljdoc.util.pom :as pom]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
@@ -99,23 +100,36 @@
                 :group/index    (index-pages/group-index (-> ctx :request :path-params) (::releases ctx))
                 :cljdoc/index   (index-pages/full-index (::releases ctx)))))])
 
+(def ^:private pom-path
+  [:cache-bundle :cache-contents :version :pom])
+
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
   relevant for the artifact identified via the entity map in `:path-params`."
   [store cache]
   {:name  ::artifact-data-loader
    :enter (fn artifact-data-loader-inner [ctx]
-            (let [params (-> ctx :request :path-params)]
+            (let [params (-> ctx :request :path-params)
+                  pom-data (get-in ctx pom-path)]
               (log/info "Loading artifact cache bundle for" params)
               (if (storage/exists? store params)
-                (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
-                      cache-bundle (assoc-in
-                                    (storage/bundle-docs store params)
-                                    [:cache-contents :version :pom]
-                                    (pom-xml-memo (util/clojars-id params)
-                                                  (:version params)))]
-                  (assoc ctx :cache-bundle cache-bundle))
+                (-> ctx
+                    (assoc :cache-bundle (storage/bundle-docs store params))
+                    (assoc-in pom-path pom-data))
                 ctx)))})
+
+(defn pom-loader
+  "Load a projects POM file, parse it and inject some information from it into the context."
+  [cache]
+  {:name ::pom-loader
+   :enter (fn pom-loader-inner [ctx]
+            (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
+                  params (-> ctx :request :path-params)
+                  pom-parsed (pom/parse (pom-xml-memo
+                                         (util/clojars-id params)
+                                         (:version params)))]
+              (assoc-in ctx pom-path {:description (-> pom-parsed pom/artifact-info :description)
+                                      :dependencies (-> pom-parsed pom/dependencies)})))})
 
 (defn- resolve-version [path-params referer]
   (assert (= "CURRENT" (:version path-params)))
@@ -153,6 +167,7 @@
   [storage cache route-name]
   (->> [(version-resolve-redirect)
         (when (= :artifact/doc route-name) doc-slug-parser)
+        (pom-loader cache)
         (artifact-data-loader storage cache)
         render-interceptor]
        (keep identity)

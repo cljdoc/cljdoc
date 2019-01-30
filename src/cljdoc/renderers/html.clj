@@ -33,7 +33,7 @@
        (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))
                      :description (layout/artifact-description
                                    cache-id
-                                   (-> cache-contents :version :pom pom/parse pom/artifact-info :description))})))
+                                   (-> cache-contents :version :pom :description))})))
 
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -77,7 +77,7 @@
                        ;; update desctiption by extracting it from XML (:pom cache-bundle)
                        :description (layout/artifact-description
                                      cache-id
-                                     (-> cache-contents :version :pom pom/parse pom/artifact-info :description))}))))
+                                     (-> cache-contents :version :pom :description))}))))
 
 (defmethod render :artifact/namespace
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -114,7 +114,7 @@
                                                (routes/url-for :artifact/namespace :path-params))
                        :description (layout/artifact-description
                                      cache-id
-                                     (-> cache-contents :version :pom pom/parse pom/artifact-info :description))}))))
+                                     (-> cache-contents :version :pom :description))}))))
 
 (comment
 
