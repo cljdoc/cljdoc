@@ -118,16 +118,14 @@
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
                  fix-opts))]])
 
-(defn ns-page [ns defs {:keys [scm-base file-mapping]}]
+(defn ns-page [ns defs]
   (let [ns-name (platf/get-field ns :name)
         render-wiki-link (api/render-wiki-link-fn ns-name #(str % ".html"))]
     [:div
      [:h1 ns-name]
      (api/render-doc ns render-wiki-link)
      (for [def defs]
-       (api/def-block
-         (api/add-src-uri def scm-base file-mapping)
-         render-wiki-link))]))
+       (api/def-block def render-wiki-link))]))
 
 (defn docs-files
   "Return a list of [file-path content] pairs describing a zip archive.
@@ -137,12 +135,6 @@
   (cljdoc-spec/assert :cljdoc.spec/cache-bundle cache-bundle)
   (let [doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))
         scm-info     (-> cache-contents :version :scm)
-        blob         (or (:name (:tag scm-info)) (:commit scm-info))
-        scm-base     (str (:url scm-info) "/blob/" blob "/")
-        file-mapping (when (:files scm-info)
-                       (fixref/match-files
-                        (keys (:files scm-info))
-                        (set (keep :file (-> cache-contents :defs)))))
         flat-doctree (-> doc-tree doctree/flatten*)
         uri-map (->> flat-doctree
                        (map (fn [d]
@@ -176,11 +168,12 @@
 
       ;; Namespace Pages
       (for [ns-data (bundle/namespaces cache-bundle)
-            :let [defs (bundle/defs-for-ns
+            :let [defs (bundle/defs-for-ns-with-src-uri
                          (:defs cache-contents)
+                         scm-info
                          (platf/get-field ns-data :name))]]
         [(ns-url (platf/get-field ns-data :name))
-         (->> (ns-page ns-data defs {:scm-base scm-base :file-mapping file-mapping})
+         (->> (ns-page ns-data defs)
               (page' :namespace (platf/get-field ns-data :name)))])])))
 
 (defn zip-stream [{:keys [cache-id] :as cache-bundle}]
