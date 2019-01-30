@@ -119,15 +119,22 @@
         (sql-exists? db-spec ["select exists(select id from vars where version_id = ?)" v-id]))))
 
 (defn bundle-docs
-  [db-spec {:keys [group-id artifact-id version] :as v}]
+  ;; TODO add `dependency-version-entities` argument
+  [db-spec {:keys [group-id artifact-id version namespace] :as v}]
   (if-let [version-id (get-version-id db-spec group-id artifact-id version)]
     (-> {:version    (p :get-version (or (get-version db-spec version-id) {}))
-         :group      {}
-         :artifact   {}
+         ;; TODO integrate namespaces from dependencies
          :namespaces (p :get-namespaces (set (get-namespaces db-spec version-id)))
-         :defs       (p :get-vars (set (get-vars db-spec version-id)))}
-        (assoc :latest (latest-release-version db-spec v))
-        (assoc :version-entity {:group-id group-id, :artifact-id artifact-id, :version version}))
+         ;; TODO only load defs for namespace that is being requested
+         ;; Maybe skip this initially because all vars are needed for overview page
+         :defs       (p :get-vars (set (get-vars db-spec version-id)))
+         ;; TODO add scm-info for the rendered namespace
+         ;; -----
+
+         :latest (latest-release-version db-spec v)
+         :version-entity {:group-id group-id
+                          :artifact-id artifact-id
+                          :version version}})
     (throw (Exception. (format "Could not find version %s" v)))))
 
 (defn import-api [db-spec
