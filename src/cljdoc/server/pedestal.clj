@@ -216,7 +216,7 @@
                                  (log/warnf "Could not find release for %s" project)))
                   url     (if release
                             (badge-url release :blue)
-                            (badge-url (str "no release found for " project) :red))
+                            (badge-url (str "no%20release%20found%20for%20" project) :red))
                   badge   (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}})]
               (->> {:status 200
                     :headers {"Content-Type" "image/svg+xml;charset=utf-8"
