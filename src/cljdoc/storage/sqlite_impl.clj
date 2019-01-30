@@ -76,6 +76,14 @@
                                 (format "namespace missing from meta"))
                         (-> r :meta nippy/thaw (assoc :name (:name r))))}))
 
+(declare get-documented-versions)
+(defn- latest-release-version [db-spec {:keys [group-id artifact-id]}]
+  (->> (get-documented-versions db-spec group-id artifact-id)
+       (map :version)
+       (remove #(.endsWith % "-SNAPSHOT"))
+       (version-clj/version-sort)
+       (last)))
+
 (defn- docs-cache-contents [db-spec version-id]
   {:version    (p :get-version (or (get-version db-spec version-id) {}))
    :group      {}
@@ -120,14 +128,10 @@
 (defn bundle-docs
   [db-spec {:keys [group-id artifact-id version] :as v}]
   (if-let [version-id (get-version-id db-spec group-id artifact-id version)]
-    (let [versions-on-cljdoc (->> (get-documented-versions db-spec group-id artifact-id)
-                                  (map :version)
-                                  (remove #(.endsWith % "-SNAPSHOT"))
-                                  (version-clj/version-sort))]
-      (->> {:cache-contents (-> (docs-cache-contents db-spec version-id)
-                                (assoc :latest (last versions-on-cljdoc)))
-            :cache-id       {:group-id group-id, :artifact-id artifact-id, :version version}}
-           (cljdoc.spec/assert :cljdoc.spec/cache-bundle)))
+    (->> {:cache-contents (-> (docs-cache-contents db-spec version-id)
+                              (assoc :latest (latest-release-version db-spec v)))
+          :cache-id       {:group-id group-id, :artifact-id artifact-id, :version version}}
+         (cljdoc.spec/assert :cljdoc.spec/cache-bundle))
     (throw (Exception. (format "Could not find version %s" v)))))
 
 (defn import-api [db-spec
