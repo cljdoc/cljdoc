@@ -24,29 +24,29 @@
   (format "%s not implemented, sorry" page-type))
 
 (defmethod render :artifact/version
-  [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  [_ route-params {:keys [version-entity] :as cache-bundle}]
   (->> (layout/layout
         ;; TODO on mobile this will effectively be rendered as a blank page
         ;; We could instead show a message and the namespace tree.
-        {:top-bar (layout/top-bar cache-id (-> cache-contents :version :scm :url))
+        {:top-bar (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
          :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)})
-       (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))
+       (layout/page {:title (str (util/clojars-id version-entity) " " (:version version-entity))
                      :description (layout/artifact-description
-                                   cache-id
-                                   (-> cache-contents :version :pom :description))})))
+                                   version-entity
+                                   (-> cache-bundle :version :pom :description))})))
 
 (defmethod render :artifact/doc
-  [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  [_ route-params {:keys [version-entity] :as cache-bundle}]
   (assert (:doc-slug-path route-params))
   (let [doc-slug-path (:doc-slug-path route-params)
-        doc-tree (doctree/add-slug-path (-> cache-contents :version :doc))
+        doc-tree (doctree/add-slug-path (-> cache-bundle :version :doc))
         doc-p (->> doc-tree
                    doctree/flatten*
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
         [doc-type contents] (doctree/entry->type-and-content doc-p)
         doc-html (rich-text/render-text [doc-type contents])
-        top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
+        top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
         sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
     ;; if there's no article then the page should display a list of all child-pages
@@ -55,43 +55,43 @@
             {:top-bar top-bar-component
              :main-sidebar-contents sidebar-contents
              :content (articles/doc-page
-                       {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/"
-                                          (or (-> cache-contents :version :scm :branch) "master")
+                       {:doc-scm-url (str (-> cache-bundle :version :scm :url) "/blob/"
+                                          (or (-> cache-bundle :version :scm :branch) "master")
                                           "/" (-> doc-p :attrs :cljdoc.doc/source-file))
                         :doc-type (name doc-type)
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                               doc-html
-                                              {:scm (:scm (:version cache-contents))
-                                               :uri-map (fixref/uri-mapping cache-id (doctree/flatten* doc-tree))})})})
+                                              {:scm (:scm (:version cache-bundle))
+                                               :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})})})
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents sidebar-contents
              :content (articles/doc-overview
-                       {:cache-id cache-id
+                       {:version-entity version-entity
                         :doc-tree (doctree/get-subtree doc-tree doc-slug-path)})}))
 
-         (layout/page {:title (str (:title doc-p) " — " (util/clojars-id cache-id) " " (:version cache-id))
+         (layout/page {:title (str (:title doc-p) " — " (util/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
                        ;; update desctiption by extracting it from XML (:pom cache-bundle)
                        :description (layout/artifact-description
-                                     cache-id
-                                     (-> cache-contents :version :pom :description))}))))
+                                     version-entity
+                                     (-> cache-bundle :version :pom :description))}))))
 
 (defmethod render :artifact/namespace
-  [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  [_ route-params {:keys [version-entity] :as cache-bundle}]
   (assert (:namespace route-params))
   (let [ns-emap route-params
         defs    (bundle/defs-for-ns-with-src-uri
-                  (:defs cache-contents)
-                  (:scm (:version cache-contents))
+                  (:defs cache-bundle)
+                  (:scm (:version cache-bundle))
                   (:namespace ns-emap))
         [[dominant-platf] :as platf-stats] (api/platform-stats defs)
         ns-data (first (filter #(= (:namespace ns-emap) (platf/get-field % :name))
                                (bundle/namespaces cache-bundle)))
-        top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
-        common-params {:top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))}]
+        top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
+        common-params {:top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))}]
     (->> (if ns-data
            (layout/layout
             {:top-bar top-bar-component
@@ -107,14 +107,14 @@
              :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)
              :content (api/sub-namespace-overview-page {:ns-entity ns-emap
                                                         :namespaces (bundle/namespaces cache-bundle)
-                                                        :defs (:defs cache-contents)})}))
-         (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id cache-id) " " (:version cache-id))
+                                                        :defs (:defs cache-bundle)})}))
+         (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/namespace :path-params))
                        :description (layout/artifact-description
-                                     cache-id
-                                     (-> cache-contents :version :pom :description))}))))
+                                     version-entity
+                                     (-> cache-bundle :version :pom :description))}))))
 
 (comment
 
@@ -129,7 +129,7 @@
 
   (namespace-hierarchy (map :name namespaces))
 
-  (-> (doctree/add-slug-path (-> (:cache-contents cljdoc.bundle/cache) :version :doc))
+  (-> (doctree/add-slug-path (-> (:cache-bundle cljdoc.bundle/cache) :version :doc))
       first)
 
   )

@@ -55,7 +55,7 @@
             (let [path-params (-> ctx :request :path-params)
                   page-type   (-> ctx :route :route-name)]
               (if-let [first-article-slug (and (= page-type :artifact/version)
-                                               (-> cache-bundle :cache-contents :version :doc first :attrs :slug))]
+                                               (-> cache-bundle :version :doc first :attrs :slug))]
                 ;; instead of rendering a mostly white page we
                 ;; redirect to the README/first listed article
                 (let [location (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))]
@@ -101,7 +101,7 @@
                 :cljdoc/index   (index-pages/full-index (::releases ctx)))))])
 
 (def ^:private pom-path
-  [:cache-bundle :cache-contents :version :pom])
+  [:cache-bundle :version :pom])
 
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
@@ -318,14 +318,14 @@
   for the project that has been injected into the context by [[artifact-data-loader]]."
   {:name ::offline-bundle
    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
-            (log/info "Bundling" (str (-> cache-bundle :cache-id :artifact-id) "-"
-                                      (-> cache-bundle :cache-id :version) ".zip"))
+            (log/info "Bundling" (str (-> cache-bundle :version-entity :artifact-id) "-"
+                                      (-> cache-bundle :version-entity :version) ".zip"))
             (->> (if cache-bundle
                    {:status 200
                     :headers {"Content-Type" "application/zip, application/octet-stream"
                               "Content-Disposition" (format "attachment; filename=\"%s\""
-                                                            (str (-> cache-bundle :cache-id :artifact-id) "-"
-                                                                 (-> cache-bundle :cache-id :version) ".zip"))}
+                                                            (str (-> cache-bundle :version-entity :artifact-id) "-"
+                                                                 (-> cache-bundle :version-entity :version) ".zip"))}
                     :body (offline/zip-stream cache-bundle)}
                    {:status 404
                     :headers {}

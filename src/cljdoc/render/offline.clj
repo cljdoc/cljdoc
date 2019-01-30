@@ -95,17 +95,17 @@
                  (some-> doc-page :children seq article-toc)])))
        (into [:ol])))
 
-(defn index-page [{:keys [cache-contents] :as cache-bundle}]
+(defn index-page [cache-bundle]
   [:div
-   (when (-> cache-contents :version :doc)
+   (when (-> cache-bundle :version :doc)
      [:div
       [:h1.mv0.pv3 {:id "articles"} "Articles"]
-      (article-toc (doctree/add-slug-path (-> cache-contents :version :doc)))])
+      (article-toc (doctree/add-slug-path (-> cache-bundle :version :doc)))])
 
    [:h1.mv0.pv3 {:id "namespaces"} "Namespaces"]
    (for [ns (bundle/namespaces cache-bundle)
          :let [defs (bundle/defs-for-ns
-                      (:defs cache-contents)
+                      (:defs cache-bundle)
                       (platf/get-field ns :name))]]
      (api/namespace-overview ns-url ns defs))])
 
@@ -131,10 +131,10 @@
   "Return a list of [file-path content] pairs describing a zip archive.
 
   Content may be a java.io.File or hiccup.util.RawString"
-  [{:keys [cache-contents cache-id] :as cache-bundle}]
+  [{:keys [version-entity] :as cache-bundle}]
   (cljdoc-spec/assert :cljdoc.spec/cache-bundle cache-bundle)
-  (let [doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))
-        scm-info     (-> cache-contents :version :scm)
+  (let [doc-tree     (doctree/add-slug-path (-> cache-bundle :version :doc))
+        scm-info     (-> cache-bundle :version :scm)
         flat-doctree (-> doc-tree doctree/flatten*)
         uri-map (->> flat-doctree
                        (map (fn [d]
@@ -142,8 +142,8 @@
                                (article-url (-> d :attrs :slug-path))]))
                        (into {}))
         page'   (fn [type title contents]
-                  (page {:version-entity cache-id
-                         :scm-url (-> cache-contents :version :scm :url)
+                  (page {:version-entity version-entity
+                         :scm-url (-> cache-bundle :version :scm :url)
                          type title}
                         contents))]
 
@@ -169,16 +169,16 @@
       ;; Namespace Pages
       (for [ns-data (bundle/namespaces cache-bundle)
             :let [defs (bundle/defs-for-ns-with-src-uri
-                         (:defs cache-contents)
+                         (:defs cache-bundle)
                          scm-info
                          (platf/get-field ns-data :name))]]
         [(ns-url (platf/get-field ns-data :name))
          (->> (ns-page ns-data defs)
               (page' :namespace (platf/get-field ns-data :name)))])])))
 
-(defn zip-stream [{:keys [cache-id] :as cache-bundle}]
-  (let [prefix (str (-> cache-id :artifact-id)
-                    "-" (-> cache-id :version)
+(defn zip-stream [{:keys [version-entity] :as cache-bundle}]
+  (let [prefix (str (-> version-entity :artifact-id)
+                    "-" (-> version-entity :version)
                     "/")]
     (->> (docs-files cache-bundle)
          (map (fn [[k v]]
@@ -211,8 +211,8 @@
 
   (->> (take 2 (docs-files --c))
        (map (fn [[k v]]
-              [(str (-> --c :cache-id :artifact-id)
-                    "-" (-> --c :cache-id :version)
+              [(str (-> --c :version-entity :artifact-id)
+                    "-" (-> --c :version-entity :version)
                     "/" k)
                (cond
                  (instance?  java.io.File v)         (Files/readAllBytes (.toPath v))

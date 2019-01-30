@@ -7,13 +7,13 @@
 
 (defn ns-entities
   "Return entity-maps for all namespaces in the cache-bundle"
-  [{:keys [cache-contents cache-id]}]
+  [{:keys [version-entity] :as cache-bundle}]
   (let [has-defs? (fn [ns-emap]
                     (seq (filter #(= (:namespace ns-emap) (:namespace %))
-                                 (:defs cache-contents))))]
-    (->> (:namespaces cache-contents)
+                                 (:defs cache-bundle))))]
+    (->> (:namespaces cache-bundle)
          (map :name)
-         (map #(merge cache-id {:namespace %}))
+         (map #(merge version-entity {:namespace %}))
          (filter has-defs?)
          (map #(cljdoc.spec/assert :cljdoc.spec/namespace-entity %))
          set)))
@@ -22,9 +22,9 @@
   (string/lower-case (platf/get-field p :name)))
 
 (defn namespaces
-  [{:keys [cache-contents cache-id]}]
-  {:pre [(find cache-contents :namespaces)]}
-  (->> (:namespaces cache-contents)
+  [{:keys [version-entity] :as cache-bundle}]
+  {:pre [(find cache-bundle :namespaces)]}
+  (->> (:namespaces cache-bundle)
        (group-by :name)
        (vals)
        (map platf/unify-namespaces)
@@ -61,10 +61,10 @@
     (map #(add-src-uri % scm-base file-mapping) defs)))
 
 (defn more-recent-version
-  [{:keys [cache-contents cache-id]}]
-  (when (and (:latest cache-contents)
-             (not= (:version cache-id) (:latest cache-contents)))
-    (assoc cache-id :version (:latest cache-contents))))
+  [{:keys [version-entity] :as cache-bundle}]
+  (when (and (:latest cache-bundle)
+             (not= (:version version-entity) (:latest cache-bundle)))
+    (assoc version-entity :version (:latest cache-bundle))))
 
 (comment
   (defn cb [id]

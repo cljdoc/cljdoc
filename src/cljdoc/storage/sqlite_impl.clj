@@ -128,10 +128,9 @@
 (defn bundle-docs
   [db-spec {:keys [group-id artifact-id version] :as v}]
   (if-let [version-id (get-version-id db-spec group-id artifact-id version)]
-    (->> {:cache-contents (-> (docs-cache-contents db-spec version-id)
-                              (assoc :latest (latest-release-version db-spec v)))
-          :cache-id       {:group-id group-id, :artifact-id artifact-id, :version version}}
-         (cljdoc.spec/assert :cljdoc.spec/cache-bundle))
+    (-> (docs-cache-contents db-spec version-id)
+        (assoc :latest (latest-release-version db-spec v))
+        (assoc :version-entity {:group-id group-id, :artifact-id artifact-id, :version version}))
     (throw (Exception. (format "Could not find version %s" v)))))
 
 (defn import-api [db-spec

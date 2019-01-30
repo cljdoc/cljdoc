@@ -14,9 +14,9 @@
 
   If articles or namespaces are missing for a project there will be little messages pointing
   users to the relevant documentation or GitHub to open an issue."
-  [route-params {:keys [cache-id cache-contents] :as cache-bundle}]
+  [route-params {:keys [version-entity] :as cache-bundle}]
   (let [doc-slug-path (:doc-slug-path route-params)
-        doc-tree (doctree/add-slug-path (-> cache-contents :version :doc))
+        doc-tree (doctree/add-slug-path (-> cache-bundle :version :doc))
         split-doc-tree ((juxt filter remove)
                         #(contains? #{"Readme" "Changelog"} (:title %))
                         doc-tree)
@@ -29,7 +29,7 @@
      ;; Special documents (Readme & Changelog)
      (when (seq readme-and-changelog)
        [:div.mb4
-        (articles/doc-tree-view cache-id readme-and-changelog (:doc-slug-path route-params))])
+        (articles/doc-tree-view version-entity readme-and-changelog (:doc-slug-path route-params))])
 
      ;; Remaining doctree or note if missing
      (cond
@@ -38,7 +38,7 @@
        (seq doc-tree-with-rest)
        [:div.mb4.js--articles
         (layout/sidebar-title "Articles" {:separator-line? (not (empty? readme-and-changelog))})
-        [:div.mv3 (articles/doc-tree-view cache-id doc-tree-with-rest (:doc-slug-path route-params))]]
+        [:div.mv3 (articles/doc-tree-view version-entity doc-tree-with-rest (:doc-slug-path route-params))]]
 
        ;; only readme and changelog -> inform user about custom articles
        (seq readme-and-changelog)
