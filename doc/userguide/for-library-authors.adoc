@@ -108,6 +108,29 @@ TIP: Since sometimes people forget to update the paths after moving files around
 curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
 ----
 
+=== Module Support
+
+Some libraries consist of smaller submodules and cljdoc provides some facilities for library authors to make their documentaiton available in one location:
+
+==== Module specific settings
+
+If you want to provide a different doc tree for one module, simply nest it in the projects name, e.g.:
+
+[source,clojure]
+----
+{
+  ;; used for metosin/reitit
+  ;; when building docs for metosin/reitit this will be used as if
+  ;; the doc/cljdoc.edn file contained just the value of this key
+  metosin/reitit {:cljdoc.doc/tree [["Introduction" {:file "intro.md"}]]}
+
+  ;; used for any project except metosin/reitit
+  ;; could contain an overview about all modules and a pointer
+  ;; to the overarching documentation for metosin/reitit
+  :cljdoc.doc/tree [["Overview" {:file "modules/README.md"}]]
+}
+----
+
 == More Features
 
 ==== Wikilinks

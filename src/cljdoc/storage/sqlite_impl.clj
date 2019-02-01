@@ -21,6 +21,7 @@
   to the mix."
   (:require [cljdoc.spec]
             [cljdoc.util :as util]
+            [cljdoc.user-config :as user-config]
             [clojure.set :as cset]
             [clojure.java.io :as io]
             [clojure.java.jdbc :as sql]
@@ -173,7 +174,8 @@
     (if-not primary-resolved
       (throw (Exception. (format "Could not find version %s" v)))
       (let [version-data (or (get-version db-spec (:id primary-resolved)) {})
-            wanted?      (->> version-data :config :cljdoc/include-namespaces-from-dependencies (map util/normalize-project) set)
+            include-cfg  (user-config/include-namespaces-from-deps (:config version-data) (util/clojars-id v))
+            wanted?      (set (map util/normalize-project include-cfg))
             extra-deps   (filter #(wanted? (str (:group-id %) "/" (:artifact-id %))) resolved-versions)
             namespaces   (set (get-namespaces db-spec (conj extra-deps primary-resolved)))]
         (-> {:version    version-data

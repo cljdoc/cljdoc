@@ -8,7 +8,7 @@
             [cljdoc.util.scm :as scm]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
-            [clj-http.lite.client :as http]
+            [cljdoc.user-config :as user-config]
             [clojure.edn :as edn]
             [clojure.spec.alpha :as spec]
             [clojure.tools.logging :as log]))
@@ -93,7 +93,7 @@
                           (or (git/slurp-file-at repo revision f)
                               (when (git/exists? repo "master")
                                 (git/slurp-file-at repo "master" f))))
-                        (or (:cljdoc.doc/tree config-edn)
+                        (or (user-config/doc-tree config-edn project)
                             (get-in @util/hardcoded-config
                                     [(util/normalize-project project) :cljdoc.doc/tree])
                             (doctree/derive-toc git-files)))})
