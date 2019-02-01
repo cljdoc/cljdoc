@@ -8,12 +8,11 @@
 (defn ns-entities
   "Return entity-maps for all namespaces in the cache-bundle"
   [{:keys [version-entity] :as cache-bundle}]
-  (let [has-defs? (fn [ns-emap]
-                    (seq (filter #(= (:namespace ns-emap) (:namespace %))
-                                 (:defs cache-bundle))))]
+  (let [nss-from-defs (set (map :namespace (:defs cache-bundle)))
+        has-defs?     (fn [ns-emap]
+                        (contains? nss-from-defs (:namespace ns-emap)))]
     (->> (:namespaces cache-bundle)
-         (map :name)
-         (map #(merge version-entity {:namespace %}))
+         (map #(merge (:version-entity %) {:namespace (:name %)}))
          (filter has-defs?)
          (map #(cljdoc.spec/assert :cljdoc.spec/namespace-entity %))
          set)))

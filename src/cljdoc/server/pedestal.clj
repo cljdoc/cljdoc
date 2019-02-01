@@ -110,11 +110,12 @@
   {:name  ::artifact-data-loader
    :enter (fn artifact-data-loader-inner [ctx]
             (let [params (-> ctx :request :path-params)
-                  pom-data (get-in ctx pom-path)]
+                  pom-data (get-in ctx pom-path)
+                  bundle-params (assoc params :dependency-version-entities (:dependencies pom-data))]
               (log/info "Loading artifact cache bundle for" params)
               (if (storage/exists? store params)
                 (-> ctx
-                    (assoc :cache-bundle (storage/bundle-docs store params))
+                    (assoc :cache-bundle (storage/bundle-docs store bundle-params))
                     (assoc-in pom-path pom-data))
                 ctx)))})
 
