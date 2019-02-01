@@ -107,19 +107,27 @@
      (when (seq (platf/all-vals def :doc))
        [:a.link.f7.gray.hover-dark-gray.js--toggle-raw {:href "#"} "raw docstring"])]))
 
-(defn namespace-list [{:keys [current]} namespaces]
-  (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
-        namespaces  (ns-tree/index-by :namespace namespaces)]
-    [:ul.list.pl0
-     (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))
-           :let [style {:margin-left (str (* (dec level) 10) "px")}]]
-       [:li
-        [:a.link.hover-dark-blue.blue.dib.pa1
-         {:href (routes/url-for :artifact/namespace :path-params (assoc base-params :namespace ns))
-          :class (when (= ns current) "b")
-          :style style}
-         (->> (ns-tree/split-ns ns)
-              (drop (dec level)))]])]))
+(defn namespace-list [{:keys [current version-entity]} namespaces]
+  (let [keyed-namespaces (ns-tree/index-by :namespace namespaces)
+        from-dependency? (fn from-dependency? [ns-entity]
+                           (or (not= (:group-id version-entity) (:group-id ns-entity))
+                               (not= (:artifact-id version-entity) (:artifact-id ns-entity)))) ]
+    [:div
+     [:ul.list.pl0
+      (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys keyed-namespaces))
+            :let [style {:margin-left (str (* (dec level) 10) "px")}
+                  nse (get keyed-namespaces ns)]]
+        [:li
+         [:a.link.hover-dark-blue.blue.dib.pa1
+          {:href (routes/url-for :artifact/namespace :path-params (assoc version-entity :namespace ns))
+           :class (when (= ns current) "b")
+           :style style}
+          (->> (ns-tree/split-ns ns)
+               (drop (dec level)))
+          (when (and nse (from-dependency? nse))
+            [:sup.pl1.normal "†"])]])]
+     (when (some from-dependency? namespaces)
+       [:p.f7.fw5.gray.mt4 [:sup.f6.db "†"] "Included via a transitive dependency."])]))
 
 (defn humanize-supported-platforms
   ([supported-platforms]

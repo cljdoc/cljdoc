@@ -63,7 +63,9 @@
        [:div.mb4
         (layout/sidebar-title "Namespaces")
         (if (seq ns-entities)
-          (api/namespace-list {:current (:namespace route-params)} ns-entities)
+          (api/namespace-list {:current (:namespace route-params)
+                               :version-entity version-entity}
+                              ns-entities)
           [:p.f7.gray.lh-title
            "We couldn't find any namespaces in this artifact. Most often the reason for this is
            that the analysis failed or that the artifact has been mispackaged and does not
