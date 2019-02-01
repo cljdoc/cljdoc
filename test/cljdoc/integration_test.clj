@@ -1,4 +1,4 @@
-(ns cljdoc.integration-test
+(ns ^:slow cljdoc.integration-test
   (:require [cljdoc.server.system :as sys]
             [cljdoc.util :as util]
             [io.pedestal.test :as pdt]
