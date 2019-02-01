@@ -65,7 +65,7 @@
                      (util/clojars-id version-entity) " v"
                      (:version version-entity))]
                    [:meta {:charset "utf-8"}]
-                   (->> ["assets/cljdoc.css" "assets/github-gist.min.css" "assets/tachyons.min.css"]
+                   (->> ["assets/cljdoc.css" "assets/tachyons.min.css"]
                         (map #(cond->> % sub-page? (str "../")))
                         (apply hiccup.page/include-css))]
                   [:div.sans-serif
@@ -152,7 +152,6 @@
      into
      [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]
        ["assets/tachyons.min.css" (URL. "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css")]
-       ["assets/github-gist.min.css" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css")]
        ["assets/highlight.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js")]
        ["assets/clojure.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js")]
        ["assets/clojure-repl.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")]
