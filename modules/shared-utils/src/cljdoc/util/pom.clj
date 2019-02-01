@@ -24,17 +24,17 @@
   {:url (text doc "project > scm > url")
    :sha (text doc "project > scm > tag")})
 
-(defn managed-deps
-  "Like [[dependencies]] but instead look for dependencies within the <dependencyManagement>
-  key. This key is sometimes used by projects to specify dependency versions in a central place
-  instead of repeating them in each .pom file.
+(defn- managed-deps-tree
+  "Return a tree structure allowing easy access to version numbers for artifacts specified via
+  <dependencyManagement>. This key is sometimes used by projects to specify dependency versions
+  in a central place instead of repeating them in each .pom file.
 
   See [the official Maven docs](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management)."
   [^Jsoup doc]
-  (for [d (.select doc "project > dependencyManagement > dependencies > dependency")]
-    {:group-id    (text d "groupId")
-     :artifact-id (text d "artifactId")
-     :version     (text d "version")}))
+  (reduce (fn [tree d]
+            (assoc-in tree [(text d "groupId") (text d "artifactId")] (text d "version")))
+          {}
+          (.select doc "project > dependencyManagement > dependencies > dependency")))
 
 (defn dependencies [^Jsoup doc]
   (for [d (.select doc "project > dependencies > dependency")]
@@ -45,14 +45,17 @@
      :optional    (text d "optional")}))
 
 (defn dependencies-with-versions
-  "Do a merge of regular ([[dependencies]]) and managed dependencies ([[managed-deps]])
-  where dependencies returned by [[managed-deps]] win. The goal here is to ensure that
-  all dependencies have a non-nil `:version`, which is not always the case when using
-  plain [[dependencies]]."
+  "Like the regular [[dependencies]]) but also takes into account version numbers specified via
+  managed dependencies ([[managed-deps-tree]]). If a dependency returned by [[dependencies]]
+  does not contain a version it will be looked up via the return value of [[managed-deps-tree]].
+  This ensures a non-nil `:version` key is always present for all dependencies."
   [^Jsoup doc]
-  (->> (into (managed-deps doc) (dependencies doc))
-       (util/index-by (juxt :group-id :artifact-id))
-       (vals)))
+  (let [versions-tree (managed-deps-tree doc)]
+    (->> (dependencies doc)
+         (map (fn [{:keys [group-id artifact-id version] :as d}]
+                (if-not version
+                  (assoc d :version (get-in versions-tree [group-id artifact-id]))
+                  d))))))
 
 (defn repositories [^Jsoup doc]
   (for [r (.select doc "project > repositories > repository")]
@@ -73,7 +76,10 @@
 
 (comment
   (def doc
-    (Jsoup/parse (slurp "https://repo.clojars.org/workflo/macros/0.2.63/macros-0.2.63.pom")))
+    (Jsoup/parse (slurp "http://repo.clojars.org/metosin/reitit-core/0.2.13/reitit-core-0.2.13.pom")))
+
+  (managed-deps-tree doc)
+  (dependencies-with-versions doc)
 
   (def doc
     (parse (slurp "https://search.maven.org/remotecontent?filepath=org/clojure/clojure/1.9.0/clojure-1.9.0.pom")))
