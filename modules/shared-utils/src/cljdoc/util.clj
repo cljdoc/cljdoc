@@ -238,3 +238,6 @@
     (let [sqr  (fn sqr [x] (* x x))
           avg  (mean coll)]
       (mean (map #(sqr (- % avg)) coll)))))
+
+(defn index-by [f m]
+  (into {} (map (juxt f identity) m)))
