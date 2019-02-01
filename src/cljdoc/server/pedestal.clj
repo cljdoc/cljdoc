@@ -106,7 +106,7 @@
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
   relevant for the artifact identified via the entity map in `:path-params`."
-  [store cache]
+  [store]
   {:name  ::artifact-data-loader
    :enter (fn artifact-data-loader-inner [ctx]
             (let [params (-> ctx :request :path-params)
@@ -169,7 +169,7 @@
   (->> [(version-resolve-redirect)
         (when (= :artifact/doc route-name) doc-slug-parser)
         (pom-loader cache)
-        (artifact-data-loader storage cache)
+        (artifact-data-loader storage)
         render-interceptor]
        (keep identity)
        (vec)))
@@ -365,7 +365,8 @@
          :artifact/version   (view storage cache route-name)
          :artifact/namespace (view storage cache route-name)
          :artifact/doc       (view storage cache route-name)
-         :artifact/offline-bundle [(artifact-data-loader storage cache)
+         :artifact/offline-bundle [(pom-loader cache)
+                                   (artifact-data-loader storage)
                                    offline-bundle]
 
          :artifact/current-via-short-id [(jump-interceptor)]
