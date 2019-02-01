@@ -71,7 +71,8 @@
           (do
             (log/info "Analyzing at revision:" revision)
             {:scm      (cond-> {:files (git/path-sha-pairs git-files)
-                                :rev revision}
+                                :rev revision
+                                :branch (.. repo getRepository getBranch)}
                          version-tag (assoc :tag version-tag))
              :doc-tree (doctree/process-toc
                         (fn [f]

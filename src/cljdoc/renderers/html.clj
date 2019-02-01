@@ -58,8 +58,9 @@
             {:top-bar top-bar-component
              :main-sidebar-contents sidebar-contents
              :content (articles/doc-page
-                       {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
-                                          (-> doc-p :attrs :cljdoc.doc/source-file))
+                       {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/"
+                                          (or (-> cache-contents :version :scm :branch) "master")
+                                          "/" (-> doc-p :attrs :cljdoc.doc/source-file))
                         :doc-type doc-type
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                               doc-html
