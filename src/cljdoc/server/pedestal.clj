@@ -129,7 +129,7 @@
                                          (util/clojars-id params)
                                          (:version params)))]
               (assoc-in ctx pom-path {:description (-> pom-parsed pom/artifact-info :description)
-                                      :dependencies (-> pom-parsed pom/dependencies)})))})
+                                      :dependencies (-> pom-parsed pom/dependencies-with-versions)})))})
 
 (defn- resolve-version [path-params referer]
   (assert (= "CURRENT" (:version path-params)))
