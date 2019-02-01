@@ -131,6 +131,30 @@ If you want to provide a different doc tree for one module, simply nest it in th
 }
 ----
 
+==== `cljdoc.include-namespaces-from-dependencies`
+
+If you want a project to include API documentation for some of it's dependencies provide an additional key `:cljdoc/include-namespaces-from-dependencies`:
+
+[source,clojure]
+----
+{:cljdoc/include-namespaces-from-dependencies
+ [metosin/reitit
+  metosin/reitit-core
+  metosin/reitit-ring
+  metosin/reitit-spec
+  metosin/reitit-schema
+  metosin/reitit-swagger
+  metosin/reitit-swagger-ui]}
+----
+
+NOTE: This can be specified on a per artifact basis as described in the previous section.
+
+NOTE: This only works if the artifact specifies a dependency on the projects listed. The
+projects POM file will be used to load API information for the correct version.
+
+WARN: If analysis for some of the specified dependencies failed or just hasn't been ran they
+will be silently ignored for now.
+
 == More Features
 
 ==== Wikilinks
