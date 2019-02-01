@@ -99,6 +99,8 @@
 
   (integrant.repl/set-prep! #(system-config (cfg/config)))
 
+  (taoensso.tufte/add-basic-println-handler! {})
+
   (integrant.repl/go)
 
   (do (integrant.repl/halt)
