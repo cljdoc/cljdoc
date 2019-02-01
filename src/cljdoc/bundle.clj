@@ -30,9 +30,21 @@
        (map platf/unify-namespaces)
        (sort-by platf-name)))
 
+(defn get-namespace [bundle ns]
+ (first (filter #(= ns (platf/get-field % :name)) (namespaces bundle))))
+
+(defn scm-info [bundle]
+  (-> bundle :version :scm))
+
+(defn scm-url [bundle]
+  (-> bundle scm-info :url))
+
+(defn all-defs [bundle]
+  (:defs bundle))
+
 (defn defs-for-ns
-  [all-defs ns]
-  (->> all-defs
+  [some-defs ns]
+  (->> some-defs
        (filter #(= ns (:namespace %)))
        (group-by :name)
        (vals)
@@ -50,8 +62,9 @@
     mp-var))
 
 (defn defs-for-ns-with-src-uri
-  [defs scm-info ns]
-  (let [defs         (defs-for-ns defs ns)
+  [bundle ns]
+  (let [defs         (defs-for-ns (all-defs bundle) ns)
+        scm-info     (scm-info bundle)
         blob         (or (:name (:tag scm-info)) (:commit scm-info))
         scm-base     (str (:url scm-info) "/blob/" blob "/")
         file-mapping (when (:files scm-info)

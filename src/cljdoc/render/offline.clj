@@ -105,7 +105,7 @@
    [:h1.mv0.pv3 {:id "namespaces"} "Namespaces"]
    (for [ns (bundle/namespaces cache-bundle)
          :let [defs (bundle/defs-for-ns
-                      (:defs cache-bundle)
+                      (bundle/all-defs cache-bundle)
                       (platf/get-field ns :name))]]
      (api/namespace-overview ns-url ns defs))])
 
@@ -168,10 +168,7 @@
 
       ;; Namespace Pages
       (for [ns-data (bundle/namespaces cache-bundle)
-            :let [defs (bundle/defs-for-ns-with-src-uri
-                         (:defs cache-bundle)
-                         scm-info
-                         (platf/get-field ns-data :name))]]
+            :let [defs (bundle/defs-for-ns-with-src-uri cache-bundle (platf/get-field ns-data :name))]]
         [(ns-url (platf/get-field ns-data :name))
          (->> (ns-page ns-data defs)
               (page' :namespace (platf/get-field ns-data :name)))])])))

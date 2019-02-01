@@ -61,7 +61,7 @@
                         :doc-type (name doc-type)
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                               doc-html
-                                              {:scm (:scm (:version cache-bundle))
+                                              {:scm (bundle/scm-info cache-bundle)
                                                :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})})})
            (layout/layout
             {:top-bar top-bar-component
@@ -74,7 +74,6 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
-                       ;; update desctiption by extracting it from XML (:pom cache-bundle)
                        :description (layout/artifact-description
                                      version-entity
                                      (-> cache-bundle :version :pom :description))}))))
@@ -83,15 +82,11 @@
   [_ route-params {:keys [version-entity] :as cache-bundle}]
   (assert (:namespace route-params))
   (let [ns-emap route-params
-        defs    (bundle/defs-for-ns-with-src-uri
-                  (:defs cache-bundle)
-                  (:scm (:version cache-bundle))
-                  (:namespace ns-emap))
+        defs    (bundle/defs-for-ns-with-src-uri cache-bundle (:namespace ns-emap))
         [[dominant-platf] :as platf-stats] (api/platform-stats defs)
-        ns-data (first (filter #(= (:namespace ns-emap) (platf/get-field % :name))
-                               (bundle/namespaces cache-bundle)))
-        top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
-        common-params {:top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))}]
+        ns-data (bundle/get-namespace cache-bundle (:namespace ns-emap))
+        top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))
+        common-params {:top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))}]
     (->> (if ns-data
            (layout/layout
             {:top-bar top-bar-component
@@ -107,7 +102,7 @@
              :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)
              :content (api/sub-namespace-overview-page {:ns-entity ns-emap
                                                         :namespaces (bundle/namespaces cache-bundle)
-                                                        :defs (:defs cache-bundle)})}))
+                                                        :defs (bundle/all-defs cache-bundle)})}))
          (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
