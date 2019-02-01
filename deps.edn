@@ -56,9 +56,7 @@
          "modules/shared-utils/resources"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha
-                         {:git/url "https://github.com/lambdaisland/kaocha.git"
-                          :sha "e7af8b48aadb32da9dcd7a9e5eb50fe64eae8d62"}}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-389"}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :cli
