@@ -5,9 +5,11 @@
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [cljdoc.config :as config]
-            [cljdoc.util :as util]
+            [cljdoc.render.offline :as offline]
             [cljdoc.server.system :as system]
             [cljdoc.server.api :as api]
+            [cljdoc.storage.api :as storage]
+            [cljdoc.util :as util]
             [cljdoc.util.repositories :as repositories]))
 
 (defn build [{:keys [project version jar pom git rev] :as args}]
@@ -23,6 +25,21 @@
        deps
        (-> (merge args (repositories/local-uris project version))
            (cset/rename-keys {:git :scm-url, :rev :scm-rev})))))))
+
+(defn offline-bundle [{:keys [project version output] :as args}]
+  (let [sys           (select-keys (system/system-config (config/config))
+                                   [:cljdoc/storage :cljdoc/sqlite])
+        sys           (ig/init sys)
+        store         (:cljdoc/storage sys)
+        artifact-info (util/version-entity project version)]
+    (if (storage/exists? store artifact-info)
+      (->
+       (storage/bundle-docs store artifact-info)
+       (offline/zip-stream)
+       (io/copy (io/file output)))
+      (do
+        (log/fatalf "%s@%s could not be found in storage" project version)
+        (System/exit 1)))))
 
 (defn run [opts]
   (system/-main))
@@ -49,6 +66,12 @@
                                 {:option "git" :short "g" :as "Git repo to use (may be local)" :type :string}
                                 {:option "rev" :short "r" :as "Git revision to use (inferred by default)" :type :string}]
                   :runs        build}
+                 {:command     "offline-bundle"
+                  :description ["Builds an offline documentation bundle for previously ingested project"]
+                  :opts        [{:option "project" :short "p" :as "Project to export" :type :string :default :present}
+                                {:option "version" :short "v" :as "Version to export" :type :string :default :present}
+                                {:option "output" :short "o" :as "Path of output zipfile" :type :string :default :present}]
+                  :runs        offline-bundle}
                  {:command     "run"
                   :description "Run the cljdoc server (config in resources/config.edn)"
                   :opts        []

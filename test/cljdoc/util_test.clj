@@ -7,16 +7,18 @@
            (java.io StringReader)))
 
 (t/deftest find-artifact-repository-test
-  (t/is (= (repositories/find-artifact-repository "org.clojure/clojure" "1.9.0")
-           repositories/maven-central))
-  (t/is (false? (repositories/exists? repositories/maven-central 'bidi "2.1.3-SNAPSHOT")))
-  (t/is (true? (repositories/exists? repositories/clojars 'bidi "2.0.9-SNAPSHOT")))
-  (t/is (true? (repositories/exists? repositories/clojars 'bidi "2.0.0")))
-  (t/is (true? (repositories/exists? repositories/maven-central 'org.clojure/clojure "1.9.0")))
-  (t/is (true? (repositories/exists? repositories/clojars 'bidi)))
-  (t/is (true? (repositories/exists? repositories/clojars 'org.clojure/clojure)))
-  (t/is (true? (repositories/exists? repositories/maven-central 'org.clojure/clojure)))
-  (t/is (thrown-with-msg? ExceptionInfo #"Requested version cannot be found on Clojars or Maven Central"
+  (let [central "http://central.maven.org/maven2/"
+        clojars "https://repo.clojars.org/"]
+    (t/is (= (repositories/find-artifact-repository "org.clojure/clojure" "1.9.0")
+             central))
+    (t/is (false? (repositories/exists? central 'bidi "2.1.3-SNAPSHOT")))
+    (t/is (true? (repositories/exists? clojars 'bidi "2.0.9-SNAPSHOT")))
+    (t/is (true? (repositories/exists? clojars 'bidi "2.0.0")))
+    (t/is (true? (repositories/exists? central 'org.clojure/clojure "1.9.0")))
+    (t/is (true? (repositories/exists? clojars 'bidi)))
+    (t/is (true? (repositories/exists? clojars 'org.clojure/clojure)))
+    (t/is (true? (repositories/exists? central 'org.clojure/clojure))))
+  (t/is (thrown-with-msg? ExceptionInfo #"Requested version cannot be found in configured repositories"
                           (repositories/artifact-uris 'bidi "2.1.3-SNAPSHOT")))
   (t/is (= (repositories/artifact-uris 'bidi "2.0.9-SNAPSHOT")
            {:pom "https://repo.clojars.org/bidi/bidi/2.0.9-SNAPSHOT/bidi-2.0.9-20160426.224252-1.pom",
@@ -38,9 +40,14 @@
   (t/is (= "common-xyz.html" (util/relativize-path "doc/common-abc.html" "doc/common-xyz.html")))
   (t/is (= "common-xyz/test.html" (util/relativize-path "doc/common-xyz.html" "doc/common-xyz/test.html")))
   (t/is (= "a/b.html" (util/relativize-path "a/b.html" "a/a/b.html")))
-  (t/is (= "../basics/route-syntax" (util/relativize-path "/d/metosin/reitit/0.2.10-alpha1/doc/http/pedestal"
-                                                          "/d/metosin/reitit/0.2.10-alpha1/doc/basics/route-syntax"))))
-
+  (t/is (= "../basics/route-syntax" (util/relativize-path "/doc/http/pedestal"
+                                                          "/doc/basics/route-syntax")))
+  (t/is (= "../../basics/route-syntax/even-more" (util/relativize-path "/doc/http/pedestal/more"
+                                                                       "/doc/basics/route-syntax/even-more")))
+  (t/is (= "walk-through/asd" (util/relativize-path "/doc/introduction" "/doc/introduction/walk-through/asd")))
+  (t/is (= "../.." (util/relativize-path "/doc/introduction/walk-through/asd" "/doc/introduction")))
+  (t/is (= ".." (util/relativize-path "/doc/introduction/walk-through" "/doc/introduction")))
+  )
 (t/deftest replant-ns-test
   (t/is (= "my.app.routes" (util/replant-ns "my.app.core" "routes")))
   (t/is (= "my.app.api.routes" (util/replant-ns "my.app.core" "api.routes")))

@@ -22,11 +22,24 @@
     "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")
    (highlight-js-customization)])
 
+(defn generic-description
+  "Returns a generic description of a project."
+  [{:keys [group-id artifact-id version] :as cache-id}]
+  (format "Documentation for %s v%s on cljdoc." (util/clojars-id cache-id) version))
+
 (defn description
   "Return a string to be used as description meta tag for a given project's documentation pages."
-  [{:keys [group-id artifact-id version] :as cache-id}]
-  (format "Documentation for %s v%s on cljdoc, a website that builds and hosts documentation for Clojure/Script libraries."
-          (util/clojars-id cache-id) version))
+  [cache-id]
+  (str (generic-description cache-id)
+       " "
+       "A website that builds and hosts documentation for Clojure/Script libraries."))
+
+(defn artifact-description
+  "Return a string to be used as description meta tag for a given project's documentation pages.
+
+  This description is same as the description in project's pom.xml file."
+  [cache-id artifact-desc]
+  (str (util/clojars-id cache-id) ": " artifact-desc " " (generic-description cache-id)))
 
 (defn no-js-warning
   "A small development utility component that will show a warning when
@@ -57,7 +70,8 @@
                  [:meta {:content "website" :property "og:type"}]
                  [:meta {:content (:title opts) :property "og:title"}]
                  [:meta {:content (:description opts) :property "og:description"}]
-                 [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :property "og:image"}]
+                 ;; Disable image for now; doesn't add much and occupies a lot of space in Slack and similar
+                 ;; [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :property "og:image"}]
 
                  ;; Canonical URL
                  (when-let [url (:canonical-url opts)]
@@ -70,7 +84,6 @@
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (hiccup.page/include-css
-                   "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css"
                    "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
                    "/cljdoc.css")]
                 [:body
@@ -89,7 +102,7 @@
    [:h4.relative.ttu.f7.fw5.mt1.mb2.tracked.gray
     (when separator-line?
       ;; .nl4 and .nr4 are negative margins based on the global padding used in the sidebar
-      [:hr.absolute.left-0.right-0.nl4.nr4.b--solid.b--black-10])
+      [:hr.absolute.left-0.right-0.nl3.nr3.nl4-ns.nr4-ns.b--solid.b--black-10])
     ;; again negative margins are used to make the background reach over the text container
     [:span.relative.nl2.nr2.ph2.bg-white title]]))
 
@@ -141,10 +154,10 @@
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
     (if scm-url
       [:a.link.dim.gray.f6.tr
-       {:href scm-url}
-       (let [icon (or (scm/provider scm-url) :code)]
+       {:href (scm/http-uri scm-url)}
+       (let [icon (or (scm/provider scm-url) :git)]
          [:img.v-mid.mr2 {:src (str "https://icon.now.sh/" (name icon))}])
-       [:span.dib (scm/coordinate scm-url)]]
+       [:span.dib (scm/coordinate (scm/http-uri scm-url))]]
       [:a.f6.link.blue {:href (util/github-url :userguide/scm-faq)} "SCM info missing"])]])
 
 (defn upgrade-notice [{:keys [version] :as version-map}]
@@ -189,9 +202,9 @@
   `static` so that the top bar is rendered as a row of the main
   container.
 
-  The z-index `z3` setting is necessary to ensure `fixed` elements
+  The z-index `z-3` setting is necessary to ensure `fixed` elements
   appear above other elements"
-  :div.fixed.top-0.left-0.right-0.static-ns.flex-shrink-0.z3)
+  :div.fixed.top-0.left-0.right-0.static-ns.flex-shrink-0.z-3)
 
 (def mobile-nav-spacer
   "Spacer so fixed navigation elements don't overlap content

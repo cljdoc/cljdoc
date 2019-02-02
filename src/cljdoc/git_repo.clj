@@ -10,6 +10,7 @@
                                   ObjectIdRef$PeeledTag
                                   ObjectIdRef$Unpeeled
                                   ObjectLoader
+                                  FileMode
                                   Constants)
             (org.eclipse.jgit.revwalk RevWalk)
             (org.eclipse.jgit.treewalk TreeWalk)
@@ -19,27 +20,37 @@
             (com.jcraft.jsch JSch)
             (com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository)))
 
-(def ^:private ^TransportConfigCallback ssh-callback
-  (delay
-    (let [factory (doto (ConnectorFactory/getDefault) (.setPreferredUSocketFactories "jna,nc"))
-          connector (.createConnector factory)]
-      (JSch/setConfig "PreferredAuthentications" "publickey")
-      (reify TransportConfigCallback
-        (configure [_ transport]
-          (.setSshSessionFactory ^SshTransport transport
-            (proxy [JschConfigSessionFactory] []
-              (configure [host session])
-              (getJSch [hc fs]
-                (doto (proxy-super getJSch hc fs)
-                  (.setIdentityRepository (RemoteIdentityRepository. connector)))))))))))
+(def jsch-session-factory
+  "A session-factory for use with JGit to access private
+  repositories using SSH private key authentication.
+
+  This will look at `~/.ssh/config` to find the right
+  private key to use or default to `~/.ssh/id_rsa`.
+
+  Keys MUST BE IN PEM FORMAT (ssh-keygen -m PEM) or the
+  authentication will fail with something like
+  \" invalid privatekey: [B@370d39ee\".
+
+  Read https://security.stackexchange.com/questions/143114 for details."
+  (proxy [JschConfigSessionFactory] []
+    (configure [host session]
+      (.setConfig session  "StrictHostKeyChecking" "no"))
+    ;; This could be used to specify keys explicitly
+    #_(createDefaultJSch [fs]
+      (doto (proxy-super createDefaultJSch fs)
+        (.addIdentity "/Users/martinklepsch/.ssh/martinklepsch-lambdawerk2")))))
 
 (defn clone [uri target-dir]
   (.. Git
       cloneRepository
       (setURI uri)
+      (setCloneAllBranches true)
       (setDirectory target-dir)
-      ;; This breaks if the URI uses http
-      ;; (setTransportConfigCallback @ssh-callback)
+      (setTransportConfigCallback
+       (reify TransportConfigCallback
+         (configure [_ transport]
+           (when (instance? SshTransport transport)
+             (.setSshSessionFactory ^SshTransport transport jsch-session-factory)))))
       call))
 
 (defn read-origin
@@ -137,7 +148,9 @@
 (defn ls-files
   "Return a seq of maps {:path 'path-of-file :obj-loader 'ObjectLoader}
   for files in the git repository at the given revision `rev`.
-  ObjectLoader instances can be consumed with slurp, input-stream, etc."
+  ObjectLoader instances can be consumed with slurp, input-stream, etc.
+
+  Files in submodules are skipped."
   [^Git g rev]
   (let [tree (tree-for g rev)
         repo (.getRepository g)
@@ -147,8 +160,10 @@
     (loop [files []]
       (if (.next tw)
         (recur
-         (conj files {:path          (.getPathString tw)
-                      :object-loader (.open repo (.getObjectId tw 0))}))
+         (if (= FileMode/GITLINK (.getFileMode tw))
+           files ; Submodule reference, skip
+           (conj files {:path          (.getPathString tw)
+                        :object-loader (.open repo (.getObjectId tw 0))})))
         files))))
 
 (s/fdef path-sha-pairs

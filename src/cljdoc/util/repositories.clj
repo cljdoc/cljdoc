@@ -1,5 +1,6 @@
 (ns cljdoc.util.repositories
   (:require [cljdoc.util :as util]
+            [cljdoc.config :as config]
             [clojure.string :as string]
             [clj-http.lite.client :as http]
             [cheshire.core :as json]
@@ -29,6 +30,7 @@
 
 (defn version-directory-uri
   [repository project version]
+  {:pre [(string? repository)]}
   (format "%s%s/%s/%s/" repository (group-path project) (util/artifact-id project) version))
 
 (defn metadata-xml-uri
@@ -48,6 +50,7 @@
   URIs with non snapshot versions will result in 404.
   "
   ([repository project]
+   (assert (string? repository))
    (format "%s%s/%s/maven-metadata.xml"
            repository
            (group-path project)
@@ -97,21 +100,16 @@
                   (util/artifact-id project)
                   version')}))
 
-(def maven-central "http://central.maven.org/maven2/")
-(def clojars "https://repo.clojars.org/")
-
 (defn find-artifact-repository
   ([project]
-   (cond (exists? clojars project) clojars
-         (exists? maven-central project) maven-central))
+   (reduce #(when (exists? (:url %2) project) (reduced (:url %2))) [] (config/maven-repositories)))
   ([project version]
-   (cond (exists? clojars project version) clojars
-         (exists? maven-central project version) maven-central)))
+   (reduce #(when (exists? (:url %2) project version) (reduced (:url %2))) [] (config/maven-repositories))))
 
 (defn artifact-uris [project version]
   (if-let [repository (find-artifact-repository project version)]
     (artifact-uris* repository project version)
-    (throw (ex-info (format "Requested version cannot be found on Clojars or Maven Central: [%s %s]" project version)
+    (throw (ex-info (format "Requested version cannot be found in configured repositories: [%s %s]" project version)
                     {:project project :version version}))))
 
 (defn latest-release-version [project]
@@ -122,7 +120,7 @@
           (->> (.select d "metadata > versioning > release")
                (map #(.ownText %))
                (util/assert-first)))))
-    (throw (ex-info (format "Requested project cannot be found on Clojars or Maven Central: %s" project)
+    (throw (ex-info (format "Requested project cannot be found in configured repositories: %s" project)
                     {:project project}))))
 
 (defn local-uris [project version]
@@ -131,18 +129,20 @@
     (when (.exists (io/file (:jar uris)))
       uris)))
 
+(defn get-pom-xml
+  "Fetches contents of pom.xml for a particular artifact version."
+  [project version]
+  (if-let [local-pom (:pom (local-uris project version))]
+    (slurp local-pom)
+    (-> (artifact-uris project version) :pom http/get :body)))
+
 (comment
   (find-artifact-repository "org.clojure/clojure" "1.9.0")
   (artifact-uris "org.clojure/clojure" "1.9.0")
 
   (latest-release-version "org.clojure/clojure")
 
-  (http/head (metadata-xml-uri (:clojars repositories) 'bidi "2.1.3-SNAPSHOT") {:throw-exceptions? false})
-
   (metadata-xml-uri "https://repo.clojars.org/" 'bidi "2.1.3-SNAPSHOT")
-
-  (exists? maven-central 'bidi "2.1.3-SNAPSHOT")
-  (exists? clojars 'bidi "2.0.9-SNAPSHOT")
 
   (find-artifact-repository 'bidi "2.1.3")
   (find-artifact-repository 'bidi "2.1.4")
@@ -178,5 +178,8 @@
   ;;        clojure.pprint/pprint))
 
   ;;   (def all-poms "http://repo.clojars.org/all-poms.txt")
+
+  (time (get-pom-xml "org.clojure/clojure" "1.9.0"))
+  (clojure.core.memoize/memo-clear! get-pom-xml '("org.clojure/clojure" "1.9.0"))
 
   )

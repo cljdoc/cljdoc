@@ -1,10 +1,8 @@
 {;; read secrets from file specified via CLJDOC_SECRETS
  ;; or from resources/secrets if CLJDOC secrets isn't set
  :secrets #include #or [#env CLJDOC_SECRETS "secrets.edn"]
- :statsd {:uri "127.0.0.1:8125"
-          :tags {:env #profile {:default "develop"
-                                :prod "production"}
-                 :project "cljdoc"}}
+ :maven-repositories [{:id "clojars" :url "https://repo.clojars.org/"}
+                      {:id "central" :url "http://central.maven.org/maven2/"}]
  :cljdoc/version #profile {:prod #slurp "CLJDOC_VERSION"
                            :default "dev"}
  :cljdoc/server {:port 8000

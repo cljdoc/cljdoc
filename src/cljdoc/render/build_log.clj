@@ -1,5 +1,6 @@
 (ns cljdoc.render.build-log
-  (:require [cljdoc.render.layout :as layout]
+  (:require [clojure.string :as string]
+            [cljdoc.render.layout :as layout]
             [cljdoc.util :as util]
             [cljdoc.util.datetime :as dt]
             [cljdoc.server.routes :as routes])
@@ -87,7 +88,7 @@
        [:p
         [:a.link.blue {:href (:scm_url build-info)}
          [:img.v-mid.mr2 {:src "https://icon.now.sh/github/20"}]
-         (subs (:scm_url build-info) 19)]
+         (string/replace (:scm_url build-info) #"^https://github\.com/" "")]
         " @ "
         [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
          (if (< (count (:commit_sha build-info)) 8)
@@ -170,9 +171,10 @@
            ""
            [:h3.mt0 "There was an error"]
            [:p.bg-washed-red.pa3.br2 (:error build-info)]
-           [:p.lh-copy "Please see the " [:a.link.blue {:href (:analysis_job_uri
-           build-info)} "build job"] " to understand why this build
-           failed and reach out if you aren't sure how to fix the issue."]
+           (when (:analysis_job_uri build-info)
+             [:p.lh-copy "Please see the " [:a.link.blue {:href (:analysis_job_uri build-info)}
+              "build job"] " to understand why this build failed and reach out if you aren't
+              sure how to fix the issue."])
            #_[:p (cljdoc-link build-info true)]))
 
         (when-not (done? build-info)

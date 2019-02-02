@@ -22,6 +22,10 @@
 (defn- anchor-uri? [s]
   (.startsWith s "#"))
 
+(defn- own-uri? [s]
+  (or (.startsWith s "https://cljdoc.org")
+      (.startsWith s "https://cljdoc.xyz")))
+
 (defn uri-mapping [cache-id docs]
   (->> docs
        (map (fn [d]
@@ -68,6 +72,10 @@
       (str scm-base (subs src 1) suffix)
       (str scm-base (rebase file-path src) suffix))))
 
+;; This namespace's scope was mostly around fixing broken links, but since it
+;; preprocesses a document before rendering, it's also handy for other things.
+;; Below, a `nofollow` attribute is added to external links for SEO purposes.
+
 (defn fix
   [file-path html-str {:keys [git-ls scm uri-map] :as fix-opts}]
   ;; (def fp file-path)
@@ -94,6 +102,13 @@
                                                         (scm/owner (:url scm)) "/"
                                                         (scm/repo (:url scm)) "/"
                                                         scm-rev "/")})))
+
+    (doseq [ext-link (->> (.select doc "a")
+                          (map #(.attributes %))
+                          (filter #(absolute-uri? (.get % "href")))
+                          (remove #(own-uri? (.get % "href"))))]
+      (.put ext-link "rel" "nofollow"))
+
     (.toString doc)))
 
 

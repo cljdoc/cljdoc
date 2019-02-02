@@ -55,6 +55,8 @@ This allows cljdoc to retrieve files at the revision/commit the respective relea
 
 NOTE: Articles are always read at the revision linked to the version docs are being built for. This means you cannot update docs for previous releases but are instead encouraged to cut a new release. For testing purposes you can build any `-SNAPSHOT` release which will cause cljdoc to use `master` as revision.
 
+NOTE: Referencing files in submodules is not currently supported, please open an issue if you need it.
+
 ==== Automatic Link Rewriting
 
 If an article refers to another article's source file via a link cljdoc will automatically rewrite that link if one of the known articles has the same source file. All links that work on GitHub should also work on cljdoc.

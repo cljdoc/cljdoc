@@ -28,7 +28,6 @@
         org.martinklepsch/clj-http-lite {:mvn/version "0.4.1"}
         org.eclipse.jgit {:mvn/version "4.10.0.201712302008-r"},
         io.sentry/sentry-logback {:mvn/version "1.7.5"},
-        cognician/dogstatsd-clj {:mvn/version "0.1.1"}
         com.jcraft/jsch.agentproxy.connector-factory {:mvn/version "0.0.9"},
         org.clojure/core.match {:mvn/version "0.3.0-alpha5"},
         org.jsoup/jsoup {:mvn/version "1.11.3"},
@@ -42,6 +41,8 @@
         me.raynes/fs {:mvn/version "1.4.6"},
         sitemap {:mvn/version "0.2.4"},
         lambdaisland/uri {:mvn/version "1.1.0"}
+        org.clojure/core.cache {:mvn/version "0.6.5"}
+        org.clojure/core.memoize {:mvn/version "0.5.9"}
 
         ;; These deps are dependencies of shared-utils and are
         ;; duplicated in the global modules/shared-utils/deps.edn,

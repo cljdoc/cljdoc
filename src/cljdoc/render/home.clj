@@ -30,9 +30,9 @@
          (search/search-form)
          [:p.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]
           " or check out some examples: "
-          [:a.link.blue.nowrap {:href "/d/re-frame/re-frame/CURRENT"} "re-frame"] ", "
-          [:a.link.blue.nowrap {:href "/d/compojure/compojure/CURRENT"} "compojure"] ", "
-          [:a.link.blue.nowrap {:href "/d/clojure.java-time/clojure.java-time/CURRENT"} "clojure.java-time"] "."]]
+          [:a.link.blue.nowrap {:href "/d/rum/rum/CURRENT"} "rum"] ", "
+          [:a.link.blue.nowrap {:href "/d/lambdaisland/kaocha/CURRENT"} "kaocha"] ", "
+          [:a.link.blue.nowrap {:href "/d/metosin/reitit/CURRENT"} "reitit"] "."]]
 
         [:div.mt5-ns.bg-white
          (into [:div.dt-l.dt--fixed.bb.bt.b--light-gray.lh-copy]

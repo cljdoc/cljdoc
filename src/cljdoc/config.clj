@@ -25,9 +25,13 @@
     (throw (ex-info (format "No config found for path %s\nDid you configure your secrets.edn file?" ks)
                     {:ks ks, :profile (profile)}))))
 
+(defn config-file []
+  (or (some-> (System/getenv "CLJDOC_CONFIG_EDN") io/file)
+      (io/resource "config.edn")))
+
 (defn config
-  ([] (aero/read-config (io/resource "config.edn") {:profile (profile)}))
-  ([profile] (aero/read-config (io/resource "config.edn") {:profile profile})))
+  ([] (aero/read-config (config-file) {:profile (profile)}))
+  ([profile] (aero/read-config (config-file) {:profile profile})))
 
 ;; Accessors
 
@@ -77,14 +81,28 @@
    :synchronous "NORMAL"
    :journal_mode "WAL"})
 
-(defn autobuild-clojars-releases?
-  ([] (autobuild-clojars-releases? (config)))
-  ([config] (get-in config [:cljdoc/server :autobuild-clojars-releases?])))
+(defn cache [config]
+  {:table "cache"
+   :key-col "key"
+   :value-col "value"
+   :db-spec {:dbtype "sqlite"
+             :classname "org.sqlite.JDBC"
+             :subprotocol "sqlite"
+             :subname (str (data-dir config) "cache.db")}})
+
+(defn autobuild-clojars-releases? [config]
+  (get-in config [:cljdoc/server :autobuild-clojars-releases?]))
+
+(defn enable-release-monitor? [config]
+  (not (clojure.core/get-in config [:cljdoc/server :disable-release-monitor?])))
 
 (defn sentry-dsn
   ([] (sentry-dsn (config)))
   ([config] (when (get-in config [:cljdoc/server :enable-sentry?])
               (get-in config [:secrets :sentry :dsn]))))
+
+(defn maven-repositories []
+  (get-in (config) [:maven-repositories]))
 
 (comment
   (:cljdoc/server (config))

@@ -7,6 +7,7 @@
             [cljdoc.render.api :as api]
             [cljdoc.util :as util]
             [cljdoc.util.fixref :as fixref]
+            [cljdoc.util.pom :as pom]
             [cljdoc.bundle :as bundle]
             [cljdoc.platforms :as platf]
             [cljdoc.spec]
@@ -30,7 +31,9 @@
         {:top-bar (layout/top-bar cache-id (-> cache-contents :version :scm :url))
          :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)})
        (layout/page {:title (str (util/clojars-id cache-id) " " (:version cache-id))
-                     :description (layout/description cache-id)})))
+                     :description (layout/artifact-description
+                                   cache-id
+                                   (-> cache-contents :version :pom pom/parse pom/artifact-info :description))})))
 
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -43,6 +46,9 @@
                    first)
         doc-html (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
+        doc-type (cond
+                   (-> doc-p :attrs :cljdoc/markdown) :markdown
+                   (-> doc-p :attrs :cljdoc/asciidoc) :asciidoc)
         top-bar-component (layout/top-bar cache-id (-> cache-contents :version :scm :url))
         sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
@@ -52,8 +58,10 @@
             {:top-bar top-bar-component
              :main-sidebar-contents sidebar-contents
              :content (articles/doc-page
-                       {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/master/"
-                                          (-> doc-p :attrs :cljdoc.doc/source-file))
+                       {:doc-scm-url (str (-> cache-contents :version :scm :url) "/blob/"
+                                          (or (-> cache-contents :version :scm :branch) "master")
+                                          "/" (-> doc-p :attrs :cljdoc.doc/source-file))
+                        :doc-type doc-type
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                               doc-html
                                               {:scm (:scm (:version cache-contents))
@@ -69,7 +77,10 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
-                       :description (layout/description cache-id)}))))
+                       ;; update desctiption by extracting it from XML (:pom cache-bundle)
+                       :description (layout/artifact-description
+                                     cache-id
+                                     (-> cache-contents :version :pom pom/parse pom/artifact-info :description))}))))
 
 (defmethod render :artifact/namespace
   [_ route-params {:keys [cache-id cache-contents] :as cache-bundle}]
@@ -85,8 +96,9 @@
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)
-             :vars-sidebar-contents [(api/platform-support-note platf-stats)
-                                     (api/definitions-list ns-emap defs {:indicate-platforms-other-than dominant-platf})]
+             :vars-sidebar-contents (when (seq defs)
+                                      [(api/platform-support-note platf-stats)
+                                       (api/definitions-list ns-emap defs {:indicate-platforms-other-than dominant-platf})])
              :content (api/namespace-page {:scm-info (:scm (:version cache-contents))
                                            :ns-entity ns-emap
                                            :ns-data ns-data
@@ -101,7 +113,9 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/namespace :path-params))
-                       :description (layout/description cache-id)}))))
+                       :description (layout/artifact-description
+                                     cache-id
+                                     (-> cache-contents :version :pom pom/parse pom/artifact-info :description))}))))
 
 (comment
 

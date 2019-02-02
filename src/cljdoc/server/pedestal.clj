@@ -34,7 +34,6 @@
             [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
-            [cognician.dogstatsd :as d]
             [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
             [cheshire.core :as json]
@@ -62,8 +61,7 @@
                   (assoc ctx :response {:status 302, :headers {"Location" location}}))
 
                 (if cache-bundle
-                  (d/measure! "cljdoc.views.render_time" {}
-                              (pu/ok-html ctx (html/render page-type path-params cache-bundle)))
+                  (pu/ok-html ctx (html/render page-type path-params cache-bundle))
                   (let [resp {:status 404
                               :headers {"Content-Type" "text/html"}
                               :body (str (render-build-req/request-build-page path-params))}]
@@ -95,15 +93,20 @@
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
   relevant for the artifact identified via the entity map in `:path-params`."
-  [store]
+  [store cache]
   {:name  ::artifact-data-loader
    :enter (fn artifact-data-loader-inner [ctx]
             (let [params (-> ctx :request :path-params)]
-              (d/measure! "cljdoc.storage.read_time" {}
-                          (log/info "Loading artifact cache bundle for" params)
-                          (if (storage/exists? store params)
-                            (assoc ctx :cache-bundle (storage/bundle-docs store params))
-                            ctx))))})
+              (log/info "Loading artifact cache bundle for" params)
+              (if (storage/exists? store params)
+                (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
+                      cache-bundle (assoc-in
+                                    (storage/bundle-docs store params)
+                                    [:cache-contents :version :pom]
+                                    (pom-xml-memo (util/clojars-id params)
+                                                  (:version params)))]
+                  (assoc ctx :cache-bundle cache-bundle))
+                ctx)))})
 
 (defn- resolve-version [path-params referer]
   (assert (= "CURRENT" (:version path-params)))
@@ -138,10 +141,10 @@
 (defn view
   "Combine various interceptors into an interceptor chain for
   rendering views for `route-name`."
-  [storage route-name]
+  [storage cache route-name]
   (->> [(version-resolve-redirect)
         (when (= :artifact/doc route-name) doc-slug-parser)
-        (artifact-data-loader storage)
+        (artifact-data-loader storage cache)
         render-interceptor]
        (keep identity)
        (vec)))
@@ -213,7 +216,7 @@
                                  (log/warnf "Could not find release for %s" project)))
                   url     (if release
                             (badge-url release :blue)
-                            (badge-url (str "no release found for " project) :red))
+                            (badge-url (str "no%20release%20found%20for%20" project) :red))
                   badge   (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}})]
               (->> {:status 200
                     :headers {"Content-Type" "image/svg+xml;charset=utf-8"
@@ -314,7 +317,7 @@
   interesting for ClojureScript where Pededestal can't go.
 
   For more details see `cljdoc.server.routes`."
-  [{:keys [build-tracker storage] :as deps}
+  [{:keys [build-tracker storage cache] :as deps}
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [{:name ::home :enter #(pu/ok-html % (render-home/home))}]
@@ -333,10 +336,10 @@
          :group/index     (index-page storage index-pages/group-index)
          :artifact/index  (index-page storage index-pages/artifact-index)
 
-         :artifact/version   (view storage route-name)
-         :artifact/namespace (view storage route-name)
-         :artifact/doc       (view storage route-name)
-         :artifact/offline-bundle [(artifact-data-loader storage)
+         :artifact/version   (view storage cache route-name)
+         :artifact/namespace (view storage cache route-name)
+         :artifact/doc       (view storage cache route-name)
+         :artifact/offline-bundle [(artifact-data-loader storage cache)
                                    offline-bundle]
 
          :artifact/current-via-short-id [(jump-interceptor)]
@@ -367,15 +370,3 @@
 
 (defmethod ig/halt-key! :cljdoc/pedestal [_ server]
   (http/stop server))
-
-(comment
-
-  (def s (http/start (create-server (routes {}))))
-
-  (http/stop s)
-
-  (require 'io.pedestal.test)
-
-  (io.pedestal.test/response-for (:io.pedestal.http/service-fn s) :post "/api/request-build2")
-
-  )

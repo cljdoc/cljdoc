@@ -90,19 +90,39 @@
 .asciidoc .admonitionblock {
   padding: 1rem;
   border-radius: 3px;
+  border-left: 3px solid;
 }
 
 .asciidoc .admonitionblock .icon {
-  padding-right: 1rem;
-  font-weight: 500;
+  display: block;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: #777;
+  font-weight: 600;
 }
 
-.asciidoc .admonitionblock.note {
-  background-color: #fbf1a9;
+.asciidoc .admonitionblock .content {
+  display: block;
 }
 
 .asciidoc .admonitionblock.tip {
-  background-color: #e8fdf5;
+  background-color: #e8fdf5; /** tachyons washed-green **/
+  border-color: #9eebcf; /** tachyons light-green **/
+}
+
+.asciidoc .admonitionblock.note {
+  background-color: #cdecff; /** tachyons light-blue **/
+  border-color: #357edd /** tachyons blue **/
+}
+
+.asciidoc .admonitionblock.important {
+  background-color: #fffceb; /** tachyons washed-yellow **/
+  border-color: #ffd700 /** tachyons yellow **/
+}
+
+.asciidoc .admonitionblock.warning {
+  background-color: #ffdfdf; /** tachyons washed-red **/
+  border-color: #ff725c; /** tachyons light-red **/
 }
 
 /** Scroll Indicator ------------------------------------------------ **/
@@ -117,4 +137,59 @@
   top: 0;
   bottom: 0;
   left: -2rem;
+}
+
+/** cljdoc-gist highlighting --------------------------------------- **/
+/** original source: https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css **/
+
+.hljs {
+    display: block;
+    /* background: white; */
+    /* padding: 0.5em; */
+    color: #333333;
+    overflow-x: auto
+}
+
+.hljs-comment, .hljs-meta {
+    color: #969896
+}
+
+.hljs-string, .hljs-variable, .hljs-template-variable, .hljs-strong,
+.hljs-emphasis, .hljs-quote {
+    color: #df5000
+}
+
+.hljs-keyword, .hljs-selector-tag, .hljs-type {
+    color: #a71d5d
+}
+
+.hljs-literal, .hljs-symbol, .hljs-bullet, .hljs-attribute {
+    color: #0086b3
+}
+
+.hljs-section, .hljs-name {
+    color: #63a35c
+}
+
+.hljs-tag {
+    color: #333333
+}
+
+.hljs-title, .hljs-attr, .hljs-selector-id, .hljs-selector-class,
+.hljs-selector-attr, .hljs-selector-pseudo {
+    color: #795da3
+}
+
+.hljs-addition {
+    color: #55a532;
+    background-color: #eaffea
+}
+
+.hljs-deletion {
+    color: #bd2c00;
+    background-color: #ffecec
+}
+
+.hljs-link {
+    text-decoration: underline
 }

@@ -5,6 +5,7 @@
   to build API documentation and articles. "
   (:require [cljdoc.util :as util]
             [cljdoc.util.telegram :as telegram]
+            [cljdoc.util.scm :as scm]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
             [clojure.edn :as edn]
@@ -41,10 +42,11 @@
 (defn analyze-git-repo
   [project version scm-url pom-revision]
   {:post [(map? %)]}
-  (let [git-dir (util/system-temp-dir (str "git-" project))]
+  (let [git-dir (util/system-temp-dir (str "git-" project))
+        scm-ssh (scm/ssh-uri scm-url)]
     (try
-      (log/info "Cloning Git repo" scm-url)
-      (git/clone scm-url git-dir)
+      (log/infof "Cloning Git repo {:url %s :revision %s}" scm-ssh pom-revision)
+      (git/clone scm-ssh git-dir)
 
       ;; Stuff that depends on a SCM url being present
       (let [repo        (git/->repo git-dir)
@@ -69,7 +71,8 @@
           (do
             (log/info "Analyzing at revision:" revision)
             {:scm      (cond-> {:files (git/path-sha-pairs git-files)
-                                :rev revision}
+                                :rev revision
+                                :branch (.. repo getRepository getBranch)}
                          version-tag (assoc :tag version-tag))
              :doc-tree (doctree/process-toc
                         (fn [f]
