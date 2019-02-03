@@ -67,7 +67,8 @@
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :garamond {:extra-deps {com.workframe/garamond {:mvn/version "0.4.0"}}
-                      :main-opts ["-m" "garamond.main" "--artifact-id" "cljdoc" "--group-id" "cljdoc"]}
+                      ;:main-opts ["-m" "garamond.main" "--artifact-id" "cljdoc" "--group-id" "cljdoc"]
+                      }
 
            :jar      {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
                                                     :sha     "8acf80dd4d6e5173585f5c6fec7af28a310f3ed7"}}
