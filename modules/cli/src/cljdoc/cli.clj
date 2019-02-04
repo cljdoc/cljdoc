@@ -23,7 +23,7 @@
      (:future
       (api/kick-off-build!
        deps
-       (-> (merge args (repositories/local-uris project version))
+       (-> (merge (repositories/local-uris project version) args)
            (cset/rename-keys {:git :scm-url, :rev :scm-rev})))))))
 
 (defn offline-bundle [{:keys [project version output] :as args}]
