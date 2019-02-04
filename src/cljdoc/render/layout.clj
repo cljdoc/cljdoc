@@ -152,12 +152,18 @@
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id cache-id) "/" (:artifact-id cache-id))}]
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version cache-id)}]
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
-    (if scm-url
+    (cond
+      (scm/http-uri scm-url)
       [:a.link.dim.gray.f6.tr
        {:href (scm/http-uri scm-url)}
        (let [icon (or (scm/provider scm-url) :git)]
          [:img.v-mid.mr2 {:src (str "https://icon.now.sh/" (name icon))}])
        [:span.dib (scm/coordinate (scm/http-uri scm-url))]]
+
+      (scm/fs-uri scm-url)
+      [:span.f6 (scm/fs-uri scm-url)]
+
+      :else
       [:a.f6.link.blue {:href (util/github-url :userguide/scm-faq)} "SCM info missing"])]])
 
 (defn upgrade-notice [{:keys [version] :as version-map}]
