@@ -153,14 +153,14 @@
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version cache-id)}]
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
     (cond
-      (scm/http-uri scm-url)
+      (and scm-url (scm/http-uri scm-url))
       [:a.link.dim.gray.f6.tr
        {:href (scm/http-uri scm-url)}
        (let [icon (or (scm/provider scm-url) :git)]
          [:img.v-mid.mr2 {:src (str "https://icon.now.sh/" (name icon))}])
        [:span.dib (scm/coordinate (scm/http-uri scm-url))]]
 
-      (scm/fs-uri scm-url)
+      (and scm-url (scm/fs-uri scm-url))
       [:span.f6 (scm/fs-uri scm-url)]
 
       :else
