@@ -8,6 +8,7 @@
             [cljdoc.util.scm :as scm]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
+            [clj-http.lite.client :as http]
             [clojure.edn :as edn]
             [clojure.spec.alpha :as spec]
             [clojure.tools.logging :as log]))
@@ -39,11 +40,21 @@
   :ret (spec/or :ok (spec/keys :req-un [::scm ::doc-tree])
                 :err (spec/keys :req-un [::error])))
 
+(defn- accessible?
+  [scm-url]
+  (= 200 (:status (http/head scm-url {:throw-exceptions false}))))
+
 (defn analyze-git-repo
   [project version scm-url pom-revision]
   {:post [(map? %)]}
   (let [git-dir (util/system-temp-dir (str "git-" project))
-        scm-ssh (or (scm/http-uri scm-url)
+        ;; While cloning via SSH is generally preferable it requires
+        ;; an SSH key and thus more steps while deploying cljdoc.
+        ;; By only falling back to SSH when HTTP isn't available
+        ;; we avoid this.
+        scm-ssh (or (when (accessible? (scm/http-uri scm-url))
+                      (scm/http-uri scm-url))
+                    (scm/ssh-uri scm-url)
                     (scm/fs-uri scm-url))]
     (try
       (log/infof "Cloning Git repo {:url %s :revision %s}" scm-ssh pom-revision)
