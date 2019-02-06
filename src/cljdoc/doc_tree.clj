@@ -66,7 +66,10 @@
     - It's stored as `:cljdoc.doc/type` in the doctree entry map
     - The contents of a file will be stored at the returned value
 
-  See [[process-toc-entry]] for the specifics."
+  See [[process-toc-entry]] for the specifics.
+
+  NOTE: I find a multimethod not perfectly appropriate here but it's straightforward to extend
+  from other artifacts and - for now - gets the job done."
   (fn [path-str]
     (second (re-find #"\.([^\.]+)$" path-str))))
 

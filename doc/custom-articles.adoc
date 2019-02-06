@@ -26,6 +26,6 @@ customize the configuration of cljdoc's `config.edn`:
 [source,clojure]
 ----
 {,,,
- :extension-namnespaces [com.yourproject.cljdoc-articles]}
+ :extension-namespaces [com.yourproject.cljdoc-articles]}
 ----
 

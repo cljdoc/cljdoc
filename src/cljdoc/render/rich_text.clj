@@ -81,7 +81,7 @@
   (markdown-to-html content))
 
 (defmethod render-text :cljdoc/asciidoc [[_ content]]
-  (markdown-to-html content))
+  (asciidoc-to-html content))
 
 (comment
   (markdown-to-html "*hello world* <code>x</code>")
