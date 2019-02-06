@@ -43,7 +43,7 @@
   [project version scm-url pom-revision]
   {:post [(map? %)]}
   (let [git-dir (util/system-temp-dir (str "git-" project))
-        scm-ssh (or (scm/ssh-uri scm-url)
+        scm-ssh (or (scm/http-uri scm-url)
                     (scm/fs-uri scm-url))]
     (try
       (log/infof "Cloning Git repo {:url %s :revision %s}" scm-ssh pom-revision)
