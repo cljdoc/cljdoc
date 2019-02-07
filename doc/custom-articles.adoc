@@ -1,0 +1,31 @@
+= Custom Articles
+:toc:
+
+cljdoc supports Markdown and Asciidoc out of the box but support for additional content types can be added in one of the following ways:
+
+1. Extending the cljdoc codebase itself to cover a new content type
+1. Packaging a separate jar that contains the necessary code to support additional content types
+
+The actual code will mostly be the same for both approaches, packaging and integration however will be different.
+
+*What approach to take?* If you think the content type could be beneficial to the wider cljdoc userbase it can be a part of cljdoc itself. If you want to use cljdoc on-premise in your company and have custom content types not used outside your company packaging them separately is probably the best way.
+
+== Extending cljdoc
+
+At the core adding support for new filetypes happens by extending two multimethods:
+
+- `cljdoc.doc-tree/filepath->type` is used to infer what content type a file contains based on it's path in a Git repository. For `.markdown` this function returns `:cljdoc/markdown`.
+- `cljdoc.rich-text/render-text` is used to turn the actual content into HTML.
+
+== Packaging Externally
+
+The above multimethods can also be extended from third party jars. To ensure that namespaces
+from additional jars are loaded (and thus those multimethods are extended as expected) you can
+customize the configuration of cljdoc's `config.edn`:
+
+[source,clojure]
+----
+{,,,
+ :extension-namespaces [com.yourproject.cljdoc-articles]}
+----
+

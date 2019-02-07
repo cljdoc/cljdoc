@@ -26,6 +26,9 @@
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)
         port        (cfg/get-in env-config [:cljdoc/server :port])]
+    (doseq [ns (cfg/extension-namespaces env-config)]
+      (log/info "Loading extension namespace" ns)
+      (require ns))
     (merge
      {:cljdoc/sqlite          {:db-spec (cfg/db env-config)
                                :dir     (cfg/data-dir env-config)}

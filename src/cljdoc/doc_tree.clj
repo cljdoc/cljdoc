@@ -37,6 +37,7 @@
 (spec/def ::attrs
   (spec/keys :req-un [::slug]
              :opt [:cljdoc.doc/source-file
+                   :cljdoc.doc/type
                    :cljdoc/asciidoc
                    :cljdoc/markdown]))
 
@@ -58,26 +59,46 @@
              :attrs (spec/? ::hiccup-attrs)
              :children (spec/* ::hiccup-entry))))
 
+(defmulti filepath->type
+  "An extension point for custom doctree items. Dispatching is done based on file extensions.
+  The return value is used for two things:
+
+    - It's stored as `:cljdoc.doc/type` in the doctree entry map
+    - The contents of a file will be stored at the returned value
+
+  See [[process-toc-entry]] for the specifics.
+
+  NOTE: I find a multimethod not perfectly appropriate here but it's straightforward to extend
+  from other artifacts and - for now - gets the job done."
+  (fn [path-str]
+    (second (re-find #"\.([^\.]+)$" path-str))))
+
+(defmethod filepath->type "markdown" [_] :cljdoc/markdown)
+(defmethod filepath->type "md" [_] :cljdoc/markdown)
+(defmethod filepath->type "adoc" [_] :cljdoc/asciidoc)
+
 (defn- process-toc-entry
   [slurp-fn {:keys [title attrs children]}]
   {:pre [(string? title)]}
-  (cond-> {:title title}
+  ;; If there is a file it has to be matched by filepath->type's dispatch-fn
+  ;; Otherwise the line below will throw an exception (intentionally so)
+  (let [entry-type (some-> attrs :file filepath->type)]
+    (cond-> {:title title}
 
-    (:file attrs)
-    (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
+      (:file attrs)
+      (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
 
-    (and (:file attrs) (.endsWith (:file attrs) ".adoc"))
-    (assoc-in [:attrs :cljdoc/asciidoc] (slurp-fn (:file attrs)))
+      entry-type
+      (assoc-in [:attrs entry-type] (slurp-fn (:file attrs)))
 
-    (and (:file attrs) (or (.endsWith (:file attrs) ".md")
-                           (.endsWith (:file attrs) ".markdown")))
-    (assoc-in [:attrs :cljdoc/markdown] (slurp-fn (:file attrs)))
+      entry-type
+      (assoc-in [:attrs :cljdoc.doc/type] entry-type)
 
-    (nil? (:slug attrs))
-    (assoc-in [:attrs :slug] (cuerdas/uslug title))
+      (nil? (:slug attrs))
+      (assoc-in [:attrs :slug] (cuerdas/uslug title))
 
-    (seq children)
-    (assoc :children (mapv (partial process-toc-entry slurp-fn) children))))
+      (seq children)
+      (assoc :children (mapv (partial process-toc-entry slurp-fn) children)))))
 
 (spec/fdef process-toc
   :args (spec/cat :slurp-fn fn?
@@ -97,6 +118,18 @@
     (->> toc
          (spec/conform (spec/coll-of ::hiccup-entry))
          (mapv (partial process-toc-entry slurp!)))))
+
+(defn entry->type-and-content
+  "Given a single doctree entry return a tuple with the type of the to be rendered document and
+  it's content. This is a layer of indirection to enable backwards compatibility with doctrees
+  that do not contain a :cljdoc.doc/type key."
+  [doctree-entry]
+  (if-let [t (:cljdoc.doc/type doctree-entry)]
+    [t (get doctree-entry t)]
+    (when-let [file (get-in doctree-entry [:attrs :cljdoc.doc/source-file])]
+      (assert (filepath->type file) (str "unsupported extension: " file))
+      [(filepath->type file)
+       (get-in doctree-entry [:attrs (filepath->type file)])])))
 
 (defn add-slug-path
   "For various purposes it is useful to know the path to a given document
@@ -139,29 +172,24 @@
 
 ;; Deriving doctrees -----------------------------------------------------------
 
-(defn- supported-file-type [path]
-  (cond
-    (.endsWith path ".markdown") :markdown
-    (.endsWith path ".md")       :markdown
-    (.endsWith path ".adoc")     :asciidoc))
-
 (defn- readme? [path]
   (and (.startsWith (.toLowerCase path) "readme.")
-       (supported-file-type path)))
+       (try (filepath->type path) (catch Exception _ false))))
 
 (defn- changelog? [path]
   (and (some #(.startsWith (.toLowerCase path) %) ["changelog." "changes."  "history." "news." "releases."])
-       (supported-file-type path)))
+       (try (filepath->type path) (catch Exception _ false))))
 
 (defn- doc? [path]
-  (and (supported-file-type path)
-       (or (.startsWith path "doc/")
-           (.startsWith path "docs/"))))
+  (and (or (.startsWith path "doc/")
+           (.startsWith path "docs/"))
+       (try (filepath->type path) (catch Exception _ false))))
 
 (defn- infer-title [path file-contents]
-  (or (case (supported-file-type path)
-        :markdown (second (re-find #"(?m)^\s*#+\s*(.*)\s*$" file-contents))
-        :asciidoc (second (re-find #"(?m)^\s*=+\s*(.*)\s*$" file-contents)))
+  (or (case (filepath->type path)
+        ;; NOTE infer-title will fail with non adoc/md files
+        :cljdoc/markdown (second (re-find #"(?m)^\s*#+\s*(.*)\s*$" file-contents))
+        :cljdoc/asciidoc (second (re-find #"(?m)^\s*=+\s*(.*)\s*$" file-contents)))
       (first (butlast (take-last 2 (cuerdas/split path #"[/\.]"))))
       (throw (ex-info (format "No title found for %s" path)
                       {:path path :contents file-contents}))))

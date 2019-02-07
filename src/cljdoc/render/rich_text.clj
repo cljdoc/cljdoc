@@ -70,6 +70,19 @@
    (->> (.parse md-container input-str)
         (.render (md-renderer opts)))))
 
+(defmulti render-text
+  "An extension point for the rendering of different article types.
+
+  `type` is determined by [[cljdoc.doc-tree/filepath->type]]."
+  (fn [[type contents]]
+    type))
+
+(defmethod render-text :cljdoc/markdown [[_ content]]
+  (markdown-to-html content))
+
+(defmethod render-text :cljdoc/asciidoc [[_ content]]
+  (asciidoc-to-html content))
+
 (comment
   (markdown-to-html "*hello world* <code>x</code>")
 

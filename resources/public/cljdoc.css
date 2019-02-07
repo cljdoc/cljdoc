@@ -7,10 +7,19 @@
 /** Markdown / AsciiDoc ------------------------------------------------ **/
 /** Most of this should be implemented via Visitors when rendering Markdown I believe **/
 
-.markdown a, .asciidoc a {
+.cljdoc-article a {
   text-decoration: none;
   color: #357edd;
 }
+
+.cljdoc-article hr {
+    height: .25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
+
 
 .markdown a.md-anchor {
   color: black
@@ -22,14 +31,6 @@
 
 .markdown img[align="right"] {
     padding-left: 20px;
-}
-
-.markdown hr {
-    height: .25em;
-    padding: 0;
-    margin: 24px 0;
-    background-color: #e1e4e8;
-    border: 0;
 }
 
 .markdown pre, .literalblock > .content > pre, .listingblock > .content > pre {

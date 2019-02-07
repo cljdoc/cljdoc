@@ -36,12 +36,11 @@
 (defn doc-page [{:keys [doc-scm-url doc-html doc-type]}]
   (assert doc-type)
   [:div.mw7.center
-   ;; TODO dispatch on a type parameter that becomes part of the attrs map
    (if doc-html
-     [:div#doc-html.lh-copy.pv4
+     [:div#doc-html.cljdoc-article.lh-copy.pv4
       {:class (name doc-type)}
       (hiccup/raw doc-html)
-      [:a.db.f7.tr
+      [:a.db.f7.tr.link.blue
        {:href doc-scm-url}
        (if (= :gitlab (scm/provider doc-scm-url))
          "Edit on GitLab"
