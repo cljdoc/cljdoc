@@ -64,4 +64,11 @@
            :cli
            {:extra-paths ["modules/cli/src"]
             :extra-deps {cli-matic {:mvn/version "0.1.14"}}
-            :main-opts ["-m"  "cljdoc.cli"]}}}
+            :main-opts ["-m"  "cljdoc.cli"]}
+
+           :jar-deploy
+           {:extra-deps {com.workframe/garamond {:git/url "https://github.com/martinklepsch/garamond.git"
+                                                 :sha "a7e3a346b9c51d0fb0e73ca4ea47a150004ca6d1"}
+                         pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
+                                          :sha     "f24279ca21dba3ba74a6f501cff0dbf630ce4355"}
+                         deps-deploy {:mvn/version "RELEASE"}}}}}
