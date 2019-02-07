@@ -15,7 +15,7 @@
             (org.eclipse.jgit.revwalk RevWalk)
             (org.eclipse.jgit.treewalk TreeWalk)
             (org.eclipse.jgit.treewalk.filter PathFilter)
-            (org.eclipse.jgit.api Git TransportConfigCallback)
+            (org.eclipse.jgit.api Git TransportConfigCallback LsRemoteCommand)
             (org.eclipse.jgit.transport SshTransport JschConfigSessionFactory)
             (com.jcraft.jsch JSch)
             (com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository)))
@@ -39,6 +39,17 @@
     #_(createDefaultJSch [fs]
       (doto (proxy-super createDefaultJSch fs)
         (.addIdentity "/Users/martinklepsch/.ssh/martinklepsch-lambdawerk2")))))
+
+(defn clonable?
+  "A rough heuristic to evaluate whether a repository can be cloned.
+
+  This currently only really checks HTTP protocol remotes, for proper SSH support we'd need to
+  also call `setTransportConfigCallback` similar as it's done in [[clone]]."
+  [uri]
+  (let [lscmd (LsRemoteCommand. nil)]
+    (. lscmd (setRemote uri))
+    (try (do (.call lscmd) true)
+         (catch Exception _ false))))
 
 (defn clone [uri target-dir]
   (.. Git
