@@ -57,12 +57,15 @@
     {:build-id build-id
      :future (future
                (try
-                 (if-let [scm-info (ingest/scm-info (:pom ana-args))]
+                 ;; Manually specified scm-url, scm-rev take precedence
+                 (if-let [scm-info (or (when (and scm-url scm-rev)
+                                         {:url scm-url :sha scm-rev})
+                                       (ingest/scm-info (:pom ana-args)))]
                    (let [{:keys [error scm-url commit] :as git-result}
                          (ingest/ingest-git! storage {:project project
                                                       :version version
-                                                      :scm-url (or scm-url (:url scm-info))
-                                                      :pom-revision (or scm-rev (:sha scm-info))})]
+                                                      :scm-url (:url scm-info)
+                                                      :pom-revision (:sha scm-info)})]
                      (when error
                        (log/warnf "Error while processing %s %s: %s" project version error))
                      (build-log/git-completed! build-tracker build-id (update git-result :error :type))
