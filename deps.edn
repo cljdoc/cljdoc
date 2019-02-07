@@ -66,15 +66,9 @@
             :extra-deps {cli-matic {:mvn/version "0.1.14"}}
             :main-opts ["-m"  "cljdoc.cli"]}
 
-           :garamond {:extra-deps {com.workframe/garamond {:mvn/version "0.4.0"}}
-                      ;:main-opts ["-m" "garamond.main" "--artifact-id" "cljdoc" "--group-id" "cljdoc"]
-                      }
-
-           :jar      {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
-                                                    :sha     "8acf80dd4d6e5173585f5c6fec7af28a310f3ed7"}}
-                      :main-opts  ["-m" "mach.pack.alpha.skinny" "--no-libs" "--project-path"
-                                   "target/cljdoc.jar"]}
-
-           :deploy   {:extra-deps {deps-deploy {:mvn/version "RELEASE"}}
-                      :main-opts  ["-m" "deps-deploy.deps-deploy" "deploy"
-                                   "target/cljdoc.jar"]}}}
+           :jar-deploy
+           {:extra-deps {com.workframe/garamond {:git/url "https://github.com/martinklepsch/garamond.git"
+                                                 :sha "a7e3a346b9c51d0fb0e73ca4ea47a150004ca6d1"}
+                         pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
+                                          :sha     "f24279ca21dba3ba74a6f501cff0dbf630ce4355"}
+                         deps-deploy {:mvn/version "RELEASE"}}}}}
