@@ -52,20 +52,21 @@
                    build-tracker (:group-id v-entity) (:artifact-id v-entity) version)
         ;; override default artifact-uris if they have been provided
         ;; as part of `coords` (nice to provide a local jar/pom)
-        ana-args  (merge a-uris coords {:build-id build-id})]
+        ana-args  (merge a-uris coords {:build-id build-id})
+        pom-scm-info (ingest/scm-info (:pom ana-args))
+        ;; Manually specified scm-url, scm-rev take precedence
+        scm-url (or scm-url (:url pom-scm-info))
+        scm-rev (or scm-rev (:sha pom-scm-info))]
 
     {:build-id build-id
      :future (future
                (try
-                 ;; Manually specified scm-url, scm-rev take precedence
-                 (if-let [scm-info (or (when (and scm-url scm-rev)
-                                         {:url scm-url :sha scm-rev})
-                                       (ingest/scm-info (:pom ana-args)))]
+                 (if (and scm-url scm-rev)
                    (let [{:keys [error scm-url commit] :as git-result}
                          (ingest/ingest-git! storage {:project project
                                                       :version version
-                                                      :scm-url (:url scm-info)
-                                                      :pom-revision (:sha scm-info)})]
+                                                      :scm-url scm-url
+                                                      :pom-revision scm-rev})]
                      (when error
                        (log/warnf "Error while processing %s %s: %s" project version error))
                      (build-log/git-completed! build-tracker build-id (update git-result :error :type))
