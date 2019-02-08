@@ -17,3 +17,4 @@ project.clj
 node_modules
 .envrc
 resources-compiled
+pom.xml
