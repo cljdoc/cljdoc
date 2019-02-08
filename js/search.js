@@ -113,7 +113,7 @@ class App extends Component {
     function resultsView(selectResult) {
       return (
         <div
-          class="bg-white br1 br--bottom bb bl br b--blue w-100 absolute overflow-y-scroll"
+          class="bg-white br1 br--bottom bb bl br b--blue w-100 absolute"
           style="top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"
         >
           <listSelect.ResultsView
