@@ -48,9 +48,7 @@
         (log/info "Importing Articles" (or local-scm scm-url) pom-revision)
         (storage/import-doc
          storage
-         {:group-id (util/group-id project)
-          :artifact-id (util/artifact-id project)
-          :version version}
+         (util/version-entity project version)
          {:jar          {}
           :scm          (merge (:scm git-analysis)
                                {:url scm-url
