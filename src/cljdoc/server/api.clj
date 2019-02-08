@@ -1,6 +1,7 @@
 (ns cljdoc.server.api
   (:require [cljdoc.analysis.service :as analysis-service]
             [cljdoc.server.ingest :as ingest]
+            [cljdoc.storage.api :as storage]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.util :as util]
             [cljdoc.util.repositories :as repositories]
@@ -61,6 +62,7 @@
     {:build-id build-id
      :future (future
                (try
+                 (storage/import-doc storage (util/version-entity project version) {})
                  (if (and scm-url scm-rev)
                    (let [{:keys [error scm-url commit] :as git-result}
                          (ingest/ingest-git! storage {:project project
