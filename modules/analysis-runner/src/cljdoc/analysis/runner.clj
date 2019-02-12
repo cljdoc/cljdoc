@@ -159,7 +159,7 @@
   "Analyze the provided "
   [project version jarpath pompath]
   (try
-    (let [{:keys [classpath resolved-deps]} (deps/resolved-and-cp pompath nil)]
+    (let [{:keys [classpath resolved-deps]} (deps/resolved-and-cp jarpath pompath nil)]
       (println "Used dependencies for analysis:")
       (deps/print-tree resolved-deps)
       (println "---------------------------------------------------------------------------")
