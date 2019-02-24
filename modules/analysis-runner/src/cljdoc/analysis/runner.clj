@@ -35,20 +35,12 @@
         (.mkdirs (.getParentFile f))
         (io/copy (.getInputStream zip entry) f)))))
 
-(defn- copy-jar-contents!
-  "Copy the contents of a jar specified via `jar-uri` into a directory `target-dir`."
-  [jar-uri target-dir]
-  (let [remote-jar? (boolean (.getHost jar-uri))  ; basic check if jar is at remote location
-        jar-local (if remote-jar?
-                    (let [jar-f (io/file target-dir "downloaded.jar")]
-                      (io/make-parents jar-f)
-                      (printf "Downloading remote jar...\n")
-                      (copy jar-uri jar-f)
-                      (.getPath jar-f))
-                    (str jar-uri))]
-    (printf "Unpacking %s\n" jar-local)
-    (unzip! jar-local target-dir)
-    (when remote-jar? (.delete (io/file jar-local)))))
+(defn- download-jar! [jar-uri target-dir]
+  (let [jar-f (io/file target-dir "downloaded.jar")]
+    (io/make-parents jar-f)
+    (printf "Downloading remote jar...\n")
+    (copy jar-uri jar-f)
+    (.getPath jar-f)))
 
 (defn- clean-jar-contents!
   "Some projects include their `out` directories in their jars,
@@ -112,7 +104,11 @@
         _            (copy (io/resource "cljdoc/util.clj")
                            (doto (io/file impl-src-dir "cljdoc" "util.clj")
                              (-> .getParentFile .mkdirs)))
-        _            (copy-jar-contents! (URI. jar) jar-contents)
+        jar-uri      (URI. jar)
+        jar-path     (if-let [remote-jar? (boolean (.getHost jar-uri))]
+                       (download-jar! jar-uri tmp-dir)
+                       jar)
+        _            (unzip! jar-path jar-contents)
         _            (clean-jar-contents! jar-contents)
         platforms    (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/platforms]
