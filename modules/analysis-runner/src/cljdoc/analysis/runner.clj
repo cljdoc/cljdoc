@@ -77,6 +77,34 @@
       (println "Deleting" path)
       (.delete file))))
 
+(defn- prepare-jar-for-analysis!
+  "Prepares a project specified by jar (local or remote) and pom for analysis.
+
+  * jar is unpacked and cleaned
+  * dependencies are resolved and downloaded to cache
+  * analysis files are copied under target location
+  * combined CP of jar+deps+analysis is calculated"
+  [jar pom extra-mvn-repos target-dir]
+  (let [impl-src-dir (io/file target-dir "impl-src/")
+        jar-contents (io/file target-dir "contents/")
+        jar-uri    (URI. jar)
+        jar-path   (if-let [remote-jar? (boolean (.getHost jar-uri))]
+                     (download-jar! jar-uri target-dir)
+                     jar)
+        {:keys [classpath resolved-deps]} (deps/resolved-and-cp jar-path pom extra-mvn-repos)
+        classpath* (str (.getAbsolutePath impl-src-dir) ":" classpath)]
+    (println "Used dependencies for analysis:")
+    (deps/print-tree resolved-deps)
+    (println "---------------------------------------------------------------------------")
+    (unzip! jar-path jar-contents)
+    (clean-jar-contents! jar-contents)
+    (copy (io/resource "impl.clj.tpl")
+          (io/file impl-src-dir "cljdoc" "analysis" "impl.clj"))
+    (copy (io/resource "cljdoc/util.clj")
+          (io/file impl-src-dir "cljdoc" "util.clj"))
+    {:jar-contents jar-contents
+     :classpath classpath*}))
+
 (defn- print-process-result [proc]
   (printf "exit-code %s ---------------------------------------------------------------\n" (:exit proc))
   (println "stdout --------------------------------------------------------------------")
@@ -88,31 +116,17 @@
     (println "---------------------------------------------------------------------------")))
 
 (defn- analyze-impl
-  "Analyze a project specified by it's id, version, jar and pom.
-
-  The `classpath` will be used and is expected to contain all necessary dependencies to analyze
-  the project. This also requires that all dependencies are already downloaded in advance."
-  [{:keys [project version jar pom classpath]}]
+  "Analyze a project specified by it's id, version, jar and pom."
+  [{:keys [project version jar pom repos]}]
   {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
   (let [tmp-dir      (util/system-temp-dir (str "cljdoc-" project "-" version))
-        jar-contents (io/file tmp-dir "jar-contents/")
-        impl-src-dir (io/file tmp-dir "impl-src/")
-        _            (copy (io/resource "impl.clj.tpl")
-                           (io/file impl-src-dir "cljdoc" "analysis" "impl.clj"))
-        _            (copy (io/resource "cljdoc/util.clj")
-                           (io/file impl-src-dir "cljdoc" "util.clj"))
-        jar-uri      (URI. jar)
-        jar-path     (if-let [remote-jar? (boolean (.getHost jar-uri))]
-                       (download-jar! jar-uri tmp-dir)
-                       jar)
-        _            (unzip! jar-path jar-contents)
-        _            (clean-jar-contents! jar-contents)
+        analysis-dir (io/file tmp-dir "analysis/")
+        {:keys [jar-contents classpath]} (prepare-jar-for-analysis! jar pom repos analysis-dir)
         platforms    (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/platforms]
                              (util/infer-platforms-from-src-dir jar-contents))
         namespaces   (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/namespaces])
-        classpath*   (str (.getAbsolutePath impl-src-dir) ":" classpath)
         build-cdx      (fn build-cdx [jar-contents-path platf]
                          ;; TODO in theory we don't need to start this clojure process twice
                          ;; and could just modify the code in `impl.clj` to immediately run analysis
@@ -120,7 +134,7 @@
                          (let [f (util/system-temp-file project ".edn")]
                            (println "Analyzing" project platf)
                            (let [process (sh/sh "java"
-                                                "-cp" classpath*
+                                                "-cp" classpath
                                                 "clojure.main" "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
                                                 ;; supplying :dir is necessary to avoid local deps.edn being included
@@ -141,7 +155,7 @@
                           :codox cdx-namespaces
                           :pom-str (slurp pom)}]
       (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
-      (util/delete-directory! jar-contents)
+      (util/delete-directory! analysis-dir)
       (if (every? some? (vals cdx-namespaces))
         (doto (io/file tmp-dir (util/cljdoc-edn project version))
           (io/make-parents)
@@ -152,16 +166,12 @@
   "Analyze the provided "
   [project version jarpath pompath]
   (try
-    (let [{:keys [classpath resolved-deps]} (deps/resolved-and-cp jarpath pompath nil)]
-      (println "Used dependencies for analysis:")
-      (deps/print-tree resolved-deps)
-      (println "---------------------------------------------------------------------------")
-      (copy (analyze-impl {:project (symbol project)
-                           :version version
-                           :jar jarpath
-                           :pom pompath
-                           :classpath classpath})
-            (io/file util/analysis-output-prefix (util/cljdoc-edn project version))))
+    (copy (analyze-impl {:project (symbol project)
+                         :version version
+                         :jar jarpath
+                         :pom pompath
+                         :repos nil})
+          (io/file util/analysis-output-prefix (util/cljdoc-edn project version)))
     (catch Throwable t
       (println (.getMessage t))
       (System/exit 1))

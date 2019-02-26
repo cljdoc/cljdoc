@@ -17,16 +17,12 @@
   [arg]
   (try
     (pp/pprint (edn/read-string arg))
-    (let [{:keys [project version jarpath pompath repos] :as args} (edn/read-string arg)
-          {:keys [classpath resolved-deps]} (deps/resolved-and-cp jarpath pompath repos)]
-      (println "Used dependencies for analysis:")
-      (deps/print-tree resolved-deps)
-      (println "---------------------------------------------------------------------------")
+    (let [{:keys [project version jarpath pompath repos] :as args} (edn/read-string arg)]
       (copy (#'runner/analyze-impl {:project (symbol project)
                                     :version version
                                     :jar jarpath
                                     :pom pompath
-                                    :classpath classpath})
+                                    :repos repos})
             (io/file util/analysis-output-prefix (util/cljdoc-edn project version))))
     (catch Throwable t
       (.printStackTrace t)
