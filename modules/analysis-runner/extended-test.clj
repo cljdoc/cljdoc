@@ -1,8 +1,16 @@
 (require '[clojure.java.shell :as sh]
          '[clojure.string :as string]
+         '[clojure.java.io :as io]
          '[clojure.pprint])
 
-(def candidates
+(import '[java.nio.file Files]
+        '[java.net URI])
+
+(def local-candidates
+  [;; known to work
+   ["metosin/muuntaja" "unpublished" "http://repo.clojars.org/metosin/muuntaja/0.6.3/muuntaja-0.6.3"]])
+
+(def remote-candidates
   [;; depends on ring/ring-core which requires [javax.servlet/servlet-api "2.5"]
    ["metosin/compojure-api" "2.0.0-alpha27" "http://repo.clojars.org/metosin/compojure-api/2.0.0-alpha27/compojure-api-2.0.0-alpha27"]
    ;; depends on tools.namepspace 0.3.0-alpha4, cljdoc explicitly declared 0.2.11
@@ -28,11 +36,51 @@
     (System/exit 1)
     (System/exit 0)))
 
-(->> (for [[project version url-base] candidates]
-       (let [args ["clojure" "-m" "cljdoc.analysis.runner-ng" (pr-str {:project project
-                                                                       :version version
-                                                                       :jarpath (str url-base ".jar")
-                                                                       :pompath (str url-base ".pom")})]
+(def clean-temp
+  "Disable for debugging"
+  true)
+
+(def temp-dir
+  (let [path (Files/createTempDirectory
+              "cljdoc-test"
+              (into-array java.nio.file.attribute.FileAttribute []))
+        file (.toFile path)]
+    (when clean-temp
+      ;; This will remove temp-dir only if empty
+      (.deleteOnExit file))
+    file))
+
+(defn mktemp [name]
+  (let [file (io/file temp-dir name)]
+    (when clean-temp
+      (.deleteOnExit file))
+    file))
+
+(defn download-temp! [url name]
+  (let [file (mktemp name)]
+    (with-open [in  (io/input-stream (io/as-url url))
+                out (io/output-stream file)]
+      (io/copy in out))
+    (.getAbsolutePath file)))
+
+(defn remote->args [[project version base-url]]
+  {:project project
+   :version version
+   :jarpath (str base-url ".jar")
+   :pompath (str base-url ".pom")})
+
+(defn local->args [[project version base-url]]
+  (let [{:keys [jarpath pompath] :as args}
+        (remote->args [project version base-url])
+        prefix (str (string/replace project #"/" "-") "-" version)]
+    (assoc args
+           :jarpath (download-temp! jarpath (str prefix ".jar"))
+           :pompath (download-temp! pompath (str prefix ".pom")))))
+
+(->> (for [{:keys [project version] :as args}
+           (concat (map local->args local-candidates)
+                   (map remote->args remote-candidates))]
+       (let [args ["clojure" "-m" "cljdoc.analysis.runner-ng" (pr-str args)]
              _ (do (println "Analyzing" project version) (println (string/join " " args) sep))
              {:keys [exit out]} (apply sh/sh args)]
          (when-not (zero? exit)
