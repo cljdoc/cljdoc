@@ -9,7 +9,7 @@
             [clojure.edn :as edn]
             [cljdoc.util :as util]
             [cljdoc.analysis.deps :as deps]
-            [cljdoc.analysis.runner :as runner]
+            [cljdoc.analysis.runner :as runner :refer [copy]]
             [cljdoc.spec]))
 
 (defn -main
@@ -22,13 +22,12 @@
       (println "Used dependencies for analysis:")
       (deps/print-tree resolved-deps)
       (println "---------------------------------------------------------------------------")
-      (io/copy (#'runner/analyze-impl {:project (symbol project)
-                                       :version version
-                                       :jar jarpath
-                                       :pom pompath
-                                       :classpath classpath})
-               (doto (io/file util/analysis-output-prefix (util/cljdoc-edn project version))
-                 (-> .getParentFile .mkdirs))))
+      (copy (#'runner/analyze-impl {:project (symbol project)
+                                    :version version
+                                    :jar jarpath
+                                    :pom pompath
+                                    :classpath classpath})
+            (io/file util/analysis-output-prefix (util/cljdoc-edn project version))))
     (catch Throwable t
       (.printStackTrace t)
       (System/exit 1))

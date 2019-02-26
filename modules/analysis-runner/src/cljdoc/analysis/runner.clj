@@ -20,8 +20,9 @@
            (java.net URI)
            (java.nio.file Files)))
 
-(defn copy [uri file]
-  (with-open [in  (io/input-stream uri)
+(defn copy [source file]
+  (io/make-parents file)
+  (with-open [in  (io/input-stream source)
               out (io/output-stream file)]
     (io/copy in out)))
 
@@ -32,12 +33,10 @@
       (doseq [entry entries
               :when (not (.isDirectory ^java.util.zip.ZipEntry entry))
               :let [f (io/file target-dir (str entry))]]
-        (.mkdirs (.getParentFile f))
-        (io/copy (.getInputStream zip entry) f)))))
+        (copy (.getInputStream zip entry) f)))))
 
 (defn- download-jar! [jar-uri target-dir]
   (let [jar-f (io/file target-dir "downloaded.jar")]
-    (io/make-parents jar-f)
     (printf "Downloading remote jar...\n")
     (copy jar-uri jar-f)
     (.getPath jar-f)))
@@ -99,11 +98,9 @@
         jar-contents (io/file tmp-dir "jar-contents/")
         impl-src-dir (io/file tmp-dir "impl-src/")
         _            (copy (io/resource "impl.clj.tpl")
-                           (doto (io/file impl-src-dir "cljdoc" "analysis" "impl.clj")
-                             (-> .getParentFile .mkdirs)))
+                           (io/file impl-src-dir "cljdoc" "analysis" "impl.clj"))
         _            (copy (io/resource "cljdoc/util.clj")
-                           (doto (io/file impl-src-dir "cljdoc" "util.clj")
-                             (-> .getParentFile .mkdirs)))
+                           (io/file impl-src-dir "cljdoc" "util.clj"))
         jar-uri      (URI. jar)
         jar-path     (if-let [remote-jar? (boolean (.getHost jar-uri))]
                        (download-jar! jar-uri tmp-dir)
@@ -159,13 +156,12 @@
       (println "Used dependencies for analysis:")
       (deps/print-tree resolved-deps)
       (println "---------------------------------------------------------------------------")
-      (io/copy (analyze-impl {:project (symbol project)
-                              :version version
-                              :jar jarpath
-                              :pom pompath
-                              :classpath classpath})
-               (doto (io/file util/analysis-output-prefix (util/cljdoc-edn project version))
-                 (-> .getParentFile .mkdirs))))
+      (copy (analyze-impl {:project (symbol project)
+                           :version version
+                           :jar jarpath
+                           :pom pompath
+                           :classpath classpath})
+            (io/file util/analysis-output-prefix (util/cljdoc-edn project version))))
     (catch Throwable t
       (println (.getMessage t))
       (System/exit 1))
