@@ -40,7 +40,7 @@
   background-color: rgb(246, 248, 250);
   border-radius: 3px;
   font-size: 0.875rem;
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 
 .markdown code, .asciidoc :not(.highlight) > code {
