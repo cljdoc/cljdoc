@@ -63,11 +63,12 @@
   (let [{:keys [body status]} (http/get (metadata-xml-uri repository project version)
                                         {:throw-exceptions false})]
     (if (= 200 status)
-      (let [d (Jsoup/parse body)]
-        (->> (.select d "versioning > snapshotVersions > snapshotVersion > value")
-             (map #(.ownText %))
-             (set)
-             (util/assert-first)))
+      (let [d (Jsoup/parse body)
+            timestamp (.ownText (first (.select d "versioning > snapshot > timestamp")))
+            build-num (.ownText (first (.select d "versioning > snapshot > buildNumber")))]
+        (assert timestamp "Could not extract SNAPSHOT timestamp from metadata.xml")
+        (assert build-num "Could not extract SNAPSHOT buildNumber from metadata.xml")
+        (string/replace version #"-SNAPSHOT$" (str "-" timestamp "-" build-num)))
       version)))
 
 (defn exists?
