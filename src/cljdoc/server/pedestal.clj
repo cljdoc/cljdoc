@@ -81,14 +81,23 @@
                  (map #(java.net.URLDecoder/decode % "UTF-8"))
                  (assoc-in ctx [:request :path-params :doc-slug-path])))})
 
-(defn index-page
-  "Return a list of interceptors suitable to render an group or
-  artifact index page as specified by `render-fn`."
-  [store render-fn]
+(defn index-pages
+  "Return a list of interceptors suitable to render an index page appropriate for the provided `route-name`.
+  `route-name` can be either `:artifact/index`,  `:group/index` or `:cljdoc/index`."
+  [store route-name]
   [{:name ::releases-loader
     :enter (fn releases-loader-inner [ctx]
-             (assoc ctx ::releases (storage/list-versions store (-> ctx :request :path-params :group-id))))}
-   (pu/html #(render-fn (-> % :request :path-params) (::releases %)))])
+             (case route-name
+               (:artifact/index :group/index)
+               (assoc ctx ::releases (storage/list-versions store (-> ctx :request :path-params :group-id)))
+
+               :cljdoc/index
+               (assoc ctx ::releases (storage/all-distinct-docs store))))}
+   (pu/html (fn [ctx]
+              (case route-name
+                :artifact/index (index-pages/artifact-index (-> ctx :request :path-params) (::releases ctx))
+                :group/index    (index-pages/group-index (-> ctx :request :path-params) (::releases ctx))
+                :cljdoc/index   (index-pages/full-index (::releases ctx)))))])
 
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
@@ -333,8 +342,9 @@
          :ping          [{:name ::pong :enter #(pu/ok-html % "pong")}]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
 
-         :group/index     (index-page storage index-pages/group-index)
-         :artifact/index  (index-page storage index-pages/artifact-index)
+         :cljdoc/index    (index-pages storage route-name)
+         :group/index     (index-pages storage route-name)
+         :artifact/index  (index-pages storage route-name)
 
          :artifact/version   (view storage cache route-name)
          :artifact/namespace (view storage cache route-name)

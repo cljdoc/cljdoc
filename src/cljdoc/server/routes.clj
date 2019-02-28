@@ -35,7 +35,8 @@
     ["/download/:group-id/:artifact-id/:version" :get nop :route-name :artifact/offline-bundle]})
 
 (defn index-routes []
-  #{["/versions/:group-id" :get nop :route-name :group/index]
+  #{["/versions" :get nop :route-name :cljdoc/index]
+    ["/versions/:group-id" :get nop :route-name :group/index]
     ["/versions/:group-id/:artifact-id" :get nop :route-name :artifact/index]})
 
 (defn open-search-routes []
