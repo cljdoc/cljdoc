@@ -2,6 +2,7 @@ import { render, h } from "preact";
 import { trackProjectOpened, Switcher } from "./switcher";
 import { App } from "./search";
 import { MobileNav } from "./mobile";
+import { Navigator } from "./navigator";
 import {
   isNSPage,
   isProjectDocumentationPage,
@@ -19,6 +20,11 @@ render(h(Switcher), document.querySelector("#cljdoc-switcher"));
 const searchNode = document.querySelector("#cljdoc-search");
 if (searchNode) {
   render(h(App, { initialValue: searchNode.dataset.initialValue }), searchNode);
+}
+
+const navigatorNode = document.querySelector("#js--cljdoc-navigator");
+if (navigatorNode) {
+  render(h(Navigator), navigatorNode);
 }
 
 if (isNSPage()) {
