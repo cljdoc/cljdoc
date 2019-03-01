@@ -1,6 +1,7 @@
 {"reagent/reagent"   {:cljdoc.api/platforms #{"cljs"}} ; clj fails because reagent.debug is missing, file exists though
  "cider/cider-nrepl" {:cljdoc.api/platforms #{"clj"}}
  "com.rpl/specter" {:cljdoc.api/platforms #{"clj"}}
+ "ventas-core/ventas-core" {:cljdoc.api/platforms #{"clj"}}
  "re-frame/re-frame" {:cljdoc.doc/tree [["Introduction" {:file "README.md"}
                                          ["Application State" {:file "docs/ApplicationState.md"}]
                                          ["First Code Walk-through" {:file "docs/CodeWalkthrough.md"}]
