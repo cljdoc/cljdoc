@@ -9,7 +9,7 @@
             [clojure.edn :as edn]
             [cljdoc.util :as util]
             [cljdoc.analysis.deps :as deps]
-            [cljdoc.analysis.runner :as runner :refer [copy]]
+            [cljdoc.analysis.runner :as runner]
             [cljdoc.spec]))
 
 (defn -main
@@ -18,11 +18,11 @@
   (try
     (pp/pprint (edn/read-string arg))
     (let [{:keys [project version jarpath pompath repos] :as args} (edn/read-string arg)]
-      (copy (#'runner/analyze-impl {:project (symbol project)
-                                    :version version
-                                    :jar jarpath
-                                    :pom pompath
-                                    :repos repos})
+      (util/copy (#'runner/analyze-impl {:project (symbol project)
+                                         :version version
+                                         :jar jarpath
+                                         :pom pompath
+                                         :repos repos})
             (io/file util/analysis-output-prefix (util/cljdoc-edn project version))))
     (catch Throwable t
       (.printStackTrace t)

@@ -106,8 +106,7 @@
   {:pre [(string? pom-url)]}
   (println pom-url repos)
   (let [pom (pom/parse (slurp pom-url))
-        {:keys [group-id artifact-id version]} (pom/artifact-info pom)
-        project (symbol group-id artifact-id)
+        project (util/clojars-id (pom/artifact-info pom))
         resolved (tdeps/resolve-deps {:deps (deps pom),
                                       :mvn/repos (merge default-repos
                                                         (extra-repos pom)

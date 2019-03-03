@@ -20,12 +20,6 @@
            (java.net URI)
            (java.nio.file Files)))
 
-(defn copy [source file]
-  (io/make-parents file)
-  (with-open [in  (io/input-stream source)
-              out (io/output-stream file)]
-    (io/copy in out)))
-
 (defn unzip!
   [source target-dir]
   (with-open [zip (ZipFile. (io/file source))]
@@ -33,12 +27,12 @@
       (doseq [entry entries
               :when (not (.isDirectory ^java.util.zip.ZipEntry entry))
               :let [f (io/file target-dir (str entry))]]
-        (copy (.getInputStream zip entry) f)))))
+        (util/copy (.getInputStream zip entry) f)))))
 
 (defn- download-jar! [jar-uri target-dir]
   (let [jar-f (io/file target-dir "downloaded.jar")]
     (printf "Downloading remote jar...\n")
-    (copy jar-uri jar-f)
+    (util/copy jar-uri jar-f)
     (.getPath jar-f)))
 
 (defn- clean-jar-contents!
@@ -98,10 +92,10 @@
     (println "---------------------------------------------------------------------------")
     (unzip! jar-path jar-contents)
     (clean-jar-contents! jar-contents)
-    (copy (io/resource "impl.clj.tpl")
-          (io/file impl-src-dir "cljdoc" "analysis" "impl.clj"))
-    (copy (io/resource "cljdoc/util.clj")
-          (io/file impl-src-dir "cljdoc" "util.clj"))
+    (util/copy (io/resource "impl.clj.tpl")
+               (io/file impl-src-dir "cljdoc" "analysis" "impl.clj"))
+    (util/copy (io/resource "cljdoc/util.clj")
+               (io/file impl-src-dir "cljdoc" "util.clj"))
     {:jar-contents jar-contents
      :classpath classpath*}))
 
@@ -166,11 +160,11 @@
   "Analyze the provided "
   [project version jarpath pompath]
   (try
-    (copy (analyze-impl {:project (symbol project)
-                         :version version
-                         :jar jarpath
-                         :pom pompath
-                         :repos nil})
+    (util/copy (analyze-impl {:project (symbol project)
+                              :version version
+                              :jar jarpath
+                              :pom pompath
+                              :repos nil})
           (io/file util/analysis-output-prefix (util/cljdoc-edn project version)))
     (catch Throwable t
       (println (.getMessage t))
