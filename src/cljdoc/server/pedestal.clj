@@ -30,6 +30,7 @@
             [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
             [cljdoc.util :as util]
+            [cljdoc.util.pom :as pom]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
@@ -54,7 +55,7 @@
             (let [path-params (-> ctx :request :path-params)
                   page-type   (-> ctx :route :route-name)]
               (if-let [first-article-slug (and (= page-type :artifact/version)
-                                               (-> cache-bundle :cache-contents :version :doc first :attrs :slug))]
+                                               (-> cache-bundle :version :doc first :attrs :slug))]
                 ;; instead of rendering a mostly white page we
                 ;; redirect to the README/first listed article
                 (let [location (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))]
@@ -99,23 +100,37 @@
                 :group/index    (index-pages/group-index (-> ctx :request :path-params) (::releases ctx))
                 :cljdoc/index   (index-pages/full-index (::releases ctx)))))])
 
+(def ^:private pom-path
+  [:cache-bundle :version :pom])
+
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
   relevant for the artifact identified via the entity map in `:path-params`."
-  [store cache]
+  [store]
   {:name  ::artifact-data-loader
    :enter (fn artifact-data-loader-inner [ctx]
-            (let [params (-> ctx :request :path-params)]
+            (let [params (-> ctx :request :path-params)
+                  pom-data (get-in ctx pom-path)
+                  bundle-params (assoc params :dependency-version-entities (:dependencies pom-data))]
               (log/info "Loading artifact cache bundle for" params)
               (if (storage/exists? store params)
-                (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
-                      cache-bundle (assoc-in
-                                    (storage/bundle-docs store params)
-                                    [:cache-contents :version :pom]
-                                    (pom-xml-memo (util/clojars-id params)
-                                                  (:version params)))]
-                  (assoc ctx :cache-bundle cache-bundle))
+                (-> ctx
+                    (assoc :cache-bundle (storage/bundle-docs store bundle-params))
+                    (assoc-in pom-path pom-data))
                 ctx)))})
+
+(defn pom-loader
+  "Load a projects POM file, parse it and inject some information from it into the context."
+  [cache]
+  {:name ::pom-loader
+   :enter (fn pom-loader-inner [ctx]
+            (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
+                  params (-> ctx :request :path-params)
+                  pom-parsed (pom/parse (pom-xml-memo
+                                         (util/clojars-id params)
+                                         (:version params)))]
+              (assoc-in ctx pom-path {:description (-> pom-parsed pom/artifact-info :description)
+                                      :dependencies (-> pom-parsed pom/dependencies-with-versions)})))})
 
 (defn- resolve-version [path-params referer]
   (assert (= "CURRENT" (:version path-params)))
@@ -153,7 +168,8 @@
   [storage cache route-name]
   (->> [(version-resolve-redirect)
         (when (= :artifact/doc route-name) doc-slug-parser)
-        (artifact-data-loader storage cache)
+        (pom-loader cache)
+        (artifact-data-loader storage)
         render-interceptor]
        (keep identity)
        (vec)))
@@ -303,14 +319,14 @@
   for the project that has been injected into the context by [[artifact-data-loader]]."
   {:name ::offline-bundle
    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
-            (log/info "Bundling" (str (-> cache-bundle :cache-id :artifact-id) "-"
-                                      (-> cache-bundle :cache-id :version) ".zip"))
+            (log/info "Bundling" (str (-> cache-bundle :version-entity :artifact-id) "-"
+                                      (-> cache-bundle :version-entity :version) ".zip"))
             (->> (if cache-bundle
                    {:status 200
                     :headers {"Content-Type" "application/zip, application/octet-stream"
                               "Content-Disposition" (format "attachment; filename=\"%s\""
-                                                            (str (-> cache-bundle :cache-id :artifact-id) "-"
-                                                                 (-> cache-bundle :cache-id :version) ".zip"))}
+                                                            (str (-> cache-bundle :version-entity :artifact-id) "-"
+                                                                 (-> cache-bundle :version-entity :version) ".zip"))}
                     :body (offline/zip-stream cache-bundle)}
                    {:status 404
                     :headers {}
@@ -349,7 +365,8 @@
          :artifact/version   (view storage cache route-name)
          :artifact/namespace (view storage cache route-name)
          :artifact/doc       (view storage cache route-name)
-         :artifact/offline-bundle [(artifact-data-loader storage cache)
+         :artifact/offline-bundle [(pom-loader cache)
+                                   (artifact-data-loader storage)
                                    offline-bundle]
 
          :artifact/current-via-short-id [(jump-interceptor)]

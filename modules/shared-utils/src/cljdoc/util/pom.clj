@@ -1,4 +1,5 @@
 (ns cljdoc.util.pom
+  "Functions to parse POM files and extract information from them."
   (:require [clojure.string :as string])
   (:import (org.jsoup Jsoup)
            (org.jsoup.nodes Document)))
@@ -9,7 +10,7 @@
 (defn jsoup? [x]
   (instance? Document x))
 
-(defn text [^Jsoup doc sel]
+(defn- text [^Jsoup doc sel]
   (when-let [t (some-> (.select doc sel) (first) (.ownText))]
     (when-not (string/blank? t) t)))
 
@@ -22,6 +23,18 @@
   {:url (text doc "project > scm > url")
    :sha (text doc "project > scm > tag")})
 
+(defn- managed-deps-tree
+  "Return a tree structure allowing easy access to version numbers for artifacts specified via
+  <dependencyManagement>. This key is sometimes used by projects to specify dependency versions
+  in a central place instead of repeating them in each .pom file.
+
+  See [the official Maven docs](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management)."
+  [^Jsoup doc]
+  (reduce (fn [tree d]
+            (assoc-in tree [(text d "groupId") (text d "artifactId")] (text d "version")))
+          {}
+          (.select doc "project > dependencyManagement > dependencies > dependency")))
+
 (defn dependencies [^Jsoup doc]
   (for [d (.select doc "project > dependencies > dependency")]
     {:group-id    (text d "groupId")
@@ -29,6 +42,19 @@
      :version     (text d "version")
      :scope       (text d "scope")
      :optional    (text d "optional")}))
+
+(defn dependencies-with-versions
+  "Like the regular [[dependencies]]) but also takes into account version numbers specified via
+  managed dependencies ([[managed-deps-tree]]). If a dependency returned by [[dependencies]]
+  does not contain a version it will be looked up via the return value of [[managed-deps-tree]].
+  This ensures a non-nil `:version` key is always present for all dependencies."
+  [^Jsoup doc]
+  (let [versions-tree (managed-deps-tree doc)]
+    (->> (dependencies doc)
+         (map (fn [{:keys [group-id artifact-id version] :as d}]
+                (if-not version
+                  (assoc d :version (get-in versions-tree [group-id artifact-id]))
+                  d))))))
 
 (defn repositories [^Jsoup doc]
   (for [r (.select doc "project > repositories > repository")]
@@ -49,7 +75,10 @@
 
 (comment
   (def doc
-    (Jsoup/parse (slurp "https://repo.clojars.org/workflo/macros/0.2.63/macros-0.2.63.pom")))
+    (Jsoup/parse (slurp "http://repo.clojars.org/metosin/reitit-core/0.2.13/reitit-core-0.2.13.pom")))
+
+  (managed-deps-tree doc)
+  (dependencies-with-versions doc)
 
   (def doc
     (parse (slurp "https://search.maven.org/remotecontent?filepath=org/clojure/clojure/1.9.0/clojure-1.9.0.pom")))

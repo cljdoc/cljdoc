@@ -32,6 +32,7 @@
         org.clojure/core.match {:mvn/version "0.3.0-alpha5"},
         org.jsoup/jsoup {:mvn/version "1.11.3"},
         org.xerial/sqlite-jdbc {:mvn/version "3.20.0"},
+        com.layerware/hugsql {:mvn/version "0.4.9"}
         com.taoensso/tufte {:mvn/version "2.0.1"}
         com.taoensso/nippy {:mvn/version "2.14.0"}
         org.slf4j/slf4j-api {:mvn/version "1.7.25"},
@@ -56,9 +57,7 @@
          "modules/shared-utils/resources"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha
-                         {:git/url "https://github.com/lambdaisland/kaocha.git"
-                          :sha "e7af8b48aadb32da9dcd7a9e5eb50fe64eae8d62"}}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-389"}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :cli

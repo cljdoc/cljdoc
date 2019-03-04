@@ -1,2 +1,2 @@
-#kaocha
-{:reporter kaocha.report.progress/report}
+#kaocha/v1 {:reporter kaocha.report.progress/report
+            :plugins [:kaocha.plugin/notifier]}

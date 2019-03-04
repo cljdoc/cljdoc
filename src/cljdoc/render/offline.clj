@@ -65,7 +65,7 @@
                      (util/clojars-id version-entity) " v"
                      (:version version-entity))]
                    [:meta {:charset "utf-8"}]
-                   (->> ["assets/cljdoc.css" "assets/github-gist.min.css" "assets/tachyons.min.css"]
+                   (->> ["assets/cljdoc.css" "assets/tachyons.min.css"]
                         (map #(cond->> % sub-page? (str "../")))
                         (apply hiccup.page/include-css))]
                   [:div.sans-serif
@@ -95,17 +95,17 @@
                  (some-> doc-page :children seq article-toc)])))
        (into [:ol])))
 
-(defn index-page [{:keys [cache-contents] :as cache-bundle}]
+(defn index-page [cache-bundle]
   [:div
-   (when (-> cache-contents :version :doc)
+   (when (-> cache-bundle :version :doc)
      [:div
       [:h1.mv0.pv3 {:id "articles"} "Articles"]
-      (article-toc (doctree/add-slug-path (-> cache-contents :version :doc)))])
+      (article-toc (doctree/add-slug-path (-> cache-bundle :version :doc)))])
 
    [:h1.mv0.pv3 {:id "namespaces"} "Namespaces"]
    (for [ns (bundle/namespaces cache-bundle)
          :let [defs (bundle/defs-for-ns
-                      (:defs cache-contents)
+                      (bundle/all-defs cache-bundle)
                       (platf/get-field ns :name))]]
      (api/namespace-overview ns-url ns defs))])
 
@@ -118,31 +118,23 @@
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
                  fix-opts))]])
 
-(defn ns-page [ns defs {:keys [scm-base file-mapping]}]
+(defn ns-page [ns defs]
   (let [ns-name (platf/get-field ns :name)
         render-wiki-link (api/render-wiki-link-fn ns-name #(str % ".html"))]
     [:div
      [:h1 ns-name]
      (api/render-doc ns render-wiki-link)
      (for [def defs]
-       (api/def-block
-         (api/add-src-uri def scm-base file-mapping)
-         render-wiki-link))]))
+       (api/def-block def render-wiki-link))]))
 
 (defn docs-files
   "Return a list of [file-path content] pairs describing a zip archive.
 
   Content may be a java.io.File or hiccup.util.RawString"
-  [{:keys [cache-contents cache-id] :as cache-bundle}]
+  [{:keys [version-entity] :as cache-bundle}]
   (cljdoc-spec/assert :cljdoc.spec/cache-bundle cache-bundle)
-  (let [doc-tree     (doctree/add-slug-path (-> cache-contents :version :doc))
-        scm-info     (-> cache-contents :version :scm)
-        blob         (or (:name (:tag scm-info)) (:commit scm-info))
-        scm-base     (str (:url scm-info) "/blob/" blob "/")
-        file-mapping (when (:files scm-info)
-                       (fixref/match-files
-                        (keys (:files scm-info))
-                        (set (keep :file (-> cache-contents :defs)))))
+  (let [doc-tree     (doctree/add-slug-path (-> cache-bundle :version :doc))
+        scm-info     (-> cache-bundle :version :scm)
         flat-doctree (-> doc-tree doctree/flatten*)
         uri-map (->> flat-doctree
                        (map (fn [d]
@@ -150,8 +142,8 @@
                                (article-url (-> d :attrs :slug-path))]))
                        (into {}))
         page'   (fn [type title contents]
-                  (page {:version-entity cache-id
-                         :scm-url (-> cache-contents :version :scm :url)
+                  (page {:version-entity version-entity
+                         :scm-url (-> cache-bundle :version :scm :url)
                          type title}
                         contents))]
 
@@ -160,7 +152,6 @@
      into
      [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]
        ["assets/tachyons.min.css" (URL. "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css")]
-       ["assets/github-gist.min.css" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css")]
        ["assets/highlight.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js")]
        ["assets/clojure.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js")]
        ["assets/clojure-repl.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")]
@@ -176,16 +167,14 @@
 
       ;; Namespace Pages
       (for [ns-data (bundle/namespaces cache-bundle)
-            :let [defs (bundle/defs-for-ns
-                         (:defs cache-contents)
-                         (platf/get-field ns-data :name))]]
+            :let [defs (bundle/defs-for-ns-with-src-uri cache-bundle (platf/get-field ns-data :name))]]
         [(ns-url (platf/get-field ns-data :name))
-         (->> (ns-page ns-data defs {:scm-base scm-base :file-mapping file-mapping})
+         (->> (ns-page ns-data defs)
               (page' :namespace (platf/get-field ns-data :name)))])])))
 
-(defn zip-stream [{:keys [cache-id] :as cache-bundle}]
-  (let [prefix (str (-> cache-id :artifact-id)
-                    "-" (-> cache-id :version)
+(defn zip-stream [{:keys [version-entity] :as cache-bundle}]
+  (let [prefix (str (-> version-entity :artifact-id)
+                    "-" (-> version-entity :version)
                     "/")]
     (->> (docs-files cache-bundle)
          (map (fn [[k v]]
@@ -218,8 +207,8 @@
 
   (->> (take 2 (docs-files --c))
        (map (fn [[k v]]
-              [(str (-> --c :cache-id :artifact-id)
-                    "-" (-> --c :cache-id :version)
+              [(str (-> --c :version-entity :artifact-id)
+                    "-" (-> --c :version-entity :version)
                     "/" k)
                (cond
                  (instance?  java.io.File v)         (Files/readAllBytes (.toPath v))

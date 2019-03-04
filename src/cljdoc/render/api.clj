@@ -107,19 +107,27 @@
      (when (seq (platf/all-vals def :doc))
        [:a.link.f7.gray.hover-dark-gray.js--toggle-raw {:href "#"} "raw docstring"])]))
 
-(defn namespace-list [{:keys [current]} namespaces]
-  (let [base-params (select-keys (first namespaces) [:group-id :artifact-id :version])
-        namespaces  (ns-tree/index-by :namespace namespaces)]
-    [:ul.list.pl0
-     (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys namespaces))
-           :let [style {:margin-left (str (* (dec level) 10) "px")}]]
-       [:li
-        [:a.link.hover-dark-blue.blue.dib.pa1
-         {:href (routes/url-for :artifact/namespace :path-params (assoc base-params :namespace ns))
-          :class (when (= ns current) "b")
-          :style style}
-         (->> (ns-tree/split-ns ns)
-              (drop (dec level)))]])]))
+(defn namespace-list [{:keys [current version-entity]} namespaces]
+  (let [keyed-namespaces (ns-tree/index-by :namespace namespaces)
+        from-dependency? (fn from-dependency? [ns-entity]
+                           (or (not= (:group-id version-entity) (:group-id ns-entity))
+                               (not= (:artifact-id version-entity) (:artifact-id ns-entity)))) ]
+    [:div
+     [:ul.list.pl0
+      (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys keyed-namespaces))
+            :let [style {:margin-left (str (* (dec level) 10) "px")}
+                  nse (get keyed-namespaces ns)]]
+        [:li
+         [:a.link.hover-dark-blue.blue.dib.pa1
+          {:href (routes/url-for :artifact/namespace :path-params (assoc version-entity :namespace ns))
+           :class (when (= ns current) "b")
+           :style style}
+          (->> (ns-tree/split-ns ns)
+               (drop (dec level)))
+          (when (and nse (from-dependency? nse))
+            [:sup.pl1.normal "†"])]])]
+     (when (some from-dependency? namespaces)
+       [:p.f7.fw5.gray.mt4 [:sup.f6.db "†"] "Included via a transitive dependency."])]))
 
 (defn humanize-supported-platforms
   ([supported-platforms]
@@ -207,36 +215,19 @@
                defs (bundle/defs-for-ns defs ns)]]
      (namespace-overview ns-url-fn mp-ns defs))])
 
-(defn add-src-uri
-  [{:keys [platforms] :as mp-var} scm-base file-mapping]
-  {:pre [(platf/multiplatform? mp-var)]}
-  (if file-mapping
-    (->> platforms
-         (map (fn [{:keys [file line] :as p}]
-                (assoc p :src-uri (str scm-base (get file-mapping file) "#L" line))))
-         (assoc mp-var :platforms))
-    mp-var))
-
-(defn namespace-page [{:keys [ns-entity ns-data defs scm-info]}]
+(defn namespace-page [{:keys [ns-entity ns-data defs]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (assert (platf/multiplatform? ns-data))
-  (let [blob             (or (:name (:tag scm-info)) (:commit scm-info))
-        scm-base         (str (:url scm-info) "/blob/" blob "/")
-        file-mapping     (when (:files scm-info)
-                           (fixref/match-files
-                            (keys (:files scm-info))
-                            (set (mapcat #(platf/all-vals % :file) defs))))
-        render-wiki-link (render-wiki-link-fn (:namespace ns-entity)
-                                              #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %)))]
+  (let [render-wiki-link (render-wiki-link-fn
+                          (:namespace ns-entity)
+                          #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %)))]
     [:div.ns-page
      [:div.w-80-ns.pv4
       [:h2 (:namespace ns-entity)]
       (render-doc ns-data render-wiki-link)
       (if (seq defs)
-        (for [def defs]
-          (def-block
-            (add-src-uri def scm-base file-mapping)
-            render-wiki-link))
+        (for [adef defs]
+          (def-block adef render-wiki-link))
         [:p "No vars found in this namespace."])]]))
 
 (comment

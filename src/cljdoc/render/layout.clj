@@ -24,13 +24,13 @@
 
 (defn generic-description
   "Returns a generic description of a project."
-  [{:keys [group-id artifact-id version] :as cache-id}]
-  (format "Documentation for %s v%s on cljdoc." (util/clojars-id cache-id) version))
+  [{:keys [group-id artifact-id version] :as version-entity}]
+  (format "Documentation for %s v%s on cljdoc." (util/clojars-id version-entity) version))
 
 (defn description
   "Return a string to be used as description meta tag for a given project's documentation pages."
-  [cache-id]
-  (str (generic-description cache-id)
+  [version-entity]
+  (str (generic-description version-entity)
        " "
        "A website that builds and hosts documentation for Clojure/Script libraries."))
 
@@ -38,8 +38,8 @@
   "Return a string to be used as description meta tag for a given project's documentation pages.
 
   This description is same as the description in project's pom.xml file."
-  [cache-id artifact-desc]
-  (str (util/clojars-id cache-id) ": " artifact-desc " " (generic-description cache-id)))
+  [version-entity artifact-desc]
+  (str (util/clojars-id version-entity) ": " artifact-desc " " (generic-description version-entity)))
 
 (defn no-js-warning
   "A small development utility component that will show a warning when
@@ -134,13 +134,13 @@
     {:href (util/github-url :issues)}
     "Have Feedback?"]])
 
-(defn top-bar [cache-id scm-url]
+(defn top-bar [version-entity scm-url]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center.bg-white
-   [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params cache-id)}
-    (util/clojars-id cache-id)]
+   [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params version-entity)}
+    (util/clojars-id version-entity)]
    [:a.dib.v-mid.link.dim.gray.f6.mr3
-    {:href (routes/url-for :artifact/index :path-params cache-id)}
-    (:version cache-id)]
+    {:href (routes/url-for :artifact/index :path-params version-entity)}
+    (:version version-entity)]
    [:a.dn.dib-ns {:href "/"}
     [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Beta"]]
    [:a.dn.dib-ns.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
@@ -149,8 +149,8 @@
    [:div.tr
     {:style {:flex-grow 1}}
     [:form.dn.dib-ns.mr3 {:action "/api/request-build2" :method "POST"}
-     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id cache-id) "/" (:artifact-id cache-id))}]
-     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version cache-id)}]
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id version-entity) "/" (:artifact-id version-entity))}]
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version version-entity)}]
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
     (cond
       (and scm-url (scm/http-uri scm-url))

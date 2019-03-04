@@ -69,7 +69,7 @@
 (defn git-dir [project version]
   (str "git-repos/" (group-id project) "/" (artifact-id project) "/" version "/"))
 
-(defn clojars-id [{:keys [group-id artifact-id] :as cache-id}]
+(defn clojars-id [{:keys [group-id artifact-id] :as artifact-entity}]
   (if (= group-id artifact-id)
     artifact-id
     (str group-id "/" artifact-id)))
@@ -238,3 +238,6 @@
     (let [sqr  (fn sqr [x] (* x x))
           avg  (mean coll)]
       (mean (map #(sqr (- % avg)) coll)))))
+
+(defn index-by [f m]
+  (into {} (map (juxt f identity) m)))

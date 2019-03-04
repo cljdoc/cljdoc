@@ -26,13 +26,13 @@
   (or (.startsWith s "https://cljdoc.org")
       (.startsWith s "https://cljdoc.xyz")))
 
-(defn uri-mapping [cache-id docs]
+(defn uri-mapping [version-entity docs]
   (->> docs
        (map (fn [d]
               [(-> d :attrs :cljdoc.doc/source-file)
                (->> (-> d :attrs :slug-path)
                     (clojure.string/join "/")
-                    (assoc cache-id :article-slug)
+                    (assoc version-entity :article-slug)
                     (routes/url-for :artifact/doc :path-params))]))
        (into {})))
 

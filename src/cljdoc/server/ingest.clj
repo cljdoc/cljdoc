@@ -53,6 +53,7 @@
           :scm          (merge (:scm git-analysis)
                                {:url scm-url
                                 :commit (-> git-analysis :scm :rev)})
+          :config       (:config git-analysis)
           :doc-tree     (:doc-tree git-analysis)})
 
         {:scm-url scm-url
