@@ -1,7 +1,6 @@
 (ns cljdoc.util.pom
   "Functions to parse POM files and extract information from them."
-  (:require [clojure.string :as string]
-            [cljdoc.util :as util])
+  (:require [clojure.string :as string])
   (:import (org.jsoup Jsoup)
            (org.jsoup.nodes Document)))
 
