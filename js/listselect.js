@@ -45,13 +45,11 @@ export class ResultsView extends Component {
         style: { maxHeight: "20rem" },
         ref: node => (this.resultsViewNode = node)
       },
-      props.results
-        .sort((a, b) => b.created - a.created)
-        .map((r, idx) =>
-          props.resultView(r, props.selectedIndex === idx, () =>
-            props.onMouseOver(idx)
-          )
+      props.results.map((r, idx) =>
+        props.resultView(r, props.selectedIndex === idx, () =>
+          props.onMouseOver(idx)
         )
+      )
     );
   }
 }
