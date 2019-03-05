@@ -155,6 +155,7 @@ class Switcher extends Component {
   initializeState() {
     let previouslyOpened =
       JSON.parse(localStorage.getItem("previouslyOpened")) || [];
+
     previouslyOpened.forEach(
       r =>
         (r.project_id =
@@ -162,14 +163,14 @@ class Switcher extends Component {
             ? r.group_id
             : r.group_id + "/" + r.artifact_id)
     );
+    previouslyOpened.reverse();
+
     this.setState({
+      // Store previously opened states in reversed order (latest first)
       previouslyOpened: previouslyOpened,
-      // for initial results we don't care about the most recently
-      // inserted one as that's the one we're looking at. Also
-      // we want them reversed to have the most recent shown first.
-      // TODO filter out current project entirely
-      selectedIndex: 0,
-      results: previouslyOpened.slice(0, -1).reverse()
+      // For the initial state (i.e. no search query) recent docsets
+      results: previouslyOpened,
+      selectedIndex: 0
     });
   }
 
