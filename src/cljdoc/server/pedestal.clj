@@ -100,9 +100,6 @@
                 :group/index    (index-pages/group-index (-> ctx :request :path-params) (::releases ctx))
                 :cljdoc/index   (index-pages/full-index (::releases ctx)))))])
 
-(def ^:private pom-path
-  [:cache-bundle :version :pom])
-
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
   relevant for the artifact identified via the entity map in `:path-params`."
@@ -110,13 +107,16 @@
   {:name  ::artifact-data-loader
    :enter (fn artifact-data-loader-inner [ctx]
             (let [params (-> ctx :request :path-params)
-                  pom-data (get-in ctx pom-path)
+                  pom-data (::pom-info ctx)
                   bundle-params (assoc params :dependency-version-entities (:dependencies pom-data))]
-              (log/info "Loading artifact cache bundle for" params)
+              (log/info "Loading artifact cache bundle for" params (:cache-bundle ctx))
               (if (storage/exists? store params)
                 (-> ctx
                     (assoc :cache-bundle (storage/bundle-docs store bundle-params))
-                    (assoc-in pom-path pom-data))
+                    ;; Injecting things into the cache bundle like this is a bit of a hack and really
+                    ;; we should have one entry point that takes care of all the data sources that
+                    ;; contribute to the cache bundle.
+                    (assoc-in [:cache-bundle :version :pom] pom-data))
                 ctx)))})
 
 (defn pom-loader
@@ -129,8 +129,8 @@
                   pom-parsed (pom/parse (pom-xml-memo
                                          (util/clojars-id params)
                                          (:version params)))]
-              (assoc-in ctx pom-path {:description (-> pom-parsed pom/artifact-info :description)
-                                      :dependencies (-> pom-parsed pom/dependencies-with-versions)})))})
+              (assoc ctx ::pom-info {:description (-> pom-parsed pom/artifact-info :description)
+                                     :dependencies (-> pom-parsed pom/dependencies-with-versions)})))})
 
 (defn- resolve-version [path-params referer]
   (assert (= "CURRENT" (:version path-params)))
