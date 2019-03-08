@@ -103,7 +103,7 @@
 (defn resolved-and-cp
   "Build a classpath for the project specified by `pom-url`."
   [jar-url pom-url repos]
-  {:pre [(string? pom-url)]}
+  {:pre [(string? jar-url) (string? pom-url)]}
   (println pom-url repos)
   (let [pom (pom/parse (slurp pom-url))
         project (util/clojars-id (pom/artifact-info pom))
