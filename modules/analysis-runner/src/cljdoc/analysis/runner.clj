@@ -110,15 +110,12 @@
     (println "---------------------------------------------------------------------------")))
 
 (defn- analyze-impl
-  "Analyze a project specified by it's id, version, jar and pom."
-  [{:keys [project version jar pom repos]}]
-  {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
-  (let [tmp-dir      (util/system-temp-dir (str "cljdoc-" project "-" version))
-        analysis-dir (io/file tmp-dir "analysis/")
-        {:keys [jar-contents classpath]} (prepare-jar-for-analysis! jar pom repos analysis-dir)
-        platforms    (get-in @util/hardcoded-config
+  "Analyze a prepared project."
+  [{:keys [project version src-dir pom classpath output-file]}]
+  {:pre [(symbol? project) (seq version) (seq pom) (seq classpath)]}
+  (let [platforms    (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/platforms]
-                             (util/infer-platforms-from-src-dir jar-contents))
+                             (util/infer-platforms-from-src-dir src-dir))
         namespaces   (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/namespaces])
         build-cdx      (fn build-cdx [jar-contents-path platf]
@@ -141,7 +138,7 @@
                                  result)
                                (throw (ex-info (str "Analysis failed with code " (:exit process)) {:code (:exit process)}))))))]
 
-    (let [cdx-namespaces (->> (map #(build-cdx (.getPath jar-contents) %) platforms)
+    (let [cdx-namespaces (->> (map #(build-cdx (.getPath src-dir) %) platforms)
                               (zipmap platforms))
           ana-result     {:group-id (util/group-id project)
                           :artifact-id (util/artifact-id project)
@@ -149,28 +146,50 @@
                           :codox cdx-namespaces
                           :pom-str (slurp pom)}]
       (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
-      (util/delete-directory! analysis-dir)
       (if (every? some? (vals cdx-namespaces))
-        (doto (io/file tmp-dir (util/cljdoc-edn project version))
-          (io/make-parents)
-          (spit (util/serialize-cljdoc-edn ana-result)))
+        (spit output-file (util/serialize-cljdoc-edn ana-result))
         (throw (Exception. "Analysis failed"))))))
 
+(defn analyze!
+  "Analyze the provided project"
+  [{:keys [project version jarpath pompath repos]}]
+  {:pre [(seq project) (seq version) (seq jarpath) (seq pompath)]}
+  (let [project (symbol project)
+        analysis-dir (util/system-temp-dir (str "cljdoc-" project "-" version))
+        output-file  (io/file util/analysis-output-prefix (util/cljdoc-edn project version))]
+    (try
+      (io/make-parents output-file)
+
+      (let [{:keys [jar-contents classpath resolved-deps]}
+            (prepare-jar-for-analysis! jarpath pompath repos analysis-dir)]
+
+        (println "Going to write analysis result to:" (.getAbsolutePath output-file))
+        (analyze-impl {:project project
+                       :version version
+                       :src-dir jar-contents
+                       :pom pompath
+                       :classpath classpath
+                       :output-file output-file})
+
+        (println "Analysis succeeded!")
+        {:analysis-status :success
+         :analysis-result output-file})
+      (catch Throwable t
+        (let [msg (.getMessage t)]
+          (println msg)
+          {:analysis-status :fail
+           :fail-reason msg}))
+      (finally
+        (util/delete-directory! analysis-dir)))))
+
 (defn -main
-  "Analyze the provided "
   [project version jarpath pompath]
-  (try
-    (util/copy (analyze-impl {:project (symbol project)
-                              :version version
-                              :jar jarpath
-                              :pom pompath
-                              :repos nil})
-          (io/file util/analysis-output-prefix (util/cljdoc-edn project version)))
-    (catch Throwable t
-      (println (.getMessage t))
-      (System/exit 1))
-    (finally
-      (shutdown-agents))))
+  (let [{:keys [analysis-status]} (analyze! {:project project
+                                             :version version
+                                             :jarpath jarpath
+                                             :pompath pompath})]
+    (shutdown-agents)
+    (System/exit (if (= :success analysis-status) 0 1))))
 
 (comment
   (deps 'bidi "2.1.3")

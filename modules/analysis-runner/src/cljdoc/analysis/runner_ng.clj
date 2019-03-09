@@ -4,28 +4,19 @@
 
   In addition this runner also allows more customizations such as custom repositories
   and eventually namespace exclusions and more."
-  (:require [clojure.java.io :as io]
-            [clojure.pprint :as pp]
+  (:require [clojure.pprint :as pp]
             [clojure.edn :as edn]
-            [cljdoc.util :as util]
-            [cljdoc.analysis.deps :as deps]
-            [cljdoc.analysis.runner :as runner]
-            [cljdoc.spec]))
+            [cljdoc.analysis.runner :as runner]))
 
 (defn -main
   "Analyze the provided project"
-  [arg]
-  (try
-    (pp/pprint (edn/read-string arg))
-    (let [{:keys [project version jarpath pompath repos] :as args} (edn/read-string arg)]
-      (util/copy (#'runner/analyze-impl {:project (symbol project)
-                                         :version version
-                                         :jar jarpath
-                                         :pom pompath
-                                         :repos repos})
-            (io/file util/analysis-output-prefix (util/cljdoc-edn project version))))
-    (catch Throwable t
-      (.printStackTrace t)
-      (System/exit 1))
-    (finally
-      (shutdown-agents))))
+  [edn-arg]
+  (let [{:keys [project version jarpath pompath repos] :as args} (edn/read-string edn-arg)
+        _                        (pp/pprint args)
+        {:keys [analysis-status]} (runner/analyze! {:project project
+                                                    :version version
+                                                    :jarpath jarpath
+                                                    :pompath pompath
+                                                    :repos repos})]
+    (shutdown-agents)
+    (System/exit (if (= :success analysis-status) 0 1))))
