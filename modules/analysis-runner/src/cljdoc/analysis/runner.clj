@@ -87,16 +87,16 @@
                      jar)
         {:keys [classpath resolved-deps]} (deps/resolved-and-cp jar-path pom extra-mvn-repos)
         classpath* (str (.getAbsolutePath impl-src-dir) ":" classpath)]
-    (println "Used dependencies for analysis:")
-    (deps/print-tree resolved-deps)
-    (println "---------------------------------------------------------------------------")
     (unzip! jar-path jar-contents)
     (clean-jar-contents! jar-contents)
     (util/copy (io/resource "impl.clj.tpl")
                (io/file impl-src-dir "cljdoc" "analysis" "impl.clj"))
     (util/copy (io/resource "cljdoc/util.clj")
                (io/file impl-src-dir "cljdoc" "util.clj"))
-    {:jar-contents jar-contents
+    {:jar-path jar-path
+     :jar-contents jar-contents
+     :analysis-files-path impl-src-dir
+     :resolved-deps resolved-deps
      :classpath classpath*}))
 
 (defn- print-process-result [proc]
@@ -162,6 +162,10 @@
 
       (let [{:keys [jar-contents classpath resolved-deps]}
             (prepare-jar-for-analysis! jarpath pompath repos analysis-dir)]
+
+        (println "Used dependencies for analysis:")
+        (deps/print-tree resolved-deps)
+        (println "---------------------------------------------------------------------------")
 
         (println "Going to write analysis result to:" (.getAbsolutePath output-file))
         (analyze-impl {:project project
