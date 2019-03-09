@@ -12,7 +12,7 @@
   "Analyze the provided project"
   [edn-arg]
   (let [{:keys [project version jarpath pompath repos] :as args} (edn/read-string edn-arg)
-        _                        (pp/pprint args)
+        _                         (pp/pprint args)
         {:keys [analysis-status]} (runner/analyze! {:project project
                                                     :version version
                                                     :jarpath jarpath
