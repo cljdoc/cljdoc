@@ -147,7 +147,9 @@
                           :pom-str (slurp pom)}]
       (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
       (if (every? some? (vals cdx-namespaces))
-        (spit output-file (util/serialize-cljdoc-edn ana-result))
+        (doto output-file
+          (io/make-parents)
+          (spit (util/serialize-cljdoc-edn ana-result)))
         (throw (Exception. "Analysis failed"))))))
 
 (defn analyze!
@@ -158,8 +160,6 @@
         analysis-dir (util/system-temp-dir (str "cljdoc-" project "-" version))
         output-file  (io/file util/analysis-output-prefix (util/cljdoc-edn project version))]
     (try
-      (io/make-parents output-file)
-
       (let [{:keys [jar-contents classpath resolved-deps]}
             (prepare-jar-for-analysis! jarpath pompath repos analysis-dir)]
 
