@@ -156,7 +156,7 @@
   "Analyze the provided project"
   [{:keys [project version jarpath pompath repos]}]
   {:pre [(seq project) (seq version) (seq jarpath) (seq pompath)]}
-  (let [project (symbol project)
+  (let [project      (symbol project)
         analysis-dir (util/system-temp-dir (str "cljdoc-" project "-" version))
         output-file  (io/file util/analysis-output-prefix (util/cljdoc-edn project version))]
     (try
