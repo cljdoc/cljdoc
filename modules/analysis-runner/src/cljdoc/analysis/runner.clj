@@ -20,11 +20,6 @@
            (java.net URI)
            (java.nio.file Files)))
 
-(defn copy [uri file]
-  (with-open [in  (io/input-stream uri)
-              out (io/output-stream file)]
-    (io/copy in out)))
-
 (defn unzip!
   [source target-dir]
   (with-open [zip (ZipFile. (io/file source))]
@@ -32,23 +27,13 @@
       (doseq [entry entries
               :when (not (.isDirectory ^java.util.zip.ZipEntry entry))
               :let [f (io/file target-dir (str entry))]]
-        (.mkdirs (.getParentFile f))
-        (io/copy (.getInputStream zip entry) f)))))
+        (util/copy (.getInputStream zip entry) f)))))
 
-(defn- copy-jar-contents!
-  "Copy the contents of a jar specified via `jar-uri` into a directory `target-dir`."
-  [jar-uri target-dir]
-  (let [remote-jar? (boolean (.getHost jar-uri))  ; basic check if jar is at remote location
-        jar-local (if remote-jar?
-                    (let [jar-f (io/file target-dir "downloaded.jar")]
-                      (io/make-parents jar-f)
-                      (printf "Downloading remote jar...\n")
-                      (copy jar-uri jar-f)
-                      (.getPath jar-f))
-                    (str jar-uri))]
-    (printf "Unpacking %s\n" jar-local)
-    (unzip! jar-local target-dir)
-    (when remote-jar? (.delete (io/file jar-local)))))
+(defn- download-jar! [jar-uri target-dir]
+  (let [jar-f (io/file target-dir "downloaded.jar")]
+    (printf "Downloading remote jar...\n")
+    (util/copy jar-uri jar-f)
+    (.getPath jar-f)))
 
 (defn- clean-jar-contents!
   "Some projects include their `out` directories in their jars,
@@ -86,6 +71,34 @@
       (println "Deleting" path)
       (.delete file))))
 
+(defn- prepare-jar-for-analysis!
+  "Prepares a project specified by jar (local or remote) and pom for analysis.
+
+  * jar is unpacked and cleaned
+  * dependencies are resolved and downloaded to cache
+  * analysis files are copied under target location
+  * combined CP of jar+deps+analysis is calculated"
+  [jar pom extra-mvn-repos target-dir]
+  (let [impl-src-dir (io/file target-dir "impl-src/")
+        jar-contents (io/file target-dir "contents/")
+        jar-uri    (URI. jar)
+        jar-path   (if-let [remote-jar? (boolean (.getHost jar-uri))]
+                     (download-jar! jar-uri target-dir)
+                     jar)
+        {:keys [classpath resolved-deps]} (deps/resolved-and-cp jar-path pom extra-mvn-repos)
+        classpath* (str (.getAbsolutePath impl-src-dir) ":" classpath)]
+    (unzip! jar-path jar-contents)
+    (clean-jar-contents! jar-contents)
+    (util/copy (io/resource "impl.clj.tpl")
+               (io/file impl-src-dir "cljdoc" "analysis" "impl.clj"))
+    (util/copy (io/resource "cljdoc/util.clj")
+               (io/file impl-src-dir "cljdoc" "util.clj"))
+    {:jar-path jar-path
+     :jar-contents jar-contents
+     :analysis-files-path impl-src-dir
+     :resolved-deps resolved-deps
+     :classpath classpath*}))
+
 (defn- print-process-result [proc]
   (printf "exit-code %s ---------------------------------------------------------------\n" (:exit proc))
   (println "stdout --------------------------------------------------------------------")
@@ -97,29 +110,14 @@
     (println "---------------------------------------------------------------------------")))
 
 (defn- analyze-impl
-  "Analyze a project specified by it's id, version, jar and pom.
-
-  The `classpath` will be used and is expected to contain all necessary dependencies to analyze
-  the project. This also requires that all dependencies are already downloaded in advance."
-  [{:keys [project version jar pom classpath]}]
-  {:pre [(symbol? project) (seq version) (seq jar) (seq pom)]}
-  (let [tmp-dir      (util/system-temp-dir (str "cljdoc-" project "-" version))
-        jar-contents (io/file tmp-dir "jar-contents/")
-        impl-src-dir (io/file tmp-dir "impl-src/")
-        _            (copy (io/resource "impl.clj.tpl")
-                           (doto (io/file impl-src-dir "cljdoc" "analysis" "impl.clj")
-                             (-> .getParentFile .mkdirs)))
-        _            (copy (io/resource "cljdoc/util.clj")
-                           (doto (io/file impl-src-dir "cljdoc" "util.clj")
-                             (-> .getParentFile .mkdirs)))
-        _            (copy-jar-contents! (URI. jar) jar-contents)
-        _            (clean-jar-contents! jar-contents)
-        platforms    (get-in @util/hardcoded-config
+  "Analyze a prepared project."
+  [{:keys [project version src-dir pom classpath output-file]}]
+  {:pre [(symbol? project) (seq version) (seq pom) (seq classpath)]}
+  (let [platforms    (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/platforms]
-                             (util/infer-platforms-from-src-dir jar-contents))
+                             (util/infer-platforms-from-src-dir src-dir))
         namespaces   (get-in @util/hardcoded-config
                              [(util/normalize-project project) :cljdoc.api/namespaces])
-        classpath*   (str (.getAbsolutePath impl-src-dir) ":" classpath)
         build-cdx      (fn build-cdx [jar-contents-path platf]
                          ;; TODO in theory we don't need to start this clojure process twice
                          ;; and could just modify the code in `impl.clj` to immediately run analysis
@@ -127,7 +125,7 @@
                          (let [f (util/system-temp-file project ".edn")]
                            (println "Analyzing" project platf)
                            (let [process (sh/sh "java"
-                                                "-cp" classpath*
+                                                "-cp" classpath
                                                 "clojure.main" "-m" "cljdoc.analysis.impl"
                                                 (pr-str namespaces) jar-contents-path platf (.getAbsolutePath f)
                                                 ;; supplying :dir is necessary to avoid local deps.edn being included
@@ -140,7 +138,7 @@
                                  result)
                                (throw (ex-info (str "Analysis failed with code " (:exit process)) {:code (:exit process)}))))))]
 
-    (let [cdx-namespaces (->> (map #(build-cdx (.getPath jar-contents) %) platforms)
+    (let [cdx-namespaces (->> (map #(build-cdx (.getPath src-dir) %) platforms)
                               (zipmap platforms))
           ana-result     {:group-id (util/group-id project)
                           :artifact-id (util/artifact-id project)
@@ -148,33 +146,54 @@
                           :codox cdx-namespaces
                           :pom-str (slurp pom)}]
       (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
-      (util/delete-directory! jar-contents)
       (if (every? some? (vals cdx-namespaces))
-        (doto (io/file tmp-dir (util/cljdoc-edn project version))
+        (doto output-file
           (io/make-parents)
           (spit (util/serialize-cljdoc-edn ana-result)))
         (throw (Exception. "Analysis failed"))))))
 
+(defn analyze!
+  "Analyze the provided project"
+  [{:keys [project version jarpath pompath repos]}]
+  {:pre [(seq project) (seq version) (seq jarpath) (seq pompath)]}
+  (let [project      (symbol project)
+        analysis-dir (util/system-temp-dir (str "cljdoc-" project "-" version))
+        output-file  (io/file util/analysis-output-prefix (util/cljdoc-edn project version))]
+    (try
+      (let [{:keys [jar-contents classpath resolved-deps]}
+            (prepare-jar-for-analysis! jarpath pompath repos analysis-dir)]
+
+        (println "Used dependencies for analysis:")
+        (deps/print-tree resolved-deps)
+        (println "---------------------------------------------------------------------------")
+
+        (println "Going to write analysis result to:" (.getAbsolutePath output-file))
+        (analyze-impl {:project project
+                       :version version
+                       :src-dir jar-contents
+                       :pom pompath
+                       :classpath classpath
+                       :output-file output-file})
+
+        (println "Analysis succeeded!")
+        {:analysis-status :success
+         :analysis-result output-file})
+      (catch Throwable t
+        (let [msg (.getMessage t)]
+          (println msg)
+          {:analysis-status :fail
+           :fail-reason msg}))
+      (finally
+        (util/delete-directory! analysis-dir)))))
+
 (defn -main
-  "Analyze the provided "
   [project version jarpath pompath]
-  (try
-    (let [{:keys [classpath resolved-deps]} (deps/resolved-and-cp pompath nil)]
-      (println "Used dependencies for analysis:")
-      (deps/print-tree resolved-deps)
-      (println "---------------------------------------------------------------------------")
-      (io/copy (analyze-impl {:project (symbol project)
-                              :version version
-                              :jar jarpath
-                              :pom pompath
-                              :classpath classpath})
-               (doto (io/file util/analysis-output-prefix (util/cljdoc-edn project version))
-                 (-> .getParentFile .mkdirs))))
-    (catch Throwable t
-      (println (.getMessage t))
-      (System/exit 1))
-    (finally
-      (shutdown-agents))))
+  (let [{:keys [analysis-status]} (analyze! {:project project
+                                             :version version
+                                             :jarpath jarpath
+                                             :pompath pompath})]
+    (shutdown-agents)
+    (System/exit (if (= :success analysis-status) 0 1))))
 
 (comment
   (deps 'bidi "2.1.3")

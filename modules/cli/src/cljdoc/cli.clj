@@ -55,7 +55,8 @@
                   :description ["Ingest information about an artifact at a specific version"
                                 ""
                                 "By default this command will use jar/pom from local ~/.m2, download if needed."
-                                "You may specify full paths to those files using the --jar and --pom options."
+                                "You may specify full paths to those files using the --jar and --pom options"
+                                "(in this case --version may override version from pom)."
                                 ""
                                 "To test how a Git repository gets incorporated without pushing new release,"
                                 "pass the --git option and use --rev to specify a revision to use (e.g. master)."]

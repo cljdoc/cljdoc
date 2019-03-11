@@ -88,8 +88,7 @@
         (merge (get hardcoded-deps project))
         (ensure-required-deps)
         (ensure-recent-ish)
-        (merge cljdoc-codox)
-        (assoc project {:mvn/version version}))))
+        (merge cljdoc-codox))))
 
 (def ^:private default-repos
   {"central" {:url "https://repo1.maven.org/maven2/"},
@@ -103,15 +102,17 @@
 
 (defn resolved-and-cp
   "Build a classpath for the project specified by `pom-url`."
-  [pom-url repos]
-  {:pre [(string? pom-url)]}
+  [jar-url pom-url repos]
+  {:pre [(string? jar-url) (string? pom-url)]}
   (println pom-url repos)
   (let [pom (pom/parse (slurp pom-url))
+        project (util/clojars-id (pom/artifact-info pom))
         resolved (tdeps/resolve-deps {:deps (deps pom),
                                       :mvn/repos (merge default-repos
                                                         (extra-repos pom)
                                                         repos)}
-                                     {:verbose false})]
+                                     {:extra-deps {project {:local/root jar-url}}
+                                      :verbose false})]
     {:resolved-deps resolved
      :classpath (tdeps/make-classpath resolved [] nil)}))
 

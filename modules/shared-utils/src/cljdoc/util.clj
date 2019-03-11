@@ -130,6 +130,12 @@
 (defn find-pom-in-dir [dir project]
   (io/file dir (pom-path project)))
 
+(defn copy [source file]
+  (io/make-parents file)
+  (with-open [in  (io/input-stream source)
+              out (io/output-stream file)]
+    (io/copy in out)))
+
 (defn delete-directory! [dir]
   (let [{:keys [files dirs]} (group-by (fn [f]
                                          (cond (.isDirectory f) :dirs
