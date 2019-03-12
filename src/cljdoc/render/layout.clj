@@ -195,7 +195,7 @@
   :div.js--namespace-contents-scroll-view.w5.pa3.pa4-ns.br.b--black-10.db-ns.dn.overflow-y-scroll.flex-shrink-0)
 
 (def r-content-container
-  :div.js--main-scroll-view.db-ns.ph4-ns.ph3.flex-grow-1.overflow-y-scroll)
+  :div.js--main-scroll-view.db-ns.pr4-ns.pr3.pl5.flex-grow-1.overflow-y-scroll)
 
 (def r-top-bar-container
   "Additional wrapping to make the top bar responsive

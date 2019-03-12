@@ -55,8 +55,8 @@
   (if (platf/varies? mp :doc)
     (for [p (sort (platf/platforms mp))
           :when (platf/get-field mp :doc p)]
-      [:div
-       [:span.f7.ttu.gray.db.nb2 (get {"clj" "Clojure" "cljs" "ClojureScript"} p) " docstring"]
+      [:div.relative
+       [:div.f7.gray.absolute.w3.nl5.pr2.tr.pv1 p]
        (some-> (platf/get-field mp :doc p) (docstring->html render-wiki-link))])
     (some-> (platf/get-field mp :doc) (docstring->html render-wiki-link))))
 
