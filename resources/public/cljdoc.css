@@ -13,7 +13,8 @@ code, pre {
 /** Markdown / AsciiDoc ------------------------------------------------ **/
 /** Most of this should be implemented via Visitors when rendering Markdown I believe **/
 
-.cljdoc-article a {
+.cljdoc-article a, .markdown a {
+  /* Extra .markdown a is added because links may also appear in docstrings */
   text-decoration: none;
   color: #357edd;
 }
