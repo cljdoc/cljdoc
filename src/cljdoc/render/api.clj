@@ -56,7 +56,9 @@
     (for [p (sort (platf/platforms mp))
           :when (platf/get-field mp :doc p)]
       [:div.relative
-       [:div.f7.gray.absolute.w3.nl5.pr2.tr.pv1 p]
+       [:div.f7.gray.absolute-ns.nl5-ns.pr2-ns.tr-ns.w3.pv1.nb3
+        [:span.db-ns.dn p]
+        [:span.dn-ns (get {"clj" "Clojure" "cljs" "ClojureScript"} p)]]
        (some-> (platf/get-field mp :doc p) (docstring->html render-wiki-link))])
     (some-> (platf/get-field mp :doc) (docstring->html render-wiki-link))))
 
