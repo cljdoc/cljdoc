@@ -157,8 +157,8 @@
       [:a.link.dim.gray.f6.tr
        {:href (scm/http-uri scm-url)}
        (let [icon (or (scm/provider scm-url) :git)]
-         [:img.v-mid.mr2 {:src (str "https://icon.now.sh/" (name icon))}])
-       [:span.dib (scm/coordinate (scm/http-uri scm-url))]]
+         [:img.v-mid.mr2-ns {:src (str "https://icon.now.sh/" (name icon))}])
+       [:span.dib-ns.dn (scm/coordinate (scm/http-uri scm-url))]]
 
       (and scm-url (scm/fs-uri scm-url))
       [:span.f6 (scm/fs-uri scm-url)]
