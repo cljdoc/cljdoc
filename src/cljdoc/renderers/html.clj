@@ -45,12 +45,11 @@
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
         [doc-type contents] (doctree/entry->type-and-content doc-p)
-        doc-html (rich-text/render-text [doc-type contents])
         top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
         sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
     ;; if there's no article then the page should display a list of all child-pages
-    (->> (if doc-html
+    (->> (if doc-type
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents sidebar-contents
@@ -60,7 +59,7 @@
                                           "/" (-> doc-p :attrs :cljdoc.doc/source-file))
                         :doc-type (name doc-type)
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
-                                              doc-html
+                                              (rich-text/render-text [doc-type contents])
                                               {:scm (bundle/scm-info cache-bundle)
                                                :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})})})
            (layout/layout
