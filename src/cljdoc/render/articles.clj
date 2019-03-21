@@ -39,14 +39,19 @@
    (if doc-html
      [:div#doc-html.cljdoc-article.lh-copy.pv4
       {:class (name doc-type)}
-      (hiccup/raw doc-html)
-      [:a.db.f7.tr.link.blue
+      (hiccup/raw doc-html)]
+     [:div.lh-copy.pv6.tc
+      [:span.f4.serif.gray.i "Space intentionally left blank."]])
+   ;; outside of div with markdown specific styling so markdown
+   ;; styling does not override tachyons classes.
+   (when doc-html
+     [:span.db.f7.tr.mb5
+      "Can you improve this documentation?"
+      [:a.link.white.bg-blue.ph2.pv1.br2.ml2
        {:href doc-scm-url}
        (if (= :gitlab (scm/provider doc-scm-url))
          "Edit on GitLab"
-         "Edit on GitHub")]]
-     [:div.lh-copy.pv6.tc
-      [:span.f4.serif.gray.i "Space intentionally left blank."]])])
+         "Edit on GitHub")]])])
 
 (defn doc-overview
   [{:keys [version-entity doc-tree]}]
