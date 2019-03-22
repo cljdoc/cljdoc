@@ -152,8 +152,8 @@
        (finally
          (.disconnect session#)))))
 
-(defn cli-deploy! [{:keys [ssh-key docker-tag]}]
-  (let [ip (main-ip)]
+(defn cli-deploy! [{:keys [ssh-key docker-tag nomad-ip]}]
+  (let [ip (or nomad-ip (main-ip))]
     (log/infof "Deploying to Nomad server at %s:4646" ip)
     (if (tag-exists? docker-tag)
       (with-nomad {:ip ip, :ssh-key ssh-key}
@@ -169,6 +169,7 @@
    :commands    [{:command     "deploy"
                   :description ["Deploy cljdoc to production"]
                   :opts        [{:option "ssh-key" :short "k" :as "SSH private key to use for accessing host" :type :string :default "~/.ssh/id_rsa"}
+                                {:option "nomad-ip" :as "IP of Nomad cluster to deploy to" :type :string}
                                 {:option "docker-tag" :short "t" :as "Tag of cljdoc/cljdoc image to deploy" :type :string :default :present}]
                   :runs        cli-deploy!}]})
 
