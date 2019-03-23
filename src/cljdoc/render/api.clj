@@ -34,11 +34,13 @@
 (defn docstring->html [doc-str render-wiki-link]
   [:div
    [:div.lh-copy.markdown
-    (-> doc-str
-        (rich-text/markdown-to-html
-         {:escape-html? true
-          :render-wiki-link (comp render-wiki-link parse-wiki-link)})
-        hiccup/raw)]
+    ;; If someone sets `{:doc false}`, there will be no docstring
+    (when doc-str
+      (-> doc-str
+          (rich-text/markdown-to-html
+            {:escape-html? true
+             :render-wiki-link (comp render-wiki-link parse-wiki-link)})
+          hiccup/raw))]
    [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.dn.raw
     doc-str]])
 
