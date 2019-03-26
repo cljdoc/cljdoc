@@ -20,7 +20,8 @@
   (completed! [_ build-id])
   (get-build [_ build-id])
   (recent-builds [_ days])
-  (running-build [_ group-id artifact-id version]))
+  (running-build [_ group-id artifact-id version])
+  (last-build [_ group-id artifact-id version]))
 
 (defrecord SQLBuildTracker [db-spec]
   IBuildTracker
@@ -87,7 +88,28 @@
                               "order by id desc "
                               "limit 1")
                          group-id artifact-id version
-                         (str (.minus (Instant/now) (Duration/ofMinutes 10)))]))))
+                         (str (.minus (Instant/now) (Duration/ofMinutes 10)))])))
+  (last-build [_ group-id artifact-id version]
+    (first
+     (sql/query db-spec [(str "select * from builds where "
+                              "(group_id is ? "
+                              "and artifact_id = ? "
+                              "and version = ?) "
+                              "and (import_completed_ts is not null "
+                              "or error is not null) "
+                              "order by id desc "
+                              "limit 1")
+                         group-id artifact-id version]))))
+
+
+(defn api-import-successful? [build]
+  (and (:api_imported_ts build)
+       (nil? (:error build))))
+
+(defn git-import-successful? [build]
+  (and (:scm_url build)
+       (:git_imported_ts build)
+       (nil? (:git_problem build))))
 
 (comment
   (require 'ragtime.repl 'ragtime.jdbc)
