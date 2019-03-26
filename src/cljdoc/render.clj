@@ -1,4 +1,4 @@
-(ns cljdoc.renderers.html
+(ns cljdoc.render
   (:require [cljdoc.doc-tree :as doctree]
             [cljdoc.render.rich-text :as rich-text]
             [cljdoc.render.layout :as layout]

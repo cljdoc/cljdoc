@@ -9,7 +9,7 @@
 (defn sidebar-contents
   "Render a sidebar for a documentation page.
 
-  This function takes the same arguments as the main render functions in `cljdoc.renderer.html`
+  This function takes the same arguments as the main render functions in `cljdoc.render`
   and selected pages/namespaces will be highlighted based on the supplied `route-params`.
 
   If articles or namespaces are missing for a project there will be little messages pointing

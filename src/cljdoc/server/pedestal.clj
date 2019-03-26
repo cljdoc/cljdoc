@@ -20,7 +20,7 @@
             [cljdoc.render.meta :as render-meta]
             [cljdoc.render.error :as error]
             [cljdoc.render.offline :as offline]
-            [cljdoc.renderers.html :as html]
+            [cljdoc.render :as html]
             [cljdoc.analysis.service :as analysis-service]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.pedestal-util :as pu]
