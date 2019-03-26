@@ -226,12 +226,17 @@
                  (cljdoc.render.build-log/builds-page)
                  (pu/ok-html ctx)))})
 
-(defn badge-url [status color]
-  (format "https://badgen.now.sh/badge/cljdoc/%s/%s"
-          (string/replace status  #"/" "%2F")
-          (name color)))
+(defn return-badge [ctx status color]
+  (let [url (format "https://badgen.now.sh/badge/cljdoc/%s/%s"
+                    (string/replace status  #"/" "%2F")
+                    (name color))]
+    (->> {:status 200
+          :headers {"Content-Type" "image/svg+xml;charset=utf-8"
+                    "Cache-Control" (format "public; max-age=%s" (* 30 60))}
+          :body (:body (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}}))}
+         (assoc ctx :response))))
 
-(defn badge-interceptor []
+(defn badge-interceptor [build-tracker]
   {:name ::badge
    :enter (fn badge [ctx]
             (log/info "Badge req headers" (-> ctx :request :headers))
@@ -239,15 +244,24 @@
                   release (try (repos/latest-release-version project)
                                (catch Exception e
                                  (log/warnf "Could not find release for %s" project)))
-                  url     (if release
-                            (badge-url release :blue)
-                            (badge-url (str "no%20release%20found%20for%20" project) :red))
-                  badge   (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}})]
-              (->> {:status 200
-                    :headers {"Content-Type" "image/svg+xml;charset=utf-8"
-                              "Cache-Control" (format "public; max-age=%s" (* 30 60))}
-                    :body (:body badge)}
-                   (assoc ctx :response))))})
+                  last-build (when release
+                               (build-log/last-build build-tracker
+                                                     (util/group-id project)
+                                                     (util/artifact-id project)
+                                                     release))
+                  [status color] (cond
+                                   (nil? release)
+                                   [(str "no%20release%20found%20for%20" project) :red]
+
+                                   (and release last-build (not (build-log/api-import-successful? last-build)))
+                                   ["API import failed" :red]
+
+                                   (and release last-build (not (build-log/git-import-successful? last-build)))
+                                   ["Git import failed" :red]
+
+                                   :else
+                                   [release :blue])]
+              (return-badge ctx status color)))})
 
 (defn jump-interceptor []
   {:name ::jump
@@ -372,7 +386,7 @@
          :artifact/current-via-short-id [(jump-interceptor)]
          :artifact/current [(jump-interceptor)]
          :jump-to-project    [(jump-interceptor)]
-         :badge-for-project  [(badge-interceptor)])
+         :badge-for-project  [(badge-interceptor build-tracker)])
        (assoc route :interceptors)))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
