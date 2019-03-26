@@ -11,7 +11,7 @@
   - Rendering build logs (see [[show-build]] & [[all-builds]])
   - Rendering a sitemap (see [[sitemap-interceptor]])
   - Handling build requests (see [[request-build]], [[full-build]] & [[circle-ci-webhook]])
-  - Redirecting to newer releases (see [[version-resolve-redirect]] & [[jump-interceptor]])"
+  - Redirecting to newer releases (see [[resolve-version-interceptor]] & [[jump-interceptor]])"
   (:require [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.index-pages :as index-pages]
@@ -119,6 +119,14 @@
                     (assoc-in [:cache-bundle :version :pom] pom-data))
                 ctx)))})
 
+(defn last-build-loader
+  "Load a projects last build into the context"
+  [build-tracker]
+  {:name ::last-build-loader
+   :enter (fn last-build-loader-inner [ctx]
+            (let [{:keys [group-id artifact-id version]} (-> ctx :request :path-params)]
+              (assoc ctx ::last-build (build-log/last-build build-tracker group-id artifact-id version))))})
+
 (defn pom-loader
   "Load a projects POM file, parse it and inject some information from it into the context."
   [cache]
@@ -132,41 +140,45 @@
               (assoc ctx ::pom-info {:description (-> pom-parsed pom/artifact-info :description)
                                      :dependencies (-> pom-parsed pom/dependencies-with-versions)})))})
 
-(defn- resolve-version [path-params referer]
-  (assert (= "CURRENT" (:version path-params)))
-  (->> (or (some-> referer util/uri-path routes/match-route :path-params :version)
-           (repos/latest-release-version (str (-> path-params :group-id) "/"
-                                              (-> path-params :artifact-id))))
-       (assoc path-params :version)))
+(def resolve-version-interceptor
+  "An interceptor that will look at `:path-params` and try to turn it into an artifact
+  entity.
+  - If the provided version is `nil` set it to the last known release.
+  - If the provided version is `CURRENT` redirect to either a version from the `referer` header
+    or the last known version."
+  {:name ::resolve-version-interceptor
+   :enter (fn resolve-version-interceptor [{:keys [route request] :as ctx}]
+            (let [{:keys [project group-id artifact-id version]} (:path-params request)
+                  artifact-id     (or artifact-id (util/artifact-id project))
+                  group-id        (or group-id (util/group-id project))
+                  current?        (= "CURRENT" version)
+                  referer-version (some-> request
+                                           (get-in [:headers "referer"])
+                                           util/uri-path routes/match-route :path-params :version)
+                  _ (log/info 'repos/latest-release-version (str group-id "/" artifact-id))
+                  artifact-entity {:artifact-id artifact-id
+                                   :group-id group-id
+                                   :version (cond
+                                              (nil? version)
+                                              (repos/latest-release-version (str group-id "/" artifact-id))
 
-(defn version-resolve-redirect
-  "Intelligently resolve the `CURRENT` version based on the referer
-  and Clojars releases.
+                                              current?
+                                              (or referer-version
+                                                  (repos/latest-release-version (str group-id "/" artifact-id)))
 
-  Users may want to link to API docs from their existing non-API
-  (Markdown/Asciidoc) documentation. Since links are usually tied to a
-  specific version this can become cumbersome when updating docs.
-  This interceptor intelligently rewrites any usages of `CURRENT` in
-  the version part of the URL to use either
-
-  - the version from the referring URL
-  - the version of the last release from Clojars"
-  []
-  {:name ::version-resolve-redirect
-   :enter (fn [{:keys [request route] :as ctx}]
-            (cond-> ctx
-              (= "CURRENT" (-> request :path-params :version))
-              (assoc :response
-                     {:status 307
-                      :headers {"Location" (->> (get-in request [:headers "referer"])
-                                                (resolve-version (:path-params request))
-                                                (routes/url-for (:route-name route) :path-params))}})))})
+                                              :else version)}]
+              (if current?
+                (assoc ctx :response
+                       {:status 307
+                        :headers {"Location" (routes/url-for (:route-name route) :path-params (merge (:path-params request) artifact-entity))}})
+                (update-in ctx [:request :path-params] merge artifact-entity))))})
 
 (defn view
   "Combine various interceptors into an interceptor chain for
   rendering views for `route-name`."
-  [storage cache route-name]
-  (->> [(version-resolve-redirect)
+  [storage cache build-tracker route-name]
+  (->> [resolve-version-interceptor
+        (last-build-loader build-tracker)
         (when (= :artifact/doc route-name) doc-slug-parser)
         (pom-loader cache)
         (artifact-data-loader storage)
@@ -236,32 +248,25 @@
           :body (:body (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}}))}
          (assoc ctx :response))))
 
-(defn badge-interceptor [build-tracker]
+(defn badge-interceptor []
   {:name ::badge
-   :enter (fn badge [ctx]
+   :leave (fn badge [ctx]
             (log/info "Badge req headers" (-> ctx :request :headers))
-            (let [project (-> ctx :request :path-params :project)
-                  release (try (repos/latest-release-version project)
-                               (catch Exception e
-                                 (log/warnf "Could not find release for %s" project)))
-                  last-build (when release
-                               (build-log/last-build build-tracker
-                                                     (util/group-id project)
-                                                     (util/artifact-id project)
-                                                     release))
+            (let [{:keys [group-id artifact-id version]} (-> ctx :request :path-params)
+                  last-build (::last-build ctx)
                   [status color] (cond
-                                   (nil? release)
-                                   [(str "no%20release%20found%20for%20" project) :red]
-
-                                   (and release last-build (not (build-log/api-import-successful? last-build)))
+                                   (and last-build (not (build-log/api-import-successful? last-build)))
                                    ["API import failed" :red]
 
-                                   (and release last-build (not (build-log/git-import-successful? last-build)))
+                                   (and last-build (not (build-log/git-import-successful? last-build)))
                                    ["Git import failed" :red]
 
                                    :else
-                                   [release :blue])]
-              (return-badge ctx status color)))})
+                                   [version :blue])]
+              (return-badge ctx status color)))
+   :error (fn [ctx err]
+            (let [{:keys [project]} (-> ctx :request :path-params)]
+              (return-badge ctx (str "no%20release%20found%20for%20" project) :red)))})
 
 (defn jump-interceptor []
   {:name ::jump
@@ -376,17 +381,20 @@
          :group/index     (index-pages storage route-name)
          :artifact/index  (index-pages storage route-name)
 
-         :artifact/version   (view storage cache route-name)
-         :artifact/namespace (view storage cache route-name)
-         :artifact/doc       (view storage cache route-name)
+         :artifact/version   (view storage cache build-tracker route-name)
+         :artifact/namespace (view storage cache build-tracker route-name)
+         :artifact/doc       (view storage cache build-tracker route-name)
          :artifact/offline-bundle [(pom-loader cache)
                                    (artifact-data-loader storage)
                                    offline-bundle]
 
          :artifact/current-via-short-id [(jump-interceptor)]
          :artifact/current [(jump-interceptor)]
-         :jump-to-project    [(jump-interceptor)]
-         :badge-for-project  [(badge-interceptor build-tracker)])
+         :jump-to-project    [resolve-version-interceptor
+                              (jump-interceptor)]
+         :badge-for-project  [(badge-interceptor)
+                              resolve-version-interceptor
+                              (last-build-loader build-tracker)])
        (assoc route :interceptors)))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
