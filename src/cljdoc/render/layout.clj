@@ -166,11 +166,6 @@
       :else
       [:a.f6.link.blue {:href (util/github-url :userguide/scm-faq)} "SCM info missing"])]])
 
-(defn upgrade-notice [{:keys [version] :as version-map}]
-  [:a.link {:href (routes/url-for :artifact/version :path-params version-map)}
-   [:div.bg-washed-yellow.pa2.f7.mb4.dark-gray.lh-title
-    "A newer version " [:span.blue "(" version ")"] " for this library is available"]])
-
 ;; Responsive Layout -----------------------------------------------------------
 
 (def r-main-container

@@ -1,10 +1,37 @@
 (ns cljdoc.render.sidebar
   (:require [cljdoc.util :as util]
             [cljdoc.doc-tree :as doctree]
+            [cljdoc.server.routes :as routes]
+            [cljdoc.server.build-log :as build-log]
             [cljdoc.render.layout :as layout]
             [cljdoc.render.articles :as articles]
             [cljdoc.render.api :as api]
             [cljdoc.bundle :as bundle]))
+
+(defn upgrade-notice [{:keys [version] :as version-map}]
+  [:a.db.link.bg-washed-yellow.pa2.f7.mb3.dark-gray.lh-title
+   {:href (routes/url-for :artifact/version :path-params version-map)}
+   "A newer version " [:span.blue "(" version ")"] " for this library is available"])
+
+(defn last-build-warning
+  "If the provided build had problems, render a warning and link to the respective build."
+  [build]
+  (assert build)
+  (let [render-error (fn render-buold-warning [msg]
+                       [:a.db.mb3.pa2.bg-washed-red.br2.f7.red.b.lh-copy.link
+                        {:href (str "/builds/" (:id build))}
+                        msg " "
+                        [:span.underline.nowrap  "build #" (:id build)]])]
+    (cond
+      (and (not (build-log/api-import-successful? build))
+           (not (build-log/git-import-successful? build)))
+      (render-error "API & Git import failed in")
+
+      (not (build-log/api-import-successful? build))
+      (render-error "API import failed in")
+
+      (not (build-log/git-import-successful? build))
+      (render-error "Git import failed in"))))
 
 (defn sidebar-contents
   "Render a sidebar for a documentation page.
@@ -14,7 +41,7 @@
 
   If articles or namespaces are missing for a project there will be little messages pointing
   users to the relevant documentation or GitHub to open an issue."
-  [route-params {:keys [version-entity] :as cache-bundle}]
+  [route-params {:keys [version-entity] :as cache-bundle} last-build]
   (let [doc-slug-path (:doc-slug-path route-params)
         doc-tree (doctree/add-slug-path (-> cache-bundle :version :doc))
         split-doc-tree ((juxt filter remove)
@@ -24,7 +51,10 @@
         doc-tree-with-rest (second split-doc-tree)]
     [;; Upgrade notice
      (if-let [newer-v (bundle/more-recent-version cache-bundle)]
-       (layout/upgrade-notice newer-v))
+       (upgrade-notice newer-v))
+
+     (when last-build
+       (last-build-warning last-build))
 
      ;; Special documents (Readme & Changelog)
      (when (seq readme-and-changelog)
