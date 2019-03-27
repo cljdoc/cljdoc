@@ -24,21 +24,21 @@
   (format "%s not implemented, sorry" page-type))
 
 (defmethod render :artifact/version
-  [_ route-params {:keys [version-entity] :as cache-bundle}]
-  (->> (layout/layout
-        ;; TODO on mobile this will effectively be rendered as a blank page
-        ;; We could instead show a message and the namespace tree.
-        {:top-bar (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
-         :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)})
-       (layout/page {:title (str (util/clojars-id version-entity) " " (:version version-entity))
-                     :description (layout/artifact-description
-                                   version-entity
-                                   (-> cache-bundle :version :pom :description))})))
+  [_ route-params {:keys [cache-bundle pom last-build]}]
+  (let [version-entity (:version-entity cache-bundle)]
+    (->> (layout/layout
+          ;; TODO on mobile this will effectively be rendered as a blank page
+          ;; We could instead show a message and the namespace tree.
+          {:top-bar (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
+           :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)})
+         (layout/page {:title (str (util/clojars-id version-entity) " " (:version version-entity))
+                       :description (layout/artifact-description version-entity (:description pom))}))))
 
 (defmethod render :artifact/doc
-  [_ route-params {:keys [version-entity] :as cache-bundle}]
+  [_ route-params {:keys [cache-bundle pom last-build]}]
   (assert (:doc-slug-path route-params))
-  (let [doc-slug-path (:doc-slug-path route-params)
+  (let [version-entity (:version-entity cache-bundle)
+        doc-slug-path (:doc-slug-path route-params)
         doc-tree (doctree/add-slug-path (-> cache-bundle :version :doc))
         doc-p (->> doc-tree
                    doctree/flatten*
@@ -46,7 +46,7 @@
                    first)
         [doc-type contents] (doctree/entry->type-and-content doc-p)
         top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
-        sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)]
+        sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
     ;; if there's no article then the page should display a list of all child-pages
     (->> (if doc-type
@@ -73,14 +73,13 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
-                       :description (layout/artifact-description
-                                     version-entity
-                                     (-> cache-bundle :version :pom :description))}))))
+                       :description (layout/artifact-description version-entity (:description pom))}))))
 
 (defmethod render :artifact/namespace
-  [_ route-params {:keys [version-entity] :as cache-bundle}]
+  [_ route-params {:keys [cache-bundle pom last-build]}]
   (assert (:namespace route-params))
-  (let [ns-emap route-params
+  (let [version-entity (:version-entity cache-bundle)
+        ns-emap route-params
         defs    (bundle/defs-for-ns-with-src-uri cache-bundle (:namespace ns-emap))
         [[dominant-platf] :as platf-stats] (api/platform-stats defs)
         ns-data (bundle/get-namespace cache-bundle (:namespace ns-emap))
@@ -89,7 +88,7 @@
     (->> (if ns-data
            (layout/layout
             {:top-bar top-bar-component
-             :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)
+             :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
              :vars-sidebar-contents (when (seq defs)
                                       [(api/platform-support-note platf-stats)
                                        (api/definitions-list ns-emap defs {:indicate-platforms-other-than dominant-platf})])
@@ -98,7 +97,7 @@
                                            :defs defs})})
            (layout/layout
             {:top-bar top-bar-component
-             :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle)
+             :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
              :content (api/sub-namespace-overview-page {:ns-entity ns-emap
                                                         :namespaces (bundle/namespaces cache-bundle)
                                                         :defs (bundle/all-defs cache-bundle)})}))
@@ -106,9 +105,7 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/namespace :path-params))
-                       :description (layout/artifact-description
-                                     version-entity
-                                     (-> cache-bundle :version :pom :description))}))))
+                       :description (layout/artifact-description version-entity (:description pom))}))))
 
 (comment
 

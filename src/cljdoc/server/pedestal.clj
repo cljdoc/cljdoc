@@ -62,7 +62,9 @@
                   (assoc ctx :response {:status 302, :headers {"Location" location}}))
 
                 (if cache-bundle
-                  (pu/ok-html ctx (html/render page-type path-params cache-bundle))
+                  (pu/ok-html ctx (html/render page-type path-params {:cache-bundle cache-bundle
+                                                                      :pom (::pom-info ctx)
+                                                                      :last-build (::last-build ctx)}))
                   (let [resp {:status 404
                               :headers {"Content-Type" "text/html"}
                               :body (str (render-build-req/request-build-page path-params))}]
@@ -111,12 +113,7 @@
                   bundle-params (assoc params :dependency-version-entities (:dependencies pom-data))]
               (log/info "Loading artifact cache bundle for" params (:cache-bundle ctx))
               (if (storage/exists? store params)
-                (-> ctx
-                    (assoc :cache-bundle (storage/bundle-docs store bundle-params))
-                    ;; Injecting things into the cache bundle like this is a bit of a hack and really
-                    ;; we should have one entry point that takes care of all the data sources that
-                    ;; contribute to the cache bundle.
-                    (assoc-in [:cache-bundle :version :pom] pom-data))
+                (assoc ctx :cache-bundle (storage/bundle-docs store bundle-params))
                 ctx)))})
 
 (defn last-build-loader
