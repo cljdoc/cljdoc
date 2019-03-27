@@ -139,7 +139,8 @@
 
 (def resolve-version-interceptor
   "An interceptor that will look at `:path-params` and try to turn it into an artifact
-  entity.
+  entity or redirect of the version is specified in a meta-fasion, i.e. `CURRENT`.
+
   - If the provided version is `nil` set it to the last known release.
   - If the provided version is `CURRENT` redirect to either a version from the `referer` header
     or the last known version."
@@ -152,7 +153,6 @@
                   referer-version (some-> request
                                            (get-in [:headers "referer"])
                                            util/uri-path routes/match-route :path-params :version)
-                  _ (log/info 'repos/latest-release-version (str group-id "/" artifact-id))
                   artifact-entity {:artifact-id artifact-id
                                    :group-id group-id
                                    :version (cond
