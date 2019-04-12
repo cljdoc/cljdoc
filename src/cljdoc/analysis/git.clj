@@ -67,10 +67,7 @@
             git-files   (when revision
                           (git/ls-files repo revision))
             config-edn  (when revision
-                          (->> (or (git/read-cljdoc-config repo revision)
-                                   ;; in case people add the file later,
-                                   ;; also check in default branch
-                                   (git/read-cljdoc-config repo default-branch))
+                          (->> (git/read-cljdoc-config repo revision)
                                (edn/read-string)))]
 
         (when config-edn
