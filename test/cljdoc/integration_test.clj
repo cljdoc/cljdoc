@@ -41,7 +41,7 @@
   ;; (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get "/d/reagent/reagent/0.8.1"))
   ;;                         "We currently don't have documentation built for reagent v0.8.1")))
 
-  (let [params    (codec/form-encode {:project "reagent" :version "0.8.1"})
+  (let [params    (codec/form-encode {:project "metosin/muuntaja" :version "0.6.4"})
         build-req (pdt/response-for (service-fn @sys)
                                     :post "/api/request-build2"
                                     :body params
@@ -52,8 +52,8 @@
     (let [build-uri   (get-in build-req [:headers "Location"])
           builds-page (pdt/response-for (service-fn @sys) :get build-uri)]
 
-      (t/is (true? (.contains (:body builds-page) "reagent/reagent")))
-      (t/is (true? (.contains (:body builds-page) "v0.8.1")))
+      (t/is (true? (.contains (:body builds-page) "metosin/muuntaja")))
+      (t/is (true? (.contains (:body builds-page) "v0.6.4")))
       (t/is (true? (.contains (:body builds-page) "Analysis Requested")))
 
       (loop [i 20]
@@ -67,10 +67,10 @@
       (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri)) "Git Import Completed")))
       (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri)) "Successfully imported 10 namespaces")))
 
-      (t/is (= 302 (:status (pdt/response-for (service-fn @sys) :get "/d/reagent/reagent/0.8.1"))))
+      (t/is (= 302 (:status (pdt/response-for (service-fn @sys) :get "/d/metosin/muuntaja/0.6.4"))))
 
-      (doseq [[p str] {"/d/reagent/reagent/0.8.1/api/reagent.core" "adapt-react-class"
-                       "/d/reagent/reagent/0.8.1/doc/tutorials/when-do-components-update-" "In this, more intermediate, Reagent tutorial"}]
+      (doseq [[p str] {"/d/metosin/muuntaja/0.6.4/api/muuntaja.core" "decode-response-body"
+                       "/d/metosin/muuntaja/0.6.4/doc/creating-new-formats" "To allow easier customization"}]
         (t/is (.contains (:body (pdt/response-for (service-fn @sys) :get p)) str)))))
 
   ;; test if atleast one meta tag has the project's description
@@ -79,12 +79,12 @@
     (-> (pdt/response-for
          (service-fn @sys)
          :get
-         "/d/reagent/reagent/0.8.1/doc/documentation-index")
+         "/d/metosin/muuntaja/0.6.4/doc/configuration")
         (:body)
         (Jsoup/parse)
         (.select "head > meta")
         (str)
-        (string/includes? "reagent: A simple ClojureScript interface to React Documentation for reagent v0.8.1 on cljdoc.")))))
+        (string/includes? "metosin/muuntaja: Clojure library for format encoding, decoding and content-negotiation Documentation for metosin/muuntaja v0.6.4 on cljdoc.")))))
 
 
 (comment
