@@ -52,16 +52,21 @@
                            (subs href 1)
                            (rebase file-path href))
         w-o-anchor       (string/replace root-relative #"#.*$" "")
-        anchor           (re-find #"#.*$" root-relative)]
+        anchor           (re-find #"#.*$" root-relative)
+        ;; go to current dir instead of parent of current dir
+        adjust-parent    #(get {".." "."} % %)]
     ;; (prn 'file-path file-path)
     ;; (prn 'href href)
     ;; (prn 'w-o-anchor w-o-anchor)
     ;; (prn 'from-uri-map  (get uri-map w-o-anchor))
+    ;; (prn 'path (get uri-map file-path))
+    ;; (prn 'relativized (util/relativize-path (get uri-map file-path) (get uri-map w-o-anchor)))
     ;; (prn 'keys-uri-map  (keys uri-map))
     (if-let [from-uri-map (get uri-map w-o-anchor)]
       (-> (get uri-map file-path)
           ;; TODO check if relative links will work consistently
           (util/relativize-path from-uri-map)
+          adjust-parent
           (str anchor))
       (str scm-base root-relative))))
 
