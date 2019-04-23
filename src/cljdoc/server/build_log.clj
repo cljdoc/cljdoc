@@ -92,7 +92,7 @@
   (last-build [_ group-id artifact-id version]
     (first
      (sql/query db-spec [(str "select * from builds where "
-                              "(group_id is ? "
+                              "(group_id = ? "
                               "and artifact_id = ? "
                               "and version = ?) "
                               "and (import_completed_ts is not null "
