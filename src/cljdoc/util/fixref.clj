@@ -47,27 +47,15 @@
   (.toString (.normalize (.toPath (java.io.File. (.getParent (java.io.File. f1)) f2)))))
 
 (defn fix-link
-  [file-path href {:keys [scm-base uri-map]}]
-  (let [root-relative    (if (.startsWith href "/")
-                           (subs href 1)
-                           (rebase file-path href))
-        w-o-anchor       (string/replace root-relative #"#.*$" "")
-        anchor           (re-find #"#.*$" root-relative)
-        ;; go to current dir instead of parent of current dir
-        adjust-parent    #(get {".." "."} % %)]
-    ;; (prn 'file-path file-path)
-    ;; (prn 'href href)
-    ;; (prn 'w-o-anchor w-o-anchor)
-    ;; (prn 'from-uri-map  (get uri-map w-o-anchor))
-    ;; (prn 'path (get uri-map file-path))
-    ;; (prn 'relativized (util/relativize-path (get uri-map file-path) (get uri-map w-o-anchor)))
-    ;; (prn 'keys-uri-map  (keys uri-map))
+  "Return the cljdoc location for a given URL or it's page on GitHub/GitLab etc."
+  [file-path href {:keys [scm-base uri-map] :as opts}]
+  (let [root-relative (if (.startsWith href "/")
+                        (subs href 1)
+                        (rebase file-path href))
+        w-o-anchor    (string/replace root-relative #"#.*$" "")
+        anchor        (re-find #"#.*$" root-relative)]
     (if-let [from-uri-map (get uri-map w-o-anchor)]
-      (-> (get uri-map file-path)
-          ;; TODO check if relative links will work consistently
-          (util/relativize-path from-uri-map)
-          adjust-parent
-          (str anchor))
+      (str from-uri-map anchor)
       (str scm-base root-relative))))
 
 (defn fix-image
@@ -93,10 +81,16 @@
                              (map #(.attributes %))
                              (remove #(absolute-uri? (.get % "href")))
                              (remove #(anchor-uri? (.get % "href"))))]
-      (.put broken-link "href" (fix-link file-path
-                                         (.get broken-link "href")
-                                         {:scm-base (str (:url scm) "/blob/" scm-rev "/")
-                                          :uri-map uri-map})))
+      (let [fixed-link (fix-link
+                        file-path
+                        (.get broken-link "href")
+                        {:scm-base (str (:url scm) "/blob/" scm-rev "/")
+                         :uri-map uri-map})]
+        (if (.startsWith fixed-link "doc/")
+          ;; for offline bundles all articles are flat files in doc/
+          ;; in this case we want just the filename to be the href
+          (.put broken-link "href" (subs fixed-link 4))
+          (.put broken-link "href" fixed-link))))
 
     (doseq [broken-img (->> (.select doc "img")
                             (map #(.attributes %))
