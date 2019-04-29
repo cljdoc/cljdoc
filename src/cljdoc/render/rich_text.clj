@@ -2,12 +2,12 @@
   (:require [clojure.string :as string])
   (:import (org.asciidoctor Asciidoctor$Factory Options)
            (com.vladsch.flexmark.parser Parser)
-           (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver)
-           (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverContext)
+           (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver CustomNodeRenderer)
+           (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverContext DelegatingNodeRendererFactory NodeRenderer NodeRenderingHandler)
            (com.vladsch.flexmark.ext.gfm.tables TablesExtension)
            (com.vladsch.flexmark.ext.autolink AutolinkExtension)
            (com.vladsch.flexmark.ext.anchorlink AnchorLinkExtension)
-           (com.vladsch.flexmark.ext.wikilink WikiLinkExtension)
+           (com.vladsch.flexmark.ext.wikilink WikiLinkExtension WikiLink internal.WikiLinkNodeRenderer$Factory)
            (com.vladsch.flexmark.util.options MutableDataSet)))
 
 (def adoc-container
@@ -54,6 +54,20 @@
                                  nil
                                  LinkStatus/UNCHECKED)
                   link))))))
+      (nodeRendererFactory
+       (reify DelegatingNodeRendererFactory
+         (getDelegates [_this]
+           #{WikiLinkNodeRenderer$Factory})
+         (create [_this _options]
+          (reify NodeRenderer
+            (getNodeRenderingHandlers [_this]
+              #{(NodeRenderingHandler.
+                 WikiLink
+                 (reify CustomNodeRenderer
+                   (render [_this node ctx html]
+                     (let [resolved-link (.resolveLink ctx WikiLinkExtension/WIKI_LINK (.. node getLink unescape) nil)
+                           url (.getUrl resolved-link)]
+                       (.raw html (str "<a href=\"" url "\"><code>" (.. node getLink) "</code></a>"))))))})))))
       (extensions md-extensions)
       (build)))
 
