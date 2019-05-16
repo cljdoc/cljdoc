@@ -40,6 +40,7 @@
          (.set AnchorLinkExtension/ANCHORLINKS_ANCHOR_CLASS "md-anchor")
          (.set HtmlRenderer/FENCED_CODE_NO_LANGUAGE_CLASS "language-clojure")))
       (escapeHtml (boolean escape-html?))
+      ;; Resolve wikilinks
       (linkResolverFactory
         (reify LinkResolverFactory
           (getAfterDependents [_this] nil)
@@ -54,6 +55,7 @@
                                  nil
                                  LinkStatus/UNCHECKED)
                   link))))))
+      ;; Wrap wikilinks content in <code>
       (nodeRendererFactory
        (reify DelegatingNodeRendererFactory
          (getDelegates [_this]
