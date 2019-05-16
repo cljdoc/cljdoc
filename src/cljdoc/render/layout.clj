@@ -126,10 +126,14 @@
     [:a#js--meta-close.link.black.fr.pointer
      "× close"]]])
 
+(def home-link
+  [:a {:href "/"}
+   [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.b.silver.tracked
+    {:style "font-size:10px"}
+    "cljdoc"]])
+
 (defn top-bar-generic []
-  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
-   [:a {:href "/"}
-    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc"]]])
+  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center home-link])
 
 (defn top-bar [version-entity scm-url]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center.bg-white
@@ -138,8 +142,7 @@
    [:a.dib.v-mid.link.dim.gray.f6.mr3
     {:href (routes/url-for :artifact/index :path-params version-entity)}
     (:version version-entity)]
-   [:a.dn.dib-ns {:href "/"}
-    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc"]]
+   home-link
    [:div.tr
     {:style {:flex-grow 1}}
     [:form.dn.dib-ns.mr3 {:action "/api/request-build2" :method "POST"}
