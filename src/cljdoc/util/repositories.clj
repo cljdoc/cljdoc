@@ -118,9 +118,12 @@
     (let [{:keys [body status]} (http/get (metadata-xml-uri repository project))]
       (when (= 200 status)
         (let [d (Jsoup/parse body)]
-          (->> (.select d "metadata > versioning > release")
-               (map #(.ownText %))
-               (util/assert-first)))))
+          ;; for some very old uploads to clojars the structure of maven-metadata.xml
+          ;; is slightly different: https://repo.clojars.org/clansi/clansi/maven-metadata.xml
+          (or (some-> (.select d "metadata > version") first (.ownText))
+              (->> (.select d "metadata > versioning > release")
+                   (map #(.ownText %))
+                   (util/assert-first))))))
     (throw (ex-info (format "Requested project cannot be found in configured repositories: %s" project)
                     {:project project}))))
 
