@@ -139,10 +139,7 @@
     {:href (routes/url-for :artifact/index :path-params version-entity)}
     (:version version-entity)]
    [:a.dn.dib-ns {:href "/"}
-    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc Beta"]]
-   [:a.dn.dib-ns.silver.link.hover-blue.ttu.fw5.f7.tracked.pv1
-    {:href (util/github-url :issues)}
-    "Have Feedback?"]
+    [:span.link.dib.v-mid.mr3.pv1.ph2.ba.hover-blue.br1.ttu.fw5.f7.silver.tracked "cljdoc"]]
    [:div.tr
     {:style {:flex-grow 1}}
     [:form.dn.dib-ns.mr3 {:action "/api/request-build2" :method "POST"}
