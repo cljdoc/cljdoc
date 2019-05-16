@@ -1,0 +1,57 @@
+version: 2.1
+description: An orb to build cljdoc documentation as part of your CI process for easy review and testing
+
+orbs:
+  my-orb:
+    # orbs:
+    #   codecov: circleci/codecov-clojure@0.0.4
+    # executors:
+    #   specialthingsexecutor:
+    #     docker:
+    #       - image: circleci/ruby:1.4.2
+    commands:
+      install-cljdoc:
+        steps:
+          - run:
+              name: Download cljdoc code
+              working_directory: ~/
+              command: |
+                rm -rf cljdoc
+                curl -L https://github.com/cljdoc/cljdoc/archive/${CLJDOC_ANALYZER_VERSION:-$VERSION_FALLBACK}.zip -o cljdoc.zip
+                unzip cljdoc.zip
+                mv -f cljdoc-${CLJDOC_ANALYZER_VERSION:-$VERSION_FALLBACK} cljdoc
+
+      build-docs:
+        parameters:
+          project:
+            type: string
+          version:
+            type: string
+          # git/sha can probably be passed from environment variables pretty
+          # easily but I assume orbs don't have direct access to that
+          git:
+            type: string
+          sha:
+            type: string
+        steps:
+          - run: ./script/cljdoc ingest -p <<parameters.project>> -v <<parameters.version>> --git <<parameters.git>> --rev <<parameters.sha>>
+
+      export-docs:
+        parameters:
+          project:
+            type: string
+          version:
+            type: string
+        steps:
+          - run: ./script/cljdoc ingest -p <<parameters.project>> -v <<parameters.version>> --git <<parameters.git>> --rev <<parameters.sha>>
+
+      
+
+    jobs:
+      myjob:
+        executor: specialthingsexecutor
+        steps:
+          - dospecialthings
+          - codecov/upload:
+              path: ~/tmp/results.xml
+
