@@ -27,7 +27,12 @@
 
 (defn- ensure-required-deps [deps-map]
   (merge {'org.clojure/clojure {:mvn/version "1.9.0"}
-          'org.clojure/clojurescript {:mvn/version "1.10.238"}}
+          'org.clojure/clojurescript {:mvn/version "1.10.238"}
+          ;; many ring libraries implicitly depend on this and getting all
+          ;; downstream libraries to properly declare it as a "provided"
+          ;; dependency would be a major effort. since it's all java it also
+          ;; shouldn't affect Clojure-related dependency resolution
+          'javax.servlet/servlet-api {:mvn/version "2.5"}}
          deps-map))
 
 (def cljdoc-codox

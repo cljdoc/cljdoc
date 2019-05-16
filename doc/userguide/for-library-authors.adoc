@@ -101,6 +101,8 @@ Which will result in the following hierarchy being shown in your docs:
 └── Configuration
 ----
 
+IMPORTANT: The resulting URLs for those articles will be based on the title provided in the `cljdoc.edn` file and _not_ on the filename.
+
 TIP: Since sometimes people forget to update the paths after moving files around we recommend you add the following to your CI setup:
 
 [source,shell]
