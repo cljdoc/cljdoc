@@ -11,7 +11,7 @@ For basic docs to be available you don't have to do anything at all. cljdoc will
 
 *Building docs for older releases:* If you would like to build docs for a version that existed before cljdoc started building docs automatically just head to link:https://cljdoc.org[the homepage], search for your project and pick it from the list. If we haven't built docs for it yet you'll be able to do so with the press of a button.
 
-*Point users to your projects documentation:* You can link to cljdoc from your projects README using a plain Markdown link or the cljdoc badge:
+*Point users to your project's documentation:* You can link to cljdoc from your project's README using a plain Markdown link or the cljdoc badge:
 
 [source,sh]
 ----
@@ -116,7 +116,7 @@ Some libraries consist of smaller submodules and cljdoc provides some facilities
 
 === Module specific settings
 
-If you want to provide a different doc tree for one module, simply nest it in the projects name, e.g.:
+If you want to provide a different doc tree for one module, simply nest it in the project's name, e.g.:
 
 [source,clojure]
 ----
@@ -152,7 +152,7 @@ If you want a project to include API documentation for some of it's dependencies
 NOTE: This can be specified on a per artifact basis as described in the previous section.
 
 NOTE: This only works if the artifact specifies a dependency on the projects listed. The
-projects POM file will be used to load API information for the correct version.
+project's POM file will be used to load API information for the correct version.
 
 WARN: If analysis for some of the specified dependencies failed or just hasn't been ran they
 will be silently ignored for now.
