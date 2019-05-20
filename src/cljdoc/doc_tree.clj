@@ -38,6 +38,7 @@
   (spec/keys :req-un [::slug]
              :opt [:cljdoc.doc/source-file
                    :cljdoc.doc/type
+                   :cljdoc.doc/contributors
                    :cljdoc/asciidoc
                    :cljdoc/markdown]))
 
@@ -78,11 +79,16 @@
 (defmethod filepath->type "adoc" [_] :cljdoc/asciidoc)
 
 (defn- process-toc-entry
-  [slurp-fn {:keys [title attrs children]}]
-  {:pre [(string? title)]}
+  [{:keys [slurp-fn get-contributors] :as fns}
+   {:keys [title attrs children]}]
+  {:pre [(string? title) (fn? slurp-fn) (fn? get-contributors)]}
   ;; If there is a file it has to be matched by filepath->type's dispatch-fn
   ;; Otherwise the line below will throw an exception (intentionally so)
-  (let [entry-type (some-> attrs :file filepath->type)]
+  (prn fns)
+  (let [entry-type (some-> attrs :file filepath->type)
+        file (-> attrs :file)
+        slurp! (fn [file] (or (slurp-fn file)
+                              (throw (Exception. (format "Could not read contents of %s" file)))))]
     (cond-> {:title title}
 
       (:file attrs)
@@ -97,11 +103,20 @@
       (nil? (:slug attrs))
       (assoc-in [:attrs :slug] (cuerdas/uslug title))
 
+      (:file attrs)
+      (assoc-in [:attrs :cljdoc.doc/contributors] (get-contributors file))
+
       (seq children)
-      (assoc :children (mapv (partial process-toc-entry slurp-fn) children)))))
+      (assoc :children (mapv (partial process-toc-entry fns) children)))))
+
+(spec/def ::slurp-fn fn?)
+(spec/def ::get-contributors fn?)
+
+(spec/def ::process-fns
+  (spec/keys :req-un [::slurp-fn ::get-contributors]))
 
 (spec/fdef process-toc
-  :args (spec/cat :slurp-fn fn?
+  :args (spec/cat :process-fns ::process-fns
                   :entries (spec/coll-of ::hiccup-entry))
   :ret ::doctree)
 
@@ -112,12 +127,10 @@
   The return value will be a `::doctree`. Individual nodes will have
   an `:attrs` key with additional metadata such as the original file
   name, the file contents and a slug derived from the entry title."
-  [slurp-fn toc]
-  (let [slurp! (fn [file] (or (slurp-fn file)
-                              (throw (Exception. (format "Could not read contents of %s" file)))))]
-    (->> toc
-         (spec/conform (spec/coll-of ::hiccup-entry))
-         (mapv (partial process-toc-entry slurp!)))))
+  [process-fns toc]
+  (->> toc
+       (spec/conform (spec/coll-of ::hiccup-entry))
+       (mapv (partial process-toc-entry process-fns))))
 
 (defn entry->type-and-content
   "Given a single doctree entry return a tuple with the type of the to be rendered document and

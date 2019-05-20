@@ -14,7 +14,9 @@
                                   Constants)
             (org.eclipse.jgit.revwalk RevWalk)
             (org.eclipse.jgit.treewalk TreeWalk)
-            (org.eclipse.jgit.treewalk.filter PathFilter)
+            (org.eclipse.jgit.treewalk.filter PathFilter
+                                              AndTreeFilter
+                                              TreeFilter)
             (org.eclipse.jgit.api Git TransportConfigCallback LsRemoteCommand)
             (org.eclipse.jgit.transport SshTransport JschConfigSessionFactory)
             (com.jcraft.jsch JSch)
@@ -146,6 +148,22 @@
       (when tree-walk
         (slurp (.openStream (.open repo (.getObjectId tree-walk 0))))))
     (log/warnf "Could not resolve revision %s in repo %s" rev g)))
+
+(defn get-contributors
+  "Get a list of contributors to a given file ordered by the number
+  of commits they have made to the given file `f`."
+  [^Git g rev f]
+  (let [repo    (.getRepository g)
+        revwalk (RevWalk. repo)]
+    (.markStart revwalk (.parseCommit revwalk (.resolve repo rev)))
+    (.setTreeFilter revwalk
+                    (AndTreeFilter/create (PathFilter/create f)
+                                          (TreeFilter/ANY_DIFF)))
+    (->> (map #(.. % getAuthorIdent getName)
+              (iterator-seq (.iterator revwalk)))
+         frequencies
+         (sort-by val >)
+         (map key))))
 
 (s/def ::git #(instance? Git %))
 (s/def ::path string?)

@@ -33,7 +33,8 @@
                     (doc-tree-view version-entity (:children doc-page) current-page (inc level))])))
           (into [:ul.list.ma0 {:class (if (pos? level) "f6-ns pl2" "pl0")}])))))
 
-(defn doc-page [{:keys [doc-scm-url doc-html doc-type]}]
+(defn doc-page
+  [{:keys [doc-scm-url doc-html doc-type contributors]}]
   (assert doc-type)
   [:div.mw7.center
    (if doc-html
@@ -45,13 +46,19 @@
    ;; outside of div with markdown specific styling so markdown
    ;; styling does not override tachyons classes.
    (when doc-html
-     [:span.db.f7.tr.mb5
-      "Can you improve this documentation?"
-      [:a.link.white.bg-blue.ph2.pv1.br2.ml2
-       {:href doc-scm-url}
-       (if (= :gitlab (scm/provider doc-scm-url))
-         "Edit on GitLab"
-         "Edit on GitHub")]])])
+     [:div.bt.b--light-gray.pv4.f7.cf
+      [:p.lh-copy.w-60-ns.ma0.tr.fr
+       (if (< 1 (count contributors))
+         [:span.db
+          [:b "Can you improve this documentation?"] " These fine people already did:" [:br]
+          (string/join ", " (butlast contributors))
+          " & " (last contributors)]
+         [:b.db "Can you improve this documentation?"])
+       [:a.link.dib.white.bg-blue.ph2.pv1.br2.mt2
+        {:href doc-scm-url}
+        (if (= :gitlab (scm/provider doc-scm-url))
+          "Edit on GitLab"
+          "Edit on GitHub")]]])])
 
 (defn doc-overview
   [{:keys [version-entity doc-tree]}]
