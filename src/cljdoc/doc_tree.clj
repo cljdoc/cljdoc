@@ -84,7 +84,6 @@
   {:pre [(string? title) (fn? slurp-fn) (fn? get-contributors)]}
   ;; If there is a file it has to be matched by filepath->type's dispatch-fn
   ;; Otherwise the line below will throw an exception (intentionally so)
-  (prn fns)
   (let [entry-type (some-> attrs :file filepath->type)
         file (-> attrs :file)
         slurp! (fn [file] (or (slurp-fn file)
