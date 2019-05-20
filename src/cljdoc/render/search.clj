@@ -5,7 +5,12 @@
   ([] (search-form ""))
   ([search-terms]
    [:div.w-90.mb4
-    [:div#cljdoc-search {:data-initial-value search-terms}]]))
+    [:div#cljdoc-search {:data-initial-value search-terms}]
+    [:p.bg-washed-yellow.ba.b--yellow.ph3.pv2.br2.f6.lh-copy
+     "The search is not very reliable these days, use the "
+     [:code {:style "font-size:0.9em"} "cljdoc.org/d/{project}"] " URL pattern
+     to jump directly to any project - and be welcome to help "
+     [:a.link {:href "https://github.com/cljdoc/cljdoc/issues/85"} "fix search on cljdoc."]]]))
 
 
 (defn search-page [context]
