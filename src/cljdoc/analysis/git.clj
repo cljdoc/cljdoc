@@ -81,15 +81,17 @@
                          version-tag (assoc :tag version-tag))
              :config   config-edn
              :doc-tree (doctree/process-toc
-                        (fn [f]
-                          ;; We are intentionally relaxed here for now
-                          ;; In principle we should only look at files at the tagged
-                          ;; revision but if a file has been added after the tagged
-                          ;; revision we might as well include it to allow a smooth,
-                          ;; even if slightly less correct, UX
-                          (or (git/slurp-file-at repo revision f)
-                              (when (git/exists? repo "master")
-                                (git/slurp-file-at repo "master" f))))
+                        {:slurp-fn (fn [f]
+                                     ;; We are intentionally relaxed here for now
+                                     ;; In principle we should only look at files at the tagged
+                                     ;; revision but if a file has been added after the tagged
+                                     ;; revision we might as well include it to allow a smooth,
+                                     ;; even if slightly less correct, UX
+                                     (or (git/slurp-file-at repo revision f)
+                                         (when (git/exists? repo "master")
+                                           (git/slurp-file-at repo "master" f))))
+                         :get-contributors (fn [f]
+                                             (git/get-contributors repo revision f))}
                         (or (user-config/doc-tree config-edn project)
                             (get-in @util/hardcoded-config
                                     [(util/normalize-project project) :cljdoc.doc/tree])

@@ -57,6 +57,7 @@
                        {:doc-scm-url (str (-> cache-bundle :version :scm :url) "/blob/"
                                           (or (-> cache-bundle :version :scm :branch) "master")
                                           "/" (-> doc-p :attrs :cljdoc.doc/source-file))
+                        :contributors (-> doc-p :attrs :cljdoc.doc/contributors)
                         :doc-type (name doc-type)
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                               (rich-text/render-text [doc-type contents])
