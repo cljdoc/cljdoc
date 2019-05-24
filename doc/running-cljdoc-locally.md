@@ -98,6 +98,14 @@ for `muuntaja` from a local Jar and Git repository:
 
 1. Open the docs for muuntaja on the local cljdoc server: http://localhost:8000/d/metosin/muuntaja
 
+# Running with Docker
+
+The [Docker image](https://hub.docker.com/r/cljdoc/cljdoc/tags) can be used to run cljdoc locally without building it yourself:
+
+1. Start the Docker container and wait for the webserver to start on port `8000`:
+
+   docker run --rm -p 8000:8000 cljdoc/cljdoc:0.0.1406-030763c
+
 ---
 
 **Thats pretty much it!** Stop by on Slack if you have any problems. :wave:
