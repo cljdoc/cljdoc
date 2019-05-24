@@ -115,10 +115,9 @@ The [Docker image](https://hub.docker.com/r/cljdoc/cljdoc/tags) can be used to r
 
 1. Run the server:
 
-       docker run -d --name cljdoc-server -p 8000:8000 \
-         -v /tmp/data:/app/data cljdoc/cljdoc
+       docker run --rm -p 8000:8000 -v /tmp/data:/app/data cljdoc/cljdoc
 
-1. Open the docs for muuntaja on the local cljdoc server: http://localhost:8000/d/metosin/muuntaja
+1. Open the docs for muuntaja on the [local cljdoc server](http://localhost:8000/d/metosin/muuntaja/0.6.1/doc/readme)
 
 ---
 
