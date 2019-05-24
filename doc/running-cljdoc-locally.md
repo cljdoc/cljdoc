@@ -98,13 +98,27 @@ for `muuntaja` from a local Jar and Git repository:
 
 1. Open the docs for muuntaja on the local cljdoc server: http://localhost:8000/d/metosin/muuntaja
 
-# Running with Docker
+# Running locally with Docker
 
 The [Docker image](https://hub.docker.com/r/cljdoc/cljdoc/tags) can be used to run cljdoc locally without building it yourself:
 
-1. Start the Docker container and wait for the webserver to start on port `8000`:
+1. Like step 1 from the [previous section](#importing-a-project-from-local-sources).
 
-   docker run --rm -p 8000:8000 cljdoc/cljdoc:0.0.1406-030763c
+1. Make a directory in which the sqlite database will be persisted, e.g. `/tmp/data`
+
+1. Ingest the library:
+
+        docker run --rm -v /path/to/muuntaja/repo:/muuntaja \
+          -v $HOME/.m2:/root/.m2 -v /tmp/data:/app/data --entrypoint "clojure" \
+          cljdoc/cljdoc -A:cli ingest -p metosin/muuntaja -v 0.6.1 \
+          --git /muuntaja
+
+1. Run the server:
+
+       docker run -d --name cljdoc-server -p 8000:8000 \
+         -v /tmp/data:/app/data cljdoc/cljdoc
+
+1. Open the docs for muuntaja on the local cljdoc server: http://localhost:8000/d/metosin/muuntaja
 
 ---
 
