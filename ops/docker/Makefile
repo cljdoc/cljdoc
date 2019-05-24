@@ -15,5 +15,6 @@ cljdoc-build: ../../target/cljdoc.zip
 
 image: cljdoc-build
 	cp Dockerfile cljdoc-build/
-	docker build -t cljdoc/cljdoc:$(CLJDOC_VERSION) cljdoc-build/
+	docker build -t cljdoc/cljdoc:$(CLJDOC_VERSION) cljdoc-build/ && \
+          docker tag cljdoc/cljdoc:$(CLJDOC_VERSION) cljdoc/cljdoc:latest
 	rm -rf $^
