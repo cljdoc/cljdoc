@@ -17,7 +17,7 @@ RUN apk add sqlite curl
 WORKDIR /app
 
 COPY deps.edn /app
-RUN clojure -Stree
+RUN clojure -R:cli -Stree
 
 COPY . /app
 
