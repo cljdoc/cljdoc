@@ -119,6 +119,10 @@ The [Docker image](https://hub.docker.com/r/cljdoc/cljdoc/tags) can be used to r
 
 1. Open the docs for muuntaja on the [local cljdoc server](http://localhost:8000/d/metosin/muuntaja/0.6.1/doc/readme)
 
+Example scripts to preview docs locally before publishing:
+
+- [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/script/cljdoc-preview)
+
 ---
 
 **Thats pretty much it!** Stop by on Slack if you have any problems. :wave:
