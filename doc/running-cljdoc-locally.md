@@ -104,18 +104,18 @@ The [Docker image](https://hub.docker.com/r/cljdoc/cljdoc/tags) can be used to r
 
 1. Like step 1 from the [previous section](#importing-a-project-from-local-sources).
 
-1. Make a directory in which the sqlite database will be persisted, e.g. `/tmp/data`
+1. Make a directory in which the sqlite database will be persisted, e.g. `/tmp/cljdoc`
 
 1. Ingest the library:
 
         docker run --rm -v /path/to/muuntaja/repo:/muuntaja \
-          -v $HOME/.m2:/root/.m2 -v /tmp/data:/app/data --entrypoint "clojure" \
-          cljdoc/cljdoc -A:cli ingest -p metosin/muuntaja -v 0.6.1 \
-          --git /muuntaja
+               -v "$HOME/.m2:/root/.m2" -v /tmp/cljdoc:/app/data --entrypoint "clojure" \
+               cljdoc/cljdoc -A:cli ingest -p metosin/muuntaja -v 0.6.1 \
+               --git /muuntaja
 
 1. Run the server:
 
-       docker run --rm -p 8000:8000 -v /tmp/data:/app/data cljdoc/cljdoc
+       docker run --rm -p 8000:8000 -v /tmp/cljdoc:/app/data cljdoc/cljdoc
 
 1. Open the docs for muuntaja on the [local cljdoc server](http://localhost:8000/d/metosin/muuntaja/0.6.1/doc/readme)
 
