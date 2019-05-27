@@ -1,4 +1,5 @@
 <img src="resources/public/cljdoc-logo-beta-square.png" width=100 height=100>
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors)
 
 An effort to create a central documentation hub for the Clojure & ClojureScript ecosystem.
 
@@ -50,6 +51,11 @@ interesting use-cases down the road.
 
 ## Contributors
 
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore -->
+<table><tr><td align="center"><a href="https://michielborkent.nl"><img src="https://avatars1.githubusercontent.com/u/284934?v=4" width="100px;" alt="Michiel Borkent"/><br /><sub><b>Michiel Borkent</b></sub></a><br /><a href="https://github.com/cljdoc/cljdoc/commits?author=borkdude" title="Documentation">📖</a></td></tr></table>
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 ![cljdoc contributors](https://opencollective.com/cljdoc/contributors.svg?width=890)
 
 ## License
