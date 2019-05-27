@@ -1,0 +1,23 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "borkdude",
+      "name": "Michiel Borkent",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/284934?v=4",
+      "profile": "https://michielborkent.nl",
+      "contributions": [
+        "doc"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "cljdoc",
+  "projectOwner": "cljdoc",
+  "repoType": "github",
+  "repoHost": "https://github.com"
+}
