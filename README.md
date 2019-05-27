@@ -6,7 +6,7 @@ An effort to create a central documentation hub for the Clojure & ClojureScript 
 
 > :wave: Need help getting started? Say hi on [Telegram](https://telegram.me/martinklepsch), [Twitter](https://twitter.com/martinklepsch) or [Clojurians Slack](http://clojurians.net/) in [#cljdoc](https://clojurians.slack.com/messages/C8V0BQ0M6/).
 
-[![CircleCI](https://circleci.com/gh/cljdoc/cljdoc.svg?style=svg)](https://circleci.com/gh/cljdoc/cljdoc) [![cljdoc](https://cljdoc.org/badge/cljdoc)](https://cljdoc.org/d/cljdoc) [![All Contributors](https://img.shields.io/badge/all_contributors-38-orange.svg?style=flat-square)](#contributors)
+[![CircleCI](https://circleci.com/gh/cljdoc/cljdoc.svg?style=svg)](https://circleci.com/gh/cljdoc/cljdoc) [![cljdoc](https://cljdoc.org/badge/cljdoc)](https://cljdoc.org/d/cljdoc) [![All Contributors](https://img.shields.io/badge/all_contributors-38-orange.svg?style=flat)](#contributors)
 
 ## Rationale
 
