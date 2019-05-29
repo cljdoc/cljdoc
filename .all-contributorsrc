@@ -4,6 +4,7 @@
   ],
   "imageSize": 100,
   "commit": false,
+  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat)](#contributors)",
   "contributors": [
     {
       "login": "borkdude",
@@ -356,6 +357,15 @@
       "profile": "https://github.com/crimeminister",
       "contributions": [
         "financial"
+      ]
+    },
+    {
+      "login": "seancorfield",
+      "name": "Sean Corfield",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/43875?v=4",
+      "profile": "http://corfield.org/",
+      "contributions": [
+        "question"
       ]
     }
   ],
