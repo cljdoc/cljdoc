@@ -18,7 +18,8 @@
 
 (defn api-routes []
   #{["/api/ping" :get nop :route-name :ping]
-    ["/api/request-build2" :post nop :route-name :request-build]})
+    ["/api/request-build2" :post nop :route-name :request-build]
+    ["/api/search" :get nop :route-name :api/search]})
 
 (defn build-log-routes []
   #{["/builds/:id" :get nop :route-name :show-build]
@@ -101,6 +102,6 @@
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
 
   (clojure.pprint/pprint
-   (routes identity {}))
+   (routes identity {})))
 
-  )
+

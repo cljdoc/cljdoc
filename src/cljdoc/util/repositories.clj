@@ -184,6 +184,6 @@
   ;;   (def all-poms "http://repo.clojars.org/all-poms.txt")
 
   (time (get-pom-xml "org.clojure/clojure" "1.9.0"))
-  (clojure.core.memoize/memo-clear! get-pom-xml '("org.clojure/clojure" "1.9.0"))
+  (clojure.core.memoize/memo-clear! get-pom-xml '("org.clojure/clojure" "1.9.0")))
 
-  )
+

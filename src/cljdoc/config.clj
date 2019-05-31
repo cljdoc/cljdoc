@@ -107,6 +107,10 @@
 (defn extension-namespaces [config]
   (clojure.core/get-in config [:extension-namespaces]))
 
+(defn enable-artifact-indexer? [config]
+  (not (clojure.core/get-in config [:cljdoc/server :disable-artifact-indexer??])))
+
+
 (comment
   (:cljdoc/server (config))
 
@@ -116,6 +120,6 @@
           [:cljdoc/hardcoded (cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
 
   (clojure.pprint/pprint
-   (aero/read-config (io/resource "config.edn") {:profile :default}))
+   (aero/read-config (io/resource "config.edn") {:profile :default})))
 
-  )
+

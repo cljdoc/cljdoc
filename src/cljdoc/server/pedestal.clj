@@ -26,6 +26,7 @@
             [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
+            [cljdoc.server.search.api :as sc]
             [cljdoc.server.sitemap :as sitemap]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
@@ -215,6 +216,15 @@
               ctx
               (assoc ctx :response {:status 400 :headers {}})))})
 
+(defn search-interceptor [searcher]
+  {:name  ::search
+   :enter (fn search-handler [ctx]
+            (if-let [q (-> ctx :request :params :q)]
+              (assoc ctx :response {:status  200
+                                    :headers {"Content-Type" "application/json"}
+                                    :body    (sc/search searcher q)})
+              (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))})
+
 (defn show-build
   [build-tracker]
   {:name ::build-show
@@ -358,7 +368,7 @@
   interesting for ClojureScript where Pededestal can't go.
 
   For more details see `cljdoc.server.routes`."
-  [{:keys [build-tracker storage cache] :as deps}
+  [{:keys [build-tracker storage cache searcher] :as deps}
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [{:name ::home :enter #(pu/ok-html % (render-home/home))}]
@@ -370,6 +380,8 @@
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]
+
+         :api/search [pu/coerce-body (pu/negotiate-content #{"application/json"}) (search-interceptor searcher)]
 
          :ping          [{:name ::pong :enter #(pu/ok-html % "pong")}]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
