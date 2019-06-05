@@ -367,6 +367,16 @@
       "contributions": [
         "question"
       ]
+    },
+    {
+      "login": "holyjak",
+      "name": "Jakub Holy",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/624958?v=4",
+      "profile": "https://blog.jakubholy.net/",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
