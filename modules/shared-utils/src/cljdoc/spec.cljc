@@ -19,8 +19,7 @@
           ;; does not support :column
           :opt-un [::doc
                    ::src
-                   ::line ; may not be present in vars that have been defined dynamically
-                   ]))
+                   ::line])) ; may not be present in vars that have been defined dynamically
 
 (s/def ::platform #{"clj" "cljs"})
 (s/def ::namespace string?)
@@ -80,10 +79,10 @@
 (s/def ::docs-cache
   (s/keys :req-un [::defs ::namespaces ::latest]))
 
-(s/def ::artifacts (s/coll-of string?))
-(s/def ::versions (s/coll-of (s/keys :req-un [::version ::artifact-id])))
+(s/def :cache/artifacts (s/coll-of string?))
+(s/def :cache/versions (s/coll-of (s/keys :req-un [::version ::artifact-id])))
 (s/def ::group-cache
-  (s/keys :req-un [::versions ::artifacts]))
+  (s/keys :req-un [:cache/versions :cache/artifacts]))
 
 ;; Cache bundle (combination of the above cache specs)
 
@@ -104,7 +103,7 @@
 ;; codox -------------------------------------------------------------
 ;; A spec for Codox namespace analysis data
 
-(s/def :cljdoc.codox.public/name symbol? #_(s/or :a string? :b symbol? ))
+(s/def :cljdoc.codox.public/name symbol? #_(s/or :a string? :b symbol?))
 (s/def :cljdoc.codox.public/file string?)
 (s/def :cljdoc.codox.public/line int?)
 (s/def :cljdoc.codox.public/arglists coll?)
@@ -159,6 +158,14 @@
 (s/def :cljdoc.grimoire/namespace
   (s/keys :opt-un [:cljdoc.codox.namespace/doc]))
 
+;; search ----------------------------------------------------------
+
+(s/def ::description string?)
+(s/def :search/versions (s/coll-of ::version))
+(s/def ::artifact (s/keys
+                    :req-un [::artifact-id ::group-id]
+                    :opt-un [::description :search/versions]))
+
 ;; utilities ----------------------------------------------------------
 
 (defn assert [spec v]
@@ -174,7 +181,7 @@
 
   (clojure.pprint/pprint
    (s/conform :cljdoc.spec/cache-bundle
-   (first (gen/sample (s/gen ::cache-bundle)))))
+              (first (gen/sample (s/gen ::cache-bundle)))))
 
   (s/conform :cljdoc.spec/grimoire-entity
              (first (gen/sample (s/gen ::grimoire-entity))))
@@ -183,7 +190,7 @@
    (first (gen/sample (s/gen ::versions-cache))))
 
   (gen/sample (s/gen ::namespace))
-  (gen/sample (s/gen ::artifact))
+  (gen/sample (s/gen :cache/artifact))
 
 
   (def x
@@ -197,6 +204,6 @@
              :src "(defprotocol Matches\n  (matches [_] \"A protocol used in the expansion of possible matches that the pattern can match. This is used to gather all possible routes using route-seq below.\"))",
              :type :var}]})
 
-  (s/valid? ::namespace x)
+  (s/valid? ::namespace x))
 
-  )
+

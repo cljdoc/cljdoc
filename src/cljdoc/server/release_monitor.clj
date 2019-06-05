@@ -1,11 +1,13 @@
 (ns cljdoc.server.release-monitor
-  (:require [cljdoc.util.repositories :as repositories])
+  (:require [cljdoc.util.repositories :as repositories]
+            [cljdoc.server.search.api :as sc])
   (:require [integrant.core :as ig]
             [clj-http.lite.client :as http]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
             [tea-time.core :as tt])
-  (:import (java.time Instant Duration)))
+  (:import (java.time Instant Duration)
+           (cljdoc.server.search.api ISearcher)))
 
 (defn- last-release-ts [db-spec]
   (some-> (sql/query db-spec ["SELECT * FROM releases ORDER BY datetime(created_ts) DESC LIMIT 1"])
@@ -53,7 +55,7 @@
       (.contains group_id "gradle-clojure")
       (.contains group_id "gradle-clj")))
 
-(defn release-fetch-job-fn [db-spec]
+(defn release-fetch-job-fn [db-spec ^ISearcher searcher]
   (let [ts (or (some-> (last-release-ts db-spec)
                        (.plus (Duration/ofSeconds 1)))
                (.minus (Instant/now) (Duration/ofHours 24)))
@@ -61,7 +63,20 @@
                       (remove exclude?))]
     (when (seq releases)
       (log/infof "Storing %s new releases in releases table" (count releases))
-      (sql/insert-multi! db-spec "releases" releases))))
+      (sql/insert-multi! db-spec "releases" releases)
+      (run!
+        ;; Index them at once so that they appear in search results, if the author
+        ;; wants to check that his new release appeared on Cljdoc; we will re-fetch
+        ;; all Clojars artifact at the next scheduled period, when we will also get
+        ;; past versions and description
+        #(sc/index-artifact
+           searcher
+           {:artifact-id (:artifact_id %)
+            :group-id (:group_id %)
+            ;; NOTE: Ideally we would include also the old versions;
+            ;; but they will be re-added once the full re-import runs anyway
+            :versions [(:version %)]})
+        releases))))
 
 (defn build-queuer-job-fn [db-spec dry-run?]
   (when-let [to-build (oldest-not-built db-spec)]
@@ -71,10 +86,10 @@
       (do (log/infof "Queuing build for %s" to-build)
           (update-build-id db-spec (:id to-build) (trigger-build to-build))))))
 
-(defmethod ig/init-key :cljdoc/release-monitor [_ {:keys [db-spec dry-run?]}]
+(defmethod ig/init-key :cljdoc/release-monitor [_ {:keys [db-spec dry-run? searcher]}]
   (log/info "Starting ReleaseMonitor" (if dry-run? "(dry-run mode)" ""))
   (tt/start!)
-  {:release-fetcher (tt/every! 60 #(release-fetch-job-fn db-spec))
+  {:release-fetcher (tt/every! 60 #(release-fetch-job-fn db-spec searcher))
    :build-queuer    (tt/every! (* 10 60) 10 #(build-queuer-job-fn db-spec dry-run?))})
 
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
@@ -104,8 +119,6 @@
    (->> (repositories/releases-since (last-release-ts db-spec))
         (map #(select-keys % [:created_ts]))))
 
-  (oldest-not-built db-spec)
+  (oldest-not-built db-spec))
 
-  
 
-  )

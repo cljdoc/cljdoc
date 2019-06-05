@@ -25,6 +25,9 @@
   :appenders (when (cfg/sentry-dsn)
                [{:appender :sentry}])})
 
+(defn index-dir [env-config]
+  (str (cfg/data-dir env-config) "index"))
+
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)
         port        (cfg/get-in env-config [:cljdoc/server :port])]
@@ -40,12 +43,15 @@
                                       :key-prefix     "get-pom-xml"
                                       :serialize-fn   nippy/freeze
                                       :deserialize-fn nippy/thaw})
+      :cljdoc/searcher {:index-dir       (index-dir env-config)
+                        :enable-indexer? (cfg/enable-artifact-indexer? env-config)}
       :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
                         :host             (get-in env-config [:cljdoc/server :host])
                         :build-tracker    (ig/ref :cljdoc/build-tracker)
                         :analysis-service (ig/ref :cljdoc/analysis-service)
                         :storage          (ig/ref :cljdoc/storage)
-                        :cache            (ig/ref :cljdoc/cache)}
+                        :cache            (ig/ref :cljdoc/cache)
+                        :searcher         (ig/ref :cljdoc/searcher)}
       :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/analysis-service {:service-type ana-service
@@ -60,7 +66,8 @@
 
      (when (cfg/enable-release-monitor? env-config)
        {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
-                                 :dry-run? (not (cfg/autobuild-clojars-releases? env-config))}}))))
+                                 :dry-run? (not (cfg/autobuild-clojars-releases? env-config))
+                                 :searcher (ig/ref :cljdoc/searcher)}}))))
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
   (log/info "Starting" k (:analyzer-version opts))
@@ -120,6 +127,6 @@
       (st/instrument)
       (integrant.repl/go))
 
-  (integrant.repl/reset)
+  (integrant.repl/reset))
 
-  )
+

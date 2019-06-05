@@ -21,7 +21,8 @@ function cleanSearchStr(str) {
 }
 
 const loadResults = (str, cb) => {
-  const uri = "https://clojars.org/search?q=" + str + "&format=json";
+  if (!str) return;
+  const uri = "/api/search?q=" + str; //+ "&format=json";
   fetch(uri)
     .then(response => response.json())
     .then(json => cb(json.results));
@@ -75,15 +76,20 @@ class SearchInput extends Component {
 
 function resultUri(result) {
   return (
-    "/d/" + result.group_name + "/" + result.jar_name + "/" + result.version
+    "/d/" +
+    result["group-id"] +
+    "/" +
+    result["artifact-id"] +
+    "/" +
+    result.version
   );
 }
 
 const SingleResultView = (r, isSelected, selectResult) => {
   const project =
-    r.group_name === r.jar_name
-      ? r.group_name
-      : r.group_name + "/" + r.jar_name;
+    r["group-id"] === r["artifact-id"]
+      ? r["group-id"]
+      : r["group-id"] + "/" + r["artifact-id"];
   const docsUri = resultUri(r);
   const rowClass = isSelected
     ? "pa3 bb b--light-gray bg-light-blue"
