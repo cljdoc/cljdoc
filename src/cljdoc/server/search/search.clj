@@ -11,21 +11,6 @@
 (defn ^FSDirectory fsdir [index-dir] ;; BEWARE: Duplicated in artifact-indexer and search ns
   (FSDirectory/open (Paths/get index-dir (into-array String nil))))
 
-
-(defn format-results
-  "Format search results into what the frontend expects"
-  [hits-cnt docs]
-  {:count   hits-cnt
-   :results (map
-              (fn [{:keys [^Document doc score]}]
-                {:artifact-id (.get doc "artifact-id")
-                 :group-id    (.get doc "group-id")
-                 :description (.get doc "description")
-                 ;; The first version appears to be the latest so this is OK:
-                 :version (.get doc "versions")
-                 :score       score})
-              docs)})
-
 (defn tokenize
   "Split search text into tokens. It is reasonable to use the same tokenization <> analyzer
    as when indexing."
@@ -156,6 +141,21 @@
           hits             (.scoreDocs topdocs)]
       (f {:topdocs topdocs :score-docs hits :searcher searcher :query query}))))
 
+(defn format-results
+  "Format search results into what the frontend expects"
+  [hits-cnt docs]
+  {:count   hits-cnt
+   :results (map
+              (fn [{:keys [^Document doc score]}]
+                {:artifact-id (.get doc "artifact-id")
+                 :group-id    (.get doc "group-id")
+                 :description (.get doc "description")
+                 ;:origin (.get doc "origin")
+                 ;; The first version appears to be the latest so this is OK:
+                 :version (.get doc "versions")
+                 :score       score})
+              docs)})
+
 (defn search [^String index-dir ^String query-in]
   (search->results
     index-dir query-in
@@ -185,8 +185,11 @@
 
 (comment
 
+  (cljdoc.server.search.artifact-indexer/download-and-index! "data/index" :force)
+
   (search "data/index" "re-frame")
   (search "data/index" "clojure")
+  (search "data/index" "testit")
   (search "data/index" "ring")
   (search "data/index" "conc")
   (explain-top-n 3 "data/index" "clojure")
