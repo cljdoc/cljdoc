@@ -90,7 +90,6 @@
                    (butlast tokens))
         prefix-q (exact-or-prefix-query field (last tokens))]
     (apply boolean-query
-           BooleanClause$Occur/MUST
            prefix-q exact-qs)))
 
 (defn single-token->query [field ^String token]
@@ -186,6 +185,12 @@
 (comment
 
   (cljdoc.server.search.artifact-indexer/download-and-index! "data/index" :force)
+
+  (search "data/index" "metosin muunta")
+  ;; FIXME metosin:muuntaja comes 6th because the partial match on 'muuntaja' is
+  ;; less worth than 1) double match on metosin (in a, g) and 2) match on g=metosin
+  ;; and a random, rare artifact name => with high idf
+  (explain-top-n 6 "data/index" "metosin muunta")
 
   (search "data/index" "re-frame")
   (search "data/index" "clojure")
