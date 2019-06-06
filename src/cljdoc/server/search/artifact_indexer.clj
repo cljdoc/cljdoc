@@ -116,14 +116,15 @@
   [{:keys [^String artifact-id
            ^String group-id
            ^String description
+           ^String origin
            versions]
-    :or {description ""}
+    :or {description "", origin "N/A"}
     :as artifact}]
   (doto (Document.)
     ;; *StringField* is indexed but not tokenized, term freq. or positional info not indexed
     ;; id: We need a unique identifier for each doc so that we can use updateDocument
     (.add (StringField. "id" (artifact->id artifact) Field$Store/YES))
-    (.add (StringField. "origin" ^String (:origin artifact) Field$Store/YES))
+    (.add (StringField. "origin" ^String origin Field$Store/YES))
     (.add (TextField. "artifact-id" artifact-id Field$Store/YES))
     ;; Keep also un-tokenized version of the id for RegExp searches (Better to replace with
     ;; a custom tokenizer that produces both the original + individual tokens)
