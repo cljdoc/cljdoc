@@ -160,11 +160,14 @@
 
 ;; search ----------------------------------------------------------
 
-(s/def ::description string?)
-(s/def :search/versions (s/coll-of ::version))
+(s/def :artifact/description string?)
+(s/def :artifact/origin #{:clojars :maven-central})
+(s/def :artifact/versions (s/coll-of ::version))
 (s/def ::artifact (s/keys
                     :req-un [::artifact-id ::group-id]
-                    :opt-un [::description :search/versions]))
+                    :opt-un [:artifact/description
+                             :artifact/versions
+                             :artifact/origin]))
 
 ;; utilities ----------------------------------------------------------
 
