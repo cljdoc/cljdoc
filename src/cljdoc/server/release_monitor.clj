@@ -75,6 +75,7 @@
             :group-id (:group_id %)
             ;; NOTE: Ideally we would include also the old versions;
             ;; but they will be re-added once the full re-import runs anyway
+            :origin :clojars
             :versions [(:version %)]})
         releases))))
 

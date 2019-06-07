@@ -32,7 +32,7 @@
                ;; We do not have description so fake one with g and a so
                ;; that it will match of this field too and score higher
                :description (str "Clojure Contrib library " g "/" a)
-               :origin "Maven Central"}))))
+               :origin :maven-central}))))
 
 (defn load-maven-central-artifacts []
   ;; GET http://search.maven.org/solrsearch/select?q=g:org.clojure -> JSON .response.docs[] = {g: group, a: artifact-id, latestVersion, versionCount
@@ -54,7 +54,7 @@
   (with-open [in (io/reader (GZIPInputStream. body))]
     (let [artifacts     (into []
                               (comp
-                                (map #(-> % edn/read-string (assoc :origin "Clojars")))
+                                (map #(-> % edn/read-string (assoc :origin :clojars)))
                                 ;; Latest Clojure Contrib libs are in Maven Central
                                 ;; and thus should be loaded from there
                                 (filter #(not= "org.clojure" (:group-id %))))
@@ -124,7 +124,7 @@
     ;; *StringField* is indexed but not tokenized, term freq. or positional info not indexed
     ;; id: We need a unique identifier for each doc so that we can use updateDocument
     (.add (StringField. "id" (artifact->id artifact) Field$Store/YES))
-    (.add (StringField. "origin" ^String origin Field$Store/YES))
+    (.add (StringField. "origin" ^String (name origin) Field$Store/YES))
     (.add (TextField. "artifact-id" artifact-id Field$Store/YES))
     ;; Keep also un-tokenized version of the id for RegExp searches (Better to replace with
     ;; a custom tokenizer that produces both the original + individual tokens)
