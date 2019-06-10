@@ -126,7 +126,7 @@
                                       :mvn/repos (merge default-repos
                                                         (extra-repos pom)
                                                         repos)}
-                                     {:extra-deps {project {:local/root jar-url}}
+                                     {:extra-deps {(symbol project) {:local/root jar-url}}
                                       :verbose false})]
     {:resolved-deps resolved
      :classpath (tdeps/make-classpath resolved [] nil)}))
