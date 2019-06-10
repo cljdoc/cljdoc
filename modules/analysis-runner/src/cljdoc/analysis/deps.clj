@@ -75,6 +75,15 @@
                [(symbol group-id artifact-id) {:mvn/version version}]))
        (into {})))
 
+(defn clj-cljs-deps
+  [pom]
+  {:pre [(pom/jsoup? pom)]}
+  (->> (pom/dependencies pom)
+       (map (fn [{:keys [group-id artifact-id version]}]
+              [(symbol group-id artifact-id) {:mvn/version version}]))
+       (filter #(-> % first #{'org.clojure/clojure 'org.clojure/clojurescript}))
+       (into {})))
+
 (defn- extra-repos
   [pom]
   {:pre [(pom/jsoup? pom)]}
@@ -90,6 +99,7 @@
   (let [{:keys [group-id artifact-id version]} (pom/artifact-info pom)
         project (symbol group-id artifact-id)]
     (-> (extra-deps pom)
+        (merge (clj-cljs-deps pom))
         (merge (get hardcoded-deps project))
         (ensure-required-deps)
         (ensure-recent-ish)
