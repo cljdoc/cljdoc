@@ -24,6 +24,16 @@
        (repeatedly
          #(when (.incrementToken stream) (str attr)))))))
 
+(def search-fields [:artifact-id :group-id :group-id-packages :description])
+
+(def boosts
+  "Boosts for selected artifact fields (artifact id > group id > description
+   The numbers were determined somewhat randomly but seem to work well enough."
+  {:artifact-id       3
+   :group-id-packages 3
+   :group-id          2
+   :description       1})
+
 (defn raw-field [field]
   (get {:artifact-id :artifact-id-raw
         :group-id    :group-id-raw}
@@ -56,12 +66,15 @@
 (defn ^Query boolean-query*
   ([queries] (boolean-query* BooleanClause$Occur/SHOULD queries))
   ([occur queries]
-   (let [builder (BooleanQuery$Builder.)]
-     (run! (fn [^Query q]
-             (when q
-               (.add builder q occur)))
-           queries)
-     (.build builder))))
+   (case (count queries)
+     0 nil
+     1 (first queries)
+     (let [builder (BooleanQuery$Builder.)]
+       (run! (fn [^Query q]
+               (when q
+                 (.add builder q occur)))
+             queries)
+       (.build builder)))))
 
 (defn ^Query boolean-query
   ([occur-or-q & queries]
@@ -82,49 +95,44 @@
         ;; Give a prefix less weight than an exact match
         0.5))))
 
-(defn ^Query multi-tokens->query
-  "-> `TermQuery* PrefixQuery`"
-  [field tokens]
-  (let [exact-qs (map
-                   #(TermQuery. (term field %))
-                   (butlast tokens))
-        prefix-q (exact-or-prefix-query field (last tokens))]
-    (apply boolean-query
-           prefix-q exact-qs)))
+(defn single-token->query [field ^String token match-mode]
+  (case match-mode
+    :exact (TermQuery. (term field token))
+    :prefix (exact-or-prefix-query field token)))
 
-(defn single-token->query [field ^String token]
-  (exact-or-prefix-query field token))
+(defn field-and-token->query [field token match-mode full-match-text]
+  (-> (boolean-query
+        (single-token->query field token match-mode)
+        ;; Add an exact-match query to boost exact matches of the
+        ;; whole name so that "re-frame" -> "re-frame:re-frame" comes first
+        ;; FIXME This works for group OR artifact-id but breaks for `group/artifact` (x group-id-packages search looks at just the group => use same tokenization? Or split manually at `/`?)
+        (when-let [raw-fld (and full-match-text (raw-field field))]
+          (TermQuery. (term raw-fld full-match-text))))
+      (BoostQuery.
+        (get boosts field))))
 
-(def boosts
-  "Boosts for selected artifact fields (artifact id > group id > description
-   The numbers were determined somewhat randomly but seem to work well enough."
-  {:artifact-id       3
-   :group-id-packages 3
-   :group-id          2
-   :description       1})
-
-(defn tokens->query
+(defn token->query
   "Create a Lucene Query from a tokenized search string.
    The search is expected to be just search terms, we do not support/expect any
    special search modifiers such as regexp, wildcards, or fuzzy indicators, as
    Lucene's QueryParser does."
-  [field tokens query-text]
-  (BoostQuery.
-    (if (next tokens)
-      (boolean-query
-        (multi-tokens->query field tokens)
-        ;; Add an exact-match query to boost exact matches of the
-        ;; whole name so that "re-frame" -> "re-frame:re-frame" comes first
-        (when-let [field (raw-field field)]
-          (TermQuery. (term field query-text))))
-      (single-token->query field (first tokens)))
-    (get boosts field)))
+  [token match-mode full-match-text]
+  (->> search-fields
+       (map
+         #(field-and-token->query
+            % token match-mode full-match-text))
+       (apply boolean-query)))
 
 (defn ^Query parse-query [^String query-text]
-  (when-let [tokens (seq (tokenize query-text))]
-    (->> [:artifact-id :group-id :group-id-packages :description]
-         (map #(tokens->query % tokens query-text))
-         (apply boolean-query))))
+  (let [tokens (tokenize query-text)
+        multitoken? (next tokens)
+        match-modes (->> (cons :prefix (repeat :exact))
+                         (take (count tokens))
+                         reverse)]
+    (->> (map
+           #(token->query %1 %2 (when multitoken? query-text))
+           tokens match-modes)
+         (apply boolean-query BooleanClause$Occur/MUST))))
 
 (defn search->results [^String index-dir ^String query-in f]
   ;; TODO If no matches, try again but using OR instead of AND in multi-tokens->query?
