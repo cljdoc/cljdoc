@@ -23,6 +23,9 @@
   (FSDirectory/open (Paths/get index-dir (into-array String nil))))
 
 (defn format-maven-central-resp [json]
+  (when (> (-> json :response :numFound) 200)
+    (log/error "Maven Central has more results than our limit of 200 => "
+               "increase the limit or implement pagination to get them all"))
   (->> (get-in json [:response :docs])
        (map (fn [{:keys [a g latestVersion]}]
               {:artifact-id a
@@ -37,7 +40,7 @@
 (defn load-maven-central-artifacts []
   ;; GET http://search.maven.org/solrsearch/select?q=g:org.clojure -> JSON .response.docs[] = {g: group, a: artifact-id, latestVersion, versionCount
   (try
-    (with-open [in (io/reader "http://search.maven.org/solrsearch/select?q=g:org.clojure")]
+    (with-open [in (io/reader "http://search.maven.org/solrsearch/select?q=g:org.clojure&rows=200")]
       (format-maven-central-resp
         (json/parse-stream in keyword)))
     (catch Exception e
