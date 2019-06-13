@@ -131,7 +131,7 @@
     (assert deployment-id "Deployment ID missing")
     (log/info "Evaluation ID:" eval-id)
     (log/info "Deployment ID:" deployment-id)
-    (wait-until #(deployment-healthy? deployment-id) 5000 25)
+    (wait-until #(deployment-healthy? deployment-id) 5000 40)
     (let [deployment (nomad-get (str "/v1/deployment/" deployment-id))]
       (if (= "running" (get deployment "Status"))
         (do
