@@ -7,7 +7,7 @@
     <Url type="text/html" template="https://cljdoc.org/search">
         <Param name="q" value="{searchTerms}"/>
     </Url>
-    <Url type="application/x-suggestions+json" template="https://cljdoc.org/suggest">
+    <Url type="application/x-suggestions+json" template="https://cljdoc.org/api/search-suggest">
         <Param name="q" value="{searchTerms}"/>
     </Url>
     <moz:SearchForm>https://cljdoc.org/search</moz:SearchForm>

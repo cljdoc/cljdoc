@@ -19,7 +19,8 @@
 (defn api-routes []
   #{["/api/ping" :get nop :route-name :ping]
     ["/api/request-build2" :post nop :route-name :request-build]
-    ["/api/search" :get nop :route-name :api/search]})
+    ["/api/search" :get nop :route-name :api/search]
+    ["/api/search-suggest" :get nop :route-name :api/search-suggest]})
 
 (defn build-log-routes []
   #{["/builds/:id" :get nop :route-name :show-build]
@@ -41,8 +42,7 @@
     ["/versions/:group-id/:artifact-id" :get nop :route-name :artifact/index]})
 
 (defn open-search-routes []
-  #{["/search" :get nop :route-name :search]
-    ["/suggest" :get nop :route-name :suggest]})
+  #{["/search" :get nop :route-name :search]})
 
 (defn info-pages-routes []
   #{["/" :get nop :route-name :home]

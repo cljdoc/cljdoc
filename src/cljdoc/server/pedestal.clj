@@ -16,7 +16,7 @@
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.index-pages :as index-pages]
             [cljdoc.render.home :as render-home]
-            [cljdoc.render.search :as search]
+            [cljdoc.render.search :as render-search]
             [cljdoc.render.meta :as render-meta]
             [cljdoc.render.error :as error]
             [cljdoc.render.offline :as offline]
@@ -26,7 +26,7 @@
             [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
-            [cljdoc.server.search.api :as sc]
+            [cljdoc.server.search.api :as search-api]
             [cljdoc.server.sitemap :as sitemap]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
@@ -222,7 +222,16 @@
             (if-let [q (-> ctx :request :params :q)]
               (assoc ctx :response {:status  200
                                     :headers {"Content-Type" "application/json"}
-                                    :body    (sc/search searcher q)})
+                                    :body    (search-api/search searcher q)})
+              (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))})
+
+(defn search-suggest-interceptor [searcher]
+  {:name  ::search-suggest
+   :enter (fn search-suggest-handler [ctx]
+            (if-let [q (-> ctx :request :params :q)]
+              (assoc ctx :response {:status  200
+                                    :headers {"Content-Type" "application/x-suggestions+json"}
+                                    :body    (search-api/suggest searcher q)})
               (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))})
 
 (defn show-build
@@ -372,8 +381,7 @@
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [{:name ::home :enter #(pu/ok-html % (render-home/home))}]
-         :search     [{:name ::search :enter #(pu/ok-html % (search/search-page %))}]
-         :suggest    [{:name ::suggest :enter search/suggest-api}]
+         :search     [{:name ::search :enter #(pu/ok-html % (render-search/search-page %))}]
          :shortcuts  [{:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts))}]
          :sitemap    [(sitemap-interceptor storage)]
          :show-build [pu/coerce-body
@@ -382,6 +390,7 @@
          :all-builds [(all-builds build-tracker)]
 
          :api/search [pu/coerce-body (pu/negotiate-content #{"application/json"}) (search-interceptor searcher)]
+         :api/search-suggest [pu/coerce-body (pu/negotiate-content #{"application/x-suggestions+json"}) (search-suggest-interceptor searcher)]
 
          :ping          [{:name ::pong :enter #(pu/ok-html % "pong")}]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
