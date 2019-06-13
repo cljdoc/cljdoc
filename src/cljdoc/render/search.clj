@@ -25,18 +25,3 @@
        (layout/page {:title "cljdoc — documentation for Clojure/Script libraries"
                      :responsive? true})
        (str)))
-
-;; TODO: complete this function later.
-(defn suggest-api
-  "Provides suggestions for auto-completing the search terms the user is typing.
-   Note: In Firefox, the response needs to reach the browser within 500ms otherwise it will be discarded.
-
-   For more information, see:
-   - https://developer.mozilla.org/en-US/docs/Web/OpenSearch
-   - https://developer.mozilla.org/en-US/docs/Archive/Add-ons/Supporting_search_suggestions_in_search_plugins
-   "
-  [context]
-  (assoc context
-         :response {:status 501
-                    :body "[]"
-                    :headers {"Content-Type" "application/x-suggestions+json"}}))

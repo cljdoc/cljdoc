@@ -12,9 +12,10 @@
 (defn transform-content
   [body content-type]
   (case content-type
-    "text/html"        (str body)
-    "application/edn"  (pr-str body)
-    "application/json" (json/generate-string body)))
+    "text/html"                      (str body)
+    "application/edn"                (pr-str body)
+    "application/json"               (json/generate-string body)
+    "application/x-suggestions+json" (json/generate-string body)))
 
 (defn coerce-to
   [response content-type]

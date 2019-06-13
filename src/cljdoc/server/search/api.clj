@@ -47,16 +47,22 @@
   (:import (java.util.concurrent TimeUnit)))
 
 (defprotocol ISearcher
-  "Index and search artifacts"
+  ;; We use a protocol so that we can create once the datatype implementing it and
+  ;; wrap the required configuration in it, passing the type instead of the raw config
+  ;; to each of the functions that need it.
+  "Index and search artifacts."
   (index-artifact [_ artifact])
-  (search [_ query]))
+  (search [_ query])
+  (suggest [_ query]))
 
 (defrecord Searcher [index-dir]
   ISearcher
   (index-artifact [_ artifact]
     (indexer/index-artifact index-dir artifact))
   (search [_ query]
-    (search/search index-dir query)))
+    (search/search index-dir query))
+  (suggest [_ query]
+    (search/suggest index-dir query)))
 
 (defmethod ig/init-key :cljdoc/searcher [_ {:keys [index-dir enable-indexer?] :or {enable-indexer? true}}]
   (map->Searcher {:index-dir        index-dir
