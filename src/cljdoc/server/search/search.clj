@@ -1,5 +1,12 @@
 ;; TODO Take download count into account - see "Integrating field values into the score" at https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/search/package-summary.html#changingScoring
 (ns cljdoc.server.search.search
+  "Search the Lucene index for artifacts best matching a query.
+
+  ## Troubleshooting and tuning tips ##
+
+  * Use `explain-top-n` to get a detailed analysis of the score of the top N results for a query
+  * Print out a Query - it's toString shows nicely what is it composed of, boosts, etc.
+  "
   (:import (org.apache.lucene.analysis TokenStream)
            (org.apache.lucene.analysis.standard StandardAnalyzer)
            (org.apache.lucene.document Document)
@@ -134,19 +141,22 @@
            tokens match-modes)
          (apply boolean-query BooleanClause$Occur/MUST))))
 
-(defn search->results [^String index-dir ^String query-in f]
-  ;; TODO If no matches, try again but using OR instead of AND in multi-tokens->query?
-  (with-open [reader (DirectoryReader/open (fsdir index-dir))]
-    (let [page-size        30
-          searcher         (IndexSearcher. reader)
-          ;parser           (QueryParser. "artifact-id" analyzer)
-          ;query            (.parse parser query-str)
-          ^Query query     (if (instance? Query query-in)
-                             query-in
-                             (parse-query query-in))
-          ^TopDocs topdocs (.search searcher query page-size)
-          hits             (.scoreDocs topdocs)]
-      (f {:topdocs topdocs :score-docs hits :searcher searcher :query query}))))
+(defn search->results
+  "NOTE: We take the result formatting function `f` as a parameter because it
+   must be run within the context of our `with-open`."
+  ([^String index-dir ^String query-in f]
+   (search->results index-dir query-in 30 f))
+  ([^String index-dir ^String query-in ^long max-results f]
+   (with-open [reader (DirectoryReader/open (fsdir index-dir))]
+     (let [searcher         (IndexSearcher. reader)
+           ;parser           (QueryParser. "artifact-id" analyzer)
+           ;query            (.parse parser query-str)
+           ^Query query     (if (instance? Query query-in)
+                              query-in
+                              (parse-query query-in))
+           ^TopDocs topdocs (.search searcher query max-results)
+           hits             (.scoreDocs topdocs)]
+       (f {:topdocs topdocs :score-docs hits :searcher searcher :query query})))))
 
 (defn format-results
   "Format search results into what the frontend expects"
@@ -174,6 +184,28 @@
              {:score (.score h)
               :doc (.doc (:searcher %) (.-doc h))})
            (:score-docs %))))))
+
+(defn suggest
+  "Provides suggestions for auto-completing the search terms the user is typing.
+   Note: In Firefox, the response needs to reach the browser within 500ms otherwise it will be discarded.
+   For more information, see:
+   - http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.0
+   - https://developer.mozilla.org/en-US/docs/Web/OpenSearch
+   - https://developer.mozilla.org/en-US/docs/Archive/Add-ons/Supporting_search_suggestions_in_search_plugins
+   "
+  [index-dir query-in]
+  (let [suggestions
+        (search->results
+          index-dir query-in 5
+          #(->> (:score-docs %)
+                (mapv
+                  (fn [^ScoreDoc h]
+                    (let [doc (.doc (:searcher %) (.-doc h))]
+                      (str
+                        (.get doc "group-id")
+                        "/"
+                        (.get doc "artifact-id")))))))]
+    [query-in suggestions]))
 
 (defn explain-top-n
   "Debugging function to print out the score and its explanation of the
