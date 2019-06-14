@@ -14,7 +14,7 @@
     [_ group-id artifact-id version])
   (analysis-kicked-off! [_ build-id analysis-job-uri analyzer-version])
   (analysis-received! [_ build-id cljdoc-edn-uri])
-  (failed! [_ build-id error])
+  (failed! [_ build-id error] [_ build-id error e])
   (api-imported! [_ build-id namespaces-count])
   (git-completed! [_ build-id git-result])
   (completed! [_ build-id])
@@ -48,8 +48,12 @@
                   :analysis_received_ts (now)}
                  ["id = ?" build-id]))
   (failed! [this build-id error]
+    (failed! this build-id error nil))
+  (failed! [this build-id error e]
     (telegram/build-failed (assoc (get-build this build-id) :error error))
-    (sql/update! db-spec "builds" {:error error} ["id = ?" build-id]))
+    (sql/update! db-spec "builds" (cond-> {:error error}
+                                    e (assoc :error_info (prn-str e)))
+                 ["id = ?" build-id]))
   (api-imported! [this build-id namespaces-count]
     (sql/update! db-spec
                  "builds"
