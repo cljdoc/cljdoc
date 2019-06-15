@@ -2,7 +2,8 @@
   (:require [integrant.core :as ig]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
-            [cljdoc.util.telegram :as telegram])
+            [cljdoc.util.telegram :as telegram]
+            [taoensso.nippy :as nippy])
   (:import (java.time Instant Duration)))
 
 (defn- now []
@@ -52,7 +53,7 @@
   (failed! [this build-id error e]
     (telegram/build-failed (assoc (get-build this build-id) :error error))
     (sql/update! db-spec "builds" (cond-> {:error error}
-                                    e (assoc :error_info (prn-str e)))
+                                    e (assoc :error_info (nippy/freeze e)))
                  ["id = ?" build-id]))
   (api-imported! [this build-id namespaces-count]
     (sql/update! db-spec

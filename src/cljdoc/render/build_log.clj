@@ -3,7 +3,9 @@
             [cljdoc.render.layout :as layout]
             [cljdoc.util :as util]
             [cljdoc.util.datetime :as dt]
-            [cljdoc.server.routes :as routes])
+            [cljdoc.server.routes :as routes]
+            [taoensso.nippy :as nippy]
+            [clojure.stacktrace :refer [print-stack-trace]])
   (:import [java.time Instant Duration ZoneId]
            [java.time.temporal ChronoUnit]))
 
@@ -172,7 +174,10 @@
            [:h3.mt0 "There was an error"]
            [:p.bg-washed-red.pa3.br2 (:error build-info)]
            (when (:error_info build-info)
-             [:pre.overflow-x-scroll.f6 (:error_info build-info)])
+             [:pre.f6 [:code (with-out-str (-> build-info
+                                               :error_info
+                                               nippy/thaw
+                                               print-stack-trace))]])
            (when (:analysis_job_uri build-info)
              [:p.lh-copy "Please see the " [:a.link.blue {:href (:analysis_job_uri build-info)}
               "build job"] " to understand why this build failed and reach out if you aren't
