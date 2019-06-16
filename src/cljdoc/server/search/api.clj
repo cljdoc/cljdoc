@@ -64,11 +64,11 @@
   (suggest [_ query]
     (search/suggest index-dir query)))
 
-(defmethod ig/init-key :cljdoc/searcher [_ {:keys [index-dir enable-indexer?] :or {enable-indexer? true}}]
+(defmethod ig/init-key :cljdoc/searcher [_ {:keys [index-dir enable-indexer? db-spec] :or {enable-indexer? true}}]
   (map->Searcher {:index-dir        index-dir
                   :artifact-indexer (when enable-indexer?
                                       (log/info "Starting ArtifactIndexer")
-                                      (tt/every! (.toSeconds TimeUnit/HOURS 1) #(indexer/download-and-index! index-dir)))}))
+                                      (tt/every! (.toSeconds TimeUnit/HOURS 1) #(indexer/download-and-index! index-dir db-spec)))}))
 
 (defmethod ig/halt-key! :cljdoc/searcher [_ searcher]
   (when-let [indexer (:artifact-indexer searcher)]

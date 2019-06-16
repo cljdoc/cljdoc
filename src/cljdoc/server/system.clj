@@ -44,7 +44,8 @@
                                       :serialize-fn   nippy/freeze
                                       :deserialize-fn nippy/thaw})
       :cljdoc/searcher {:index-dir       (index-dir env-config)
-                        :enable-indexer? (cfg/enable-artifact-indexer? env-config)}
+                        :enable-indexer? (cfg/enable-artifact-indexer? env-config)
+                        :db-spec         (cfg/db env-config)}
       :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
                         :host             (get-in env-config [:cljdoc/server :host])
                         :build-tracker    (ig/ref :cljdoc/build-tracker)

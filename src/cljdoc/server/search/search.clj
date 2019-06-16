@@ -9,10 +9,10 @@
   "
   (:import (org.apache.lucene.analysis TokenStream)
            (org.apache.lucene.analysis.standard StandardAnalyzer)
-           (org.apache.lucene.document Document)
+           (org.apache.lucene.document Document FeatureField)
            (org.apache.lucene.index DirectoryReader Term)
            (org.apache.lucene.search Query IndexSearcher TopDocs ScoreDoc BooleanClause$Occur PrefixQuery BoostQuery BooleanQuery$Builder TermQuery Query)
-           (org.apache.lucene.store FSDirectory)
+           (org.apache.lucene.store FSDirectory Directory)
            (java.nio.file Paths)))
 
 (defn ^FSDirectory fsdir [index-dir] ;; BEWARE: Duplicated in artifact-indexer and search ns
@@ -118,6 +118,29 @@
       (BoostQuery.
         (get boosts field))))
 
+(defn ^Query boost-by-downloads
+  "Boost artifacts based on the number of their downloads.
+   Params:
+    - query - the basic query to boost
+
+   See
+    - https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/search/package-summary.html#changingScoring
+    - https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-rank-feature-query.html#_saturation_2
+  "
+  [query]
+  (if @_downl-on
+    (boolean-query
+      query
+      ;; FIXME Returns result with high download count with no term matching
+      (BoostQuery.
+        ;; NOTE: This will return a score in (0, 1) and < 0.5 if # downloads < ± geometrical average
+        ; log ex. boosts [downl boost]: 0 1.3e-4, 10 0.01, 100 0.12, 1k 0.57, 10k 0.93, 100k 0.99, mil 0.99 @ b=1f
+        (FeatureField/newSaturationQuery "downloads" "downloads")
+        ; log ex. boosts [downl boost]: 0 2.x, 10 3, 100 4.7, 1k 7, 10k 9.2, 100k 11.5, mil 13.8 @ b=1f
+        ;(FeatureField/newLogQuery "downloads" "downloads" 1 10)
+        0.3))
+    query))
+
 (defn token->query
   "Create a Lucene Query from a tokenized search string.
    The search is expected to be just search terms, we do not support/expect any
@@ -136,18 +159,28 @@
         match-modes (->> (cons :prefix (repeat :exact))
                          (take (count tokens))
                          reverse)]
-    (->> (map
-           #(token->query %1 %2 (when multitoken? query-text))
-           tokens match-modes)
-         (apply boolean-query BooleanClause$Occur/MUST))))
+    (boost-by-downloads
+      (TermQuery. (term :group-id query-text)))
+    ;; FIXME Re-add:
+    #_(->> (map
+             #(token->query %1 %2 (when multitoken? query-text))
+             tokens match-modes)
+           (apply boolean-query BooleanClause$Occur/MUST)
+           ;; FIXME Enable 👇 and test thoroughly (also for artifacts with no downloads info)
+           (boost-by-downloads))))
 
 (defn search->results
   "NOTE: We take the result formatting function `f` as a parameter because it
    must be run within the context of our `with-open`."
-  ([^String index-dir ^String query-in f]
+  ([index-dir ^String query-in f]
    (search->results index-dir query-in 30 f))
-  ([^String index-dir ^String query-in ^long max-results f]
-   (with-open [reader (DirectoryReader/open (fsdir index-dir))]
+  ([index-dir ^String query-in ^long max-results f]
+   {:pre [(or (string? index-dir) (instance? Directory index-dir))]}
+   (with-open [reader (DirectoryReader/open
+                        ^Directory
+                        (if (instance? Directory index-dir)
+                          index-dir
+                          (fsdir ^String index-dir)))]
      (let [searcher         (IndexSearcher. reader)
            ;parser           (QueryParser. "artifact-id" analyzer)
            ;query            (.parse parser query-str)
@@ -167,13 +200,15 @@
                 {:artifact-id (.get doc "artifact-id")
                  :group-id    (.get doc "group-id")
                  :description (.get doc "description")
+                 :downloads (.get doc "dbg-downloads") ; FIXME - tmp, comment out
                  ;:origin (.get doc "origin")
                  ;; The first version appears to be the latest so this is OK:
                  :version (.get doc "versions")
                  :score       score})
               docs)})
 
-(defn search [^String index-dir ^String query-in]
+(defn search [index-dir ^String query-in]
+  {:pre [(or (string? index-dir) (instance? Directory index-dir))]}
   (search->results
     index-dir query-in
     #(format-results
@@ -224,19 +259,48 @@
 
 (comment
 
-  (cljdoc.server.search.artifact-indexer/download-and-index! "data/index" :force)
+  (let [db-spec {:classname "org.sqlite.JDBC", :subprotocol "sqlite", :subname "data/cljdoc.db.sqlite"}]
+    (time (cljdoc.server.search.artifact-indexer/download-and-index! "data/index" db-spec :force)))
 
-  (search "data/index" "metosin muunta")
+  (def idx-dir (org.apache.lucene.store.MMapDirectory. (Paths/get "mem-idx" (into-array String nil))))
+
+  (cljdoc.server.search.artifact-indexer/index!
+    idx-dir
+    [{:group-id "test" :artifact-id "none"}
+     {:group-id "test" :artifact-id "ten" :downloads 10}
+     {:group-id "test" :artifact-id "hundred" :downloads 100}
+     {:group-id "test" :artifact-id "thousand" :downloads 1000}
+     {:group-id "test" :artifact-id "ten-k" :downloads 10000}
+     {:group-id "test" :artifact-id "hundred-k" :downloads 100000}
+     {:group-id "test" :artifact-id "mil" :downloads 1000000}])
+
+  (defn ->list [res]
+    (->> res
+         :results
+         (map #(assoc % :downl (download-cnt %)))
+         (map (juxt :group-id :artifact-id :score :downloads))))
+
+  (defn search+ [& args]
+    (->list (apply search args)))
+
+
+  (swap! _downl-on not)
+
+  (explain-top-n 10 idx-dir "whatever")
+
+  (search+ "data/index" "metosin muunta")
   ;; FIXME metosin:muuntaja comes 6th because the partial match on 'muuntaja' is
   ;; less worth than 1) double match on metosin (in a, g) and 2) match on g=metosin
   ;; and a random, rare artifact name => with high idf
-  (explain-top-n 6 "data/index" "metosin muunta")
 
-  (search "data/index" "re-frame")
-  (search "data/index" "clojure")
-  (search "data/index" "testit")
-  (search "data/index" "ring")
-  (search "data/index" "conc")
+  ;; DESIRED: metosin/muntaja first thx to highest download count
+  (explain-top-n 4 "data/index" "metosin muunta")
+
+  (search+ "data/index" "re-frame")
+  (search+ "data/index" "clojure")
+  (search+ "data/index" "testit")
+  (search+ "data/index" "ring")
+  (search+ "data/index" "conc")
   (explain-top-n 3 "data/index" "clojure")
 
   nil)

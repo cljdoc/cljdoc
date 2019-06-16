@@ -73,12 +73,15 @@
         (sentry/capture {:ex e})))))
 
 (defprotocol IClojarsStats
-  (artifact-monthly [_ group-id artifact-id]))
+  (artifact-monthly [_ group-id artifact-id])
+  (downloads [_]))
 
 (defrecord ClojarsStats [db-spec]
   IClojarsStats
   (artifact-monthly [_ group-id artifact-id]
-    (sql/query db-spec ["SELECT strftime('%Y-%m', date) as month, SUM(downloads) as downloads FROM clojars_stats WHERE group_id = ? AND artifact_id = ? GROUP BY month" group-id artifact-id])))
+    (sql/query db-spec ["SELECT strftime('%Y-%m', date) as month, SUM(downloads) as downloads FROM clojars_stats WHERE group_id = ? AND artifact_id = ? GROUP BY month" group-id artifact-id]))
+  (downloads [_]
+    (sql/query db-spec ["SELECT SUM(downloads) as downloads, group_id as 'group-id', artifact_id as 'artifact-id' FROM clojars_stats GROUP BY group_id, artifact_id"])))
 
 (defmethod ig/init-key :cljdoc/clojars-stats
   [k {:keys [db-spec retention-days] :as opts}]
@@ -93,6 +96,6 @@
   (tt/cancel! (::poll-job clojars-stats))
   (tt/cancel! (::clean-job clojars-stats)))
 
-(comment
+(comment)
 
-  )
+

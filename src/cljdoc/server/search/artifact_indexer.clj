@@ -1,23 +1,27 @@
 (ns cljdoc.server.search.artifact-indexer
   (:require
     [cljdoc.spec :as cljdoc-spec]
+    [cljdoc.server.clojars-stats :as clojars-stats]
     [clojure.edn :as edn]
     [clojure.spec.alpha :as s]
     [clojure.java.io :as io]
     [clojure.string :refer [join]]
+    [clojure.set :as cset]
     [clj-http.lite.client :as http]
     [clojure.tools.logging :as log]
     [cheshire.core :as json])
   (:import (org.apache.lucene.analysis.standard StandardAnalyzer)
            (org.apache.lucene.index IndexWriterConfig IndexWriterConfig$OpenMode IndexWriter Term IndexOptions)
-           (org.apache.lucene.document Document StringField Field$Store TextField FieldType Field)
+           (org.apache.lucene.document Document StringField Field$Store TextField FieldType Field FeatureField StoredField)
            (org.apache.lucene.analysis CharArraySet)
            (org.apache.lucene.analysis.miscellaneous PerFieldAnalyzerWrapper)
            (org.apache.lucene.analysis.core StopAnalyzer)
            (java.util.zip GZIPInputStream)
            (java.io InputStream)
-           (org.apache.lucene.store FSDirectory)
+           (org.apache.lucene.store FSDirectory Directory)
            (java.nio.file Paths)))
+
+;; ----------------------------------------------------------------------- indexing
 
 (defn ^FSDirectory fsdir [index-dir] ;; BEWARE: Duplicated in artifact-indexer and search ns
   (FSDirectory/open (Paths/get index-dir (into-array String nil))))
@@ -35,6 +39,7 @@
                ;; We do not have description so fake one with g and a so
                ;; that it will match of this field too and score higher
                :description (str "Clojure Contrib library " g "/" a)
+               :downloads 10000 ; random fake nr to boost Contrib Libs
                :origin :maven-central}))))
 
 (defn load-maven-central-artifacts []
@@ -108,7 +113,6 @@
       value
       type)))
 
-
 (defn add-versions [doc versions]
   (run!
     #(.add doc
@@ -120,8 +124,9 @@
            ^String group-id
            ^String description
            ^String origin
-           versions]
-    :or {description "", origin "N/A"}
+           versions
+           downloads]
+    :or {description "", origin "N/A", downloads 0.1}
     :as artifact}]
   (doto (Document.)
     ;; *StringField* is indexed but not tokenized, term freq. or positional info not indexed
@@ -135,7 +140,9 @@
     (.add (TextField. "group-id" group-id Field$Store/YES))
     (.add (TextField. "group-id-packages" group-id Field$Store/YES))
     (.add (StringField. "group-id-raw" group-id Field$Store/YES))
+    (.add (StoredField. "dbg-downloads" (long downloads)))
     (.add (TextField. "description" description Field$Store/YES))
+    (.add (FeatureField. "downloads" "downloads" (float downloads)))
     (add-versions versions)))
 
 (defn index-artifacts [^IndexWriter idx-writer artifacts create?]
@@ -159,7 +166,8 @@
      ;; time so that 'clojure' will match 'org.clojure' better than 'org-clojure':
      "group-id-packages" (StopAnalyzer. (CharArraySet. ["."] true))}))
 
-(defn index! [^String index-dir artifacts]
+(defn index! [index-dir artifacts]
+  {:pre [(or (string? index-dir) (instance? Directory index-dir))]}
   (let [create?   false ;; update
         analyzer (mk-indexing-analyzer)
         iw-cfg   (doto (IndexWriterConfig. analyzer)
@@ -168,17 +176,35 @@
                                    IndexWriterConfig$OpenMode/CREATE_OR_APPEND))
                    ;; Increase RAM for speed up. BEWARE: Increase also JVM heap size: -Xmx512m or -Xmx1g
                    (.setRAMBufferSizeMB 256.0))
-        idx-dir  (fsdir index-dir)]
+        idx-dir  (if (instance? Directory index-dir)
+                   index-dir
+                   (fsdir ^String index-dir))]
     (with-open [idx-writer (IndexWriter. idx-dir iw-cfg)]
       (index-artifacts
         idx-writer
         artifacts
         create?))))
 
+(defn add-downloads [db-spec artifacts]
+  (let [->id-map (fn [m] (select-keys m [:group-id :artifact-id]))
+        downloads (clojars-stats/downloads (clojars-stats/->ClojarsStats db-spec))
+        downloads-idx
+        (comment ->>
+          downloads
+          (map (juxt ->id-map #(select-keys % [:downloads])))
+          (into {}))]
+    (->> artifacts
+         (map #(merge % (get downloads-idx (->id-map %)))))))
+
 (defn download-and-index!
-  ([^String index-dir] (download-and-index! index-dir false))
-  ([^String index-dir force?]
+  ([^String index-dir db-spec] (download-and-index! index-dir db-spec false))
+  ([^String index-dir db-spec force?]
    (log/info "Download & index starting...")
+   (->> (into
+          (load-clojars-artifacts force?)
+          (load-maven-central-artifacts))
+        (add-downloads db-spec)
+        (index! index-dir))
    (index! index-dir (into
                        (load-clojars-artifacts force?)
                        (load-maven-central-artifacts)))))
@@ -188,3 +214,8 @@
 
 (s/fdef index-artifact
         :args (s/cat :artifact ::cljdoc-spec/artifact))
+
+(comment
+  (defn add [x y] (+ x y))
+  (deffixture math.Algebra [add])
+    (def db-spec {:classname "org.sqlite.JDBC", :subprotocol "sqlite", :subname "data/cljdoc.db.sqlite"}))

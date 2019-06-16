@@ -234,6 +234,6 @@
 
   (store-artifact! db-spec (:group-id data) (:artifact-id data) [(:version data)])
 
-  (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data))
+  (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data)))
 
-  )
+
