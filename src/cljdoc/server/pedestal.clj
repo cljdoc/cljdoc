@@ -255,7 +255,7 @@
                  (pu/ok-html ctx)))})
 
 (defn return-badge [ctx status color]
-  (let [url (format "https://badgen.now.sh/badge/cljdoc/%s/%s"
+  (let [url (format "https://badgen.net/badge/cljdoc/%s/%s"
                     (string/replace status  #"/" "%2F")
                     (name color))]
     (->> {:status 200
