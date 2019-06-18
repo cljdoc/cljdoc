@@ -77,9 +77,8 @@
                    (analyze-and-import-api! deps ana-args))
 
                  (catch Throwable e
-                   ;; TODO store in column for internal exception
                    (log/error e (format "Exception while processing %s %s (build %s)" project version build-id))
-                   (build-log/failed! build-tracker build-id "exception-during-import")
+                   (build-log/failed! build-tracker build-id "exception-during-import" e)
                    (throw e))))}))
 
 (comment
