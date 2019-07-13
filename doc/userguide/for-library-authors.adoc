@@ -112,7 +112,7 @@ curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-
 
 == Module Support
 
-Some libraries consist of smaller submodules and cljdoc provides some facilities for library authors to make their documentaiton available in one location:
+Some libraries consist of smaller submodules and cljdoc provides some facilities for library authors to make their documentation available in one location:
 
 === Module specific settings
 
@@ -133,7 +133,7 @@ If you want to provide a different doc tree for one module, simply nest it in th
 }
 ----
 
-=== `:cljdoc.include-namespaces-from-dependencies`
+=== `:cljdoc/include-namespaces-from-dependencies`
 
 If you want a project to include API documentation for some of it's dependencies provide an additional key `:cljdoc/include-namespaces-from-dependencies`:
 
