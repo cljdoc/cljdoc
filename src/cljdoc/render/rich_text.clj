@@ -11,7 +11,7 @@
            (com.vladsch.flexmark.util.data MutableDataSet DataHolder)))
 
 (def adoc-container
-  (Asciidoctor$Factory/create ""))
+  (Asciidoctor$Factory/create))
 
 (defn asciidoc-to-html [file-content]
   (let [opts (doto (Options.)
@@ -110,4 +110,3 @@
   (asciidoc-to-html "ifdef::env-cljdoc[]\nCLJDOC\nendif::[]\nifndef::env-cljdoc[]\nNOT_CLJDOC\nendif::[]")
 
   )
-
