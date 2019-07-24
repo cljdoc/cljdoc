@@ -13,11 +13,21 @@
             [clojure.java.jdbc :as sql])
   (:import (java.time Instant)))
 
+
+(defn instant-now
+  "abstraction for time so we can redef it in tests"
+  []
+  (Instant/now))
+
+(defn- derefable? [v]
+  (instance? clojure.lang.IDeref v))
+
 (def query-templates
   {:fetch   "SELECT * FROM %s WHERE prefix = ? AND %s = ?"
    :evict   "DELETE FROM %s WHERE prefix = ? AND %s = ?"
    :cache   "INSERT OR IGNORE INTO %s (prefix, cached_ts, ttl ,%s, %S) VALUES (?, ?, ?, ?, ?)"
-   :refresh "UPDATE %s SET cached_ts = ?, ttl = ?, %s = ? WHERE prefix = ? and %s = ?"})
+   :refresh "UPDATE %s SET cached_ts = ?, ttl = ?, %s = ? WHERE prefix = ? and %s = ?"
+   :clear   "DELETE FROM %s WHERE prefix = ?"})
 
 (defn stale?
   "Tests if `ttl` has expired for a cached item.
@@ -27,7 +37,7 @@
   [{:keys [ttl cached_ts]}]
   (if (nil? ttl)
     false
-    (> (- (System/currentTimeMillis)
+    (> (- (.toEpochMilli (instant-now))
           (.toEpochMilli (Instant/parse cached_ts)))
        ttl)))
 
@@ -50,13 +60,13 @@
   [k v {:keys [db-spec key-prefix table key-col value-col serialize-fn ttl]}]
   (let [query (format (:refresh query-templates) table value-col key-col)
         value (serialize-fn @v)]
-    (sql/execute! db-spec [query (Instant/now) ttl value key-prefix (pr-str k)])))
+    (sql/execute! db-spec [query (instant-now) ttl value key-prefix (pr-str k)])))
 
 (defn cache!
   [k v {:keys [db-spec key-prefix serialize-fn table key-col value-col ttl]}]
   (let [query (format (:cache query-templates) table key-col value-col)
         value (serialize-fn @v)]
-    (sql/execute! db-spec [query key-prefix (Instant/now) ttl (pr-str k) value])))
+    (sql/execute! db-spec [query key-prefix (instant-now) ttl (pr-str k) value])))
 
 (defn evict!
   [k {:keys [db-spec key-prefix table key-col]}]
@@ -76,30 +86,46 @@
                                     {:conditional? true})]
     (sql/execute! db-spec [query])))
 
+(defn clear-all!
+  [{:keys [db-spec key-prefix table]}]
+  (let [query (format (:clear query-templates) table)]
+     (sql/execute! db-spec [query key-prefix])))
+
+;; memoize kind of assumes we are carrying around our cache in state.
+;; this is not the case for us, our state is our config and never changes
+;; after init.
 (cache/defcache SQLCache [state]
   cache/CacheProtocol
   (lookup [_ k]
     (delay (fetch-item! k (:cache-spec state))))
   (lookup [this k not-found]
-    (delay (or (deref (cache/lookup this k))) not-found))
+    (delay (or (fetch-item! k (:cache-spec state))
+               (if (derefable? not-found) (deref not-found) not-found))))
   (has? [_ k]
     (let [item (fetch! k (:cache-spec state))]
       (and (not (nil? item))
            (not (stale? item)))))
-  (hit [_ k]
-    (SQLCache. state))
-  (miss [_ k v]
+  (hit [this k]
+    this)
+  (miss [this k v]
     (let [item (fetch! k (:cache-spec state))]
       (if (and (not (nil? item)) (stale? item))
         (refresh! k v (:cache-spec state))
         (cache! k v (:cache-spec state))))
-    (SQLCache. state))
-  (evict [_ k]
+    this)
+  (evict [this k]
     (evict! k (:cache-spec state))
-    (SQLCache. state))
-  (seed [_ base]
-    (seed! (:cache-spec base))
-    (SQLCache. base))
+    this)
+  (seed [this base]
+    (if (empty? base)
+      ;; if we are being seeded with an empty base, it is a request from memoize to clear the cache
+      (do
+        (clear-all! (:cache-spec state))
+        this)
+      ;; otherwise we are being initialized
+      (do
+        (seed! (:cache-spec base))
+        (SQLCache. base))))
   Object
   (toString [_] (str state)))
 
@@ -155,6 +181,8 @@
                  db-artifact-repository))
 
   (time (memoized-find-artifact-repository 'bidi "2.1.3"))
+
+  (time (memoized-find-artifact-repository 'neverfindme "2.1.3"))
 
   (time (memoized-find-artifact-repository 'com.bhauman/spell-spec "0.1.0"))
 
