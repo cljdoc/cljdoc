@@ -15,11 +15,11 @@
         com.beust/jcommander {:mvn/version "1.35"} ; tools-deps issue?
         org.jruby/jruby-complete {:mvn/version "1.7.26"} ; tools-deps issue?
         co.deps/ring-etag-middleware {:mvn/version "0.2.0"}
-        com.vladsch.flexmark/flexmark {:mvn/version "0.34.18"}
-        com.vladsch.flexmark/flexmark-ext-autolink {:mvn/version "0.34.18"}
-        com.vladsch.flexmark/flexmark-ext-gfm-tables {:mvn/version "0.34.18"}
-        com.vladsch.flexmark/flexmark-ext-anchorlink {:mvn/version "0.34.18"}
-        com.vladsch.flexmark/flexmark-ext-wikilink {:mvn/version "0.34.18"}
+        com.vladsch.flexmark/flexmark {:mvn/version "0.50.20"}
+        com.vladsch.flexmark/flexmark-ext-autolink {:mvn/version "0.50.20"}
+        com.vladsch.flexmark/flexmark-ext-gfm-tables {:mvn/version "0.50.20"}
+        com.vladsch.flexmark/flexmark-ext-anchorlink {:mvn/version "0.50.20"}
+        com.vladsch.flexmark/flexmark-ext-wikilink {:mvn/version "0.50.20"}
         com.cognitect/transit-clj {:mvn/version "0.8.300"},
         org.clojure/java.jdbc {:mvn/version "0.7.0"},
         hiccup {:mvn/version "2.0.0-alpha1"},

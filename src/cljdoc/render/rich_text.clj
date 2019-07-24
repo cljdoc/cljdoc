@@ -8,7 +8,7 @@
            (com.vladsch.flexmark.ext.autolink AutolinkExtension)
            (com.vladsch.flexmark.ext.anchorlink AnchorLinkExtension)
            (com.vladsch.flexmark.ext.wikilink WikiLinkExtension WikiLink internal.WikiLinkNodeRenderer$Factory)
-           (com.vladsch.flexmark.util.options MutableDataSet)))
+           (com.vladsch.flexmark.util.data MutableDataSet DataHolder)))
 
 (def adoc-container
   (Asciidoctor$Factory/create ""))
@@ -46,7 +46,7 @@
           (getAfterDependents [_this] nil)
           (getBeforeDependents [_this] nil)
           (affectsGlobalScope [_this] false)
-          (^LinkResolver create [_this ^LinkResolverContext _ctx]
+          (^LinkResolver apply [_this ^LinkResolverContext _ctx]
             (reify LinkResolver
               (resolveLink [_this _node _ctx link]
                 (if (= (.getLinkType link) WikiLinkExtension/WIKI_LINK)
@@ -60,7 +60,7 @@
        (reify DelegatingNodeRendererFactory
          (getDelegates [_this]
            #{WikiLinkNodeRenderer$Factory})
-         (create [_this _options]
+         (^NodeRenderer apply [_this ^DataHolder _options]
           (reify NodeRenderer
             (getNodeRenderingHandlers [_this]
               #{(NodeRenderingHandler.
