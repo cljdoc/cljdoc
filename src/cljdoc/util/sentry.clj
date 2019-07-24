@@ -3,7 +3,8 @@
             [unilog.config :as unilog]
             [raven-clj.core :as raven]
             [raven-clj.interfaces :as interfaces]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [io.pedestal.interceptor :as interceptor])
   (:import (io.sentry Sentry)
            (io.sentry.logback SentryAppender)
            (ch.qos.logback.core.spi FilterReply)
@@ -44,12 +45,13 @@
     (log/warn "DSN missing: Not tracking error in Sentry")))
 
 (def interceptor
-  {:name  ::interceptor
-   :error (fn sentry-intercept [ctx ex-info]
-            (log/error ex-info
-                       "Exception when processing request"
-                       (merge (dissoc (ex-data ex-info) :exception)
-                              {:path-params (-> ctx :request :path-params)
-                               :route-name  (-> ctx :route :route-name)}))
-            (capture {:ex ex-info :req (:request ctx)})
-            (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))})
+  (interceptor/interceptor
+   {:name ::interceptor
+    :error (fn sentry-intercept [ctx ex-info]
+             (log/error ex-info
+                        "Exception when processing request"
+                        (merge (dissoc (ex-data ex-info) :exception)
+                               {:path-params (-> ctx :request :path-params)
+                                :route-name  (-> ctx :route :route-name)}))
+             (capture {:ex ex-info :req (:request ctx)})
+             (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))}))

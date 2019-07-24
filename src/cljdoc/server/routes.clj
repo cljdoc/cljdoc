@@ -10,11 +10,14 @@
 
   For use with http handlers a `route-resolver` can be passed when
   generating all routes. See docstring of `routes` for details."
-  (:require [io.pedestal.http.route :as route]))
+  (:require
+   [io.pedestal.interceptor :as interceptor]
+   [io.pedestal.http.route :as route]))
 
 (def ^:private nop
-  {:name ::identity-interceptor
-   :enter identity})
+  (interceptor/interceptor
+   {:name ::identity-interceptor
+    :enter identity}))
 
 (defn api-routes []
   #{["/api/ping" :get nop :route-name :ping]
@@ -103,5 +106,3 @@
 
   (clojure.pprint/pprint
    (routes identity {})))
-
-
