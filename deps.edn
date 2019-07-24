@@ -1,46 +1,44 @@
-{:deps {org.clojure/clojure {:mvn/version "1.9.0"},
-        spootnik/unilog {:mvn/version "0.7.22"},
-        org.clojure/tools.logging {:mvn/version "0.4.0"},
+{:deps {org.clojure/clojure {:mvn/version "1.10.1"},
+        spootnik/unilog {:mvn/version "0.7.24"},
+        org.clojure/tools.logging {:mvn/version "0.5.0"},
         io.pedestal/pedestal.jetty {:mvn/version "0.5.7"},
-        tea-time {:mvn/version "1.0.0"},
+        tea-time {:mvn/version "1.0.1"},
         com.jcraft/jsch.agentproxy.jsch {:mvn/version "0.0.9"},
-        integrant/repl {:mvn/version "0.3.0"},
-        zprint {:mvn/version "0.4.9"},
+        integrant/repl {:mvn/version "0.3.1"},
+        zprint {:mvn/version "0.4.16"},
         io.pedestal/pedestal.service {:mvn/version "0.5.7"},
-        aero {:mvn/version "1.1.2"},
-        cheshire {:mvn/version "5.8.0"},
-        ragtime {:mvn/version "0.7.2"},
-        funcool/cuerdas {:mvn/version "2.0.5"},
-        org.asciidoctor/asciidoctorj {:mvn/version "1.5.6"},
-        com.beust/jcommander {:mvn/version "1.35"} ; tools-deps issue?
-        org.jruby/jruby-complete {:mvn/version "1.7.26"} ; tools-deps issue?
+        aero {:mvn/version "1.1.3"},
+        cheshire {:mvn/version "5.8.1"},
+        ragtime {:mvn/version "0.8.0"},
+        funcool/cuerdas {:mvn/version "2.2.0"},
+        org.asciidoctor/asciidoctorj {:mvn/version "2.1.0"},
+        org.jruby/jruby-complete {:mvn/version "9.2.7.0"}
         co.deps/ring-etag-middleware {:mvn/version "0.2.0"}
         com.vladsch.flexmark/flexmark {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-autolink {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-gfm-tables {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-anchorlink {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-wikilink {:mvn/version "0.50.20"}
-        com.cognitect/transit-clj {:mvn/version "0.8.300"},
-        org.clojure/java.jdbc {:mvn/version "0.7.0"},
+        org.clojure/java.jdbc {:mvn/version "0.7.9"},
         hiccup {:mvn/version "2.0.0-alpha1"},
-        digest {:mvn/version "1.4.8"},
-        integrant {:mvn/version "0.7.0-alpha1"},
+        digest {:mvn/version "1.4.9"},
+        integrant {:mvn/version "0.7.0"},
         org.martinklepsch/clj-http-lite {:mvn/version "0.4.1"}
         org.eclipse.jgit {:mvn/version "4.10.0.201712302008-r"},
-        io.sentry/sentry-logback {:mvn/version "1.7.5"},
+        io.sentry/sentry-logback {:mvn/version "1.7.25"},
         com.jcraft/jsch.agentproxy.connector-factory {:mvn/version "0.0.9"},
-        org.clojure/core.match {:mvn/version "0.3.0-alpha5"},
-        org.jsoup/jsoup {:mvn/version "1.11.3"},
-        org.xerial/sqlite-jdbc {:mvn/version "3.20.0"},
+        org.clojure/core.match {:mvn/version "0.3.0"},
+        org.jsoup/jsoup {:mvn/version "1.12.1"},
+        org.xerial/sqlite-jdbc {:mvn/version "3.28.0"},
         com.layerware/hugsql {:mvn/version "0.4.9"}
         com.taoensso/tufte {:mvn/version "2.0.1"}
         com.taoensso/nippy {:mvn/version "2.14.0"}
-        org.slf4j/slf4j-api {:mvn/version "1.7.25"},
-        expound {:mvn/version "0.6.0"},
+        org.slf4j/slf4j-api {:mvn/version "1.7.26"},
+        expound {:mvn/version "0.7.2"},
         raven-clj {:mvn/version "1.6.0-alpha2"},
         org.clojure/test.check {:mvn/version "0.9.0"},
         me.raynes/fs {:mvn/version "1.4.6"},
-        sitemap {:mvn/version "0.2.4"},
+        sitemap {:mvn/version "0.4.0"},
         lambdaisland/uri {:mvn/version "1.1.0"}
         org.clojure/core.cache {:mvn/version "0.7.2"}
         org.clojure/core.memoize {:mvn/version "0.7.2"}
@@ -60,12 +58,12 @@
          "modules/shared-utils/resources"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-389"}}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-529"}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :cli
            {:extra-paths ["modules/cli/src"]
-            :extra-deps {cli-matic {:mvn/version "0.1.14"}}
+            :extra-deps {cli-matic {:mvn/version "0.3.8"}}
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :jar-deploy
@@ -73,4 +71,4 @@
                                                  :sha "a7e3a346b9c51d0fb0e73ca4ea47a150004ca6d1"}
                          pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
                                           :sha     "f24279ca21dba3ba74a6f501cff0dbf630ce4355"}
-                         deps-deploy {:mvn/version "RELEASE"}}}}}
+                         deps-deploy {:mvn/version "0.0.9"}}}}}
