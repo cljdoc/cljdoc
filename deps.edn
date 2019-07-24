@@ -11,9 +11,7 @@
         cheshire {:mvn/version "5.8.1"},
         ragtime {:mvn/version "0.8.0"},
         funcool/cuerdas {:mvn/version "2.2.0"},
-        org.asciidoctor/asciidoctorj {:mvn/version "1.5.6"},
-        com.beust/jcommander {:mvn/version "1.35"} ; tools-deps issue?
-        org.jruby/jruby-complete {:mvn/version "1.7.26"} ; tools-deps issue?
+        org.asciidoctor/asciidoctorj {:mvn/version "2.1.0"},
         co.deps/ring-etag-middleware {:mvn/version "0.2.0"}
         com.vladsch.flexmark/flexmark {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-autolink {:mvn/version "0.50.20"}
