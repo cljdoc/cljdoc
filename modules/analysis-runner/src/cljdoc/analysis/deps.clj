@@ -26,13 +26,13 @@
             min-versions)))
 
 (defn- ensure-required-deps [deps-map]
-  (merge {'org.clojure/clojure {:mvn/version "1.9.0"}
-          'org.clojure/clojurescript {:mvn/version "1.10.238"}
+  (merge {'org.clojure/clojure {:mvn/version "1.10.1"}
+          'org.clojure/clojurescript {:mvn/version "1.10.520"}
           ;; many ring libraries implicitly depend on this and getting all
           ;; downstream libraries to properly declare it as a "provided"
           ;; dependency would be a major effort. since it's all java it also
           ;; shouldn't affect Clojure-related dependency resolution
-          'javax.servlet/servlet-api {:mvn/version "2.5"}}
+          'javax.servlet/javax.servlet-api {:mvn/version "4.0.1"}}
          deps-map))
 
 (def cljdoc-codox
@@ -43,6 +43,7 @@
                  :deps/root "codox/"}})
 
 (def hardcoded-deps
+  ;; fixups for specific projects.
   ;; Make sure to always use group-id/artifact-id even if they're the same
   '{clj-time/clj-time {org.clojure/java.jdbc {:mvn/version "0.7.7"}}
     com.taoensso/tufte {com.taoensso/timbre {:mvn/version "4.10.0"}}
@@ -141,5 +142,3 @@
   (deps "https://repo.clojars.org/lambdaisland/kaocha/0.0-113/kaocha-0.0-113.pom" 'lambdaisland/kaocha "0.0-113")
 
   (with-deps-edn {:deps {}} (io/file ".")))
-
-
