@@ -17,6 +17,7 @@
             [clojure.string :as string]
             [clojure.java.io :as io]
             [me.raynes.fs.compression :as fs-compression]
+            [me.raynes.fs :as fs]
             [hiccup2.core :as hiccup]
             [hiccup.page])
   (:import (java.nio.file Files)
@@ -65,7 +66,10 @@
                      (util/clojars-id version-entity) " v"
                      (:version version-entity))]
                    [:meta {:charset "utf-8"}]
-                   (->> ["assets/cljdoc.css" "assets/tachyons.min.css"]
+                   (->> ["assets/tachyons.min.css"
+                         "assets/font-awesome/css/font-awesome.min.css"
+                         "assets/cljdoc.css"
+                         "assets/cljdoc-asciidoc.css"]
                         (map #(cond->> % sub-page? (str "../")))
                         (apply hiccup.page/include-css))]
                   [:div.sans-serif
@@ -74,7 +78,10 @@
                     {:style {:top "52px"}}
                     [:div.mw7.center.pa2.pb4
                      contents]]]
-                  (->> ["assets/highlight.min.js" "assets/clojure.min.js" "assets/clojure-repl.min.js"]
+                  (->> ["assets/highlight.min.js"
+                        "assets/clojure.min.js"
+                        "assets/clojure-repl.min.js"
+                        "assets/asciidoc.min.js"]
                        (map #(cond->> % sub-page? (str "../")))
                        (apply hiccup.page/include-js))
                   (layout/highlight-js-customization)])))
@@ -110,13 +117,16 @@
      (api/namespace-overview ns-url ns defs))])
 
 (defn doc-page [doc-p fix-opts]
-  [:div
-   [:div.markdown.lh-copy.pv4
-    (hiccup/raw
-     (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
-                 (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
-                     (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
-                 fix-opts))]])
+  (let [[doc-type content] (doctree/entry->type-and-content doc-p)
+        doc-css-class (name doc-type)]
+    [:div
+     [:div.lh-copy.pv4 {:class doc-css-class }
+      (hiccup/raw
+       (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
+                   (case doc-type
+                     :cljdoc/markdown (rich-text/markdown-to-html content)
+                     :cljdoc/asciidoc (rich-text/asciidoc-to-html content))
+                   fix-opts))]]))
 
 (defn ns-page [ns defs]
   (let [ns-name (platf/get-field ns :name)
@@ -126,6 +136,21 @@
      (api/render-doc ns render-wiki-link)
      (for [def defs]
        (api/def-block def render-wiki-link))]))
+
+(defn- highlight-js-url [component]
+  (str "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.15.8/build/" component))
+
+(defn- font-awesome-path [path]
+  (str "font-awesome-4.7.0/" path)) ;; this is the current asciidoc friendly version
+
+(defn- remote-asset [asset-url]
+  [(str "assets/" (fs/base-name asset-url)) (URL. asset-url)])
+
+(defn- local-asset
+  ([asset-path]
+   (local-asset "" asset-path))
+  ([local-prefix asset-path]
+   [(str "assets/" local-prefix (fs/base-name asset-path)) (io/file (io/resource (str "public/" asset-path)))]))
 
 (defn docs-files
   "Return a list of [file-path content] pairs describing a zip archive.
@@ -147,15 +172,21 @@
                          type title}
                         contents))]
 
-
     (reduce
      into
-     [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]
-       ["assets/tachyons.min.css" (URL. "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css")]
-       ["assets/highlight.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js")]
-       ["assets/clojure.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js")]
-       ["assets/clojure-repl.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")]
-
+     [[(local-asset "cljdoc.css")
+       (local-asset "cljdoc-asciidoc.css")
+       (local-asset "font-awesome/css/"   (font-awesome-path "css/font-awesome.min.css"))
+       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.eot"))
+       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.svg"))
+       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.ttf"))
+       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.woff"))
+       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.woff2"))
+       (remote-asset "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css")
+       (remote-asset (highlight-js-url "highlight.min.js"))
+       (remote-asset (highlight-js-url "languages/clojure.min.js"))
+       (remote-asset (highlight-js-url "languages/clojure-repl.min.js"))
+       (remote-asset (highlight-js-url "languages/asciidoc.min.js"))
        ["index.html" (->> (index-page cache-bundle)
                           (page' nil nil))]]
 
@@ -219,6 +250,5 @@
 
   (slurp (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"))
 
+
   (slurp (io/input-stream "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js")))
-
-

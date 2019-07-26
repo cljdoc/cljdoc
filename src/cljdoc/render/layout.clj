@@ -7,6 +7,9 @@
             [hiccup2.core :as hiccup]
             [hiccup.page]))
 
+(defn- highlight-js-url [component]
+  (str "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.15.8/build/" component))
+
 (defn highlight-js-customization []
   [:script
    (hiccup/raw
@@ -16,9 +19,10 @@
 (defn highlight-js []
   [:div
    (hiccup.page/include-js
-    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"
-    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js"
-    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")
+    (highlight-js-url "highlight.min.js")
+    (highlight-js-url "languages/clojure.min.js")
+    (highlight-js-url "languages/clojure-repl.min.js")
+    (highlight-js-url "languages/asciidoc.min.js"))
    (highlight-js-customization)])
 
 (defn generic-description
@@ -84,7 +88,9 @@
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (hiccup.page/include-css
                    "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
-                   "/cljdoc.css")]
+                   "/font-awesome-4.7.0/css/font-awesome.min.css" ;; this is the current asciidoc friendly version
+                   "/cljdoc.css"
+                   "/cljdoc-asciidoc.css")]
                 [:body
                  [:div.sans-serif
                   contents]

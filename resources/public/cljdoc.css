@@ -87,46 +87,6 @@ code, pre {
   background-color: #f6f8fa;
 }
 
-/** Asciidoc tip / note blocks **/
-
-.asciidoc .admonitionblock {
-  padding: 1rem;
-  border-radius: 3px;
-  border-left: 3px solid;
-}
-
-.asciidoc .admonitionblock .icon {
-  display: block;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  color: #777;
-  font-weight: 600;
-}
-
-.asciidoc .admonitionblock .content {
-  display: block;
-}
-
-.asciidoc .admonitionblock.tip {
-  background-color: #e8fdf5; /** tachyons washed-green **/
-  border-color: #9eebcf; /** tachyons light-green **/
-}
-
-.asciidoc .admonitionblock.note {
-  background-color: #cdecff; /** tachyons light-blue **/
-  border-color: #357edd /** tachyons blue **/
-}
-
-.asciidoc .admonitionblock.important {
-  background-color: #fffceb; /** tachyons washed-yellow **/
-  border-color: #ffd700 /** tachyons yellow **/
-}
-
-.asciidoc .admonitionblock.warning {
-  background-color: #ffdfdf; /** tachyons washed-red **/
-  border-color: #ff725c; /** tachyons light-red **/
-}
-
 /** Scroll Indicator ------------------------------------------------ **/
 .def-item.scroll-indicator {
   position: relative;

@@ -1,5 +1,5 @@
 (ns cljdoc.render.rich-text
-  (:import (org.asciidoctor Asciidoctor$Factory Options)
+  (:import (org.asciidoctor Asciidoctor$Factory Options Attributes)
            (com.vladsch.flexmark.parser Parser)
            (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver CustomNodeRenderer)
            (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverContext DelegatingNodeRendererFactory NodeRenderer NodeRenderingHandler)
@@ -14,7 +14,10 @@
 
 (defn asciidoc-to-html [file-content]
   (let [opts (doto (Options.)
-               (.setAttributes (java.util.HashMap. {"env-cljdoc" true})))]
+               (.setAttributes (java.util.HashMap. {"env-cljdoc"         true
+                                                    Attributes/ICONS     Attributes/FONT_ICONS
+                                                    "source-highlighter" "highlightjs"
+                                                    "table-stripes"      "even"})))]
     (.convert adoc-container file-content opts)))
 
 (def md-extensions

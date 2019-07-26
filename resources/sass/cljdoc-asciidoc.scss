@@ -1,0 +1,131 @@
+// cljdoc overrides and fixes for asciidoctor default stylings
+// you'll notice:
+// - we use tachyon sass variables that match cljdoc site styling
+// - that our variable overrides are in settings/_cljdoc.scss
+.asciidoc {
+    @import "settings/cljdoc-asciidoc";
+    @import "asciidoctor-stylesheet-factory/sass/components/asciidoc";
+    @import "asciidoctor-stylesheet-factory/sass/components/awesome-icons"; // for callout support
+
+    // adjust heading sizes to tachyons
+    @media #{$small} {
+        h1 {font-size: $font-size-1 !important;}
+        h2 {font-size: $font-size-2 !important;}
+        h3 {font-size: $font-size-3 !important;}
+        h4 {font-size: $font-size-4 !important;}
+        h5 {font-size: $font-size-5 !important;}
+    }
+
+    // make toc title look like a regular h2 heading
+    #toctitle {
+        line-height: $line-height-copy;
+        font-weight: $header-font-weight;
+        font-size: $font-size-2 !important;
+        color: $header-font-color;
+    }
+
+    // for code callouts in code
+    .conum[data-value] {
+        font-family: $code;
+        font-weight: normal;
+    }
+
+    // for callout list below code
+    .colist td:not([class]) {
+        line-height: $line-height-copy;
+        // number column
+        &:first-child {
+            padding: $spacing-extra-small $spacing-small !important;
+        }
+        // text column
+        &:last-child {
+            display: table-cell;
+            padding: $spacing-extra-small 0 !important;
+        }
+    }
+
+    .exampleblock > .content {
+        background-color: $washed-yellow;
+    }
+
+    .content > pre, .sidebarblock, .exampleblock > .content {
+        border-radius: $border-radius-2 !important;
+    }
+
+    .sidebarblock {
+        background-color: $light-gray;
+    }
+
+    @mixin admonition-color($name, $bg-color, $border-color) {
+        &.#{$name} {
+            background-color: $bg-color;
+            border-color: $border-color;
+            td.icon .icon-#{$name}::before {
+                color: scale-color($bg-color, $lightness: -70%) !important;
+            }
+            pre, code {
+                background-color: mix($bg-color, $code-color, $weight: 95%) !important;
+            }
+        }
+    }
+
+    // our style for admonition blocks is quite different from asciidoc default
+    .admonitionblock {
+        border-radius: $border-radius-2;
+        border-style: solid;
+        border-width: 1px;
+        padding: $spacing-medium;
+        margin-bottom: $spacing-medium;
+        table {
+            background-color: inherit;
+            border: none;
+            margin: 0;
+            tbody {
+                tr {
+                    td {
+                        display: block;
+                        padding: 0 !important;
+                        text-align: left !important;
+                        line-height: $line-height-copy !important;
+                        &.content {
+                            border: none;
+                        }
+                        &.icon [class^="fa icon-"] {
+                            text-transform: uppercase;
+                            font-size: $font-size-6;
+                            font-weight: 600;
+                        }
+                        .fa[title]:before {
+                            text-shadow: none !important;
+                            font-style: normal !important;
+                            content:attr(title);
+                        }
+                    }
+                }
+            }
+        }
+        @include admonition-color(important, $light-pink, $red);
+        @include admonition-color(warning, $washed-red, $light-red);
+        @include admonition-color(caution, $washed-yellow, $yellow);
+        @include admonition-color(note, $lightest-blue, $blue);
+        @include admonition-color(tip, $washed-green, $green);
+    }
+
+    // code is a tad large, so let's scale it down
+    code { font-size: 90% !important; }
+
+    // footnotes are indenting, we don't want that
+    #footnotes {
+        padding-left: 0;
+    }
+
+    // undo asciidoc special formatting on bottom margin of table, it was making nested tables not render well
+    td.tableblock > .content > :last-child {
+        margin-bottom: 0 !important;
+    }
+
+    // something is over-riding font-awesome de-italics
+    i.fa {
+        font-style: normal !important;
+    }
+}

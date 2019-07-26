@@ -1,0 +1,91 @@
+// settings for cljdoc asciidoc styles
+// notes
+// - use, but never change tachyons variables, these are handy for matching styles used in cljdoc web site
+// - asciidoc makes use of https://github.com/zurb/foundation-sites/tree/v4.3.2, that's where you'll find these variables defined
+@import "tachyons-sass/scss/variables";
+
+$body-font-family: $sans-serif;
+$body-font-color: $black-70;
+
+@import "asciidoctor-stylesheet-factory/sass/settings/defaults";
+// Settings
+
+$primary-color: $black;
+$global-radius: $border-radius-none;
+$em-base: 16px;
+
+// Body
+
+$base-font-size: $font-size-5;
+$body-font-color: $black;
+$column-gutter: $spacing-large;
+
+// Headers
+
+$title-font-color: $black;
+$title-font-weight: normal;
+$header-font-family: $body-font-family;
+$header-font-color: $title-font-color;
+$header-font-weight: normal;
+$header-top-margin: $spacing-small;
+$subheader-font-color: $gray;
+$sect-divider-size: 0;
+
+// Footer
+
+$footer-bg: none;
+$footer-font-color: $body-font-color;
+
+// Block Quotes
+
+$blockquote-font-color: $dark-gray;
+
+// Links
+
+$anchor-font-color:  $blue;
+$anchor-font-color-hover: $dark-blue;
+$anchor-text-decoration-hover: none;
+
+// Lists
+
+$list-side-margin: emCalc(24px);
+
+// Inline Code
+
+$code-font-family: $code;
+$code-color: $black;
+$code-font-weight: 400;
+$code-padding: 3px 2px 1px 2px;
+$code-border-size: 0;
+$code-border-style: none;
+$code-bg-color: $near-white;
+
+// Code Blocks
+
+$pre-bg: $near-white;
+$pre-font-color: $black;
+$pre-font-size: $font-size-6;
+$pre-border-color: $mid-gray;
+$pre-border-style: none;
+$pre-padding: $spacing-medium $spacing-copy-separator $spacing-medium $spacing-copy-separator;
+
+// Panels
+
+$panel-bg: $white;
+$panel-border-color: $light-silver;
+
+// Paragraphs
+
+$paragraph-font-family: $body-font-family;
+$paragraph-margin-bottom: $spacing-small;
+
+// Tables
+
+$table-border-color: #ccc;
+$table-head-bg: #F4F4F4;
+$table-even-row-bg: #F4F4F4;
+$table-head-font-color: black;
+$table-head-font-size: inherit;
+$table-row-font-size: inherit;
+$table-row-font-color: black;
+$table-line-height: $line-height-solid;

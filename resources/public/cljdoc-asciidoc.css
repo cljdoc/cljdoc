@@ -1,0 +1,442 @@
+.asciidoc { /*
+ VARIABLES
+
+*/ /*! normalize.css v2.1.2 | MIT License | git.io/normalize */ /* ========================================================================== HTML5 display definitions ========================================================================== */ /** Correct `block` display not defined in IE 8/9. */ /** Correct `inline-block` display not defined in IE 8/9. */ /** Prevent modern browsers from displaying `audio` without controls. Remove excess height in iOS 5 devices. */ /** Address `[hidden]` styling not present in IE 8/9. Hide the `template` element in IE, Safari, and Firefox < 22. */ /* ========================================================================== Base ========================================================================== */ /** 1. Set default font family to sans-serif. 2. Prevent iOS text size adjust after orientation change, without disabling user zoom. */ /** Remove default margin. */ /* ========================================================================== Links ========================================================================== */ /** Remove the gray background color from active links in IE 10. */ /** Address `outline` inconsistency between Chrome and other browsers. */ /** Improve readability when focused and also mouse hovered in all browsers. */ /* ========================================================================== Typography ========================================================================== */ /** Address variable `h1` font-size and margin within `section` and `article` contexts in Firefox 4+, Safari 5, and Chrome. */ /** Address styling not present in IE 8/9, Safari 5, and Chrome. */ /** Address style set to `bolder` in Firefox 4+, Safari 5, and Chrome. */ /** Address styling not present in Safari 5 and Chrome. */ /** Address differences between Firefox and other browsers. */ /** Address styling not present in IE 8/9. */ /** Correct font family set oddly in Safari 5 and Chrome. */ /** Improve readability of pre-formatted text in all browsers. */ /** Set consistent quote types. */ /** Address inconsistent and variable font size in all browsers. */ /** Prevent `sub` and `sup` affecting `line-height` in all browsers. */ /* ========================================================================== Embedded content ========================================================================== */ /** Remove border when inside `a` element in IE 8/9. */ /** Correct overflow displayed oddly in IE 9. */ /* ========================================================================== Figures ========================================================================== */ /** Address margin not present in IE 8/9 and Safari 5. */ /* ========================================================================== Forms ========================================================================== */ /** Define consistent border, margin, and padding. */ /** 1. Correct `color` not being inherited in IE 8/9. 2. Remove padding so people aren't caught out if they zero out fieldsets. */ /** 1. Correct font family not being inherited in all browsers. 2. Correct font size not being inherited in all browsers. 3. Address margins set differently in Firefox 4+, Safari 5, and Chrome. */ /** Address Firefox 4+ setting `line-height` on `input` using `!important` in the UA stylesheet. */ /** Address inconsistent `text-transform` inheritance for `button` and `select`. All other form control elements do not inherit `text-transform` values. Correct `button` style inheritance in Chrome, Safari 5+, and IE 8+. Correct `select` style inheritance in Firefox 4+ and Opera. */ /** 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio` and `video` controls. 2. Correct inability to style clickable `input` types in iOS. 3. Improve usability and consistency of cursor style between image-type `input` and others. */ /** Re-set default cursor for disabled elements. */ /** 1. Address box sizing set to `content-box` in IE 8/9. 2. Remove excess padding in IE 8/9. */ /** 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome. 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome (include `-moz` to future-proof). */ /** Remove inner padding and search cancel button in Safari 5 and Chrome on OS X. */ /** Remove inner padding and border in Firefox 4+. */ /** 1. Remove default vertical scrollbar in IE 8/9. 2. Improve readability and alignment in all browsers. */ /* ========================================================================== Tables ========================================================================== */ /** Remove most spacing between table cells. */ /* Typography resets */ /* Default Link Styles */ /* Default paragraph styles */ /* Default header styles */ /* Helpful Typography Defaults */ /* Lists */ /* Unordered Lists */ /* Ordered Lists */ /* Definition Lists */ /* Abbreviations */ /* Blockquotes */ /* Microformats */ /* Tables */ }
+.asciidoc article, .asciidoc aside, .asciidoc details, .asciidoc figcaption, .asciidoc figure, .asciidoc footer, .asciidoc header, .asciidoc hgroup, .asciidoc main, .asciidoc nav, .asciidoc section, .asciidoc summary { display: block; }
+.asciidoc audio, .asciidoc canvas, .asciidoc video { display: inline-block; }
+.asciidoc audio:not([controls]) { display: none; height: 0; }
+.asciidoc [hidden], .asciidoc template { display: none; }
+.asciidoc script { display: none !important; }
+.asciidoc html { font-family: sans-serif; /* 1 */ -ms-text-size-adjust: 100%; /* 2 */ -webkit-text-size-adjust: 100%; /* 2 */ }
+.asciidoc body { margin: 0; }
+.asciidoc a { background: transparent; }
+.asciidoc a:focus { outline: thin dotted; }
+.asciidoc a:active, .asciidoc a:hover { outline: 0; }
+.asciidoc h1 { font-size: 2em; margin: 0.67em 0; }
+.asciidoc abbr[title] { border-bottom: 1px dotted; }
+.asciidoc b, .asciidoc strong { font-weight: bold; }
+.asciidoc dfn { font-style: italic; }
+.asciidoc hr { -moz-box-sizing: content-box; box-sizing: content-box; height: 0; }
+.asciidoc mark { background: #ff0; color: #000; }
+.asciidoc code, .asciidoc kbd, .asciidoc pre, .asciidoc samp { font-family: monospace, serif; font-size: 1em; }
+.asciidoc pre { white-space: pre-wrap; }
+.asciidoc q { quotes: "\201C" "\201D" "\2018" "\2019"; }
+.asciidoc small { font-size: 80%; }
+.asciidoc sub, .asciidoc sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
+.asciidoc sup { top: -0.5em; }
+.asciidoc sub { bottom: -0.25em; }
+.asciidoc img { border: 0; }
+.asciidoc svg:not(:root) { overflow: hidden; }
+.asciidoc figure { margin: 0; }
+.asciidoc fieldset { border: 1px solid #c0c0c0; margin: 0 2px; padding: 0.35em 0.625em 0.75em; }
+.asciidoc legend { border: 0; /* 1 */ padding: 0; /* 2 */ }
+.asciidoc button, .asciidoc input, .asciidoc select, .asciidoc textarea { font-family: inherit; /* 1 */ font-size: 100%; /* 2 */ margin: 0; /* 3 */ }
+.asciidoc button, .asciidoc input { line-height: normal; }
+.asciidoc button, .asciidoc select { text-transform: none; }
+.asciidoc button, .asciidoc html input[type="button"], .asciidoc input[type="reset"], .asciidoc input[type="submit"] { -webkit-appearance: button; /* 2 */ cursor: pointer; /* 3 */ }
+.asciidoc button[disabled], .asciidoc html input[disabled] { cursor: default; }
+.asciidoc input[type="checkbox"], .asciidoc input[type="radio"] { box-sizing: border-box; /* 1 */ padding: 0; /* 2 */ }
+.asciidoc input[type="search"] { -webkit-appearance: textfield; /* 1 */ -moz-box-sizing: content-box; -webkit-box-sizing: content-box; /* 2 */ box-sizing: content-box; }
+.asciidoc input[type="search"]::-webkit-search-cancel-button, .asciidoc input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
+.asciidoc button::-moz-focus-inner, .asciidoc input::-moz-focus-inner { border: 0; padding: 0; }
+.asciidoc textarea { overflow: auto; /* 1 */ vertical-align: top; /* 2 */ }
+.asciidoc table { border-collapse: collapse; border-spacing: 0; }
+.asciidoc meta.foundation-mq-small { font-family: "only screen and (min-width: 768px)"; width: 768px; }
+.asciidoc meta.foundation-mq-medium { font-family: "only screen and (min-width:1280px)"; width: 1280px; }
+.asciidoc meta.foundation-mq-large { font-family: "only screen and (min-width:1440px)"; width: 1440px; }
+.asciidoc *, .asciidoc *:before, .asciidoc *:after { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+.asciidoc html, .asciidoc body { font-size: 100%; }
+.asciidoc body { background: white; color: rgba(0, 0, 0, 0.7); padding: 0; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "avenir next", avenir, helvetica, "helvetica neue", ubuntu, roboto, noto, "segoe ui", arial, sans-serif; font-weight: normal; font-style: normal; line-height: 1; position: relative; cursor: auto; }
+.asciidoc a:hover { cursor: pointer; }
+.asciidoc img, .asciidoc object, .asciidoc embed { max-width: 100%; height: auto; }
+.asciidoc object, .asciidoc embed { height: 100%; }
+.asciidoc img { -ms-interpolation-mode: bicubic; }
+.asciidoc #map_canvas img, .asciidoc #map_canvas embed, .asciidoc #map_canvas object, .asciidoc .map_canvas img, .asciidoc .map_canvas embed, .asciidoc .map_canvas object { max-width: none !important; }
+.asciidoc .left { float: left !important; }
+.asciidoc .right { float: right !important; }
+.asciidoc .text-left { text-align: left !important; }
+.asciidoc .text-right { text-align: right !important; }
+.asciidoc .text-center { text-align: center !important; }
+.asciidoc .text-justify { text-align: justify !important; }
+.asciidoc .hide { display: none; }
+.asciidoc .antialiased { -webkit-font-smoothing: antialiased; }
+.asciidoc img { display: inline-block; vertical-align: middle; }
+.asciidoc textarea { height: auto; min-height: 50px; }
+.asciidoc select { width: 100%; }
+.asciidoc object, .asciidoc svg { display: inline-block; vertical-align: middle; }
+.asciidoc .center { margin-left: auto; margin-right: auto; }
+.asciidoc .stretch { width: 100%; }
+.asciidoc p.lead { font-size: 1.21875em; line-height: 1.6; }
+.asciidoc .subheader, .asciidoc .admonitionblock td.content > .title, .asciidoc .audioblock > .title, .asciidoc .exampleblock > .title, .asciidoc .imageblock > .title, .asciidoc .listingblock > .title, .asciidoc .literalblock > .title, .asciidoc .stemblock > .title, .asciidoc .openblock > .title, .asciidoc .paragraph > .title, .asciidoc .quoteblock > .title, .asciidoc table.tableblock > .title, .asciidoc .verseblock > .title, .asciidoc .videoblock > .title, .asciidoc .dlist > .title, .asciidoc .olist > .title, .asciidoc .ulist > .title, .asciidoc .qlist > .title, .asciidoc .hdlist > .title { line-height: 1.4; color: #777777; font-weight: 300; margin-top: 0.2em; margin-bottom: 0.5em; }
+.asciidoc div, .asciidoc dl, .asciidoc dt, .asciidoc dd, .asciidoc ul, .asciidoc ol, .asciidoc li, .asciidoc h1, .asciidoc h2, .asciidoc h3, .asciidoc #toctitle, .asciidoc .sidebarblock > .content > .title, .asciidoc h4, .asciidoc h5, .asciidoc h6, .asciidoc pre, .asciidoc form, .asciidoc p, .asciidoc blockquote, .asciidoc th, .asciidoc td { margin: 0; padding: 0; direction: ltr; }
+.asciidoc a { color: #357edd; text-decoration: none; line-height: inherit; }
+.asciidoc a:hover, .asciidoc a:focus { color: #00449e; }
+.asciidoc a img { border: none; }
+.asciidoc p { font-family: -apple-system, BlinkMacSystemFont, "avenir next", avenir, helvetica, "helvetica neue", ubuntu, roboto, noto, "segoe ui", arial, sans-serif; font-weight: normal; font-size: 1em; line-height: 1.6; margin-bottom: 0.5rem; text-rendering: optimizeLegibility; }
+.asciidoc p aside { font-size: 0.875em; line-height: 1.35; font-style: italic; }
+.asciidoc h1, .asciidoc h2, .asciidoc h3, .asciidoc #toctitle, .asciidoc .sidebarblock > .content > .title, .asciidoc h4, .asciidoc h5, .asciidoc h6 { font-family: -apple-system, BlinkMacSystemFont, "avenir next", avenir, helvetica, "helvetica neue", ubuntu, roboto, noto, "segoe ui", arial, sans-serif; font-weight: normal; font-style: normal; color: black; text-rendering: optimizeLegibility; margin-top: 0.5rem; margin-bottom: 0.5em; line-height: 1.2125em; }
+.asciidoc h1 small, .asciidoc h2 small, .asciidoc h3 small, .asciidoc #toctitle small, .asciidoc .sidebarblock > .content > .title small, .asciidoc h4 small, .asciidoc h5 small, .asciidoc h6 small { font-size: 60%; color: #4d4d4d; line-height: 0; }
+.asciidoc h1 { font-size: 2.125em; }
+.asciidoc h2 { font-size: 1.6875em; }
+.asciidoc h3, .asciidoc #toctitle, .asciidoc .sidebarblock > .content > .title { font-size: 1.375em; }
+.asciidoc h4 { font-size: 1.125em; }
+.asciidoc h5 { font-size: 1.125em; }
+.asciidoc h6 { font-size: 1em; }
+.asciidoc hr { border: solid #dddddd; border-width: 1px 0 0; clear: both; margin: 1.25em 0 1.1875em; height: 0; }
+.asciidoc em, .asciidoc i { font-style: italic; line-height: inherit; }
+.asciidoc strong, .asciidoc b { font-weight: bold; line-height: inherit; }
+.asciidoc small { font-size: 60%; line-height: inherit; }
+.asciidoc code { font-family: consolas, monaco, monospace; font-weight: 400; color: black; }
+.asciidoc ul, .asciidoc ol, .asciidoc dl { font-size: 1em; line-height: 1.6; margin-bottom: 0.5rem; list-style-position: outside; font-family: -apple-system, BlinkMacSystemFont, "avenir next", avenir, helvetica, "helvetica neue", ubuntu, roboto, noto, "segoe ui", arial, sans-serif; }
+.asciidoc ul, .asciidoc ol { margin-left: 1.5em; }
+.asciidoc ul.no-bullet, .asciidoc ol.no-bullet { margin-left: 1.5em; }
+.asciidoc ul li ul, .asciidoc ul li ol { margin-left: 1.25em; margin-bottom: 0; font-size: 1em; /* Override nested font-size change */ }
+.asciidoc ul.square li ul, .asciidoc ul.circle li ul, .asciidoc ul.disc li ul { list-style: inherit; }
+.asciidoc ul.square { list-style-type: square; }
+.asciidoc ul.circle { list-style-type: circle; }
+.asciidoc ul.disc { list-style-type: disc; }
+.asciidoc ul.no-bullet { list-style: none; }
+.asciidoc ol li ul, .asciidoc ol li ol { margin-left: 1.25em; margin-bottom: 0; }
+.asciidoc dl dt { margin-bottom: 0.3em; font-weight: bold; }
+.asciidoc dl dd { margin-bottom: 0.75em; }
+.asciidoc abbr, .asciidoc acronym { text-transform: uppercase; font-size: 90%; color: black; border-bottom: 1px dotted #dddddd; cursor: help; }
+.asciidoc abbr { text-transform: none; }
+.asciidoc blockquote { margin: 0 0 0.5rem; padding: 0.5625em 1.25em 0 1.1875em; border-left: 1px solid #dddddd; }
+.asciidoc blockquote cite { display: block; font-size: 0.8125em; color: #333333; }
+.asciidoc blockquote cite:before { content: "\2014 \0020"; }
+.asciidoc blockquote cite a, .asciidoc blockquote cite a:visited { color: #333333; }
+.asciidoc blockquote, .asciidoc blockquote p { line-height: 1.6; color: #333333; }
+.asciidoc .vcard { display: inline-block; margin: 0 0 1.25em 0; border: 1px solid #dddddd; padding: 0.625em 0.75em; }
+.asciidoc .vcard li { margin: 0; display: block; }
+.asciidoc .vcard .fn { font-weight: bold; font-size: 0.9375em; }
+.asciidoc .vevent .summary { font-weight: bold; }
+.asciidoc .vevent abbr { cursor: auto; text-decoration: none; font-weight: bold; border: none; padding: 0 0.0625em; }
+@media only screen and (min-width: 768px) { .asciidoc h1, .asciidoc h2, .asciidoc h3, .asciidoc #toctitle, .asciidoc .sidebarblock > .content > .title, .asciidoc h4, .asciidoc h5, .asciidoc h6 { line-height: 1.4; }
+  .asciidoc h1 { font-size: 2.75em; }
+  .asciidoc h2 { font-size: 2.3125em; }
+  .asciidoc h3, .asciidoc #toctitle, .asciidoc .sidebarblock > .content > .title { font-size: 1.6875em; }
+  .asciidoc h4 { font-size: 1.4375em; } }
+.asciidoc table { background: white; margin-bottom: 1.25em; border: solid 1px #cccccc; }
+.asciidoc table thead, .asciidoc table tfoot { background: #f4f4f4; font-weight: bold; }
+.asciidoc table thead tr th, .asciidoc table thead tr td, .asciidoc table tfoot tr th, .asciidoc table tfoot tr td { padding: 0.5em 0.625em 0.625em; font-size: inherit; color: black; text-align: left; }
+.asciidoc table tr th, .asciidoc table tr td { padding: 0.5625em 0.625em; font-size: inherit; color: black; }
+.asciidoc table tr.even, .asciidoc table tr.alt, .asciidoc table tr:nth-of-type(even) { background: #f4f4f4; }
+.asciidoc table thead tr th, .asciidoc table tfoot tr th, .asciidoc table tbody tr td, .asciidoc table tr td, .asciidoc table tfoot tr td { display: table-cell; line-height: 1; }
+.asciidoc body { -moz-osx-font-smoothing: grayscale; -webkit-font-smoothing: antialiased; tab-size: 4; }
+.asciidoc h1, .asciidoc h2, .asciidoc h3, .asciidoc #toctitle, .asciidoc .sidebarblock > .content > .title, .asciidoc h4, .asciidoc h5, .asciidoc h6 { line-height: 1.4; }
+.asciidoc a:hover, .asciidoc a:focus { text-decoration: none; }
+.asciidoc .clearfix:before, .asciidoc .clearfix:after, .asciidoc .float-group:before, .asciidoc .float-group:after { content: " "; display: table; }
+.asciidoc .clearfix:after, .asciidoc .float-group:after { clear: both; }
+.asciidoc :not(pre):not([class^=L]) > code { font-size: inherit; font-style: normal !important; letter-spacing: 0; padding: 3px 2px 1px 2px; background-color: #f4f4f4; -webkit-border-radius: 0; border-radius: 0; line-height: inherit; word-wrap: break-word; }
+.asciidoc :not(pre) > code.nobreak { word-wrap: normal; }
+.asciidoc :not(pre) > code.nowrap { white-space: nowrap; }
+.asciidoc pre { color: black; font-family: Consolas, "Liberation Mono", Courier, monospace; line-height: 1.6; }
+.asciidoc pre code, .asciidoc pre pre { color: inherit; font-size: inherit; line-height: inherit; }
+.asciidoc pre > code { display: block; }
+.asciidoc pre.nowrap, .asciidoc pre.nowrap pre { white-space: pre; word-wrap: normal; }
+.asciidoc em em { font-style: normal; }
+.asciidoc strong strong { font-weight: normal; }
+.asciidoc .keyseq { color: #333333; }
+.asciidoc kbd { font-family: consolas, monaco, monospace; display: inline-block; color: black; font-size: 0.65em; line-height: 1.45; background-color: #f7f7f7; border: 1px solid #ccc; -webkit-border-radius: 3px; border-radius: 3px; -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 0 0.1em white inset; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 0 0.1em white inset; margin: 0 0.15em; padding: 0.2em 0.5em; vertical-align: middle; position: relative; top: -0.1em; white-space: nowrap; }
+.asciidoc .keyseq kbd:first-child { margin-left: 0; }
+.asciidoc .keyseq kbd:last-child { margin-right: 0; }
+.asciidoc .menuseq, .asciidoc .menuref { color: #000; }
+.asciidoc .menuseq b:not(.caret), .asciidoc .menuref { font-weight: inherit; }
+.asciidoc .menuseq { word-spacing: -0.02em; }
+.asciidoc .menuseq b.caret { font-size: 1.25em; line-height: 0.8; }
+.asciidoc .menuseq i.caret { font-weight: bold; text-align: center; width: 0.45em; }
+.asciidoc b.button:before, .asciidoc b.button:after { position: relative; top: -1px; font-weight: normal; }
+.asciidoc b.button:before { content: "["; padding: 0 3px 0 2px; }
+.asciidoc b.button:after { content: "]"; padding: 0 2px 0 3px; }
+.asciidoc #header, .asciidoc #content, .asciidoc #footnotes, .asciidoc #footer { width: 100%; margin-left: auto; margin-right: auto; margin-top: 0; margin-bottom: 0; max-width: 62.5em; *zoom: 1; position: relative; padding-left: 1rem; padding-right: 1rem; }
+.asciidoc #header:before, .asciidoc #header:after, .asciidoc #content:before, .asciidoc #content:after, .asciidoc #footnotes:before, .asciidoc #footnotes:after, .asciidoc #footer:before, .asciidoc #footer:after { content: " "; display: table; }
+.asciidoc #header:after, .asciidoc #content:after, .asciidoc #footnotes:after, .asciidoc #footer:after { clear: both; }
+.asciidoc #content { margin-top: 1.25em; }
+.asciidoc #content:before { content: none; }
+.asciidoc #header > h1:first-child { color: black; margin-top: 2.25rem; margin-bottom: 0; }
+.asciidoc #header > h1:first-child + #toc { margin-top: 8px; border-top: 1px solid #dddddd; }
+.asciidoc #header > h1:only-child, body.toc2 .asciidoc #header > h1:nth-last-child(2) { border-bottom: 1px solid #dddddd; padding-bottom: 8px; }
+.asciidoc #header .details { border-bottom: 1px solid #dddddd; line-height: 1.45; padding-top: 0.25em; padding-bottom: 0.25em; padding-left: 0.25em; color: #333333; display: -ms-flexbox; display: -webkit-flex; display: flex; -ms-flex-flow: row wrap; -webkit-flex-flow: row wrap; flex-flow: row wrap; }
+.asciidoc #header .details span:first-child { margin-left: -0.125em; }
+.asciidoc #header .details span.email a { color: #333333; }
+.asciidoc #header .details br { display: none; }
+.asciidoc #header .details br + span:before { content: "\00a0\2013\00a0"; }
+.asciidoc #header .details br + span.author:before { content: "\00a0\22c5\00a0"; color: #333333; }
+.asciidoc #header .details br + span#revremark:before { content: "\00a0|\00a0"; }
+.asciidoc #header #revnumber { text-transform: capitalize; }
+.asciidoc #header #revnumber:after { content: "\00a0"; }
+.asciidoc #content > h1:first-child:not([class]) { color: black; border-bottom: 1px solid #dddddd; padding-bottom: 8px; margin-top: 0; padding-top: 1rem; margin-bottom: 1.25rem; }
+.asciidoc #toc { border-bottom: 0 solid #dddddd; padding-bottom: 0.5em; }
+.asciidoc #toc > ul { margin-left: 0.125em; }
+.asciidoc #toc ul.sectlevel0 > li > a { font-style: italic; }
+.asciidoc #toc ul.sectlevel0 ul.sectlevel1 { margin: 0.5em 0; }
+.asciidoc #toc ul { font-family: -apple-system, BlinkMacSystemFont, "avenir next", avenir, helvetica, "helvetica neue", ubuntu, roboto, noto, "segoe ui", arial, sans-serif; list-style-type: none; }
+.asciidoc #toc li { line-height: 1.3334; margin-top: 0.3334em; }
+.asciidoc #toc a { text-decoration: none; }
+.asciidoc #toc a:active { text-decoration: underline; }
+.asciidoc #toctitle { color: #777777; font-size: 1.2em; }
+@media only screen and (min-width: 768px) { .asciidoc #toctitle { font-size: 1.375em; }
+  .asciidoc body.toc2 { padding-left: 15em; padding-right: 0; }
+  .asciidoc #toc.toc2 { margin-top: 0 !important; background: white; position: fixed; width: 15em; left: 0; top: 0; border-right: 1px solid #dddddd; border-top-width: 0 !important; border-bottom-width: 0 !important; z-index: 1000; padding: 1.25em 1em; height: 100%; overflow: auto; }
+  .asciidoc #toc.toc2 #toctitle { margin-top: 0; margin-bottom: 0.8rem; font-size: 1.2em; }
+  .asciidoc #toc.toc2 > ul { font-size: 0.9em; margin-bottom: 0; }
+  .asciidoc #toc.toc2 ul ul { margin-left: 0; padding-left: 1em; }
+  .asciidoc #toc.toc2 ul.sectlevel0 ul.sectlevel1 { padding-left: 0; margin-top: 0.5em; margin-bottom: 0.5em; }
+  .asciidoc body.toc2.toc-right { padding-left: 0; padding-right: 15em; }
+  .asciidoc body.toc2.toc-right #toc.toc2 { border-right-width: 0; border-left: 1px solid #dddddd; left: auto; right: 0; } }
+@media only screen and (min-width: 1280px) { .asciidoc body.toc2 { padding-left: 20em; padding-right: 0; }
+  .asciidoc #toc.toc2 { width: 20em; }
+  .asciidoc #toc.toc2 #toctitle { font-size: 1.375em; }
+  .asciidoc #toc.toc2 > ul { font-size: 0.95em; }
+  .asciidoc #toc.toc2 ul ul { padding-left: 1.25em; }
+  .asciidoc body.toc2.toc-right { padding-left: 0; padding-right: 20em; } }
+.asciidoc #content #toc { border-style: solid; border-width: 1px; border-color: #e6e6e6; margin-bottom: 1.25em; padding: 1.25em; background: white; -webkit-border-radius: 0; border-radius: 0; }
+.asciidoc #content #toc > :first-child { margin-top: 0; }
+.asciidoc #content #toc > :last-child { margin-bottom: 0; }
+.asciidoc #footer { max-width: 100%; background: none; padding: 1.25em; }
+.asciidoc #footer-text { color: black; line-height: 1.44; }
+.asciidoc #content { margin-bottom: 0.625em; }
+.asciidoc .sect1 { padding-bottom: 0.625em; }
+@media only screen and (min-width: 768px) { .asciidoc #content { margin-bottom: 1.25em; }
+  .asciidoc .sect1 { padding-bottom: 1.25em; } }
+.asciidoc .sect1:last-child { padding-bottom: 0; }
+.asciidoc .sect1 + .sect1 { border-top: 0 solid #dddddd; }
+.asciidoc #content h1 > a.anchor, .asciidoc h2 > a.anchor, .asciidoc h3 > a.anchor, .asciidoc #toctitle > a.anchor, .asciidoc .sidebarblock > .content > .title > a.anchor, .asciidoc h4 > a.anchor, .asciidoc h5 > a.anchor, .asciidoc h6 > a.anchor { position: absolute; z-index: 1001; width: 1.5ex; margin-left: -1.5ex; display: block; text-decoration: none !important; visibility: hidden; text-align: center; font-weight: normal; }
+.asciidoc #content h1 > a.anchor:before, .asciidoc h2 > a.anchor:before, .asciidoc h3 > a.anchor:before, .asciidoc #toctitle > a.anchor:before, .asciidoc .sidebarblock > .content > .title > a.anchor:before, .asciidoc h4 > a.anchor:before, .asciidoc h5 > a.anchor:before, .asciidoc h6 > a.anchor:before { content: "\00A7"; font-size: 0.85em; display: block; padding-top: 0.1em; }
+.asciidoc #content h1:hover > a.anchor, .asciidoc #content h1 > a.anchor:hover, .asciidoc h2:hover > a.anchor, .asciidoc h2 > a.anchor:hover, .asciidoc h3:hover > a.anchor, .asciidoc #toctitle:hover > a.anchor, .asciidoc .sidebarblock > .content > .title:hover > a.anchor, .asciidoc h3 > a.anchor:hover, .asciidoc #toctitle > a.anchor:hover, .asciidoc .sidebarblock > .content > .title > a.anchor:hover, .asciidoc h4:hover > a.anchor, .asciidoc h4 > a.anchor:hover, .asciidoc h5:hover > a.anchor, .asciidoc h5 > a.anchor:hover, .asciidoc h6:hover > a.anchor, .asciidoc h6 > a.anchor:hover { visibility: visible; }
+.asciidoc #content h1 > a.link, .asciidoc h2 > a.link, .asciidoc h3 > a.link, .asciidoc #toctitle > a.link, .asciidoc .sidebarblock > .content > .title > a.link, .asciidoc h4 > a.link, .asciidoc h5 > a.link, .asciidoc h6 > a.link { color: black; text-decoration: none; }
+.asciidoc #content h1 > a.link:hover, .asciidoc h2 > a.link:hover, .asciidoc h3 > a.link:hover, .asciidoc #toctitle > a.link:hover, .asciidoc .sidebarblock > .content > .title > a.link:hover, .asciidoc h4 > a.link:hover, .asciidoc h5 > a.link:hover, .asciidoc h6 > a.link:hover { color: black; }
+.asciidoc details, .asciidoc .audioblock, .asciidoc .imageblock, .asciidoc .literalblock, .asciidoc .listingblock, .asciidoc .stemblock, .asciidoc .videoblock { margin-bottom: 1.25em; }
+.asciidoc details > summary:first-of-type { cursor: pointer; display: list-item; outline: none; margin-bottom: 0.75em; }
+.asciidoc .admonitionblock td.content > .title, .asciidoc .audioblock > .title, .asciidoc .exampleblock > .title, .asciidoc .imageblock > .title, .asciidoc .listingblock > .title, .asciidoc .literalblock > .title, .asciidoc .stemblock > .title, .asciidoc .openblock > .title, .asciidoc .paragraph > .title, .asciidoc .quoteblock > .title, .asciidoc table.tableblock > .title, .asciidoc .verseblock > .title, .asciidoc .videoblock > .title, .asciidoc .dlist > .title, .asciidoc .olist > .title, .asciidoc .ulist > .title, .asciidoc .qlist > .title, .asciidoc .hdlist > .title { text-rendering: optimizeLegibility; text-align: left; }
+.asciidoc table.tableblock.fit-content > caption.title { white-space: nowrap; width: 0; }
+.asciidoc .paragraph.lead > p, .asciidoc #preamble > .sectionbody > [class="paragraph"]:first-of-type p { font-size: 1.21875em; line-height: 1.6; color: black; }
+.asciidoc table.tableblock #preamble > .sectionbody > [class="paragraph"]:first-of-type p { font-size: inherit; }
+.asciidoc .admonitionblock > table { border-collapse: separate; border: 0; background: none; width: 100%; }
+.asciidoc .admonitionblock > table td.icon { text-align: center; width: 80px; }
+.asciidoc .admonitionblock > table td.icon img { max-width: none; }
+.asciidoc .admonitionblock > table td.icon .title { font-weight: bold; font-family: -apple-system, BlinkMacSystemFont, "avenir next", avenir, helvetica, "helvetica neue", ubuntu, roboto, noto, "segoe ui", arial, sans-serif; text-transform: uppercase; }
+.asciidoc .admonitionblock > table td.content { padding-left: 1.125em; padding-right: 1.25em; border-left: 1px solid #dddddd; color: #333333; }
+.asciidoc .admonitionblock > table td.content > :last-child > :last-child { margin-bottom: 0; }
+.asciidoc .exampleblock > .content { border-style: solid; border-width: 1px; border-color: #e6e6e6; margin-bottom: 1.25em; padding: 1.25em; background: white; -webkit-border-radius: 0; border-radius: 0; }
+.asciidoc .exampleblock > .content > :first-child { margin-top: 0; }
+.asciidoc .exampleblock > .content > :last-child { margin-bottom: 0; }
+.asciidoc .sidebarblock { border-style: solid; border-width: 1px; border-color: #e0e0e0; margin-bottom: 1.25em; padding: 1.25em; background: #fafafa; -webkit-border-radius: 0; border-radius: 0; }
+.asciidoc .sidebarblock > :first-child { margin-top: 0; }
+.asciidoc .sidebarblock > :last-child { margin-bottom: 0; }
+.asciidoc .sidebarblock > .content > .title { color: #777777; margin-top: 0; }
+.asciidoc .exampleblock > .content > :last-child > :last-child, .asciidoc .exampleblock > .content .olist > ol > li:last-child > :last-child, .asciidoc .exampleblock > .content .ulist > ul > li:last-child > :last-child, .asciidoc .exampleblock > .content .qlist > ol > li:last-child > :last-child, .asciidoc .sidebarblock > .content > :last-child > :last-child, .asciidoc .sidebarblock > .content .olist > ol > li:last-child > :last-child, .asciidoc .sidebarblock > .content .ulist > ul > li:last-child > :last-child, .asciidoc .sidebarblock > .content .qlist > ol > li:last-child > :last-child { margin-bottom: 0; }
+.asciidoc .literalblock pre, .asciidoc .listingblock > .content > pre { border: 1px none #555555; -webkit-border-radius: 0; border-radius: 0; word-wrap: break-word; overflow-x: auto; padding: 1rem 1.5em 1rem 1.5em; font-size: 0.8125em; }
+@media only screen and (min-width: 768px) { .asciidoc .literalblock pre, .asciidoc .listingblock > .content > pre { font-size: 0.90625em; } }
+@media only screen and (min-width: 1280px) { .asciidoc .literalblock pre, .asciidoc .listingblock > .content > pre { font-size: 1em; } }
+.asciidoc .literalblock pre, .asciidoc .listingblock > .content > pre:not(.highlight), .asciidoc .listingblock > .content > pre[class="highlight"], .asciidoc .listingblock > .content > pre[class^="highlight "] { background: #f4f4f4; }
+.asciidoc .literalblock.output pre { color: #f4f4f4; background-color: black; }
+.asciidoc .listingblock > .content { position: relative; }
+.asciidoc .listingblock code[data-lang]:before { display: none; content: attr(data-lang); position: absolute; font-size: 0.75em; top: 0.425rem; right: 0.5rem; line-height: 1; text-transform: uppercase; color: inherit; opacity: 0.5; }
+.asciidoc .listingblock:hover code[data-lang]:before { display: block; }
+.asciidoc .listingblock.terminal pre .command:before { content: attr(data-prompt); padding-right: 0.5em; color: inherit; opacity: 0.5; }
+.asciidoc .listingblock.terminal pre .command:not([data-prompt]):before { content: "$"; }
+.asciidoc .listingblock pre.highlightjs { padding: 0; }
+.asciidoc .listingblock pre.highlightjs > code { padding: 1rem 1.5em 1rem 1.5em; -webkit-border-radius: 0; border-radius: 0; }
+.asciidoc .prettyprint { background: #f4f4f4; }
+.asciidoc pre.prettyprint .linenums { line-height: 1.6; margin-left: 2em; }
+.asciidoc pre.prettyprint li { background: none; list-style-type: inherit; padding-left: 0; }
+.asciidoc pre.prettyprint li code[data-lang]:before { opacity: 1; }
+.asciidoc pre.prettyprint li:not(:first-child) code[data-lang]:before { display: none; }
+.asciidoc table.linenotable { border-collapse: separate; border: 0; margin-bottom: 0; background: none; }
+.asciidoc table.linenotable td[class] { color: inherit; vertical-align: top; padding: 0; line-height: inherit; white-space: normal; }
+.asciidoc table.linenotable td.code { padding-left: 0.75em; }
+.asciidoc table.linenotable td.linenos { border-right: 1px solid currentColor; opacity: 0.35; padding-right: 0.5em; }
+.asciidoc pre.pygments .lineno { border-right: 1px solid currentColor; opacity: 0.35; display: inline-block; margin-right: 0.75em; }
+.asciidoc pre.pygments .lineno:before { content: ""; margin-right: -0.125em; }
+.asciidoc .quoteblock { margin: 0 1em 0.5rem 1.5em; display: table; }
+.asciidoc .quoteblock:not(.excerpt) > .title { margin-left: -1.5em; margin-bottom: 0.75em; }
+.asciidoc .quoteblock blockquote, .asciidoc .quoteblock p { color: #333333; font-size: 1.15rem; line-height: 1.75; word-spacing: 0.1em; letter-spacing: 0; font-style: italic; text-align: justify; }
+.asciidoc .quoteblock blockquote { margin: 0; padding: 0; border: 0; }
+.asciidoc .quoteblock blockquote:before { content: "\201c"; float: left; font-size: 2.75em; font-weight: bold; line-height: 0.6em; margin-left: -0.6em; color: #777777; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
+.asciidoc .quoteblock blockquote > .paragraph:last-child p { margin-bottom: 0; }
+.asciidoc .quoteblock .attribution { margin-top: 0.75em; margin-right: 0.5ex; text-align: right; }
+.asciidoc .verseblock { margin: 0 1em 0.5rem 1em; }
+.asciidoc .verseblock pre { font-family: "Open Sans", "DejaVu Sans", sans; font-size: 1.15rem; color: #333333; font-weight: 300; text-rendering: optimizeLegibility; }
+.asciidoc .verseblock pre strong { font-weight: 400; }
+.asciidoc .verseblock .attribution { margin-top: 1.25rem; margin-left: 0.5ex; }
+.asciidoc .quoteblock .attribution, .asciidoc .verseblock .attribution { font-size: 0.8125em; line-height: 1.45; font-style: italic; }
+.asciidoc .quoteblock .attribution br, .asciidoc .verseblock .attribution br { display: none; }
+.asciidoc .quoteblock .attribution cite, .asciidoc .verseblock .attribution cite { display: block; letter-spacing: -0.025em; color: #333333; }
+.asciidoc .quoteblock.abstract blockquote:before, .asciidoc .quoteblock.excerpt blockquote:before, .asciidoc .quoteblock .quoteblock blockquote:before { display: none; }
+.asciidoc .quoteblock.abstract blockquote, .asciidoc .quoteblock.abstract p, .asciidoc .quoteblock.excerpt blockquote, .asciidoc .quoteblock.excerpt p, .asciidoc .quoteblock .quoteblock blockquote, .asciidoc .quoteblock .quoteblock p { line-height: 1.6; word-spacing: 0; }
+.asciidoc .quoteblock.abstract { margin: 0 1em 0.5rem 1em; display: block; }
+.asciidoc .quoteblock.abstract > .title { margin: 0 0 0.375em 0; font-size: 1.15em; text-align: center; }
+.asciidoc .quoteblock.excerpt > blockquote, .asciidoc .quoteblock .quoteblock { padding: 0 0 0.25em 1em; border-left: 0.25em solid #dddddd; }
+.asciidoc .quoteblock.excerpt, .asciidoc .quoteblock .quoteblock { margin-left: 0; }
+.asciidoc .quoteblock.excerpt blockquote, .asciidoc .quoteblock.excerpt p, .asciidoc .quoteblock .quoteblock blockquote, .asciidoc .quoteblock .quoteblock p { color: inherit; font-size: 1.0625rem; }
+.asciidoc .quoteblock.excerpt .attribution, .asciidoc .quoteblock .quoteblock .attribution { color: inherit; text-align: left; margin-right: 0; }
+.asciidoc table.tableblock { max-width: 100%; border-collapse: separate; }
+.asciidoc p.tableblock:last-child { margin-bottom: 0; }
+.asciidoc td.tableblock > .content > :last-child { margin-bottom: -0.5rem; }
+.asciidoc td.tableblock > .content > :last-child.sidebarblock { margin-bottom: 0; }
+.asciidoc table.tableblock, .asciidoc th.tableblock, .asciidoc td.tableblock { border: 0 solid #cccccc; }
+.asciidoc table.grid-all > thead > tr > .tableblock, .asciidoc table.grid-all > tbody > tr > .tableblock { border-width: 0 1px 1px 0; }
+.asciidoc table.grid-all > tfoot > tr > .tableblock { border-width: 1px 1px 0 0; }
+.asciidoc table.grid-cols > * > tr > .tableblock { border-width: 0 1px 0 0; }
+.asciidoc table.grid-rows > thead > tr > .tableblock, .asciidoc table.grid-rows > tbody > tr > .tableblock { border-width: 0 0 1px 0; }
+.asciidoc table.grid-rows > tfoot > tr > .tableblock { border-width: 1px 0 0 0; }
+.asciidoc table.grid-all > * > tr > .tableblock:last-child, .asciidoc table.grid-cols > * > tr > .tableblock:last-child { border-right-width: 0; }
+.asciidoc table.grid-all > tbody > tr:last-child > .tableblock, .asciidoc table.grid-all > thead:last-child > tr > .tableblock, .asciidoc table.grid-rows > tbody > tr:last-child > .tableblock, .asciidoc table.grid-rows > thead:last-child > tr > .tableblock { border-bottom-width: 0; }
+.asciidoc table.frame-all { border-width: 1px; }
+.asciidoc table.frame-sides { border-width: 0 1px; }
+.asciidoc table.frame-topbot, .asciidoc table.frame-ends { border-width: 1px 0; }
+.asciidoc table.stripes-all tr, .asciidoc table.stripes-odd tr:nth-of-type(odd), .asciidoc table.stripes-even tr:nth-of-type(even), .asciidoc table.stripes-hover tr:hover { background: #f4f4f4; }
+.asciidoc th.halign-left, .asciidoc td.halign-left { text-align: left; }
+.asciidoc th.halign-right, .asciidoc td.halign-right { text-align: right; }
+.asciidoc th.halign-center, .asciidoc td.halign-center { text-align: center; }
+.asciidoc th.valign-top, .asciidoc td.valign-top { vertical-align: top; }
+.asciidoc th.valign-bottom, .asciidoc td.valign-bottom { vertical-align: bottom; }
+.asciidoc th.valign-middle, .asciidoc td.valign-middle { vertical-align: middle; }
+.asciidoc table thead th, .asciidoc table tfoot th { font-weight: bold; }
+.asciidoc tbody tr th { display: table-cell; line-height: 1; background: #f4f4f4; }
+.asciidoc tbody tr th, .asciidoc tbody tr th p, .asciidoc tfoot tr th, .asciidoc tfoot tr th p { color: black; font-weight: bold; }
+.asciidoc p.tableblock > code:only-child { background: none; padding: 0; }
+.asciidoc p.tableblock { font-size: 1em; }
+.asciidoc ol { margin-left: 1.75em; }
+.asciidoc ul li ol { margin-left: 1.5em; }
+.asciidoc dl dd { margin-left: 1.125em; }
+.asciidoc dl dd:last-child, .asciidoc dl dd:last-child > :last-child { margin-bottom: 0; }
+.asciidoc ol > li p, .asciidoc ul > li p, .asciidoc ul dd, .asciidoc ol dd, .asciidoc .olist .olist, .asciidoc .ulist .ulist, .asciidoc .ulist .olist, .asciidoc .olist .ulist { margin-bottom: 0.25rem; }
+.asciidoc ul.checklist, .asciidoc ul.none, .asciidoc ol.none, .asciidoc ul.no-bullet, .asciidoc ol.no-bullet, .asciidoc ol.unnumbered, .asciidoc ul.unstyled, .asciidoc ol.unstyled { list-style-type: none; }
+.asciidoc ul.no-bullet, .asciidoc ol.no-bullet, .asciidoc ol.unnumbered { margin-left: 0.625em; }
+.asciidoc ul.unstyled, .asciidoc ol.unstyled { margin-left: 0; }
+.asciidoc ul.checklist { margin-left: 0.625em; }
+.asciidoc ul.checklist li > p:first-child > .fa-square-o:first-child, .asciidoc ul.checklist li > p:first-child > .fa-check-square-o:first-child { width: 1.25em; font-size: 0.8em; position: relative; bottom: 0.125em; }
+.asciidoc ul.checklist li > p:first-child > input[type="checkbox"]:first-child { margin-right: 0.25em; }
+.asciidoc ul.inline { display: -ms-flexbox; display: -webkit-box; display: flex; -ms-flex-flow: row wrap; -webkit-flex-flow: row wrap; flex-flow: row wrap; list-style: none; margin: 0 0 0.25rem -0.5rem; }
+.asciidoc ul.inline > li { margin-left: 0.5rem; }
+.asciidoc .unstyled dl dt { font-weight: normal; font-style: normal; }
+.asciidoc ol.arabic { list-style-type: decimal; }
+.asciidoc ol.decimal { list-style-type: decimal-leading-zero; }
+.asciidoc ol.loweralpha { list-style-type: lower-alpha; }
+.asciidoc ol.upperalpha { list-style-type: upper-alpha; }
+.asciidoc ol.lowerroman { list-style-type: lower-roman; }
+.asciidoc ol.upperroman { list-style-type: upper-roman; }
+.asciidoc ol.lowergreek { list-style-type: lower-greek; }
+.asciidoc .hdlist > table, .asciidoc .colist > table { border: 0; background: none; }
+.asciidoc .hdlist > table > tbody > tr, .asciidoc .colist > table > tbody > tr { background: none; }
+.asciidoc td.hdlist1, .asciidoc td.hdlist2 { vertical-align: top; padding: 0 0.625em; }
+.asciidoc td.hdlist1 { font-weight: bold; padding-bottom: 0.5rem; }
+.asciidoc .literalblock + .colist, .asciidoc .listingblock + .colist { margin-top: -0.5em; }
+.asciidoc .colist td:not([class]):first-child { padding: 0.4em 0.75em 0 0.75em; line-height: 1; vertical-align: top; }
+.asciidoc .colist td:not([class]):first-child img { max-width: none; }
+.asciidoc .colist td:not([class]):last-child { padding: 0.25em 0; }
+.asciidoc .thumb, .asciidoc .th { line-height: 0; display: inline-block; border: solid 4px white; -webkit-box-shadow: 0 0 0 1px #dddddd; box-shadow: 0 0 0 1px #dddddd; }
+.asciidoc .imageblock.left { margin: 0.25em 0.625em 1.25em 0; }
+.asciidoc .imageblock.right { margin: 0.25em 0 1.25em 0.625em; }
+.asciidoc .imageblock > .title { margin-bottom: 0; }
+.asciidoc .imageblock.thumb, .asciidoc .imageblock.th { border-width: 6px; }
+.asciidoc .imageblock.thumb > .title, .asciidoc .imageblock.th > .title { padding: 0 0.125em; }
+.asciidoc .image.left, .asciidoc .image.right { margin-top: 0.25em; margin-bottom: 0.25em; display: inline-block; line-height: 0; }
+.asciidoc .image.left { margin-right: 0.625em; }
+.asciidoc .image.right { margin-left: 0.625em; }
+.asciidoc a.image { text-decoration: none; display: inline-block; }
+.asciidoc a.image object { pointer-events: none; }
+.asciidoc sup.footnote, .asciidoc sup.footnoteref { font-size: 0.875em; position: static; vertical-align: super; }
+.asciidoc sup.footnote a, .asciidoc sup.footnoteref a { text-decoration: none; }
+.asciidoc sup.footnote a:active, .asciidoc sup.footnoteref a:active { text-decoration: underline; }
+.asciidoc #footnotes { padding-top: 0.75em; padding-bottom: 0.75em; margin-bottom: 0.625em; }
+.asciidoc #footnotes hr { width: 20%; min-width: 6.25em; margin: -0.25em 0 0.75em 0; border-width: 1px 0 0 0; }
+.asciidoc #footnotes .footnote { padding: 0 0.375em 0 0.225em; line-height: 1.3334; font-size: 0.875em; margin-left: 1.2em; margin-bottom: 0.2em; }
+.asciidoc #footnotes .footnote a:first-of-type { font-weight: bold; text-decoration: none; margin-left: -1.05em; }
+.asciidoc #footnotes .footnote:last-of-type { margin-bottom: 0; }
+#content .asciidoc #footnotes { margin-top: -0.625em; margin-bottom: 0; padding: 0.75em 0; }
+.asciidoc .gist .file-data > table { border: 0; background: #fff; width: 100%; margin-bottom: 0; }
+.asciidoc .gist .file-data > table td.line-data { width: 99%; }
+.asciidoc div.unbreakable { page-break-inside: avoid; }
+.asciidoc .big { font-size: larger; }
+.asciidoc .small { font-size: smaller; }
+.asciidoc .underline { text-decoration: underline; }
+.asciidoc .overline { text-decoration: overline; }
+.asciidoc .line-through { text-decoration: line-through; }
+.asciidoc .aqua { color: #00bfbf; }
+.asciidoc .aqua-background { background-color: #00fafa; }
+.asciidoc .black { color: black; }
+.asciidoc .black-background { background-color: black; }
+.asciidoc .blue { color: #0000bf; }
+.asciidoc .blue-background { background-color: #0000fa; }
+.asciidoc .fuchsia { color: #bf00bf; }
+.asciidoc .fuchsia-background { background-color: #fa00fa; }
+.asciidoc .gray { color: #606060; }
+.asciidoc .gray-background { background-color: #7d7d7d; }
+.asciidoc .green { color: #006000; }
+.asciidoc .green-background { background-color: #007d00; }
+.asciidoc .lime { color: #00bf00; }
+.asciidoc .lime-background { background-color: #00fa00; }
+.asciidoc .maroon { color: #600000; }
+.asciidoc .maroon-background { background-color: #7d0000; }
+.asciidoc .navy { color: #000060; }
+.asciidoc .navy-background { background-color: #00007d; }
+.asciidoc .olive { color: #606000; }
+.asciidoc .olive-background { background-color: #7d7d00; }
+.asciidoc .purple { color: #600060; }
+.asciidoc .purple-background { background-color: #7d007d; }
+.asciidoc .red { color: #bf0000; }
+.asciidoc .red-background { background-color: #fa0000; }
+.asciidoc .silver { color: #909090; }
+.asciidoc .silver-background { background-color: #bcbcbc; }
+.asciidoc .teal { color: #006060; }
+.asciidoc .teal-background { background-color: #007d7d; }
+.asciidoc .white { color: #bfbfbf; }
+.asciidoc .white-background { background-color: #fafafa; }
+.asciidoc .yellow { color: #bfbf00; }
+.asciidoc .yellow-background { background-color: #fafa00; }
+.asciidoc span.icon > .fa { cursor: default; }
+a .asciidoc span.icon > .fa { cursor: inherit; }
+.asciidoc .admonitionblock td.icon [class^="fa icon-"] { font-size: 2.5em; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); cursor: default; }
+.asciidoc .admonitionblock td.icon .icon-note:before { content: "\f05a"; color: black; }
+.asciidoc .admonitionblock td.icon .icon-tip:before { content: "\f0eb"; text-shadow: 1px 1px 2px rgba(155, 155, 0, 0.8); color: #111; }
+.asciidoc .admonitionblock td.icon .icon-warning:before { content: "\f071"; color: #bf6900; }
+.asciidoc .admonitionblock td.icon .icon-caution:before { content: "\f06d"; color: #bf3400; }
+.asciidoc .admonitionblock td.icon .icon-important:before { content: "\f06a"; color: #bf0000; }
+.asciidoc .conum[data-value] { display: inline-block; color: #fff !important; background-color: black; -webkit-border-radius: 100px; border-radius: 100px; text-align: center; font-size: 0.75em; width: 1.67em; height: 1.67em; line-height: 1.67em; font-family: "Open Sans", "DejaVu Sans", sans-serif; font-style: normal; font-weight: bold; }
+.asciidoc .conum[data-value] * { color: #fff !important; }
+.asciidoc .conum[data-value] + b { display: none; }
+.asciidoc .conum[data-value]:after { content: attr(data-value); }
+pre .asciidoc .conum[data-value] { position: relative; top: -0.125em; }
+.asciidoc b.conum * { color: inherit !important; }
+.asciidoc .conum:not([data-value]):empty { display: none; }
+@media only screen and (min-width: 768px) { .asciidoc h1 { font-size: 3rem !important; }
+  .asciidoc h2 { font-size: 2.25rem !important; }
+  .asciidoc h3, .asciidoc #toctitle, .asciidoc .sidebarblock > .content > .title { font-size: 1.5rem !important; }
+  .asciidoc h4 { font-size: 1.25rem !important; }
+  .asciidoc h5 { font-size: 1rem !important; } }
+.asciidoc #toctitle { line-height: 1.5; font-weight: normal; font-size: 2.25rem !important; color: black; }
+.asciidoc .conum[data-value] { font-family: consolas, monaco, monospace; font-weight: normal; }
+.asciidoc .colist td:not([class]) { line-height: 1.5; }
+.asciidoc .colist td:not([class]):first-child { padding: 0.25rem 0.5rem !important; }
+.asciidoc .colist td:not([class]):last-child { display: table-cell; padding: 0.25rem 0 !important; }
+.asciidoc .exampleblock > .content { background-color: #fffceb; }
+.asciidoc .content > pre, .asciidoc .sidebarblock, .asciidoc .exampleblock > .content { border-radius: 0.25rem !important; }
+.asciidoc .sidebarblock { background-color: #eeeeee; }
+.asciidoc .admonitionblock { border-radius: 0.25rem; border-style: solid; border-width: 1px; padding: 1rem; margin-bottom: 1rem; }
+.asciidoc .admonitionblock table { background-color: inherit; border: none; margin: 0; }
+.asciidoc .admonitionblock table tbody tr td { display: block; padding: 0 !important; text-align: left !important; line-height: 1.5 !important; }
+.asciidoc .admonitionblock table tbody tr td.content { border: none; }
+.asciidoc .admonitionblock table tbody tr td.icon [class^="fa icon-"] { text-transform: uppercase; font-size: 0.875rem; font-weight: 600; }
+.asciidoc .admonitionblock table tbody tr td .fa[title]:before { text-shadow: none !important; font-style: normal !important; content: attr(title); }
+.asciidoc .admonitionblock.important { background-color: #ffa3d7; border-color: #ff4136; }
+.asciidoc .admonitionblock.important td.icon .icon-important::before { color: #7d0047 !important; }
+.asciidoc .admonitionblock.important pre, .asciidoc .admonitionblock.important code { background-color: #f29acc !important; }
+.asciidoc .admonitionblock.warning { background-color: #ffdfdf; border-color: #ff725c; }
+.asciidoc .admonitionblock.warning td.icon .icon-warning::before { color: #8f0000 !important; }
+.asciidoc .admonitionblock.warning pre, .asciidoc .admonitionblock.warning code { background-color: #f2d3d3 !important; }
+.asciidoc .admonitionblock.caution { background-color: #fffceb; border-color: gold; }
+.asciidoc .admonitionblock.caution td.icon .icon-caution::before { color: #937d00 !important; }
+.asciidoc .admonitionblock.caution pre, .asciidoc .admonitionblock.caution code { background-color: #f2efdf !important; }
+.asciidoc .admonitionblock.note { background-color: #cdecff; border-color: #357edd; }
+.asciidoc .admonitionblock.note td.icon .icon-note::before { color: #00568a !important; }
+.asciidoc .admonitionblock.note pre, .asciidoc .admonitionblock.note code { background-color: #c2e0f2 !important; }
+.asciidoc .admonitionblock.tip { background-color: #e8fdf5; border-color: #19a974; }
+.asciidoc .admonitionblock.tip td.icon .icon-tip::before { color: #0c8657 !important; }
+.asciidoc .admonitionblock.tip pre, .asciidoc .admonitionblock.tip code { background-color: #dcf0e8 !important; }
+.asciidoc code { font-size: 90% !important; }
+.asciidoc #footnotes { padding-left: 0; }
+.asciidoc td.tableblock > .content > :last-child { margin-bottom: 0 !important; }
+.asciidoc i.fa { font-style: normal !important; }
