@@ -52,4 +52,4 @@
                               {:path-params (-> ctx :request :path-params)
                                :route-name  (-> ctx :route :route-name)}))
             (capture {:ex ex-info :req (:request ctx)})
-            (assoc ctx :response {:status 500 :body "An exception occured, sorry about that!"}))})
+            (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))})
