@@ -1,7 +1,6 @@
 (ns cljdoc.analysis.service
   (:require [clj-http.lite.client :as http]
             [clojure.tools.logging :as log]
-            [clojure.string :as string]
             [clojure.java.io :as io]
             [clojure.java.shell :as sh]
             [cheshire.core :as json]
@@ -64,16 +63,16 @@
     (assert (integer? build-num))
     (let [done-build (poll-circle-ci-build this build-num)
           success?   (contains? #{"success" "fixed"} (get done-build "status"))
-          cljdoc-edn (cljdoc.util/cljdoc-edn project version)]
-      (let [artifacts (-> (get-circle-ci-build-artifacts this build-num)
-                          :body json/parse-string)]
+          cljdoc-edn (cljdoc.util/cljdoc-edn project version)
+          artifacts (-> (get-circle-ci-build-artifacts this build-num)
+                        :body json/parse-string)]
         (if-let [artifact (and success?
                                (= 1 (count artifacts))
                                (= cljdoc-edn (get (first artifacts) "path"))
                                (first artifacts))]
           {:analysis-result (get artifact "url")}
           (throw (ex-info "Analysis on CircleCI failed"
-                          {:service :circle-ci, :build done-build})))))))
+                          {:service :circle-ci, :build done-build}))))))
 
 (defn circle-ci
   [{:keys [api-token builder-project analyzer-version] :as args}]

@@ -174,7 +174,7 @@
 (defn assert [spec v]
   (if (s/get-spec spec)
     (s/assert spec v)
-    (throw (Exception. (format "No spec found for %s" spec)))))
+    (throw (Exception. (str "No spec found for " spec)))))
 
 (comment
   (require '[clojure.spec.gen.alpha :as gen])
@@ -208,5 +208,3 @@
              :type :var}]})
 
   (s/valid? ::namespace x))
-
-

@@ -4,7 +4,6 @@
             [clojure.string :as string]
             [clj-http.lite.client :as http]
             [cheshire.core :as json]
-            [clojure.tools.logging :as log]
             [clojure.java.io :as io])
   (:import (org.jsoup Jsoup)
            (java.time Instant Duration)))
@@ -185,5 +184,3 @@
 
   (time (get-pom-xml "org.clojure/clojure" "1.9.0"))
   (clojure.core.memoize/memo-clear! get-pom-xml '("org.clojure/clojure" "1.9.0")))
-
-

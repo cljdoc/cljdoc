@@ -49,7 +49,7 @@
              [:div
               [:h3 "Other artifacts under the " (:group-id artifact-entity) " group"]
               [:ol.list.pl0.pv3
-               (for [[artifact-id version-entities] (sort-by first others)
+               (for [[_artifact-id version-entities] (sort-by first others)
                      :let [latest (first (sort-by-version version-entities))
                            a-text (str (:group-id latest) "/" (:artifact-id latest))]]
                  [:li.dib.mr3.mb3
@@ -77,8 +77,7 @@
 
 (defn group-index
   [group-entity versions]
-  (let [group-id (:group-id group-entity)
-        big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
+  (let [group-id (:group-id group-entity)]
     (->> [:div
           (layout/top-bar-generic)
           [:div.pa4-ns.pa2
@@ -88,7 +87,7 @@
              [:div
               [:span.db "Known artifacts and versions under the group " group-id]
               [:ol.list.pl0.pv3.nl2.nr2.cf
-               (for [[a-id versions] (->> (group-by :artifact-id versions)
+               (for [[_a-id versions] (->> (group-by :artifact-id versions)
                                           (sort-by first))
                      :let [latest (first (sort-by-version versions))]]
                  (artifact-grid-cell latest))]])]]
@@ -101,17 +100,16 @@
 
 (defn full-index
   [versions]
-  (let [big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
-    (->> [:div
-          (layout/top-bar-generic)
-          [:div.pa4-ns.pa2
-           [:div#js--cljdoc-navigator]
-           [:h1.mt5 "All documented artifacts on cljdoc:"]
-           (for [[group-id versions-for-group] (sort-by key (group-by :group-id versions))]
-             [:div.cf
-              [:h2 group-id [:span.gray.fw3.ml3.f5 "Group ID"] ]
-              [:div.nl2.nr2
-               (for [[a-id versions-for-artifact] (group-by :artifact-id versions-for-group)
-                     :let [latest (first (sort-by-version versions-for-artifact))]]
-                 (artifact-grid-cell latest))]])]]
-         (layout/page {:title "all documented artifacts — cljdoc"}))))
+  (->> [:div
+        (layout/top-bar-generic)
+        [:div.pa4-ns.pa2
+         [:div#js--cljdoc-navigator]
+         [:h1.mt5 "All documented artifacts on cljdoc:"]
+         (for [[group-id versions-for-group] (sort-by key (group-by :group-id versions))]
+           [:div.cf
+            [:h2 group-id [:span.gray.fw3.ml3.f5 "Group ID"] ]
+            [:div.nl2.nr2
+             (for [[_a-id versions-for-artifact] (group-by :artifact-id versions-for-group)
+                   :let [latest (first (sort-by-version versions-for-artifact))]]
+               (artifact-grid-cell latest))]])]]
+       (layout/page {:title "all documented artifacts — cljdoc"})))

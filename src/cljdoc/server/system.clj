@@ -29,8 +29,7 @@
   (str (cfg/data-dir env-config) "index"))
 
 (defn system-config [env-config]
-  (let [ana-service (cfg/analysis-service env-config)
-        port        (cfg/get-in env-config [:cljdoc/server :port])]
+  (let [ana-service (cfg/analysis-service env-config)]
     (doseq [ns (cfg/extension-namespaces env-config)]
       (log/info "Loading extension namespace" ns)
       (require ns))
@@ -96,7 +95,7 @@
   (ragtime/migrate-all (jdbc/sql-database db-spec)
                        {}
                        (jdbc/load-resources "migrations")
-                       {:reporter (fn [store direction migration]
+                       {:reporter (fn [_store direction migration]
                                     (log/infof "Migrating %s %s" direction migration))})
   db-spec)
 
@@ -137,5 +136,3 @@
       (integrant.repl/go))
 
   (integrant.repl/reset))
-
-

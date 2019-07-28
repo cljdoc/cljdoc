@@ -3,7 +3,6 @@
   rendered in other places, e.g. GitHub."
   (:require [clojure.tools.logging :as log]
             [clojure.string :as string]
-            [cljdoc.util :as util]
             [cljdoc.util.scm :as scm]
             [cljdoc.server.routes :as routes])
   (:import (org.jsoup Jsoup)))

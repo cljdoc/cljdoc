@@ -7,17 +7,11 @@
             [cljdoc.render.api :as api]
             [cljdoc.util :as util]
             [cljdoc.util.fixref :as fixref]
-            [cljdoc.util.pom :as pom]
             [cljdoc.bundle :as bundle]
-            [cljdoc.platforms :as platf]
             [cljdoc.spec]
-            [cljdoc.server.routes :as routes]
-            [version-clj.core :as v]
-            [clojure.string :as string]
-            [clojure.tools.logging :as log]
-            [clojure.java.io :as io]))
+            [cljdoc.server.routes :as routes]))
 
-(defmulti render (fn [page-type route-params cache-bundle] page-type))
+(defmulti render (fn [page-type _route-params _cache-bundle] page-type))
 
 (defmethod render :default
   [page-type _ _]
@@ -84,8 +78,7 @@
         defs    (bundle/defs-for-ns-with-src-uri cache-bundle (:namespace ns-emap))
         [[dominant-platf] :as platf-stats] (api/platform-stats defs)
         ns-data (bundle/get-namespace cache-bundle (:namespace ns-emap))
-        top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))
-        common-params {:top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))}]
+        top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))]
     (->> (if ns-data
            (layout/layout
             {:top-bar top-bar-component

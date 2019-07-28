@@ -9,7 +9,6 @@
   "
   (:require [clojure.core.cache :as cache]
             [clojure.core.memoize :as memo]
-            [taoensso.nippy :as nippy]
             [clojure.java.jdbc :as sql])
   (:import (java.time Instant)))
 

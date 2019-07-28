@@ -1,14 +1,12 @@
 (ns cljdoc.server.ingest
   "A collection of small helpers to ingest data provided via API analysis
   or Git repositories into the database (see [[cljdoc.storage.api]])"
-  (:require [clojure.java.io :as io]
-            [cljdoc.util :as util]
+  (:require [cljdoc.util :as util]
             [cljdoc.analysis.git :as ana-git]
             [cljdoc.util.pom :as pom]
             [cljdoc.util.codox :as codox]
             [clojure.tools.logging :as log]
             [cljdoc.storage.api :as storage]
-            [cljdoc.server.routes :as routes]
             [cljdoc.spec]))
 
 (defn ingest-cljdoc-edn
@@ -28,7 +26,6 @@
         artifact (pom/artifact-info pom-doc)
         scm-info (pom/scm-info pom-doc)
         project  (str (:group-id artifact) "/" (:artifact-id artifact))
-        version  (:version artifact)
         scm-url  (some-> (or (:url scm-info)
                              (if (util/gh-url? (:url artifact))
                                (:url artifact))

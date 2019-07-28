@@ -50,7 +50,7 @@
   [uri]
   (let [lscmd (LsRemoteCommand. nil)]
     (. lscmd (setRemote uri))
-    (try (do (.call lscmd) true)
+    (try (.call lscmd) true
          (catch Exception _ false))))
 
 (defn clone [uri target-dir]
@@ -207,34 +207,14 @@
 (extend ObjectLoader
   io/IOFactory
   (assoc io/default-streams-impl
-         :make-input-stream (fn [x opts] (.openStream x))
-         :make-reader (fn [x opts] (io/reader (.openStream x)))))
+         :make-input-stream (fn [x _opts] (.openStream x))
+         :make-reader (fn [x _opts] (io/reader (.openStream x)))))
 
 (defn read-cljdoc-config
   [repo rev]
   {:pre [(some? repo) (string? rev) (seq rev)]}
   (or (cljdoc.git-repo/slurp-file-at repo rev "doc/cljdoc.edn")
       (cljdoc.git-repo/slurp-file-at repo rev "docs/cljdoc.edn")))
-
-(defn patch-level-info
-  ;; Non API documentation should be updated with new Git revisions,
-  ;; not only once tagged releases are published to Clojars
-  ;; Some versioning scheme is required for this Non-API documentation
-  ;; After recent discussion with @arrdem I'm thinking the following
-  ;; version identifier might be best:
-  ;;
-  ;;     {:version "2.0.0" :patch-level 2}
-  ;;
-  ;; Where this means two changes have been made since the version
-  ;; 2.0.0 has been tagged. Whether the patch-level is increased
-  ;; with every commit or only with commits that modified the resulting
-  ;; doc-bundle is to be decided.
-  ;; TODO probably this should be captured in an ADR
-  [^Git repo]
-
-  ;; Seems like we need to walk the git commits here to retrieve tags in order
-  ;; https://stackoverflow.com/questions/31836087/list-all-tags-in-current-branch-with-jgit
-  )
 
 (comment
   (def r (->repo (io/file "data/git-repos/fulcrologic/fulcro/2.5.4/")))

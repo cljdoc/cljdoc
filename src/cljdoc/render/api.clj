@@ -1,9 +1,7 @@
 (ns cljdoc.render.api
   "Functions related to rendering API documenation"
   (:require [cljdoc.render.rich-text :as rich-text]
-            [cljdoc.render.layout :as layout]
             [cljdoc.util.ns-tree :as ns-tree]
-            [cljdoc.util.fixref :as fixref]
             [cljdoc.util :as util]
             [cljdoc.bundle :as bundle]
             [cljdoc.platforms :as platf]
@@ -118,7 +116,7 @@
                                (not= (:artifact-id version-entity) (:artifact-id ns-entity)))) ]
     [:div
      [:ul.list.pl0
-      (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys keyed-namespaces))
+      (for [[ns level _ _leaf?] (ns-tree/namespace-hierarchy (keys keyed-namespaces))
             :let [style {:margin-left (str (* (dec level) 10) "px")}
                   nse (get keyed-namespaces ns)]]
         [:li
@@ -168,7 +166,7 @@
       [node (str "Mostly " (humanize-supported-platforms dominant-platf) " forms.")
        [:br] " Exceptions indicated."])))
 
-(defn definitions-list [ns-entity defs {:keys [indicate-platforms-other-than]}]
+(defn definitions-list [_ns-entity defs {:keys [indicate-platforms-other-than]}]
   [:div.pb4
    [:ul.list.pl0
     (for [def defs

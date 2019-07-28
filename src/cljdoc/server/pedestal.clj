@@ -21,14 +21,12 @@
             [cljdoc.render.error :as error]
             [cljdoc.render.offline :as offline]
             [cljdoc.render :as html]
-            [cljdoc.analysis.service :as analysis-service]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.api :as api]
             [cljdoc.server.search.api :as search-api]
             [cljdoc.server.sitemap :as sitemap]
-            [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
             [cljdoc.util :as util]
             [cljdoc.util.pom :as pom]
@@ -38,7 +36,6 @@
             [clojure.string :as string]
             [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
-            [cheshire.core :as json]
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]
             [io.pedestal.interceptor :as interceptor]
@@ -295,7 +292,7 @@
                                     :else
                                     [version :blue])]
                (return-badge ctx status color)))
-    :error (fn [ctx err]
+    :error (fn [ctx _err]
              (let [{:keys [project]} (-> ctx :request :path-params)]
                (return-badge ctx (str "no%20release%20found%20for%20" project) :red)))}))
 
@@ -308,7 +305,7 @@
                                  artifact-id (util/clojars-id params)
                                  group-id group-id)
                    release (try (repos/latest-release-version project)
-                                (catch Exception e
+                                (catch Exception _e
                                   (log/warnf "Could not find release for %s" project)))]
                (->> (if release
                       {:status 302
@@ -326,7 +323,7 @@
   (interceptor/interceptor
    {:name ::etag
     :leave (ring-middlewares/response-fn-adapter
-            (fn [request opts]
+            (fn [request _opts]
               (etag/add-file-etag request false)))}))
 
 (def redirect-trailing-slash-interceptor

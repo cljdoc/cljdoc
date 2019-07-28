@@ -23,14 +23,18 @@
             [cljdoc.util :as util]
             [cljdoc.user-config :as user-config]
             [clojure.set :as cset]
-            [clojure.java.io :as io]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
             [taoensso.nippy :as nippy]
-            [taoensso.tufte :as tufte :refer [defnp p profiled profile]]
+            [taoensso.tufte :as tufte :refer [defnp]]
             [version-clj.core :as version-clj]
             [hugsql.core :as hugsql])
   (:import (org.sqlite SQLiteException)))
+
+;; keep our linter happy by declaring hugsql imported functions
+(declare sql-resolve-version-ids)
+(declare sql-get-namespaces)
+(declare sql-get-vars)
 
 (hugsql/def-db-fns "sql/sqlite_impl.sql")
 ;; (hugsql/def-sqlvec-fns "sql/sqlite_impl.sql")
@@ -178,16 +182,16 @@
             wanted?      (set (map util/normalize-project include-cfg))
             extra-deps   (filter #(wanted? (str (:group-id %) "/" (:artifact-id %))) resolved-versions)
             namespaces   (set (get-namespaces db-spec (conj extra-deps primary-resolved)))]
-        (-> {:version    version-data
-             :namespaces namespaces
-             ;; NOTE maybe we should only load defs for a subset of namespaces
-             :defs       (if (seq namespaces)
-                           (set (get-vars db-spec namespaces))
-                           #{})
-             :latest (latest-release-version db-spec v)
-             :version-entity {:group-id group-id
-                              :artifact-id artifact-id
-                              :version version}})))))
+        {:version    version-data
+         :namespaces namespaces
+         ;; NOTE maybe we should only load defs for a subset of namespaces
+         :defs       (if (seq namespaces)
+                       (set (get-vars db-spec namespaces))
+                       #{})
+         :latest (latest-release-version db-spec v)
+         :version-entity {:group-id group-id
+                          :artifact-id artifact-id
+                          :version version}}))))
 
 (defn import-api [db-spec
                   {:keys [group-id artifact-id version]}

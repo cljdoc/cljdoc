@@ -1,7 +1,5 @@
 (ns cljdoc.render.error
-  (:require [cljdoc.util :as util]
-            [cljdoc.render.layout :as layout]
-            [cljdoc.render.home :as home]
+  (:require [cljdoc.render.layout :as layout]
             [cljdoc.render.search :as search]))
 
 

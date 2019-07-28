@@ -60,6 +60,10 @@
             :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-529"}}
             :main-opts ["-m" "kaocha.runner"]}
 
+           :clj-kondo
+           {:extra-deps {clj-kondo {:mvn/version "2019.07.24-alpha"}}
+            :main-opts ["-m" "clj-kondo.main"]}
+
            :cli
            {:extra-paths ["modules/cli/src"]
             :extra-deps {cli-matic {:mvn/version "0.3.8"}}

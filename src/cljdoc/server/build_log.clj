@@ -1,7 +1,5 @@
 (ns cljdoc.server.build-log
-  (:require [integrant.core :as ig]
-            [clojure.java.jdbc :as sql]
-            [clojure.tools.logging :as log]
+  (:require [clojure.java.jdbc :as sql]
             [cljdoc.util.telegram :as telegram]
             [taoensso.nippy :as nippy])
   (:import (java.time Instant Duration)))
