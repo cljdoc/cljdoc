@@ -4,7 +4,6 @@
             [cljdoc.config :as config]
             [cljdoc.util :as util]
             [cljdoc.util.scm :as scm]
-            [clojure.string :as string]
             [hiccup2.core :as hiccup]
             [hiccup.page]))
 

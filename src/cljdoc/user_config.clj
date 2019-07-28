@@ -19,7 +19,7 @@
   [config-edn project]
   (or (get-project-specific config-edn project)
       (->> config-edn
-           (remove (fn [[k v]] (symbol? k)))
+           (remove (fn [[k _v]] (symbol? k)))
            (into {}))))
 
 (defn doc-tree [config-edn project]

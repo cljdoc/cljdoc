@@ -1,6 +1,5 @@
 (ns cljdoc.analysis.deps
-  (:require [clojure.java.io :as io]
-            [version-clj.core :as v]
+  (:require [version-clj.core :as v]
             [cljdoc.util :as util]
             [cljdoc.util.pom :as pom]
             [clojure.tools.deps.alpha :as tdeps]))

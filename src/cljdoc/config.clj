@@ -5,7 +5,7 @@
             [aero.core :as aero]))
 
 (defmethod aero/reader 'slurp
-  [_ tag value]
+  [_ _tag value]
   (aero/deferred
     (try (.trim (slurp (io/resource value)))
          (catch Exception e
@@ -121,5 +121,3 @@
 
   (clojure.pprint/pprint
    (aero/read-config (io/resource "config.edn") {:profile :default})))
-
-

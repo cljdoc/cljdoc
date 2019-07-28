@@ -1,5 +1,4 @@
 (ns cljdoc.render.rich-text
-  (:require [clojure.string :as string])
   (:import (org.asciidoctor Asciidoctor$Factory Options)
            (com.vladsch.flexmark.parser Parser)
            (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver CustomNodeRenderer)
@@ -90,7 +89,7 @@
   "An extension point for the rendering of different article types.
 
   `type` is determined by [[cljdoc.doc-tree/filepath->type]]."
-  (fn [[type contents]]
+  (fn [[type _contents]]
     type))
 
 (defmethod render-text :cljdoc/markdown [[_ content]]

@@ -14,7 +14,6 @@
             [clojure.pprint :as pp]
             [clojure.java.shell :as sh]
             [clojure.string :as string]
-            [clojure.edn :as edn]
             [clj-http.client :as http]
             [cheshire.core :as json]
             [clojure.tools.logging :as log]
@@ -58,17 +57,17 @@
   (str "http://localhost:8500" path))
 
 (defmethod aero/reader 'nomad/seconds
-  [_ tag value]
+  [_ _tag value]
   (* value 1000000000))
 
 (defmethod aero/reader 'env!
-  [_ tag envvar]
+  [_ _tag envvar]
   (if-some [v (System/getenv (str envvar))]
     v
     (throw (Exception. (format "Could not find env var for %s" envvar)))))
 
 (defmethod aero/reader `opt
-  [{::keys [opts]} tag value]
+  [{::keys [opts]} _tag value]
   (or (get opts value)
       (throw (ex-info (str "Could not find deploy opt for " value)
                       {:opts opts}))))

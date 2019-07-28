@@ -1,5 +1,4 @@
-(ns cljdoc.util.codox
-  (:require [clojure.tools.logging :as log]))
+(ns cljdoc.util.codox)
 
 (defn- index-by [k xs]
   (->> (for [[k vs] (group-by k xs)]

@@ -82,7 +82,7 @@
   (let [impl-src-dir (io/file target-dir "impl-src/")
         jar-contents (io/file target-dir "contents/")
         jar-uri    (URI. jar)
-        jar-path   (if-let [remote-jar? (boolean (.getHost jar-uri))]
+        jar-path   (if (boolean (.getHost jar-uri))
                      (download-jar! jar-uri target-dir)
                      jar)
         {:keys [classpath resolved-deps]} (deps/resolved-and-cp jar-path pom extra-mvn-repos)
@@ -136,21 +136,20 @@
                                (let [result (util/read-cljdoc-edn f)]
                                  (assert result "No data was saved in output file")
                                  result)
-                               (throw (ex-info (str "Analysis failed with code " (:exit process)) {:code (:exit process)}))))))]
-
-    (let [cdx-namespaces (->> (map #(build-cdx (.getPath src-dir) %) platforms)
-                              (zipmap platforms))
-          ana-result     {:group-id (util/group-id project)
-                          :artifact-id (util/artifact-id project)
-                          :version version
-                          :codox cdx-namespaces
-                          :pom-str (slurp pom)}]
-      (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
-      (if (every? some? (vals cdx-namespaces))
-        (doto output-file
-          (io/make-parents)
-          (spit (util/serialize-cljdoc-edn ana-result)))
-        (throw (Exception. "Analysis failed"))))))
+                               (throw (ex-info (str "Analysis failed with code " (:exit process)) {:code (:exit process)}))))))
+        cdx-namespaces (->> (map #(build-cdx (.getPath src-dir) %) platforms)
+                            (zipmap platforms))
+        ana-result     {:group-id (util/group-id project)
+                        :artifact-id (util/artifact-id project)
+                        :version version
+                        :codox cdx-namespaces
+                        :pom-str (slurp pom)}]
+    (cljdoc.spec/assert :cljdoc/cljdoc-edn ana-result)
+    (if (every? some? (vals cdx-namespaces))
+      (doto output-file
+        (io/make-parents)
+        (spit (util/serialize-cljdoc-edn ana-result)))
+      (throw (Exception. "Analysis failed")))))
 
 (defn analyze!
   "Analyze the provided project"

@@ -46,7 +46,7 @@
     build-id))
 
 (defn exclude?
-  [{:keys [group_id artifact_id version] :as  build}]
+  [{:keys [group_id artifact_id version] :as build}]
   (or (= "cljsjs" group_id)
       (.endsWith version "-SNAPSHOT")
       (and (= "org.akvo.flow" group_id)
@@ -121,5 +121,3 @@
         (map #(select-keys % [:created_ts]))))
 
   (oldest-not-built db-spec))
-
-

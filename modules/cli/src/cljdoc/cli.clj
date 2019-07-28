@@ -41,7 +41,7 @@
         (log/fatalf "%s@%s could not be found in storage" project version)
         (System/exit 1)))))
 
-(defn run [opts]
+(defn run [_opts]
   (system/-main))
 
 (def CONFIGURATION
@@ -82,5 +82,3 @@
 (defn -main
   [& args]
   (cli-matic/run-cmd args CONFIGURATION))
-
-

@@ -86,7 +86,8 @@
   ;; Otherwise the line below will throw an exception (intentionally so)
   (let [entry-type (some-> attrs :file filepath->type)
         file (-> attrs :file)
-        slurp! (fn [file] (or (slurp-fn file)
+        ;; TODO: Something is amiss here, slurp! is not used!
+        _slurp! (fn [file] (or (slurp-fn file)
                               (throw (Exception. (format "Could not read contents of %s" file)))))]
     (cond-> {:title title}
 

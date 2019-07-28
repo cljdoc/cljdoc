@@ -20,7 +20,7 @@
                                first
                                (str/replace #"\.(up|down)\.sql$" ""))
                       expected-names (set (map #(str base "." % ".sql") ["up" "down"]))]
-                  (and (= (inc i) (try (Long/parseLong prefix) (catch Exception e)))
+                  (and (= (inc i) (try (Long/parseLong prefix) (catch Exception _e)))
                        (= (names prefix) expected-names))))
               (sort (keys names)))))))
 

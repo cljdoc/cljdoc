@@ -1,9 +1,6 @@
 (ns cljdoc.server.sitemap
-  (:require [clojure.java.io :as io]
-            [clojure.spec.alpha :as spec]
+  (:require [clojure.spec.alpha :as spec]
             [sitemap.core :as sitemap]
-            [clojure.tools.logging :as log]
-            [cljdoc.config :as cfg]
             [cljdoc.storage.api :as storage]
             [cljdoc.server.routes :as routes]))
 
