@@ -42,7 +42,6 @@
                    :cljdoc/asciidoc
                    :cljdoc/markdown]))
 
-
 (spec/def ::children
   (spec/coll-of ::entry))
 
@@ -225,8 +224,8 @@
           (->> (filter #(doc? (:path %)) files)
                (sort-by :path)
                (mapv (fn [{:keys [path object-loader]}]
-                      [(infer-title path (slurp object-loader))
-                       {:file path}]))))))
+                       [(infer-title path (slurp object-loader))
+                        {:file path}]))))))
 
 (comment
 

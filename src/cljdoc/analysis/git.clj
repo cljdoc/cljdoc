@@ -116,6 +116,4 @@
 (comment
   (def r (analyze-git-repo "metosin/reitit" "0.2.5" "https://github.metosin/reitit" nil))
 
-  (spec/explain (:ret (spec/get-spec `analyze-git-repo)) r)
-
-  )
+  (spec/explain (:ret (spec/get-spec `analyze-git-repo)) r))

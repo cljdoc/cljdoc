@@ -72,6 +72,8 @@
 
 ;; Docs-cache: this is intended for a specific
 ;; versioned artifact, e.g. [re-frame 0.10.5]
+
+
 (s/def ::defs (s/coll-of ::def-full :gen-max 2))
 (s/def ::namespaces (s/coll-of map? :gen-max 2))
 (s/def ::latest ::version)
@@ -103,6 +105,7 @@
 ;; codox -------------------------------------------------------------
 ;; A spec for Codox namespace analysis data
 
+
 (s/def :cljdoc.codox.public/name symbol? #_(s/or :a string? :b symbol?))
 (s/def :cljdoc.codox.public/file string?)
 (s/def :cljdoc.codox.public/line int?)
@@ -133,6 +136,7 @@
 
 ;; cljdoc.edn ---------------------------------------------------------
 
+
 (s/def :cljdoc.cljdoc-edn/codox
   (s/map-of ::platform (s/coll-of :cljdoc.codox/namespace)))
 
@@ -144,6 +148,7 @@
 
 
 ;; grimoire -----------------------------------------------------------
+
 
 (s/def :cljdoc.grimoire/def
   ;; like codox output but without name
@@ -164,10 +169,10 @@
 (s/def :artifact/origin #{:clojars :maven-central})
 (s/def :artifact/versions (s/coll-of ::version))
 (s/def ::artifact (s/keys
-                    :req-un [::artifact-id ::group-id]
-                    :opt-un [:artifact/description
-                             :artifact/versions
-                             :artifact/origin]))
+                   :req-un [::artifact-id ::group-id]
+                   :opt-un [:artifact/description
+                            :artifact/versions
+                            :artifact/origin]))
 
 ;; utilities ----------------------------------------------------------
 
@@ -194,7 +199,6 @@
 
   (gen/sample (s/gen ::namespace))
   (gen/sample (s/gen :cache/artifact))
-
 
   (def x
     {:name "bidi.bidi"

@@ -72,7 +72,7 @@
        (remove #(and (= (:group-id %) "org.clojure")
                      (= (:artifact-id %) "tools.reader")))
        (map (fn [{:keys [group-id artifact-id version]}]
-               [(symbol group-id artifact-id) {:mvn/version version}]))
+              [(symbol group-id artifact-id) {:mvn/version version}]))
        (into {})))
 
 (defn clj-cljs-deps
@@ -133,7 +133,6 @@
 
 (defn print-tree [resolved-deps]
   (tdeps/print-tree resolved-deps))
-
 
 (comment
   (deps "/Users/martin/.m2/repository/manifold/manifold/0.1.6/manifold-0.1.6.pom" 'manifold/manifold "0.1.6")

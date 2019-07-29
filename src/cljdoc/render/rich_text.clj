@@ -29,7 +29,6 @@
       (extensions md-extensions)
       (build)))
 
-
 (defn- md-renderer
   "Create a Markdown renderer."
   [{:keys [escape-html?
@@ -42,34 +41,34 @@
       (escapeHtml (boolean escape-html?))
       ;; Resolve wikilinks
       (linkResolverFactory
-        (reify LinkResolverFactory
-          (getAfterDependents [_this] nil)
-          (getBeforeDependents [_this] nil)
-          (affectsGlobalScope [_this] false)
-          (^LinkResolver create [_this ^LinkResolverContext _ctx]
-            (reify LinkResolver
-              (resolveLink [_this _node _ctx link]
-                (if (= (.getLinkType link) WikiLinkExtension/WIKI_LINK)
-                  (ResolvedLink. LinkType/LINK
-                                 ((or render-wiki-link identity) (.getUrl link))
-                                 nil
-                                 LinkStatus/UNCHECKED)
-                  link))))))
+       (reify LinkResolverFactory
+         (getAfterDependents [_this] nil)
+         (getBeforeDependents [_this] nil)
+         (affectsGlobalScope [_this] false)
+         (^LinkResolver create [_this ^LinkResolverContext _ctx]
+           (reify LinkResolver
+             (resolveLink [_this _node _ctx link]
+               (if (= (.getLinkType link) WikiLinkExtension/WIKI_LINK)
+                 (ResolvedLink. LinkType/LINK
+                                ((or render-wiki-link identity) (.getUrl link))
+                                nil
+                                LinkStatus/UNCHECKED)
+                 link))))))
       ;; Wrap wikilinks content in <code>
       (nodeRendererFactory
        (reify DelegatingNodeRendererFactory
          (getDelegates [_this]
            #{WikiLinkNodeRenderer$Factory})
          (create [_this _options]
-          (reify NodeRenderer
-            (getNodeRenderingHandlers [_this]
-              #{(NodeRenderingHandler.
-                 WikiLink
-                 (reify CustomNodeRenderer
-                   (render [_this node ctx html]
-                     (let [resolved-link (.resolveLink ctx WikiLinkExtension/WIKI_LINK (.. node getLink unescape) nil)
-                           url (.getUrl resolved-link)]
-                       (.raw html (str "<a href=\"" url "\"><code>" (.. node getLink) "</code></a>"))))))})))))
+           (reify NodeRenderer
+             (getNodeRenderingHandlers [_this]
+               #{(NodeRenderingHandler.
+                  WikiLink
+                  (reify CustomNodeRenderer
+                    (render [_this node ctx html]
+                      (let [resolved-link (.resolveLink ctx WikiLinkExtension/WIKI_LINK (.. node getLink unescape) nil)
+                            url (.getUrl resolved-link)]
+                        (.raw html (str "<a href=\"" url "\"><code>" (.. node getLink) "</code></a>"))))))})))))
       (extensions md-extensions)
       (build)))
 
@@ -107,7 +106,5 @@
   (markdown-to-html "*hello world* [[link]]" {:escape-html? true
                                               :render-wiki-link (constantly "???")})
 
-  (asciidoc-to-html "ifdef::env-cljdoc[]\nCLJDOC\nendif::[]\nifndef::env-cljdoc[]\nNOT_CLJDOC\nendif::[]")
-
-  )
+  (asciidoc-to-html "ifdef::env-cljdoc[]\nCLJDOC\nendif::[]\nifndef::env-cljdoc[]\nNOT_CLJDOC\nendif::[]"))
 

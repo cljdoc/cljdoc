@@ -142,9 +142,9 @@
 (defmacro with-nomad [{:keys [ip ssh-key]} & body]
   `(let [jsch#    (JSch.)
          session# (.getSession jsch# "root" ~ip)]
-    (.addIdentity jsch# ~ssh-key)
-    (JSch/setConfig "StrictHostKeyChecking" "no")
-    (.connect session# 5000)
+     (.addIdentity jsch# ~ssh-key)
+     (JSch/setConfig "StrictHostKeyChecking" "no")
+     (.connect session# 5000)
      (try
        (.setPortForwardingL session# 8500 "localhost" 8500)
        (.setPortForwardingL session# 4646 "localhost" 4646)
@@ -182,6 +182,4 @@
   (with-nomad ip
     (nomad-get "/v1/deployments")
     (deploy!
-     (or "0.0.1160-blue-green-8b4cdad" "0.0.1151-blue-green-c329ed1")))
-
-  )
+     (or "0.0.1160-blue-green-8b4cdad" "0.0.1151-blue-green-c329ed1"))))

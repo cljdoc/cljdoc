@@ -78,7 +78,6 @@
                   :opts        []
                   :runs        run}]})
 
-
 (defn -main
   [& args]
   (cli-matic/run-cmd args CONFIGURATION))

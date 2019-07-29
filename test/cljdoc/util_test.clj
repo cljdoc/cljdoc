@@ -25,7 +25,7 @@
             :jar "https://repo.clojars.org/bidi/bidi/2.0.9-SNAPSHOT/bidi-2.0.9-20160426.224252-1.jar"})))
 
 (t/deftest latest-release-test
-  (t/is (= "0.0.4" (repositories/latest-release-version 'org/clojure/math.numeric-tower))))
+  (t/is (= "0.0.4" (repositories/latest-release-version "org/clojure/math.numeric-tower"))))
 
 (t/deftest normalize-git-url-test
   (t/is (= (util/normalize-git-url "git@github.com:clojure/clojure.git")
@@ -46,17 +46,16 @@
                                                                        "/doc/basics/route-syntax/even-more")))
   (t/is (= "walk-through/asd" (util/relativize-path "/doc/introduction" "/doc/introduction/walk-through/asd")))
   (t/is (= "../.." (util/relativize-path "/doc/introduction/walk-through/asd" "/doc/introduction")))
-  (t/is (= ".." (util/relativize-path "/doc/introduction/walk-through" "/doc/introduction")))
-  )
+  (t/is (= ".." (util/relativize-path "/doc/introduction/walk-through" "/doc/introduction"))))
 (t/deftest replant-ns-test
   (t/is (= "my.app.routes" (util/replant-ns "my.app.core" "routes")))
   (t/is (= "my.app.api.routes" (util/replant-ns "my.app.core" "api.routes")))
   (t/is (= "my.app.api.handlers" (util/replant-ns "my.app.core" "my.app.api.handlers"))))
 
 (t/deftest serialize-read-cljdoc-edn
-    (t/is (= "{:or #regex \"^Test*\"}" (util/serialize-cljdoc-edn {:or #"^Test*"})))
+  (t/is (= "{:or #regex \"^Test*\"}" (util/serialize-cljdoc-edn {:or #"^Test*"})))
     ;; we need to compare the resulting string as two regex are equal (= #"" #"") => false
-    (t/is (= (str {:or #"^Test*"}) (str (util/read-cljdoc-edn (StringReader. "{:or #regex \"^Test*\"}"))))))
+  (t/is (= (str {:or #"^Test*"}) (str (util/read-cljdoc-edn (StringReader. "{:or #regex \"^Test*\"}"))))))
 
 (t/deftest day-suffix-test
   (t/is (= "st" (dt/day-suffix 1)))
@@ -67,8 +66,5 @@
 (t/deftest analytics-format-test
   (t/is (= "Wed, Oct 17th" (dt/->analytics-format "2018-10-17T20:58:21.491730Z"))))
 
-
 (comment
-  (t/run-tests)
-
-  )
+  (t/run-tests))

@@ -169,6 +169,4 @@
   (let [service (or #_(circle-ci (cljdoc.config/circle-ci))
                     (->Local))
         build   (trigger-build service p-fail)]
-    (wait-for-build service build))
-
-  )
+    (wait-for-build service build)))

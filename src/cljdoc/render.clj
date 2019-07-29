@@ -122,6 +122,4 @@
   (namespace-hierarchy (map :name namespaces))
 
   (-> (doctree/add-slug-path (-> (:cache-bundle cljdoc.bundle/cache) :version :doc))
-      first)
-
-  )
+      first))

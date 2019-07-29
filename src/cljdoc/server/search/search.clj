@@ -27,9 +27,9 @@
          attr                (.addAttribute stream org.apache.lucene.analysis.tokenattributes.CharTermAttribute)]
      (.reset stream)
      (take-while
-       identity
-       (repeatedly
-         #(when (.incrementToken stream) (str attr)))))))
+      identity
+      (repeatedly
+       #(when (.incrementToken stream) (str attr)))))))
 
 (def search-fields [:artifact-id :group-id :group-id-packages :description])
 
@@ -95,12 +95,12 @@
   [field token]
   (let [t (term field token)]
     (boolean-query
-      (TermQuery. t)
-      (BoostQuery.
-        (doto (PrefixQuery. t)
-          #_(.setRewriteMethod ScoringRewrite/SCORING_BOOLEAN_REWRITE))
+     (TermQuery. t)
+     (BoostQuery.
+      (doto (PrefixQuery. t)
+        #_(.setRewriteMethod ScoringRewrite/SCORING_BOOLEAN_REWRITE))
         ;; Give a prefix less weight than an exact match
-        0.5))))
+      0.5))))
 
 (defn single-token->query [field ^String token match-mode]
   (case match-mode
@@ -109,14 +109,14 @@
 
 (defn field-and-token->query [field token match-mode full-match-text]
   (-> (boolean-query
-        (single-token->query field token match-mode)
+       (single-token->query field token match-mode)
         ;; Add an exact-match query to boost exact matches of the
         ;; whole name so that "re-frame" -> "re-frame:re-frame" comes first
         ;; FIXME This works for group OR artifact-id but breaks for `group/artifact` (x group-id-packages search looks at just the group => use same tokenization? Or split manually at `/`?)
-        (when-let [raw-fld (and full-match-text (raw-field field))]
-          (TermQuery. (term raw-fld full-match-text))))
+       (when-let [raw-fld (and full-match-text (raw-field field))]
+         (TermQuery. (term raw-fld full-match-text))))
       (BoostQuery.
-        (get boosts field))))
+       (get boosts field))))
 
 (defn token->query
   "Create a Lucene Query from a tokenized search string.
@@ -126,8 +126,8 @@
   [token match-mode full-match-text]
   (->> search-fields
        (map
-         #(field-and-token->query
-            % token match-mode full-match-text))
+        #(field-and-token->query
+          % token match-mode full-match-text))
        (apply boolean-query)))
 
 (defn ^Query parse-query [^String query-text]
@@ -137,8 +137,8 @@
                          (take (count tokens))
                          reverse)]
     (->> (map
-           #(token->query %1 %2 (when multitoken? query-text))
-           tokens match-modes)
+          #(token->query %1 %2 (when multitoken? query-text))
+          tokens match-modes)
          (apply boolean-query BooleanClause$Occur/MUST))))
 
 (defn search->results
@@ -163,27 +163,27 @@
   [hits-cnt docs]
   {:count   hits-cnt
    :results (map
-              (fn [{:keys [^Document doc score]}]
-                {:artifact-id (.get doc "artifact-id")
-                 :group-id    (.get doc "group-id")
-                 :description (.get doc "description")
+             (fn [{:keys [^Document doc score]}]
+               {:artifact-id (.get doc "artifact-id")
+                :group-id    (.get doc "group-id")
+                :description (.get doc "description")
                  ;:origin (.get doc "origin")
                  ;; The first version appears to be the latest so this is OK:
-                 :version (.get doc "versions")
-                 :score       score})
-              docs)})
+                :version (.get doc "versions")
+                :score       score})
+             docs)})
 
 (defn search [^String index-dir ^String query-in]
   (search->results
-    index-dir query-in
-    #(format-results
-       (-> (:topdocs %) (.-totalHits) (.-value))
-       (doall
-         (map
-           (fn [^ScoreDoc h]
-             {:score (.score h)
-              :doc (.doc (:searcher %) (.-doc h))})
-           (:score-docs %))))))
+   index-dir query-in
+   #(format-results
+     (-> (:topdocs %) (.-totalHits) (.-value))
+     (doall
+      (map
+       (fn [^ScoreDoc h]
+         {:score (.score h)
+          :doc (.doc (:searcher %) (.-doc h))})
+       (:score-docs %))))))
 
 (defn suggest
   "Provides suggestions for auto-completing the search terms the user is typing.
@@ -196,15 +196,15 @@
   [index-dir query-in]
   (let [suggestions
         (search->results
-          index-dir query-in 5
-          #(->> (:score-docs %)
-                (mapv
-                  (fn [^ScoreDoc h]
-                    (let [doc (.doc (:searcher %) (.-doc h))]
-                      (str
-                        (.get doc "group-id")
-                        "/"
-                        (.get doc "artifact-id")))))))]
+         index-dir query-in 5
+         #(->> (:score-docs %)
+               (mapv
+                (fn [^ScoreDoc h]
+                  (let [doc (.doc (:searcher %) (.-doc h))]
+                    (str
+                     (.get doc "group-id")
+                     "/"
+                     (.get doc "artifact-id")))))))]
     [query-in suggestions]))
 
 (defn explain-top-n
@@ -214,13 +214,13 @@
   ([index-dir query-in] (explain-top-n 5 index-dir query-in))
   ([n index-dir query-in]
    (search->results
-     index-dir query-in
-     (fn [{:keys [searcher score-docs ^Query query]}]
-       (run!
-         #(println
-            (.get (.doc searcher (.-doc %)) "id")
-            (.explain searcher query (.-doc %)))
-         (take n score-docs))))))
+    index-dir query-in
+    (fn [{:keys [searcher score-docs ^Query query]}]
+      (run!
+       #(println
+         (.get (.doc searcher (.-doc %)) "id")
+         (.explain searcher query (.-doc %)))
+       (take n score-docs))))))
 
 (comment
 

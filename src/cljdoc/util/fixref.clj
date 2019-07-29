@@ -114,6 +114,7 @@
 ;; Some utilities to find which file in a git repository corresponds
 ;; to a file where a `def` is coming from --------------------------
 
+
 (defn- find-full-filepath
   "Take a list of filepaths, one subpath and find the best matching full path.
 
@@ -146,7 +147,6 @@
 
   (println (Jsoup/parse hs))
 
-
   (fix fp hs fo)
 
   (rebase "doc/coercion/coercion.md" "../ring/coercion.md")
@@ -166,6 +166,4 @@
                     (.startsWith (.get % "src") "https://")))
        (map #(doto % (.put "src" (fix-image (.get % "src") fix-opts)))))
 
-  (.get (.attributes (first (.select doc "a"))) "href")
-
-  )
+  (.get (.attributes (first (.select doc "a"))) "href"))

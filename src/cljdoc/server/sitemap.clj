@@ -39,29 +39,23 @@
   (routes/url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
 
   (def docs
-    (storage/all-distinct-docs db-spec)
-    )
+    (storage/all-distinct-docs db-spec))
 
   (query->url-entries (first docs))
 
   (sitemap/validate-sitemap
-   (build db-spec)
-   )
+   (build db-spec))
 
   (->>
    (sitemap/generate-sitemap [{:loc "http://example.com/about"
-                       :lastmod "2014-07-00"
-                       :changefreq "monthly"
-                       :priority "0.5"}])
-   (assert-valid-sitemap)
-  )
+                               :lastmod "2014-07-00"
+                               :changefreq "monthly"
+                               :priority "0.5"}])
+   (assert-valid-sitemap))
 
   (->>
    (sitemap/generate-sitemap [{:loc "http://example.com/about"
                                :lastmod "2014-07-24"
                                :changefreq "monthly"
                                :priority "0.5"}])
-   (assert-valid-sitemap)
-   )
-
-)
+   (assert-valid-sitemap)))

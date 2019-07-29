@@ -38,12 +38,12 @@
    6. Include '-raw' fields for group, artifact so that we can boost exact matches.
   "
   (:require
-    [cljdoc.server.search.search :as search]
-    [cljdoc.server.search.artifact-indexer :as indexer]
-    [tea-time.core :as tt]
-    [clojure.spec.alpha :as s]
-    [clojure.tools.logging :as log]
-    [integrant.core :as ig])
+   [cljdoc.server.search.search :as search]
+   [cljdoc.server.search.artifact-indexer :as indexer]
+   [tea-time.core :as tt]
+   [clojure.spec.alpha :as s]
+   [clojure.tools.logging :as log]
+   [integrant.core :as ig])
   (:import (java.util.concurrent TimeUnit)))
 
 (defprotocol ISearcher

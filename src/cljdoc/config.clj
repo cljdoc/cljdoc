@@ -110,7 +110,6 @@
 (defn enable-artifact-indexer? [config]
   (not (clojure.core/get-in config [:cljdoc/server :disable-artifact-indexer??])))
 
-
 (comment
   (:cljdoc/server (config))
 

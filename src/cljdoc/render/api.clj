@@ -38,8 +38,8 @@
     (when doc-str
       (-> doc-str
           (rich-text/markdown-to-html
-            {:escape-html? true
-             :render-wiki-link (comp render-wiki-link parse-wiki-link)})
+           {:escape-html? true
+            :render-wiki-link (comp render-wiki-link parse-wiki-link)})
           hiccup/raw))]
    [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.dn.raw
     doc-str]])
@@ -115,7 +115,7 @@
   (let [keyed-namespaces (ns-tree/index-by :namespace namespaces)
         from-dependency? (fn from-dependency? [ns-entity]
                            (or (not= (:group-id version-entity) (:group-id ns-entity))
-                               (not= (:artifact-id version-entity) (:artifact-id ns-entity)))) ]
+                               (not= (:artifact-id version-entity) (:artifact-id ns-entity))))]
     [:div
      [:ul.list.pl0
       (for [[ns level _ leaf?] (ns-tree/namespace-hierarchy (keys keyed-namespaces))
@@ -241,6 +241,4 @@
     (< 1 (count (set (map :doc platforms)))))
 
   (platf/varies? --d :doc)
-  (platf/get-field --d :name)
-
-  )
+  (platf/get-field --d :name))

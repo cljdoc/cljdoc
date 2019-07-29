@@ -181,9 +181,7 @@
 
   (def memoized-artifact-uris
     (memo-sqlite cljdoc.util.repositories/artifact-uris
-                  db-artifact-uris))
+                 db-artifact-uris))
 
   (time (memoized-artifact-uris 'bidi "2.0.9-SNAPSHOT"))
-  (time (memoized-artifact-uris 'com.bhauman/spell-spec "0.1.0"))
-
-  )
+  (time (memoized-artifact-uris 'com.bhauman/spell-spec "0.1.0")))

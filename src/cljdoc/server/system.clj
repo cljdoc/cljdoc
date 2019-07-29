@@ -122,7 +122,6 @@
     (integrant.repl/set-prep! #(system-config (cfg/config)))
     (integrant.repl/go))
 
-
   (require '[integrant.repl]
            '[clojure.spec.test.alpha :as st])
 

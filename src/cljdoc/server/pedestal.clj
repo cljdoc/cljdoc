@@ -152,8 +152,8 @@
                   group-id        (or group-id (util/group-id project))
                   current?        (= "CURRENT" version)
                   referer-version (some-> request
-                                           (get-in [:headers "referer"])
-                                           util/uri-path routes/match-route :path-params :version)
+                                          (get-in [:headers "referer"])
+                                          util/uri-path routes/match-route :path-params :version)
                   artifact-entity {:artifact-id artifact-id
                                    :group-id group-id
                                    :version (cond

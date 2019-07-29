@@ -5,13 +5,13 @@
             [lambdaisland.uri :as uri]))
 
 (defn owner [scm-url]
-  (get (string/split (:path (uri/uri scm-url)) #"/" ) 1))
+  (get (string/split (:path (uri/uri scm-url)) #"/") 1))
 
 (defn repo [scm-url]
-  (get (string/split (:path (uri/uri scm-url)) #"/" ) 2))
+  (get (string/split (:path (uri/uri scm-url)) #"/") 2))
 
 (defn coordinate [scm-url]
-  (->> (string/split (:path (uri/uri scm-url)) #"/" )
+  (->> (string/split (:path (uri/uri scm-url)) #"/")
        (filter seq)
        (string/join "/")))
 

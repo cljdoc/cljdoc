@@ -137,16 +137,15 @@
         scm-info     (-> cache-bundle :version :scm)
         flat-doctree (-> doc-tree doctree/flatten*)
         uri-map (->> flat-doctree
-                       (map (fn [d]
-                              [(-> d :attrs :cljdoc.doc/source-file)
-                               (article-url (-> d :attrs :slug-path))]))
-                       (into {}))
+                     (map (fn [d]
+                            [(-> d :attrs :cljdoc.doc/source-file)
+                             (article-url (-> d :attrs :slug-path))]))
+                     (into {}))
         page'   (fn [type title contents]
                   (page {:version-entity version-entity
                          :scm-url (-> cache-bundle :version :scm :url)
                          type title}
                         contents))]
-
 
     (reduce
      into
@@ -215,7 +214,6 @@
                  (instance? hiccup.util.RawString v) (.getBytes (str v))
                  :else (throw (Exception. (str "Unsupported value " (class v)))))]))
        (fs-compression/zip "offline-docs.zip"))
-
 
   (slurp (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"))
 

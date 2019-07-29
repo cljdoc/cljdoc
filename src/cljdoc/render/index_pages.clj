@@ -109,7 +109,7 @@
            [:h1.mt5 "All documented artifacts on cljdoc:"]
            (for [[group-id versions-for-group] (sort-by key (group-by :group-id versions))]
              [:div.cf
-              [:h2 group-id [:span.gray.fw3.ml3.f5 "Group ID"] ]
+              [:h2 group-id [:span.gray.fw3.ml3.f5 "Group ID"]]
               [:div.nl2.nr2
                (for [[a-id versions-for-artifact] (group-by :artifact-id versions-for-group)
                      :let [latest (first (sort-by-version versions-for-artifact))]]

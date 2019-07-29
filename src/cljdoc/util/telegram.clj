@@ -64,7 +64,5 @@
   ;; 10024 :sparkles:
   ;; 65039 :warning:
 
-  (.codePointAt "️" 0)
-
-  )
+  (.codePointAt "️" 0))
 

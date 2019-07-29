@@ -35,8 +35,8 @@
 (defn capture [{:keys [req ex]}]
   (if (cfg/sentry-dsn)
     (let [payload (cond-> {:release (cfg/version)}
-                             ex  (interfaces/stacktrace ex app-namespaces)
-                             req (interfaces/http req identity))
+                    ex  (interfaces/stacktrace ex app-namespaces)
+                    req (interfaces/http req identity))
           sentry-response (raven/capture (cfg/sentry-dsn) payload)]
       (when-not (= 200 (:status sentry-response))
         (log/errorf "Failed to log error to Sentry %s %s"

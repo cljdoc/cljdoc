@@ -70,6 +70,4 @@
       (pom/parse)
       (pom/artifact-info))
 
-  (ingest-cljdoc-edn (io/file "data") edn)
-
-  )
+  (ingest-cljdoc-edn (io/file "data") edn))

@@ -106,7 +106,6 @@
                               "limit 1")
                          group-id artifact-id version]))))
 
-
 (defn api-import-successful? [build]
   (and (:api_imported_ts build)
        (nil? (:error build))))
@@ -151,9 +150,7 @@
 
   (analysis-requested! bt "bidi" "bidi" "2.1.3")
 
-  (track-analysis-kick-off! db 2 "xxx")
-
-  )
+  (track-analysis-kick-off! db 2 "xxx"))
 
 
 ;; insert into builds (group_id, artifact_id, version, analysis_triggered_ts) values ('xxx', 'aaa', '1.0.0', datetime('now'));
