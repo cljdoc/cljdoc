@@ -66,7 +66,7 @@
        ;; cljdoc's articles feature -> no further notes required
        (seq doc-tree-with-rest)
        [:div.mb4.js--articles
-        (layout/sidebar-title "Articles" {:separator-line? (not (empty? readme-and-changelog))})
+        (layout/sidebar-title "Articles" {:separator-line? (seq readme-and-changelog)})
         [:div.mv3 (articles/doc-tree-view version-entity doc-tree-with-rest (:doc-slug-path route-params))]]
 
        ;; only readme and changelog -> inform user about custom articles
