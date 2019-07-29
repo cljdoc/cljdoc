@@ -63,6 +63,27 @@ jobs:
       - run: npm ci
       - run: npm run lint
 
+  # setup as job so that report is prominent under GitHub checks
+  dependencies-report:
+    docker:
+      - image: circleci/clojure:tools-deps-1.9.0.394-node
+        command: "/bin/bash"
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          key: v1-dependencies-{{ checksum "deps.edn" }}
+
+      - run:
+          name: dependencies report
+          command: ./script/deps-report.sh
+
+
   publish-zip-build:
     docker:
       - image: circleci/python:2.7-jessie
@@ -119,6 +140,7 @@ workflows:
     jobs:
       - build
       - prettier
+      - dependencies-report
       - publish-docker:
           requires:
             - build
