@@ -76,8 +76,9 @@
         [:p.f7.gray.lh-title
          [:a.blue.link {:href (util/github-url :userguide/articles)} "Articles"]
          " are a practical way to provide additional guidance beyond
-       API documentation. Please refer to " [:a.blue.link {:href (util/github-url
-                                                                  :userguide/articles)} "the documentation"] " to learn more about using them."]]
+       API documentation. Please refer to "
+         [:a.blue.link {:href (util/github-url :userguide/articles)} "the documentation"]
+         " to learn more about using them."]]
 
        ;; no articles at all -> list common problems + link to docs
        :else
@@ -85,8 +86,10 @@
         [:p.f7.gray.lh-title
          "We couldn't find a Readme or any other articles for this project. This happens when
          we could not find the Git repository for a project or there are no articles present in
-         a format that cljdoc supports. " [:strong "Please consult the " [:a.blue.link {:href
-                                                                                        (util/github-url :userguide/articles)} "cljdoc docs"] " on how to fix this."]]])
+         a format that cljdoc supports. "
+         [:strong "Please consult the "
+          [:a.blue.link {:href (util/github-url :userguide/articles)} "cljdoc docs"]
+          " on how to fix this."]]])
 
      ;; Namespace listing
      (let [ns-entities (bundle/ns-entities cache-bundle)]

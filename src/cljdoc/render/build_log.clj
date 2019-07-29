@@ -181,8 +181,9 @@
                                           [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll
                                            (zp/zprint-str (ex-data ex) {:width 70})])))
            (when (:analysis_job_uri build-info)
-             [:p.lh-copy "Please see the " [:a.link.blue {:href (:analysis_job_uri build-info)}
-                                            "build job"] " to understand why this build failed and reach out if you aren't
+             [:p.lh-copy "Please see the "
+              [:a.link.blue {:href (:analysis_job_uri build-info)} "build job"]
+              " to understand why this build failed and reach out if you aren't
               sure how to fix the issue."])
            #_[:p (cljdoc-link build-info true)]))
 
