@@ -26,7 +26,7 @@
        (-> (merge (repositories/local-uris project version) args)
            (cset/rename-keys {:git :scm-url, :rev :scm-rev})))))))
 
-(defn offline-bundle [{:keys [project version output] :as args}]
+(defn offline-bundle [{:keys [project version output] :as _args}]
   (let [sys           (select-keys (system/system-config (config/config))
                                    [:cljdoc/storage :cljdoc/sqlite])
         sys           (ig/init sys)

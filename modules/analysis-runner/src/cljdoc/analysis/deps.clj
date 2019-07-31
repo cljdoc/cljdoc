@@ -96,7 +96,7 @@
   Jsoup document `pom`."
   [pom]
   {:pre [(pom/jsoup? pom)]}
-  (let [{:keys [group-id artifact-id version]} (pom/artifact-info pom)
+  (let [{:keys [group-id artifact-id]} (pom/artifact-info pom)
         project (symbol group-id artifact-id)]
     (-> (extra-deps pom)
         (merge (clj-cljs-deps pom))

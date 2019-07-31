@@ -280,7 +280,7 @@
    {:name ::badge
     :leave (fn badge [ctx]
              (log/info "Badge req headers" (-> ctx :request :headers))
-             (let [{:keys [group-id artifact-id version]} (-> ctx :request :path-params)
+             (let [{:keys [version]} (-> ctx :request :path-params)
                    last-build (::last-build ctx)
                    [status color] (cond
                                     (and last-build (not (build-log/api-import-successful? last-build)))
