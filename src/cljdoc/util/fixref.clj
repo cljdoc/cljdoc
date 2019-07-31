@@ -47,7 +47,7 @@
 
 (defn fix-link
   "Return the cljdoc location for a given URL or it's page on GitHub/GitLab etc."
-  [file-path href {:keys [scm-base uri-map] :as opts}]
+  [file-path href {:keys [scm-base uri-map] :as _opts}]
   (let [root-relative (if (.startsWith href "/")
                         (subs href 1)
                         (rebase file-path href))
@@ -69,7 +69,7 @@
 ;; Below, a `nofollow` attribute is added to external links for SEO purposes.
 
 (defn fix
-  [file-path html-str {:keys [git-ls scm uri-map] :as fix-opts}]
+  [file-path html-str {:keys [git-ls scm uri-map] :as _fix-opts}]
   ;; (def fp file-path)
   ;; (def hs html-str)
   ;; (def fo fix-opts)

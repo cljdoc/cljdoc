@@ -65,7 +65,7 @@
                  (storage/import-doc storage (util/version-entity project version) {})
                  ;; Git analysis may derive the revision via tags but a URL is always required.
                  (if scm-url
-                   (let [{:keys [error scm-url commit] :as git-result}
+                   (let [{:keys [error] :as git-result}
                          (ingest/ingest-git! storage {:project project
                                                       :version version
                                                       :scm-url scm-url
