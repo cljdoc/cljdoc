@@ -21,9 +21,8 @@
 (defn- anchor-uri? [s]
   (.startsWith s "#"))
 
-(defn- own-uri? [s]
-  (or (.startsWith s "https://cljdoc.org")
-      (.startsWith s "https://cljdoc.xyz")))
+(defn- get-own-prefix [s]
+  (first (filter #(string/starts-with? s %) ["https://cljdoc.org" "https://cljdoc.xyz"])))
 
 (defn uri-mapping [version-entity docs]
   (->> docs
@@ -57,25 +56,42 @@
       (str from-uri-map anchor)
       (str scm-base root-relative))))
 
-(defn fix-image
-  [file-path src {:keys [scm-base]}]
-  (let [suffix (when (.endsWith src ".svg") "?sanitize=true")]
+(defn- scm-rev [scm]
+  (or (:name (:tag scm))
+      (:commit scm)))
+
+(defn- local-raw-server
+  "This is overly inflexible for the first version.
+  When testing locally we point to simple static http server."
+  [scm]
+  (when (scm/fs-uri (:url scm)) "http://localhost:9090/"))
+
+(defn- raw-base-url [scm]
+  (or (local-raw-server scm)
+      (str (:url scm)
+           "/raw/"
+           (scm-rev scm) "/")))
+
+(defn- fix-image
+  [file-path src scm ]
+  (let [raw-base-url (raw-base-url scm)
+        suffix (when (and (= :github (scm/provider raw-base-url))
+                          (.endsWith src ".svg"))
+                 "?sanitize=true")]
     (if (.startsWith src "/")
-      (str scm-base (subs src 1) suffix)
-      (str scm-base (rebase file-path src) suffix))))
+      (str raw-base-url (subs src 1) suffix)
+      (str raw-base-url (rebase file-path src) suffix))))
 
 ;; This namespace's scope was mostly around fixing broken links, but since it
 ;; preprocesses a document before rendering, it's also handy for other things.
 ;; Below, a `nofollow` attribute is added to external links for SEO purposes.
-
 (defn fix
   [file-path html-str {:keys [git-ls scm uri-map] :as _fix-opts}]
   ;; (def fp file-path)
   ;; (def hs html-str)
   ;; (def fo fix-opts)
   (let [doc     (Jsoup/parse html-str)
-        scm-rev (or (:name (:tag scm))
-                    (:commit scm))]
+        scm-rev (scm-rev scm)]
     (doseq [broken-link (->> (.select doc "a")
                              (map #(.attributes %))
                              (remove #(absolute-uri? (.get % "href")))
@@ -96,23 +112,20 @@
                             (remove #(absolute-uri? (.get % "src"))))]
       (.put broken-img "src" (fix-image file-path
                                         (.get broken-img "src")
-                                        {:scm-base (str "https://raw.githubusercontent.com/"
-                                                        (scm/owner (:url scm)) "/"
-                                                        (scm/repo (:url scm)) "/"
-                                                        scm-rev "/")})))
+                                        scm)))
 
     (doseq [ext-link (->> (.select doc "a")
                           (map #(.attributes %))
-                          (filter #(absolute-uri? (.get % "href")))
-                          (remove #(own-uri? (.get % "href"))))]
-      (.put ext-link "rel" "nofollow"))
+                          (filter #(absolute-uri? (.get % "href"))))]
+      (let [href (.get ext-link "href")]
+        (if-let [own-prefix (get-own-prefix href)]
+          (.put ext-link "href" (subs href (count own-prefix)))
+          (.put ext-link "rel" "nofollow"))))
 
     (.. doc body html toString)))
 
-
 ;; Some utilities to find which file in a git repository corresponds
 ;; to a file where a `def` is coming from --------------------------
-
 (defn- find-full-filepath
   "Take a list of filepaths, one subpath and find the best matching full path.
 
