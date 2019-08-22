@@ -87,10 +87,10 @@
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (hiccup.page/include-css
-                   "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
-                   "/font-awesome-4.7.0/css/font-awesome.min.css" ;; this is the current asciidoc friendly version
-                   "/cljdoc.css"
-                   "/cljdoc-asciidoc.css")]
+                  "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
+                  "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" ;; this is the current asciidoc friendly version
+                  "/cljdoc.css"
+                  "/cljdoc-asciidoc.css")]
                 [:body
                  [:div.sans-serif
                   contents]

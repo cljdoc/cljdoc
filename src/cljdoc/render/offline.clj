@@ -140,11 +140,14 @@
 (defn- highlight-js-url [component]
   (str "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.15.8/build/" component))
 
-(defn- font-awesome-path [path]
-  (str "font-awesome-4.7.0/" path)) ;; this is the current asciidoc friendly version
+(defn- font-awesome-url [path]
+  (str "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/" path)) ;; this is the current asciidoc friendly version
 
-(defn- remote-asset [asset-url]
-  [(str "assets/" (fs/base-name asset-url)) (URL. asset-url)])
+(defn- remote-asset
+  ([asset-url]
+   (remote-asset "" asset-url))
+  ([local-prefix asset-url]
+   [(str "assets/" local-prefix (fs/base-name asset-url)) (URL. asset-url)]))
 
 (defn- local-asset
   ([asset-path]
@@ -176,12 +179,12 @@
      into
      [[(local-asset "cljdoc.css")
        (local-asset "cljdoc-asciidoc.css")
-       (local-asset "font-awesome/css/"   (font-awesome-path "css/font-awesome.min.css"))
-       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.eot"))
-       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.svg"))
-       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.ttf"))
-       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.woff"))
-       (local-asset "font-awesome/fonts/" (font-awesome-path "fonts/fontawesome-webfont.woff2"))
+       (remote-asset "font-awesome/css/"   (font-awesome-url "css/font-awesome.min.css"))
+       (remote-asset "font-awesome/fonts/" (font-awesome-url "fonts/fontawesome-webfont.eot"))
+       (remote-asset "font-awesome/fonts/" (font-awesome-url "fonts/fontawesome-webfont.svg"))
+       (remote-asset "font-awesome/fonts/" (font-awesome-url "fonts/fontawesome-webfont.ttf"))
+       (remote-asset "font-awesome/fonts/" (font-awesome-url "fonts/fontawesome-webfont.woff"))
+       (remote-asset "font-awesome/fonts/" (font-awesome-url "fonts/fontawesome-webfont.woff2"))
        (remote-asset "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css")
        (remote-asset (highlight-js-url "highlight.min.js"))
        (remote-asset (highlight-js-url "languages/clojure.min.js"))
@@ -203,6 +206,14 @@
          (->> (ns-page ns-data defs)
               (page' :namespace (platf/get-field ns-data :name)))])])))
 
+(defn slurp-bytes
+  "Slurp the bytes from a slurpable thing
+  Credit to: https://stackoverflow.com/a/26372677"
+  [x]
+  (with-open [out (java.io.ByteArrayOutputStream.)]
+    (clojure.java.io/copy (clojure.java.io/input-stream x) out)
+    (.toByteArray out)))
+
 (defn zip-stream [{:keys [version-entity] :as cache-bundle}]
   (let [prefix (str (-> version-entity :artifact-id)
                     "-" (-> version-entity :version)
@@ -211,7 +222,7 @@
          (map (fn [[k v]]
                 [(str prefix k)
                  (cond
-                   (instance? URL v)                  (slurp v)
+                   (instance? URL v)                  (slurp-bytes v)
                    (instance? java.io.File v)         (Files/readAllBytes (.toPath v))
                    (instance? hiccup.util.RawString v) (.getBytes (str v))
                    :else (throw (Exception. (str "Unsupported value " (class v)))))]))
