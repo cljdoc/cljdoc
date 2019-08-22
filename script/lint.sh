@@ -11,9 +11,9 @@ function lint() {
     if [ ! -d .clj-kondo/.cache ]; then
         echo "--[linting and building cache]--"
         # classpath with tests paths
-        local classpath="$(clojure -R:test -C:test -Spath)"
+        local classpath;classpath="$(clojure -R:test -C:test -Spath)"
         # include modules - but exclude shared-utils as it is already included in deps.edn
-        local modules_paths=$(find modules -name "*" -depth 1 | grep -v "shared-utils")
+        local modules_paths;modules_paths=$(find modules -maxdepth 2 -mindepth 2 -name "src" | xargs -I {} dirname {} | grep -v "shared-utils")
         lint_args="$classpath $modules_paths --cache"
     else
         echo "--[linting]--"
