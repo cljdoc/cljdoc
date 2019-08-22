@@ -305,8 +305,8 @@
                                  artifact-id (util/clojars-id params)
                                  group-id group-id)
                    release (try (repos/latest-release-version project)
-                                (catch Exception _e
-                                  (log/warnf "Could not find release for %s" project)))]
+                                (catch Exception e
+                                  (log/warnf e "Could not find release for %s" project)))]
                (->> (if release
                       {:status 302
                        :headers {"Location" (routes/url-for :artifact/version

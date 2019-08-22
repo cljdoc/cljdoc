@@ -35,7 +35,8 @@
         (ingest/ingest-cljdoc-edn storage data)
         (build-log/api-imported! build-tracker build-id ns-count)
         (build-log/completed! build-tracker build-id))
-      (catch Exception _e
+      (catch Exception e
+        (log/errorf e "analysis job failed for project: %s, version: %s, build-id: %s" project version build-id)
         (build-log/failed! build-tracker build-id "analysis-job-failed")))))
 
 (defn kick-off-build!
