@@ -86,8 +86,7 @@
   ;; Otherwise the line below will throw an exception (intentionally so)
   (let [entry-type (some-> attrs :file filepath->type)
         file (-> attrs :file)
-        ;; TODO: Something is amiss here, slurp! is not used!
-        _slurp! (fn [file] (or (slurp-fn file)
+        slurp! (fn [file] (or (slurp-fn file)
                               (throw (Exception. (format "Could not read contents of %s" file)))))]
     (cond-> {:title title}
 
@@ -95,7 +94,7 @@
       (assoc-in [:attrs :cljdoc.doc/source-file] (:file attrs))
 
       entry-type
-      (assoc-in [:attrs entry-type] (slurp-fn (:file attrs)))
+      (assoc-in [:attrs entry-type] (slurp! (:file attrs)))
 
       entry-type
       (assoc-in [:attrs :cljdoc.doc/type] entry-type)
