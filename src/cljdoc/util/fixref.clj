@@ -107,7 +107,7 @@
                           (remove #(own-uri? (.get % "href"))))]
       (.put ext-link "rel" "nofollow"))
 
-    (.toString doc)))
+    (.. doc body html toString)))
 
 
 ;; Some utilities to find which file in a git repository corresponds
