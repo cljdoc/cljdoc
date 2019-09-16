@@ -36,10 +36,17 @@
                :description (str "Clojure Contrib library " g "/" a)
                :origin :maven-central}))))
 
+(def ^:private maven-artefacts ["org.clojure"
+                                "com.turtlequeue"])
+(defn maven-search-url []
+  (let [q (->> (map #(str "g:" %) maven-artefacts)
+               (string/join "+OR+"))]
+    (str "http://search.maven.org/solrsearch/select?q=" q "&rows=200")))
+
 (defn load-maven-central-artifacts []
   ;; GET http://search.maven.org/solrsearch/select?q=g:org.clojure -> JSON .response.docs[] = {g: group, a: artifact-id, latestVersion, versionCount
   (try
-    (with-open [in (io/reader "http://search.maven.org/solrsearch/select?q=g:org.clojure&rows=200")]
+    (with-open [in (io/reader (maven-search-url))]
       (format-maven-central-resp
         (json/parse-stream in keyword)))
     (catch Exception e
