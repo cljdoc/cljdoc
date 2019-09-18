@@ -6,7 +6,8 @@
     [clojure.java.io :as io]
     [clj-http.lite.client :as http]
     [clojure.tools.logging :as log]
-    [cheshire.core :as json])
+    [cheshire.core :as json]
+    [clojure.string :as string])
   (:import (org.apache.lucene.analysis.standard StandardAnalyzer)
            (org.apache.lucene.index IndexWriterConfig IndexWriterConfig$OpenMode IndexWriter Term IndexOptions)
            (org.apache.lucene.document Document StringField Field$Store TextField FieldType Field)
