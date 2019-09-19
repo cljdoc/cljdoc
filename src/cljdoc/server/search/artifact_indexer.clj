@@ -34,13 +34,13 @@
                :versions [latestVersion]
                ;; We do not have description so fake one with g and a so
                ;; that it will match of this field too and score higher
-               :description (str "Clojure Contrib library " g "/" a)
+               :description (str "Maven Central Clojure library " g "/" a)
                :origin :maven-central}))))
 
-(def ^:private maven-artefacts ["org.clojure"
-                                "com.turtlequeue"])
+(def ^:private maven-groups ["org.clojure"
+                             "com.turtlequeue"])
 (defn maven-search-url []
-  (let [q (->> (map #(str "g:" %) maven-artefacts)
+  (let [q (->> (map #(str "g:" %) maven-groups)
                (string/join "+OR+"))]
     (str "http://search.maven.org/solrsearch/select?q=" q "&rows=200")))
 
