@@ -6,7 +6,8 @@
     [clojure.java.io :as io]
     [clj-http.lite.client :as http]
     [clojure.tools.logging :as log]
-    [cheshire.core :as json])
+    [cheshire.core :as json]
+    [clojure.string :as string])
   (:import (org.apache.lucene.analysis.standard StandardAnalyzer)
            (org.apache.lucene.index IndexWriterConfig IndexWriterConfig$OpenMode IndexWriter Term IndexOptions)
            (org.apache.lucene.document Document StringField Field$Store TextField FieldType Field)
@@ -33,13 +34,20 @@
                :versions [latestVersion]
                ;; We do not have description so fake one with g and a so
                ;; that it will match of this field too and score higher
-               :description (str "Clojure Contrib library " g "/" a)
+               :description (str "Maven Central Clojure library " g "/" a)
                :origin :maven-central}))))
+
+(def ^:private maven-groups ["org.clojure"
+                             "com.turtlequeue"])
+(defn maven-search-url []
+  (let [q (->> (map #(str "g:" %) maven-groups)
+               (string/join "+OR+"))]
+    (str "http://search.maven.org/solrsearch/select?q=" q "&rows=200")))
 
 (defn load-maven-central-artifacts []
   ;; GET http://search.maven.org/solrsearch/select?q=g:org.clojure -> JSON .response.docs[] = {g: group, a: artifact-id, latestVersion, versionCount
   (try
-    (with-open [in (io/reader "http://search.maven.org/solrsearch/select?q=g:org.clojure&rows=200")]
+    (with-open [in (io/reader (maven-search-url))]
       (format-maven-central-resp
         (json/parse-stream in keyword)))
     (catch Exception e
