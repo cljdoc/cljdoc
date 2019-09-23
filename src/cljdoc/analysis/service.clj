@@ -34,11 +34,19 @@
    :pompath (:pompath trigger-build-arg)
    :repos   repos})
 
+(def analyzer-version
+  "02d0ca4b982c60a5920cf391b3eb8280b4aa97dd")
+
+(def analyzer-dependency
+  {:deps {'cljdoc-analyzer {:git/url "https://github.com/lread/cljdoc-analyzer.git"
+                            :sha analyzer-version}}})
+
+
 ;; CircleCI AnalysisService -----------------------------------------------------
 
 (declare get-circle-ci-build-artifacts get-circle-ci-build poll-circle-ci-build)
 
-(defrecord CircleCI [api-token builder-project analyzer-version repos]
+(defrecord CircleCI [api-token builder-project repos]
   IAnalysisService
   (trigger-build
     [_ {:keys [build-id project version jarpath pompath] :as arg}]
@@ -47,7 +55,7 @@
     (let [build (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
                            {:accept "application/json"
                             ;; https://github.com/hiredman/clj-http-lite/issues/15
-                            :form-params {"build_parameters[CLJDOC_ANALYZER_VERSION]" analyzer-version
+                            :form-params {"build_parameters[CLJDOC_ANALYZER_DEP]" (pr-str analyzer-dependency)
                                           "build_parameters[CLJDOC_BUILD_ID]" build-id
                                           "build_parameters[CLJDOC_ANALYZER_ARGS]" (pr-str (ng-analysis-args arg repos))}
                             :basic-auth [api-token ""]})
@@ -75,11 +83,9 @@
                           {:service :circle-ci, :build done-build}))))))
 
 (defn circle-ci
-  [{:keys [api-token builder-project analyzer-version] :as args}]
+  [{:keys [api-token builder-project] :as args}]
   (assert (seq api-token) "blank or nil api-token passed to CircleCI component")
   (assert (seq builder-project) "blank or nil builder-project passed to CircleCI component")
-  (assert (= 40 (.length analyzer-version))
-          (str "analyzer-version doesn't look like a valid SHA: " analyzer-version))
   (map->CircleCI args))
 
 (defn circle-ci? [x]
@@ -131,8 +137,9 @@
       ;; Run the analysis-runner (yeah) and return the path to the file containing
       ;; analysis results. This is also the script that is used in the "production"
       ;; [cljdoc-builder project](https://github.com/martinklepsch/cljdoc-builder)
-      (let [proc            (sh/sh "clojure" "-m" "cljdoc.analysis.runner-ng" (pr-str (ng-analysis-args arg repos))
-                                   :dir (io/file "./modules/analysis-runner/"))
+      (let [proc            (sh/sh "clojure" "-Sdeps" (pr-str analyzer-dependency)
+                                   "-m" "cljdoc-analyzer.cljdoc-main" (pr-str (ng-analysis-args arg repos))
+                                   :dir (doto (io/file "/tmp/cljdoc-analysis-runner-dir/") (.mkdir)))
             cljdoc-edn-file (str util/analysis-output-prefix (util/cljdoc-edn project version))]
         {:analysis-result cljdoc-edn-file
          :proc proc})))

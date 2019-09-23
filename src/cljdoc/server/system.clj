@@ -69,7 +69,7 @@
                                  :searcher (ig/ref :cljdoc/searcher)}}))))
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
-  (log/info "Starting" k (:analyzer-version opts))
+  (log/info "Starting" k)
   (case service-type
     :circle-ci (analysis-service/circle-ci opts)
     :local     (analysis-service/map->Local opts)))

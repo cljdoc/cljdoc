@@ -13,7 +13,7 @@
   ;; More work is TBD here in order to pass the configuration
   ;; received from a users Git repository into the analysis service
   ;; https://github.com/cljdoc/cljdoc/issues/107
-  (let [ana-v    (:analyzer-version analysis-service)
+  (let [ana-v    analysis-service/analyzer-version
         ana-resp (analysis-service/trigger-build
                   analysis-service
                   {:project project
