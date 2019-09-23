@@ -36,7 +36,6 @@ jobs:
       - run: ./script/lint.sh
 
       - run: ./script/cljdoc ingest --project bidi --version 2.1.3
-      - run: ./.circleci/run_if_changed.sh modules/analysis-runner/ "cd modules/analysis-runner/; clojure extended-test.clj"
 
       - run: clojure -A:test
 

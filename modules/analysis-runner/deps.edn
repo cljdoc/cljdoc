@@ -1,7 +1,0 @@
-{:paths ["src" "resources" "../shared-utils/src" "../shared-utils/resources"]
- ;; These deps are dependencies of shared-utils and are
- ;; duplicated in the global deps.edn, updates should be
- ;; done in both places. More context in main deps.edn.
- :deps {org.clojure/tools.deps.alpha {:mvn/version "0.7.527"}
-        org.jsoup/jsoup {:mvn/version "1.12.1"}
-        version-clj {:mvn/version "0.1.2"}}}
