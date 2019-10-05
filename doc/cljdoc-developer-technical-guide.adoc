@@ -21,52 +21,12 @@ Being aware of how to diagnose and fix analysis job builds will also be of use, 
 You'll find a detailed deployment description of cljdoc under the link:../ops[ops directory] but here is
 what cljdoc looks like in production in broad strokes:
 
-[svgbob]
-....
-                     ┌────────────────────┐                      ┌───────────────────┐
-                     │clojars             │                      │circleci           │
-    O                │  ┌──────────────┐  │           jar, pom   │  ┌─────────────┐  │
-  --|--   publish    │  │   project    │  │            for api   │  │ cljdoc api  │  │
-    |   ─────────────┼─>│   artifact   ├──┼──────────────────────┼─>│  analysis   │  │
-   / \    library    │  │              │  │           analysis   │  │     job     │  │
-  library            │  └──────────────┘  │                      │  │             │  │
-  author             └───────────────┬────┘                      │  └──────────┬──┘  │
-                                     │                           │     ^       │     │
-                                     │     discovers             └─────┼───────┼─────┘
-                                     └───────────────────┐       launch│       │api
-                                         new library     │          api│       │analysis
-                                                         │     analysis│       │result
-                                                         │             │       │
-                     ┌───────────────────────────────────┼─────────────┼───────┼─────┐
-                     │cljdoc                             V             │       V     │
-   O                 │  ┌──────────────┐              ┌────────────────┴──────────┐  │
- --|--      browse   │  │              │    ┌──────┐  │                           │  │
-   |    ─────────────┼──│     web      │<───┤store ├──┤         analysis          │  │
-  / \        docs    │  │     site     │    └──────┘  │          service          │  │
- cljdoc              │  │              │              │                           │  │
- user                │  └──────────────┘              └───────────────────────────┘  │
-                     │                                                     ^         │
-                     └─────────────────────────────────────────────────────┼─────────┘
-                                                                           │clone for
-                                                                           │docs, info
-                                                                           │and
-                                                                           │mappings
-                                                                           │
-                                                                ┌──────────┼─────────┐
-                                                                │github    │         │
-                                                                │  ┌───────┴──────┐  │
-                                                                │  │              │  │
-                                                                │  │   project    │  │
-                                                                │  │  repository  │  │
-                                                                │  │              │  │
-                                                                │  └──────────────┘  │
-                                                                └────────────────────┘
-....
+image::system-overview.svg[]
 
 A library author publishes to clojars. When the cljdoc analysis service
 discovers the new library, it initiates two tasks:
 
-. it launches an api analysis job on circle ci
+. it launches an api analysis job on circleci
 . clones the library's project from github for library docs, info and file mappings.
 
 The results of the analysis tasks are then stored in an internal cljdoc database.
@@ -76,6 +36,18 @@ Note that while most Clojure developers host their source on github, gitlab and
 bitbucket are also supported source code repositories.
 
 == Conventions
+
+=== Diagrams
+
+To make diagramming accessible to anyone who wants to add or modify an image in
+cljdoc's documentation, we are using the very capable and free to use
+https://www.draw.io/[draw.io]. We commit the `.drawio` image along with the web
+renderable version of the image in the cljdoc github repository.
+
+For example, this document references `system-overview.svg` and we include
+alongside, in the same directory, the draw.io source `system-overview.drawio`.
+
+To make things easy to find, images should sit in the same directory as the doc.
 
 === Linting
 
