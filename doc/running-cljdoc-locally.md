@@ -1,16 +1,11 @@
 # Running cljdoc locally
 
-## Introduction
-If you are a developer wanting to contribute to cljdoc itself, you'll want to
-[run cljdoc locally from source](#run-cljdoc-locally-from-source).
+Besides development purposes running cljdoc locally can be useful to
+build documentation for projects without pushing any changes to
+Clojars and your Git remote.
 
-If you are a library author only interested in verifying that your your docs
-look good before pushing, you can also run locally from source, but you might opt
-to instead [run cljdoc locally from docker](#run-cljdoc-locally-from-docker).
-
-## Run cljdoc Locally from Source
-
-### Setup cljdoc
+Here's a step by step instruction to run cljdoc locally and build docs
+for `muuntaja` from a local Jar and Git repository:
 
 1. Clone cljdoc
 
@@ -29,9 +24,9 @@ to instead [run cljdoc locally from docker](#run-cljdoc-locally-from-docker).
 
     Check that `resources-compiled` folder was generated.
 
-    If you are a developer planning to work on JS files, instead of `npm run build` run `dev`:
+    If you plan to work on JS files, instead of `npm run build` run `dev`:
 
-    ```sh
+    ```
     npm ci                 # reproducibly install packages into node_modules
     npm run format         # format JS code with Prettier
     npm run dev            # watch mode
@@ -43,9 +38,9 @@ to instead [run cljdoc locally from docker](#run-cljdoc-locally-from-docker).
     ./script/cljdoc run
     ```
 
-    > **Note**: This will start the cljdoc server process, requiring you to open another shell for the following steps.
+    > This will start the cljdoc server process, requiring you to open another shell for the following steps.
 
-    Alternatively you can start a REPL with `clj` (or your favorite editor integration),
+    Alternatively you can start a REPL with `clj`,
     then load the system, move into its namespace and start the server:
 
     ```clj
@@ -62,11 +57,7 @@ to instead [run cljdoc locally from docker](#run-cljdoc-locally-from-docker).
     clj -A:test
     ```
 
-### Import a Project from Local Sources
-
-Here we use the popular `muuntaja` project to illustrate how to build docs from a local
-jar and git repository. It's not a bad idea to actually go through these steps as a sanity
-test before mapping this knowledge onto your own project.
+# Importing a Project from Local Sources
 
 1. Clone `muuntaja` to a directory of your liking and install it into your local Maven repo:
 
@@ -76,16 +67,11 @@ test before mapping this knowledge onto your own project.
     scripts/lein-modules install
     ```
 
-    > **Tip:** You can checkout a different specific release version instead of 0.6.1.
+    > **Tip:** You can checkout the specific release version instead of 0.6.1.
     > When you do so, remember to change the version number in the command in the
     > next step.
 
-    > **Tip:** installing to your local maven repo will vary by build tech
-    > (leiningen, boot, tools deps). The `scripts/lein-modules install` command is
-    > appropriate for `muuntaja`, be sure to use the appropriate command for your
-    > project.
-
-1. Analyze and ingest your project into the cljdoc system:
+1. Ingest all relevant information into the cljdoc system:
 
     ```sh
     cd cljdoc/
@@ -104,41 +90,36 @@ test before mapping this knowledge onto your own project.
                            --rev "master"
     ```
 
-    > **Tip:** Run `./script/cljdoc ingest --help` for details on all ingest
-    > command line options.
+    > **Tip:** See `./script/cljdoc ingest --help` for details.
 
-    > **Note:** For Git-based changes to take effect, you need to
-    > commit them locally so there is a revision that the repo can be analysed
-    > at. This can be done in a branch, if you don't want to pollute your master.
+    > **Note:** For Git-based changes to take effect you need to
+    > commit them so there is a revision that the repo can be analysed
+    > at. This can be done in a branch of course.
 
 1. Open the docs for muuntaja on the local cljdoc server: http://localhost:8000/d/metosin/muuntaja
 
-## Run cljdoc Locally from docker
+# Running locally with Docker
 
-The [cljdoc docker image](https://hub.docker.com/r/cljdoc/cljdoc/tags) can be
-used to run cljdoc locally without building it yourself. We'll use the
-`muuntaja` project to illustrate how this works.
+The [Docker image](https://hub.docker.com/r/cljdoc/cljdoc/tags) can be used to run cljdoc locally without building it yourself:
 
-1. Follow step 1 from [import a project from local sources](#import-a-project-from-local-sources).
+1. Like step 1 from the [previous section](#importing-a-project-from-local-sources).
 
-1. Make a directory in which the cljdoc sqlite database will be persisted, e.g. `/tmp/cljdoc`
+1. Make a directory in which the sqlite database will be persisted, e.g. `/tmp/cljdoc`
 
-1. Ingest the library into the cljdoc sqlite database:
+1. Ingest the library:
 
-     ```sh
-     docker run --rm -v /path/to/muuntaja/repo:/muuntaja \
-       -v "$HOME/.m2:/root/.m2" -v /tmp/cljdoc:/app/data --entrypoint "clojure" \
-       cljdoc/cljdoc -A:cli ingest -p metosin/muuntaja -v 0.6.1 \
-       --git /muuntaja
-     ```
-1. Run the web server:
+        docker run --rm -v /path/to/muuntaja/repo:/muuntaja \
+               -v "$HOME/.m2:/root/.m2" -v /tmp/cljdoc:/app/data --entrypoint "clojure" \
+               cljdoc/cljdoc -A:cli ingest -p metosin/muuntaja -v 0.6.1 \
+               --git /muuntaja
 
-     `docker run --rm -p 8000:8000 -v /tmp/cljdoc:/app/data cljdoc/cljdoc`
+1. Run the server:
 
-1. Open the docs for `muuntaja` on the local cljdoc server running on docker:
-   http://localhost:8000/d/metosin/muuntaja/0.6.1/doc/readme
+       docker run --rm -p 8000:8000 -v /tmp/cljdoc:/app/data cljdoc/cljdoc
 
-Example scripts to preview docs locally using docker before publishing:
+1. Open the docs for muuntaja on the [local cljdoc server](http://localhost:8000/d/metosin/muuntaja/0.6.1/doc/readme)
+
+Example scripts to preview docs locally before publishing:
 
 - [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/script/cljdoc-preview)
 
