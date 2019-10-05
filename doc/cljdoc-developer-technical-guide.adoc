@@ -1,0 +1,66 @@
+= cljdoc Developer Technical Guide
+
+== Introduction
+
+So you'd like to contribute your development skills to cljdoc itself? This is great!
+
+You'll first want to read link:../CONTRIBUTING.adoc[Contributing] and familiarize yourself with
+the link:CODE_OF_CONDUCT.adoc[Code of Conduct].
+
+This document is a collection of technical notes that should be useful to a cljdoc developer.
+If you find there is something missing from this doc that stumped you, we would greatly
+appreciate you letting us know.
+
+== Related developer docs
+You can learn how to setup a local development environment in link:running-cljdoc-locally.md[Running cljdoc locally].
+
+Being aware of how to diagnose and fix analysis job builds will also be of use, see link:fixing-builds.md[fixing cljdoc builds].
+
+== System Overview
+
+You'll find a detailed deployment description of cljdoc under the link:../ops[ops directory] but here is
+what cljdoc looks like in production in broad strokes:
+
+image::system-overview.svg[]
+
+A library author publishes to clojars. When the cljdoc analysis service
+discovers the new library, it initiates two tasks:
+
+. it launches an api analysis job on circleci
+. clones the library's project from github for library docs, info and file mappings.
+
+The results of the analysis tasks are then stored in an internal cljdoc database.
+The cljdoc web site then draws on this database to present library docs to cljdoc users.
+
+Note that while most Clojure developers host their source on github, gitlab and
+bitbucket are also supported source code repositories.
+
+== Conventions
+
+=== Diagrams
+
+To make diagramming accessible to anyone who wants to add or modify an image in
+cljdoc's documentation, we are using the very capable and free to use
+https://www.draw.io/[draw.io]. We commit the `.drawio` image along with the web
+renderable version of the image in the cljdoc github repository.
+
+For example, this document references `system-overview.svg` and we include
+alongside, in the same directory, the draw.io source `system-overview.drawio`.
+
+To make things easy to find, images should sit in the same directory as the doc.
+
+=== Linting
+
+We use https://github.com/borkdude/clj-kondo[clj-kondo] to help catch common
+coding errors early. The build server will fail the build if any lint errors are
+found. To find lint errors it runs `script/lint.sh` and so can you!
+
+Note that clj-kondo really shines when you
+https://github.com/borkdude/clj-kondo/blob/master/doc/editor-integration.md[integrate
+it with your development environment].
+
+=== Coding style
+
+We try to follow https://guide.clojure.style[The Clojure Style Guide].
+
+We are https://github.com/cljdoc/cljdoc/pull/337[considering automating whitespace and alignment verifications through cljfmt].
