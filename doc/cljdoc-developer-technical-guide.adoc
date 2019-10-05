@@ -35,7 +35,7 @@ what cljdoc looks like in production in broad strokes:
                                      │     discovers             └─────┼───────┼─────┘
                                      └───────────────────┐       launch│       │api
                                          new library     │          api│       │analysis
-                                                         │     analisys│       │result
+                                                         │     analysis│       │result
                                                          │             │       │
                      ┌───────────────────────────────────┼─────────────┼───────┼─────┐
                      │cljdoc                             V             │       V     │

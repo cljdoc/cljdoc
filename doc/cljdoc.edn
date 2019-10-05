@@ -11,6 +11,6 @@
                     ["For Library Users" {:file "doc/userguide/for-users.md"}]
                     ["Articles" {:file "doc/userguide/articles.md"}]
                     ["FAQ" {:file "doc/userguide/faq.md"}]]
-
                    ["Running cljdoc Locally" {:file "doc/running-cljdoc-locally.md"}]
+                   ["Developer Technical Guide" {:file "doc/cljdoc-developer-technical-guide.adoc"}]
                    ["Custom Articles" {:file "doc/custom-articles.adoc"}]]}
