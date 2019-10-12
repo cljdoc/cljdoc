@@ -390,6 +390,33 @@
         "question",
         "design"
       ]
+    },
+    {
+      "login": "nha",
+      "name": "Nicolas Ha",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/1968291?v=4",
+      "profile": "http://nicolas-ha.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mjhanninen",
+      "name": "Matti Hänninen",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/82970?v=4",
+      "profile": "https://mjhanninen.com",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "jacobobryant",
+      "name": "Jacob O'Bryant",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/3696602?v=4",
+      "profile": "http://jacobobryant.com/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
