@@ -377,6 +377,19 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "lread",
+      "name": "Lee Read",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/967328?v=4",
+      "profile": "https://github.com/lread",
+      "contributions": [
+        "doc",
+        "code",
+        "review",
+        "question",
+        "design"
+      ]
     }
   ],
   "contributorsPerLine": 7,
