@@ -123,21 +123,6 @@ everyone using Clojure and ClojureScript.
 developers that can help you learn and master Clojure.
 3. Some nice https://twitter.com/martinklepsch/status/1037802412680126464[die-cut Stickers]. (Send your address to Martin)
 
-== Git Etiquette
-
-Sometimes little things make a big difference to other team members. Sometimes
-these little things might not be so obvious, hence this section.
-
-=== Commit History
-
-Commits on a pull request should tell the story of what changes have been made
-to a PR reviewer. If you squash your commits and force push on your PR, you'll
-make the reviewer's job harder.
-
-Commits on master should tell the story of what changes have been made to a
-project. When your PR has been reviewed and accepted, squash commits
-appropriately before/while merging to master.
-
 == Maintainer's Playbook
 
 === Becoming a Maintainer
@@ -162,6 +147,19 @@ responsibility as you please.
   author in the process.)
 - Once a user has contributed one commit they will become a maintainer
   as described above.
+
+
+=== Git Etiquette
+
+Sometimes little things make a big difference to other team members. Sometimes
+these little things might not be so obvious, hence this section.
+
+- Sometimes having multiple commits can make it easier to review a change.
+- After a first review, only append commits so reviewers can see what exactly changed.
+- Use GitHub's https://www.google.com/search?client=safari&rls=en&q=github+commit+keywords&ie=UTF-8&oe=UTF-8[keywords] to close and refer to relevant issues from your commits.
+- Potential squashing and rebasing are responsibility of the maintainer merging the PR.
+- Small PRs are easier to review than large PRs. If a PR includes lots of changes multiple
+  commits become critical to enable a proper review by maintainers.
 
 === (Architecture) Decision Records
 
