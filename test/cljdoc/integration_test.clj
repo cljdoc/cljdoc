@@ -95,6 +95,6 @@
 
   (t/run-tests)
 
-  (ig/halt! @sys)
+  (ig/halt! @sys))
 
-  )
+

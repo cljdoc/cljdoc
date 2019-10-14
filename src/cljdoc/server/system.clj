@@ -135,4 +135,14 @@
       (st/instrument)
       (integrant.repl/go))
 
-  (integrant.repl/reset))
+  (integrant.repl/reset)
+
+  ;; To invoke a URL in a started system
+  integrant.repl.state/system
+  (do
+    (require '[io.pedestal.test :as pdt])
+    (pdt/response-for
+      (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
+      :get "/versions" #_:body :headers {"Content-Type" "text/html"}))
+
+  nil)

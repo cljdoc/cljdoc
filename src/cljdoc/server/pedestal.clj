@@ -89,7 +89,16 @@
   "Return a list of interceptors suitable to render an index page appropriate for the provided `route-name`.
   `route-name` can be either `:artifact/index`,  `:group/index` or `:cljdoc/index`."
   [store route-name]
-  [(interceptor/interceptor
+  [(pu/coerce-body-conf
+     (fn html [{:keys [path-params]} content-type body]
+       (if (= content-type "text/html")
+         (case route-name
+               :artifact/index (index-pages/artifact-index path-params body)
+               :group/index (index-pages/group-index path-params body)
+               :cljdoc/index (index-pages/full-index body))
+         body)))
+   (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
+   (interceptor/interceptor
     {:name ::releases-loader
      :enter (fn releases-loader-inner [ctx]
               (case route-name
@@ -98,11 +107,7 @@
 
                 :cljdoc/index
                 (assoc ctx ::releases (storage/all-distinct-docs store))))})
-   (pu/html (fn [ctx]
-              (case route-name
-                :artifact/index (index-pages/artifact-index (-> ctx :request :path-params) (::releases ctx))
-                :group/index    (index-pages/group-index (-> ctx :request :path-params) (::releases ctx))
-                :cljdoc/index   (index-pages/full-index (::releases ctx)))))])
+   (pu/body (fn body [ctx] (-> ctx ::releases index-pages/versions-tree)))])
 
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
