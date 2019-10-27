@@ -194,4 +194,4 @@
   (index! index-dir [artifact]))
 
 (s/fdef index-artifact
-        :args (s/cat :artifact ::cljdoc-spec/artifact))
+        :args (s/cat :index-dir string? :artifact ::cljdoc-spec/artifact))
