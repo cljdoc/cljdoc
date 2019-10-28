@@ -23,10 +23,6 @@ onHostRule = true
 [acme.tlsChallenge]
 
 [[acme.domains]]
-main = "test2.cljdoc.org"
-[[acme.domains]]
-main = "test2.cljdoc.xyz"
-[[acme.domains]]
 main = "cljdoc.org"
 [[acme.domains]]
 main = "cljdoc.xyz"
