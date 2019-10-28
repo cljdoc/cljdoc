@@ -40,7 +40,13 @@ IMPORTANT: In the cljdoc URLs above `$group-id` and `$artifact-id` always refer 
 
 == Docstrings
 
-Docstrings are rendered as **Markdown** in the https://commonmark.org/[CommonMark] dialect.
+Docstrings are rendered as **Markdown** in the https://commonmark.org/[CommonMark] dialect. https://www.martinklepsch.org/posts/writing-awesome-docstrings.html[Follow these 4 recommendations] for best results:
+
+:fence: ```
+1. Backtick-Quote Function Arguments & Special Keywords to make them stand out more
+2. Link To Other Functions Using `\[[Wikilink]]` Syntax
+3. Include Small Examples using Markdown fenced code blocks (`{fence}clojure ... {fence}`)
+4. Use (Markdown) Tables To Describe Complex Options Maps
 
 == Articles
 
