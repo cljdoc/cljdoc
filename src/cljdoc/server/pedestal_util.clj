@@ -74,12 +74,3 @@
    {:name ::html
     :enter (fn html-render-inner [context]
              (ok-html context (render-fn context)))}))
-
-(defn body
-  "Return an interceptor that will pass the context to the provided
-  function `body-fn` and return it's result as the body of an OK response."
-  [body-fn]
-  (interceptor/interceptor
-    {:name ::body
-     :enter (fn body-render-inner [context]
-              (ok context (body-fn context)))}))
