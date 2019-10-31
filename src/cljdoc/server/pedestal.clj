@@ -103,10 +103,15 @@
      :enter (fn releases-loader-inner [ctx]
               (case route-name
                 (:artifact/index :group/index)
-                (pu/ok ctx (storage/list-versions store (-> ctx :request :path-params :group-id)))
+                (->> (-> ctx :request :path-params :group-id)
+                     (storage/list-versions store)
+                     (index-pages/versions-tree)
+                     (pu/ok ctx))
 
                 :cljdoc/index
-                (pu/ok ctx (storage/all-distinct-docs store))))})])
+                (->> (storage/all-distinct-docs store)
+                     (index-pages/versions-tree)
+                     (pu/ok ctx))))})])
 
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
