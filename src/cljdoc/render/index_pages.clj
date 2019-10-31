@@ -9,21 +9,15 @@
             [clojure.spec.alpha :as spec]
             [version-clj.core :as v]))
 
-(spec/fdef sort-by-version
-  :args (spec/cat :version-entities (spec/coll-of :cljdoc.spec/version-entity)))
-
-(defn sort-by-version [version-entities]
-  (sort-by :version #(- (v/version-compare %1 %2)) version-entities))
-
 (spec/fdef artifact-index
   :args (spec/cat :artifact-entity :cljdoc.spec/artifact-entity
                   :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn artifact-index
-  [artifact-entity versions]
-  (let [matching? #(= (:artifact-id artifact-entity) (:artifact-id %))
-        matching  (filter matching? versions)
-        others    (group-by :artifact-id (remove matching? versions))
+  [{:keys [group-id artifact-id] :as artifact-entity} versions-tree]
+  (let [matching  (get-in versions-tree [group-id artifact-id])
+        others    (-> (get-in versions-tree [group-id])
+                      (dissoc artifact-id))
         btn-link :a.dib.bg-blue.white.ph3.pv2.br1.no-underline.f5.fw5
         big-btn-link :a.db.link.blue.ph3.pv2.bg-lightest-blue.hover-dark-blue.br2]
     (->> [:div
@@ -40,21 +34,21 @@
              [:div
               [:span.db "Known versions on cljdoc:"]
               [:ol.list.pl0.pv3
-               (for [v (sort-by-version matching)]
+               (for [v matching]
                  [:li.dib.mr3.mb3
                   [big-btn-link
-                   {:href (routes/url-for :artifact/version :path-params v)}
-                   (:version v)]])]])
+                   {:href (routes/url-for :artifact/version :path-params {:group-id group-id :artifact-id artifact-id :version v})}
+                   v]])]])
            (when (seq others)
              [:div
-              [:h3 "Other artifacts under the " (:group-id artifact-entity) " group"]
+              [:h3 "Other artifacts under the " group-id " group"]
               [:ol.list.pl0.pv3
-               (for [[_artifact-id version-entities] (sort-by first others)
-                     :let [latest (first (sort-by-version version-entities))
-                           a-text (str (:group-id latest) "/" (:artifact-id latest))]]
+               (for [[artifact-id versions] others
+                     :let [latest (first versions)
+                           a-text (str group-id "/" artifact-id)]]
                  [:li.dib.mr3.mb3
                   [big-btn-link
-                   {:href (routes/url-for :artifact/index :path-params latest)}
+                   {:href (routes/url-for :artifact/index :path-params {:group-id group-id :artifact-id artifact-id :version latest})}
                    a-text]])]])]]
          (layout/page {:title (str (util/clojars-id artifact-entity) " — cljdoc")
                        :description (layout/description artifact-entity)}))))
@@ -76,21 +70,20 @@
                   :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn group-index
-  [group-entity versions]
+  [group-entity versions-tree]
   (let [group-id (:group-id group-entity)]
     (->> [:div
           (layout/top-bar-generic)
           [:div.pa4-ns.pa2
            [:h1 group-id]
-           (if (empty? versions)
+           (if (empty? versions-tree)
              [:span.db "There have not been any documentation builds for artifacts under this group, to trigger a build please go the page of a specific artefact."]
              [:div
               [:span.db "Known artifacts and versions under the group " group-id]
               [:ol.list.pl0.pv3.nl2.nr2.cf
-               (for [[_a-id versions] (->> (group-by :artifact-id versions)
-                                          (sort-by first))
-                     :let [latest (first (sort-by-version versions))]]
-                 (artifact-grid-cell latest))]])]]
+               (for [[a-id versions] (get versions-tree group-id)
+                     :let [latest-version (first versions)]]
+                 (artifact-grid-cell {:group-id group-id :artifact-id a-id :version latest-version}))]])]]
          (layout/page {:title (str group-id " — cljdoc")
                        :description (format "All artifacts under the group-id %s for which there is documenation on cljdoc"
                                             group-id)}))))
@@ -99,17 +92,33 @@
   :args (spec/cat :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn full-index
-  [versions]
+  [versions-tree]
   (->> [:div
         (layout/top-bar-generic)
         [:div.pa4-ns.pa2
          [:div#js--cljdoc-navigator]
          [:h1.mt5 "All documented artifacts on cljdoc:"]
-         (for [[group-id versions-for-group] (sort-by key (group-by :group-id versions))]
+         (for [[group-id groups-artifact-id->versions] versions-tree]
            [:div.cf
-            [:h2 group-id [:span.gray.fw3.ml3.f5 "Group ID"] ]
+            [:h2 group-id [:span.gray.fw3.ml3.f5 "Group ID"]]
             [:div.nl2.nr2
-             (for [[_a-id versions-for-artifact] (group-by :artifact-id versions-for-group)
-                   :let [latest (first (sort-by-version versions-for-artifact))]]
-               (artifact-grid-cell latest))]])]]
+             (for [[a-id versions-for-artifact] groups-artifact-id->versions
+                   :let [latest-version (first versions-for-artifact)]]
+               (artifact-grid-cell {:group-id group-id :artifact-id a-id :version latest-version}))]])]]
        (layout/page {:title "all documented artifacts — cljdoc"})))
+
+(defn sort-by-version [version-entities]
+  (sort-by :version #(- (v/version-compare %1 %2)) version-entities))
+
+(spec/fdef sort-by-version
+           :args (spec/cat :version-entities (spec/coll-of :cljdoc.spec/version-entity)))
+
+(defn versions-tree
+  "Make the versions seq into group -> artifact -> list of versions (latest first)"
+  [versions]
+  (into (sorted-map)
+        (for [[group-id versions-for-group] (group-by :group-id versions)]
+          [group-id
+           (into (sorted-map)
+                 (for [[a-id versions-for-artifact] (group-by :artifact-id versions-for-group)]
+                   [a-id (->>  versions-for-artifact sort-by-version (map :version))]))])))

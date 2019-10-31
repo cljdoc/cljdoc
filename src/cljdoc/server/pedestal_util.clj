@@ -11,26 +11,39 @@
   (get-in context [:request :accept :field] "text/html"))
 
 (defn transform-content
-  [body content-type]
-  (case content-type
-    "text/html"                      (str body)
-    "application/edn"                (pr-str body)
-    "application/json"               (json/generate-string body)
-    "application/x-suggestions+json" (json/generate-string body)))
+  ([body content-type] transform-content body content-type nil)
+  ([body content-type transformer]
+   (let [body' ((or transformer identity) body)]
+     (case content-type
+       "text/html"                      (str body')
+       "application/edn"                (pr-str body')
+       "application/json"               (json/generate-string body')
+       "application/x-suggestions+json" (json/generate-string body')))))
 
 (defn coerce-to
-  [response content-type]
-  (-> response
-      (update :body transform-content content-type)
-      (assoc-in [:headers "Content-Type"] content-type)))
+  ([response content-type] (coerce-to response content-type nil))
+  ([response content-type transformer]
+   (-> response
+       (update :body transform-content content-type transformer)
+       (assoc-in [:headers "Content-Type"] content-type))))
+
+(defn coerce-body-conf
+  "Coerce the `:response :body` to the `accepted-type`, optionally passing it
+  through the `transformer`, a `(fn [request content-type body] (modify body))`
+  See [[transform-content]]."
+  [transformer]
+  (interceptor/interceptor
+    {:name  ::coerce-body
+     :leave (fn [context]
+              (let [content-type (accepted-type context)
+                    transformer' (when transformer
+                                   (partial transformer (:request context) content-type))]
+                (cond-> context
+                        (nil? (get-in context [:response :headers "Content-Type"]))
+                        (update-in [:response] coerce-to content-type transformer'))))}))
 
 (def coerce-body
-  (interceptor/interceptor
-   {:name ::coerce-body
-    :leave (fn [context]
-             (cond-> context
-               (nil? (get-in context [:response :body :headers "Content-Type"]))
-               (update-in [:response] coerce-to (accepted-type context))))}))
+  (coerce-body-conf nil))
 
 (defn ok
   "Return the context `ctx` with response `body` and status 200"
