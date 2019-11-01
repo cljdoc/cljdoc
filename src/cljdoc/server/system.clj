@@ -121,7 +121,6 @@
     (integrant.repl/set-prep! #(system-config (cfg/config)))
     (integrant.repl/go))
 
-
   (require '[integrant.repl]
            '[clojure.spec.test.alpha :as st])
 
@@ -143,6 +142,6 @@
     (require '[io.pedestal.test :as pdt])
     (pdt/response-for
       (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
-      :get "/versions" #_:body :headers {"Content-Type" "text/html"}))
+      :get "/api/search?q=async" #_:body :headers {"Accept" "*/*"}))
 
   nil)

@@ -234,13 +234,11 @@
 
 (defn search-interceptor [searcher]
   (interceptor/interceptor
-   {:name  ::search
-    :enter (fn search-handler [ctx]
-             (if-let [q (-> ctx :request :params :q)]
-               (assoc ctx :response {:status  200
-                                     :headers {"Content-Type" "application/json"}
-                                     :body    (search-api/search searcher q)})
-               (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))}))
+    {:name  ::search
+     :enter (fn search-handler [ctx]
+              (if-let [q (-> ctx :request :params :q)]
+                (pu/ok ctx (search-api/search searcher q))
+                (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))}))
 
 (defn search-suggest-interceptor [searcher]
   (interceptor/interceptor
