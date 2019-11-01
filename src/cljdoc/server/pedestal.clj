@@ -90,13 +90,13 @@
   `route-name` can be either `:artifact/index`,  `:group/index` or `:cljdoc/index`."
   [store route-name]
   [(pu/coerce-body-conf
-     (fn html [{:keys [path-params]} content-type body]
-       (if (= content-type "text/html")
+     (fn html-render-fn [ctx]
+       (let [artifact-ent (-> ctx :request :path-params)
+             body (-> ctx :response :body)]
          (case route-name
-               :artifact/index (index-pages/artifact-index path-params body)
-               :group/index (index-pages/group-index path-params body)
-               :cljdoc/index (index-pages/full-index body))
-         body)))
+           :artifact/index (index-pages/artifact-index artifact-ent body)
+           :group/index (index-pages/group-index artifact-ent body)
+           :cljdoc/index (index-pages/full-index body)))))
    (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
    (interceptor/interceptor
     {:name ::releases-loader
