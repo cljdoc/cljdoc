@@ -92,11 +92,11 @@
   [(pu/coerce-body-conf
      (fn html-render-fn [ctx]
        (let [artifact-ent (-> ctx :request :path-params)
-             body (-> ctx :response :body)]
+             versions-data (-> ctx :response :body)]
          (case route-name
-           :artifact/index (index-pages/artifact-index artifact-ent body)
-           :group/index (index-pages/group-index artifact-ent body)
-           :cljdoc/index (index-pages/full-index body)))))
+           :artifact/index (index-pages/artifact-index artifact-ent versions-data)
+           :group/index (index-pages/group-index artifact-ent versions-data)
+           :cljdoc/index (index-pages/full-index versions-data)))))
    (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
    (interceptor/interceptor
     {:name ::releases-loader
