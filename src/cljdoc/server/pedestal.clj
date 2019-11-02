@@ -259,9 +259,7 @@
     :enter (fn build-show-render [ctx]
              (if-let [build-info (->> ctx :request :path-params :id
                                       (build-log/get-build build-tracker))]
-               (if (= "text/html" (pu/accepted-type ctx))
-                 (pu/ok ctx (cljdoc.render.build-log/build-page build-info))
-                 (pu/ok ctx build-info))
+               (pu/ok ctx build-info)
                ;; Not setting :response implies 404 response
                ctx))}))
 
@@ -411,7 +409,9 @@
          :search     [(interceptor/interceptor {:name ::search :enter #(pu/ok-html % (render-search/search-page %))})]
          :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts))})]
          :sitemap    [(sitemap-interceptor storage)]
-         :show-build [pu/coerce-body
+         :show-build [(pu/coerce-body-conf
+                        (fn html-render [ctx]
+                          (cljdoc.render.build-log/build-page (-> ctx :response :body))))
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]
