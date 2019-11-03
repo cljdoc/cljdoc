@@ -90,13 +90,13 @@
   `route-name` can be either `:artifact/index`,  `:group/index` or `:cljdoc/index`."
   [store route-name]
   [(pu/coerce-body-conf
-     (fn html [{:keys [path-params]} content-type body]
-       (if (= content-type "text/html")
+     (fn html-render-fn [ctx]
+       (let [artifact-ent (-> ctx :request :path-params)
+             versions-data (-> ctx :response :body)]
          (case route-name
-               :artifact/index (index-pages/artifact-index path-params body)
-               :group/index (index-pages/group-index path-params body)
-               :cljdoc/index (index-pages/full-index body))
-         body)))
+           :artifact/index (index-pages/artifact-index artifact-ent versions-data)
+           :group/index (index-pages/group-index artifact-ent versions-data)
+           :cljdoc/index (index-pages/full-index versions-data)))))
    (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
    (interceptor/interceptor
     {:name ::releases-loader
@@ -257,9 +257,7 @@
     :enter (fn build-show-render [ctx]
              (if-let [build-info (->> ctx :request :path-params :id
                                       (build-log/get-build build-tracker))]
-               (if (= "text/html" (pu/accepted-type ctx))
-                 (pu/ok ctx (cljdoc.render.build-log/build-page build-info))
-                 (pu/ok ctx build-info))
+               (pu/ok ctx build-info)
                ;; Not setting :response implies 404 response
                ctx))}))
 
@@ -409,7 +407,9 @@
          :search     [(interceptor/interceptor {:name ::search :enter #(pu/ok-html % (render-search/search-page %))})]
          :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts))})]
          :sitemap    [(sitemap-interceptor storage)]
-         :show-build [pu/coerce-body
+         :show-build [(pu/coerce-body-conf
+                        (fn html-render [ctx]
+                          (cljdoc.render.build-log/build-page (-> ctx :response :body))))
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]

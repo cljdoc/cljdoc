@@ -10,37 +10,40 @@
   [context]
   (get-in context [:request :accept :field] "text/html"))
 
-(defn transform-content
-  ([body content-type] transform-content body content-type nil)
-  ([body content-type transformer]
-   (let [body' ((or transformer identity) body)]
-     (case content-type
-       "text/html"                      (str body')
-       "application/edn"                (pr-str body')
-       "application/json"               (json/generate-string body')
-       "application/x-suggestions+json" (json/generate-string body')))))
+(defn- render-body
+  [body content-type]
+  (case content-type
+    "text/html"                      (str body)
+    "application/edn"                (pr-str body)
+    "application/json"               (json/generate-string body)
+    "application/x-suggestions+json" (json/generate-string body)))
 
-(defn coerce-to
-  ([response content-type] (coerce-to response content-type nil))
-  ([response content-type transformer]
-   (-> response
-       (update :body transform-content content-type transformer)
-       (assoc-in [:headers "Content-Type"] content-type))))
+(defn- coerce-to
+  [response content-type]
+  (-> response
+      (update :body render-body content-type)
+      (assoc-in [:headers "Content-Type"] content-type)))
 
 (defn coerce-body-conf
-  "Coerce the `:response :body` to the `accepted-type`, optionally passing it
-  through the `transformer`, a `(fn [request content-type body] (modify body))`
-  See [[transform-content]]."
-  [transformer]
+  "Coerce the `:response :body` to the `accepted-type`, passing it through `html-render-fn`
+  if the resulting content type should be `text/html`. `html-render-fn` will receive the request
+  `context` as its only argument.
+
+  Maybe HTML rendering could also be handled in a separate interceptor that uses [[accepted-type]]
+  to conditionally convert the data provided via `:body` to it's HTML representation."
+  [html-render-fn]
   (interceptor/interceptor
     {:name  ::coerce-body
      :leave (fn [context]
-              (let [content-type (accepted-type context)
-                    transformer' (when transformer
-                                   (partial transformer (:request context) content-type))]
-                (cond-> context
-                        (nil? (get-in context [:response :headers "Content-Type"]))
-                        (update-in [:response] coerce-to content-type transformer'))))}))
+              (if (get-in context [:response :headers "Content-Type"])
+                context
+                (let [content-type (accepted-type context)
+                      rendered-body (if (= content-type "text/html")
+                                      (html-render-fn context)
+                                      (-> context :response :body))]
+                  (-> context
+                      (assoc-in [:response :body] rendered-body)
+                      (update :response coerce-to content-type)))))}))
 
 (def coerce-body
   (coerce-body-conf nil))
