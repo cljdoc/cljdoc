@@ -33,4 +33,4 @@ echo "Syncing to S3"
 
 AWS_ACCESS_KEY_ID=$(tf_out backups_bucket_user_access_key) \
   AWS_SECRET_ACCESS_KEY=$(tf_out backups_bucket_user_secret_key) \
-  aws s3 sync "$local_backups" s3://$(tf_out backups_bucket_name)/
+  aws s3 sync --storage-class "STANDARD_IA" "$local_backups" s3://$(tf_out backups_bucket_name)/
