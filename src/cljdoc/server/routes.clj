@@ -52,17 +52,14 @@
     ["/shortcuts" :get nop :route-name :shortcuts]
     ["/sitemap.xml" :get nop :route-name :sitemap]})
 
-(def project-path
-  "Ensure at most one slash.
-  See https://github.com/cljdoc/cljdoc/issues/348"
-  #"^[^/]+(/[^/]+)?$")
-
 (defn utility-routes []
   #{["/jump/release/*project" :get nop :route-name :jump-to-project]
     ["/badge/*project"
      :get nop
      :route-name :badge-for-project
-     :constraints {:project project-path}]})
+     ;; Ensure at most one slash.
+     ;; See https://github.com/cljdoc/cljdoc/issues/348
+     :constraints {:project #"^[^/]+(/[^/]+)?$"}]})
 
 (defn routes
   "Return the expanded routes given the `opts` as passed to
