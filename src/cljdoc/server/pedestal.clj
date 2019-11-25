@@ -85,10 +85,43 @@
                   (map #(java.net.URLDecoder/decode % "UTF-8"))
                   (assoc-in ctx [:request :path-params :doc-slug-path])))}))
 
+(defn available-docs-denormalized
+  "Return all available documents with one item per version
+  (i.e. in the same format as expected by index-pages/versions-tree)"
+  [searcher {:keys [group-id artifact-id] :as artifact-ent}]
+  (let [match-keys (cond
+                     artifact-id [:artifact-id :group-id]
+                     group-id [:group-id]
+                     :else nil)
+        matches #(= (select-keys % match-keys) (select-keys artifact-ent match-keys))]
+    (->> (search-api/all-docs searcher)
+         (filter matches)
+         (mapcat (fn [artifact]
+                   (map
+                     #(-> artifact (dissoc :versions) (assoc :version %))
+                     (:versions artifact)))))))
+
+(defn versions-data
+  "Return matching documents with version info in a tree"
+  [searcher store route-name {{:keys [path-params params]} :request}]
+  (let [{:keys [group-id] :as artifact-ent} path-params]
+    (->> (if (:all params)
+           (available-docs-denormalized searcher artifact-ent)
+           (case route-name
+             (:artifact/index :group/index)
+             ;; NOTE: We do not filter by artifact-id b/c in the UI we want
+             ;; to show "Other artifacts under the <XY> group"
+             (storage/list-versions store group-id)
+
+             :cljdoc/index
+             (storage/all-distinct-docs store)))
+         (index-pages/versions-tree))))
+
+
 (defn index-pages
   "Return a list of interceptors suitable to render an index page appropriate for the provided `route-name`.
   `route-name` can be either `:artifact/index`,  `:group/index` or `:cljdoc/index`."
-  [store route-name]
+  [searcher store route-name]
   [(pu/coerce-body-conf
      (fn html-render-fn [ctx]
        (let [artifact-ent (-> ctx :request :path-params)
@@ -101,17 +134,7 @@
    (interceptor/interceptor
     {:name ::releases-loader
      :enter (fn releases-loader-inner [ctx]
-              (case route-name
-                (:artifact/index :group/index)
-                (->> (-> ctx :request :path-params :group-id)
-                     (storage/list-versions store)
-                     (index-pages/versions-tree)
-                     (pu/ok ctx))
-
-                :cljdoc/index
-                (->> (storage/all-distinct-docs store)
-                     (index-pages/versions-tree)
-                     (pu/ok ctx))))})])
+              (pu/ok ctx (versions-data searcher store route-name ctx)))})])
 
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
@@ -420,9 +443,9 @@
          :ping          [(interceptor/interceptor {:name ::pong :enter #(pu/ok-html % "pong")})]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
 
-         :cljdoc/index    (index-pages storage route-name)
-         :group/index     (index-pages storage route-name)
-         :artifact/index  (index-pages storage route-name)
+         :cljdoc/index    (index-pages searcher storage route-name)
+         :group/index     (index-pages searcher storage route-name)
+         :artifact/index  (index-pages searcher storage route-name)
 
          :artifact/version   (view storage cache build-tracker route-name)
          :artifact/namespace (view storage cache build-tracker route-name)
