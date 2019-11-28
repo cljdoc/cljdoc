@@ -192,7 +192,7 @@
   "Returns all the documents in the Lucene index, with all the versions.
   NOTE: Takes a few seconds."
   [^String index-dir]
-  ;; FIXME For Maven Central we only index the latest version => fix that
+  ;; FIXME Cache the result e.g. for 1h; it takes a while to load
   (search->results
     index-dir
     (MatchAllDocsQuery.)
