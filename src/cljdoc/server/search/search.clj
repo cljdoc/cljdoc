@@ -161,6 +161,11 @@
            hits             (.scoreDocs topdocs)]
        (f {:topdocs topdocs :score-docs hits :searcher searcher :query query})))))
 
+(defn index-version
+  "Version of the index content, updated every time the index is changed."
+  [^String index-dir]
+  (.getVersion (DirectoryReader/open (fsdir index-dir))))
+
 (defn format-results
   "Format search results into what the frontend expects"
   [hits-cnt docs]
@@ -188,31 +193,40 @@
               :doc (.doc (:searcher %) (.-doc h))})
            (:score-docs %))))))
 
+(defonce all-docs-cache (atom nil)) ;; As of 11/2019 it takes ± 2.6MB (well, when stringified)
+
+;; TODO Add variants fetching versions for a group / a group+artifact => presumabely faster, no need for caching as all-docs will be needed rarely
+;; (If we still want to preserve its caching - Move the state into the ISearcher impl so that integrant can manage and restart it properly)
 (defn all-docs
   "Returns all the documents in the Lucene index, with all the versions.
   NOTE: Takes a few seconds."
   [^String index-dir]
-  ;; FIXME Cache the result e.g. for 1h; it takes a while to load
-  (search->results
-    index-dir
-    (MatchAllDocsQuery.)
-    0 ; = "all"
-    (fn [{docs :score-docs, searcher :searcher}]
-      (mapv ;; non-lazy
-        (fn [^ScoreDoc sdoc]
-          (let [doc (.doc searcher (.-doc sdoc))]
-            {:artifact-id (.get doc "artifact-id")
-             :group-id    (.get doc "group-id")
-             ;:description (.get doc "description")
-             ;:origin (.get doc "origin")
-             ;; The first version appears to be the latest so this is OK:
-             :versions (->> (.getValues doc "versions")
-                            ;; Weird version: libpython-clj 1.12, cirru:writer 0.1.4-a4, -betaN, -alphaN
-                            ;; v20150729-0, v4.1.1, zeta.1.2.1, v1.9.49-184-g75528b51, 0.0-2371-16, -RCN
-                            (remove #(clojure.string/ends-with? % "-SNAPSHOT"))
-                            (into []))}))
+  (let [idx-version (index-version index-dir)
+        [cached-version cached-docs] @all-docs-cache]
+    (if (= idx-version cached-version)
+      cached-docs
+      (let [docs (search->results
+                   index-dir
+                   (MatchAllDocsQuery.)
+                   0 ; = "all"
+                   (fn [{docs :score-docs, searcher :searcher}]
+                     (mapv ;; non-lazy
+                       (fn [^ScoreDoc sdoc]
+                         (let [doc (.doc searcher (.-doc sdoc))]
+                           {:artifact-id (.get doc "artifact-id")
+                            :group-id    (.get doc "group-id")
+                            ;:description (.get doc "description")
+                            ;:origin (.get doc "origin")
+                            ;; The first version appears to be the latest so this is OK:
+                            :versions (->> (.getValues doc "versions")
+                                           ;; Weird version: libpython-clj 1.12, cirru:writer 0.1.4-a4, -betaN, -alphaN
+                                           ;; v20150729-0, v4.1.1, zeta.1.2.1, v1.9.49-184-g75528b51, 0.0-2371-16, -RCN
+                                           (remove #(clojure.string/ends-with? % "-SNAPSHOT"))
+                                           (into []))}))
 
-        docs))))
+                       docs)))]
+           (reset! all-docs-cache [idx-version docs])
+           docs))))
 
 (defn suggest
   "Provides suggestions for auto-completing the search terms the user is typing.
