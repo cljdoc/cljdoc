@@ -3,11 +3,11 @@
     [cljdoc.spec :as cljdoc-spec]
     [clojure.edn :as edn]
     [clojure.spec.alpha :as s]
+    [clojure.string :as str]
     [clojure.java.io :as io]
     [clj-http.lite.client :as http]
     [clojure.tools.logging :as log]
-    [cheshire.core :as json]
-    [clojure.string :as string])
+    [cheshire.core :as json])
   (:import (org.apache.lucene.analysis.standard StandardAnalyzer)
            (org.apache.lucene.index IndexWriterConfig IndexWriterConfig$OpenMode IndexWriter Term IndexOptions)
            (org.apache.lucene.document Document StringField Field$Store TextField FieldType Field)
@@ -22,40 +22,116 @@
 (defn ^FSDirectory fsdir [index-dir] ;; BEWARE: Duplicated in artifact-indexer and search ns
   (FSDirectory/open (Paths/get index-dir (into-array String nil))))
 
-(defn format-maven-central-resp [json]
-  (when (> (-> json :response :numFound) 200)
-    (log/error "Maven Central has more results than our limit of 200 => "
-               "increase the limit or implement pagination to get them all"))
-  (->> (get-in json [:response :docs])
-       (map (fn [{:keys [a g latestVersion]}]
-              {:artifact-id a
-               ;; TODO Add a field indicating that these results should be boosted
-               :group-id g
-               :versions [latestVersion]
-               ;; We do not have description so fake one with g and a so
-               ;; that it will match of this field too and score higher
-               :description (str "Maven Central Clojure library " g "/" a)
-               :origin :maven-central}))))
+;;------------------------------------------------------------------------------------------------------- Maven Central
 
 (def ^:private maven-groups ["org.clojure"
                              "com.turtlequeue"])
-(defn maven-search-url []
-  (let [q (->> (map #(str "g:" %) maven-groups)
-               (string/join "+OR+"))]
-    (str "http://search.maven.org/solrsearch/select?q=" q "&rows=200")))
 
-(defn load-maven-central-artifacts []
-  ;; GET http://search.maven.org/solrsearch/select?q=g:org.clojure -> JSON .response.docs[] = {g: group, a: artifact-id, latestVersion, versionCount
+(def ^:private maven-grp-version-counts
+  "group-id -> number of different artifact+version combinations in the group.
+  Used to find out whether there is any new stuff => refetch needed."
+  (atom nil))
+
+(comment
+  (reset! maven-grp-version-counts nil))
+
+(defn fetch-json [url]
   (try
-    (with-open [in (io/reader (maven-search-url))]
-      (format-maven-central-resp
-        (json/parse-stream in keyword)))
+    (with-open [in (io/reader url)]
+      (json/parse-stream in keyword))
     (catch Exception e
-      (log/info e "Failed to download artifacts from Maven Central")
+      (log/info e "Failed to download artifacts from url")
       nil)))
+
+(defn fetch-maven-docs
+  "Fetch documents matching the query from Maven Central; supports pagination."
+  [query]
+  (loop [start 0, acc nil]
+    (let [rows 200
+          latest-version-only? false
+
+          {total :numFound, docs :docs}
+          (:response (fetch-json
+                       (str "http://search.maven.org/solrsearch/select?q=" query
+                            "&start=" start "&rows=" rows
+                            (when-not latest-version-only? "&core=gav"))))
+
+          more? (pos? (- total start rows))
+          acc'  (concat acc docs)]
+      (if more?
+        (recur (+ start rows) acc')
+        acc'))))
+
+(defn fetch-maven-description
+  "Fetch the description of a Maven Central artifact (if it has any)"
+  [{:keys [artifact-id group-id], [version] :versions}]
+  (let [g-path (str/replace group-id "." "/")
+        url (str "https://search.maven.org/remotecontent?filepath=" g-path "/" artifact-id "/" version "/" artifact-id "-" version ".pom")]
+    (with-open [in (io/reader url)]
+      (->> (line-seq in)
+           (some #(re-find #"<description>(.*)</description>" %))
+           second))))
+
+(defn add-description! [{a :artifact-id, g :group-id :as artifact}]
+  (assoc artifact
+    :description
+    (or
+      (fetch-maven-description artifact)
+      (str "Maven Central Clojure library " g "/" a))))
+
+(defn maven-doc->artifact [{:keys [g a v #_versionCount #_timestamp]}]
+  {:artifact-id a
+   :group-id g
+   :version v
+   ;; We do not have description so fake one with g and a so
+   ;; that it will match of this field too and score higher
+   ;; Description possible from https://search.maven.org/remotecontent?filepath=org/clojure/clojure/1.10.1/clojure-1.10.1.pom
+   ;; -> `<description>...</description>`
+   :origin :maven-central})
+
+(defn new-artifacts?
+  "Are the new artifacts or versions in Maven Central within this group?
+  Maven Central does not support ETAG / If-Modified-Since so we use the artifacts+versions count as an
+  indication that there is something new and we need to re-fetch."
+  [group-id]
+  (let [versions-cnt (-> (fetch-json (str "http://search.maven.org/solrsearch/select?q=g:" group-id "&core=gav&rows=0"))
+                         :response :numFound)]
+    (> versions-cnt (get @maven-grp-version-counts group-id -1))))
+
+(defn update-grp-version-count! [group-id group-docs]
+  (swap! maven-grp-version-counts assoc group-id (count group-docs))
+  group-docs)
+
+(defn mvn-merge-versions [artifacts]
+  (->> artifacts
+       ;; NOTE Different artifacts are interleaved but in total newer versions it seems come boefore older ones of any given artifact
+       ;; so we cannot use `partition` but `group-by` (which preserves order) works perfectly
+       (group-by (juxt :group-id :artifact-id))
+       vals
+       (map (fn [versions]
+              (-> (first versions)
+                  (dissoc :version)
+                  (assoc :versions (map :version versions)))))))
+
+(defn load-maven-central-artifacts-for [group-id force?]
+  (when (or force? (new-artifacts? group-id))
+    (->> (fetch-maven-docs (str "g:" group-id))
+         (update-grp-version-count! group-id)
+         (map maven-doc->artifact)
+         (mvn-merge-versions)
+         (pmap add-description!))))
+
+
+(defn load-maven-central-artifacts
+  "Load artifacts from Maven Central - if there are any new ones (or `force?`)
+  NOTE: Takes ± 2s as of 11/2019"
+  [force?]
+  (mapcat #(load-maven-central-artifacts-for % force?) maven-groups))
 
 (s/fdef load-maven-central-artifacts
         :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
+
+;;------------------------------------------------------------------------------------------------------------- Clojars
 
 (defonce clojars-last-modified (atom nil))
 
@@ -99,6 +175,8 @@
 
 (s/fdef load-clojars-artifacts
         :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
+
+;;-------------------------------------------------------------------------------------------------------------
 
 (defn ^String artifact->id [{:keys [artifact-id group-id]}]
   (str group-id ":" artifact-id))
@@ -167,7 +245,7 @@
      "group-id-packages" (StopAnalyzer. (CharArraySet. ["."] true))}))
 
 (defn index! [^String index-dir artifacts]
-  (let [create?   false ;; update
+  (let [create?   false ;; => update, see how we use `.updateDocument` above
         analyzer (mk-indexing-analyzer)
         iw-cfg   (doto (IndexWriterConfig. analyzer)
                    (.setOpenMode (if create?
@@ -188,7 +266,7 @@
    (log/info "Download & index starting...")
    (index! index-dir (into
                        (load-clojars-artifacts force?)
-                       (load-maven-central-artifacts)))))
+                       (load-maven-central-artifacts force?)))))
 
 (defn index-artifact [^String index-dir artifact]
   (index! index-dir [artifact]))

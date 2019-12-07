@@ -50,12 +50,15 @@
   ;; wrap the required configuration in it, passing the type instead of the raw config
   ;; to each of the functions that need it.
   "Index and search artifacts."
+  (all-docs [_] "Return all the documents, with all the version")
   (index-artifact [_ artifact])
   (search [_ query])
-  (suggest [_ query]))
+  (suggest [_ query] "Provides suggestions for auto-completing the search terms the user is typing."))
 
 (defrecord Searcher [index-dir]
   ISearcher
+  (all-docs [_]
+    (search/all-docs index-dir))
   (index-artifact [_ artifact]
     (indexer/index-artifact index-dir artifact))
   (search [_ query]

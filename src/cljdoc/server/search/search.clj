@@ -11,7 +11,7 @@
            (org.apache.lucene.analysis.standard StandardAnalyzer)
            (org.apache.lucene.document Document)
            (org.apache.lucene.index DirectoryReader Term)
-           (org.apache.lucene.search Query IndexSearcher TopDocs ScoreDoc BooleanClause$Occur PrefixQuery BoostQuery BooleanQuery$Builder TermQuery Query)
+           (org.apache.lucene.search Query IndexSearcher TopDocs ScoreDoc BooleanClause$Occur PrefixQuery BoostQuery BooleanQuery$Builder TermQuery Query MatchAllDocsQuery)
            (org.apache.lucene.store FSDirectory)
            (java.nio.file Paths)))
 
@@ -148,15 +148,23 @@
    (search->results index-dir query-in 30 f))
   ([^String index-dir ^String query-in ^long max-results f]
    (with-open [reader (DirectoryReader/open (fsdir index-dir))]
-     (let [searcher         (IndexSearcher. reader)
+     (let [^int max-results' (if (zero? max-results)
+                               (.maxDoc reader)
+                               max-results)
+           searcher         (IndexSearcher. reader)
            ;parser           (QueryParser. "artifact-id" analyzer)
            ;query            (.parse parser query-str)
            ^Query query     (if (instance? Query query-in)
                               query-in
                               (parse-query query-in))
-           ^TopDocs topdocs (.search searcher query max-results)
+           ^TopDocs topdocs (.search searcher query max-results')
            hits             (.scoreDocs topdocs)]
        (f {:topdocs topdocs :score-docs hits :searcher searcher :query query})))))
+
+(defn index-version
+  "Version of the index content, updated every time the index is changed."
+  [^String index-dir]
+  (.getVersion (DirectoryReader/open (fsdir index-dir))))
 
 (defn format-results
   "Format search results into what the frontend expects"
@@ -184,6 +192,41 @@
              {:score (.score h)
               :doc (.doc (:searcher %) (.-doc h))})
            (:score-docs %))))))
+
+(defonce all-docs-cache (atom nil)) ;; As of 11/2019 it takes ± 2.6MB (well, when stringified)
+
+;; TODO Add variants fetching versions for a group / a group+artifact => presumabely faster, no need for caching as all-docs will be needed rarely
+;; (If we still want to preserve its caching - Move the state into the ISearcher impl so that integrant can manage and restart it properly)
+(defn all-docs
+  "Returns all the documents in the Lucene index, with all the versions.
+  NOTE: Takes a few seconds."
+  [^String index-dir]
+  (let [idx-version (index-version index-dir)
+        [cached-version cached-docs] @all-docs-cache]
+    (if (= idx-version cached-version)
+      cached-docs
+      (let [docs (search->results
+                   index-dir
+                   (MatchAllDocsQuery.)
+                   0 ; = "all"
+                   (fn [{docs :score-docs, searcher :searcher}]
+                     (mapv ;; non-lazy
+                       (fn [^ScoreDoc sdoc]
+                         (let [doc (.doc searcher (.-doc sdoc))]
+                           {:artifact-id (.get doc "artifact-id")
+                            :group-id    (.get doc "group-id")
+                            ;:description (.get doc "description")
+                            ;:origin (.get doc "origin")
+                            ;; The first version appears to be the latest so this is OK:
+                            :versions (->> (.getValues doc "versions")
+                                           ;; Weird version: libpython-clj 1.12, cirru:writer 0.1.4-a4, -betaN, -alphaN
+                                           ;; v20150729-0, v4.1.1, zeta.1.2.1, v1.9.49-184-g75528b51, 0.0-2371-16, -RCN
+                                           (remove #(clojure.string/ends-with? % "-SNAPSHOT"))
+                                           (into []))}))
+
+                       docs)))]
+           (reset! all-docs-cache [idx-version docs])
+           docs))))
 
 (defn suggest
   "Provides suggestions for auto-completing the search terms the user is typing.
@@ -231,6 +274,8 @@
   ;; less worth than 1) double match on metosin (in a, g) and 2) match on g=metosin
   ;; and a random, rare artifact name => with high idf
   (explain-top-n 6 "data/index" "metosin muunta")
+
+  (all-docs "data/index")
 
   (search "data/index" "re-frame")
   (search "data/index" "clojure")
