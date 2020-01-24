@@ -12,7 +12,8 @@
       "avatar_url": "https://avatars1.githubusercontent.com/u/284934?v=4",
       "profile": "https://michielborkent.nl",
       "contributions": [
-        "doc"
+        "doc",
+        "bug"
       ]
     },
     {
@@ -425,6 +426,25 @@
       "profile": "http://linshuai2012.tumblr.com/",
       "contributions": [
         "code"
+      ]
+    },
+    {
+      "login": "jimmyhmiller",
+      "name": "Jimmy Miller",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/6071338?v=4",
+      "profile": "https://github.com/jimmyhmiller",
+      "contributions": [
+        "code",
+        "maintenance"
+      ]
+    },
+    {
+      "login": "awkay",
+      "name": "Tony Kay",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/1177083?v=4",
+      "profile": "http://www.fulcrologic.com",
+      "contributions": [
+        "bug"
       ]
     }
   ],
