@@ -2,7 +2,7 @@
  ;; or from resources/secrets if CLJDOC secrets isn't set
  :secrets #include #or [#env CLJDOC_SECRETS "secrets.edn"]
  :maven-repositories [{:id "clojars" :url "https://repo.clojars.org/"}
-                      {:id "central" :url "http://central.maven.org/maven2/"}]
+                      {:id "central" :url "https://repo.maven.apache.org/maven2/"}]
  :cljdoc/version #profile {:prod #slurp "CLJDOC_VERSION"
                            :default "dev"}
  :cljdoc/server {:port 8000

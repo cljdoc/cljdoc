@@ -7,7 +7,7 @@
            (java.io StringReader)))
 
 (t/deftest find-artifact-repository-test
-  (let [central "http://central.maven.org/maven2/"
+  (let [central "https://repo.maven.apache.org/maven2/"
         clojars "https://repo.clojars.org/"]
     (t/is (= (repositories/find-artifact-repository "org.clojure/clojure" "1.9.0")
              central))
