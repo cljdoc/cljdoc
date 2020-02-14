@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "husky": "^1.1.2",
-    "parcel": "^1.12.3",
+    "parcel": "^1.12.4",
     "prettier": "^1.14.3",
     "prettier-check": "^2.0.0",
     "pretty-quick": "^1.8.0"
