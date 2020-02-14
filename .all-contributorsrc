@@ -446,6 +446,16 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "tobias",
+      "name": "Toby Crawley",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/2631?v=4",
+      "profile": "http://tcrawley.org/",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
