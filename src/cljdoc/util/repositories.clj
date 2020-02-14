@@ -32,6 +32,19 @@
   {:pre [(string? repository)]}
   (format "%s%s/%s/%s/" repository (group-path project) (util/artifact-id project) version))
 
+(defn artifact-uri
+  ([suffix repository project version]
+   (artifact-uri suffix repository project version version))
+  ([suffix repository project version actual-version]
+   (format "%s%s-%s.%s"
+           (version-directory-uri repository project version)
+           (util/artifact-id project)
+           actual-version
+           suffix)))
+
+(def jar-uri (partial artifact-uri "jar"))
+(def pom-uri (partial artifact-uri "pom"))
+
 (defn metadata-xml-uri
   "Returns a URI to read metadata for the `project`.
 
@@ -70,35 +83,29 @@
         (string/replace version #"-SNAPSHOT$" (str "-" timestamp "-" build-num)))
       version)))
 
+(defn snapshot-version?
+  [version]
+  (.endsWith version "-SNAPSHOT"))
+
 (defn exists?
   ([repository project]
    (let [uri (metadata-xml-uri repository project)]
      (= 200 (:status (http/head uri {:throw-exceptions false})))))
   ([repository project version]
-   (let [uri (version-directory-uri repository project version)]
+   (let [uri (if (snapshot-version? version)
+               (metadata-xml-uri repository project version)
+               (pom-uri repository project version))]
      (= 200 (:status (http/head uri {:throw-exceptions false}))))))
 
 (defn artifact-uris*
   [repository project version]
   {:pre [(string? repository) (some? project) (some? version)]}
-  (let [version' (if (and (.endsWith version "-SNAPSHOT")
+  (let [version' (if (and (snapshot-version? version)
                           (.startsWith repository "http"))
                    (resolve-snapshot repository project version)
                    version)]
-    {:pom (format "%s%s/%s/%s/%s-%s.pom"
-                  repository
-                  (group-path project)
-                  (util/artifact-id project)
-                  version
-                  (util/artifact-id project)
-                  version')
-     :jar (format "%s%s/%s/%s/%s-%s.jar"
-                  repository
-                  (group-path project)
-                  (util/artifact-id project)
-                  version
-                  (util/artifact-id project)
-                  version')}))
+    {:pom (pom-uri repository project version version')
+     :jar (jar-uri repository project version version')}))
 
 (defn find-artifact-repository
   ([project]
