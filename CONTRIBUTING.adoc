@@ -112,7 +112,7 @@ hash out the details of new features.
 
 Sometimes however the perspective of a relative newcomer can be especially
 useful and so if you like thinking about user experience or documentation
-in general your perspective might be valueable to the project regardless
+in general your perspective might be valuable to the project regardless
 of your past experience with cljdoc specifically.
 
 == Why Contribute
