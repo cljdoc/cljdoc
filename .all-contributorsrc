@@ -456,6 +456,15 @@
         "bug",
         "code"
       ]
+    },
+    {
+      "login": "frozar",
+      "name": "ROZAR Fabien",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/1025244?v=4",
+      "profile": "https://www.linkedin.com/in/fabien-rozar-975a7a106/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
