@@ -10,6 +10,12 @@ to instead [run cljdoc locally from docker](#run-cljdoc-locally-from-docker).
 
 ## Run cljdoc Locally from Source
 
+### Dependencies cljdoc
+
+To run cljdoc from source, you must install these dependencies:
+ - nodejs ([installation instructions](https://nodejs.org/en/))
+ - Clojure CLI tools ([instructions here](https://clojure.org/guides/getting_started))
+
 ### Setup cljdoc
 
 1. Clone cljdoc
