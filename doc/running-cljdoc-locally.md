@@ -70,7 +70,7 @@ To run cljdoc from source, you must install these dependencies:
 
 ### Import a Project from Local Sources
 
-Here we use the popular `muuntaja` project to illustrate how to build docs from a local
+Here we use the [muuntaja](https://github.com/metosin/muuntaja) project to illustrate how to build docs from a local
 jar and git repository. It's not a bad idea to actually go through these steps as a sanity
 test before mapping this knowledge onto your own project.
 
