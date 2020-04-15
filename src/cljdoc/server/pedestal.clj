@@ -52,7 +52,7 @@
   (interceptor/interceptor
    {:name  ::render
     :enter (fn render-doc [{:keys [cache-bundle] :as ctx}]
-             (let [path-params (-> ctx :request :path-params)
+             (let [path-params (update (-> ctx :request :path-params) :namespace #(clojure.string/replace % #"%3C-%3E" "<->"))
                    page-type   (-> ctx :route :route-name)]
                (if-let [first-article-slug (and (= page-type :artifact/version)
                                                 (-> cache-bundle :version :doc first :attrs :slug))]
