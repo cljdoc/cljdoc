@@ -56,7 +56,7 @@
              (let [pp (get-in ctx [:request :path-params])
                    path-params
                    (cond-> pp
-                     ;; fixes #373
+                     ;; fixes https://github.com/cljdoc/cljdoc/issues/373
                      (string? (:namespace pp))
                      (update :namespace normalize/percent-decode))
                    page-type   (-> ctx :route :route-name)]
