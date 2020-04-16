@@ -117,7 +117,7 @@ test before mapping this knowledge onto your own project.
     > commit them locally so there is a revision that the repo can be analysed
     > at. This can be done in a branch, if you don't want to pollute your master.
 
-1. Open the docs for muuntaja on the local cljdoc server: http://localhost:8000/d/metosin/muuntaja
+1. Open the docs for muuntaja on the local cljdoc server: http://localhost:8000/d/metosin/muuntaja/0.6.1
 
 ## Run cljdoc Locally from docker
 
