@@ -39,7 +39,8 @@
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]
             [io.pedestal.interceptor :as interceptor]
-            [io.pedestal.http.ring-middlewares :as ring-middlewares]))
+            [io.pedestal.http.ring-middlewares :as ring-middlewares]
+            [lambdaisland.uri.normalize :as normalize]))
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
@@ -52,7 +53,12 @@
   (interceptor/interceptor
    {:name  ::render
     :enter (fn render-doc [{:keys [cache-bundle] :as ctx}]
-             (let [path-params (-> ctx :request :path-params)
+             (let [pp (get-in ctx [:request :path-params])
+                   path-params
+                   (cond-> pp
+                     ;; fixes https://github.com/cljdoc/cljdoc/issues/373
+                     (string? (:namespace pp))
+                     (update :namespace normalize/percent-decode))
                    page-type   (-> ctx :route :route-name)]
                (if-let [first-article-slug (and (= page-type :artifact/version)
                                                 (-> cache-bundle :version :doc first :attrs :slug))]
