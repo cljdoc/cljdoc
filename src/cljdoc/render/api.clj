@@ -194,7 +194,7 @@
        [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
      (render-doc mp-ns (render-wiki-link-fn ns-name ns-url-fn))
      (if-not (seq defs)
-       [:p [:i "No vars in this namespace."]]
+       [:p.i.blue "No vars found in this namespace."]
        [:ul.list.pl0
         (for [d defs
               :let [def-name (platf/get-field d :name)
@@ -230,7 +230,7 @@
       (if (seq defs)
         (for [adef defs]
           (def-block adef render-wiki-link))
-        [:p "No vars found in this namespace."])]]))
+        [:p.i.blue "No vars found in this namespace."])]]))
 
 (comment
   (:platforms --d)
