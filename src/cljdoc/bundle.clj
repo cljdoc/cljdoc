@@ -10,9 +10,9 @@
   [{:keys [version-entity] :as cache-bundle}]
   (let [nss-from-defs (set (map :namespace (:defs cache-bundle)))
         nss-with-doc (set (map :name (filter :doc (:namespaces cache-bundle))))
-        has-defs?     (fn [ns-emap]
-                        (or (contains? nss-from-defs (:namespace ns-emap))
-                            (contains? nss-with-doc (:namespace ns-emap))))]
+        has-defs?     (fn [{:keys [namespace]}]
+                        (or (contains? nss-from-defs namespace)
+                            (contains? nss-with-doc namespace)))]
     (->> (:namespaces cache-bundle)
          (map #(merge (:version-entity %) {:namespace (:name %)}))
          (filter has-defs?)
