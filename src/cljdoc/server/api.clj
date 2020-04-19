@@ -73,9 +73,9 @@
                                                       :pom-revision scm-rev})]
                      (when error
                        (log/warnf "Error while processing %s %s: %s" project version error))
-                     (build-log/git-completed! build-tracker build-id (update git-result :error :type))
-                     (analyze-and-import-api! deps ana-args))
-                   (analyze-and-import-api! deps ana-args))
+                     (build-log/git-completed! build-tracker build-id (update git-result :error :type)))
+                   (build-log/git-completed! build-tracker build-id {:error "Error while trying to processe Git repository: no SCM URL found"}))
+                 (analyze-and-import-api! deps ana-args)
 
                  (catch Throwable e
                    (log/error e (format "Exception while processing %s %s (build %s)" project version build-id))
