@@ -9,7 +9,7 @@
   "Return entity-maps for all namespaces in the cache-bundle"
   [{:keys [version-entity] :as cache-bundle}]
   (let [nss-from-defs (set (map :namespace (:defs cache-bundle)))
-        nss-with-doc (set (map :name (filter :doc (:namespaces cache-bundle))))
+        nss-with-doc  (set (map :name (filter :doc (:namespaces cache-bundle))))
         has-defs?     (fn [{:keys [namespace]}]
                         (or (contains? nss-from-defs namespace)
                             (contains? nss-with-doc namespace)))]
