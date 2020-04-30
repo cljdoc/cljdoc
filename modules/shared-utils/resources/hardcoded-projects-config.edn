@@ -18,7 +18,7 @@
                                          ["Cleanup" {:file "docs/SubscriptionsCleanup.md"}]
                                          ["Flow Mechanics" {:file "docs/SubscriptionFlow.md"}]]
                                         ["App Structure" {}
-                                         ["Simpler Apps" {:file "docs/Basic-App-Structure.md"}]
+                                         ["Simpler Apps" {:file "docs/App-Structure.md"}]
                                          ["Navigation" {:file "docs/Navigation.md"}]
                                          ["Namespaced Keywords" {:file "docs/Namespaced-Keywords.md"}]]
                                         ["App Data" {}
