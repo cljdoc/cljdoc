@@ -11,13 +11,13 @@
 
 (defn ingest-cljdoc-edn
   "Store all the API-related information in the passed `cljdoc-edn` data"
-  [storage {:keys [codox group-id artifact-id version] :as cljdoc-edn}]
+  [storage {:keys [analysis group-id artifact-id version] :as cljdoc-edn}]
   (let [project (util/clojars-id cljdoc-edn)
         artifact (util/version-entity project version)]
     (log/info "Verifying cljdoc-edn contents against spec")
     (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
     (log/infof "Importing API into database %s %s" project version)
-    (storage/import-api storage artifact (codox/sanitize-macros codox))))
+    (storage/import-api storage artifact (codox/sanitize-macros analysis))))
 
 (defn scm-info
   [pom-url]

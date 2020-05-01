@@ -29,7 +29,7 @@
       (let [build-result (analysis-service/wait-for-build analysis-service ana-resp)
             file-uri     (:analysis-result build-result)
             data         (util/read-cljdoc-edn file-uri)
-            ns-count     (let [{:strs [clj cljs]} (:codox data)]
+            ns-count     (let [{:strs [clj cljs]} (:analysis data)]
                            (count (set (into (map :name cljs) (map :name clj)))))]
         (build-log/analysis-received! build-tracker build-id file-uri)
         (ingest/ingest-cljdoc-edn storage data)
