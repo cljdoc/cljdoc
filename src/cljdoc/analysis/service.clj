@@ -38,7 +38,7 @@
   "323343a3d644fed486621032bd0b5a21171e4b09")
 
 (def analyzer-dependency
-  {:deps {'cljdoc-analyzer {:git/url "https://github.com/lread/cljdoc-analyzer.git"
+  {:deps {'cljdoc-analyzer {:git/url "https://github.com/cljdoc/cljdoc-analyzer.git"
                             :sha analyzer-version}}})
 
 
