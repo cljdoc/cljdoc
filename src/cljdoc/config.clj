@@ -43,13 +43,7 @@
   ([] (circle-ci (config)))
   ([config]
    {:api-token       (get-in config [:secrets :circle-ci :api-token])
-    :builder-project (get-in config [:secrets :circle-ci :builder-project])
-    ;; Instead of using the version currently running we could also
-    ;; retrieve the latest commit on master from Github directly.
-    ;; This would allow us to update the analyzer without
-    ;; redeploying the cljdoc server. See GitHub API:
-    ;; https://developer.github.com/v3/repos/commits/
-    :analyzer-version (version config)}))
+    :builder-project (get-in config [:secrets :circle-ci :builder-project])}))
 
 (defn analysis-service
   ([] (analysis-service (config)))
