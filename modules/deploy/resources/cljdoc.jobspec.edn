@@ -40,7 +40,7 @@
                          :EmbeddedTmpl "{{key \"config/cljdoc/secrets-edn\"}}"}]}],
         :Update {:Canary 1
                  :MaxParallel 1
-                 :HealthyDeadline #nomad/seconds 180
+                 :HealthyDeadline #nomad/seconds 240
                  :MinHealthyTime #nomad/seconds 10}}
        {:Name "lb",
         :Tasks
