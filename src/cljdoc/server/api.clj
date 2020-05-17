@@ -34,8 +34,7 @@
         (build-log/analysis-received! build-tracker build-id file-uri)
         (ingest/ingest-cljdoc-edn storage data)
         (build-log/api-imported! build-tracker build-id ns-count)
-        (build-log/completed! build-tracker build-id)
-        (when (zero? ns-count) (throw (Exception. "No namespaces found"))))
+        (build-log/completed! build-tracker build-id))
       (catch Exception e
         (log/errorf e "analysis job failed for project: %s, version: %s, build-id: %s" project version build-id)
         (build-log/failed! build-tracker build-id "analysis-job-failed")))))
