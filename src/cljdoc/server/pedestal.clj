@@ -306,7 +306,11 @@
     (->> {:status 200
           :headers {"Content-Type" "image/svg+xml;charset=utf-8"
                     "Cache-Control" (format "public; max-age=%s" (* 30 60))}
-          :body (:body (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}}))}
+          :body (try
+                  (:body (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}}))
+                  (catch Error e
+                    (log/error e (str "Badge service error for URL " url))
+                    (str "Badge service error for URL " url)))}
          (assoc ctx :response))))
 
 (defn badge-interceptor []
