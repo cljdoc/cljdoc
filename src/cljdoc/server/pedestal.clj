@@ -308,7 +308,7 @@
                     "Cache-Control" (format "public; max-age=%s" (* 30 60))}
           :body (try
                   (:body (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}}))
-                  (catch Error e
+                  (catch Exception e
                     (log/error e (str "Badge service error for URL " url))
                     (str "Badge service error for URL " url)))}
          (assoc ctx :response))))
