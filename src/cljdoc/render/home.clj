@@ -6,25 +6,6 @@
 (def tagline
   "is a website building & hosting documentation for Clojure/Script libraries")
 
-(def default-links
-  [:p.lh-copy" Check out some examples here: "
-   [:a.link.blue.nowrap {:href "/d/rum/rum/CURRENT"} "rum"] ", "
-   [:a.link.blue.nowrap {:href "/d/lambdaisland/kaocha/CURRENT"} "kaocha"] ", "
-   [:a.link.blue.nowrap {:href "/d/metosin/reitit/CURRENT"} "reitit"] "."])
-
-(defn generate-link [{:keys [artifact_id group_id]}]
-  [:a.link.blue.nowrap {:href (str "/d/" group_id "/" artifact_id "/CURRENT")} artifact_id])
-
-(defn visiting-links
-  "Returns a default set of links if the user hasn't previously visited any doc"
-  []
-  (let [recently-visited "asdasd"]
-    (if (even? 1)
-      default-links
-      [:p.lh-copy " You visited these previously: "
-       recently-visited " "
-       [:a.link.blue.nowrap {:href "/d/rum/rum/CURRENT"} "rum"] ", "])))
-
 (defn footer []
   [:div.b--light-gray.pa4.tc.f4.fw3
    [:p "cljdoc is created by its " [:a.link.blue {:href (util/github-url :contributors)} "contributors"]
@@ -48,8 +29,16 @@
          [:p.f2-ns.f3.mv3.w-90-l.lh-copy tagline]
          (search/search-form)
          [:p.lh-copy "Read "
-          [:a.link.blue {:href (util/github-url :rationale)} "the rationale"] "."]
-         (visiting-links)]
+          [:a.link.blue {:href (util/github-url :rationale)} "the rationale"] "."
+          " Check out some examples here: "
+          [:a.link.blue.nowrap {:href "/d/rum/rum/CURRENT"} "rum"] ", "
+          [:a.link.blue.nowrap {:href "/d/lambdaisland/kaocha/CURRENT"} "kaocha"] ", "
+          [:a.link.blue.nowrap {:href "/d/metosin/reitit/CURRENT"} "reitit"] "."
+          "or"
+          ]
+         [:div#recent-docs-visited]
+         [:script {:src "/js/recents.js"}]
+         ]
 
         [:div.mt5-ns.bg-white
          (into [:div.dt-l.dt--fixed.bb.bt.b--light-gray.lh-copy]
