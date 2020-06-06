@@ -6,7 +6,7 @@
             [cheshire.core :as json]
             [clojure.java.io :as io])
   (:import (org.jsoup Jsoup)
-           (java.time Instant Duration)))
+           (java.time Instant)))
 
 ; TODO. Maven Central
 (defn releases-since [inst]

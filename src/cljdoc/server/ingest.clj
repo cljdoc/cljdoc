@@ -27,7 +27,7 @@
         scm-info (pom/scm-info pom-doc)
         project  (str (:group-id artifact) "/" (:artifact-id artifact))
         scm-url  (some-> (or (:url scm-info)
-                             (if (util/gh-url? (:url artifact))
+                             (when (util/gh-url? (:url artifact))
                                (:url artifact))
                              (util/scm-fallback project))
                          util/normalize-git-url)]

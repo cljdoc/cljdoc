@@ -19,8 +19,7 @@
             [clojure.tools.logging :as log]
             [cli-matic.core :as cli-matic]
             [unilog.config :as unilog])
-  (:import (java.time Instant)
-           (com.jcraft.jsch JSch)))
+  (:import (com.jcraft.jsch JSch)))
 
 (unilog/start-logging! {:level :info :console true})
 

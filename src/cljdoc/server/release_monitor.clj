@@ -1,6 +1,7 @@
 (ns cljdoc.server.release-monitor
   (:require [cljdoc.util.repositories :as repositories]
-            [cljdoc.server.search.api :as sc])
+            [cljdoc.server.search.api :as sc]
+            [cljdoc.config])
   (:require [integrant.core :as ig]
             [clj-http.lite.client :as http]
             [clojure.java.jdbc :as sql]

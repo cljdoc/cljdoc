@@ -1,9 +1,10 @@
-(ns cljdoc.util.ns-tree)
+(ns cljdoc.util.ns-tree
+  (:require [clojure.string :as string]))
 ;; bunch of this is taken from https://github.com/weavejester/codox/blob/da92057b9c904f6e35078cc680c2422db76521b0/codox/src/codox/writer/html.clj#L165-L199https://github.com/weavejester/codox/blob/da92057b9c904f6e35078cc680c2422db76521b0/codox/src/codox/writer/html.clj#L165-L199
 ;; TODO proper credit
 
 (defn split-ns [namespace]
-  (clojure.string/split (str namespace) #"\."))
+  (string/split (str namespace) #"\."))
 
 (defn- namespace-parts [namespace]
   (->> (split-ns namespace)

@@ -7,9 +7,6 @@
            [k (first vs)]))
        (into {})))
 
-(defn- macro? [var]
-  (= :macro (:type var)))
-
 (defn assert-no-duplicate-publics [namespaces]
   (doseq [ns namespaces]
     (index-by :name (:publics ns))))

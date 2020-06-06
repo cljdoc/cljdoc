@@ -49,7 +49,7 @@
         readme-and-changelog (first split-doc-tree)
         doc-tree-with-rest (second split-doc-tree)]
     [;; Upgrade notice
-     (if-let [newer-v (bundle/more-recent-version cache-bundle)]
+     (when-let [newer-v (bundle/more-recent-version cache-bundle)]
        (upgrade-notice newer-v))
 
      (when last-build

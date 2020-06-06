@@ -6,7 +6,8 @@
            (com.vladsch.flexmark.ext.gfm.tables TablesExtension)
            (com.vladsch.flexmark.ext.autolink AutolinkExtension)
            (com.vladsch.flexmark.ext.anchorlink AnchorLinkExtension)
-           (com.vladsch.flexmark.ext.wikilink WikiLinkExtension WikiLink internal.WikiLinkNodeRenderer$Factory)
+           (com.vladsch.flexmark.ext.wikilink WikiLinkExtension WikiLink)
+           (com.vladsch.flexmark.ext.wikilink.internal WikiLinkNodeRenderer$Factory)
            (com.vladsch.flexmark.util.data MutableDataSet DataHolder)))
 
 (def adoc-container

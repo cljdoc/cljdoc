@@ -7,7 +7,7 @@
             [cljdoc.server.routes :as routes]
             [taoensso.nippy :as nippy]
             [zprint.core :as zp])
-  (:import [java.time Instant Duration ZoneId]
+  (:import [java.time Instant Duration]
            [java.time.temporal ChronoUnit]))
 
 (defn done? [build-info]

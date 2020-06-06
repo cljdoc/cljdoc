@@ -3,5 +3,4 @@
  :lint-as {taoensso.tufte/defnp clojure.core/defn
            clojure.core.cache/defcache clojure.core/defrecord
            clojure.java.jdbc/with-db-transaction clojure.core/let}
- :linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}
- :output {:include-files ["^src" "^test" "^modules"]}}
+ :linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}

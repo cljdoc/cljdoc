@@ -34,6 +34,7 @@
             [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
+            [clj-http.lite.client]
             [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
             [io.pedestal.http :as http]

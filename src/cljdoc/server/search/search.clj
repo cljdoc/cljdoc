@@ -7,6 +7,7 @@
   * Use `explain-top-n` to get a detailed analysis of the score of the top N results for a query
   * Print out a Query - it's toString shows nicely what is it composed of, boosts, etc.
   "
+  (:require [clojure.string :as string])
   (:import (org.apache.lucene.analysis TokenStream)
            (org.apache.lucene.analysis.standard StandardAnalyzer)
            (org.apache.lucene.document Document)
@@ -97,8 +98,7 @@
     (boolean-query
       (TermQuery. t)
       (BoostQuery.
-        (doto (PrefixQuery. t)
-          #_(.setRewriteMethod ScoringRewrite/SCORING_BOOLEAN_REWRITE))
+        (PrefixQuery. t)
         ;; Give a prefix less weight than an exact match
         0.5))))
 
@@ -221,7 +221,7 @@
                             :versions (->> (.getValues doc "versions")
                                            ;; Weird version: libpython-clj 1.12, cirru:writer 0.1.4-a4, -betaN, -alphaN
                                            ;; v20150729-0, v4.1.1, zeta.1.2.1, v1.9.49-184-g75528b51, 0.0-2371-16, -RCN
-                                           (remove #(clojure.string/ends-with? % "-SNAPSHOT"))
+                                           (remove #(string/ends-with? % "-SNAPSHOT"))
                                            (into []))}))
 
                        docs)))]

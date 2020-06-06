@@ -5,22 +5,17 @@
             [clojure.spec.alpha :as s]
             [digest :as digest])
   (:import  (org.eclipse.jgit.lib RepositoryBuilder
-                                  Repository
                                   ObjectIdRef$PeeledNonTag
                                   ObjectIdRef$PeeledTag
-                                  ObjectIdRef$Unpeeled
                                   ObjectLoader
-                                  FileMode
-                                  Constants)
+                                  FileMode)
             (org.eclipse.jgit.revwalk RevWalk)
             (org.eclipse.jgit.treewalk TreeWalk)
             (org.eclipse.jgit.treewalk.filter PathFilter
                                               AndTreeFilter
                                               TreeFilter)
             (org.eclipse.jgit.api Git TransportConfigCallback LsRemoteCommand)
-            (org.eclipse.jgit.transport SshTransport JschConfigSessionFactory)
-            (com.jcraft.jsch JSch)
-            (com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository)))
+            (org.eclipse.jgit.transport SshTransport JschConfigSessionFactory)))
 
 (def jsch-session-factory
   "A session-factory for use with JGit to access private

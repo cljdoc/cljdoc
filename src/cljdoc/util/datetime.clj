@@ -1,6 +1,6 @@
 (ns cljdoc.util.datetime
   "Helpers function to work with dates and times."
-  (:import (java.time Instant Duration ZoneId)
+  (:import (java.time Instant ZoneId)
            (java.time.format DateTimeFormatter)))
 
 (defn day-suffix

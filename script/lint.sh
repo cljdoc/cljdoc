@@ -20,7 +20,9 @@ function lint() {
         lint_args="src test modules"
     fi
     set +e
-    clojure -A:clj-kondo --lint ${lint_args}
+    clojure -A:clj-kondo \
+            --lint ${lint_args} \
+            --config '{:output {:include-files ["^src" "^test" "^modules"]}}'
     local exit_code=$?
     set -e
     if [ ${exit_code} -ne 0 ] && [ ${exit_code} -ne 2 ] && [ ${exit_code} -ne 3 ]; then
