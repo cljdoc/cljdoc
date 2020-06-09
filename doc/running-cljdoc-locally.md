@@ -148,6 +148,31 @@ Example scripts to preview docs locally using docker before publishing:
 
 - [clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/script/cljdoc-preview)
 
+
+## Rendering images when running locally
+
+In a separate terminal window, from your project root folder, startup a static
+web server on port 9090 using your favorite technique. For example:
+
+```sh
+python -m SimpleHTTPServer 9090
+```
+
+### How does this work?
+When cljdoc sees that a project was ingested locally it will try to find your
+referenced images via a lookup on `http://localhost:9090`.  For example a github
+fetch to:
+
+```
+https://github.com/cljdoc/cljdoc/raw/81f49c5f679d30dcdcad148de27b7b80501d315c/resources/public/cljdoc-logo-beta-square.png
+```
+
+becomes the following when running locally:
+
+```
+http://localhost:9090/resources/public/cljdoc-logo-beta-square.png
+```
+
 ---
 
 **Thats pretty much it!** Stop by on Slack if you have any problems. :wave:
