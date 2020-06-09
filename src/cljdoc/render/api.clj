@@ -11,14 +11,14 @@
             [hiccup2.core :as hiccup]
             [zprint.core :as zp]))
 
-(defn def-code-block
+(defn- def-code-block
   [args-str]
   {:pre [(string? args-str)]}
   [:pre
    [:code.db.mb2.pa0 {:class "language-clojure"}
     (zp/zprint-str args-str {:parse-string? true :width 70})]])
 
-(defn parse-wiki-link [m]
+(defn- parse-wiki-link [m]
   (if (.contains m "/")
     (let [[ns var] (string/split m #"/")]
       [ns var])
@@ -29,7 +29,7 @@
       [m nil]
       [nil m])))
 
-(defn docstring->html [doc-str render-wiki-link]
+(defn- docstring->html [doc-str render-wiki-link]
   [:div
    [:div.lh-copy.markdown
     ;; If someone sets `{:doc false}`, there will be no docstring
@@ -62,7 +62,7 @@
        (some-> (platf/get-field mp :doc p) (docstring->html render-wiki-link))])
     (some-> (platf/get-field mp :doc) (docstring->html render-wiki-link))))
 
-(defn render-arglists [def-name arglists]
+(defn- render-arglists [def-name arglists]
   (for [argv (sort-by count arglists)]
     (def-code-block
       (str "(" def-name (when (seq argv) " ") (string/join " " argv) ")"))))
@@ -131,7 +131,7 @@
      (when (some from-dependency? namespaces)
        [:p.f7.fw5.gray.mt4 [:sup.f6.db "†"] "Included via a transitive dependency."])]))
 
-(defn humanize-supported-platforms
+(defn- humanize-supported-platforms
   ([supported-platforms]
    (humanize-supported-platforms supported-platforms :short))
   ([supported-platforms style]

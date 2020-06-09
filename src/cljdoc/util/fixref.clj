@@ -86,7 +86,7 @@
 ;; preprocesses a document before rendering, it's also handy for other things.
 ;; Below, a `nofollow` attribute is added to external links for SEO purposes.
 (defn fix
-  [file-path html-str {:keys [git-ls scm uri-map] :as _fix-opts}]
+  [file-path html-str {:keys [scm uri-map] :as _fix-opts}]
   ;; (def fp file-path)
   ;; (def hs html-str)
   ;; (def fo fix-opts)
