@@ -73,7 +73,7 @@
            (scm-rev scm) "/")))
 
 (defn- fix-image
-  [file-path src scm ]
+  [file-path src scm]
   (let [raw-base-url (raw-base-url scm)
         suffix (when (and (= :github (scm/provider raw-base-url))
                           (.endsWith src ".svg"))
