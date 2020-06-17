@@ -120,7 +120,7 @@
             :let [style {:margin-left (str (* (dec level) 10) "px")}
                   nse (get keyed-namespaces ns)]]
         [:li
-         [:a.link.hover-dark-blue.blue.dib.pa1
+         [:a.link.hover-dark-blue.blue.dib.pv1
           {:href (routes/url-for :artifact/namespace :path-params (assoc version-entity :namespace ns))
            :class (when (= ns current) "b")
            :style style}
