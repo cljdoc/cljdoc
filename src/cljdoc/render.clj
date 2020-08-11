@@ -28,6 +28,14 @@
          (layout/page {:title (str (util/clojars-id version-entity) " " (:version version-entity))
                        :description (layout/artifact-description version-entity (:description pom))}))))
 
+(defn positions
+  "return collection if indexes where element appears in collection"
+  [pred coll]
+  (keep-indexed (fn [idx x]
+                  (when (pred x)
+                    idx))
+                coll))
+
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-bundle pom last-build]}]
   (assert (:doc-slug-path route-params))
@@ -40,7 +48,13 @@
                    first)
         [doc-type contents] (doctree/entry->type-and-content doc-p)
         top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
-        sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)]
+        sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
+        flatten-article-tree (->> doc-tree
+                                  (remove #(contains? #{"Readme" "Changelog"} (:title %)))
+                                  doctree/flatten*)
+        article-idx (->> flatten-article-tree
+                         (positions #(= doc-slug-path (:slug-path (:attrs %))))
+                         first)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
     ;; if there's no article then the page should display a list of all child-pages
     (->> (if doc-type
@@ -56,7 +70,12 @@
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                               (rich-text/render-text [doc-type contents])
                                               {:scm (bundle/scm-info cache-bundle)
-                                               :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})})})
+                                               :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})
+                        :version-entity version-entity
+                        :prev-page (when (<= 0 (dec article-idx) (count flatten-article-tree))
+                                     (nth flatten-article-tree (dec article-idx)))
+                        :next-page (when (<= 0 (inc article-idx) (count flatten-article-tree))
+                                     (nth flatten-article-tree (inc article-idx)))})})
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents sidebar-contents
