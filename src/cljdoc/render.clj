@@ -81,7 +81,11 @@
              :main-sidebar-contents sidebar-contents
              :content (articles/doc-overview
                        {:version-entity version-entity
-                        :doc-tree (doctree/get-subtree doc-tree doc-slug-path)})}))
+                        :doc-tree (doctree/get-subtree doc-tree doc-slug-path)
+                        :prev-page (when (<= 0 (dec article-idx) (count flatten-article-tree))
+                                     (nth flatten-article-tree (dec article-idx)))
+                        :next-page (when (< 0 (inc article-idx) (count flatten-article-tree))
+                                     (nth flatten-article-tree (inc article-idx)))})}))
 
          (layout/page {:title (str (:title doc-p) " — " (util/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
