@@ -17,6 +17,7 @@ project.clj
 .clj-kondo/.cache
 node_modules
 .envrc
+.calva
 resources-compiled
 pom.xml
 test-data/
