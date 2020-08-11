@@ -74,7 +74,7 @@
                         :version-entity version-entity
                         :prev-page (when (<= 0 (dec article-idx) (count flatten-article-tree))
                                      (nth flatten-article-tree (dec article-idx)))
-                        :next-page (when (<= 0 (inc article-idx) (count flatten-article-tree))
+                        :next-page (when (< 0 (inc article-idx) (count flatten-article-tree))
                                      (nth flatten-article-tree (inc article-idx)))})})
            (layout/layout
             {:top-bar top-bar-component
