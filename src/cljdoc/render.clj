@@ -54,7 +54,11 @@
                                   doctree/flatten*)
         article-idx (->> flatten-article-tree
                          (positions #(= doc-slug-path (:slug-path (:attrs %))))
-                         first)]
+                         first)
+        prev-page (when (<= 0 (dec article-idx) (count flatten-article-tree))
+                    (nth flatten-article-tree (dec article-idx)))
+        next-page (when (< 0 (inc article-idx) (count flatten-article-tree))
+                    (nth flatten-article-tree (inc article-idx)))]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
     ;; if there's no article then the page should display a list of all child-pages
     (->> (if doc-type
@@ -72,20 +76,16 @@
                                               {:scm (bundle/scm-info cache-bundle)
                                                :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})
                         :version-entity version-entity
-                        :prev-page (when (<= 0 (dec article-idx) (count flatten-article-tree))
-                                     (nth flatten-article-tree (dec article-idx)))
-                        :next-page (when (< 0 (inc article-idx) (count flatten-article-tree))
-                                     (nth flatten-article-tree (inc article-idx)))})})
+                        :prev-page prev-page
+                        :next-page next-page})})
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents sidebar-contents
              :content (articles/doc-overview
                        {:version-entity version-entity
                         :doc-tree (doctree/get-subtree doc-tree doc-slug-path)
-                        :prev-page (when (<= 0 (dec article-idx) (count flatten-article-tree))
-                                     (nth flatten-article-tree (dec article-idx)))
-                        :next-page (when (< 0 (inc article-idx) (count flatten-article-tree))
-                                     (nth flatten-article-tree (inc article-idx)))})}))
+                        :prev-page prev-page
+                        :next-page next-page})}))
 
          (layout/page {:title (str (:title doc-p) " — " (util/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
