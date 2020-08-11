@@ -31,13 +31,23 @@
           (into [:ul.list.ma0 {:class (if (pos? level) "f6-ns pl2" "pl0")}])))))
 
 (defn doc-page
-  [{:keys [doc-scm-url doc-html doc-type contributors]}]
+  [{:keys [doc-scm-url doc-html doc-type contributors next-page prev-page version-entity]}]
   (assert doc-type)
   [:div.mw7.center
    (if doc-html
      [:div#doc-html.cljdoc-article.lh-copy.pv4
       {:class (name doc-type)}
-      (hiccup/raw doc-html)]
+      (hiccup/raw doc-html)
+      [:div.flex.justify-between
+       (if prev-page
+         [:a.link.blue
+          {:href (doc-link version-entity (-> prev-page :attrs :slug-path))}
+          [:span [:span.mr1 "<"] (-> prev-page :title)]]
+         [:div])
+       (when next-page
+         [:a.link.blue
+          {:href (doc-link version-entity (-> next-page :attrs :slug-path))}
+          [:span (-> next-page :title) [:span.ml1 ">"]]])]]
      [:div.lh-copy.pv6.tc
       [:span.f4.serif.gray.i "Space intentionally left blank."]])
    ;; outside of div with markdown specific styling so markdown
