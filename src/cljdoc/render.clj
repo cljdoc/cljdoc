@@ -52,13 +52,12 @@
         flatten-article-tree (->> doc-tree
                                   (remove #(contains? #{"Readme" "Changelog"} (:title %)))
                                   doctree/flatten*)
-        article-idx (->> flatten-article-tree
-                         (positions #(= doc-slug-path (:slug-path (:attrs %))))
-                         first)
-        prev-page (when (<= 0 (dec article-idx) (count flatten-article-tree))
-                    (nth flatten-article-tree (dec article-idx)))
-        next-page (when (< 0 (inc article-idx) (count flatten-article-tree))
-                    (nth flatten-article-tree (inc article-idx)))]
+        neighbour-articles (partition 3 1 (concat [nil] flatten-article-tree [nil]))
+        articles-block (->> neighbour-articles
+                            (filter #(= doc-slug-path (:slug-path (:attrs (second %)))))
+                            first)
+        prev-page (first articles-block)
+        next-page (last articles-block)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
     ;; if there's no article then the page should display a list of all child-pages
     (->> (if doc-type
