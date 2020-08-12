@@ -54,7 +54,11 @@
                                   doctree/flatten*)
         neighbour-articles (partition 3 1 (concat [nil] flatten-article-tree [nil]))
         articles-block (->> neighbour-articles
-                            (filter #(= doc-slug-path (:slug-path (:attrs (second %)))))
+                            (filter #(-> %
+                                         second
+                                         :attrs
+                                         :slug-path
+                                         (= doc-slug-path)))
                             first)
         prev-page (first articles-block)
         next-page (last articles-block)]
