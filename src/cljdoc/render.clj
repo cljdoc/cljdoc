@@ -28,14 +28,6 @@
          (layout/page {:title (str (util/clojars-id version-entity) " " (:version version-entity))
                        :description (layout/artifact-description version-entity (:description pom))}))))
 
-(defn positions
-  "return collection if indexes where element appears in collection"
-  [pred coll]
-  (keep-indexed (fn [idx x]
-                  (when (pred x)
-                    idx))
-                coll))
-
 (defmethod render :artifact/doc
   [_ route-params {:keys [cache-bundle pom last-build]}]
   (assert (:doc-slug-path route-params))
