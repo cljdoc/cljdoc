@@ -83,7 +83,7 @@
         [:li.mv2
          [:a.link.blue
           {:href (doc-link version-entity (-> c :attrs :slug-path))}
-          (-> c :title)]])]]]
-   (prev-next-navigation {:prev-page prev-page
-                          :next-page next-page
-                          :version-entity version-entity})])
+          (-> c :title)]])]
+     (prev-next-navigation {:prev-page prev-page
+                            :next-page next-page
+                            :version-entity version-entity})]]])
