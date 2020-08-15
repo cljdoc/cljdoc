@@ -41,17 +41,10 @@
         [doc-type contents] (doctree/entry->type-and-content doc-p)
         top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
         sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
-        flatten-article-tree (->> doc-tree
-                                  (remove #(contains? #{"Readme" "Changelog"} (:title %)))
-                                  doctree/flatten*)
-        neighbour-articles (partition 3 1 (concat [nil] flatten-article-tree [nil]))
-        articles-block (->> neighbour-articles
-                            (filter #(-> %
-                                         second
-                                         :attrs
-                                         :slug-path
-                                         (= doc-slug-path)))
-                            first)
+        articles-block (doctree/get-neighbour-entries (remove #(contains? #{"Readme" "Changelog"}
+                                                                          (:title %))
+                                                              doc-tree)
+                                                      doc-slug-path)
         prev-page (first articles-block)
         next-page (last articles-block)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,

@@ -19,13 +19,19 @@
   doctree based on a list of files. This is used to derive the doctree
   for projects that haven't provided one explicitly."
   (:require [clojure.spec.alpha :as spec]
+            [clojure.string :as cstr]
             [cuerdas.core :as cuerdas]))
 
+(spec/def ::ne-string (spec/and string?
+                                (complement cstr/blank?)))
 (spec/def :cljdoc.doc/source-file string?)
 (spec/def :cljdoc/asiidoc string?)
 (spec/def :cljdoc/markdown string?)
-(spec/def ::slug string?)
-(spec/def ::title string?)
+(spec/def :cljdoc.doc/type #{:cljdoc/markdown :cljdoc/asciidoc})
+(spec/def :cljdoc/asciidoc string?)
+(spec/def :cljdoc.doc/contributors (spec/coll-of string?))
+(spec/def ::slug ::ne-string)
+(spec/def ::title ::ne-string)
 (spec/def ::file string?)
 
 ;; Specs for the fully unfurled doctree that is eventually stored in
@@ -225,8 +231,24 @@
           (->> (filter #(doc? (:path %)) files)
                (sort-by :path)
                (mapv (fn [{:keys [path object-loader]}]
-                      [(infer-title path (slurp object-loader))
-                       {:file path}]))))))
+                       [(infer-title path (slurp object-loader))
+                        {:file path}]))))))
+
+(defn get-neighbour-entries
+  "Return list with 3 entry of doctree, where second is entry that matched 
+   by slug-path. First entry is previous entry on the same level of the tree,
+   or it is last children of previous entry in tree. Third entry it is next to
+   the matched, or next entry to the parent entry. If there is no previous 
+   or next entry to the matched, it will have nil instead."
+  [doc-tree doc-slug-path]
+  (let [neighbour-articles (partition 3 1 (concat [nil] (flatten* doc-tree) [nil]))]
+    (->> neighbour-articles
+         (filter #(-> %
+                      second
+                      :attrs
+                      :slug-path
+                      (= doc-slug-path)))
+         first)))
 
 (comment
 
