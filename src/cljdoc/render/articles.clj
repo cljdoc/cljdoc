@@ -16,12 +16,12 @@
    (if prev-page
      [:a.link.blue
       {:href (doc-link version-entity (-> prev-page :attrs :slug-path))}
-      [:span [:span.mr1 "<"] (-> prev-page :title)]]
+      [:span [:span.mr1 "❮"] (-> prev-page :title)]]
      [:div])
    (when next-page
      [:a.link.blue
       {:href (doc-link version-entity (-> next-page :attrs :slug-path))}
-      [:span (-> next-page :title) [:span.ml1 ">"]]])])
+      [:span (-> next-page :title) [:span.ml1 "❯"]]])])
 
 (defn doc-tree-view
   "Render a set of nested lists representing the doctree. "
