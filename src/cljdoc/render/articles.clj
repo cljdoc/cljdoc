@@ -12,7 +12,7 @@
        (routes/url-for :artifact/doc :path-params)))
 
 (defn prev-next-navigation [{:keys [prev-page next-page version-entity]}]
-  [:div.flex.justify-between
+  [:div.flex.justify-between.mt4
    (if prev-page
      [:a.link.blue
       {:href (doc-link version-entity (-> prev-page :attrs :slug-path))}
