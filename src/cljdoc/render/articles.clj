@@ -11,6 +11,18 @@
        (assoc version-entity :article-slug)
        (routes/url-for :artifact/doc :path-params)))
 
+(defn prev-next-navigation [{:keys [prev-page next-page version-entity]}]
+  [:div.flex.justify-between.mt4
+   (if prev-page
+     [:a.link.blue
+      {:href (doc-link version-entity (-> prev-page :attrs :slug-path))}
+      [:span [:span.mr1 "❮"] (-> prev-page :title)]]
+     [:div])
+   (when next-page
+     [:a.link.blue
+      {:href (doc-link version-entity (-> next-page :attrs :slug-path))}
+      [:span (-> next-page :title) [:span.ml1 "❯"]]])])
+
 (defn doc-tree-view
   "Render a set of nested lists representing the doctree. "
   ([version-entity doc-bundle current-page]
@@ -31,13 +43,16 @@
           (into [:ul.list.ma0 {:class (if (pos? level) "f6-ns pl2" "pl0")}])))))
 
 (defn doc-page
-  [{:keys [doc-scm-url doc-html doc-type contributors]}]
+  [{:keys [doc-scm-url doc-html doc-type contributors next-page prev-page version-entity]}]
   (assert doc-type)
   [:div.mw7.center
    (if doc-html
      [:div#doc-html.cljdoc-article.lh-copy.pv4
       {:class (name doc-type)}
-      (hiccup/raw doc-html)]
+      (hiccup/raw doc-html)
+      (prev-next-navigation {:prev-page prev-page
+                             :next-page next-page
+                             :version-entity version-entity})]
      [:div.lh-copy.pv6.tc
       [:span.f4.serif.gray.i "Space intentionally left blank."]])
    ;; outside of div with markdown specific styling so markdown
@@ -58,13 +73,17 @@
           "Edit on GitHub")]]])])
 
 (defn doc-overview
-  [{:keys [version-entity doc-tree]}]
-  [:div.doc-page
-   [:div.mw7.center.pv4
-    [:h1 (:title doc-tree)]
-    [:ol
-     (for [c (:children doc-tree)]
-       [:li.mv2
-        [:a.link.blue
-         {:href (doc-link version-entity (-> c :attrs :slug-path))}
-         (-> c :title)]])]]])
+  [{:keys [version-entity doc-tree prev-page next-page]}]
+  [:div
+   [:div.doc-page
+    [:div.mw7.center.pv4
+     [:h1 (:title doc-tree)]
+     [:ol
+      (for [c (:children doc-tree)]
+        [:li.mv2
+         [:a.link.blue
+          {:href (doc-link version-entity (-> c :attrs :slug-path))}
+          (-> c :title)]])]
+     (prev-next-navigation {:prev-page prev-page
+                            :next-page next-page
+                            :version-entity version-entity})]]])

@@ -35,7 +35,7 @@
    :repos   repos})
 
 (def analyzer-version
-  "c82af9bb9b04d63f057ac986dbb6fb607c59ac46")
+  "a73557f4052a2f51574e5a75d1783568c12b9209")
 
 (def analyzer-dependency
   {:deps {'cljdoc-analyzer {:git/url "https://github.com/cljdoc/cljdoc-analyzer.git"

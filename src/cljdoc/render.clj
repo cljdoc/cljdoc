@@ -40,7 +40,13 @@
                    first)
         [doc-type contents] (doctree/entry->type-and-content doc-p)
         top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
-        sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)]
+        sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
+        articles-block (doctree/get-neighbour-entries (remove #(contains? #{"Readme" "Changelog"}
+                                                                          (:title %))
+                                                              doc-tree)
+                                                      doc-slug-path)
+        prev-page (first articles-block)
+        next-page (last articles-block)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
     ;; if there's no article then the page should display a list of all child-pages
     (->> (if doc-type
@@ -56,13 +62,18 @@
                         :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
                                               (rich-text/render-text [doc-type contents])
                                               {:scm (bundle/scm-info cache-bundle)
-                                               :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})})})
+                                               :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})
+                        :version-entity version-entity
+                        :prev-page prev-page
+                        :next-page next-page})})
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents sidebar-contents
              :content (articles/doc-overview
                        {:version-entity version-entity
-                        :doc-tree (doctree/get-subtree doc-tree doc-slug-path)})}))
+                        :doc-tree (doctree/get-subtree doc-tree doc-slug-path)
+                        :prev-page prev-page
+                        :next-page next-page})}))
 
          (layout/page {:title (str (:title doc-p) " — " (util/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)

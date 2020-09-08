@@ -465,6 +465,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "moonbrv",
+      "name": "Dmitry Palamarchuk",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/14214811?v=4",
+      "profile": "https://github.com/moonbrv",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
