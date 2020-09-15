@@ -43,8 +43,9 @@
   "Run the Git analysis for the provided `project` and kick of an
   analysis build for `project` using the provided `analysis-service`.
 
-  Optional `:jar` and `:pom` keys can be provided via the `coords` map
-  to supply non-default paths like local files."
+  Optional for `coords` map:
+  - `:jar` and `:pom` can supply non-default paths to local files.
+  - `:scm-url` and `:scm-rev` will override `pom.xml` `<scm>` `<url>` and `<tag>`"
   [{:keys [storage build-tracker analysis-service] :as deps}
    {:keys [project version jar pom scm-url scm-rev] :as coords}]
   (let [a-uris    (when-not (and jar pom)
