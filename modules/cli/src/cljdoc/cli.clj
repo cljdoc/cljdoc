@@ -62,10 +62,10 @@
                                 "pass the --git option and use --rev to specify a revision to use (e.g. master)."]
                   :opts        [{:option "project" :short "p" :as "Project to import" :type :string :default :present}
                                 {:option "version" :short "v" :as "Version to import" :type :string :default :present}
-                                {:option "jar" :short "j" :as "Jar file to use (may be local)" :type :string}
-                                {:option "pom" :as "POM file to use (may be local)" :type :string}
-                                {:option "git" :short "g" :as "Git repo to use (may be local)" :type :string}
-                                {:option "rev" :short "r" :as "Git revision to use (inferred by default)" :type :string}]
+                                {:option "jar" :short "j" :as "Jar file to use (may be local file, inferred by maven repo look up by default)" :type :string}
+                                {:option "pom" :as "POM file to use (may be local file, inferred by maven repo lookup by default)" :type :string}
+                                {:option "git" :short "g" :as "Git repo to use (may be local directory, inferred from pom.xml by default)" :type :string}
+                                {:option "rev" :short "r" :as "Git revision to use (inferred from pom.xml by default)" :type :string}]
                   :runs        build}
                  {:command     "offline-bundle"
                   :description ["Builds an offline documentation bundle for previously ingested project"]
