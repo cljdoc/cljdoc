@@ -3,13 +3,14 @@
 :toclevels: 4
 // make it easier to update the example project
 :example-project-name: cljdoc-exerciser
+:example-project-desc: a project the cljdoc team uses to review cljdoc formatting features
 :example-project-link: https://github.com/cljdoc/cljdoc-exerciser[cljdoc-exerciser]
-:example-project-local-install: mvn install
+:example-project-local-install: script/install
 :example-project-clone-url: https://github.com/cljdoc/cljdoc-exerciser.git
 :example-project-import-url: https://github.com/cljdoc/cljdoc-exerciser
 :example-project-import-url-esc: \https://github.com/cljdoc/cljdoc-exerciser
 :example-project-coords: lread/cljdoc-exerciser
-:example-project-version: 1.0.30
+:example-project-version: 1.0.32
 
 == Introduction
 There are different motivations for running cljdoc locally on your computer:
@@ -20,10 +21,10 @@ There are different motivations for running cljdoc locally on your computer:
 2. You are a *library author* interested in verifying that your docs look good before publishing.
 You can opt to:
 
-** <<run-cljdoc-locally-from-source>>
-** or instead <<run-cljdoc-locally-from-docker>> which avoids any local source setup
+** <<run-cljdoc-locally-from-docker>> to avoid any local source setup
+** or <<run-cljdoc-locally-from-source>>
 
-Regardless of the finer choices you make, you'll want to import a library's docs so you have something to  test against.
+Regardless of the path you make, you'll need to import a library's docs so you have something to test against.
 Here's an overview of importing library docs when running cljdoc locally:
 
 [[overview-diagram]]
@@ -32,29 +33,37 @@ image::running-local.svg[running locally overview]
 Note that:
 
 * a *library author* will likely spend more time repeating steps 1 through 3.
-* a *cljdoc developer* doesn't necessarily have to publish a library to their local maven repository
-* in the discussions that follow we'll assume that your hosted SCM (Source Code Management) system is GitHub.
-* the examples were developed on macOS and also tested on Linux.
-
-In all example workflows, we use the {example-project-link} library,
-a project the cljdoc team uses to test cljdoc formatting and features.
+* a *cljdoc developer* doesn't necessarily have to work with a local library; they can import an existing published library.
+* in the discussions that follow, we'll assume that your hosted SCM (Source Code Management) system is GitHub.
+* the walkthrough examples in this doc were developed on macOS and also tested on Linux and use the {example-project-link} as an example library, {example-project-desc}.
 
 Read on for details.
 
 [[run-cljdoc-locally-from-source,run cljdoc locally from source]]
 == Run cljdoc Locally From Source (cljdoc developer)
-This is the path to take for a *cljdoc developer*.
-While it is also a viable path for a *library author*, a *library author* might prefer to <<run-cljdoc-locally-from-docker>>.
+This is the path to take for a *cljdoc developer*. +
+While it is also a viable path for a *library author*, a library author might prefer to <<run-cljdoc-locally-from-docker>>.
 
 === Prerequisites
 To run cljdoc from source, you must first install these dependencies:
 
 * https://nodejs.org/en/[Node.js]
+* https://adoptopenjdk.net/?variant=openjdk8&jvmVariant=hotspot[Java Development Kit 8] - cljdoc currently runs on JDK8 in production so best to make sure you are running JDK8.
+Example of a valid JDK:
++
+[source,sh]
+----
+$ java -version
+openjdk version "1.8.0_265"
+OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_265-b01)
+OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.265-b01, mixed mode)
+----
 * https://clojure.org/guides/getting_started[Clojure CLI tools]
+* https://git-scm.com[Git]
 
 === Setup cljdoc
 
-1. Clone cljdoc
+1. Clone cljdoc (adjust as appropriate if you are working from a fork)
 +
 [source,shell]
 ----
@@ -72,6 +81,9 @@ npm ci                 # reproducibly install packages into node_modules
 npm run format         # format JS code with Prettier
 npm run build          # production build
 ----
++
+Check that `resources-compiled` folder was generated.
+
 ** If you are a developer planning to work on JavaScript files (instead of `npm run build` we have `npm run dev`):
 +
 [source,shell]
@@ -81,14 +93,14 @@ npm run format         # format JS code with Prettier
 npm run dev            # watch mode for automatic rebuilding of JavaScript files
 ----
 
-1. Start the cljdoc server
+1. Start the cljdoc web server
 +
 [source,shell]
 ----
 ./script/cljdoc run
 ----
 +
-NOTE: This will start the cljdoc server process. You'll need to open a separate terminal shell for any other work.
+NOTE: Leave this session open. You'll need to open a separate terminal shell for any other work.
 +
 Alternatively you can start a REPL with `clj` (or your favorite editor integration),
 then load the system, move into its namespace and start the server:
@@ -102,64 +114,31 @@ then load the system, move into its namespace and start the server:
 (integrant.repl/go)
 ----
 
-1. (Optional) Run tests. Its recommended that you run tests before making any changes.
-This way you'll know that the cljdoc main branch and your local setup are sound.
+1. (Optional, but recommended) Run tests. Its recommended that you run tests before making any changes.
+This way you'll be pretty sure that the cljdoc main branch and your local setup are sound. From the cljdoc directory:
 +
 [source,clojure]
 ----
-clj -A:test
+clojure -A:test
 ----
 
 === Import a Library
-// Much of this is pasted to "Import a Library using Docker" making for a bit of a maintenance chore,
-// but puts less burden on the reader. I.e. a library author is not necessarily a cljdoc developer.
-How you import a library docs depends on what your needs are.
-Here are the steps to import docs for:
+// Some of this section is pasted "Import a Library using Docker" making for a bit of a maintenance chore,
+// but puts less burden on the reader. I.e. a library author is not necessarily a cljdoc developer so I
+// want to keep sections separate.
+How you import a library's docs depends on what your needs are.
 
-1. An *existing maven published library*. +
-This implies you don't want to make changes to the library and is the simplest workflow. +
-It involves only steps 3 and 4 from our <<overview-diagram,overview diagram>>.
-** Step 3) <<source-cmd-ingest-existing-published>>
-** Step 4) <<source-cmd-browse,browse>>
-1. A *quick verify of a local library* you are changing. +
-This workflow imports your library docs from your local file system only. +
-The downside is that links and references to GitHub will be broken.
-** Setup) <<source-cmd-clone>>
-** Step 1) <<source-cmd-commit>>
-** Step 2) <<source-cmd-install>>
-** Step 3) <<source-cmd-ingest-local-only>>
-** Step 4) <<source-cmd-browse>>
-1. A *full preview of a local library* you are changing.  +
-Because this workflow pushes changes to GitHub, links and references to GitHub work. +
-This is similar to the quick verify workflow, but steps 1 and 3 reference GitHub.
-** Setup) <<source-cmd-clone>>
-** Step 1) <<source-cmd-commit-and-push>>
-** Step 2) <<source-cmd-install>>
-** Step 3) <<source-cmd-ingest-local-and-pushed>>
-** Step 4) <<source-cmd-browse>>
+[[source-import-docs-existing-published]]
+==== Import Docs for an Existing Maven Published Library
+This implies you don't want to make changes to the library and is the simplest workflow, it involves only <<overview-diagram,steps>> 3 and 4. +
+We walk through the steps to import the example existing published library: {example-project-name}, via cljdoc source. +
+Expand each step for details.
 
-Commands for above (we use the {example-project-name} as an example library):
-
-- [[source-cmd-clone,clone]] clone (update as appropriate if you have forked the repo):
-+
-[source,shell,subs="verbatim,attributes"]
------
-git clone {example-project-clone-url}
-cd {example-project-name}
------
-
-- [[source-cmd-commit,`git commit`]] `git commit` +
-Because cljdoc imports from the git repository, it will only see committed changes.
-
-- [[source-cmd-commit-and-push,`git commit` and `git push`]] `git commit` and `git push` +
-You'll need to commit AND push for links to GitHub to work. +
-Do your work in an alternate branch if you don't want to pollute your main branch.
-
-- [[source-cmd-install,`{example-project-local-install}`]] `{example-project-local-install}` +
-The command you issue to install your library to your local maven repo will vary by build technology (leiningen, boot, tools deps) and project.
-The `{example-project-local-install}` command is appropriate for {example-project-name}, be sure to use the appropriate command for your project.
-
-- [[source-cmd-ingest-existing-published,ingest existing published]] ingest existing published:
+.Step 3) *import library docs*
+[%collapsible]
+====
+[no-bullet]
+* To import docs for an for existing published library, {example-project-name}:
 +
 [source,shell,subs="verbatim,attributes"]
 ----
@@ -167,41 +146,115 @@ cd cljdoc
 ./script/cljdoc ingest --project {example-project-coords} \
                        --version {example-project-version}
 ----
+====
 
-- [[source-cmd-ingest-local-only,ingest local only]] ingest local only:
-+
-[source,shell,subs="verbatim,attributes"]
-----
-cd cljdoc
-./script/cljdoc ingest --project {example-project-coords} \
-                       --version {example-project-version} \
-                       --git /path/to/{example-project-name}
-----
-+
-Where (update values as appropriate):
-
-* `{example-project-version}` is the version of {example-project-name} installed to your local maven repository.
-* `/path/to/{example-project-name}` is the path to the cloned {example-project-name} git repo on your local file system.
-
-- [[source-cmd-ingest-local-and-pushed,ingest local and pushed]] ingest local and pushed:
-+
-[source,shell,subs="verbatim,attributes"]
-----
-cd cljdoc/
-./script/cljdoc ingest --project {example-project-coords} \
-                       --version {example-project-version} \
-                       --git {example-project-import-url} \
-                       --rev $(git rev-parse HEAD)
-----
-Where (update values as appropriate):
-
-* `{example-project-version}` is the version of {example-project-name} installed to your local maven repository.
-* `{example-project-import-url-esc}` is the GitHub URL for {example-project-name}, update if you have forked the repo.
-
-
-- [[source-cmd-browse,browse docs]] browse docs - open library docs in your web browser (update version as appropriate): +
+.Step 4) *browse lirary docs*
+[%collapsible]
+====
+[no-bullet]
+* After the import has completed, preview docs in your web browser: +
 http://localhost:8000/d/{example-project-coords}/{example-project-version}
+====
 
+[[source-import-docs-local-library]]
+==== Import Docs for a Local Library you are Changing
+Your can opt for a quick or full preview, direct references to GitHub will be broken in a quick preview. +
+We walk through the <<overview-diagram,steps>> to import the example local library: {example-project-name}, via cljdoc source. +
+Expand each steps for details.
+
+.Setup) *clone*
+[%collapsible]
+====
+[no-bullet]
+* If you want to walk through the full preview, you'll want to first fork {example-project-link}.
+* From the parent directory of the cljdoc dir, clone {example-project-name} (adjust as necessary if you've forked):
++
+[source,shell,subs="verbatim,attributes"]
+-----
+git clone {example-project-clone-url}
+cd {example-project-name}
+-----
+Note that cloning from the parent dir of cljdoc is not a technical requirement, but is required by our example walkthrough commands.
+====
+
+.Step 1 option a) *commit library changes* quick preview
+[%collapsible]
+====
+[no-bullet]
+* Because cljdoc imports from the git repository, it will only see committed changes.
++
+For a *quick preview* you will only commit your changes to your local git repository.
+This can be convenient, but direct references to GitHub will be broken when browsing.
+====
+
+.Step 1 option b) *commit & push library changes* full preview
+[%collapsible]
+====
+[no-bullet]
+* Because cljdoc imports from the git repository, it will only see committed changes.
++
+For a *full preview* you will commit and then push your changes to GitHub. This will give you a full production-like preview where references to GitHub function as expected.
+====
+
+.Step 2) *publish library locally*
+[%collapsible]
+====
+[no-bullet]
+* Install {example-project-name} to your local maven repository:
++
+[source,shell,subs="verbatim,attributes"]
+----
+{example-project-name}> {example-project-local-install}
+----
+The command you issue to install your library to your local maven repo varies by build technology (leiningen, boot, tools deps cli, etc) and project.
+The `{example-project-local-install}` command is appropriate for {example-project-name}, be sure to use the appropriate command for your project.
+====
+
+.Step 3 option a) *import library docs* quick preview
+[%collapsible]
+====
+[no-bullet]
+* For a *quick preview* you can import from your local file system only:
++
+[source,shell,subs="verbatim,attributes"]
+----
+{example-project-name}> ../cljdoc/script/cljdoc ingest
+                          --project {example-project-coords} \
+                          --version {example-project-version} \
+                          --git ./
+----
+Where (update values as appropriate):
+
+** `{example-project-version}` is the version of {example-project-name} installed to your local maven repository.
+====
+
+.Step 3 option b) *import library docs* full preview
+[%collapsible]
+====
+[no-bullet]
+* For a *full preview* you'll import from your local maven repo and GitHub:
++
+[source,shell,subs="verbatim,attributes"]
+----
+{example-project-name}> ../cljdoc/script/cljdoc ingest
+                          --project {example-project-coords} \
+                          --version {example-project-version} \
+                          --git {example-project-import-url} \
+                          --rev $(git rev-parse HEAD)
+----
+Where (update values as appropriate):
+
+** `{example-project-version}` is the version of {example-project-name} installed to your local maven repository.
+** `{example-project-import-url-esc}` is the GitHub URL for {example-project-name}, update if you have forked the repo.
+====
+
+.Step 4) *browse library docs*
+[%collapsible]
+====
+[no-bullet]
+* After import is complete, open docs in your web browser (update version as appropriate): +
+http://localhost:8000/d/{example-project-coords}/{example-project-version}
+====
 
 [[run-cljdoc-locally-from-docker,run cljdoc locally from docker]]
 == Run cljdoc Locally From Docker (library author)
@@ -209,8 +262,7 @@ http://localhost:8000/d/{example-project-coords}/{example-project-version}
 If you are a *library author*, this path is for you; *cljdoc developers* need
 to <<run-cljdoc-locally-from-source>>.
 
-Here we make use of the very same https://hub.docker.com/r/cljdoc/cljdoc/tags[cljdoc docker image] that runs in production
-and avoid any local cljdoc source setup.
+Here we make use of the very same https://github.com/cljdoc/cljdoc/blob/master/ops/docker/Dockerfile[cljdoc docker] https://hub.docker.com/r/cljdoc/cljdoc/tags[image] that runs in https://cljdoc.org/[production] and avoid any local cljdoc source setup.
 
 === Setup cljdoc docker
 1. Fetch any updates for the docker image so that we match what is running in production:
@@ -227,101 +279,126 @@ docker pull cljdoc/cljdoc
 mkdir -p /tmp/cljdoc
 ----
 
-3. Start the cljdoc docker server:
+3. Start the cljdoc docker web server:
 +
 [source,shell]
 ----
-docker run --rm -p 8000:8000 -v /tmp/cljdoc:/app/data cljdoc/cljdoc
+docker run --rm \
+  --publish 8000:8000
+  --volumne /tmp/cljdoc:/app/data
+  cljdoc/cljdoc
 ----
 +
 NOTE: Leave this terminal open. Open a separate terminal shell for any other work.
 
 === Import a Library using Docker
-// Much of this is pasted from "Import a Library" making for a bit of a maintenance chore,
+// Some of this text is pasted from "Import a Library" making for a bit of a maintenance chore,
 // but puts less burden on the reader. I.e. a library author is not necessarily a cljdoc developer.
-How you import a library depends on what your needs are.
-Here are the steps to import docs for:
+Your can opt for a quick or full preview, direct references to GitHub will be broken in a quick preview. +
+We walk through the <<overview-diagram,steps>> to import from the example local library: {example-project-name}, via cljdoc docker image. +
+Expand each steps for details.
 
-1. A *quick verify of a local library* you are change. +
-This workflow imports your library from your local file system only. +
-Links and references to GitHub will be broken.
-** Setup) <<docker-cmd-clone,clone>>
-** Step 1) <<docker-cmd-commit,`git commit`>>
-** Step 2) <<docker-cmd-install,`{example-project-local-install}`>>
-** Step 3) <<docker-cmd-ingest-local-only,ingest local only>>
-** Step 4) <<docker-cmd-browse,browse>>
-1. A *full preview of a local library* you are changing. +
-Because this workflow pushes changes to GitHub, links and references to GitHub work.
-This is similar to the quick verify workflow, but steps 1 and 3 reference GitHub.
-** Setup) <<docker-cmd-clone,clone>>
-** Step 1) <<docker-cmd-commit-and-push,`git commit` and `git push`>>
-** Step 2) <<docker-cmd-install,`{example-project-local-install}`>>
-** Step 3) <<docker-cmd-ingest-local-and-pushed,ingest local and pushed>>
-** Step 4) <<docker-cmd-browse,browse>>
-
-Commands for above (we use the {example-project-name} as an example project):
-
-- [[docker-cmd-clone]] clone (update as appropriate if you have forked the repo):
+.Setup) *clone*
+[%collapsible]
+====
+[no-bullet]
+* If you want to walk through the full preview, you'll want to first fork {example-project-link}.
+* Clone {example-project-name} (adjust as necessary if you have forked):
 +
 [source,shell,subs="verbatim,attributes"]
 -----
 git clone {example-project-clone-url}
 cd {example-project-name}
 -----
+====
 
-- [[docker-cmd-commit]] `git commit` +
-Because cljdoc imports from the git repository, it will only see committed changes.
+.Step 1 option a) *commit library changes* quick preview
+[%collapsible]
+====
+[no-bullet]
+* Because cljdoc imports from the git repository, it will only see committed changes.
++
+For a *quick preview* you will only commit your changes to your local git repository.
+This is convenient, but direct references to GitHub will be broken when browsing.
+====
 
-- [[docker-cmd-commit-and-push]] `git commit` and `git push` +
-You'll need to commit AND push for links to GitHub to work. +
-Do your work in an alternate branch if you don't want to pollute your main branch.
+.Step 1 option b) *commit & push library changes* full preview
+[%collapsible]
+====
+[no-bullet]
+* Because cljdoc imports from the git repository, it will only see committed changes.
++
+For a *full preview* you will commit and then push your changes to GitHub. This will give you a full production-like preview where references to GitHub function as expected.
+====
 
-- [[docker-cmd-install]] `{example-project-local-install}` +
-The command you use to install your library to your local maven repo will vary by build technology (leiningen, boot, tools deps) and project.
+.Step 2) *publish library locally*
+[%collapsible]
+====
+[no-bullet]
+* Install {example-project-name} to your local maven repository:
++
+[source,shell,subs="verbatim,attributes"]
+----
+{example-project-name}> {example-project-local-install}
+----
+The command you issue to install your library to your local maven repo varies by build technology (leiningen, boot, tools deps cli, etc) and project.
 The `{example-project-local-install}` command is appropriate for {example-project-name}, be sure to use the appropriate command for your project.
+====
 
-- [[docker-cmd-ingest-local-only]] ingest local only:
+.Step 3 option a) *import library docs* quick preview
+[%collapsible]
+====
+[no-bullet]
+* For a *quick preview* you can import from your local file system only:
 +
 [source,shell,subs="verbatim,attributes"]
 ----
-cd {example-project-name}
-docker run --rm \
-       -v $(cwd):/repo-to-import \
-       -v "$HOME/.m2:/root/.m2" \
-       -v /tmp/cljdoc:/app/data \
-       --entrypoint "clojure" \
-       cljdoc/cljdoc -A:cli \
-       ingest --project {example-project-coords} \
-              --version {example-project-version} \
-              --git /repo-to-import
+{example-project-name}> docker run --rm \
+                          --volume $(cwd):/repo-to-import \
+                          --volume "$HOME/.m2:/root/.m2" \
+                          --volume /tmp/cljdoc:/app/data \
+                          --entrypoint clojure \
+                          cljdoc/cljdoc -A:cli ingest \
+                            --project {example-project-coords} \
+                            --version {example-project-version} \
+                            --git /repo-to-import
 ----
-+
 Where (update values as appropriate):
 
-* `{example-project-version}` is the version of {example-project-name} installed to your local maven repository.
+** `{example-project-version}` is the version of {example-project-name} installed to your local maven repository.
+====
 
-- [[docker-cmd-ingest-local-and-pushed]] ingest local and pushed:
+.Step 3 option b) *import library docs* full preview
+[%collapsible]
+====
+[no-bullet]
+* For a *full preview* you'll import from your local maven repo and GitHub:
 +
 [source,shell,subs="verbatim,attributes"]
 ----
-docker run --rm \
-       -v "$HOME/.m2:/root/.m2" \
-       -v /tmp/cljdoc:/app/data \
-       --entrypoint "clojure" \
-       cljdoc/cljdoc -A:cli \
-       ingest --project {example-project-coords} \
-              --version {example-project-version} \
-              --git {example-project-import-url} \
-              --rev $(git rev-parse HEAD)
+{example-project-name}> docker run --rm \
+                          --volume "$HOME/.m2:/root/.m2" \
+                          --volume /tmp/cljdoc:/app/data \
+                          --entrypoint clojure \
+                          cljdoc/cljdoc -A:cli ingest \
+                            --project {example-project-coords} \
+                            --version {example-project-version} \
+                            --git {example-project-import-url} \
+                            --rev $(git rev-parse HEAD)
 ----
 Where (update values as appropriate):
 
-* `{example-project-version}` is the version of {example-project-name} installed to your local maven repository.
-* `{example-project-import-url-esc}` is the GitHub URL for {example-project-name}, update if you have forked the repo.
+** `{example-project-version}` is the version of {example-project-name} installed to your local maven repository.
+** `{example-project-import-url-esc}` is the GitHub URL for {example-project-name}, update if you have forked the repo.
+====
 
-
-- [[docker-cmd-browse]] browse docs - open library docs in your web browser (update version as appropriate): +
+.Step 4) *browse library docs*
+[%collapsible]
+====
+[no-bullet]
+* After import is complete, open docs in your web browser (update version as appropriate): +
 http://localhost:8000/d/{example-project-coords}/{example-project-version}
+====
 
 === Example Docker Scripts
 The above examples show the minimal commands to run cljdoc under docker and almost beg for scripting.
