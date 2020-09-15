@@ -37,13 +37,13 @@
 
 (defn ingest-git!
   "Analyze the git repository `repo` and store the result in `storage`"
-  [storage {:keys [project version scm-url local-scm pom-revision] :as _repo}]
+  [storage {:keys [project version scm-url pom-revision] :as _repo}]
   {:pre [(string? scm-url)]}
-  (let [git-analysis (ana-git/analyze-git-repo project version (or local-scm scm-url) pom-revision)]
+  (let [git-analysis (ana-git/analyze-git-repo project version scm-url pom-revision)]
     (if (:error git-analysis)
       {:scm-url scm-url :error (:error git-analysis)}
       (do
-        (log/info "Importing Articles" (or local-scm scm-url) pom-revision)
+        (log/info "Importing Articles" scm-url pom-revision)
         (storage/import-doc
          storage
          (util/version-entity project version)
