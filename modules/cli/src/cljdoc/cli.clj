@@ -58,14 +58,19 @@
                                 "You may specify full paths to those files using the --jar and --pom options"
                                 "(in this case --version may override version from pom)."
                                 ""
-                                "To test how a Git repository gets incorporated without pushing new release,"
-                                "pass the --git option and use --rev to specify a revision to use (e.g. master)."]
+                                "To test how a Git repository is ingested before pushing new release,"
+                                "use the --git and --rev options to specify a revision to use (e.g. master)."]
                   :opts        [{:option "project" :short "p" :as "Project to import" :type :string :default :present}
                                 {:option "version" :short "v" :as "Version to import" :type :string :default :present}
-                                {:option "jar" :short "j" :as "Jar file to use (may be local)" :type :string}
-                                {:option "pom" :as "POM file to use (may be local)" :type :string}
-                                {:option "git" :short "g" :as "Git repo to use (may be local)" :type :string}
-                                {:option "rev" :short "r" :as "Git revision to use (inferred by default)" :type :string}]
+                                {:option "jar" :short "j" :as ["Jar file to use (local or remote)"
+                                                               " default: inferred by maven repo lookup"] :type :string}
+                                {:option "pom" :as ["POM file to use (local or remote)"
+                                                    " default: inferred by maven repo lookup"] :type :string}
+                                {:option "git" :short "g" :as ["Git repository  (local or remote)"
+                                                               " default: inferred from pom.xml project/scm/url"] :type :string}
+                                {:option "rev" :short "r" :as ["Git revision"
+                                                               " default: inferred from pom.xml project/scm/tag,"
+                                                               "          or if present, git tag representing --version"] :type :string}]
                   :runs        build}
                  {:command     "offline-bundle"
                   :description ["Builds an offline documentation bundle for previously ingested project"]
