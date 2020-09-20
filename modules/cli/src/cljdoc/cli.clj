@@ -33,10 +33,11 @@
         store         (:cljdoc/storage sys)
         artifact-info (util/version-entity project version)]
     (if (storage/exists? store artifact-info)
-      (->
-       (storage/bundle-docs store artifact-info)
-       (offline/zip-stream)
-       (io/copy (io/file output)))
+      (let [output (io/file output)]
+        (-> (storage/bundle-docs store artifact-info)
+            (offline/zip-stream)
+            (io/copy output))
+        (println "Offline bundle created:" (.getCanonicalPath output)))
       (do
         (log/fatalf "%s@%s could not be found in storage" project version)
         (System/exit 1)))))
