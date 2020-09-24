@@ -89,7 +89,14 @@
         defs    (bundle/defs-for-ns-with-src-uri cache-bundle (:namespace ns-emap))
         [[dominant-platf] :as platf-stats] (api/platform-stats defs)
         ns-data (bundle/get-namespace cache-bundle (:namespace ns-emap))
-        top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))]
+        top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))
+        fix-opts {:scm (-> cache-bundle :version :scm)
+                  :uri-map (fixref/uri-mapping version-entity
+                                               (-> cache-bundle
+                                                   :version
+                                                   :doc
+                                                   doctree/add-slug-path
+                                                   doctree/flatten*))}]
     (->> (if ns-data
            (layout/layout
             {:top-bar top-bar-component
@@ -99,13 +106,15 @@
                                        (api/definitions-list ns-emap defs {:indicate-platforms-other-than dominant-platf})])
              :content (api/namespace-page {:ns-entity ns-emap
                                            :ns-data ns-data
-                                           :defs defs})})
+                                           :defs defs
+                                           :fix-opts fix-opts})})
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
              :content (api/sub-namespace-overview-page {:ns-entity ns-emap
                                                         :namespaces (bundle/namespaces cache-bundle)
-                                                        :defs (bundle/all-defs cache-bundle)})}))
+                                                        :defs (bundle/all-defs cache-bundle)
+                                                        :fix-opts fix-opts})}))
          (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)

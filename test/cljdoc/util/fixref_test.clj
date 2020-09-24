@@ -16,6 +16,13 @@
 
 (t/deftest fix-test
   (t/testing "ignores"
+    (t/testing "rendered wikilinks (which can occur in docstrings)"
+      (let [html ["<a href=\"down/deeper/to/doc.adoc\" data-source=\"wikilink\">relative link</a>"
+                  "<a href=\"../upone/norm1.adoc\" data-source=\"wikilink\">norm1</a>"
+                  "<a href=\"../../norm2.adoc\" data-source=\"wikilink\">norm2</a>"]]
+        (t/is (= html (fix-result (fixref/fix (string/join "\n" html)
+                                              fix-opts))))))
+
     (t/testing "absolute image refs"
       (let [html ["<img src=\"https://svgworld.com/abs.svg\">"
                   "<img src=\"https://cljdoc.org/some/path/absolute-cljdoc.png\">"
@@ -26,6 +33,15 @@
       (let [html ["<a href=\"#anchor\">anchor link</a>"]]
         (t/is (= html (fix-result (fixref/fix (string/join "\n" html)
                                               fix-opts)))))))
+
+  (t/testing "renders error ref"
+    (t/testing "when scm file path is unknown (as is case from docstrings) and a relative path is specified"
+      (t/is (= ["<a href=\"#!cljdoc-error!ref-must-be-root-relative!\">link text</a>"
+                "<img src=\"#!cljdoc-error!ref-must-be-root-relative!\">"]
+               (fix-result
+                (fixref/fix (str "<a href=\"rel/ref/here.md\">link text</a>"
+                                 "<img src=\"rel/ref/here.png\">")
+                            (dissoc fix-opts :scm-file-path)))))))
 
   (t/testing "external links"
     (t/testing "include nofollow"
@@ -69,13 +85,17 @@
                             (assoc fix-opts
                                    :scm-file-path "doc/path/my-doc.adoc"
                                    :uri-map {"doc/path/slug/conversion/slugtest.adoc" "slugged-doc"}))))))
-    (t/testing "can point to html files for offline bundles"
-      (t/is (= ["<a href=\"offline.html\">offline doc</a>"]
-               (fix-result
-                (fixref/fix "<a href=\"mapped.adoc\">offline doc</a>"
-                            (assoc fix-opts
-                                   :scm-file-path "doc/path/my-doc.adoc"
-                                   :uri-map {"doc/path/mapped.adoc" "doc/offline.html"})))))))
+    (t/testing "can point to html files for offline bundles and support rewriting to different structure via target path"
+      (t/are [?target-path ?expected-html]
+          (t/is (= ?expected-html (fix-result
+                                     (fixref/fix "<a href=\"mapped.adoc\">offline doc</a>"
+                                                 (assoc fix-opts
+                                                        :scm-file-path "doc/path/my-doc.adoc"
+                                                        :target-path   ?target-path
+                                                        :uri-map       {"doc/path/mapped.adoc" "doc/offline.html"})))))
+        ""    ["<a href=\"doc/offline.html\">offline doc</a>"]
+        "doc" ["<a href=\"offline.html\">offline doc</a>"]
+        "api" ["<a href=\"../doc/offline.html\">offline doc</a>"])))
 
   (t/testing "scm images"
     (t/testing "when relative, will point to scm raw ref"

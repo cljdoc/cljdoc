@@ -22,12 +22,12 @@
   (:import (java.nio.file Files)
            (java.net URL)))
 
-(defn ns-url
+(defn- ns-url
   [ns]
   {:pre [(string? ns)]}
   (str "api/" ns ".html"))
 
-(defn article-url
+(defn- article-url
   [slug-path]
   {:pre [(string? (first slug-path))]}
   ;; WARN this could lead to overwriting files but nesting
@@ -35,7 +35,7 @@
   ;; so taking a shortcut here.
   (str "doc/" (string/join "-" slug-path) ".html"))
 
-(defn top-bar [version-entity scm-url sub-page?]
+(defn- top-bar [version-entity scm-url sub-page?]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
    [:a.dib.v-mid.link.dim.black.b.f6.mr3
     {:href (if sub-page? ".." "#")}
@@ -53,7 +53,7 @@
          [:img.v-mid.mr2 {:src (str "https://microicon-clone.vercel.app/" (name icon))}])
        [:span.dib (scm/coordinate scm-url)]])]])
 
-(defn page [{:keys [version-entity namespace article-title scm-url]} contents]
+(defn- page [{:keys [version-entity namespace article-title scm-url]} contents]
   (let [sub-page? (or namespace article-title)]
     (hiccup/html {:mode :html}
                  (hiccup.page/doctype :html5)
@@ -79,7 +79,7 @@
                        (apply hiccup.page/include-js))
                   (layout/highlight-js-customization)])))
 
-(defn article-toc
+(defn- article-toc
   "Very similar to `doc-tree-view` but uses the offline-docs
   link/url generation mechanism"
   [doc-tree]
@@ -95,7 +95,7 @@
                  (some-> doc-page :children seq article-toc)])))
        (into [:ol])))
 
-(defn index-page [cache-bundle]
+(defn- index-page [cache-bundle fix-opts]
   [:div
    (when (-> cache-bundle :version :doc)
      [:div
@@ -107,26 +107,26 @@
          :let [defs (bundle/defs-for-ns
                       (bundle/all-defs cache-bundle)
                       (platf/get-field ns :name))]]
-     (api/namespace-overview ns-url ns defs))])
+     (api/namespace-overview ns-url ns defs fix-opts))])
 
-(defn doc-page [doc-p fix-opts]
+(defn- doc-page [doc-p fix-opts]
   [:div
    [:div.markdown.lh-copy.pv4
     (hiccup/raw
      (fixref/fix (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
-                 (assoc fix-opts :scm-file-path (-> doc-p :attrs :cljdoc.doc/source-file))))]])
+                 fix-opts))]])
 
-(defn ns-page [ns defs]
+(defn- ns-page [ns defs fix-opts]
   (let [ns-name (platf/get-field ns :name)
         render-wiki-link (api/render-wiki-link-fn ns-name #(str % ".html"))]
     [:div
      [:h1 ns-name]
-     (api/render-doc ns render-wiki-link)
+     (api/render-doc ns render-wiki-link fix-opts)
      (for [def defs]
-       (api/def-block def render-wiki-link))]))
+       (api/def-block def render-wiki-link fix-opts))]))
 
-(defn docs-files
+(defn- docs-files
   "Return a list of [file-path content] pairs describing a zip archive.
 
   Content may be a java.io.File or hiccup.util.RawString"
@@ -140,6 +140,7 @@
                               [(-> d :attrs :cljdoc.doc/source-file)
                                (article-url (-> d :attrs :slug-path))]))
                        (into {}))
+        fix-opts {:scm scm-info :uri-map uri-map}
         page'   (fn [type title contents]
                   (page {:version-entity version-entity
                          :scm-url (-> cache-bundle :version :scm :url)
@@ -155,20 +156,26 @@
        ["assets/clojure.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js")]
        ["assets/clojure-repl.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")]
 
-       ["index.html" (->> (index-page cache-bundle)
+       ["index.html" (->> (index-page cache-bundle fix-opts)
                           (page' nil nil))]]
 
       ;; Documentation Pages / Articles
-      (for [doc-p (filter #(-> % :attrs :cljdoc.doc/source-file) flat-doctree)]
-        [(article-url (-> doc-p :attrs :slug-path))
-         (->> (doc-page doc-p {:scm scm-info :uri-map uri-map})
+      (for [doc-p (filter #(-> % :attrs :cljdoc.doc/source-file) flat-doctree)
+            :let [target-file (article-url (-> doc-p :attrs :slug-path))]]
+        [target-file
+         (->> (doc-page doc-p (assoc fix-opts
+                                     :scm-file-path (-> doc-p :attrs :cljdoc.doc/source-file)
+                                     :target-path (.getParent (io/file target-file))))
               (page' :article-title (:title doc-p)))])
 
       ;; Namespace Pages
       (for [ns-data (bundle/namespaces cache-bundle)
-            :let [defs (bundle/defs-for-ns-with-src-uri cache-bundle (platf/get-field ns-data :name))]]
-        [(ns-url (platf/get-field ns-data :name))
-         (->> (ns-page ns-data defs)
+            :let [defs (bundle/defs-for-ns-with-src-uri cache-bundle (platf/get-field ns-data :name))
+                  target-file (ns-url (platf/get-field ns-data :name))]]
+        [target-file
+         (->> (ns-page ns-data defs (assoc fix-opts
+                                           ;; :scm-file-path - we don't currently have scm file for namespaces
+                                           :target-path (.getParent (io/file target-file))))
               (page' :namespace (platf/get-field ns-data :name)))])])))
 
 (defn zip-stream [{:keys [version-entity] :as cache-bundle}]
