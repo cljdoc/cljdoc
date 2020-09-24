@@ -19,15 +19,6 @@
   (or (.startsWith s "https://cljdoc.org")
       (.startsWith s "https://cljdoc.xyz")))
 
-(defn uri-mapping [version-entity docs]
-  (->> docs
-       (map (fn [d]
-              [(-> d :attrs :cljdoc.doc/source-file)
-               (->> (-> d :attrs :slug-path)
-                    (clojure.string/join "/")
-                    (assoc version-entity :article-slug)
-                    (routes/url-for :artifact/doc :path-params))]))
-       (into {})))
 
 (defn- rebase
   "Given a path `f1` and `f2` return a modified version of `f2` relative to `f1`
@@ -58,6 +49,15 @@
       (str scm-base (subs src 1) suffix)
       (str scm-base (rebase scm-file-path src) suffix))))
 
+(defn uri-mapping [version-entity docs]
+  (->> docs
+       (map (fn [d]
+              [(-> d :attrs :cljdoc.doc/source-file)
+               (->> (-> d :attrs :slug-path)
+                    (clojure.string/join "/")
+                    (assoc version-entity :article-slug)
+                    (routes/url-for :artifact/doc :path-params))]))
+       (into {})))
 
 (defn fix
   [html-str {:keys [scm-file-path git-ls scm uri-map] :as _fix-opts}]
