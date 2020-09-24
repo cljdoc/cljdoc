@@ -54,6 +54,9 @@ Docstrings are rendered as **Markdown** in the https://commonmark.org/[CommonMar
 2. Link To Other Functions Using `\[[Wikilink]]` Syntax
 3. Include Small Examples using Markdown fenced code blocks (`{fence}clojure ... {fence}`)
 4. Use (Markdown) Tables To Describe Complex Options Maps
+5. Can include images and links to articles, just be sure to use root relative links here (links that start with a `/`):
+  * `![my image](/dir1/dir2/image1.png)`
+  * `[my article](/dir1/dir2/article.adoc)`
 
 == Articles
 
