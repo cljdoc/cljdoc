@@ -59,7 +59,12 @@
       (str scm-base (subs src 1) suffix)
       (str scm-base (rebase scm-file-path src) suffix))))
 
-(defn uri-mapping [version-entity docs]
+(defn uri-mapping
+  "Returns lookup map where key is SCM repo relative file and value is cljdoc root relative `version-entity`
+  slug path at for all `docs`.
+
+  Ex: `{\"README.md\" \"/d/lread/cljdoc-exerciser/1.0.34/doc/readme}`"
+  [version-entity docs]
   (->> docs
        (map (fn [d]
               [(-> d :attrs :cljdoc.doc/source-file)
@@ -70,37 +75,54 @@
        (into {})))
 
 (defn fix
+  "Rewrite references in rendered markdown.
+
+  Markdown from SCM can contains references to images and articles.
+
+  Relative <a> links are links to SCM:
+  - an SCM link that is an article that has been imported to cljdoc => cljdoc doc slug link
+  - else => SCM formatted (aka blob) link at correct revision
+
+  Absolute <a> links
+  - when linking to cljdoc.org => to root relative
+  - else => converted to nofollow link
+
+  Relative <img> references are links to SCM:
+  - are converted to SCM raw references at correct revision
+  - svg's form GitHub add special querystring parameters
+
+  Special fixups are also done for offline bundles."
   [html-str {:keys [scm-file-path git-ls scm uri-map] :as _fix-opts}]
   (let [doc (Jsoup/parse html-str)]
-    (doseq [broken-link (->> (.select doc "a")
+    (doseq [scm-relative-link (->> (.select doc "a")
                              (map #(.attributes %))
                              (remove #(absolute-uri? (.get % "href")))
                              (remove #(anchor-uri? (.get % "href"))))]
       (let [fixed-link (fix-link
-                        (.get broken-link "href")
+                        (.get scm-relative-link "href")
                         {:scm-file-path scm-file-path
                          :scm-base (scm-blob-base-url scm)
                          :uri-map uri-map})]
         (if (.startsWith fixed-link "doc/")
           ;; for offline bundles all articles are flat files in doc/
           ;; in this case we want just the filename to be the href
-          (.put broken-link "href" (subs fixed-link 4))
-          (.put broken-link "href" fixed-link))))
+          (.put scm-relative-link "href" (subs fixed-link 4))
+          (.put scm-relative-link "href" fixed-link))))
 
-    (doseq [broken-img (->> (.select doc "img")
+    (doseq [scm-relative-img (->> (.select doc "img")
                             (map #(.attributes %))
                             (remove #(absolute-uri? (.get % "src"))))]
-      (.put broken-img "src" (fix-image (.get broken-img "src")
+      (.put scm-relative-img "src" (fix-image (.get scm-relative-img "src")
                                         {:scm-file-path scm-file-path
                                          :scm-base (scm-raw-base-url scm)})))
 
-    (doseq [ext-link (->> (.select doc "a")
+    (doseq [absolute-link (->> (.select doc "a")
                           (map #(.attributes %))
                           (filter #(absolute-uri? (.get % "href"))))]
-      (let [href (.get ext-link "href")]
+      (let [href (.get absolute-link "href")]
         (if-let [cljdoc-prefix (get-cljdoc-url-prefix href)]
-          (.put ext-link "href" (subs href (count cljdoc-prefix)))
-          (.put ext-link "rel" "nofollow"))))
+          (.put absolute-link "href" (subs href (count cljdoc-prefix)))
+          (.put absolute-link "rel" "nofollow"))))
 
     (.. doc body html toString)))
 
