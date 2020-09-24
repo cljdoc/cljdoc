@@ -1,18 +1,12 @@
 (ns cljdoc.util.fixref
-  "Utilities to fix broken references in HTML that was intended to be
-  rendered in other places, e.g. GitHub."
+  "Utilities to rewrite, or support the rewrite of, references in markdown rendered to HTML.
+  For example, external links are rewritten to include nofollow, links to ingested SCM
+  articles are rewritten to their slugs, and scm relative references are rewritten to point to SCM."
   (:require [clojure.tools.logging :as log]
             [clojure.string :as string]
             [cljdoc.util.scm :as scm]
             [cljdoc.server.routes :as routes])
   (:import (org.jsoup Jsoup)))
-
-;; inputs
-;; - list of files in in git repo
-;; - info about git repo (remote + sha)
-;; - doctree
-;; - project-info (group-id, artifact-id, version)
-;; - path of file being fixed
 
 (defn- absolute-uri? [s]
   (or (.startsWith s "http://")
@@ -64,15 +58,9 @@
       (str scm-base (subs src 1) suffix)
       (str scm-base (rebase scm-file-path src) suffix))))
 
-;; This namespace's scope was mostly around fixing broken links, but since it
-;; preprocesses a document before rendering, it's also handy for other things.
-;; Below, a `nofollow` attribute is added to external links for SEO purposes.
 
 (defn fix
   [html-str {:keys [scm-file-path git-ls scm uri-map] :as _fix-opts}]
-  ;; (def fp file-path)
-  ;; (def hs html-str)
-  ;; (def fo fix-opts)
   (let [doc     (Jsoup/parse html-str)
         scm-rev (or (:name (:tag scm))
                     (:commit scm))]
