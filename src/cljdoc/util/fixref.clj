@@ -15,9 +15,8 @@
 (defn- anchor-uri? [s]
   (.startsWith s "#"))
 
-(defn- own-uri? [s]
-  (or (.startsWith s "https://cljdoc.org")
-      (.startsWith s "https://cljdoc.xyz")))
+(defn- get-cljdoc-url-prefix [s]
+  (first (filter #(string/starts-with? s %) ["https://cljdoc.org" "https://cljdoc.xyz"])))
 
 (defn- scm-rev [scm]
   (or (:name (:tag scm))
@@ -97,9 +96,11 @@
 
     (doseq [ext-link (->> (.select doc "a")
                           (map #(.attributes %))
-                          (filter #(absolute-uri? (.get % "href")))
-                          (remove #(own-uri? (.get % "href"))))]
-      (.put ext-link "rel" "nofollow"))
+                          (filter #(absolute-uri? (.get % "href"))))]
+      (let [href (.get ext-link "href")]
+        (if-let [cljdoc-prefix (get-cljdoc-url-prefix href)]
+          (.put ext-link "href" (subs href (count cljdoc-prefix)))
+          (.put ext-link "rel" "nofollow"))))
 
     (.. doc body html toString)))
 

@@ -36,6 +36,15 @@
                                  "<a href=\"http://unsecure.com\">absolutely insecure</a>")
                             fix-opts))))))
 
+  (t/testing "cljdoc absolute links"
+    (t/testing "are converted to cljdoc root relative to support local testing"
+      (t/is (= ["<a href=\"/some/path/here\">absolute link to cljdoc</a>"
+                "<a href=\"/another/path\">absolute link to cljdoc.xyz</a>"]
+               (fix-result
+                (fixref/fix (str "<a href=\"https://cljdoc.org/some/path/here\">absolute link to cljdoc</a>"
+                                 "<a href=\"https://cljdoc.xyz/another/path\">absolute link to cljdoc.xyz</a>")
+                            fix-opts))))))
+
  (t/testing "unknown scm links"
     (t/testing "when relative, will point to scm"
       (t/is (= ["<a href=\"https://scm/user/project/blob/#SHA#/doc/path/down/deeper/to/doc.adoc\" rel=\"nofollow\">relative link</a>"
