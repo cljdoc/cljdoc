@@ -232,19 +232,29 @@ to Clojars or commits to Github. See link:/doc/running-cljdoc-locally.md[Running
 
 ==== Asciidoc Environment
 
-Similar to GitHub, cljdoc will set an `env-cljdoc` attribute when
+Similar to `env-github` on GitHub, cljdoc will set an `env-cljdoc` attribute when
 rendering your Asciidoc file. This allows you to hide or show sections
 of your document or set configuration parameters.
 
-[source,asciidoc]
+As an example, this AsciiDoctor snippit:
+[source,asciidoc,literal]
 ----
+\ifdef::env-cljdoc[]
+THIS WILL BE SHOWN ON CLJDOC
+\endif::[]
+\ifndef::env-cljdoc[]
+THIS WILL BE SHOWN EVERYWHERE ELSE
+\endif::[]
+----
+
+will render as so:
+
 ifdef::env-cljdoc[]
 THIS WILL BE SHOWN ON CLJDOC
 endif::[]
 ifndef::env-cljdoc[]
 THIS WILL BE SHOWN EVERYWHERE ELSE
 endif::[]
-----
 
 ==== Supported rich text formats
 
