@@ -19,6 +19,15 @@
   (or (.startsWith s "https://cljdoc.org")
       (.startsWith s "https://cljdoc.xyz")))
 
+(defn- scm-rev [scm]
+  (or (:name (:tag scm))
+      (:commit scm)))
+
+(defn- scm-blob-base-url [scm]
+  (str (:url scm) "/blob/" (scm-rev scm) "/"))
+
+(defn- scm-raw-base-url [scm]
+  (str (:url scm) "/raw/" (scm-rev scm) "/"))
 
 (defn- rebase
   "Given a path `f1` and `f2` return a modified version of `f2` relative to `f1`
@@ -44,7 +53,9 @@
 
 (defn- fix-image
   [src {:keys [scm-file-path scm-base]}]
-  (let [suffix (when (.endsWith src ".svg") "?sanitize=true")]
+  (let [suffix (when (and (= :github (scm/provider scm-base))
+                          (.endsWith src ".svg"))
+                 "?sanitize=true")]
     (if (.startsWith src "/")
       (str scm-base (subs src 1) suffix)
       (str scm-base (rebase scm-file-path src) suffix))))
@@ -61,9 +72,7 @@
 
 (defn fix
   [html-str {:keys [scm-file-path git-ls scm uri-map] :as _fix-opts}]
-  (let [doc     (Jsoup/parse html-str)
-        scm-rev (or (:name (:tag scm))
-                    (:commit scm))]
+  (let [doc (Jsoup/parse html-str)]
     (doseq [broken-link (->> (.select doc "a")
                              (map #(.attributes %))
                              (remove #(absolute-uri? (.get % "href")))
@@ -71,7 +80,7 @@
       (let [fixed-link (fix-link
                         (.get broken-link "href")
                         {:scm-file-path scm-file-path
-                         :scm-base (str (:url scm) "/blob/" scm-rev "/")
+                         :scm-base (scm-blob-base-url scm)
                          :uri-map uri-map})]
         (if (.startsWith fixed-link "doc/")
           ;; for offline bundles all articles are flat files in doc/
@@ -84,10 +93,7 @@
                             (remove #(absolute-uri? (.get % "src"))))]
       (.put broken-img "src" (fix-image (.get broken-img "src")
                                         {:scm-file-path scm-file-path
-                                         :scm-base (str "https://raw.githubusercontent.com/"
-                                                        (scm/owner (:url scm)) "/"
-                                                        (scm/repo (:url scm)) "/"
-                                                        scm-rev "/")})))
+                                         :scm-base (scm-raw-base-url scm)})))
 
     (doseq [ext-link (->> (.select doc "a")
                           (map #(.attributes %))

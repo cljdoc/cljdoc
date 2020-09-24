@@ -67,21 +67,30 @@
                             (assoc fix-opts
                                    :scm-file-path "doc/path/my-doc.adoc"
                                    :uri-map {"doc/path/mapped.adoc" "doc/offline.html"})))))))
+
   (t/testing "scm images"
     (t/testing "when relative, will point to scm raw ref"
-      (t/is (= ["<img src=\"https://raw.githubusercontent.com/user/project/#SHA#/doc/path/rel1.png\">"
-                "<img src=\"https://raw.githubusercontent.com/user/project/#SHA#/images/rel2.png\">"]
+      (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/doc/path/rel1.png\">"
+                "<img src=\"https://scm/user/project/raw/#SHA#/images/rel2.png\">"]
                (fix-result
                 (fixref/fix (str "<img src=\"rel1.png\">"
                                  "<img src=\"../../images/rel2.png\">")
-                            (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
+                            (assoc fix-opts :scm-file-path "doc/path/doc.adoc") )))))
     (t/testing "when root relative, will point point to scm raw ref"
-      (t/is (= ["<img src=\"https://raw.githubusercontent.com/user/project/#SHA#/root/relative/image.png\">"]
+      (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/root/relative/image.png\">"]
                (fix-result
                 (fixref/fix "<img src=\"/root/relative/image.png\">"
                             (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
-    (t/testing "when svg is github sanitized"
-      (t/is (= ["<img src=\"https://raw.githubusercontent.com/user/project/#SHA#/doc/path/rel.svg?sanitize=true\">"]
+    (t/testing "can be svg"
+      (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/doc/path/rel.svg\">"]
                (fix-result
                 (fixref/fix "<img src=\"rel.svg\">"
-                            (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))))
+                            (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
+    (t/testing "when svg from github, are sanitized"
+      (t/is (= ["<img src=\"https://github.com/user/project/raw/#SHA#/doc/path/rel.svg?sanitize=true\">"]
+               (fix-result
+                (fixref/fix "<img src=\"rel.svg\">"
+                            {:scm-file-path "doc/path/doc.adoc"
+                             :scm {:commit "#SHA#"
+                                   :url "https://github.com/user/project"}
+                             :uri-map {}})))))))
