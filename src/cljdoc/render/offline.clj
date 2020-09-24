@@ -113,10 +113,9 @@
   [:div
    [:div.markdown.lh-copy.pv4
     (hiccup/raw
-     (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
-                 (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
+     (fixref/fix (or (some-> doc-p :attrs :cljdoc/markdown rich-text/markdown-to-html)
                      (some-> doc-p :attrs :cljdoc/asciidoc rich-text/asciidoc-to-html))
-                 fix-opts))]])
+                 (assoc fix-opts :scm-file-path (-> doc-p :attrs :cljdoc.doc/source-file))))]])
 
 (defn ns-page [ns defs]
   (let [ns-name (platf/get-field ns :name)

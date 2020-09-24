@@ -45,31 +45,31 @@
   [f1 f2]
   (.toString (.normalize (.toPath (java.io.File. (.getParent (java.io.File. f1)) f2)))))
 
-(defn fix-link
+(defn- fix-link
   "Return the cljdoc location for a given URL or it's page on GitHub/GitLab etc."
-  [file-path href {:keys [scm-base uri-map] :as _opts}]
+  [href {:keys [scm-file-path scm-base uri-map] :as _opts}]
   (let [root-relative (if (.startsWith href "/")
                         (subs href 1)
-                        (rebase file-path href))
+                        (rebase scm-file-path href))
         w-o-anchor    (string/replace root-relative #"#.*$" "")
         anchor        (re-find #"#.*$" root-relative)]
     (if-let [from-uri-map (get uri-map w-o-anchor)]
       (str from-uri-map anchor)
       (str scm-base root-relative))))
 
-(defn fix-image
-  [file-path src {:keys [scm-base]}]
+(defn- fix-image
+  [src {:keys [scm-file-path scm-base]}]
   (let [suffix (when (.endsWith src ".svg") "?sanitize=true")]
     (if (.startsWith src "/")
       (str scm-base (subs src 1) suffix)
-      (str scm-base (rebase file-path src) suffix))))
+      (str scm-base (rebase scm-file-path src) suffix))))
 
 ;; This namespace's scope was mostly around fixing broken links, but since it
 ;; preprocesses a document before rendering, it's also handy for other things.
 ;; Below, a `nofollow` attribute is added to external links for SEO purposes.
 
 (defn fix
-  [file-path html-str {:keys [git-ls scm uri-map] :as _fix-opts}]
+  [html-str {:keys [scm-file-path git-ls scm uri-map] :as _fix-opts}]
   ;; (def fp file-path)
   ;; (def hs html-str)
   ;; (def fo fix-opts)
@@ -81,9 +81,9 @@
                              (remove #(absolute-uri? (.get % "href")))
                              (remove #(anchor-uri? (.get % "href"))))]
       (let [fixed-link (fix-link
-                        file-path
                         (.get broken-link "href")
-                        {:scm-base (str (:url scm) "/blob/" scm-rev "/")
+                        {:scm-file-path scm-file-path
+                         :scm-base (str (:url scm) "/blob/" scm-rev "/")
                          :uri-map uri-map})]
         (if (.startsWith fixed-link "doc/")
           ;; for offline bundles all articles are flat files in doc/
@@ -94,9 +94,9 @@
     (doseq [broken-img (->> (.select doc "img")
                             (map #(.attributes %))
                             (remove #(absolute-uri? (.get % "src"))))]
-      (.put broken-img "src" (fix-image file-path
-                                        (.get broken-img "src")
-                                        {:scm-base (str "https://raw.githubusercontent.com/"
+      (.put broken-img "src" (fix-image (.get broken-img "src")
+                                        {:scm-file-path scm-file-path
+                                         :scm-base (str "https://raw.githubusercontent.com/"
                                                         (scm/owner (:url scm)) "/"
                                                         (scm/repo (:url scm)) "/"
                                                         scm-rev "/")})))

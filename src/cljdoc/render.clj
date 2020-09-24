@@ -59,9 +59,9 @@
                                           "/" (-> doc-p :attrs :cljdoc.doc/source-file))
                         :contributors (-> doc-p :attrs :cljdoc.doc/contributors)
                         :doc-type (name doc-type)
-                        :doc-html (fixref/fix (-> doc-p :attrs :cljdoc.doc/source-file)
-                                              (rich-text/render-text [doc-type contents])
-                                              {:scm (bundle/scm-info cache-bundle)
+                        :doc-html (fixref/fix (rich-text/render-text [doc-type contents])
+                                              {:scm-file-path (-> doc-p :attrs :cljdoc.doc/source-file)
+                                               :scm (bundle/scm-info cache-bundle)
                                                :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})
                         :version-entity version-entity
                         :prev-page prev-page
