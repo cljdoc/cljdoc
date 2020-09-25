@@ -121,7 +121,7 @@
 
   Absolute <a> links
   * when relinking back to cljdoc.org => to root relative to support local testing
-  * else => converted to nofollow link
+  * else => converted to nofollow link (this includes links rewritten to point SCM)
 
   Relative <img> references are links to SCM:
   - are converted to SCM raw references at correct revision

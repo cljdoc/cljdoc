@@ -15,6 +15,13 @@
                :uri-map {}})
 
 (t/deftest fix-test
+  (t/testing "favors git tag representing version, when present, over commit"
+    (t/is (= ["<a href=\"https://scm/user/project/blob/v1.2.3/doc/doc.md\" rel=\"nofollow\">my doc</a>"
+              "<img src=\"https://scm/user/project/raw/v1.2.3/doc/images/one.png\">"]
+             (fix-result (fixref/fix (str "<a href=\"doc.md\">my doc</a>"
+                                          "<img src=\"images/one.png\">")
+                                     (assoc-in fix-opts [:scm :tag :name] "v1.2.3"))))))
+
   (t/testing "ignores"
     (t/testing "rendered wikilinks (which can occur in docstrings)"
       (let [html ["<a href=\"down/deeper/to/doc.adoc\" data-source=\"wikilink\">relative link</a>"
@@ -62,19 +69,25 @@
                             fix-opts))))))
 
  (t/testing "unknown scm links"
-    (t/testing "when relative, will point to scm"
+    (t/testing "when relative, will point to normalized scm"
       (t/is (= ["<a href=\"https://scm/user/project/blob/#SHA#/doc/path/down/deeper/to/doc.adoc\" rel=\"nofollow\">relative link</a>"
                 "<a href=\"https://scm/user/project/blob/#SHA#/doc/upone/norm1.adoc\" rel=\"nofollow\">norm1</a>"
-                "<a href=\"https://scm/user/project/blob/#SHA#/norm2.adoc\" rel=\"nofollow\">norm2</a>"]
+                "<a href=\"https://scm/user/project/blob/#SHA#/norm2.adoc\" rel=\"nofollow\">norm2</a>"
+                "<a href=\"https://scm/user/project/blob/#SHA#/../../../norm2.adoc\" rel=\"nofollow\">norm2</a>"]
                (fix-result
                 (fixref/fix (str "<a href=\"down/deeper/to/doc.adoc\">relative link</a>"
                                  "<a href=\"../upone/norm1.adoc\">norm1</a>"
-                                 "<a href=\"../../norm2.adoc\">norm2</a>")
+                                 "<a href=\"../../norm2.adoc\">norm2</a>"
+                                 "<a href=\"../../../../../norm2.adoc\">norm2</a>" )
                             (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
-    (t/testing "when root relative, will point to scm project root"
-      (t/is (= ["<a href=\"https://scm/user/project/blob/#SHA#/root/relative/doc.md\" rel=\"nofollow\">root relative link</a>"]
+    (t/testing "when root relative, will point to normalized scm project root"
+      (t/is (= ["<a href=\"https://scm/user/project/blob/#SHA#/root/relative/doc.md\" rel=\"nofollow\">root relative link</a>"
+                "<a href=\"https://scm/user/project/blob/#SHA#/root/a/d/doc.md\" rel=\"nofollow\">root relative link</a>"
+                "<a href=\"https://scm/user/project/blob/#SHA#/doc.md\" rel=\"nofollow\">root relative link</a>"]
                (fix-result
-                (fixref/fix "<a href=\"/root/relative/doc.md\">root relative link</a>"
+                (fixref/fix (str "<a href=\"/root/relative/doc.md\">root relative link</a>"
+                                 "<a href=\"/root/./././relative/../a/b/c/../../d/doc.md\">root relative link</a>"
+                                 "<a href=\"/root/relative/../../../../../doc.md\">root relative link</a>")
                             fix-opts))))))
 
  (t/testing "known scm relative links (imported articles)"
@@ -98,17 +111,23 @@
         "api" ["<a href=\"../doc/offline.html\">offline doc</a>"])))
 
   (t/testing "scm images"
-    (t/testing "when relative, will point to scm raw ref"
+    (t/testing "when relative, will point to normalized scm raw ref"
       (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/doc/path/rel1.png\">"
-                "<img src=\"https://scm/user/project/raw/#SHA#/images/rel2.png\">"]
+                "<img src=\"https://scm/user/project/raw/#SHA#/images/rel2.png\">"
+                "<img src=\"https://scm/user/project/raw/#SHA#/homages/rel3.png\">"
+                "<img src=\"https://scm/user/project/raw/#SHA#/../../../../../../../../rel4.png\">" ]
                (fix-result
                 (fixref/fix (str "<img src=\"rel1.png\">"
-                                 "<img src=\"../../images/rel2.png\">")
+                                 "<img src=\"../../images/rel2.png\">"
+                                 "<img src=\"../../images/../homages/./././rel3.png\">"
+                                 "<img src=\"../../../../../../../../../../rel4.png\">" )
                             (assoc fix-opts :scm-file-path "doc/path/doc.adoc") )))))
     (t/testing "when root relative, will point point to scm raw ref"
-      (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/root/relative/image.png\">"]
+      (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/root/relative/image.png\">"
+                "<img src=\"https://scm/user/project/raw/#SHA#/root/relative/.././image.png\">"]
                (fix-result
-                (fixref/fix "<img src=\"/root/relative/image.png\">"
+                (fixref/fix (str "<img src=\"/root/relative/image.png\">"
+                                 "<img src=\"/root/relative/.././image.png\">")
                             (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
     (t/testing "can be svg"
       (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/doc/path/rel.svg\">"]
