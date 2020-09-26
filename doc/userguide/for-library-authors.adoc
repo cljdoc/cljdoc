@@ -58,6 +58,8 @@ Docstrings are rendered as **Markdown** in the https://commonmark.org/[CommonMar
   * `![my image](/dir1/dir2/image1.png)`
   * `[my article](/dir1/dir2/article.adoc)`
 
+With the notion that it would be more problematic than helpful, HTML within docstrings is not interpreted.
+
 == Articles
 
 Some libraries may want to publish additional guides, tutorials or, as they are called in cljdoc: articles. They can be written in **Markdown** (in the https://commonmark.org/[CommonMark] dialect, file extension `.md`) or **http://asciidoc.org/[AsciiDoc]** (in the https://asciidoctor.org/[Asciidoctor] dialect, file extension `.adoc`) and you can mix and match the two formats as you please.
