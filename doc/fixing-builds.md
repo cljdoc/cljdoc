@@ -44,7 +44,7 @@ To fix this in the original project a proper dependency on `clj-http` should be 
 [clj-http "3.9.1" :scope "provided"]
 ```
 
-Once a new release with this change is made the build should work (assuming no other issues). It's usually a good idea to [test things locally](https://github.com/cljdoc/cljdoc/blob/master/doc/running-cljdoc-locally.md). This is part **1)** described above. 
+Once a new release with this change is made the build should work (assuming no other issues). It's usually a good idea to [test things locally](https://github.com/cljdoc/cljdoc/blob/master/doc/running-cljdoc-locally.adoc). This is part **1)** described above. 
 
 For already released versions we should still do part **2)** in some capacity.
 
