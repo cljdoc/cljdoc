@@ -68,7 +68,7 @@
                                  "<a href=\"https://cljdoc.xyz/another/path\">absolute link to cljdoc.xyz</a>")
                             fix-opts))))))
 
- (t/testing "unknown scm links"
+  (t/testing "unknown scm links"
     (t/testing "when relative, will point to normalized scm"
       (t/is (= ["<a href=\"https://scm/user/project/blob/#SHA#/doc/path/down/deeper/to/doc.adoc\" rel=\"nofollow\">relative link</a>"
                 "<a href=\"https://scm/user/project/blob/#SHA#/doc/upone/norm1.adoc\" rel=\"nofollow\">norm1</a>"
@@ -78,7 +78,7 @@
                 (fixref/fix (str "<a href=\"down/deeper/to/doc.adoc\">relative link</a>"
                                  "<a href=\"../upone/norm1.adoc\">norm1</a>"
                                  "<a href=\"../../norm2.adoc\">norm2</a>"
-                                 "<a href=\"../../../../../norm2.adoc\">norm2</a>" )
+                                 "<a href=\"../../../../../norm2.adoc\">norm2</a>")
                             (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
     (t/testing "when root relative, will point to normalized scm project root"
       (t/is (= ["<a href=\"https://scm/user/project/blob/#SHA#/root/relative/doc.md\" rel=\"nofollow\">root relative link</a>"
@@ -90,7 +90,7 @@
                                  "<a href=\"/root/relative/../../../../../doc.md\">root relative link</a>")
                             fix-opts))))))
 
- (t/testing "known scm relative links (imported articles)"
+  (t/testing "known scm relative links (imported articles)"
     (t/testing  "are adjusted to point to article slugs"
       (t/is (= ["<a href=\"slugged-doc\">slug converted</a>"]
                (fix-result
@@ -101,11 +101,11 @@
     (t/testing "can point to html files for offline bundles and support rewriting to different structure via target path"
       (t/are [?target-path ?expected-html]
           (t/is (= ?expected-html (fix-result
-                                     (fixref/fix "<a href=\"mapped.adoc\">offline doc</a>"
-                                                 (assoc fix-opts
-                                                        :scm-file-path "doc/path/my-doc.adoc"
-                                                        :target-path   ?target-path
-                                                        :uri-map       {"doc/path/mapped.adoc" "doc/offline.html"})))))
+                                   (fixref/fix "<a href=\"mapped.adoc\">offline doc</a>"
+                                               (assoc fix-opts
+                                                      :scm-file-path "doc/path/my-doc.adoc"
+                                                      :target-path   ?target-path
+                                                      :uri-map       {"doc/path/mapped.adoc" "doc/offline.html"})))))
         ""    ["<a href=\"doc/offline.html\">offline doc</a>"]
         "doc" ["<a href=\"offline.html\">offline doc</a>"]
         "api" ["<a href=\"../doc/offline.html\">offline doc</a>"])))
@@ -120,7 +120,7 @@
                 (fixref/fix (str "<img src=\"rel1.png\">"
                                  "<img src=\"../../images/rel2.png\">"
                                  "<img src=\"../../images/../homages/./././rel3.png\">"
-                                 "<img src=\"../../../../../../../../../../rel4.png\">" )
+                                 "<img src=\"../../../../../../../../../../rel4.png\">")
                             (assoc fix-opts :scm-file-path "doc/path/doc.adoc") )))))
     (t/testing "when root relative, will point point to scm raw ref"
       (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/root/relative/image.png\">"

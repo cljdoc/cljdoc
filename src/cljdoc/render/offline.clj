@@ -136,10 +136,10 @@
         scm-info     (-> cache-bundle :version :scm)
         flat-doctree (-> doc-tree doctree/flatten*)
         uri-map (->> flat-doctree
-                       (map (fn [d]
-                              [(-> d :attrs :cljdoc.doc/source-file)
-                               (article-url (-> d :attrs :slug-path))]))
-                       (into {}))
+                     (map (fn [d]
+                            [(-> d :attrs :cljdoc.doc/source-file)
+                             (article-url (-> d :attrs :slug-path))]))
+                     (into {}))
         fix-opts {:scm scm-info :uri-map uri-map}
         page'   (fn [type title contents]
                   (page {:version-entity version-entity

@@ -150,15 +150,15 @@
         (.put scm-relative-link "href" fixed-link)))
 
     (doseq [scm-relative-img (->> (.select doc "img")
-                            (map #(.attributes %))
-                            (remove #(absolute-uri? (.get % "src"))))]
+                                  (map #(.attributes %))
+                                  (remove #(absolute-uri? (.get % "src"))))]
       (.put scm-relative-img "src" (fix-image (.get scm-relative-img "src")
                                         {:scm-file-path scm-file-path
                                          :scm-base (scm-raw-base-url scm)})))
 
     (doseq [absolute-link (->> (.select doc "a")
-                          (map #(.attributes %))
-                          (filter #(absolute-uri? (.get % "href"))))]
+                               (map #(.attributes %))
+                               (filter #(absolute-uri? (.get % "href"))))]
       (let [href (.get absolute-link "href")]
         (if-let [cljdoc-prefix (get-cljdoc-url-prefix href)]
           (.put absolute-link "href" (subs href (count cljdoc-prefix)))
