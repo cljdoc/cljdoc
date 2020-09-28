@@ -60,7 +60,7 @@
      {:href (routes/url-for :artifact/version :path-params artifact-entity)}
      [:h3.ma0
       (format "%s/%s %s" (:group-id artifact-entity) (:artifact-id artifact-entity) (:version artifact-entity))
-      [:img.ml1 {:src "https://icon.now.sh/chevron/right"}]]]
+      [:img.ml1 {:src "https://microicon-clone.vercel.app/chevron/right"}]]]
     [:a.link.black.f6.ph3.pv2.bt.b--blue.db.o-60
      {:href (routes/url-for :artifact/index :path-params artifact-entity)}
      "more versions"]]])

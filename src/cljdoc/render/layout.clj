@@ -108,7 +108,7 @@
 (defn meta-info-dialog []
   [:div
    [:img#js--meta-icon.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
-    {:src "https://icon.now.sh/explore/48/357edd"}]
+    {:src "https://microicon-clone.vercel.app/explore/48/357edd"}]
    [:div#js--meta-dialog.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
     [:p.ma0
      [:b "cljdoc"]
@@ -153,7 +153,7 @@
       [:a.link.dim.gray.f6.tr
        {:href (scm/http-uri scm-url)}
        (let [icon (or (scm/provider scm-url) :git)]
-         [:img.v-mid.mr2-ns {:src (str "https://icon.now.sh/" (name icon))}])
+         [:img.v-mid.mr2-ns {:src (str "https://microicon-clone.vercel.app/" (name icon))}])
        [:span.dib-ns.dn (scm/coordinate (scm/http-uri scm-url))]]
 
       (and scm-url (scm/fs-uri scm-url))

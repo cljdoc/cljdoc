@@ -98,7 +98,7 @@
           [:p.f2-ns.f3.fw3.lh-copy.near.black "Open Source, so the community can work together to improve or even fork cljdoc."]]
          [:div.dtc-l.v-mid.ph5-ns.ph4.pv5-l.lh-copy.mb4
           [:a.dt.link.black.center.o-80.glow {:href (util/github-url :home)}
-           [:img.dtc.v-mid.mr3 {:src "https://icon.now.sh/github/38"}]
+           [:img.dtc.v-mid.mr3 {:src "https://microicon-clone.vercel.app/github/38"}]
            [:span.dtc.v-mid.f3 "cljdoc/cljdoc"]]]]
 
         (footer)]

@@ -50,7 +50,7 @@
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
        (let [icon (or (scm/provider scm-url) :code)]
-         [:img.v-mid.mr2 {:src (str "https://icon.now.sh/" (name icon))}])
+         [:img.v-mid.mr2 {:src (str "https://microicon-clone.vercel.app/" (name icon))}])
        [:span.dib (scm/coordinate scm-url)]])]])
 
 (defn page [{:keys [version-entity namespace article-title scm-url]} contents]

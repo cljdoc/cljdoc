@@ -32,7 +32,7 @@ export class MobileNav extends Component {
       ? "Back to Content"
       : "Tap for Articles & Namespaces";
     let btnIcon = state.showNav ? "chevronLeft" : "list";
-    let btnSrc = "https://icon.now.sh/" + btnIcon + "/32";
+    let btnSrc = "https://microicon-clone.vercel.app/" + btnIcon + "/32";
     return (
       <div class="bg-light-gray">
         <button
