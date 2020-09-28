@@ -36,6 +36,7 @@ if (isNSPage()) {
 if (isProjectDocumentationPage()) {
   render(h(MobileNav), document.querySelector("#js--mobile-nav"));
   toggleMetaDialog();
+  addpPrevNextPageKeyHandlers();
 }
 
 window.onbeforeunload = function() {
@@ -51,5 +52,3 @@ window.onbeforeunload = function() {
     localStorage.setItem("sidebarScrollPos", JSON.stringify(data));
   }
 };
-
-addpPrevNextPageKeyHandlers();
