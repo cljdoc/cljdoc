@@ -104,7 +104,7 @@ function toggleMetaDialog() {
   }
 }
 
-function addpPrevNextPageKeyHandlers() {
+function addPrevNextPageKeyHandlers() {
   const prevLink = document.getElementById("prev-article-page-link");
   const nextLink = document.getElementById("next-article-page-link");
   if (prevLink || nextLink) {
@@ -126,5 +126,5 @@ export {
   toggleMetaDialog,
   isNSPage,
   isProjectDocumentationPage,
-  addpPrevNextPageKeyHandlers
+  addPrevNextPageKeyHandlers
 };
