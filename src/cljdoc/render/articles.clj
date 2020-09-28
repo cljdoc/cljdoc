@@ -15,12 +15,14 @@
   [:div.flex.justify-between.mt4
    (if prev-page
      [:a.link.blue
-      {:href (doc-link version-entity (-> prev-page :attrs :slug-path))}
+      {:href (doc-link version-entity (-> prev-page :attrs :slug-path))
+       :id "prev-article-page-link"}
       [:span [:span.mr1 "❮"] (-> prev-page :title)]]
      [:div])
    (when next-page
      [:a.link.blue
-      {:href (doc-link version-entity (-> next-page :attrs :slug-path))}
+      {:href (doc-link version-entity (-> next-page :attrs :slug-path))
+       :id "next-article-page-link"}
       [:span (-> next-page :title) [:span.ml1 "❯"]]])])
 
 (defn doc-tree-view

@@ -9,7 +9,8 @@ import {
   initSrollIndicator,
   initToggleRaw,
   restoreSidebarScrollPos,
-  toggleMetaDialog
+  toggleMetaDialog,
+  addpPrevNextPageKeyHandlers
 } from "./cljdoc";
 
 trackProjectOpened();
@@ -50,3 +51,5 @@ window.onbeforeunload = function() {
     localStorage.setItem("sidebarScrollPos", JSON.stringify(data));
   }
 };
+
+addpPrevNextPageKeyHandlers();

@@ -104,11 +104,27 @@ function toggleMetaDialog() {
   }
 }
 
+function addpPrevNextPageKeyHandlers() {
+  const prevLink = document.getElementById("prev-article-page-link");
+  const nextLink = document.getElementById("next-article-page-link");
+  if (prevLink || nextLink) {
+    document.addEventListener("keydown", function(e) {
+      if (e.code === "ArrowLeft" && prevLink) {
+        document.location.href = prevLink.href;
+      }
+      if (e.code === "ArrowRight" && nextLink) {
+        document.location.href = nextLink.href;
+      }
+    });
+  }
+}
+
 export {
   initSrollIndicator,
   initToggleRaw,
   restoreSidebarScrollPos,
   toggleMetaDialog,
   isNSPage,
-  isProjectDocumentationPage
+  isProjectDocumentationPage,
+  addpPrevNextPageKeyHandlers
 };
