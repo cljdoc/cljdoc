@@ -191,7 +191,7 @@
       [:h2
        {:data-cljdoc-type "namespace"}
        ns-name
-       [:img.ml2 {:src "https://icon.now.sh/chevron/12/357edd"}]]]
+       [:img.ml2 {:src "https://microicon-clone.vercel.app/chevron/12/357edd"}]]]
      (render-doc mp-ns (render-wiki-link-fn ns-name ns-url-fn))
      (if-not (seq defs)
        [:p.i.blue "No vars found in this namespace."]

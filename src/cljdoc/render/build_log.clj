@@ -30,7 +30,7 @@
                                     :version (:version build-info)})]
     [:a.link.blue {:href cljdoc-uri}
      (when icon?
-       [:img.v-mid.mr2 {:src "https://icon.now.sh/chevron/20"}])
+       [:img.v-mid.mr2 {:src "https://microicon-clone.vercel.app/chevron/20"}])
      (str "cljdoc.org" cljdoc-uri)]))
 
 (defn scm-info [build-info]
@@ -90,7 +90,7 @@
      (when (and (:scm_url build-info) (:commit_sha build-info))
        [:p
         [:a.link.blue {:href (:scm_url build-info)}
-         [:img.v-mid.mr2 {:src "https://icon.now.sh/github/20"}]
+         [:img.v-mid.mr2 {:src "https://microicon-clone.vercel.app/github/20"}]
          (string/replace (:scm_url build-info) #"^https://github\.com/" "")]
         " @ "
         [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
@@ -112,7 +112,7 @@
     [:h3.mt0 "Analysis Kicked Off"]
     (when-let [job-uri (:analysis_job_uri build-info)]
       [:a.link.blue {:href job-uri}
-       [:img.v-mid.mr2 {:src "https://icon.now.sh/circleci/20"}]
+       [:img.v-mid.mr2 {:src "https://microicon-clone.vercel.app/circleci/20"}]
        "View job on CircleCI"]))
 
    (section
