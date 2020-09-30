@@ -110,7 +110,7 @@
        (into {})))
 
 (defn fix
-  "Rewrite references in html produced from rendering markdown.
+  "Rewrite references in HTML produced from rendering markdown.
 
   Markdown from SCM can contains references to images and articles.
 
