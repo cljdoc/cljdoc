@@ -54,6 +54,11 @@ Docstrings are rendered as **Markdown** in the https://commonmark.org/[CommonMar
 2. Link To Other Functions Using `\[[Wikilink]]` Syntax
 3. Include Small Examples using Markdown fenced code blocks (`{fence}clojure ... {fence}`)
 4. Use (Markdown) Tables To Describe Complex Options Maps
+5. Can include images and links to articles, just be sure to use root relative links here (links that start with a `/`):
+  * `![my image](/dir1/dir2/image1.png)`
+  * `[my article](/dir1/dir2/article.adoc)`
+
+With the notion that it would be more problematic than helpful, HTML within docstrings is not interpreted.
 
 == Articles
 
@@ -225,23 +230,33 @@ See link:for-users.md#offline-docs[Offline Docs]
 ==== Building Docs Locally
 
 This may be useful to test your changes without pushing new releases
-to Clojars or commits to Github. See link:/doc/running-cljdoc-locally.md[Running cljdoc locally] for details.
+to Clojars or commits to Github. See link:/doc/running-cljdoc-locally.adoc[Running cljdoc locally] for details.
 
 ==== Asciidoc Environment
 
-Similar to GitHub, cljdoc will set an `env-cljdoc` attribute when
+Similar to `env-github` on GitHub, cljdoc will set an `env-cljdoc` attribute when
 rendering your Asciidoc file. This allows you to hide or show sections
 of your document or set configuration parameters.
 
-[source,asciidoc]
+As an example, this AsciiDoctor snippit:
+[source,asciidoc,literal]
 ----
+\ifdef::env-cljdoc[]
+THIS WILL BE SHOWN ON CLJDOC
+\endif::[]
+\ifndef::env-cljdoc[]
+THIS WILL BE SHOWN EVERYWHERE ELSE
+\endif::[]
+----
+
+will render as so:
+
 ifdef::env-cljdoc[]
 THIS WILL BE SHOWN ON CLJDOC
 endif::[]
 ifndef::env-cljdoc[]
 THIS WILL BE SHOWN EVERYWHERE ELSE
 endif::[]
-----
 
 ==== Supported rich text formats
 

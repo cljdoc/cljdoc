@@ -69,7 +69,7 @@
                    (render [_this node ctx html]
                      (let [resolved-link (.resolveLink ctx WikiLinkExtension/WIKI_LINK (.. node getLink unescape) nil)
                            url (.getUrl resolved-link)]
-                       (.raw html (str "<a href=\"" url "\"><code>" (.. node getLink) "</code></a>"))))))})))))
+                       (.raw html (str "<a href=\"" url "\" data-source=\"wikilink\"><code>" (.. node getLink) "</code></a>"))))))})))))
       (extensions md-extensions)
       (build)))
 

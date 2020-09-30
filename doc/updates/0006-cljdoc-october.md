@@ -27,7 +27,7 @@ More details in [ADR-0014](https://github.com/cljdoc/cljdoc/blob/master/doc/adr/
 - We set up JS packaging making docs load even faster. cljdoc's Lighthouse performance score now is 99. 
 - @rakyi helped set up Prettier so our JavaScript code is consistently formatted. This is something that we might also do for Clojure code in the future.
 - @jsimpson-ovo built out proper support for GitLab. This mostly worked before but now it's is on par with GitHub. Source URLs, article edit links and more just work now.
-- Lots of improvements aimed at new contributors. Better support for Cursive, an improved [`CONTRIBUTING`](https://github.com/cljdoc/cljdoc/blob/master/CONTRIBUTING.adoc) and better instructions for [running cljdoc locally](https://github.com/cljdoc/cljdoc/blob/master/doc/running-cljdoc-locally.md).
+- Lots of improvements aimed at new contributors. Better support for Cursive, an improved [`CONTRIBUTING`](https://github.com/cljdoc/cljdoc/blob/master/CONTRIBUTING.adoc) and better instructions for [running cljdoc locally](https://github.com/cljdoc/cljdoc/blob/master/doc/running-cljdoc-locally.adoc).
 
 ## What next?
 

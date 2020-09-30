@@ -1,6 +1,7 @@
 (ns cljdoc.render.api
   "Functions related to rendering API documenation"
   (:require [cljdoc.render.rich-text :as rich-text]
+            [cljdoc.util.fixref :as fixref]
             [cljdoc.util.ns-tree :as ns-tree]
             [cljdoc.util :as util]
             [cljdoc.bundle :as bundle]
@@ -29,15 +30,16 @@
       [m nil]
       [nil m])))
 
-(defn docstring->html [doc-str render-wiki-link]
+(defn docstring->html [doc-str render-wiki-link fix-opts]
   [:div
    [:div.lh-copy.markdown
     ;; If someone sets `{:doc false}`, there will be no docstring
     (when doc-str
       (-> doc-str
           (rich-text/markdown-to-html
-            {:escape-html? true
-             :render-wiki-link (comp render-wiki-link parse-wiki-link)})
+           {:escape-html? true
+            :render-wiki-link (comp render-wiki-link parse-wiki-link)})
+          (fixref/fix fix-opts)
           hiccup/raw))]
    [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.dn.raw
     doc-str]])
@@ -51,7 +53,7 @@
     (str (ns-link-fn (if ns (util/replant-ns current-ns ns) current-ns))
          (when var (str "#" var)))))
 
-(defn render-doc [mp render-wiki-link]
+(defn render-doc [mp render-wiki-link fix-opts]
   (if (platf/varies? mp :doc)
     (for [p (sort (platf/platforms mp))
           :when (platf/get-field mp :doc p)]
@@ -59,8 +61,8 @@
        [:div.f7.gray.absolute-ns.nl5-ns.pr2-ns.tr-ns.w3.pv1.nb3
         [:span.db-ns.dn p]
         [:span.dn-ns (get {"clj" "Clojure" "cljs" "ClojureScript"} p)]]
-       (some-> (platf/get-field mp :doc p) (docstring->html render-wiki-link))])
-    (some-> (platf/get-field mp :doc) (docstring->html render-wiki-link))))
+       (some-> (platf/get-field mp :doc p) (docstring->html render-wiki-link fix-opts))])
+    (some-> (platf/get-field mp :doc) (docstring->html render-wiki-link fix-opts))))
 
 (defn render-arglists [def-name arglists]
   (for [argv (sort-by count arglists)]
@@ -68,7 +70,7 @@
       (str "(" def-name (when (seq argv) " ") (string/join " " argv) ")"))))
 
 (defn def-block
-  [def render-wiki-link]
+  [def render-wiki-link fix-opts]
   {:pre [(platf/multiplatform? def)]}
   (let [def-name (platf/get-field def :name)]
     [:div.def-block
@@ -88,7 +90,7 @@
            [:span.f7.ttu.gray.db.nb2 (get {"clj" "Clojure" "cljs" "ClojureScript"} p) " arglists"]
            (render-arglists def-name (platf/get-field def :arglists p))])
         (render-arglists def-name (platf/get-field def :arglists)))]
-     (render-doc def render-wiki-link)
+     (render-doc def render-wiki-link fix-opts)
      (when (seq (platf/get-field def :members))
        [:div.lh-copy.pl3.bl.b--black-10
         (for [m (platf/get-field def :members)]
@@ -96,7 +98,7 @@
            [:h5 (:name m)]
            (render-arglists (:name m) (:arglists m))
            (when (:doc m)
-             [:p (docstring->html (:doc m) render-wiki-link)])])])
+             [:p (docstring->html (:doc m) render-wiki-link fix-opts)])])])
      (when (or (platf/varies? def :src-uri) ; if it varies they can't be both nil
                (platf/get-field def :src-uri)) ; if it doesn't vary, ensure non-nil
        (if (platf/varies? def :src-uri)
@@ -113,7 +115,7 @@
   (let [keyed-namespaces (ns-tree/index-by :namespace namespaces)
         from-dependency? (fn from-dependency? [ns-entity]
                            (or (not= (:group-id version-entity) (:group-id ns-entity))
-                               (not= (:artifact-id version-entity) (:artifact-id ns-entity)))) ]
+                               (not= (:artifact-id version-entity) (:artifact-id ns-entity))))]
     [:div
      [:ul.list.pl0
       (for [[ns level _ _leaf?] (ns-tree/namespace-hierarchy (keys keyed-namespaces))
@@ -182,7 +184,7 @@
               (humanize-supported-platforms))])])]])
 
 (defn namespace-overview
-  [ns-url-fn mp-ns defs]
+  [ns-url-fn mp-ns defs fix-opts]
   {:pre [(platf/multiplatform? mp-ns) (fn? ns-url-fn)]}
   (let [ns-name (platf/get-field mp-ns :name)]
     [:div
@@ -192,7 +194,9 @@
        {:data-cljdoc-type "namespace"}
        ns-name
        [:img.ml2 {:src "https://microicon-clone.vercel.app/chevron/12/357edd"}]]]
-     (render-doc mp-ns (render-wiki-link-fn ns-name ns-url-fn))
+     (render-doc mp-ns
+                 (render-wiki-link-fn ns-name ns-url-fn)
+                 fix-opts)
      (if-not (seq defs)
        [:p.i.blue "No vars found in this namespace."]
        [:ul.list.pl0
@@ -208,16 +212,16 @@
             def-name]])])]))
 
 (defn sub-namespace-overview-page
-  [{:keys [ns-entity namespaces defs]}]
+  [{:keys [ns-entity namespaces defs fix-opts]}]
   [:div.mw7.center.pv4
    (for [mp-ns (->> namespaces
                     (filter #(.startsWith (platf/get-field % :name) (:namespace ns-entity))))
          :let [ns (platf/get-field mp-ns :name)
                ns-url-fn #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %))
                defs (bundle/defs-for-ns defs ns)]]
-     (namespace-overview ns-url-fn mp-ns defs))])
+     (namespace-overview ns-url-fn mp-ns defs fix-opts))])
 
-(defn namespace-page [{:keys [ns-entity ns-data defs]}]
+(defn namespace-page [{:keys [ns-entity ns-data defs fix-opts]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (assert (platf/multiplatform? ns-data))
   (let [render-wiki-link (render-wiki-link-fn
@@ -226,10 +230,10 @@
     [:div.ns-page
      [:div.w-80-ns.pv4
       [:h2 (:namespace ns-entity)]
-      (render-doc ns-data render-wiki-link)
+      (render-doc ns-data render-wiki-link fix-opts)
       (if (seq defs)
         (for [adef defs]
-          (def-block adef render-wiki-link))
+          (def-block adef render-wiki-link fix-opts))
         [:p.i.blue "No vars found in this namespace."])]]))
 
 (comment

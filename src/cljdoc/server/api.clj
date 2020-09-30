@@ -40,11 +40,12 @@
         (build-log/failed! build-tracker build-id "analysis-job-failed")))))
 
 (defn kick-off-build!
-  "Run the Git analysis for the provided `project` and kick of an
-  analysis build for `project` using the provided `analysis-service`.
+  "Run the Git analysis for the provided `project` and kick off an
+  analysis service build for `project` using the provided `analysis-service`.
 
-  Optional `:jar` and `:pom` keys can be provided via the `coords` map
-  to supply non-default paths like local files."
+  Optional for `coords` map to support testing:
+  - `:jar` and `:pom` can supply non-default paths to local files.
+  - `:scm-url` and `:scm-rev` will override `pom.xml` `<scm>` `<url>` and `<tag>`"
   [{:keys [storage build-tracker analysis-service] :as deps}
    {:keys [project version jar pom scm-url scm-rev] :as coords}]
   (let [a-uris    (when-not (and jar pom)
@@ -56,9 +57,7 @@
         ;; as part of `coords` (nice to provide a local jar/pom)
         ana-args  (merge a-uris coords {:build-id build-id})
         pom-scm-info (ingest/scm-info (:pom ana-args))
-        ;; Manually specified scm-url, scm-rev take precedence
-        scm-url (or scm-url (:url pom-scm-info))
-        scm-rev (or scm-rev (:sha pom-scm-info))]
+        scm-url (or scm-url (:url pom-scm-info))]
 
     {:build-id build-id
      :future (future
@@ -69,8 +68,9 @@
                    (let [{:keys [error] :as git-result}
                          (ingest/ingest-git! storage {:project project
                                                       :version version
-                                                      :scm-url scm-url
-                                                      :pom-revision scm-rev})]
+                                                      :scm-url (or scm-url (:url pom-scm-info))
+                                                      :pom-revision (:sha pom-scm-info)
+                                                      :requested-revision scm-rev})]
                      (when error
                        (log/warnf "Error while processing %s %s: %s" project version error))
                      (build-log/git-completed! build-tracker build-id (update git-result :error :type)))
