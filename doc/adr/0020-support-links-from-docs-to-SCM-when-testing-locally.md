@@ -16,7 +16,7 @@ The SCM is a git repository and usually one hosted on GitHub.
 Documentation is imported to cljdoc from 2 distinct sources:
 
 1. API docstrings from sources in a clojars artifact 
-2. Stand-alone articles such as `README.md` and documentation under `doc/** from an SCM repository.
+2. Stand-alone articles such as `README.md` and documentation under `doc/**` from an SCM repository.
 
 It is not uncommon for documentation to contain links to other files under in the SCM repository. 
 In these cases, cljdoc automatically rewrites these links to target the correct resource. 
