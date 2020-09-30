@@ -9,7 +9,8 @@ import {
   initSrollIndicator,
   initToggleRaw,
   restoreSidebarScrollPos,
-  toggleMetaDialog
+  toggleMetaDialog,
+  addPrevNextPageKeyHandlers
 } from "./cljdoc";
 
 trackProjectOpened();
@@ -35,6 +36,7 @@ if (isNSPage()) {
 if (isProjectDocumentationPage()) {
   render(h(MobileNav), document.querySelector("#js--mobile-nav"));
   toggleMetaDialog();
+  addPrevNextPageKeyHandlers();
 }
 
 window.onbeforeunload = function() {
