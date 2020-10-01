@@ -63,4 +63,8 @@ it with your development environment].
 
 We try to follow https://guide.clojure.style[The Clojure Style Guide].
 
-We are https://github.com/cljdoc/cljdoc/pull/337[considering automating whitespace and alignment verifications through cljfmt].
+We use https://github.com/weavejester/cljfmt[cljfmt] check for any code formatting problems.
+The build server will fail the build if any formatting issues are detected.
+To check for issues it runs `script/code-format.sh check` and so can you!
+
+You can also run `script/code-format.sh fix` to have cljfmt fix any code formatting issues it has detected.
