@@ -32,7 +32,7 @@
        (sort-by platf-name)))
 
 (defn get-namespace [bundle ns]
- (first (filter #(= ns (platf/get-field % :name)) (namespaces bundle))))
+  (first (filter #(= ns (platf/get-field % :name)) (namespaces bundle))))
 
 (defn scm-info [bundle]
   (-> bundle :version :scm))
@@ -85,6 +85,4 @@
     (cljdoc.storage.api/bundle-docs (cljdoc.storage.api/->GrimoireStorage (clojure.java.io/file "data" "grimoire")) id))
 
   (->> (cb {:group-id "re-frame" :artifact-id "re-frame" :version "0.10.5"})
-       namespaces)
-
-  )
+       namespaces))

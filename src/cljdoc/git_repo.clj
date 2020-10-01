@@ -34,8 +34,8 @@
       (.setConfig session  "StrictHostKeyChecking" "no"))
     ;; This could be used to specify keys explicitly
     #_(createDefaultJSch [fs]
-      (doto (proxy-super createDefaultJSch fs)
-        (.addIdentity "/Users/martinklepsch/.ssh/martinklepsch-lambdawerk2")))))
+                         (doto (proxy-super createDefaultJSch fs)
+                           (.addIdentity "/Users/martinklepsch/.ssh/martinklepsch-lambdawerk2")))))
 
 (defn clonable?
   "A rough heuristic to evaluate whether a repository can be cloned.
@@ -255,5 +255,4 @@
 
   (.getName (find-tag r "1.2.0"))
 
-  (read-file-at r (.getName (find-tag r "1.2.0")))
-  )
+  (read-file-at r (.getName (find-tag r "1.2.0"))))

@@ -31,9 +31,6 @@
 (comment
   (def d
     '{metosin/reitit {:cljdoc.doc/tree [["Introduction" {:file "intro.md"}]]}
-     :cljdoc.doc/tree [["Overview" {:file "modules/README.md"}]]})
+      :cljdoc.doc/tree [["Overview" {:file "modules/README.md"}]]})
 
-  (get-project d "metosin/reitit")
-
-
-  )
+  (get-project d "metosin/reitit"))

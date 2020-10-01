@@ -70,15 +70,15 @@
         ;; wants to check that his new release appeared on Cljdoc; we will re-fetch
         ;; all Clojars artifact at the next scheduled period, when we will also get
         ;; past versions and description
-        #(sc/index-artifact
-           searcher
-           {:artifact-id (:artifact_id %)
-            :group-id (:group_id %)
+       #(sc/index-artifact
+         searcher
+         {:artifact-id (:artifact_id %)
+          :group-id (:group_id %)
             ;; NOTE: Ideally we would include also the old versions;
             ;; but they will be re-added once the full re-import runs anyway
-            :origin :clojars
-            :versions [(:version %)]})
-        releases))))
+          :origin :clojars
+          :versions [(:version %)]})
+       releases))))
 
 (defn build-queuer-job-fn [db-spec dry-run?]
   (when-let [to-build (oldest-not-built db-spec)]

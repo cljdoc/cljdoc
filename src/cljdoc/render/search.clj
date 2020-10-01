@@ -11,7 +11,6 @@
      [:a.link {:href "https://github.com/cljdoc/cljdoc/issues/308"} "search improvements issue"]
      " to help us make it better!"]]))
 
-
 (defn search-page [context]
   (->> [:div
         (layout/top-bar-generic)

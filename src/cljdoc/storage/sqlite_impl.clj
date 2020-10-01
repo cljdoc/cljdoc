@@ -117,7 +117,7 @@
 
 (defnp ^:private get-vars [db-spec namespaces-with-resolved-version-entities]
   (let [ns-idents (->> namespaces-with-resolved-version-entities
-                      (map (fn [ns] [(-> ns :version-entity :id) (:name ns)])))]
+                       (map (fn [ns] [(-> ns :version-entity :id) (:name ns)])))]
     (assert (seq ns-idents))
     (sql-get-vars db-spec {:ns-idents ns-idents}
                   {}
@@ -228,7 +228,7 @@
   (def data (clojure.edn/read-string (slurp "https://2941-119377591-gh.circle-artifacts.com/0/cljdoc-edn/stavka/stavka/0.4.1/cljdoc.edn")))
 
   (def db-spec
-   (cljdoc.config/db (cljdoc.config/config)))
+    (cljdoc.config/db (cljdoc.config/config)))
 
   (all-distinct-docs db-spec)
 
@@ -238,6 +238,4 @@
 
   (store-artifact! db-spec (:group-id data) (:artifact-id data) [(:version data)])
 
-  (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data))
-
-  )
+  (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data)))

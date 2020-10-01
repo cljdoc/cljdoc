@@ -141,7 +141,7 @@
   (do
     (require '[io.pedestal.test :as pdt])
     (pdt/response-for
-      (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
-      :get "/api/search?q=async" #_:body :headers {"Accept" "*/*"}))
+     (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
+     :get "/api/search?q=async" #_:body :headers {"Accept" "*/*"}))
 
   nil)

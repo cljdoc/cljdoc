@@ -10,6 +10,4 @@
              (-> analysis :scm :tag :commit)))))
 
 (comment
-  (t/run-tests)
-
-  )
+  (t/run-tests))

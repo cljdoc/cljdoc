@@ -105,8 +105,8 @@
          (filter matches)
          (mapcat (fn [artifact]
                    (map
-                     #(-> artifact (dissoc :versions) (assoc :version %))
-                     (:versions artifact)))))))
+                    #(-> artifact (dissoc :versions) (assoc :version %))
+                    (:versions artifact)))))))
 
 (defn versions-data
   "Return matching documents with version info in a tree"
@@ -124,19 +124,18 @@
              (storage/all-distinct-docs store)))
          (index-pages/versions-tree))))
 
-
 (defn index-pages
   "Return a list of interceptors suitable to render an index page appropriate for the provided `route-name`.
   `route-name` can be either `:artifact/index`,  `:group/index` or `:cljdoc/index`."
   [searcher store route-name]
   [(pu/coerce-body-conf
-     (fn html-render-fn [ctx]
-       (let [artifact-ent (-> ctx :request :path-params)
-             versions-data (-> ctx :response :body)]
-         (case route-name
-           :artifact/index (index-pages/artifact-index artifact-ent versions-data)
-           :group/index (index-pages/group-index artifact-ent versions-data)
-           :cljdoc/index (index-pages/full-index versions-data)))))
+    (fn html-render-fn [ctx]
+      (let [artifact-ent (-> ctx :request :path-params)
+            versions-data (-> ctx :response :body)]
+        (case route-name
+          :artifact/index (index-pages/artifact-index artifact-ent versions-data)
+          :group/index (index-pages/group-index artifact-ent versions-data)
+          :cljdoc/index (index-pages/full-index versions-data)))))
    (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
    (interceptor/interceptor
     {:name ::releases-loader
@@ -264,11 +263,11 @@
 
 (defn search-interceptor [searcher]
   (interceptor/interceptor
-    {:name  ::search
-     :enter (fn search-handler [ctx]
-              (if-let [q (-> ctx :request :params :q)]
-                (pu/ok ctx (search-api/search searcher q))
-                (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))}))
+   {:name  ::search
+    :enter (fn search-handler [ctx]
+             (if-let [q (-> ctx :request :params :q)]
+               (pu/ok ctx (search-api/search searcher q))
+               (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))}))
 
 (defn search-suggest-interceptor [searcher]
   (interceptor/interceptor
@@ -442,8 +441,8 @@
          :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts))})]
          :sitemap    [(sitemap-interceptor storage)]
          :show-build [(pu/coerce-body-conf
-                        (fn html-render [ctx]
-                          (cljdoc.render.build-log/build-page (-> ctx :response :body))))
+                       (fn html-render [ctx]
+                         (cljdoc.render.build-log/build-page (-> ctx :response :body))))
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]

@@ -93,6 +93,4 @@
   (tt/cancel! (::poll-job clojars-stats))
   (tt/cancel! (::clean-job clojars-stats)))
 
-(comment
-
-  )
+(comment)

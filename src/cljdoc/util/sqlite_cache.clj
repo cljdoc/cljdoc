@@ -12,7 +12,6 @@
             [clojure.java.jdbc :as sql])
   (:import (java.time Instant)))
 
-
 (defn instant-now
   "abstraction for time so we can redef it in tests"
   []
@@ -88,7 +87,7 @@
 (defn clear-all!
   [{:keys [db-spec key-prefix table]}]
   (let [query (format (:clear query-templates) table)]
-     (sql/execute! db-spec [query key-prefix])))
+    (sql/execute! db-spec [query key-prefix])))
 
 ;; memoize kind of assumes we are carrying around our cache in state.
 ;; this is not the case for us, our state is our config and never changes
@@ -208,9 +207,7 @@
 
   (def memoized-artifact-uris
     (memo-sqlite cljdoc.util.repositories/artifact-uris
-                  db-artifact-uris))
+                 db-artifact-uris))
 
   (time (memoized-artifact-uris 'bidi "2.0.9-SNAPSHOT"))
-  (time (memoized-artifact-uris 'com.bhauman/spell-spec "0.1.0"))
-
-  )
+  (time (memoized-artifact-uris 'com.bhauman/spell-spec "0.1.0")))

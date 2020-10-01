@@ -79,7 +79,6 @@
                       :slug-path
                       (= test-slug-path)) (doctree/flatten* example-tree)))
 
-
   (->> example-tree
        second
        :attrs

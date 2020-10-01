@@ -21,5 +21,4 @@
 (comment
 
   (day-suffix 21)
-  (->analytics-format "2018-10-17T20:58:21.491730Z")
-  )
+  (->analytics-format "2018-10-17T20:58:21.491730Z"))
