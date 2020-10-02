@@ -7,9 +7,9 @@
 (defmethod aero/reader 'slurp
   [_ _tag value]
   (aero/deferred
-    (try (.trim (slurp (io/resource value)))
-         (catch Exception e
-           (throw (Exception. (str "Exception reading " value  " from classpath") e))))))
+   (try (.trim (slurp (io/resource value)))
+        (catch Exception e
+          (throw (Exception. (str "Exception reading " value  " from classpath") e))))))
 
 (defn profile []
   (let [known-profiles #{:live :local :prod :test nil}
@@ -103,7 +103,6 @@
 
 (defn enable-artifact-indexer? [config]
   (not (clojure.core/get-in config [:cljdoc/server :disable-artifact-indexer??])))
-
 
 (comment
   (:cljdoc/server (config))

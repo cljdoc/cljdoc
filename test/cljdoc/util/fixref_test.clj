@@ -100,12 +100,12 @@
                                    :uri-map {"doc/path/slug/conversion/slugtest.adoc" "slugged-doc"}))))))
     (t/testing "can point to html files for offline bundles and support rewriting to different structure via target path"
       (t/are [?target-path ?expected-html]
-          (t/is (= ?expected-html (fix-result
-                                   (fixref/fix "<a href=\"mapped.adoc\">offline doc</a>"
-                                               (assoc fix-opts
-                                                      :scm-file-path "doc/path/my-doc.adoc"
-                                                      :target-path   ?target-path
-                                                      :uri-map       {"doc/path/mapped.adoc" "doc/offline.html"})))))
+             (t/is (= ?expected-html (fix-result
+                                      (fixref/fix "<a href=\"mapped.adoc\">offline doc</a>"
+                                                  (assoc fix-opts
+                                                         :scm-file-path "doc/path/my-doc.adoc"
+                                                         :target-path   ?target-path
+                                                         :uri-map       {"doc/path/mapped.adoc" "doc/offline.html"})))))
         ""    ["<a href=\"doc/offline.html\">offline doc</a>"]
         "doc" ["<a href=\"offline.html\">offline doc</a>"]
         "api" ["<a href=\"../doc/offline.html\">offline doc</a>"])))
@@ -115,13 +115,13 @@
       (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/doc/path/rel1.png\">"
                 "<img src=\"https://scm/user/project/raw/#SHA#/images/rel2.png\">"
                 "<img src=\"https://scm/user/project/raw/#SHA#/homages/rel3.png\">"
-                "<img src=\"https://scm/user/project/raw/#SHA#/../../../../../../../../rel4.png\">" ]
+                "<img src=\"https://scm/user/project/raw/#SHA#/../../../../../../../../rel4.png\">"]
                (fix-result
                 (fixref/fix (str "<img src=\"rel1.png\">"
                                  "<img src=\"../../images/rel2.png\">"
                                  "<img src=\"../../images/../homages/./././rel3.png\">"
                                  "<img src=\"../../../../../../../../../../rel4.png\">")
-                            (assoc fix-opts :scm-file-path "doc/path/doc.adoc") )))))
+                            (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
     (t/testing "when root relative, will point point to scm raw ref"
       (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/root/relative/image.png\">"
                 "<img src=\"https://scm/user/project/raw/#SHA#/root/relative/.././image.png\">"]

@@ -33,17 +33,17 @@
   to conditionally convert the data provided via `:body` to it's HTML representation."
   [html-render-fn]
   (interceptor/interceptor
-    {:name  ::coerce-body
-     :leave (fn [context]
-              (if (get-in context [:response :headers "Content-Type"])
-                context
-                (let [content-type (accepted-type context)
-                      rendered-body (if (= content-type "text/html")
-                                      (html-render-fn context)
-                                      (-> context :response :body))]
-                  (-> context
-                      (assoc-in [:response :body] rendered-body)
-                      (update :response coerce-to content-type)))))}))
+   {:name  ::coerce-body
+    :leave (fn [context]
+             (if (get-in context [:response :headers "Content-Type"])
+               context
+               (let [content-type (accepted-type context)
+                     rendered-body (if (= content-type "text/html")
+                                     (html-render-fn context)
+                                     (-> context :response :body))]
+                 (-> context
+                     (assoc-in [:response :body] rendered-body)
+                     (update :response coerce-to content-type)))))}))
 
 (def coerce-body
   (coerce-body-conf nil))

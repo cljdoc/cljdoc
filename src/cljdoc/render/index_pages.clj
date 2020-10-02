@@ -111,7 +111,7 @@
   (sort-by :version #(- (v/version-compare %1 %2)) version-entities))
 
 (spec/fdef sort-by-version
-           :args (spec/cat :version-entities (spec/coll-of :cljdoc.spec/version-entity)))
+  :args (spec/cat :version-entities (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn versions-tree
   "Make the versions seq into group -> artifact -> list of versions (latest first)"

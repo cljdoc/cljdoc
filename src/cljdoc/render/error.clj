@@ -2,7 +2,6 @@
   (:require [cljdoc.render.layout :as layout]
             [cljdoc.render.search :as search]))
 
-
 (defn not-found-404 []
   (->> [:div.pt4
         [:div.mt5-ns.mt6-l.mw7.center.pa4.pa0-l

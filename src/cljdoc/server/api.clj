@@ -88,6 +88,4 @@
         :analysis-service (:cljdoc/analysis-service integrant.repl.state/system)
         :build-tracker (:cljdoc/build-tracker integrant.repl.state/system)}
        {:project "bidi" :version "2.1.3"})
-      :job deref)
-
-  )
+      :job deref))

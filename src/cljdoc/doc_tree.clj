@@ -48,7 +48,6 @@
                    :cljdoc/asciidoc
                    :cljdoc/markdown]))
 
-
 (spec/def ::children
   (spec/coll-of ::entry))
 

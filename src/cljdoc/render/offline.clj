@@ -147,7 +147,6 @@
                          type title}
                         contents))]
 
-
     (reduce
      into
      [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]
@@ -221,7 +220,6 @@
                  (instance? hiccup.util.RawString v) (.getBytes (str v))
                  :else (throw (Exception. (str "Unsupported value " (class v)))))]))
        (fs-compression/zip "offline-docs.zip"))
-
 
   (slurp (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"))
 

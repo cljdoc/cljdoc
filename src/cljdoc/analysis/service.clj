@@ -44,6 +44,7 @@
 
 ;; CircleCI AnalysisService -----------------------------------------------------
 
+
 (declare get-circle-ci-build-artifacts get-circle-ci-build poll-circle-ci-build)
 
 (defrecord CircleCI [api-token builder-project repos]
@@ -74,13 +75,13 @@
           cljdoc-edn (cljdoc.util/cljdoc-edn project version)
           artifacts (-> (get-circle-ci-build-artifacts this build-num)
                         :body json/parse-string)]
-        (if-let [artifact (and success?
-                               (= 1 (count artifacts))
-                               (= cljdoc-edn (get (first artifacts) "path"))
-                               (first artifacts))]
-          {:analysis-result (get artifact "url")}
-          (throw (ex-info "Analysis on CircleCI failed"
-                          {:service :circle-ci, :build done-build}))))))
+      (if-let [artifact (and success?
+                             (= 1 (count artifacts))
+                             (= cljdoc-edn (get (first artifacts) "path"))
+                             (first artifacts))]
+        {:analysis-result (get artifact "url")}
+        (throw (ex-info "Analysis on CircleCI failed"
+                        {:service :circle-ci, :build done-build}))))))
 
 (defn circle-ci
   [{:keys [api-token builder-project] :as args}]
@@ -173,8 +174,6 @@
      :pompath "https://repo.clojars.org/com/lemondronor/ads-b/0.1.3/ads-b-0.1.3.pom"})
 
   (let [service (or #_(circle-ci (cljdoc.config/circle-ci))
-                    (->Local))
+                 (->Local))
         build   (trigger-build service p-fail)]
-    (wait-for-build service build))
-
-  )
+    (wait-for-build service build)))

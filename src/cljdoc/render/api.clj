@@ -243,6 +243,4 @@
     (< 1 (count (set (map :doc platforms)))))
 
   (platf/varies? --d :doc)
-  (platf/get-field --d :name)
-
-  )
+  (platf/get-field --d :name))

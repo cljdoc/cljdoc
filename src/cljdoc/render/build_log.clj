@@ -181,9 +181,9 @@
                                           [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll
                                            (zp/zprint-str (ex-data ex) {:width 70})])))
            (when (:analysis_job_uri build-info)
-             [:p.lh-copy "Please see the " [:a.link.blue {:href (:analysis_job_uri build-info)}
-              "build job"] " to understand why this build failed and reach out if you aren't
-              sure how to fix the issue."])
+             [:p.lh-copy "Please see the "
+              [:a.link.blue {:href (:analysis_job_uri build-info)} "build job"]
+              " to understand why this build failed and reach out if you aren't sure how to fix the issue."])
            #_[:p (cljdoc-link build-info true)]))
 
         (when-not (done? build-info)
@@ -192,10 +192,10 @@
 
         ;; [:p [:code [:pre (with-out-str (clojure.pprint/pprint build-info))]]] ;DEBUG
         [:p.lh-copy.dark-gray "Having trouble? Please reach out via "
-        [:a.link.blue {:href
-        "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "Slack"] "
-        or " [:a.link.blue {:href (util/github-url :issues)} "open an
-        issue on GitHub"] ". Thanks!"]]
+         [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "Slack"]
+         " or "
+         [:a.link.blue {:href (util/github-url :issues)} "open an issue on GitHub"]
+         ". Thanks!"]]
 
        (layout/page {:title (str "cljdoc build #" (:id build-info))})))
 
@@ -295,4 +295,4 @@
                    (map build-aggregates)
                    (build-analytics))])
 
-   (layout/page {:title "cljdoc builds"})))
+       (layout/page {:title "cljdoc builds"})))

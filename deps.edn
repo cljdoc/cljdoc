@@ -69,6 +69,10 @@
             :extra-deps {cli-matic {:mvn/version "0.4.3"}}
             :main-opts ["-m"  "cljdoc.cli"]}
 
+           :code-format
+           {:extra-deps {cljfmt {:mvn/version "0.7.0"}}
+            :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
+
            :jar-deploy
            {:extra-deps {com.workframe/garamond {:git/url "https://github.com/martinklepsch/garamond.git"
                                                  :sha "a7e3a346b9c51d0fb0e73ca4ea47a150004ca6d1"}

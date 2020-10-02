@@ -10,7 +10,7 @@
 (defn highlight-js-customization []
   [:script
    (hiccup/raw
-     "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });
+    "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });
       hljs.initHighlightingOnLoad();")])
 
 (defn highlight-js []
@@ -83,8 +83,8 @@
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (hiccup.page/include-css
-                   "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
-                   "/cljdoc.css")]
+                  "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
+                  "/cljdoc.css")]
                 [:body
                  [:div.sans-serif
                   contents]
