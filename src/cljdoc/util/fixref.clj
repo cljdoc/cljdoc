@@ -41,7 +41,7 @@
   (let [raw-path (case (scm/provider (:url scm))
                    :sourcelab "/blob/"
                    "/raw/")]
-    (str (:url scm) "/raw/" (scm-rev scm) "/")))
+    (str (:url scm) raw-path (scm-rev scm) "/")))
 
 (defn- rebase-path
   "Rebase path `s1` to directory of relative path `s2`.
