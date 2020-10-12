@@ -152,7 +152,7 @@
       (and scm-url (scm/http-uri scm-url))
       [:a.link.dim.gray.f6.tr
        {:href (scm/http-uri scm-url)}
-       (let [icon (or (scm/provider scm-url) :git)]
+       (let [icon (get #{:github :gitlab} (scm/provider scm-url) :git)]
          [:img.v-mid.mr2-ns {:src (str "https://microicon-clone.vercel.app/" (name icon))}])
        [:span.dib-ns.dn (scm/coordinate (scm/http-uri scm-url))]]
 

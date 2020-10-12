@@ -17,6 +17,7 @@
   (t/is (= :github (scm/provider "https://www.github.com/cloverage/cloverage")))
   (t/is (= :github (scm/provider "https://git@www.github.com/cloverage/cloverage")))
   (t/is (= :gitlab (scm/provider "https://gitlab.com/eval/otarta")))
+  (t/is (= :sourcehut (scm/provider "https://git.sr.ht/~miikka/clj-branca")))
   (t/is (= nil (scm/provider "https://gitea.heevyis.ninja/josha/formulare")))
   (t/is (= nil (scm/provider "https://unknown-scm.com/circleci/clj-yaml"))))
 

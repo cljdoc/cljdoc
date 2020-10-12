@@ -70,8 +70,9 @@
          [:b.db "Can you improve this documentation?"])
        [:a.link.dib.white.bg-blue.ph2.pv1.br2.mt2
         {:href doc-scm-url}
-        (if (= :gitlab (scm/provider doc-scm-url))
-          "Edit on GitLab"
+        (case (scm/provider doc-scm-url)
+          :gitlab "Edit on GitLab"
+          :sourcehut "Edit on sourcehut"
           "Edit on GitHub")]]])])
 
 (defn doc-overview
