@@ -88,7 +88,12 @@
                 (fixref/fix (str "<a href=\"/root/relative/doc.md\">root relative link</a>"
                                  "<a href=\"/root/./././relative/../a/b/c/../../d/doc.md\">root relative link</a>"
                                  "<a href=\"/root/relative/../../../../../doc.md\">root relative link</a>")
-                            fix-opts))))))
+                            fix-opts)))))
+    (t/testing "work with sourcehut"
+      (t/is (= ["<a href=\"https://git.sr.ht/~user/project/tree/#SHA#/doc/norm1.adoc\" rel=\"nofollow\">relative link</a>"]
+               (fix-result
+                (fixref/fix "<a href=\"norm1.adoc\">relative link</a>"
+                            (assoc-in fix-opts [:scm :url] "https://git.sr.ht/~user/project")))))))
 
   (t/testing "known scm relative links (imported articles)"
     (t/testing  "are adjusted to point to article slugs"
@@ -141,4 +146,13 @@
                             {:scm-file-path "doc/path/doc.adoc"
                              :scm {:commit "#SHA#"
                                    :url "https://github.com/user/project"}
+                             :uri-map {}})))))
+
+    (t/testing "work with sourcehut"
+      (t/is (= ["<img src=\"https://git.sr.ht/~user/project/blob/#SHA#/doc/path/rel.png\">"]
+               (fix-result
+                (fixref/fix "<img src=\"rel.png\">"
+                            {:scm-file-path "doc/path/doc.adoc"
+                             :scm {:commit "#SHA#"
+                                   :url "https://git.sr.ht/~user/project"}
                              :uri-map {}})))))))

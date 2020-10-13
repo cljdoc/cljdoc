@@ -33,13 +33,13 @@
 
 (defn- scm-blob-base-url [scm]
   (let [blob-path (case (scm/provider (:url scm))
-                    :sourcelab "/tree/"
+                    :sourcehut "/tree/"
                     "/blob/")]
     (str (:url scm) blob-path (scm-rev scm) "/")))
 
 (defn- scm-raw-base-url [scm]
   (let [raw-path (case (scm/provider (:url scm))
-                   :sourcelab "/blob/"
+                   :sourcehut "/blob/"
                    "/raw/")]
     (str (:url scm) raw-path (scm-rev scm) "/")))
 
