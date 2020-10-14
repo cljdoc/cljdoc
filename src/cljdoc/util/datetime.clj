@@ -1,7 +1,8 @@
 (ns cljdoc.util.datetime
   "Helpers function to work with dates and times."
   (:import (java.time Instant ZoneId)
-           (java.time.format DateTimeFormatter)))
+           (java.time.format DateTimeFormatter)
+           (java.util Locale)))
 
 (defn day-suffix
   "Append approptiate suffix based on day of the month.
@@ -15,7 +16,7 @@
   [ts]
   (let [datetime (Instant/parse ts)
         utc      (ZoneId/of "UTC")]
-    (str (.format (.withZone (DateTimeFormatter/ofPattern "EEE, MMM dd") utc) datetime)
+    (str (.format (.withZone (DateTimeFormatter/ofPattern "EEE, MMM dd" Locale/ENGLISH) utc) datetime)
          (day-suffix (.getDayOfMonth (.atZone datetime utc))))))
 
 (comment

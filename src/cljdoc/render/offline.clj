@@ -49,7 +49,7 @@
     (when scm-url
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
-       (let [icon (or (scm/provider scm-url) :code)]
+       (let [icon (get #{:github :gitlab} (scm/provider scm-url) :code)]
          [:img.v-mid.mr2 {:src (str "https://microicon-clone.vercel.app/" (name icon))}])
        [:span.dib (scm/coordinate scm-url)]])]])
 

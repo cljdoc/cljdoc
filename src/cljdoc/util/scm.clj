@@ -19,7 +19,8 @@
   (when-some [host (:host (uri/uri scm-url))]
     (cond
       (.endsWith host "github.com") :github
-      (.endsWith host "gitlab.com") :gitlab)))
+      (.endsWith host "gitlab.com") :gitlab
+      (.endsWith host "sr.ht") :sourcehut)))
 
 (defn http-uri
   "Given a URI pointing to a git remote, normalize that URI to an HTTP one."
@@ -54,3 +55,10 @@
     (.startsWith scm-url "http")
     (let [{:keys [host path]} (uri/uri scm-url)]
       (str "git@" host ":" (subs path 1) ".git"))))
+
+(defn view-uri
+  [{:keys [url branch]} source-file]
+  (let [blob-path (if (= :sourcehut (provider url))
+                    "/tree/"
+                    "/blob/")]
+    (str url blob-path (or branch "master") "/" source-file)))

@@ -32,10 +32,16 @@
       (:commit scm)))
 
 (defn- scm-blob-base-url [scm]
-  (str (:url scm) "/blob/" (scm-rev scm) "/"))
+  (let [blob-path (case (scm/provider (:url scm))
+                    :sourcehut "/tree/"
+                    "/blob/")]
+    (str (:url scm) blob-path (scm-rev scm) "/")))
 
 (defn- scm-raw-base-url [scm]
-  (str (:url scm) "/raw/" (scm-rev scm) "/"))
+  (let [raw-path (case (scm/provider (:url scm))
+                   :sourcehut "/blob/"
+                   "/raw/")]
+    (str (:url scm) raw-path (scm-rev scm) "/")))
 
 (defn- rebase-path
   "Rebase path `s1` to directory of relative path `s2`.

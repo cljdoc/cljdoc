@@ -17,6 +17,7 @@
   (t/is (= :github (scm/provider "https://www.github.com/cloverage/cloverage")))
   (t/is (= :github (scm/provider "https://git@www.github.com/cloverage/cloverage")))
   (t/is (= :gitlab (scm/provider "https://gitlab.com/eval/otarta")))
+  (t/is (= :sourcehut (scm/provider "https://git.sr.ht/~miikka/clj-branca")))
   (t/is (= nil (scm/provider "https://gitea.heevyis.ninja/josha/formulare")))
   (t/is (= nil (scm/provider "https://unknown-scm.com/circleci/clj-yaml"))))
 
@@ -29,3 +30,7 @@
   (t/is (= "http://github.com/circleci/clj-yaml" (scm/http-uri "git@github.com:circleci/clj-yaml.git")))
   (t/is (= "http://gitea.heevyis.ninja/josha/formulare" (scm/http-uri "git@gitea.heevyis.ninja:josha/formulare.git")))
   (t/is (= "http://unknown-scm.com/circleci/clj-yaml" (scm/http-uri "git@unknown-scm.com:circleci/clj-yaml"))))
+
+(t/deftest scm-view-uri-test
+  (t/is (= "https://github.com/circleci/clj-yaml/blob/master/README.md" (scm/view-uri {:url "https://github.com/circleci/clj-yaml", :branch "master"} "README.md")))
+  (t/is (= "https://git.sr.ht/~miikka/clj-branca/tree/master/README.md" (scm/view-uri {:url "https://git.sr.ht/~miikka/clj-branca", :branch "master"} "README.md"))))
