@@ -2,6 +2,7 @@
  "cider/cider-nrepl" {:cljdoc.api/platforms #{"clj"}}
  "com.rpl/specter" {:cljdoc.api/platforms #{"clj"}}
  "ventas-core/ventas-core" {:cljdoc.api/platforms #{"clj"}}
+ "io.replikativ/datahike" {:cljdoc.api/platforms #{"clj"}}
  "manifold/manifold" {:cljdoc.api/namespaces [manifold.deferred manifold.stream manifold.time manifold.bus manifold.executor]
                       :cljdoc.api/platforms #{"clj"}
                       :cljdoc.doc/tree [["Readme" {:file "README.md"}]
