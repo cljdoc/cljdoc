@@ -436,7 +436,7 @@
   [{:keys [build-tracker storage cache searcher] :as deps}
    {:keys [route-name] :as route}]
   (->> (case route-name
-         :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home))})]
+         :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home %))})]
          :search     [(interceptor/interceptor {:name ::search :enter #(pu/ok-html % (render-search/search-page %))})]
          :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts))})]
          :sitemap    [(sitemap-interceptor storage)]
