@@ -105,6 +105,7 @@ class Switcher extends Component {
 
     if (e.which === 75) {
       if ((isMac && e.metaKey) || (!isMac && e.ctrlKey)) {
+        e.preventDefault();
         switcherShortcut = true;
       }
     }
