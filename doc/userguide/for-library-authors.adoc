@@ -153,7 +153,7 @@ If you want to provide a different doc tree for one module, simply nest it in th
 
 === `:cljdoc/include-namespaces-from-dependencies`
 
-If you want a project to include API documentation for some of it's dependencies provide an additional key `:cljdoc/include-namespaces-from-dependencies`:
+If you want a project to include API documentation for some or all of it's dependencies, specify their *maven coordinates* under `:cljdoc/include-namespaces-from-dependencies`:
 
 [source,clojure]
 ----
@@ -167,13 +167,14 @@ If you want a project to include API documentation for some of it's dependencies
   metosin/reitit-swagger-ui]}
 ----
 
-NOTE: This can be specified on a per artifact basis as described in the previous section.
+NOTE: This option can be specified on a per artifact basis as described in the previous section.
 
-NOTE: This only works if the artifact specifies a dependency on the projects listed. The
-project's POM file will be used to load API information for the correct version.
+NOTE: To be included, each dependency must also be specified as a maven dependency of the project itself (in the project's `deps.edn`, `project.clj`, etc).
+The project's resulting POM file will be used to load API information for the correct version.
 
-WARN: If analysis for some of the specified dependencies failed or just hasn't been ran they
-will be silently ignored for now.
+TIP: https://github.com/metosin/reitit[Reitit] is a great example reference for a project with sub modules.
+
+WARNING: If analysis for a specified dependency has failed or hasn't been run, its API documentation will not appear on cljdoc.
 
 == More Features
 

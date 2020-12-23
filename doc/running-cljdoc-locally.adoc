@@ -169,6 +169,8 @@ Note:
 * A *cljdoc developer* won't necessarily want to work with a local library; they can skip to step 3 and <<import-a-published-library>>.
 * In the discussions that follow, we'll assume that your hosted SCM (Source Code Management) system is GitHub.
 
+IMPORTANT: If your project has link:/doc/userguide/for-library-authors.adoc#module-support[sub modules], you'll need to ingest each of the sub modules in order to see their APIs on your locally running cljdoc web server.
+
 === Example Library
 We have chosen {example-project-link}, {example-project-desc}, as our example import library.
 Feel free to substitute your own, or another, library when walking through examples.
