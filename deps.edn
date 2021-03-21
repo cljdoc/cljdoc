@@ -2,14 +2,14 @@
         spootnik/unilog {:mvn/version "0.7.24"},
         org.clojure/tools.logging {:mvn/version "0.5.0"},
         io.pedestal/pedestal.jetty {:mvn/version "0.5.3"},
-        tea-time {:mvn/version "1.0.1"},
+        tea-time/tea-time {:mvn/version "1.0.1"},
         com.jcraft/jsch.agentproxy.jsch {:mvn/version "0.0.9"},
         integrant/repl {:mvn/version "0.3.1"},
-        zprint {:mvn/version "0.4.16"},
+        zprint/zprint {:mvn/version "0.4.16"},
         io.pedestal/pedestal.service {:mvn/version "0.5.3"},
-        aero {:mvn/version "1.1.3"},
-        cheshire {:mvn/version "5.8.1"},
-        ragtime {:mvn/version "0.8.0"},
+        aero/aero {:mvn/version "1.1.3"},
+        cheshire/cheshire {:mvn/version "5.8.1"},
+        ragtime/ragtime {:mvn/version "0.8.0"},
         funcool/cuerdas {:mvn/version "2.2.0"},
         org.asciidoctor/asciidoctorj {:mvn/version "2.1.0"},
         co.deps/ring-etag-middleware {:mvn/version "0.2.0"}
@@ -19,11 +19,11 @@
         com.vladsch.flexmark/flexmark-ext-anchorlink {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-wikilink {:mvn/version "0.50.20"}
         org.clojure/java.jdbc {:mvn/version "0.7.9"},
-        hiccup {:mvn/version "2.0.0-alpha1"},
-        digest {:mvn/version "1.4.9"},
-        integrant {:mvn/version "0.7.0"},
+        hiccup/hiccup {:mvn/version "2.0.0-alpha1"},
+        digest/digest {:mvn/version "1.4.9"},
+        integrant/integrant {:mvn/version "0.7.0"},
         org.martinklepsch/clj-http-lite {:mvn/version "0.4.1"}
-        org.eclipse.jgit {:mvn/version "4.10.0.201712302008-r"},
+        org.eclipse.jgit/org.eclipse.jgit {:mvn/version "4.10.0.201712302008-r"},
         io.sentry/sentry-logback {:mvn/version "1.7.25"},
         com.jcraft/jsch.agentproxy.connector-factory {:mvn/version "0.0.9"},
         org.clojure/core.match {:mvn/version "0.3.0"},
@@ -33,11 +33,11 @@
         com.taoensso/tufte {:mvn/version "2.0.1"}
         com.taoensso/nippy {:mvn/version "2.14.0"}
         org.slf4j/slf4j-api {:mvn/version "1.7.26"},
-        expound {:mvn/version "0.7.2"},
-        raven-clj {:mvn/version "1.6.0-alpha2"},
+        expound/expound {:mvn/version "0.7.2"},
+        raven-clj/raven-clj {:mvn/version "1.6.0-alpha2"},
         org.clojure/test.check {:mvn/version "0.9.0"},
         me.raynes/fs {:mvn/version "1.4.6"},
-        sitemap {:mvn/version "0.4.0"},
+        sitemap/sitemap {:mvn/version "0.4.0"},
         lambdaisland/uri {:mvn/version "1.2.1"}
         org.clojure/core.cache {:mvn/version "0.7.2"}
         org.clojure/core.memoize {:mvn/version "0.7.2"}
@@ -48,7 +48,7 @@
         ;; These deps are dependencies of shared-utils and are
         ;; duplicated in the global modules/shared-utils/deps.edn,
         ;; updates should be done in both places
-        version-clj {:mvn/version "0.1.2"}}
+        version-clj/version-clj {:mvn/version "0.1.2"}}
  ;; We don't use :local/root dependencies because the interdependencies
  ;; between main, shared-utils and analysis runner don't work well with
  ;; Cursive: https://github.com/cljdoc/cljdoc/issues/134
@@ -61,16 +61,16 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo {:mvn/version "2020.09.09"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2020.09.09"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :cli
            {:extra-paths ["modules/cli/src"]
-            :extra-deps {cli-matic {:mvn/version "0.4.3"}}
+            :extra-deps {cli-matic/cli-matic {:mvn/version "0.4.3"}}
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :code-format
-           {:extra-deps {cljfmt {:mvn/version "0.7.0"}}
+           {:extra-deps {cljfmt/cljfmt {:mvn/version "0.7.0"}}
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :jar-deploy
@@ -78,4 +78,4 @@
                                                  :sha "a7e3a346b9c51d0fb0e73ca4ea47a150004ca6d1"}
                          pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
                                           :sha     "f24279ca21dba3ba74a6f501cff0dbf630ce4355"}
-                         deps-deploy {:mvn/version "0.0.9"}}}}}
+                         deps-deploy/deps-deploy {:mvn/version "0.0.9"}}}}}
