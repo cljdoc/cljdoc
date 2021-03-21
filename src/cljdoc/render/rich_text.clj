@@ -16,7 +16,8 @@
 (defn asciidoc-to-html [file-content]
   (let [opts (doto (Options.)
                (.setAttributes (java.util.HashMap. {"env-cljdoc" true
-                                                    "outfilesuffix" ".adoc"})))]
+                                                    "outfilesuffix" ".adoc"
+                                                    "showtitle" true})))]
     (.convert adoc-container file-content opts)))
 
 (def md-extensions
