@@ -116,10 +116,10 @@
                       (platf/get-field ns :name))]]
      (api/namespace-overview ns-url ns defs fix-opts))])
 
-(defn- doc-page [doc-tuple fix-opts] 
+(defn- doc-page [doc-tuple fix-opts]
   [:div
    [:div.markdown.lh-copy.pv4
-    (hiccup/raw 
+    (hiccup/raw
      (fixref/fix (rich-text/render-text doc-tuple)
                  fix-opts))]])
 
@@ -158,7 +158,7 @@
                        (map :attrs)
                        (map #(let [doc-type (:cljdoc.doc/type %)]
                                (assoc % :doc-tuple [doc-type (doc-type %)])))
-                       (map #(assoc % :page-features 
+                       (map #(assoc % :page-features
                                     (rich-text/determine-features (:doc-tuple %)))))
         ;; naive for now, assume a feature's value is always simply `true`
         lib-page-features (->> doc-attrs (map :page-features) (apply merge))]
@@ -172,7 +172,7 @@
 
        ["index.html" (->> (index-page cache-bundle fix-opts)
                           (page' {}))]]
-      
+
       ;; Optional assets
       (when (:mathjax lib-page-features)
         [["assets/mathjax/" (io/resource "offline/assets/mathjax-2.7.6-curated")]])
@@ -181,7 +181,7 @@
       (for [doc doc-attrs
             :let [target-file (article-url (:slug-path doc))]]
         [target-file
-         (->> (doc-page (:doc-tuple doc) 
+         (->> (doc-page (:doc-tuple doc)
                         (assoc fix-opts
                                :scm-file-path (:cljdoc.doc/source-file doc)
                                :target-path (.getParent (io/file target-file))))
@@ -217,12 +217,12 @@
                     "-" (-> version-entity :version)
                     "/")]
     (->> (docs-files cache-bundle)
-         expand-dirs 
+         expand-dirs
          (map (fn [[k v]]
                 [(str prefix k)
                  (cond
                    (instance? URL v)                  (slurp v)
-                    
+
                    (instance? java.io.File v)         (Files/readAllBytes (.toPath v))
                    (instance? hiccup.util.RawString v) (.getBytes (str v))
                    :else (throw (Exception. (str "Unsupported value " (class v)))))]))

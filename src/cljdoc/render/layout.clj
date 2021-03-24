@@ -23,7 +23,7 @@
    (highlight-js-customization)])
 
 (defn mathjax2-customizations [opts]
-  [:script {:type "text/x-mathjax-config"} 
+  [:script {:type "text/x-mathjax-config"}
    (hiccup/raw
     (->> ["MathJax.Hub.Config({"
           (format "  showMathMenu: %s," (:show-math-menu opts))
@@ -53,7 +53,7 @@
 
 (defn add-requested-features [features]
   (when (:mathjax features)
-    (list (mathjax2-customizations {:show-math-menu true}) 
+    (list (mathjax2-customizations {:show-math-menu true})
           [:script {:src "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML"}])))
 
 (defn generic-description
