@@ -16,6 +16,7 @@
             [cljdoc.render.rich-text :as rich-text]
             [clojure.string :as string]
             [clojure.java.io :as io]
+            [me.raynes.fs :as fs]
             [me.raynes.fs.compression :as fs-compression]
             [hiccup2.core :as hiccup]
             [hiccup.page])
@@ -53,7 +54,12 @@
          [:img.v-mid.mr2 {:src (str "https://microicon-clone.vercel.app/" (name icon))}])
        [:span.dib (scm/coordinate scm-url)]])]])
 
-(defn- page [{:keys [version-entity namespace article-title scm-url]} contents]
+(defn add-requested-features [features]
+  (when (:mathjax features)
+    (list (layout/mathjax2-customizations {:show-math-menu false})
+          [:script {:src "../assets/mathjax/MathJax.js?config=TeX-MML-AM_CHTML"}])))
+
+(defn- page [{:keys [version-entity namespace article-title scm-url page-features]} contents]
   (let [sub-page? (or namespace article-title)]
     (hiccup/html {:mode :html}
                  (hiccup.page/doctype :html5)
@@ -77,7 +83,8 @@
                   (->> ["assets/highlight.min.js" "assets/clojure.min.js" "assets/clojure-repl.min.js"]
                        (map #(cond->> % sub-page? (str "../")))
                        (apply hiccup.page/include-js))
-                  (layout/highlight-js-customization)])))
+                  (layout/highlight-js-customization)
+                  (add-requested-features page-features)])))
 
 (defn- article-toc
   "Very similar to `doc-tree-view` but uses the offline-docs
@@ -109,7 +116,7 @@
                       (platf/get-field ns :name))]]
      (api/namespace-overview ns-url ns defs fix-opts))])
 
-(defn- doc-page [doc-p fix-opts]
+(defn- doc-page [doc-p fix-opts] 
   [:div
    [:div.markdown.lh-copy.pv4
     (hiccup/raw
@@ -141,11 +148,11 @@
                              (article-url (-> d :attrs :slug-path))]))
                      (into {}))
         fix-opts {:scm scm-info :uri-map uri-map}
-        page'   (fn [type title contents]
-                  (page {:version-entity version-entity
-                         :scm-url (-> cache-bundle :version :scm :url)
-                         type title}
-                        contents))]
+        page' (fn [opts contents]
+                (page (assoc opts
+                             :scm-url (-> cache-bundle :version :scm :url)
+                             :version-entity version-entity)
+                      contents))]
 
     (reduce
      into
@@ -154,18 +161,22 @@
        ["assets/highlight.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js")]
        ["assets/clojure.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js")]
        ["assets/clojure-repl.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")]
+       ["assets/mathjax/" (io/resource "offline/assets/mathjax-2.7.6-curated")]
 
        ["index.html" (->> (index-page cache-bundle fix-opts)
-                          (page' nil nil))]]
+                          (page' {}))]]
 
       ;; Documentation Pages / Articles
       (for [doc-p (filter #(-> % :attrs :cljdoc.doc/source-file) flat-doctree)
-            :let [target-file (article-url (-> doc-p :attrs :slug-path))]]
+            :let [doc-type (-> doc-p :attrs :cljdoc.doc/type)
+                  page-features (rich-text/determine-features [doc-type (-> doc-p :attrs doc-type)])
+                  target-file (article-url (-> doc-p :attrs :slug-path))]]
         [target-file
          (->> (doc-page doc-p (assoc fix-opts
                                      :scm-file-path (-> doc-p :attrs :cljdoc.doc/source-file)
                                      :target-path (.getParent (io/file target-file))))
-              (page' :article-title (:title doc-p)))])
+              (page' {:article-title (:title doc-p)
+                      :page-features page-features}))])
 
       ;; Namespace Pages
       (for [ns-data (bundle/namespaces cache-bundle)
@@ -175,17 +186,33 @@
          (->> (ns-page ns-data defs (assoc fix-opts
                                            ;; :scm-file-path - we don't currently have scm file for namespaces
                                            :target-path (.getParent (io/file target-file))))
-              (page' :namespace (platf/get-field ns-data :name)))])])))
+              (page' {:namespace (platf/get-field ns-data :name)}))])])))
+
+(defn- expand-dirs [files]
+  (mapcat (fn [[target source]]
+            (if (and (or (and (instance? URL source) (= "file" (.getProtocol source)))
+                         (instance? java.io.File source))
+                     (fs/directory? source))
+              (let [source (io/file source)]
+                (keep (fn [f] (when (and (not (fs/hidden? f))
+                                         (fs/file? f))
+                                [(str (io/file target (.getPath (.relativize (.toURI source) (.toURI f)))))
+                                 f]))
+                      (file-seq source)))
+              [[target source]]))
+          files))
 
 (defn zip-stream [{:keys [version-entity] :as cache-bundle}]
   (let [prefix (str (-> version-entity :artifact-id)
                     "-" (-> version-entity :version)
                     "/")]
     (->> (docs-files cache-bundle)
+         expand-dirs 
          (map (fn [[k v]]
                 [(str prefix k)
                  (cond
                    (instance? URL v)                  (slurp v)
+                    
                    (instance? java.io.File v)         (Files/readAllBytes (.toPath v))
                    (instance? hiccup.util.RawString v) (.getBytes (str v))
                    :else (throw (Exception. (str "Unsupported value " (class v)))))]))
