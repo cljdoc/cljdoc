@@ -109,7 +109,7 @@
 (defmethod determine-features :cljdoc/markdown [[_ _content]])
 
 (defmethod determine-features :cljdoc/asciidoc [[_ content]]
-  (let [doc-header (re-find #"(?s).*?\R\R" content)]
+  (when-let [doc-header (re-find #"(?s).*?\R\R" content)]
     (when (re-find #"(?m)^:stem:" doc-header)
       {:mathjax true})))
 
