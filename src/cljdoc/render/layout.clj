@@ -4,6 +4,7 @@
             [cljdoc.config :as config]
             [cljdoc.util :as util]
             [cljdoc.util.scm :as scm]
+            [clojure.string :as string]
             [hiccup2.core :as hiccup]
             [hiccup.page]))
 
@@ -20,6 +21,40 @@
     "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js"
     "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")
    (highlight-js-customization)])
+
+(defn mathjax2-customizations [opts]
+  [:script {:type "text/x-mathjax-config"} 
+   (hiccup/raw
+    (->> ["MathJax.Hub.Config({"
+          (format "  showMathMenu: %s," (:show-math-menu opts))
+          "  messageStyle: 'none',"
+          "  tex2jax: {"
+          "    inlineMath: [['\\\\(', '\\\\)']],"
+          "    displayMath: [['\\\\[', '\\\\]']],"
+          "    ignoreClass: 'nostem|nolatexmath'"
+          "  },"
+          "  asciimath2jax: {"
+          "    delimiters: [['\\\\$', '\\\\$']],"
+          "    ignoreClass: 'nostem|noasciimath'"
+          "  },"
+          "  TeX: { equationNumbers: { autoNumber: 'none' },"
+          " }"
+          "})"
+          ""
+          "MathJax.Hub.Register.StartupHook('AsciiMath Jax Ready', function () {"
+          "  MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {"
+          "    if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {"
+          "      data.math.root.display = 'block'"
+          "    }"
+          "    return data"
+          "  })"
+          "})"]
+         (string/join "\n")))])
+
+(defn add-requested-features [features]
+  (when (:mathjax features)
+    (list (mathjax2-customizations {:show-math-menu true}) 
+          [:script {:src "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML"}])))
 
 (defn generic-description
   "Returns a generic description of a project."
@@ -92,7 +127,8 @@
                    (no-js-warning))
                  [:div#cljdoc-switcher]
                  [:script {:src "/js/index.js"}]
-                 (highlight-js)]]))
+                 (highlight-js)
+                 (add-requested-features (:page-features opts))]]))
 
 (defn sidebar-title
   ([title]

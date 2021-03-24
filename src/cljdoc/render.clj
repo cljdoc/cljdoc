@@ -79,7 +79,8 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
-                       :description (layout/artifact-description version-entity (:description pom))}))))
+                       :description (layout/artifact-description version-entity (:description pom))
+                       :page-features (when doc-type (rich-text/determine-features [doc-type contents]))}))))
 
 (defmethod render :artifact/namespace
   [_ route-params {:keys [cache-bundle pom last-build]}]
