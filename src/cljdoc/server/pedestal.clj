@@ -34,7 +34,7 @@
             [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
-            [clj-http.lite.client]
+            [clj-http.lite.client :as http-client]
             [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
             [io.pedestal.http :as http]
@@ -299,19 +299,35 @@
                   (cljdoc.render.build-log/builds-page)
                   (pu/ok-html ctx)))}))
 
-(defn return-badge [ctx status color]
+(defn return-badge
+  "Fetch badge svg from badgen.
+   Naive retry logic to compensate for fact that badgen.net will often fail on 1st request for uncached badges."
+  [ctx status color]
   (let [url (format "https://badgen.net/badge/cljdoc/%s/%s"
                     (string/replace status  #"/" "%2F")
                     (name color))]
-    (->> {:status 200
-          :headers {"Content-Type" "image/svg+xml;charset=utf-8"
-                    "Cache-Control" (format "public; max-age=%s" (* 30 60))}
-          :body (try
-                  (:body (clj-http.lite.client/get url {:headers {"User-Agent" "clj-http-lite"}}))
-                  (catch Exception e
-                    (log/error e (str "Badge service error for URL " url))
-                    (str "Badge service error for URL " url)))}
-         (assoc ctx :response))))
+    (loop [retries-left 1]
+      (let [resp (http-client/get url {:headers {"User-Agent" "clj-http-lite"}
+                                       :throw-exceptions false})]
+        (cond
+          (http-client/unexceptional-status? (:status resp))
+          (assoc ctx :response {:status 200
+                                :headers {"Content-Type" "image/svg+xml;charset=utf-8"
+                                          "Cache-Control" (format "public; max-age=%s" (* 30 60))}
+                                :body (:body resp)})
+
+          (> retries-left 0)
+          (do
+            (log/warnf "Badge service returned %d for url %s, retries left %d" (:status resp) url retries-left)
+            (Thread/sleep 300)
+            (recur (dec retries-left)))
+
+          :else
+          (do
+            (log/errorf "Badge service returned %d for url %s after retries, response headers: %s"
+                        (:status resp) url (:headers resp))
+            (assoc ctx :response {:status 503
+                                  :body (str "Badge service error for URL " url)})))))))
 
 (defn badge-interceptor []
   (interceptor/interceptor
