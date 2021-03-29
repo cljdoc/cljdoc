@@ -2,6 +2,7 @@
   "Components to layout cljdoc pages"
   (:require [cljdoc.server.routes :as routes]
             [cljdoc.config :as config]
+            [cljdoc.render.assets :as assets]
             [cljdoc.util :as util]
             [cljdoc.util.scm :as scm]
             [clojure.string :as string]
@@ -16,10 +17,7 @@
 
 (defn highlight-js []
   [:div
-   (hiccup.page/include-js
-    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"
-    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js"
-    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")
+   (apply hiccup.page/include-js (assets/js :highlightjs))
    (highlight-js-customization)])
 
 (defn mathjax2-customizations [opts]
@@ -54,7 +52,7 @@
 (defn add-requested-features [features]
   (when (:mathjax features)
     (list (mathjax2-customizations {:show-math-menu true})
-          [:script {:src "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML"}])))
+          (apply hiccup.page/include-js (assets/js :mathjax)))))
 
 (defn generic-description
   "Returns a generic description of a project."
@@ -117,9 +115,8 @@
                          :href "/opensearch.xml" :title "cljdoc"}]
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-                 (hiccup.page/include-css
-                  "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
-                  "/cljdoc.css")]
+                 (apply hiccup.page/include-css (assets/css :tachyons))
+                 (hiccup.page/include-css "/cljdoc.css")]
                 [:body
                  [:div.sans-serif
                   contents]

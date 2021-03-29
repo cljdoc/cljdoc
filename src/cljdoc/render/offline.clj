@@ -13,10 +13,10 @@
             [cljdoc.util.scm :as scm]
             [cljdoc.platforms :as platf]
             [cljdoc.util.fixref :as fixref]
+            [cljdoc.render.assets :as assets]
             [cljdoc.render.rich-text :as rich-text]
             [clojure.string :as string]
             [clojure.java.io :as io]
-            [me.raynes.fs :as fs]
             [me.raynes.fs.compression :as fs-compression]
             [hiccup2.core :as hiccup]
             [hiccup.page])
@@ -54,10 +54,16 @@
          [:img.v-mid.mr2 {:src (str "https://microicon-clone.vercel.app/" (name icon))}])
        [:span.dib (scm/coordinate scm-url)]])]])
 
-(defn add-requested-features [features]
+(defn adjust-refs [sub-page? refs]
+  (map #(cond->> % sub-page? (str "../"))
+       refs))
+
+(defn add-requested-features [sub-page? features]
   (when (:mathjax features)
     (list (layout/mathjax2-customizations {:show-math-menu false})
-          [:script {:src "../assets/mathjax/MathJax.js?config=TeX-MML-AM_CHTML"}])))
+          (->> (assets/offline-js :mathjax)
+               (adjust-refs sub-page?)
+               (apply hiccup.page/include-js)))))
 
 (defn- page [{:keys [version-entity namespace article-title scm-url page-features]} contents]
   (let [sub-page? (or namespace article-title)]
@@ -71,8 +77,8 @@
                      (util/clojars-id version-entity) " v"
                      (:version version-entity))]
                    [:meta {:charset "utf-8"}]
-                   (->> ["assets/cljdoc.css" "assets/tachyons.min.css"]
-                        (map #(cond->> % sub-page? (str "../")))
+                   (->> (concat ["assets/cljdoc.css"] (assets/offline-css :tachyons))
+                        (adjust-refs sub-page?)
                         (apply hiccup.page/include-css))]
                   [:div.sans-serif
                    (top-bar version-entity scm-url sub-page?)
@@ -80,11 +86,11 @@
                     {:style {:top "52px"}}
                     [:div.mw7.center.pa2.pb4
                      contents]]]
-                  (->> ["assets/highlight.min.js" "assets/clojure.min.js" "assets/clojure-repl.min.js"]
-                       (map #(cond->> % sub-page? (str "../")))
+                  (->> (assets/offline-js :highlightjs)
+                       (adjust-refs sub-page?)
                        (apply hiccup.page/include-js))
                   (layout/highlight-js-customization)
-                  (add-requested-features page-features)])))
+                  (add-requested-features sub-page? page-features)])))
 
 (defn- article-toc
   "Very similar to `doc-tree-view` but uses the offline-docs
@@ -164,18 +170,15 @@
         lib-page-features (->> doc-attrs (map :page-features) (apply merge))]
     (reduce
      into
-     [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]
-       ["assets/tachyons.min.css" (URL. "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css")]
-       ["assets/highlight.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js")]
-       ["assets/clojure.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js")]
-       ["assets/clojure-repl.min.js" (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")]
-
-       ["index.html" (->> (index-page cache-bundle fix-opts)
+     [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]]
+      (assets/offline-assets :tachyons)
+      (assets/offline-assets :highlightjs)
+      [["index.html" (->> (index-page cache-bundle fix-opts)
                           (page' {}))]]
 
       ;; Optional assets
       (when (:mathjax lib-page-features)
-        [["assets/mathjax/" (io/resource "offline/assets/mathjax-2.7.6-curated")]])
+        (assets/offline-assets :mathjax))
 
       ;; Documentation Pages / Articles
       (for [doc doc-attrs
@@ -198,32 +201,16 @@
                                            :target-path (.getParent (io/file target-file))))
               (page' {:namespace (platf/get-field ns-data :name)}))])])))
 
-(defn- expand-dirs [files]
-  (mapcat (fn [[target source]]
-            (if (and (or (and (instance? URL source) (= "file" (.getProtocol source)))
-                         (instance? java.io.File source))
-                     (fs/directory? source))
-              (let [source (io/file source)]
-                (keep (fn [f] (when (and (not (fs/hidden? f))
-                                         (fs/file? f))
-                                [(str (io/file target (.getPath (.relativize (.toURI source) (.toURI f)))))
-                                 f]))
-                      (file-seq source)))
-              [[target source]]))
-          files))
-
 (defn zip-stream [{:keys [version-entity] :as cache-bundle}]
   (let [prefix (str (-> version-entity :artifact-id)
                     "-" (-> version-entity :version)
                     "/")]
     (->> (docs-files cache-bundle)
-         expand-dirs
          (map (fn [[k v]]
                 [(str prefix k)
                  (cond
-                   (instance? URL v)                  (slurp v)
-
-                   (instance? java.io.File v)         (Files/readAllBytes (.toPath v))
+                   (instance? URL v)                   (slurp v)
+                   (instance? java.io.File v)          (Files/readAllBytes (.toPath v))
                    (instance? hiccup.util.RawString v) (.getBytes (str v))
                    :else (throw (Exception. (str "Unsupported value " (class v)))))]))
          (fs-compression/make-zip-stream))))
