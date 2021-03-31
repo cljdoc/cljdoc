@@ -11,7 +11,7 @@
         cheshire/cheshire {:mvn/version "5.8.1"},
         ragtime/ragtime {:mvn/version "0.8.0"},
         funcool/cuerdas {:mvn/version "2.2.0"},
-        org.asciidoctor/asciidoctorj {:mvn/version "2.1.0"},
+        org.asciidoctor/asciidoctorj {:mvn/version "2.4.3"},
         co.deps/ring-etag-middleware {:mvn/version "0.2.0"}
         com.vladsch.flexmark/flexmark {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-autolink {:mvn/version "0.50.20"}

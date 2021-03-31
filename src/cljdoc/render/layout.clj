@@ -2,8 +2,10 @@
   "Components to layout cljdoc pages"
   (:require [cljdoc.server.routes :as routes]
             [cljdoc.config :as config]
+            [cljdoc.render.assets :as assets]
             [cljdoc.util :as util]
             [cljdoc.util.scm :as scm]
+            [clojure.string :as string]
             [hiccup2.core :as hiccup]
             [hiccup.page]))
 
@@ -15,11 +17,42 @@
 
 (defn highlight-js []
   [:div
-   (hiccup.page/include-js
-    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"
-    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure.min.js"
-    "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/languages/clojure-repl.min.js")
+   (apply hiccup.page/include-js (assets/js :highlightjs))
    (highlight-js-customization)])
+
+(defn mathjax2-customizations [opts]
+  [:script {:type "text/x-mathjax-config"}
+   (hiccup/raw
+    (->> ["MathJax.Hub.Config({"
+          (format "  showMathMenu: %s," (:show-math-menu opts))
+          "  messageStyle: 'none',"
+          "  tex2jax: {"
+          "    inlineMath: [['\\\\(', '\\\\)']],"
+          "    displayMath: [['\\\\[', '\\\\]']],"
+          "    ignoreClass: 'nostem|nolatexmath'"
+          "  },"
+          "  asciimath2jax: {"
+          "    delimiters: [['\\\\$', '\\\\$']],"
+          "    ignoreClass: 'nostem|noasciimath'"
+          "  },"
+          "  TeX: { equationNumbers: { autoNumber: 'none' },"
+          " }"
+          "})"
+          ""
+          "MathJax.Hub.Register.StartupHook('AsciiMath Jax Ready', function () {"
+          "  MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {"
+          "    if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {"
+          "      data.math.root.display = 'block'"
+          "    }"
+          "    return data"
+          "  })"
+          "})"]
+         (string/join "\n")))])
+
+(defn add-requested-features [features]
+  (when (:mathjax features)
+    (list (mathjax2-customizations {:show-math-menu true})
+          (apply hiccup.page/include-js (assets/js :mathjax)))))
 
 (defn generic-description
   "Returns a generic description of a project."
@@ -82,9 +115,8 @@
                          :href "/opensearch.xml" :title "cljdoc"}]
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-                 (hiccup.page/include-css
-                  "https://unpkg.com/tachyons@4.9.0/css/tachyons.min.css"
-                  "/cljdoc.css")]
+                 (apply hiccup.page/include-css (assets/css :tachyons))
+                 (hiccup.page/include-css "/cljdoc.css")]
                 [:body
                  [:div.sans-serif
                   contents]
@@ -92,7 +124,8 @@
                    (no-js-warning))
                  [:div#cljdoc-switcher]
                  [:script {:src "/js/index.js"}]
-                 (highlight-js)]]))
+                 (highlight-js)
+                 (add-requested-features (:page-features opts))]]))
 
 (defn sidebar-title
   ([title]

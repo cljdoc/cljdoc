@@ -100,6 +100,19 @@
 (defmethod render-text :cljdoc/asciidoc [[_ content]]
   (asciidoc-to-html content))
 
+(defmulti determine-features
+  "Rich text documents sometimes optionally need HTML/JavaScript features.
+   For example an AsciiDoc article that uses STEM will require mathjax support."
+  (fn [[type _contents]]
+    type))
+
+(defmethod determine-features :cljdoc/markdown [[_ _content]])
+
+(defmethod determine-features :cljdoc/asciidoc [[_ content]]
+  (when-let [doc-header (re-find #"(?s).*?\R\R" content)]
+    (when (re-find #"(?m)^:stem:" doc-header)
+      {:mathjax true})))
+
 (comment
   (markdown-to-html "*hello world* <code>x</code>")
 
