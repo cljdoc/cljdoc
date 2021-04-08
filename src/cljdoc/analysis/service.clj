@@ -111,7 +111,7 @@
    {:accept "application/json", :basic-auth [(:api-token circle-ci) ""]}))
 
 (defn- poll-circle-ci-build [circle-ci build-num]
-  (loop [n 60] ; 60 * 5s = 5min
+  (loop [n 120] ; 120 * 5s = 10min
     (log/info "CircleCI: Polling build" build-num)
     (let [build (-> (get-circle-ci-build circle-ci build-num)
                     :body json/parse-string)]
