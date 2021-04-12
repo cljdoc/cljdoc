@@ -57,7 +57,7 @@
       (t/is (true? (.contains (:body builds-page) "v0.6.4")))
       (t/is (true? (.contains (:body builds-page) "Analysis Requested")))
 
-      (loop [i 20]
+      (loop [i 60]
         (if (pos? i)
           (when-not (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri))
                                "Successfully imported 10 namespaces")
