@@ -116,7 +116,7 @@ To run it the following commands can be used:
 ----
 cd modules/deploy/
 docker_tag=$(../../script/version.sh)
-clojure -m cljdoc.deploy deploy --docker-tag $docker_tag
+clojure -M -m cljdoc.deploy deploy --docker-tag $docker_tag
 ----
 
 This will fail unless the https://hub.docker.com/r/cljdoc/cljdoc/[cljdoc Docker repository]

@@ -38,8 +38,8 @@
   "57ddcedf05d73ad6835847576e48f73797834f82")
 
 (def analyzer-dependency
-  {:deps {'cljdoc-analyzer {:git/url "https://github.com/cljdoc/cljdoc-analyzer.git"
-                            :sha analyzer-version}}})
+  {:deps {'cljdoc/cljdoc-analyzer {:git/url "https://github.com/cljdoc/cljdoc-analyzer.git"
+                                   :sha analyzer-version}}})
 
 
 ;; CircleCI AnalysisService -----------------------------------------------------
@@ -139,7 +139,7 @@
       ;; analysis results. This is also the script that is used in the "production"
       ;; [cljdoc-builder project](https://github.com/martinklepsch/cljdoc-builder)
       (let [proc            (sh/sh "clojure" "-Sdeps" (pr-str analyzer-dependency)
-                                   "-m" "cljdoc-analyzer.cljdoc-main" (pr-str (ng-analysis-args arg repos))
+                                   "-M" "-m" "cljdoc-analyzer.cljdoc-main" (pr-str (ng-analysis-args arg repos))
                                    :dir (doto (io/file "/tmp/cljdoc-analysis-runner-dir/") (.mkdir)))
             cljdoc-edn-file (str util/analysis-output-prefix (util/cljdoc-edn project version))]
         {:analysis-result cljdoc-edn-file

@@ -10,7 +10,7 @@ fi
 case $COMMAND in
     check|fix)
         echo "--[${COMMAND}ing code]--"
-        clojure -A:code-format "$COMMAND" src test modules;;
+        clojure -M:code-format "$COMMAND" src test modules;;
     *)
       echo "usage $0 command"
       echo ""
