@@ -2,5 +2,7 @@
  :skip-comments true ;; there's a fair bit of old test code in comment blocks that does not lint, skip it for now
  :lint-as {taoensso.tufte/defnp clojure.core/defn
            clojure.core.cache/defcache clojure.core/defrecord
-           clojure.java.jdbc/with-db-transaction clojure.core/let}
+           clojure.java.jdbc/with-db-transaction clojure.core/let
+           clojure.test.check.clojure-test/defspec clojure.core/def
+           clojure.test.check.properties/for-all clojure.core/let}
  :linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}
