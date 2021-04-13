@@ -65,28 +65,27 @@
 (tc/defspec inside-elements-in-tree-have-both-next-and-prev
   1
   (prop/for-all [entries (gen-entries)]
-                (let [example-tree (doctree/add-slug-path entries)
-                      slug-paths (get-slug-paths example-tree)]
-                  (every? (fn [[prev-elem elem next-elem]]
-                            (and prev-elem elem next-elem))
-                        (->> slug-paths
-                             rest
-                             butlast
-                             (take 20) ;; generated tree can be large, don't need to test it all
-                             (map #(doctree/get-neighbour-entries example-tree %)))))))
+    (let [example-tree (doctree/add-slug-path entries)
+          slug-paths (get-slug-paths example-tree)]
+      (every? (fn [[prev-elem elem next-elem]]
+                (and prev-elem elem next-elem))
+              (->> slug-paths
+                   rest
+                   butlast
+                   (take 20) ;; generated tree can be large, don't need to test it all
+                   (map #(doctree/get-neighbour-entries example-tree %)))))))
 
 (tc/defspec last-element-in-tree-has-no-next-entry
   1
   (prop/for-all [entries (gen-entries)]
-                (let [example-tree (doctree/add-slug-path entries)
-                      slug-paths (get-slug-paths example-tree)
-                      [prev-elem elem next-elem] (->> (last slug-paths)
-                                                      (doctree/get-neighbour-entries example-tree))]
-                  (and prev-elem elem (nil? next-elem)))))
+    (let [example-tree (doctree/add-slug-path entries)
+          slug-paths (get-slug-paths example-tree)
+          [prev-elem elem next-elem] (->> (last slug-paths)
+                                          (doctree/get-neighbour-entries example-tree))]
+      (and prev-elem elem (nil? next-elem)))))
 
 (comment
 
   (def example-tree (doctree/add-slug-path (gen/sample (spec/gen ::entry) 3)))
 
-  (count (gen/sample (spec/gen ::entry) 3))
-  )
+  (count (gen/sample (spec/gen ::entry) 3)))
