@@ -3,7 +3,7 @@ import * as listSelect from "./listselect";
 
 function debounced(delay, fn) {
   let timerId;
-  return function(...args) {
+  return function (...args) {
     if (timerId) {
       clearTimeout(timerId);
     }

@@ -49,7 +49,7 @@ function initToggleRaw() {
 
   function addToggleHandlers() {
     toggles.forEach(el => {
-      el.addEventListener("click", function() {
+      el.addEventListener("click", function () {
         let parent = el.parentElement;
         let markdowns = parent.querySelectorAll(".markdown");
         let raws = parent.querySelectorAll(".raw");
@@ -73,10 +73,7 @@ function initToggleRaw() {
 
 function restoreSidebarScrollPos() {
   var scrollPosData = JSON.parse(localStorage.getItem("sidebarScrollPos"));
-  var page = window.location.pathname
-    .split("/")
-    .slice(0, 5)
-    .join("/");
+  var page = window.location.pathname.split("/").slice(0, 5).join("/");
 
   if (scrollPosData && page == scrollPosData.page) {
     Array.from(document.querySelectorAll(".js--main-sidebar"))[0].scrollTop =
@@ -88,14 +85,14 @@ function restoreSidebarScrollPos() {
 
 function toggleMetaDialog() {
   if (document.querySelector(".js--main-scroll-view")) {
-    document.getElementById("js--meta-icon").onclick = function() {
+    document.getElementById("js--meta-icon").onclick = function () {
       document.getElementById("js--meta-icon").classList.replace("db-ns", "dn");
       document
         .getElementById("js--meta-dialog")
         .classList.replace("dn", "db-ns");
     };
 
-    document.getElementById("js--meta-close").onclick = function() {
+    document.getElementById("js--meta-close").onclick = function () {
       document
         .getElementById("js--meta-dialog")
         .classList.replace("db-ns", "dn");
@@ -108,7 +105,7 @@ function addPrevNextPageKeyHandlers() {
   const prevLink = document.getElementById("prev-article-page-link");
   const nextLink = document.getElementById("next-article-page-link");
   if (prevLink || nextLink) {
-    document.addEventListener("keydown", function(e) {
+    document.addEventListener("keydown", function (e) {
       if (e.code === "ArrowLeft" && prevLink) {
         document.location.href = prevLink.href;
       }
