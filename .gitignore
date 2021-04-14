@@ -21,3 +21,4 @@ node_modules
 resources-compiled
 pom.xml
 test-data/
+/.parcel-cache
