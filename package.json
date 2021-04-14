@@ -2,8 +2,8 @@
   "scripts": {
     "format": "prettier --write js/**/*.js",
     "lint": "prettier-check js/**/*.js",
-    "dev": "parcel watch js/index.js -d resources-compiled/public/js/ --public-url .",
-    "build": "parcel build js/index.js -d resources-compiled/public/js/ --public-url .",
+    "dev": "parcel watch js/index.js --dist-dir resources-compiled/public/js/ --public-url .",
+    "build": "parcel build js/index.js --dist-dir resources-compiled/public/js/ --public-url .",
     "prepare": "husky install"
   },
   "dependencies": {
@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "husky": "^6.0.0",
-    "parcel": "^1.12.4",
+    "parcel": "^2.0.0-beta.2",
     "prettier": "^1.14.3",
     "prettier-check": "^2.0.0",
     "pretty-quick": "^1.8.0"
