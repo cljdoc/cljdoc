@@ -3,22 +3,18 @@
     "format": "prettier --write js/**/*.js",
     "lint": "prettier-check js/**/*.js",
     "dev": "parcel watch js/index.js -d resources-compiled/public/js/ --public-url .",
-    "build": "parcel build js/index.js -d resources-compiled/public/js/ --public-url ."
+    "build": "parcel build js/index.js -d resources-compiled/public/js/ --public-url .",
+    "prepare": "husky install"
   },
   "dependencies": {
     "fuzzysort": "^1.1.4",
     "preact": "^8.3.1"
   },
   "devDependencies": {
-    "husky": "^1.1.2",
+    "husky": "^6.0.0",
     "parcel": "^1.12.4",
     "prettier": "^1.14.3",
     "prettier-check": "^2.0.0",
     "pretty-quick": "^1.8.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "pretty-quick --staged"
-    }
   }
 }
