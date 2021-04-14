@@ -23,6 +23,12 @@ jobs:
             - v1-npm-dependencies-{{ checksum "package-lock.json" }}
             - v1-npm-dependencies- # fallback if cache not found
 
+      - run:
+          name: Install dev tools for npm deps
+          command: |
+            sudo apt-get update
+            sudo apt-get -y install g++
+
       - run: npm ci
       - run: ./script/package
 
