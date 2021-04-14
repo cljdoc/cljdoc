@@ -1,4 +1,5 @@
 {
+  "name": "cljdoc",
   "scripts": {
     "format": "prettier --write 'js/**/*.js'",
     "lint": "prettier --check 'js/**/*.js'",
