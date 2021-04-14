@@ -12,7 +12,7 @@
 :example-project-clone-url: https://github.com/cljdoc/cljdoc-exerciser.git
 :example-project-import-url: https://github.com/cljdoc/cljdoc-exerciser
 :example-project-coords: lread/cljdoc-exerciser
-:example-project-version: 1.0.53
+:example-project-version: 1.0.57
 
 [[introduction]]
 == Introduction
@@ -48,7 +48,7 @@ openjdk version "1.8.0_265"
 OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_265-b01)
 OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.265-b01, mixed mode)
 ----
-* https://clojure.org/guides/getting_started[Clojure CLI tools]
+* https://clojure.org/guides/getting_started[Clojure CLI tools] - make sure you have upgraded to the current version
 * https://git-scm.com[Git]
 
 === Setup cljdoc
@@ -111,7 +111,7 @@ From the cljdoc directory:
 +
 [source,clojure]
 ----
-clojure -A:test
+clojure -M:test
 ----
 
 
@@ -199,7 +199,7 @@ a|
 ----
 docker run --rm \
   --entrypoint clojure {docker-image} \
-  -A:cli ingest --help
+  -M:cli ingest --help
 ----
 |===
 
@@ -270,7 +270,7 @@ docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume /tmp/cljdoc:/app/data \
   --entrypoint clojure \
-  {docker-image} -A:cli ingest \
+  {docker-image} -M:cli ingest \
     --project {example-project-coords} \
     --version {example-project-version}
 ----
@@ -316,7 +316,7 @@ docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume /tmp/cljdoc:/app/data \
   --entrypoint clojure \
-  {docker-image} -A:cli ingest \
+  {docker-image} -M:cli ingest \
     --project {example-project-coords} \
     --version {example-project-version} \
     --git /repo-to-import \
@@ -353,7 +353,7 @@ docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume /tmp/cljdoc:/app/data \
   --entrypoint clojure \
-  {docker-image} -A:cli ingest \
+  {docker-image} -M:cli ingest \
     --project {example-project-coords} \
     --version {example-project-version} \
     --git {example-project-import-url} \
@@ -398,7 +398,7 @@ docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume /tmp/cljdoc:/app/data \
   --entrypoint clojure \
-  {docker-image} -A:cli ingest \
+  {docker-image} -M:cli ingest \
     --project {example-project-coords} \
     --version {example-project-version}
 

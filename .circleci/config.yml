@@ -7,7 +7,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/clojure:tools-deps-1.9.0.394-node
+      - image: circleci/clojure:openjdk-8-tools-deps-1.10.3.822-node
         # https://discuss.circleci.com/t/builds-getting-killed-with-vague-message-received-signal-killed/10214/9
         command: "/bin/bash"
 
@@ -22,6 +22,12 @@ jobs:
           keys:
             - v1-npm-dependencies-{{ checksum "package-lock.json" }}
             - v1-npm-dependencies- # fallback if cache not found
+
+      - run:
+          name: Install dev tools for npm deps
+          command: |
+            sudo apt-get update
+            sudo apt-get -y install g++
 
       - run: npm ci
       - run: ./script/package
@@ -39,7 +45,7 @@ jobs:
 
       - run: ./script/cljdoc ingest --project bidi --version 2.1.3
 
-      - run: clojure -A:test --reporter documentation
+      - run: clojure -M:test --reporter documentation
 
       - persist_to_workspace:
           root: .
@@ -105,7 +111,7 @@ jobs:
   # cat ~/.ssh/cljdoc_deploy.pub | ssh root@cljdoc.org 'cat >> .ssh/authorized_keys'
   deploy-to-nomad:
     docker:
-      - image: circleci/clojure:tools-deps-1.9.0.394-node
+      - image: circleci/clojure:openjdk-8-tools-deps-1.10.3.822-node
         command: "/bin/bash"
     steps:
       - add_ssh_keys:
@@ -114,7 +120,7 @@ jobs:
       - checkout
       - run: >
           cd modules/deploy &&
-          clojure -m cljdoc.deploy deploy -t $(./../../script/version.sh) --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
+          clojure -M -m cljdoc.deploy deploy -t $(./../../script/version.sh) --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
 
 workflows:
   version: 2
