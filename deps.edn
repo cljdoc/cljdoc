@@ -78,4 +78,9 @@
                                                  :sha "a7e3a346b9c51d0fb0e73ca4ea47a150004ca6d1"}
                          pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
                                           :sha     "f24279ca21dba3ba74a6f501cff0dbf630ce4355"}
-                         deps-deploy/deps-deploy {:mvn/version "0.0.9"}}}}}
+                         deps-deploy/deps-deploy {:mvn/version "0.0.9"}}}
+
+           :outdated
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "0.13.0"}
+                           org.slf4j/slf4j-simple {:mvn/version "1.7.30"}} ;; to rid ourselves of logger warnings
+            :main-opts ["-m" "antq.core"]}}}

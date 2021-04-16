@@ -1,4 +1,4 @@
-{:config-paths ^:replace [] ;; don't include user configs
+{:config-paths ^:replace ["lread/status-line"] ;; don't include user configs
  :skip-comments true ;; there's a fair bit of old test code in comment blocks that does not lint, skip it for now
  :lint-as {taoensso.tufte/defnp clojure.core/defn
            clojure.core.cache/defcache clojure.core/defrecord
