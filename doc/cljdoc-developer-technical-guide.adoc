@@ -68,3 +68,9 @@ The build server will fail the build if any formatting issues are detected.
 To check for issues it runs `script/code-format.sh check` and so can you!
 
 You can also run `script/code-format.sh fix` to have cljfmt fix any code formatting issues it has detected.
+
+=== Outdated dependencies
+
+Carefully applying available updates keeps up with security patches and reduces the overall maintenance burden.
+
+To check for outdated Clojure and JavaScript dependencies run `bb script/outdated.clj`.

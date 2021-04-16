@@ -49,6 +49,7 @@ OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_265-b01)
 OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.265-b01, mixed mode)
 ----
 * https://clojure.org/guides/getting_started[Clojure CLI tools] - make sure you have upgraded to the current version
+* https://github.com/babashka/babashka[Babashka] - some of our scripts are written in babashka
 * https://git-scm.com[Git]
 
 === Setup cljdoc
