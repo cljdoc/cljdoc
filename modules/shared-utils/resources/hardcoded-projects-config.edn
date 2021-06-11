@@ -1,15 +1,9 @@
-{"reagent/reagent"   {:cljdoc.api/platforms #{"cljs"}} ; clj fails because reagent.debug is missing, file exists though
- "cider/cider-nrepl" {:cljdoc.api/platforms #{"clj"}}
- "com.rpl/specter" {:cljdoc.api/platforms #{"clj"}}
- "ventas-core/ventas-core" {:cljdoc.api/platforms #{"clj"}}
- "com.github.seancorfield/expectations" {:cljdoc.api/platforms #{"clj"}}
- "manifold/manifold" {:cljdoc.api/namespaces [manifold.deferred manifold.stream manifold.time manifold.bus manifold.executor]
-                      :cljdoc.api/platforms #{"clj"}
-                      :cljdoc.doc/tree [["Readme" {:file "README.md"}]
+{"manifold/manifold" {:cljdoc.doc/tree [["Readme" {:file "README.md"}]
                                         ["Rationale" {:file "docs/rationale.md"}]
                                         ["Deferreds" {:file "docs/deferred.md"}]
                                         ["Streams" {:file "docs/stream.md"}]
                                         ["Execution" {:file "docs/execution.md"}]]}
+
  "yada/yada" {:cljdoc.doc/tree [["Readme" {:file "README.md"}]
                                 ["Preface" {:file "doc/preface.adoc"}]
                                 ["Basics" {}
@@ -45,10 +39,7 @@
                                  ["Reference" {:file "doc/reference.adoc"}]
                                  ["Colophon" {:file "doc/colophon.adoc"}]]]}
 
- "uruk/uruk" {:cljdoc.api/platforms #{"clj"}}
-
- "dali/dali" {:cljdoc.api/platforms #{"clj"}
-              :cljdoc.doc/tree [["Readme" {:file "README.md"}]
+ "dali/dali" {:cljdoc.doc/tree [["Readme" {:file "README.md"}]
                                 ["Basic Syntax" {:file "doc/syntax.md"}]
                                 ["Layout" {:file "doc/layout.md"}]
                                 ["Pre-fabricated Elements" {:file "doc/prefab.md"}]

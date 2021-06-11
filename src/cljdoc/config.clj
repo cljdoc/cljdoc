@@ -109,8 +109,7 @@
 
   (sentry-dsn)
 
-  (get-in (config)
-          [:cljdoc/hardcoded (cljdoc.util/artifact-id project) :cljdoc.api/namespaces])
+  (get-in (config) [:cljdoc/hardcoded (cljdoc.util/artifact-id project)])
 
   (clojure.pprint/pprint
    (aero/read-config (io/resource "config.edn") {:profile :default})))
