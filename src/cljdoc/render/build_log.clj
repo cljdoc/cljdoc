@@ -10,10 +10,17 @@
   (:import [java.time Instant Duration]
            [java.time.temporal ChronoUnit]))
 
+(defn succeeded?
+  [build-info]
+  (boolean (:import_completed_ts build-info)))
+
+(defn failed?
+  [build-info]
+  (boolean (:error build-info)))
+
 (defn done? [build-info]
-  (boolean
-   (or (:import_completed_ts build-info)
-       (:error build-info))))
+  (or (succeeded? build-info)
+      (failed? build-info)))
 
 (defn section [date & contents]
   (when date
@@ -22,12 +29,16 @@
       [:span date]]
      (into [:div.fl-ns.w-two-thirds-ns.bg-white.bl-ns.b--moon-gray.pa3] contents)]))
 
+(defn- url-for-cljdoc
+  [{:keys [group_id artifact_id version] :as _build-info}]
+  (routes/url-for :artifact/version
+                  :path-params
+                  {:group-id group_id
+                   :artifact-id artifact_id
+                   :version version}))
+
 (defn cljdoc-link [build-info icon?]
-  (let [cljdoc-uri (routes/url-for :artifact/version
-                                   :path-params
-                                   {:group-id (:group_id build-info)
-                                    :artifact-id (:artifact_id build-info)
-                                    :version (:version build-info)})]
+  (let [cljdoc-uri (url-for-cljdoc build-info)]
     [:a.link.blue {:href cljdoc-uri}
      (when icon?
        [:img.v-mid.mr2 {:src "https://microicon-clone.vercel.app/chevron/20"}])
@@ -169,7 +180,8 @@
         (git-import-section build-info)
         (api-import-section build-info)
 
-        (when (:error build-info)
+        (cond
+          (failed? build-info)
           (section
            ""
            [:h3.mt0 "There was an error"]
@@ -183,10 +195,17 @@
            (when (:analysis_job_uri build-info)
              [:p.lh-copy "Please see the "
               [:a.link.blue {:href (:analysis_job_uri build-info)} "build job"]
-              " to understand why this build failed and reach out if you aren't sure how to fix the issue."])
-           #_[:p (cljdoc-link build-info true)]))
+              " to understand why this build failed and reach out if you aren't sure how to fix the issue."]))
 
-        (when-not (done? build-info)
+          (succeeded? build-info)
+          (section
+           ""
+           [:h3.mt0 "Build successful!"]
+           [:a.f6.link.dim.ph3.pv2.mb2.dib.white.bg-blue
+            {:href (url-for-cljdoc build-info)}
+            "Continue to Documentation →"])
+
+          :else
           [:script
            "setTimeout(function(){window.location.reload(1);}, 5000);"])
 
