@@ -1,6 +1,7 @@
 (ns cljdoc.server.search.artifact-indexer
   (:require
    [cljdoc.spec :as cljdoc-spec]
+   [cljdoc.util.with-retries :refer [with-retries]]
    [clojure.edn :as edn]
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
@@ -36,12 +37,11 @@
   (reset! maven-grp-version-counts nil))
 
 (defn fetch-json [url]
-  (try
+  (with-retries {:retry-on [java.io.IOException java.util.concurrent.ExecutionException]
+                 :on-failure #(log/error % "Failed to download artifacts from url")
+                 :on-retry #(log/info % "Trying again")}
     (with-open [in (io/reader url)]
-      (json/parse-stream in keyword))
-    (catch Exception e
-      (log/info e "Failed to download artifacts from url")
-      nil)))
+      (json/parse-stream in keyword))))
 
 (defn fetch-maven-docs
   "Fetch documents matching the query from Maven Central; supports pagination."
@@ -67,10 +67,11 @@
   [{:keys [artifact-id group-id], [version] :versions}]
   (let [g-path (str/replace group-id "." "/")
         url (str "https://search.maven.org/remotecontent?filepath=" g-path "/" artifact-id "/" version "/" artifact-id "-" version ".pom")]
-    (with-open [in (io/reader url)]
-      (->> (line-seq in)
-           (some #(re-find #"<description>(.*)</description>" %))
-           second))))
+    (with-retries {:retry-on [java.io.IOException java.util.concurrent.ExecutionException]}
+      (with-open [in (io/reader url)]
+        (->> (line-seq in)
+             (some #(re-find #"<description>(.*)</description>" %))
+             second)))))
 
 (defn add-description! [{a :artifact-id, g :group-id :as artifact}]
   (assoc artifact
