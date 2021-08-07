@@ -12,7 +12,8 @@
   - Rendering a sitemap (see [[sitemap-interceptor]])
   - Handling build requests (see [[request-build]], [[full-build]] & [[circle-ci-webhook]])
   - Redirecting to newer releases (see [[resolve-version-interceptor]] & [[jump-interceptor]])"
-  (:require [cljdoc.render.build-req :as render-build-req]
+  (:require [cheshire.core :as json]
+            [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.index-pages :as index-pages]
             [cljdoc.render.home :as render-home]
@@ -440,6 +441,21 @@
                      :body "Could not find data, please request a build first"})
                   (assoc ctx :response)))}))
 
+(def api-docset
+  "Creates an API response with a JSON representation of a docset."
+  (interceptor/interceptor
+   {:name ::api-docset
+    :enter (fn api-docset [{:keys [cache-bundle] :as ctx}]
+             (->> (if cache-bundle
+                    {:status 200
+                     :headers {"Content-Type" "application/json"}
+                     :body (json/generate-string cache-bundle)}
+                    {:status 404
+                     :headers {"Content-Type" "application/json"}
+                     :body (json/generate-string {:error "Could not find data, please request a build first"})})
+                  (assoc ctx :response)))}))
+
+
 (defn route-resolver
   "Given a route name return a list of interceptors to handle requests
   to that route.
@@ -465,6 +481,9 @@
 
          :api/search [pu/coerce-body (pu/negotiate-content #{"application/json"}) (search-interceptor searcher)]
          :api/search-suggest [pu/coerce-body (pu/negotiate-content #{"application/x-suggestions+json"}) (search-suggest-interceptor searcher)]
+         :api/docset [(pom-loader cache)
+                      (artifact-data-loader storage)
+                      api-docset]
 
          :ping          [(interceptor/interceptor {:name ::pong :enter #(pu/ok-html % "pong")})]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
