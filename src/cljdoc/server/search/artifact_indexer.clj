@@ -80,15 +80,10 @@
   [{:keys [artifact-id group-id], [version] :versions}]
   (let [g-path (str/replace group-id "." "/")
         url (str "https://search.maven.org/remotecontent?filepath=" g-path "/" artifact-id "/" version "/" artifact-id "-" version ".pom")]
-    (rb/try-try-again
-     {:sleep 500
-      :decay :double
-      :tries 3
-      :catch Throwable}
-     #(->> (fetch-body url)
-           line-seq
-           (some (fn [l] (re-find #"<description>(.*)</description>" l)))
-           second))))
+    (->> (fetch-body url)
+         line-seq
+         (some (fn [l] (re-find #"<description>(.*)</description>" l)))
+         second)))
 
 (defn add-description! [{a :artifact-id, g :group-id :as artifact}]
   (assoc artifact
