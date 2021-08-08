@@ -41,7 +41,7 @@
     (rb/try-try-again
      {:sleep 500
       :decay :double
-      :tries 3
+      :tries 10
       :catch Throwable}
      #(-> url
           (http/get {:as :stream :throw-exceptions true})
