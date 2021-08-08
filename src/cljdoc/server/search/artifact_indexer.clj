@@ -7,7 +7,8 @@
    [clojure.java.io :as io]
    [clj-http.lite.client :as http]
    [clojure.tools.logging :as log]
-   [cheshire.core :as json])
+   [cheshire.core :as json]
+   [robert.bruce :as rb])
   (:import (org.apache.lucene.analysis.standard StandardAnalyzer)
            (org.apache.lucene.index IndexWriterConfig IndexWriterConfig$OpenMode IndexWriter Term IndexOptions)
            (org.apache.lucene.document Document StringField Field$Store TextField FieldType Field)
@@ -35,13 +36,25 @@
 (comment
   (reset! maven-grp-version-counts nil))
 
-(defn fetch-json [url]
+(defn fetch-body [url]
   (try
-    (with-open [in (io/reader url)]
-      (json/parse-stream in keyword))
+    (rb/try-try-again
+     {:sleep 500
+      :decay :double
+      :tries 3
+      :catch Throwable}
+     #(-> url
+          (http/get {:as :stream :throw-exceptions true})
+          :body
+          io/input-stream
+          io/reader))
     (catch Exception e
       (log/info e "Failed to download artifacts from url")
       nil)))
+
+(defn fetch-json [url]
+  (when-let [body (fetch-body url)]
+    (json/parse-stream body keyword)))
 
 (defn fetch-maven-docs
   "Fetch documents matching the query from Maven Central; supports pagination."
@@ -67,10 +80,10 @@
   [{:keys [artifact-id group-id], [version] :versions}]
   (let [g-path (str/replace group-id "." "/")
         url (str "https://search.maven.org/remotecontent?filepath=" g-path "/" artifact-id "/" version "/" artifact-id "-" version ".pom")]
-    (with-open [in (io/reader url)]
-      (->> (line-seq in)
-           (some #(re-find #"<description>(.*)</description>" %))
-           second))))
+    (->> (fetch-body url)
+         line-seq
+         (some (fn [l] (re-find #"<description>(.*)</description>" l)))
+         second)))
 
 (defn add-description! [{a :artifact-id, g :group-id :as artifact}]
   (assoc artifact
@@ -262,9 +275,11 @@
   ([^String index-dir] (download-and-index! index-dir false))
   ([^String index-dir force?]
    (log/info "Download & index starting...")
-   (index! index-dir (into
-                      (load-clojars-artifacts force?)
-                      (load-maven-central-artifacts force?)))))
+   (let [result (index! index-dir (into
+                                   (load-clojars-artifacts force?)
+                                   (load-maven-central-artifacts force?)))]
+     (log/info "Finished downloading & indexing.")
+     result)))
 
 (defn index-artifact [^String index-dir artifact]
   (index! index-dir [artifact]))
