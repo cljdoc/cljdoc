@@ -13,11 +13,11 @@
   - Handling build requests (see [[request-build]], [[full-build]] & [[circle-ci-webhook]])
   - Redirecting to newer releases (see [[resolve-version-interceptor]] & [[jump-interceptor]])"
   (:require [cheshire.core :as json]
+            [cljdoc.render.api-docset :as api-docset]
             [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.index-pages :as index-pages]
             [cljdoc.render.home :as render-home]
-            [cljdoc.render.rich-text :as rt]
             [cljdoc.render.search :as render-search]
             [cljdoc.render.meta :as render-meta]
             [cljdoc.render.error :as error]
@@ -43,11 +43,7 @@
             [io.pedestal.http.body-params :as body]
             [io.pedestal.interceptor :as interceptor]
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
-            [lambdaisland.uri.normalize :as normalize]
-            [cljdoc.doc-tree :as doctree]
-            [cljdoc.bundle :as bundle]
-            [cljdoc.util.fixref :as fixref])
-  (:import (org.jsoup Jsoup)))
+            [lambdaisland.uri.normalize :as normalize]))
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
@@ -446,101 +442,6 @@
                      :body "Could not find data, please request a build first"})
                   (assoc ctx :response)))}))
 
-(defn cache-bundle->docset
-  [{namespaces :namespaces
-    defs :defs
-    {docs :doc} :version
-    {group-id :group-id
-     artifact-id :artifact-id
-     version-number :version
-     :as version-entity} :version-entity
-    :as cache-bundle}]
-  (letfn [(namespace-path
-            [name-of-ns]
-            (routes/url-for :artifact/namespace :path-params {:group-id group-id
-                                                              :artifact-id artifact-id
-                                                              :version version-number
-                                                              :namespace name-of-ns}))
-          (->docset-members
-            [members]
-            (map #(select-keys % [:type :name :arglists :doc]) members))
-          (def-path
-            [name-of-ns def-name]
-            (str (namespace-path name-of-ns) "#" def-name))
-          (contents->segments
-            [doc-title contents]
-            (let [header-tag? #{"h1" "h2" "h3" "h4" "h5" "h6"}]
-              (loop [segment {:title doc-title
-                              :anchor nil
-                              :text nil}
-                     [element & remaining-elements] contents
-                     segments []]
-                (cond
-                  (nil? element)
-                  (if (:text segment)
-                    (conj segments segment)
-                    segments)
-
-                  (header-tag? (.tagName element))
-                  (recur {:title (.text element)
-                          :anchor (-> element .children (.select ".md-anchor") .first .attributes (.get "id"))
-                          :text nil}
-                         remaining-elements
-                         (if (:text segment)
-                           (conj segments segment)
-                           segments))
-
-                  :else
-                  (recur (update segment :text #(str % " " (.text element)))
-                         remaining-elements
-                         segments)))))
-          (raw-doc->docs
-            [raw-doc version-entity scm-info uri-map]
-            (let [doc-title (:title raw-doc)
-                  type-and-contents (doctree/entry->type-and-content raw-doc)
-                  html (fixref/fix (rt/render-text type-and-contents)
-                                   {:scm-file-path (-> raw-doc :attrs :cljdoc.doc/source-file)
-                                    :scm scm-info
-                                    :uri-map uri-map})
-                  doc (Jsoup/parse html)
-                  contents (-> doc (.getElementsByTag "body") first .children)
-                  segments (contents->segments doc-title contents)]
-              (map #(do
-                      {:name (if (:anchor %) (str doc-title " - " (:title %))
-                                 doc-title)
-                       :path (str (routes/url-for :artifact/doc
-                                                  :params
-                                                  (assoc version-entity
-                                                         :article-slug
-                                                         (get-in raw-doc [:attrs :slug])))
-                                  "#"
-                                  (:anchor %))
-                       :doc (:text %)})
-                   segments)
-              ))
-          (->docs
-            [docs cache-bundle]
-            (let [doc-tree (-> docs doctree/add-slug-path doctree/flatten*)
-                  scm-info (bundle/scm-info cache-bundle)
-                  uri-map (fixref/uri-mapping version-entity doc-tree)]
-              (mapcat #(raw-doc->docs % (:version-entity cache-bundle) scm-info uri-map)
-                      doc-tree)))]
-    {:namespaces
-     (into []
-           (comp (map #(select-keys % [:platform :name :doc]))
-                 (map #(assoc % :path (namespace-path (:name %)))))
-           namespaces)
-     :defs
-     (into []
-           (comp
-            (map #(select-keys % [:platform :type :namespace :name :arglists :doc :members]))
-            (map #(update % :members ->docset-members))
-            (map #(assoc % :path (def-path (:namespace %) (:name %)))))
-           defs)
-     :docs
-     (->docs docs cache-bundle)
-     }))
-
 (def api-docset
   "Creates an API response with a JSON representation of a docset."
   (interceptor/interceptor
@@ -549,7 +450,7 @@
              (->> (if cache-bundle
                     {:status 200
                      :headers {"Content-Type" "application/json"}
-                     :body (json/generate-string (cache-bundle->docset cache-bundle))}
+                     :body (json/generate-string (api-docset/cache-bundle->docset cache-bundle))}
                     {:status 404
                      :headers {"Content-Type" "application/json"}
                      :body (json/generate-string {:error "Could not find data, please request a build first"})})
