@@ -46,8 +46,7 @@
             [lambdaisland.uri.normalize :as normalize]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.bundle :as bundle]
-            [cljdoc.util.fixref :as fixref]
-            [clojure.string :as str])
+            [cljdoc.util.fixref :as fixref])
   (:import (org.jsoup Jsoup)))
 
 (def render-interceptor
