@@ -17,9 +17,8 @@
                          :article-slug
                          (get-in doc [:attrs :slug]))))
 
-
 (defn path-for-namespace
-  [{:keys[group-id artifact-id version]} name-of-ns]
+  [{:keys [group-id artifact-id version]} name-of-ns]
   (routes/url-for :artifact/namespace :path-params {:group-id group-id
                                                     :artifact-id artifact-id
                                                     :version version
@@ -114,7 +113,6 @@
 (defn- ->docset-members
   [members]
   (map #(select-keys % [:type :name :arglists :doc]) members))
-
 
 (defn ->defs
   "Renders cache-bundle `defs` into a format consumable by the API. This consists of:
