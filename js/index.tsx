@@ -1,4 +1,4 @@
-import { render, h } from "preact";
+import { render } from "preact";
 import { trackProjectOpened, Switcher } from "./switcher";
 import { App } from "./search";
 import { MobileNav } from "./mobile";
@@ -16,16 +16,16 @@ import {
 trackProjectOpened();
 restoreSidebarScrollPos();
 
-render(h(Switcher), document.querySelector("#cljdoc-switcher"));
+render(<Switcher />, document.querySelector("#cljdoc-switcher"));
 
-const searchNode = document.querySelector("#cljdoc-search");
-if (searchNode) {
-  render(h(App, { initialValue: searchNode.dataset.initialValue }), searchNode);
+const searchNode: HTMLElement = document.querySelector("#cljdoc-search");
+if (searchNode && searchNode.dataset) {
+  render(<App initialValue={searchNode.dataset.initialValue} />, searchNode);
 }
 
 const navigatorNode = document.querySelector("#js--cljdoc-navigator");
 if (navigatorNode) {
-  render(h(Navigator), navigatorNode);
+  render(<Navigator />, navigatorNode);
 }
 
 if (isNSPage()) {
@@ -34,7 +34,7 @@ if (isNSPage()) {
 }
 
 if (isProjectDocumentationPage()) {
-  render(h(MobileNav), document.querySelector("#js--mobile-nav"));
+  render(<MobileNav />, document.querySelector("#js--mobile-nav"));
   toggleMetaDialog();
   addPrevNextPageKeyHandlers();
 }

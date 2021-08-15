@@ -1,13 +1,13 @@
-function isNSPage() {
-  return document.querySelector(".ns-page");
+function isNSPage(): boolean {
+  return !!document.querySelector(".ns-page");
 }
 
-function isProjectDocumentationPage() {
+function isProjectDocumentationPage(): boolean {
   let pathSegs = window.location.pathname.split("/");
   return pathSegs.length >= 5 && pathSegs[1] == "d";
 }
 
-function initSrollIndicator() {
+function initSrollIndicator(): void {
   var mainScrollView = document.querySelector(".js--main-scroll-view");
   var sidebarScrollView = document.querySelector(
     ".js--namespace-contents-scroll-view"
@@ -15,7 +15,7 @@ function initSrollIndicator() {
   var defBlocks = Array.from(document.querySelectorAll(".def-block"));
   var defItems = Array.from(document.querySelectorAll(".def-item"));
 
-  function isElementVisible(container, el) {
+  function isElementVisible(container: Element, el: Element) {
     var { y: etop, height } = el.getBoundingClientRect(),
       ebottom = etop + height,
       cbottom = window.innerHeight,
@@ -24,7 +24,7 @@ function initSrollIndicator() {
   }
 
   function drawScrollIndicator() {
-    defBlocks.forEach((el, idx) => {
+    defBlocks.forEach((el: Element, idx) => {
       var defItem = defItems[idx];
       if (isElementVisible(mainScrollView, el)) {
         defItem.classList.add("scroll-indicator");
@@ -45,7 +45,9 @@ function initSrollIndicator() {
 }
 
 function initToggleRaw() {
-  let toggles = Array.from(document.querySelectorAll(".js--toggle-raw"));
+  let toggles: HTMLElement[] = Array.from(
+    document.querySelectorAll(".js--toggle-raw")
+  );
 
   function addToggleHandlers() {
     toggles.forEach(el => {
@@ -68,6 +70,7 @@ function initToggleRaw() {
       });
     });
   }
+
   addToggleHandlers();
 }
 
@@ -76,8 +79,10 @@ function restoreSidebarScrollPos() {
   var page = window.location.pathname.split("/").slice(0, 5).join("/");
 
   if (scrollPosData && page == scrollPosData.page) {
-    Array.from(document.querySelectorAll(".js--main-sidebar"))[0].scrollTop =
-      scrollPosData.scrollTop;
+    var mainSidebar = Array.from(
+      document.querySelectorAll(".js--main-sidebar")
+    )[0];
+    mainSidebar.scrollTop = scrollPosData.scrollTop;
   }
 
   localStorage.removeItem("sidebarScrollPos");
@@ -102,8 +107,12 @@ function toggleMetaDialog() {
 }
 
 function addPrevNextPageKeyHandlers() {
-  const prevLink = document.getElementById("prev-article-page-link");
-  const nextLink = document.getElementById("next-article-page-link");
+  const prevLink: HTMLAnchorElement = document.querySelector(
+    "a#prev-article-page-link"
+  );
+  const nextLink: HTMLAnchorElement = document.querySelector(
+    "a#next-article-page-link"
+  );
   if (prevLink || nextLink) {
     document.addEventListener("keydown", function (e) {
       if (e.code === "ArrowLeft" && prevLink) {

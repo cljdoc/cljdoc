@@ -1,8 +1,11 @@
 // A small component to navigate users to documentation pages based on clojars ID and version inputs
 
-import { Component, render, h } from "preact";
+import { Component } from "preact";
 
 class Navigator extends Component {
+  clojarsIdInput: HTMLFormElement;
+  versionInput: HTMLFormElement;
+
   constructor() {
     super();
     this.navigate = this.navigate.bind(this);
@@ -22,7 +25,7 @@ class Navigator extends Component {
     }
   }
 
-  render(props, state) {
+  render(_props: any, _state: any) {
     return (
       <div>
         <div class="cf nl2 nr2">
@@ -35,8 +38,10 @@ class Navigator extends Component {
               class="w-90 pa2 b--blue br2 ba no-outline"
               autocorrect="off"
               autocapitalize="none"
-              onKeyUp={e => (e.keyCode == 13 ? this.navigate() : null)}
-              ref={node => (this.clojarsIdInput = node)}
+              onKeyUp={(e: KeyboardEvent) =>
+                e.key == "Enter" ? this.navigate() : null
+              }
+              ref={(node: HTMLFormElement) => (this.clojarsIdInput = node)}
               placeholder="e.g. 're-frame' or 'ring/ring-core'"
             />
           </fieldset>
@@ -47,8 +52,10 @@ class Navigator extends Component {
             </label>
             <input
               class="w-90 pa2 b--blue br2 ba no-outline"
-              onKeyUp={e => (e.keyCode == 13 ? this.navigate() : null)}
-              ref={node => (this.versionInput = node)}
+              onKeyUp={(e: KeyboardEvent) =>
+                e.key == "Enter" ? this.navigate() : null
+              }
+              ref={(node: HTMLFormElement) => (this.versionInput = node)}
               placeholder="e.g. '1.0.2'"
             />
           </fieldset>

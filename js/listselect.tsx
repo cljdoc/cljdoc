@@ -1,4 +1,5 @@
-import { Component, h } from "preact";
+import { Component, FunctionComponent } from "preact";
+import type { SearchResult } from "./search";
 
 // Various functions and components used to show lists of results
 
@@ -7,7 +8,7 @@ import { Component, h } from "preact";
 // expected that a selectedIndex is passed to indicate which result
 // is the currently selected one.
 
-function restrictToViewport(container, selectedIndex) {
+function restrictToViewport(container: Element, selectedIndex: number) {
   let containerRect = container.getBoundingClientRect();
   let selectedRect = container.children[selectedIndex].getBoundingClientRect();
   let deltaTop = selectedRect.top - containerRect.top;
@@ -29,27 +30,46 @@ function restrictToViewport(container, selectedIndex) {
 //   - result: result to be rendered
 //   - isSelected: whether the result should be displayed as currently selected
 //   - onMouseOver: a no-args function to call when hovering the result
-export class ResultsView extends Component {
+
+export type ResultViewComponent = FunctionComponent<{
+  result: SearchResult;
+  isSelected: boolean;
+  selectResult: () => any;
+}>;
+
+type ResultsViewProps = {
+  resultView: ResultViewComponent;
+  results: SearchResult[];
+  selectedIndex: number;
+  onMouseOver: (index: number) => any;
+};
+
+type ResultsViewState = any;
+
+export class ResultsView extends Component<ResultsViewProps, ResultsViewState> {
+  resultsViewNode: Element | undefined;
+
   componentDidUpdate(prevProps, _) {
     if (this.props.selectedIndex !== prevProps.selectedIndex) {
       restrictToViewport(this.resultsViewNode, this.props.selectedIndex);
     }
   }
 
-  render(props, _) {
-    return h(
-      "div",
-      {
-        className:
-          "bg-white br1 br--bottom bb bl br b--blue w-100 overflow-y-scroll",
-        style: { maxHeight: "20rem" },
-        ref: node => (this.resultsViewNode = node)
-      },
-      props.results.map((r, idx) =>
-        props.resultView(r, props.selectedIndex === idx, () =>
-          props.onMouseOver(idx)
-        )
-      )
+  render(props: ResultsViewProps, _state: any) {
+    return (
+      <div
+        className="bg-white br1 br--bottom bb bl br b--blue w-100 overflow-y-scroll"
+        style={{ maxHeight: "20rem" }}
+        ref={node => (this.resultsViewNode = node)}
+      >
+        {props.results.map((r, idx) => (
+          <props.resultView
+            result={r}
+            isSelected={props.selectedIndex === idx}
+            selectResult={() => props.onMouseOver(idx)}
+          />
+        ))}
+      </div>
     );
   }
 }

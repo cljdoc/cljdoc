@@ -1,7 +1,14 @@
-import { Component, render, h } from "preact";
-import * as doctree from "./doctree";
+import { Component } from "preact";
 
-export class MobileNav extends Component {
+type MobileNavProps = any;
+
+type MobileNavState = {
+  mainViewScrollPos: number;
+  navViewScrollPos: number;
+  showNav: boolean;
+};
+
+export class MobileNav extends Component<MobileNavProps, MobileNavState> {
   constructor() {
     super();
     this.toggleNav = this.toggleNav.bind(this);
@@ -27,7 +34,7 @@ export class MobileNav extends Component {
     }
   }
 
-  render(props, state) {
+  render(_props: MobileNavProps, state: MobileNavState) {
     let btnMsg = state.showNav
       ? "Back to Content"
       : "Tap for Articles & Namespaces";

@@ -1,10 +1,10 @@
 {
   "name": "cljdoc",
   "scripts": {
-    "format": "prettier --write 'js/**/*.js'",
-    "lint": "prettier --check 'js/**/*.js'",
-    "dev": "parcel watch js/index.js --dist-dir resources-compiled/public/js/ --public-url .",
-    "build": "parcel build js/index.js --dist-dir resources-compiled/public/js/ --public-url .",
+    "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
+    "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
+    "dev": "parcel watch js/index.tsx --dist-dir resources-compiled/public/js/ --public-url .",
+    "build": "parcel build js/index.tsx --dist-dir resources-compiled/public/js/ --public-url .",
     "prepare": "husky install"
   },
   "dependencies": {
