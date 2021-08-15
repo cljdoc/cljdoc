@@ -190,12 +190,13 @@ class App extends Component<AppProps, AppState> {
           newResultsCallback={rs =>
             this.setState({ focused: true, results: rs, selectedIndex: 0 })
           }
-          onEnter={() =>
-            window.open(
-              resultUri(this.state.results[this.state.selectedIndex]),
-              "_self"
-            )
-          }
+          onEnter={() => {
+            const result = this.state.results[this.state.selectedIndex];
+
+            if (result) {
+              window.open(resultUri(result), "_self");
+            }
+          }}
           onArrowUp={() =>
             this.setState({
               selectedIndex: Math.max(this.state.selectedIndex - 1, 0)
