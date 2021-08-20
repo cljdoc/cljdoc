@@ -1,5 +1,5 @@
-import { Component, FunctionComponent } from "preact";
-import type { SearchResult } from "./search";
+import { h, Component, FunctionComponent } from "preact";
+import { CljdocProject } from "./switcher";
 
 // Various functions and components used to show lists of results
 
@@ -32,14 +32,14 @@ function restrictToViewport(container: Element, selectedIndex: number) {
 //   - onMouseOver: a no-args function to call when hovering the result
 
 export type ResultViewComponent = FunctionComponent<{
-  result: SearchResult;
+  result: CljdocProject;
   isSelected: boolean;
   selectResult: () => any;
 }>;
 
 type ResultsViewProps = {
   resultView: ResultViewComponent;
-  results: SearchResult[];
+  results: CljdocProject[];
   selectedIndex: number;
   onMouseOver: (index: number) => any;
 };
@@ -47,10 +47,13 @@ type ResultsViewProps = {
 type ResultsViewState = any;
 
 export class ResultsView extends Component<ResultsViewProps, ResultsViewState> {
-  resultsViewNode: Element | undefined;
+  resultsViewNode?: Element | null;
 
-  componentDidUpdate(prevProps, _) {
-    if (this.props.selectedIndex !== prevProps.selectedIndex) {
+  componentDidUpdate(prevProps: ResultsViewProps, _state: ResultsViewState) {
+    if (
+      this.props.selectedIndex !== prevProps.selectedIndex &&
+      this.resultsViewNode
+    ) {
       restrictToViewport(this.resultsViewNode, this.props.selectedIndex);
     }
   }

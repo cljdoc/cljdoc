@@ -1,12 +1,12 @@
-import { Component } from "preact";
+import { h, Component } from "preact";
 import fuzzysort from "fuzzysort";
 import { ResultsView, ResultViewComponent } from "./listselect";
-import { SearchResult } from "./search";
 
-type CljdocProject = {
+export type CljdocProject = {
   group_id: string;
   artifact_id: string;
   version: string;
+  project_id?: string;
 };
 
 function isSameProject(p1: CljdocProject, p2: CljdocProject): boolean {
@@ -29,8 +29,9 @@ function trackProjectOpened() {
   const maxTrackedCount = 15;
   const project = parseCljdocURI(window.location.pathname);
   if (project) {
-    var previouslyOpened: CljdocProject[] =
-      JSON.parse(localStorage.getItem("previouslyOpened")) || [];
+    var previouslyOpened: CljdocProject[] = JSON.parse(
+      localStorage.getItem("previouslyOpened") || "[]"
+    );
     // remove identical values
     previouslyOpened = previouslyOpened.filter(p => !isSameProject(p, project));
     previouslyOpened.push(project);
@@ -48,16 +49,11 @@ function trackProjectOpened() {
 const SwitcherSingleResultView: ResultViewComponent = props => {
   const { result, isSelected, selectResult } = props;
   const project =
-    result["group-id"] === result["artifact-id"]
-      ? result["group-id"]
-      : result["group-id"] + "/" + result["artifact-id"];
+    result.group_id === result.artifact_id
+      ? result.group_id
+      : result.group_id + "/" + result.artifact_id;
   const docsUri =
-    "/d/" +
-    result["group-id"] +
-    "/" +
-    result["artifact-id"] +
-    "/" +
-    result.version;
+    "/d/" + result.group_id + "/" + result.artifact_id + "/" + result.version;
   return (
     <a className="no-underline black" href={docsUri} onMouseOver={selectResult}>
       <div
@@ -67,7 +63,7 @@ const SwitcherSingleResultView: ResultViewComponent = props => {
             : "pa3 bb b--light-gray"
         }
       >
-        <h4 classname="dib ma0">
+        <h4 className="dib ma0">
           #{project} <span className="ml2 gray normal">{result.version}</span>
         </h4>
         <a className="link blue ml2" href={docsUri}>
@@ -81,15 +77,15 @@ const SwitcherSingleResultView: ResultViewComponent = props => {
 type SwitcherProps = any;
 
 type SwitcherState = {
-  results: SearchResult[];
-  previouslyOpened: SearchResult[];
+  results: CljdocProject[];
+  previouslyOpened: CljdocProject[];
   selectedIndex: number;
   show: boolean;
 };
 
 class Switcher extends Component<SwitcherProps, SwitcherState> {
-  inputNode: HTMLFormElement;
-  backgroundNode: Element;
+  inputNode?: HTMLInputElement | null;
+  backgroundNode?: HTMLDivElement | null;
 
   handleKeyDown(e: KeyboardEvent) {
     if (e.target === this.inputNode) {
@@ -111,7 +107,7 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
 
     // If target is document body, trigger  on key `cmd+k` for MacOs `ctrl+k` otherwise
     let isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-    let switcherShortcut: boolean;
+    let switcherShortcut = false;
 
     if (e.key === "k") {
       if ((isMac && e.metaKey) || (!isMac && e.ctrlKey)) {
@@ -123,7 +119,7 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
     if (switcherShortcut && e.target === document.body) {
       this.setState({ show: true, results: this.state.previouslyOpened });
     } else if (e.key === "Escape") {
-      this.setState({ show: false, results: null });
+      this.setState({ show: false, results: [] });
     }
   }
 
@@ -131,7 +127,7 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
     if (e.key === "Enter") {
       const r = this.state.results[this.state.selectedIndex];
       window.location.href =
-        "/d/" + r["group-id"] + "/" + r["artifact-id"] + "/" + r.version;
+        "/d/" + r.group_id + "/" + r.artifact_id + "/" + r.version;
     }
   }
 
@@ -164,15 +160,16 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
   }
 
   initializeState() {
-    let previouslyOpened: SearchResult[] =
-      JSON.parse(localStorage.getItem("previouslyOpened")) || [];
+    let previouslyOpened: CljdocProject[] = JSON.parse(
+      localStorage.getItem("previouslyOpened") || "[]"
+    );
 
     previouslyOpened.forEach(
       r =>
-        (r["project-id"] =
-          r["group-id"] === r["artifact-id"]
-            ? r["group-id"]
-            : r["group-id"] + "/" + r["artifact-id"])
+        (r.project_id =
+          r.group_id === r.artifact_id
+            ? r.group_id
+            : r.group_id + "/" + r.artifact_id)
     );
     previouslyOpened.reverse();
 
@@ -195,17 +192,18 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
     previousState: SwitcherState,
     _previousContext: any
   ) {
-    if (!previousState.show && this.state.show) {
+    if (!previousState.show && this.state.show && this.inputNode) {
       this.inputNode.focus();
     }
   }
 
   render(_props: SwitcherProps, state: SwitcherState) {
+    console.log(state.results);
     if (state.show) {
       return (
         <div
           className="bg-black-30 fixed top-0 right-0 bottom-0 left-0 sans-serif"
-          ref={(node: Element) => (this.backgroundNode = node)}
+          ref={node => (this.backgroundNode = node)}
           onClick={(e: MouseEvent) =>
             e.target === this.backgroundNode
               ? this.setState({ show: false })
@@ -214,9 +212,9 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
         >
           <div className="mw7 center mt6 bg-white pa3 br2 shadow-3">
             <input
-              placeHolder="Jump to recently viewed docs..."
+              placeholder="Jump to recently viewed docs..."
               className="pa2 w-100 br1 border-box b--blue ba input-reset"
-              ref={(node: HTMLFormElement) => (this.inputNode = node)}
+              ref={node => (this.inputNode = node)}
               onKeyUp={(e: KeyboardEvent) => this.handleInputKeyUp(e)}
               onInput={(e: Event) => {
                 const target = e.target as HTMLFormElement;

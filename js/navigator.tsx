@@ -1,10 +1,10 @@
 // A small component to navigate users to documentation pages based on clojars ID and version inputs
 
-import { Component } from "preact";
+import { h, Component } from "preact";
 
 class Navigator extends Component {
-  clojarsIdInput: HTMLFormElement;
-  versionInput: HTMLFormElement;
+  clojarsIdInput?: HTMLInputElement | null;
+  versionInput?: HTMLInputElement | null;
 
   constructor() {
     super();
@@ -12,10 +12,10 @@ class Navigator extends Component {
   }
 
   navigate() {
-    let clojarsId = this.clojarsIdInput.value;
-    let version = this.versionInput.value;
+    let clojarsId = this.clojarsIdInput && this.clojarsIdInput.value;
+    let version = this.versionInput && this.versionInput.value;
 
-    if (0 != clojarsId.length) {
+    if (clojarsId && 0 != clojarsId.length) {
       if (clojarsId.includes("/")) {
         window.location.href = "/d/" + clojarsId + "/" + version;
       } else {
@@ -41,7 +41,7 @@ class Navigator extends Component {
               onKeyUp={(e: KeyboardEvent) =>
                 e.key == "Enter" ? this.navigate() : null
               }
-              ref={(node: HTMLFormElement) => (this.clojarsIdInput = node)}
+              ref={node => (this.clojarsIdInput = node)}
               placeholder="e.g. 're-frame' or 'ring/ring-core'"
             />
           </fieldset>
@@ -55,7 +55,7 @@ class Navigator extends Component {
               onKeyUp={(e: KeyboardEvent) =>
                 e.key == "Enter" ? this.navigate() : null
               }
-              ref={(node: HTMLFormElement) => (this.versionInput = node)}
+              ref={node => (this.versionInput = node)}
               placeholder="e.g. '1.0.2'"
             />
           </fieldset>

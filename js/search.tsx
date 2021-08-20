@@ -1,5 +1,6 @@
-import { Component, ComponentChildren, JSX } from "preact";
+import { h, Component } from "preact";
 import { ResultsView } from "./listselect";
+import { CljdocProject } from "./switcher";
 
 // Doing types for debouncing functions is really hard.
 // https://gist.github.com/ca0v/73a31f57b397606c9813472f7493a940
@@ -28,9 +29,23 @@ function cleanSearchStr(str: string) {
   return str.replace(/[\{\}\[\]\"]+/g, "");
 }
 
-export type SearchResult = {
+export type RawSearchResult = {
   ["artifact-id"]: string;
   ["group-id"]: string;
+  description: string;
+  origin: string;
+  version: string;
+  score: number;
+};
+
+type RawSearchResults = {
+  count: number;
+  results: RawSearchResult[];
+};
+
+export type SearchResult = {
+  artifact_id: string;
+  group_id: string;
   description: string;
   origin: string;
   version: string;
@@ -44,12 +59,33 @@ type SearchResults = {
 
 type LoadCallback = (sr: SearchResult[]) => any;
 
+const renameKeys = <T, U>(obj: T, keys: { [key: string]: string }): U => {
+  const newObj: { [key: string]: any } = {};
+
+  for (const [k, v] of Object.entries(obj)) {
+    const key = keys[k] || k;
+    newObj[key] = v;
+  }
+
+  return newObj as U;
+};
+
+const refineSearchResults = (raw: RawSearchResults): SearchResults => ({
+  count: raw.count,
+  results: raw.results.map(r =>
+    renameKeys<RawSearchResult, SearchResult>(r, {
+      "artifact-id": "artifact_id",
+      "group-id": "group_id"
+    })
+  )
+});
+
 const loadResults = (str: string, cb: LoadCallback) => {
   if (!str) return;
   const uri = "/api/search?q=" + str; //+ "&format=json";
   fetch(uri)
     .then(response => response.json())
-    .then((json: SearchResults) => cb(json.results));
+    .then((json: RawSearchResults) => cb(refineSearchResults(json).results));
 };
 
 type SearchInputProps = {
@@ -86,19 +122,18 @@ class SearchInput extends Component<SearchInputProps> {
     }
   }
 
-  render(props) {
+  render(props: SearchInputProps) {
     const debouncedLoader = debounced(300, loadResults);
 
     return (
       <input
         autofocus={true}
-        placeHolder="NEW! Jump to docs..."
-        defaultValue={props.initialValue}
+        placeholder="NEW! Jump to docs..."
         className="pa2 w-100 br1 border-box b--blue ba input-reset"
         onFocus={(_e: Event) => props.focus()}
         onBlur={(_e: Event) => setTimeout(_ => props.unfocus(), 200)}
         onKeyDown={(e: KeyboardEvent) => this.onKeyDown(e)}
-        onInput={(e: InputEvent) => {
+        onInput={(e: Event) => {
           const target = e.target as HTMLFormElement;
           debouncedLoader(
             cleanSearchStr(target.value),
@@ -110,27 +145,22 @@ class SearchInput extends Component<SearchInputProps> {
   }
 }
 
-function resultUri(result) {
+function resultUri(result: CljdocProject) {
   return (
-    "/d/" +
-    result["group-id"] +
-    "/" +
-    result["artifact-id"] +
-    "/" +
-    result.version
+    "/d/" + result.group_id + "/" + result.artifact_id + "/" + result.version
   );
 }
 
 const SingleResultView = (props: {
-  result: SearchResult;
+  result: CljdocProject;
   isSelected: boolean;
   selectResult: () => any;
 }) => {
   const { result, isSelected, selectResult } = props;
   const project =
-    result["group-id"] === result["artifact-id"]
-      ? result["group-id"]
-      : result["group-id"] + "/" + result["artifact-id"];
+    result.group_id === result.artifact_id
+      ? result.group_id
+      : result.group_id + "/" + result.artifact_id;
   const docsUri = resultUri(result);
   const rowClass = isSelected
     ? "pa3 bb b--light-gray bg-light-blue"
@@ -161,12 +191,12 @@ type AppProps = AppState & {
 };
 
 class App extends Component<AppProps, AppState> {
-  constructor(props) {
+  constructor(props: AppProps) {
     super(props);
     this.state = { results: [], focused: false, selectedIndex: 0 };
   }
 
-  render(props: AppProps, state: AppState) {
+  render(_props: AppProps, state: AppState) {
     function resultsView(selectResult: (index: number) => any) {
       return (
         <div

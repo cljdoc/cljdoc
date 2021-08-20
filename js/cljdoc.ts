@@ -26,7 +26,11 @@ function initSrollIndicator(): void {
   function drawScrollIndicator() {
     defBlocks.forEach((el: Element, idx) => {
       var defItem = defItems[idx];
-      if (isElementVisible(mainScrollView, el)) {
+      if (
+        mainScrollView &&
+        sidebarScrollView &&
+        isElementVisible(mainScrollView, el)
+      ) {
         defItem.classList.add("scroll-indicator");
         if (idx === 0) {
           sidebarScrollView.scrollTop = 1;
@@ -39,7 +43,8 @@ function initSrollIndicator(): void {
     });
   }
 
-  mainScrollView.addEventListener("scroll", drawScrollIndicator);
+  mainScrollView &&
+    mainScrollView.addEventListener("scroll", drawScrollIndicator);
 
   drawScrollIndicator();
 }
@@ -53,20 +58,21 @@ function initToggleRaw() {
     toggles.forEach(el => {
       el.addEventListener("click", function () {
         let parent = el.parentElement;
-        let markdowns = parent.querySelectorAll(".markdown");
-        let raws = parent.querySelectorAll(".raw");
-        markdowns.forEach((markdown, idx) => {
-          let raw = raws[idx];
-          if (markdown.classList.contains("dn")) {
-            markdown.classList.remove("dn");
-            raw.classList.add("dn");
-            el.innerText = "raw docstring";
-          } else {
-            markdown.classList.add("dn");
-            raw.classList.remove("dn");
-            el.innerText = "formatted docstring";
-          }
-        });
+        let markdowns = parent && parent.querySelectorAll(".markdown");
+        let raws = parent && parent.querySelectorAll(".raw");
+        markdowns &&
+          markdowns.forEach((markdown, idx) => {
+            let raw = raws && raws[idx];
+            if (markdown.classList.contains("dn")) {
+              markdown.classList.remove("dn");
+              raw && raw.classList.add("dn");
+              el.innerText = "raw docstring";
+            } else {
+              markdown.classList.add("dn");
+              raw && raw.classList.remove("dn");
+              el.innerText = "formatted docstring";
+            }
+          });
       });
     });
   }
@@ -75,14 +81,16 @@ function initToggleRaw() {
 }
 
 function restoreSidebarScrollPos() {
-  var scrollPosData = JSON.parse(localStorage.getItem("sidebarScrollPos"));
+  var scrollPosData = JSON.parse(
+    localStorage.getItem("sidebarScrollPos") || "null"
+  );
   var page = window.location.pathname.split("/").slice(0, 5).join("/");
 
   if (scrollPosData && page == scrollPosData.page) {
-    var mainSidebar = Array.from(
-      document.querySelectorAll(".js--main-sidebar")
-    )[0];
-    mainSidebar.scrollTop = scrollPosData.scrollTop;
+    var mainSidebar = document.querySelector(".js--main-sidebar");
+    if (mainSidebar) {
+      mainSidebar.scrollTop = scrollPosData.scrollTop;
+    }
   }
 
   localStorage.removeItem("sidebarScrollPos");
@@ -90,27 +98,31 @@ function restoreSidebarScrollPos() {
 
 function toggleMetaDialog() {
   if (document.querySelector(".js--main-scroll-view")) {
-    document.getElementById("js--meta-icon").onclick = function () {
-      document.getElementById("js--meta-icon").classList.replace("db-ns", "dn");
-      document
-        .getElementById("js--meta-dialog")
-        .classList.replace("dn", "db-ns");
-    };
+    const metaIcon = document.getElementById("js--meta-icon");
+    const metaDialog = document.getElementById("js--meta-dialog");
+    const metaClose = document.getElementById("js--meta-close");
 
-    document.getElementById("js--meta-close").onclick = function () {
-      document
-        .getElementById("js--meta-dialog")
-        .classList.replace("db-ns", "dn");
-      document.getElementById("js--meta-icon").classList.replace("dn", "db-ns");
-    };
+    if (metaIcon) {
+      metaIcon.onclick = () => {
+        metaIcon.classList.replace("db-ns", "dn");
+        metaDialog && metaDialog.classList.replace("dn", "db-ns");
+      };
+    }
+
+    if (metaClose) {
+      metaClose.onclick = () => {
+        metaDialog && metaDialog.classList.replace("db-ns", "dn");
+        metaIcon && metaIcon.classList.replace("dn", "db-ns");
+      };
+    }
   }
 }
 
 function addPrevNextPageKeyHandlers() {
-  const prevLink: HTMLAnchorElement = document.querySelector(
+  const prevLink: HTMLAnchorElement | null = document.querySelector(
     "a#prev-article-page-link"
   );
-  const nextLink: HTMLAnchorElement = document.querySelector(
+  const nextLink: HTMLAnchorElement | null = document.querySelector(
     "a#next-article-page-link"
   );
   if (prevLink || nextLink) {
