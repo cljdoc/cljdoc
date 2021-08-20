@@ -214,13 +214,10 @@ class App extends Component<AppProps, AppState> {
             this.setState({ focused: true });
           }}
           unfocus={() => this.setState({ focused: false })}
-        >
-          {state.focused && state.results.length > 0
-            ? resultsView((idx: number) =>
-                this.setState({ selectedIndex: idx })
-              )
-            : null}
-        </SearchInput>
+        />
+        {state.focused && state.results.length > 0
+          ? resultsView((idx: number) => this.setState({ selectedIndex: idx }))
+          : null}
       </div>
     );
   }
