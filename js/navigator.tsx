@@ -1,18 +1,21 @@
 // A small component to navigate users to documentation pages based on clojars ID and version inputs
 
-import { Component, render, h } from "preact";
+import { h, Component } from "preact";
 
 class Navigator extends Component {
+  clojarsIdInput?: HTMLInputElement | null;
+  versionInput?: HTMLInputElement | null;
+
   constructor() {
     super();
     this.navigate = this.navigate.bind(this);
   }
 
   navigate() {
-    let clojarsId = this.clojarsIdInput.value;
-    let version = this.versionInput.value;
+    let clojarsId = this.clojarsIdInput && this.clojarsIdInput.value;
+    let version = this.versionInput && this.versionInput.value;
 
-    if (0 != clojarsId.length) {
+    if (clojarsId && 0 != clojarsId.length) {
       if (clojarsId.includes("/")) {
         window.location.href = "/d/" + clojarsId + "/" + version;
       } else {
@@ -22,7 +25,7 @@ class Navigator extends Component {
     }
   }
 
-  render(props, state) {
+  render(_props: any, _state: any) {
     return (
       <div>
         <div class="cf nl2 nr2">
@@ -35,7 +38,9 @@ class Navigator extends Component {
               class="w-90 pa2 b--blue br2 ba no-outline"
               autocorrect="off"
               autocapitalize="none"
-              onKeyUp={e => (e.keyCode == 13 ? this.navigate() : null)}
+              onKeyUp={(e: KeyboardEvent) =>
+                e.key == "Enter" ? this.navigate() : null
+              }
               ref={node => (this.clojarsIdInput = node)}
               placeholder="e.g. 're-frame' or 'ring/ring-core'"
             />
@@ -47,7 +52,9 @@ class Navigator extends Component {
             </label>
             <input
               class="w-90 pa2 b--blue br2 ba no-outline"
-              onKeyUp={e => (e.keyCode == 13 ? this.navigate() : null)}
+              onKeyUp={(e: KeyboardEvent) =>
+                e.key == "Enter" ? this.navigate() : null
+              }
               ref={node => (this.versionInput = node)}
               placeholder="e.g. '1.0.2'"
             />

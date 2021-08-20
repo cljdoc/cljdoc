@@ -1,14 +1,16 @@
-function isDocLink(linkEl) {
+function isDocLink(linkEl: HTMLAnchorElement) {
   return linkEl.pathname.startsWith("/d/");
 }
 
 export function hideNestedArticles() {
   let currentPath = location.pathname;
-  let articleLinks = Array.from(document.querySelectorAll(".js--articles a"));
+  let articleLinks: HTMLAnchorElement[] = Array.from(
+    document.querySelectorAll(".js--articles a")
+  );
 
-  function hideNested(link) {
-    if (!currentPath.startsWith(link.pathname) && link.nextSibling) {
-      link.nextSibling.classList.add("dn");
+  function hideNested(link: HTMLAnchorElement) {
+    if (!currentPath.startsWith(link.pathname) && link.nextElementSibling) {
+      link.nextElementSibling.classList.add("dn");
     }
   }
 

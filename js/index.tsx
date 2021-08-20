@@ -1,4 +1,4 @@
-import { render, h } from "preact";
+import { h, render } from "preact";
 import { trackProjectOpened, Switcher } from "./switcher";
 import { App } from "./search";
 import { MobileNav } from "./mobile";
@@ -13,20 +13,29 @@ import {
   addPrevNextPageKeyHandlers
 } from "./cljdoc";
 
+export type SidebarScrollPos = { page: string; scrollTop: number };
+
 trackProjectOpened();
 restoreSidebarScrollPos();
 
-render(h(Switcher), document.querySelector("#cljdoc-switcher"));
+const switcher = document.querySelector("#cljdoc-switcher");
+switcher && render(<Switcher />, switcher);
 
-const searchNode = document.querySelector("#cljdoc-search");
-if (searchNode) {
-  render(h(App, { initialValue: searchNode.dataset.initialValue }), searchNode);
+const searchNode: HTMLElement | null = document.querySelector("#cljdoc-search");
+if (searchNode && searchNode.dataset) {
+  render(
+    <App
+      initialValue={searchNode.dataset.initialValue}
+      results={[]}
+      focused={false}
+      selectedIndex={0}
+    />,
+    searchNode
+  );
 }
 
 const navigatorNode = document.querySelector("#js--cljdoc-navigator");
-if (navigatorNode) {
-  render(h(Navigator), navigatorNode);
-}
+navigatorNode && render(<Navigator />, navigatorNode);
 
 if (isNSPage()) {
   initSrollIndicator();
@@ -34,7 +43,8 @@ if (isNSPage()) {
 }
 
 if (isProjectDocumentationPage()) {
-  render(h(MobileNav), document.querySelector("#js--mobile-nav"));
+  const mobileNav = document.querySelector("#js--mobile-nav");
+  mobileNav && render(<MobileNav />, mobileNav);
   toggleMetaDialog();
   addPrevNextPageKeyHandlers();
 }
@@ -44,8 +54,7 @@ window.onbeforeunload = function () {
   if (sidebar) {
     var scrollTop = sidebar.scrollTop;
     var page = window.location.pathname.split("/").slice(0, 5).join("/");
-    var data = { page: page, scrollTop: scrollTop };
-    console.log(data);
+    var data: SidebarScrollPos = { page: page, scrollTop: scrollTop };
     localStorage.setItem("sidebarScrollPos", JSON.stringify(data));
   }
 };
