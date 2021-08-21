@@ -1,13 +1,20 @@
-import { Component, createElement, h } from "preact";
+import { h, Component } from "preact";
 import fuzzysort from "fuzzysort";
-import * as listSelect from "./listselect";
+import { ResultsView, ResultViewComponent } from "./listselect";
 
-function isSameProject(p1, p2) {
+export type CljdocProject = {
+  group_id: string;
+  artifact_id: string;
+  version: string;
+  project_id?: string;
+};
+
+function isSameProject(p1: CljdocProject, p2: CljdocProject): boolean {
   // I can't believe you have to do this
   return p1.group_id === p2.group_id && p1.artifact_id === p2.artifact_id; //&& p1.version == p2.version
 }
 
-function parseCljdocURI(uri) {
+function parseCljdocURI(uri: string): CljdocProject | void {
   const splitted = uri.split("/");
   if (splitted.length >= 5 && splitted[1] === "d") {
     return {
@@ -22,8 +29,9 @@ function trackProjectOpened() {
   const maxTrackedCount = 15;
   const project = parseCljdocURI(window.location.pathname);
   if (project) {
-    var previouslyOpened =
-      JSON.parse(localStorage.getItem("previouslyOpened")) || [];
+    var previouslyOpened: CljdocProject[] = JSON.parse(
+      localStorage.getItem("previouslyOpened") || "[]"
+    );
     // remove identical values
     previouslyOpened = previouslyOpened.filter(p => !isSameProject(p, project));
     previouslyOpened.push(project);
@@ -38,58 +46,56 @@ function trackProjectOpened() {
   }
 }
 
-const SwitcherSingleResultView = (r, isSelected, selectResult) => {
+const SwitcherSingleResultView: ResultViewComponent = props => {
+  const { result, isSelected, selectResult } = props;
   const project =
-    r.group_id === r.artifact_id
-      ? r.group_id
-      : r.group_id + "/" + r.artifact_id;
-  const docsUri = "/d/" + r.group_id + "/" + r.artifact_id + "/" + r.version;
-  return h(
-    "a",
-    {
-      className: "no-underline black",
-      href: docsUri,
-      onMouseOver: selectResult
-    },
-    [
-      h(
-        "div",
-        {
-          className: isSelected
+    result.group_id === result.artifact_id
+      ? result.group_id
+      : result.group_id + "/" + result.artifact_id;
+  const docsUri =
+    "/d/" + result.group_id + "/" + result.artifact_id + "/" + result.version;
+  return (
+    <a className="no-underline black" href={docsUri} onMouseOver={selectResult}>
+      <div
+        className={
+          isSelected
             ? "pa3 bb b--light-gray bg-light-blue"
             : "pa3 bb b--light-gray"
-        },
-        [
-          h("h4", { className: "dib ma0" }, [
-            project,
-            h("span", { className: "ml2 gray normal" }, r.version)
-          ]),
-          h(
-            "a",
-            {
-              className: "link blue ml2",
-              href: docsUri
-            },
-            "view docs"
-          )
-        ]
-      )
-    ]
+        }
+      >
+        <h4 className="dib ma0">
+          #{project} <span className="ml2 gray normal">{result.version}</span>
+        </h4>
+        <a className="link blue ml2" href={docsUri}>
+          view docs
+        </a>
+      </div>
+    </a>
   );
 };
 
-class Switcher extends Component {
-  handleKeyDown(e) {
+type SwitcherProps = any;
+
+type SwitcherState = {
+  results: CljdocProject[];
+  previouslyOpened: CljdocProject[];
+  selectedIndex: number;
+  show: boolean;
+};
+
+class Switcher extends Component<SwitcherProps, SwitcherState> {
+  inputNode?: HTMLInputElement | null;
+  backgroundNode?: HTMLDivElement | null;
+
+  handleKeyDown(e: KeyboardEvent) {
     if (e.target === this.inputNode) {
-      if (e.which === 38) {
-        //arrow up
+      if (e.key === "ArrowUp") {
         e.preventDefault(); // prevents caret from moving in input field
         this.setState({
           selectedIndex: Math.max(this.state.selectedIndex - 1, 0)
         });
-      } else if (e.which === 40) {
-        // arrow down
-        e.preventDefault();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault(); // prevents caret from moving in input field
         this.setState({
           selectedIndex: Math.min(
             this.state.selectedIndex + 1,
@@ -101,9 +107,9 @@ class Switcher extends Component {
 
     // If target is document body, trigger  on key `cmd+k` for MacOs `ctrl+k` otherwise
     let isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-    let switcherShortcut;
+    let switcherShortcut = false;
 
-    if (e.which === 75) {
+    if (e.key === "k") {
       if ((isMac && e.metaKey) || (!isMac && e.ctrlKey)) {
         e.preventDefault();
         switcherShortcut = true;
@@ -112,20 +118,20 @@ class Switcher extends Component {
 
     if (switcherShortcut && e.target === document.body) {
       this.setState({ show: true, results: this.state.previouslyOpened });
-    } else if (e.which === 27) {
-      this.setState({ show: false, results: null });
+    } else if (e.key === "Escape") {
+      this.setState({ show: false, results: [] });
     }
   }
 
-  handleInputKeyUp(e) {
-    if (e.which === 13) {
+  handleInputKeyUp(e: KeyboardEvent) {
+    if (e.key === "Enter") {
       const r = this.state.results[this.state.selectedIndex];
-      window.location =
+      window.location.href =
         "/d/" + r.group_id + "/" + r.artifact_id + "/" + r.version;
     }
   }
 
-  updateResults(searchStr) {
+  updateResults(searchStr: string) {
     if (searchStr === "") {
       this.initializeState();
     } else {
@@ -154,8 +160,9 @@ class Switcher extends Component {
   }
 
   initializeState() {
-    let previouslyOpened =
-      JSON.parse(localStorage.getItem("previouslyOpened")) || [];
+    let previouslyOpened: CljdocProject[] = JSON.parse(
+      localStorage.getItem("previouslyOpened") || "[]"
+    );
 
     previouslyOpened.forEach(
       r =>
@@ -180,44 +187,50 @@ class Switcher extends Component {
     this.initializeState();
   }
 
-  componentDidUpdate(previousProps, previousState, previousContext) {
-    if (!previousState.show && this.state.show) {
+  componentDidUpdate(
+    _previousProps: SwitcherProps,
+    previousState: SwitcherState,
+    _previousContext: any
+  ) {
+    if (!previousState.show && this.state.show && this.inputNode) {
       this.inputNode.focus();
     }
   }
 
-  render(props, state) {
+  render(_props: SwitcherProps, state: SwitcherState) {
+    console.log(state.results);
     if (state.show) {
-      return h(
-        "div",
-        {
-          className:
-            "bg-black-30 fixed top-0 right-0 bottom-0 left-0 sans-serif",
-          ref: node => (this.backgroundNode = node),
-          onClick: e =>
+      return (
+        <div
+          className="bg-black-30 fixed top-0 right-0 bottom-0 left-0 sans-serif"
+          ref={node => (this.backgroundNode = node)}
+          onClick={(e: MouseEvent) =>
             e.target === this.backgroundNode
               ? this.setState({ show: false })
               : null
-        },
-        h(
-          "div",
-          { className: "mw7 center mt6 bg-white pa3 br2 shadow-3" },
-          h("input", {
-            placeHolder: "Jump to recently viewed docs...",
-            className: "pa2 w-100 br1 border-box b--blue ba input-reset",
-            ref: node => (this.inputNode = node),
-            onKeyUp: e => this.handleInputKeyUp(e),
-            onInput: e => this.updateResults(e.target.value)
-          }),
-          state.results.length > 0
-            ? h(listSelect.ResultsView, {
-                results: state.results,
-                selectedIndex: state.selectedIndex,
-                onMouseOver: idx => this.setState({ selectedIndex: idx }),
-                resultView: SwitcherSingleResultView
-              })
-            : null
-        )
+          }
+        >
+          <div className="mw7 center mt6 bg-white pa3 br2 shadow-3">
+            <input
+              placeholder="Jump to recently viewed docs..."
+              className="pa2 w-100 br1 border-box b--blue ba input-reset"
+              ref={node => (this.inputNode = node)}
+              onKeyUp={(e: KeyboardEvent) => this.handleInputKeyUp(e)}
+              onInput={(e: Event) => {
+                const target = e.target as HTMLFormElement;
+                this.updateResults(target.value);
+              }}
+            />
+            {state.results.length > 0 ? (
+              <ResultsView
+                results={state.results}
+                selectedIndex={state.selectedIndex}
+                onMouseOver={index => this.setState({ selectedIndex: index })}
+                resultView={SwitcherSingleResultView}
+              />
+            ) : null}
+          </div>
+        </div>
       );
     } else {
       return null;

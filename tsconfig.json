@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "jsx": "react",
+    "jsxFactory": "h",
+    "lib": ["dom", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "target": "es5",
+    "noEmit": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitThis": true,
+    "noUnusedParameters": true,
+    "strictNullChecks": true,
+    "checkJs": true,
+    "allowJs": true,
+    "allowUnreachableCode": false,
+    "pretty": true
+  },
+  "include": ["js/**/*"]
+}

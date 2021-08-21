@@ -1,20 +1,22 @@
 {
   "name": "cljdoc",
   "scripts": {
-    "format": "prettier --write 'js/**/*.js'",
-    "lint": "prettier --check 'js/**/*.js'",
-    "dev": "parcel watch js/index.js --dist-dir resources-compiled/public/js/ --public-url .",
-    "build": "parcel build js/index.js --dist-dir resources-compiled/public/js/ --public-url .",
-    "prepare": "husky install"
+    "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
+    "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
+    "dev": "parcel watch js/index.tsx --dist-dir resources-compiled/public/js/ --public-url .",
+    "build": "parcel build js/index.tsx --dist-dir resources-compiled/public/js/ --public-url .",
+    "prepare": "husky install",
+    "typecheck": "npx tsc --watch"
   },
   "dependencies": {
     "fuzzysort": "^1.1.4",
-    "preact": "^10.5.13"
+    "preact": "^10.5.14"
   },
   "devDependencies": {
     "husky": "^6.0.0",
-    "parcel": "^2.0.0-beta.2",
-    "prettier": "^2.2.1",
-    "pretty-quick": "^3.1.0"
+    "parcel": "^2.0.0-rc.0",
+    "prettier": "^2.3.2",
+    "pretty-quick": "^3.1.1",
+    "typescript": "^4.3.5"
   }
 }

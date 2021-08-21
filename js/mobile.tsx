@@ -1,7 +1,14 @@
-import { Component, render, h } from "preact";
-import * as doctree from "./doctree";
+import { h, Component } from "preact";
 
-export class MobileNav extends Component {
+type MobileNavProps = any;
+
+type MobileNavState = {
+  mainViewScrollPos: number;
+  navViewScrollPos: number;
+  showNav: boolean;
+};
+
+export class MobileNav extends Component<MobileNavProps, MobileNavState> {
   constructor() {
     super();
     this.toggleNav = this.toggleNav.bind(this);
@@ -10,24 +17,24 @@ export class MobileNav extends Component {
   toggleNav() {
     let mainScrollView = document.querySelector(".js--main-scroll-view");
     let mainSidebar = document.querySelector(".js--main-sidebar");
-    let isNavShown = mainScrollView.classList.contains("dn");
+    let isNavShown = mainScrollView && mainScrollView.classList.contains("dn");
     if (isNavShown) {
       let scrollPos = window.scrollY;
-      mainScrollView.classList.remove("dn"); // show main scroll view / content area
-      mainSidebar.classList.replace("db", "dn"); // hide sidebar
+      mainScrollView!.classList.remove("dn"); // show main scroll view / content area
+      mainSidebar && mainSidebar.classList.replace("db", "dn"); // hide sidebar
       window.scrollTo(0, this.state.mainViewScrollPos); // scroll after(!) swapping content
       this.setState({ showNav: false, navViewScrollPos: scrollPos });
     } else {
       let scrollPos = window.scrollY;
-      mainScrollView.classList.add("dn"); // hide main scroll view / content area
-      mainSidebar.classList.add("flex-grow-1"); // make sure nav fills width of screen
-      mainSidebar.classList.replace("dn", "db"); // show sidebar
+      mainScrollView && mainScrollView.classList.add("dn"); // hide main scroll view / content area
+      mainSidebar && mainSidebar.classList.add("flex-grow-1"); // make sure nav fills width of screen
+      mainSidebar && mainSidebar.classList.replace("dn", "db"); // show sidebar
       window.scrollTo(0, this.state.navViewScrollPos); // scroll after(!) swapping content
       this.setState({ showNav: true, mainViewScrollPos: scrollPos });
     }
   }
 
-  render(props, state) {
+  render(_props: MobileNavProps, state: MobileNavState) {
     let btnMsg = state.showNav
       ? "Back to Content"
       : "Tap for Articles & Namespaces";
