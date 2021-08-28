@@ -41,6 +41,7 @@
             [io.pedestal.http.body-params :as body]
             [io.pedestal.interceptor :as interceptor]
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
+            [ring.util.codec :as ring-codec]
             [lambdaisland.uri.normalize :as normalize]))
 
 (def render-interceptor
@@ -304,7 +305,7 @@
    Naive retry logic to compensate for fact that badgen.net will often fail on 1st request for uncached badges."
   [ctx status color]
   (let [url (format "https://badgen.net/badge/cljdoc/%s/%s"
-                    (string/replace status  #"/" "%2F")
+                    (ring-codec/url-encode status)
                     (name color))]
     (loop [retries-left 1]
       (let [resp (http-client/get url {:headers {"User-Agent" "clj-http-lite"}
