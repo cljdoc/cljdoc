@@ -6,7 +6,7 @@ git_root=$(git rev-parse --show-toplevel)
 local_backups="$git_root/ops/prod-backup"
 
 tf_out () {
-  terraform output -state="$git_root/ops/infrastructure/terraform.tfstate" $1
+  terraform output --raw -state="$git_root/ops/infrastructure/terraform.tfstate" $1
 }
 
 ip=$(tf_out main_ip)

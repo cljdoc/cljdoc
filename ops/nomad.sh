@@ -19,7 +19,7 @@ set -eou pipefail
 
 tf_out () {
   git_root=$(git rev-parse --show-toplevel)
-  terraform output -state="$git_root/ops/infrastructure/terraform.tfstate" $1
+  terraform output --raw -state="$git_root/ops/infrastructure/terraform.tfstate" $1
 }
 
 ip=$(tf_out main_ip)
