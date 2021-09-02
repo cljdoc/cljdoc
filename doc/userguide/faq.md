@@ -36,12 +36,14 @@ Sure thing! cljdoc provides badges that will show the latest release
 version as well as an endpoint that redirects to it.
 
 - Badge URL: https://cljdoc.org/badge/re-frame
-- Redirect URL: https://cljdoc.org/jump/release/re-frame
+- Redirect URL: https://cljdoc.org/d/re-frame
+
+In this case `re-frame` is sufficient because the group and artifact ID are the same. If your group and artifact ID differ, provide both, e.g. `/d/metosin/malli`
 
 Using it in a Markdown file may look like this:
 
 ```markdown
-[![](https://cljdoc.org/badge/re-frame)](https://cljdoc.org/jump/release/re-frame)
+[![](https://cljdoc.org/badge/re-frame)](https://cljdoc.org/d/re-frame)
 ```
 
 # How to update documentation?

@@ -16,7 +16,7 @@ For basic docs to be available you don't have to do anything at all. cljdoc will
 [source,sh]
 ----
 # This will redirect to the latest released version
-https://cljdoc.org/d/$group-id/$artifact-id/CURRENT
+https://cljdoc.org/d/$group-id/$artifact-id
 ----
 
 [source,sh]
@@ -29,17 +29,17 @@ In full it may look like this for markdown:
 
 [source,markdown]
 ----
-[![cljdoc badge](https://cljdoc.org/badge/manifold/manifold)](https://cljdoc.org/d/manifold/manifold/CURRENT)
+[![cljdoc badge](https://cljdoc.org/badge/manifold/manifold)](https://cljdoc.org/d/manifold/manifold)
 ----
 
 or this for asciidoctor:
 
 [source,asciidoctor]
 ----
-image::https://cljdoc.org/badge/manifold/manifold[cljdoc badge, link=https://cljdoc.org/d/manifold/manifold/CURRENT]
+image::https://cljdoc.org/badge/manifold/manifold[cljdoc badge, link=https://cljdoc.org/d/manifold/manifold]
 ----
 
-link:https://cljdoc.org/d/manifold/manifold/CURRENT[image:https://cljdoc.org/badge/manifold/manifold[cljdoc badge]]
+link:https://cljdoc.org/d/manifold/manifold[image:https://cljdoc.org/badge/manifold/manifold[cljdoc badge]]
 
 IMPORTANT: In the cljdoc URLs above `$group-id` and `$artifact-id` always refer to the Clojars/Maven group/artifact ID, not e.g. GitHub's owner/repo names.
 
