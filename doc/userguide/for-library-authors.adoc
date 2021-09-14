@@ -100,23 +100,29 @@ doc/
   configuration.md
 ----
 
-You can integrate those files into your cljdoc build by adding a file `doc/cljdoc.edn` with the following contents:
+You can integrate those files and additional external links into your cljdoc build by adding a file `doc/cljdoc.edn` with the following contents:
 
 [source,clojure]
 ----
 {:cljdoc.doc/tree [["Readme" {:file "README.md"}]
                    ["Getting Started" {:file "doc/getting-started.md"}
                     ["Installation" {:file "doc/installation.md"}]]
-                   ["Configuration" {:file "doc/configuration.md"}]]}
+                   ["Configuration" {:file "doc/configuration.md"}]]
+ :cljdoc.doc/links [["#my-lib on Slack" {:url "https://clojurians.slack.com/my-lib"}]]}
 ----
 
 Which will result in the following hierarchy being shown in your docs:
 
 ----
-├── Readme
+└── Readme
+
+Articles
 ├── Getting Started
 │   └── Installation
 └── Configuration
+
+Links
+└── #my-lib\ on\ Slack
 ----
 
 IMPORTANT: The resulting URLs for those articles will be based on the title provided in the `cljdoc.edn` file and _not_ on the filename.

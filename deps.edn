@@ -48,7 +48,8 @@
         ;; These deps are dependencies of shared-utils and are
         ;; duplicated in the global modules/shared-utils/deps.edn,
         ;; updates should be done in both places
-        version-clj/version-clj {:mvn/version "0.1.2"}}
+        version-clj/version-clj {:mvn/version "0.1.2"}
+        com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}}
  ;; We don't use :local/root dependencies because the interdependencies
  ;; between main, shared-utils and analysis runner don't work well with
  ;; Cursive: https://github.com/cljdoc/cljdoc/issues/134

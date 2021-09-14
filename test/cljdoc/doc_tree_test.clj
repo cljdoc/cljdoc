@@ -11,23 +11,32 @@
 
 (t/deftest process-toc-test
   (t/is (=
-         [{:title "Readme"
-           :attrs {:cljdoc.doc/source-file "README.md"
-                   :cljdoc.doc/type :cljdoc/markdown
-                   :cljdoc.doc/contributors ["A" "B" "C"]
-                   :cljdoc/markdown "README.md"
-                   :slug "readme"}
-           :children [{:title "Nested"
-                       :attrs {:cljdoc.doc/source-file "nested.adoc"
-                               :cljdoc.doc/type :cljdoc/asciidoc
-                               :cljdoc.doc/contributors ["A" "B" "C"]
-                               :cljdoc/asciidoc "nested.adoc"
-                               :slug "nested"}}]}]
+         #:cljdoc.doc{:articles
+                      [{:title "Readme",
+                        :attrs
+                        {:cljdoc.doc/source-file "README.md",
+                         :cljdoc/markdown "README.md",
+                         :cljdoc.doc/type :cljdoc/markdown,
+                         :slug "readme",
+                         :cljdoc.doc/contributors ["A" "B" "C"]},
+                        :children
+                        [{:title "Nested",
+                          :attrs
+                          {:cljdoc.doc/source-file "nested.adoc",
+                           :cljdoc/asciidoc "nested.adoc",
+                           :cljdoc.doc/type :cljdoc/asciidoc,
+                           :slug "nested",
+                           :cljdoc.doc/contributors ["A" "B" "C"]}}]}],
+                      :external-links
+                      [{:title "Community-Page",
+                        :link-attrs #:cljdoc.doc{:external-url "http://my-community.com"}}]}
          (doctree/process-toc
           {:slurp-fn identity
            :get-contributors (constantly ["A" "B" "C"])}
-          [["Readme" {:file "README.md"}
-            ["Nested" {:file "nested.adoc"}]]]))))
+          {:cljdoc.doc/tree
+           [["Readme" {:file "README.md"}
+             ["Nested" {:file "nested.adoc"}]]]
+           :cljdoc.doc/links [["Community-Page" {:url "http://my-community.com"}]]}))))
 
 ;; we redefine spec for entry because for test we want every entry have attrs with slug so that slug-path will be
 ;; generated (neighbours are found based on the slug-path)

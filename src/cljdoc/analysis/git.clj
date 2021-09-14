@@ -92,10 +92,10 @@
                                            (git/slurp-file-at repo "master" f))))
                          :get-contributors (fn [f]
                                              (git/get-contributors repo revision f))}
-                        (or (user-config/doc-tree config-edn project)
-                            (get-in @util/hardcoded-config
-                                    [(util/normalize-project project) :cljdoc.doc/tree])
-                            (doctree/derive-toc git-files)))})
+                        (or (user-config/get-project config-edn project)
+                            (get @util/hardcoded-config
+                                 (util/normalize-project project))
+                            {:cljdoc.doc/tree (doctree/derive-toc git-files)}))})
 
           {:error {:type "no-revision-found"
                    :version-tag version-tag

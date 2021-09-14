@@ -34,7 +34,7 @@
   (assert (:doc-slug-path route-params))
   (let [version-entity (:version-entity cache-bundle)
         doc-slug-path (:doc-slug-path route-params)
-        doc-tree (doctree/add-slug-path (-> cache-bundle :version :doc))
+        doc-tree (doctree/add-slug-path (-> cache-bundle :version :doc :cljdoc.doc/articles))
         doc-p (->> doc-tree
                    doctree/flatten*
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
@@ -96,6 +96,7 @@
                                                (-> cache-bundle
                                                    :version
                                                    :doc
+                                                   :cljdoc.doc/articles
                                                    doctree/add-slug-path
                                                    doctree/flatten*))}]
     (->> (if ns-data
@@ -135,7 +136,7 @@
 
   (namespace-hierarchy (map :name namespaces))
 
-  (-> (doctree/add-slug-path (-> (:cache-bundle cljdoc.bundle/cache) :version :doc))
+  (-> (doctree/add-slug-path (-> (:cache-bundle cljdoc.bundle/cache) :version :doc :cljdoc.doc/articles))
       first))
 
 

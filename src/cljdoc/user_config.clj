@@ -22,9 +22,6 @@
            (remove (fn [[k _v]] (symbol? k)))
            (into {}))))
 
-(defn doc-tree [config-edn project]
-  (:cljdoc.doc/tree (get-project config-edn project)))
-
 (defn include-namespaces-from-deps [config-edn project]
   (:cljdoc/include-namespaces-from-dependencies (get-project config-edn project)))
 

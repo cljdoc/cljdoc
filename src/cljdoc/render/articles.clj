@@ -25,6 +25,29 @@
        :id "next-article-page-link"}
       [:span (-> next-page :title) [:span.ml1 "❯"]]])])
 
+(defn link [{:keys [href class]} & children]
+  [:a.link.blue.hover-dark-blue.dib.pv1
+   {:style {:word-wrap "break-word"}
+    :href  href
+    :class class}
+   children])
+
+(defn doc-tree-links
+  "Render a set of nested lists representing the doctree. "
+  ([version-entity doc-bundle]
+   (doc-tree-links version-entity doc-bundle 0))
+  ([version-entity doc-bundle level]
+   (when (seq doc-bundle)
+     (->> doc-bundle
+          (map (fn [doc-page]
+                 [:li
+                  {:class (when (seq (:children doc-page)) "mv2")}
+                  (link {:href (-> doc-page :link-attrs :cljdoc.doc/external-url)}
+                        (:title doc-page)
+                        [:img.v-mid.ml1 {:src "https://microicon-clone.vercel.app/external/12"}])
+                  (doc-tree-links version-entity (:children doc-page) (inc level))]))
+          (into [:ul.list.ma0 {:class (if (pos? level) "f6-ns pl2" "pl0")}])))))
+
 (defn doc-tree-view
   "Render a set of nested lists representing the doctree. "
   ([version-entity doc-bundle current-page]
@@ -33,14 +56,13 @@
    (when (seq doc-bundle)
      (->> doc-bundle
           (map (fn [doc-page]
-                 (let [slug-path (-> doc-page :attrs :slug-path)]
+                 (let [slug-path (-> doc-page :attrs :slug-path)
+                       external-url (-> doc-page :cljdoc.doc/external-url)]
                    [:li
                     {:class (when (seq (:children doc-page)) "mv2")}
-                    [:a.link.blue.hover-dark-blue.dib.pv1
-                     {:style {:word-wrap "break-word"}
-                      :href  (doc-link version-entity slug-path)
-                      :class (when (= current-page slug-path) "fw7")}
-                     (:title doc-page)]
+                    (link {:href (or external-url (doc-link version-entity slug-path))
+                           :class (when (= current-page slug-path) "fw7")}
+                          (:title doc-page))
                     (doc-tree-view version-entity (:children doc-page) current-page (inc level))])))
           (into [:ul.list.ma0 {:class (if (pos? level) "f6-ns pl2" "pl0")}])))))
 

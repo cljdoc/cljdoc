@@ -42,7 +42,8 @@
   If articles or namespaces are missing for a project there will be little messages pointing
   users to the relevant documentation or GitHub to open an issue."
   [route-params {:keys [version-entity] :as cache-bundle} last-build]
-  (let [doc-tree (doctree/add-slug-path (-> cache-bundle :version :doc))
+  (let [{:keys [cljdoc.doc/articles cljdoc.doc/external-links]} (-> cache-bundle :version :doc)
+        doc-tree (doctree/add-slug-path articles)
         split-doc-tree ((juxt filter remove)
                         #(contains? #{"Readme" "Changelog"} (:title %))
                         doc-tree)
@@ -89,6 +90,11 @@
          [:strong "Please consult the "
           [:a.blue.link {:href (util/github-url :userguide/articles)} "cljdoc docs"]
           " on how to fix this."]]])
+
+     (when (seq external-links)
+       [:div.mb4.js--links
+        (layout/sidebar-title "Links" {:separator-line? (seq external-links)})
+        [:div.mv3 (articles/doc-tree-links version-entity external-links)]])
 
      ;; Namespace listing
      (let [ns-entities (bundle/ns-entities cache-bundle)]
