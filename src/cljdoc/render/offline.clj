@@ -86,7 +86,8 @@
                     {:style {:top "52px"}}
                     [:div.mw7.center.pa2.pb4
                      contents]]]
-                  (->> (assets/offline-js :highlightjs)
+                  (->> (concat ["assets/js/index.js"]
+                               (assets/offline-js :highlightjs))
                        (adjust-refs sub-page?)
                        (apply hiccup.page/include-js))
                   (layout/highlight-js-customization)
@@ -132,7 +133,7 @@
 (defn- ns-page [ns defs fix-opts]
   (let [ns-name (platf/get-field ns :name)
         render-wiki-link (api/render-wiki-link-fn ns-name #(str % ".html"))]
-    [:div
+    [:div.ns-offline-page
      [:h1 ns-name]
      (api/render-doc ns render-wiki-link fix-opts)
      (for [def defs]
@@ -171,6 +172,8 @@
     (reduce
      into
      [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]]
+      [["assets/js/index.js" (io/file "resources-compiled/public/js/index.js")]]
+      [["assets/js/index.js.map" (io/file "resources-compiled/public/js/index.js.map")]]
       (assets/offline-assets :tachyons)
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page cache-bundle fix-opts)

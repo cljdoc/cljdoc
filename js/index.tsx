@@ -5,6 +5,7 @@ import { MobileNav } from "./mobile";
 import { Navigator } from "./navigator";
 import {
   isNSPage,
+  isNSOfflinePage,
   isProjectDocumentationPage,
   initSrollIndicator,
   initToggleRaw,
@@ -39,6 +40,10 @@ navigatorNode && render(<Navigator />, navigatorNode);
 
 if (isNSPage()) {
   initSrollIndicator();
+  initToggleRaw();
+}
+
+if (isNSOfflinePage()) {
   initToggleRaw();
 }
 
