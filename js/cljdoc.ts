@@ -2,6 +2,10 @@ function isNSPage(): boolean {
   return !!document.querySelector(".ns-page");
 }
 
+function isNSOfflinePage(): boolean {
+  return !!document.querySelector("ns-offline-page");
+}
+
 function isProjectDocumentationPage(): boolean {
   let pathSegs = window.location.pathname.split("/");
   return pathSegs.length >= 5 && pathSegs[1] == "d";
@@ -143,6 +147,7 @@ export {
   restoreSidebarScrollPos,
   toggleMetaDialog,
   isNSPage,
+  isNSOfflinePage,
   isProjectDocumentationPage,
   addPrevNextPageKeyHandlers
 };
