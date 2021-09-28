@@ -3,8 +3,8 @@
 
 (defn- shortcut [key desc]
   [:tr.striped--near-white
-   [:td.pv2.pr3.pl3.bb.b--black-20.nowrap key]
-   [:td.pv2.pr3.pl3.bb.b--black-20 desc]])
+   [:td.pv2.pr2.pl3.bb.b--black-20.nowrap.tr key]
+   [:td.pv2.pr3.pl2.bb.b--black-20 desc]])
 
 (defn shortcuts []
   (->> [:div
