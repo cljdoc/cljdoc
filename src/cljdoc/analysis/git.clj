@@ -59,7 +59,7 @@
       ;; Stuff that depends on a SCM url being present
       (let [repo        (git/->repo git-dir)
             version-tag (git/version-tag repo version)
-            default-branch (.getFullBranch (.getRepository repo))
+            default-branch (.getBranch (.getRepository repo))
             revision    (or pom-revision
                             (:name version-tag)
                             (when (.endsWith version "-SNAPSHOT")
