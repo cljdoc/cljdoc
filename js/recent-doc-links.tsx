@@ -6,13 +6,14 @@ const dayInMs = 86400000;
 
 const lastViewedMessage = (last_viewed: string | undefined) => {
   if (last_viewed) {
-    const lastViewedDate = new Date(Date.parse(last_viewed)).getTime();
-    const viewedToday = new Date().getTime() - lastViewedDate < dayInMs;
+    const lastViewedDate = new Date(Date.parse(last_viewed));
+    const viewedToday =
+      new Date().getTime() - lastViewedDate.getTime() < dayInMs;
     return (
       " last viewed " +
       (viewedToday
         ? "today"
-        : formatDistanceToNowStrict(new Date(Date.parse(last_viewed)), {
+        : formatDistanceToNowStrict(lastViewedDate, {
             addSuffix: true,
             unit: "day"
           }))
