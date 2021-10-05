@@ -30,10 +30,10 @@
          (search/search-form (-> context :request :query-params :q))
          [:p.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]
           " or check out some examples: "
-          [:span#doc-links
-           [:a.link.blue.nowrap {:href "/d/rum/rum/CURRENT"} "rum"] ", "
-           [:a.link.blue.nowrap {:href "/d/lambdaisland/kaocha/CURRENT"} "kaocha"] ", "
-           [:a.link.blue.nowrap {:href "/d/metosin/reitit/CURRENT"} "reitit"]] "."]]
+          [:a.link.blue.nowrap {:href "/d/rum/rum/CURRENT"} "rum"] ", "
+          [:a.link.blue.nowrap {:href "/d/lambdaisland/kaocha/CURRENT"} "kaocha"] ", "
+          [:a.link.blue.nowrap {:href "/d/metosin/reitit/CURRENT"} "reitit"] "."]
+         [:p#doc-links.mv0]]
 
         [:div.mt5-ns.bg-white
          (into [:div.dt-l.dt--fixed.bb.bt.b--light-gray.lh-copy]

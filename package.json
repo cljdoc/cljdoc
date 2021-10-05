@@ -9,6 +9,7 @@
     "typecheck": "npx tsc --watch"
   },
   "dependencies": {
+    "date-fns": "^2.24.0",
     "fuzzysort": "^1.1.4",
     "preact": "^10.5.14"
   },
