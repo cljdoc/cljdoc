@@ -7,6 +7,7 @@ export type CljdocProject = {
   artifact_id: string;
   version: string;
   project_id?: string;
+  last_viewed?: string;
 };
 
 function isSameProject(p1: CljdocProject, p2: CljdocProject): boolean {
@@ -34,6 +35,7 @@ function trackProjectOpened() {
     );
     // remove identical values
     previouslyOpened = previouslyOpened.filter(p => !isSameProject(p, project));
+    project.last_viewed = new Date().toUTCString();
     previouslyOpened.push(project);
     // truncate from the front to not have localstorage grow too large
     if (previouslyOpened.length > maxTrackedCount) {

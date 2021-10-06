@@ -13,6 +13,7 @@ import {
   toggleMetaDialog,
   addPrevNextPageKeyHandlers
 } from "./cljdoc";
+import { initRecentDocLinks } from "./recent-doc-links";
 
 export type SidebarScrollPos = { page: string; scrollTop: number };
 
@@ -54,6 +55,10 @@ if (isProjectDocumentationPage()) {
   addPrevNextPageKeyHandlers();
 }
 
+const docLinks = document.querySelector("#doc-links");
+if (docLinks) {
+  initRecentDocLinks(docLinks);
+}
 window.onbeforeunload = function () {
   var sidebar = Array.from(document.querySelectorAll(".js--main-sidebar"))[0];
   if (sidebar) {
