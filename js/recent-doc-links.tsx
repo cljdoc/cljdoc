@@ -43,10 +43,10 @@ export const initRecentDocLinks = (docLinks: Element) => {
                     href={`/d/${group_id}/${artifact_id}/${version}`}
                   >
                     {artifact_id}
+                    <span className="gray f6">
+                      {lastViewedMessage(last_viewed)}
+                    </span>
                   </a>
-                  <span className="gray f6">
-                    {lastViewedMessage(last_viewed)}
-                  </span>
                 </li>
               );
             })}
