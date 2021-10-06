@@ -28,6 +28,10 @@ export const initRecentDocLinks = (docLinks: Element) => {
     localStorage.getItem("previouslyOpened") || "[]"
   );
   if (previouslyOpened.length > 0) {
+    if (previouslyOpened.length >= 3) {
+      const examples = document.querySelector("#examples");
+      if (examples) examples.remove();
+    }
     render(
       <p className="mt4 mb0">
         <div className="fw5">Pick up where you left off:</div>
