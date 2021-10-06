@@ -128,7 +128,7 @@ class SearchInput extends Component<SearchInputProps> {
     return (
       <input
         autofocus={true}
-        placeholder="NEW! Jump to docs..."
+        placeholder="Jump to docs..."
         className="pa2 w-100 br1 border-box b--blue ba input-reset"
         onFocus={(_e: Event) => props.focus()}
         onBlur={(_e: Event) => setTimeout(_ => props.unfocus(), 200)}
