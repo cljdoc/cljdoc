@@ -14,7 +14,6 @@
             [integrant.core :as ig]
             [unilog.config :as unilog]
             [ragtime.jdbc :as jdbc]
-            [ragtime.clj.core]
             [ragtime.core :as ragtime]
             [taoensso.nippy :as nippy]
             [tea-time.core :as tt]))
