@@ -63,7 +63,7 @@
                      (update :namespace normalize/percent-decode))
                    page-type   (-> ctx :route :route-name)]
                (if-let [first-article-slug (and (= page-type :artifact/version)
-                                                (-> cache-bundle :version :doc :cljdoc.doc/articles first :attrs :slug))]
+                                                (-> cache-bundle :version :doc first :attrs :slug))]
                  ;; instead of rendering a mostly white page we
                  ;; redirect to the README/first listed article
                  (let [location (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))]

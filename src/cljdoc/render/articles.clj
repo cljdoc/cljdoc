@@ -41,11 +41,11 @@
      (->> doc-bundle
           (map (fn [doc-page]
                  [:li
-                  {:class (when (seq (:children doc-page)) "mv2")}
+                  {:class (when (seq (:link-children doc-page)) "mv2")}
                   (link {:href (-> doc-page :link-attrs :cljdoc.doc/external-url)}
                         (:title doc-page)
                         [:img.v-mid.ml1 {:src "https://microicon-clone.vercel.app/external/12"}])
-                  (doc-tree-links version-entity (:children doc-page) (inc level))]))
+                  (doc-tree-links version-entity (:link-children doc-page) (inc level))]))
           (into [:ul.list.ma0 {:class (if (pos? level) "f6-ns pl2" "pl0")}])))))
 
 (defn doc-tree-view

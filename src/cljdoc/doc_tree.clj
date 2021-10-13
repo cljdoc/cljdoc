@@ -60,16 +60,9 @@
 
 (spec/def ::children
   (spec/coll-of ::entry))
-(spec/def :cljdoc.doc/articles (spec/coll-of ::entry))
-(spec/def ::link-attrs
-  (spec/keys :req [:cljdoc.doc/external-url]))
-(spec/def ::link-entry
-  (spec/keys :req-un [::title]
-             :opt-un [::link-attrs ::children]))
-(spec/def :cljdoc.doc/external-links (spec/coll-of ::link-entry))
+
 (spec/def ::doctree
-  (spec/keys :opt [:cljdoc.doc/articles
-                   :cljdoc.doc/external-links]))
+  (spec/coll-of ::entry))
 
 ;; Specs for the Hiccup style configuration format that library authors
 ;; may use to specify articles and their hierarchy.
@@ -81,15 +74,6 @@
    (spec/cat :title ::title
              :attrs (spec/? ::hiccup-attrs)
              :children (spec/* ::hiccup-entry))))
-
-(spec/def ::hiccup-link-attrs
-  (spec/keys :req-un [::url]))
-
-(spec/def ::hiccup-link-entry
-  (spec/spec
-   (spec/cat :title ::title
-             :attrs (spec/? ::hiccup-link-attrs)
-             :children (spec/* ::hiccup-link-entry))))
 
 (defmulti filepath->type
   "An extension point for custom doctree items. Dispatching is done based on file extensions.
@@ -139,28 +123,15 @@
       (seq children)
       (assoc :children (mapv (partial process-toc-entry fns) children)))))
 
-(defn process-link-entry [{:keys [title attrs children]}]
-  (cond-> {:title title}
-
-    (:url attrs)
-    (assoc-in [:link-attrs :cljdoc.doc/external-url] (:url attrs))
-
-    (seq children)
-    (assoc :children (mapv process-link-entry children))))
-
 (spec/def ::slurp-fn fn?)
 (spec/def ::get-contributors fn?)
 
 (spec/def ::process-fns
   (spec/keys :req-un [::slurp-fn ::get-contributors]))
 
-(spec/def :cljdoc.doc/tree (spec/coll-of ::hiccup-entry))
-(spec/def :cljdoc.doc/links (spec/coll-of ::hiccup-link-entry))
-
 (spec/fdef process-toc
   :args (spec/cat :process-fns ::process-fns
-                  :entries (spec/keys :req [:cljdoc.doc/tree]
-                                      :opt [:cljdoc.doc/links]))
+                  :entries (spec/coll-of ::hiccup-entry))
   :ret ::doctree)
 
 (defn process-toc
@@ -170,13 +141,47 @@
   The return value will be a `::doctree`. Individual nodes will have
   an `:attrs` key with additional metadata such as the original file
   name, the file contents and a slug derived from the entry title."
-  [process-fns {:keys [:cljdoc.doc/tree :cljdoc.doc/links] :or {links []}}]
-  {:cljdoc.doc/articles (->> tree
-                             (spec/conform (spec/coll-of ::hiccup-entry))
-                             (mapv (partial process-toc-entry process-fns)))
-   :cljdoc.doc/external-links (->> links
-                                   (spec/conform :cljdoc.doc/links)
-                                   (mapv process-link-entry))})
+  [process-fns toc]
+  (->> toc
+       (spec/conform (spec/coll-of ::hiccup-entry))
+       (mapv (partial process-toc-entry process-fns))))
+
+(spec/def ::link-children
+  (spec/coll-of ::link-entry))
+(spec/def ::link-attrs
+  (spec/keys :req [:cljdoc.doc/external-url]))
+(spec/def ::link-entry
+  (spec/keys :req-un [::title]
+             :opt-un [::link-attrs ::link-children]))
+(spec/def ::links
+  (spec/coll-of ::link-entry))
+
+(defn process-link-entry [{:keys [title attrs children]}]
+  (cond-> {:title title}
+
+    (:url attrs)
+    (assoc-in [:link-attrs :cljdoc.doc/external-url] (:url attrs))
+
+    (seq children)
+    (assoc :link-children (mapv process-link-entry children))))
+
+(spec/def ::hiccup-link-attrs
+  (spec/keys :req-un [::url]))
+(spec/def ::hiccup-link-entry
+  (spec/spec
+   (spec/cat :title ::title
+             :attrs (spec/? ::hiccup-link-attrs)
+             :children (spec/* ::hiccup-link-entry))))
+(spec/def ::hiccup-link-entries (spec/coll-of ::hiccup-link-entry))
+
+(spec/fdef process-links
+  :args (spec/cat :links ::hiccup-link-entries)
+  :ret ::links)
+
+(defn process-links [links]
+  (->> links
+       (spec/conform ::hiccup-link-entries)
+       (mapv process-link-entry)))
 
 (defn entry->type-and-content
   "Given a single doctree entry return a tuple with the type of the to be rendered document and

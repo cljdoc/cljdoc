@@ -42,8 +42,8 @@
   If articles or namespaces are missing for a project there will be little messages pointing
   users to the relevant documentation or GitHub to open an issue."
   [route-params {:keys [version-entity] :as cache-bundle} last-build]
-  (let [{:keys [cljdoc.doc/articles cljdoc.doc/external-links]} (-> cache-bundle :version :doc)
-        doc-tree (doctree/add-slug-path articles)
+  (let [doc-tree (doctree/add-slug-path (-> cache-bundle :version :doc))
+        external-links (-> cache-bundle :version :links)
         split-doc-tree ((juxt filter remove)
                         #(contains? #{"Readme" "Changelog"} (:title %))
                         doc-tree)

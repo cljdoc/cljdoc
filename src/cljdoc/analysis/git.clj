@@ -93,9 +93,11 @@
                          :get-contributors (fn [f]
                                              (git/get-contributors repo revision f))}
                         (or (user-config/doc-tree config-edn project)
-                            (get @util/hardcoded-config
-                                 (util/normalize-project project))
-                            {:cljdoc.doc/tree (doctree/derive-toc git-files)}))})
+                            (get-in @util/hardcoded-config
+                                    [(util/normalize-project project) :cljdoc.doc/tree])
+                            (doctree/derive-toc git-files)))
+             :links (when (user-config/doc-links config-edn project)
+                      (doctree/process-links (user-config/doc-links config-edn project)))})
 
           {:error {:type "no-revision-found"
                    :version-tag version-tag
