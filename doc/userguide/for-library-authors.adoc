@@ -122,7 +122,7 @@ Articles
 └── Configuration
 
 Links
-└── #my-lib\ on\ Slack
+└── #my-lib on Slack
 ----
 
 IMPORTANT: The resulting URLs for those articles will be based on the title provided in the `cljdoc.edn` file and _not_ on the filename.
