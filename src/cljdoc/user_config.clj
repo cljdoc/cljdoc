@@ -23,9 +23,8 @@
            (into {}))))
 
 (defn doc-tree [config-edn project]
-  (if (:cljdoc.doc/tree (get-project config-edn project))
-    (get-project config-edn project)
-    nil))
+  (when (:cljdoc.doc/tree (get-project config-edn project))
+    (get-project config-edn project)))
 
 (defn include-namespaces-from-deps [config-edn project]
   (:cljdoc/include-namespaces-from-dependencies (get-project config-edn project)))
