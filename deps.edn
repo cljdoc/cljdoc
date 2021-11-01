@@ -44,6 +44,7 @@
         org.apache.lucene/lucene-analyzers-common {:mvn/version "8.1.1"}
         org.apache.lucene/lucene-queryparser {:mvn/version "8.1.1"}
         robert/bruce {:mvn/version "0.8.0"}
+        enlive/enlive {:mvn/version "1.1.6"}
 
         ;; These deps are dependencies of shared-utils and are
         ;; duplicated in the global modules/shared-utils/deps.edn,

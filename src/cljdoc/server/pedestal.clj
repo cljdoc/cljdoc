@@ -42,7 +42,8 @@
             [io.pedestal.interceptor :as interceptor]
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
             [ring.util.codec :as ring-codec]
-            [lambdaisland.uri.normalize :as normalize]))
+            [lambdaisland.uri.normalize :as normalize]
+            [net.cgrand.enlive-html :as en]))
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
@@ -381,6 +382,23 @@
             (fn [request _opts]
               (etag/add-file-etag request false)))}))
 
+(def static-resource-interceptor
+  "Creates a map that translates static resource names to their content-hashed counterparts.
+  E.g. /main.js -> /main.db58f58a.js"
+  (interceptor/interceptor
+    {:name  ::static-resource
+     :enter (fn [ctx]
+              ;TODO memoize
+              (let [tags (en/select (en/html-resource "parcel/main.html") [#{(en/attr? :href) (en/attr? :src)}])]
+                (->> tags
+                  (#(for [tag %] (map (:attrs tag) [:href :src])))
+                  flatten
+                  (filter some?)
+                  (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
+                          {(str prefix suffix) %}))
+                  (into {})
+                  (assoc ctx :static-resources))))}))
+
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247
   (interceptor/interceptor
@@ -503,6 +521,7 @@
        ::http/not-found-interceptor not-found-interceptor}
       http/default-interceptors
       (update ::http/interceptors #(into [sentry/interceptor
+                                          static-resource-interceptor
                                           redirect-trailing-slash-interceptor
                                           (ring-middlewares/not-modified)
                                           etag-interceptor]
