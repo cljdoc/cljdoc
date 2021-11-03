@@ -389,13 +389,14 @@
     {:name  ::static-resource
      :enter (fn [ctx]
               ;TODO memoize
-              (let [tags (en/select (en/html-resource "parcel/main.html") [#{(en/attr? :href) (en/attr? :src)}])]
+              (let [tags (en/select (en/html-resource "public/out/main.html") [#{(en/attr? :href) (en/attr? :src)}])]
                 (->> tags
                   (#(for [tag %] (map (:attrs tag) [:href :src])))
                   flatten
                   (filter some?)
                   (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
-                          {(str prefix suffix) %}))
+                          (when (and prefix suffix)
+                            {(str prefix suffix) %})))
                   (into {})
                   (assoc ctx :static-resources))))}))
 
@@ -517,7 +518,7 @@
        ;; TODO look into this some more:
        ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
        ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-       ::http/resource-path "public"
+       ::http/resource-path "public/out"
        ::http/not-found-interceptor not-found-interceptor}
       http/default-interceptors
       (update ::http/interceptors #(into [sentry/interceptor

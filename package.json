@@ -3,8 +3,8 @@
   "scripts": {
     "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
     "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
-    "dev": "parcel watch resources/public/main.html --dist-dir resources-compiled/parcel/ --public-url /",
-    "build": "parcel build resources/public/main.html --dist-dir resources-compiled/parcel/ --public-url /",
+    "dev": "parcel watch resources/public/main.html --dist-dir resources-compiled/public/out --public-url /",
+    "build": "parcel build resources/public/main.html --dist-dir resources-compiled/public/out --public-url /",
     "prepare": "husky install",
     "typecheck": "npx tsc --watch"
   },
@@ -14,6 +14,7 @@
     "preact": "^10.5.14"
   },
   "devDependencies": {
+    "@parcel/transformer-image": "^2.0.0-rc.0",
     "husky": "^6.0.0",
     "parcel": "^2.0.0-rc.0",
     "prettier": "^2.3.2",
