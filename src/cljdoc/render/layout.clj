@@ -95,7 +95,9 @@
                  ;; Google / Search Engine Tags
                  [:meta {:content (:title opts) :itemprop "name"}]
                  [:meta {:content (:description opts) :itemprop "description"}]
-                 [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :itemprop "image"}]
+                 [:meta {:content (str "https://cljdoc.org"
+                                    (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
+                         :itemprop "image"}]
 
                  ;; OpenGraph Meta Tags (should work for Twitter/Facebook)
                  ;; TODO [:meta {:content "" :property "og:url"}]
@@ -103,7 +105,9 @@
                  [:meta {:content (:title opts) :property "og:title"}]
                  [:meta {:content (:description opts) :property "og:description"}]
                  ;; Disable image for now; doesn't add much and occupies a lot of space in Slack and similar
-                 ;; [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :property "og:image"}]
+                 ;; [:meta {:content (str "https://cljdoc.org"
+                 ;;                   (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
+                 ;;  :property "og:image"}]
 
                  ;; Canonical URL
                  (when-let [url (:canonical-url opts)]
