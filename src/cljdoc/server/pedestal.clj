@@ -73,7 +73,8 @@
                  (if cache-bundle
                    (pu/ok-html ctx (html/render page-type path-params {:cache-bundle cache-bundle
                                                                        :pom (::pom-info ctx)
-                                                                       :last-build (::last-build ctx)}))
+                                                                       :last-build (::last-build ctx)
+                                                                       :static-resources (:static-resources ctx)}))
                    (let [resp {:status 404
                                :headers {"Content-Type" "text/html"}
                                :body (str (render-build-req/request-build-page path-params))}]
