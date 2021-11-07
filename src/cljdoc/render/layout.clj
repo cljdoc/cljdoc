@@ -114,6 +114,9 @@
                    (assert (.startsWith url "/"))
                    [:link {:rel "canonical" :href (str "https://cljdoc.org" url)}]); TODO read domain from config
 
+                 [:link {:rel  "icon" :type "image/x-icon"
+                         :href (get (:static-resources opts) "/favicon.ico")}]
+
                  ;; Open Search
                  [:link {:rel  "search" :type "application/opensearchdescription+xml"
                          :href (get (:static-resources opts) "/opensearch.xml") :title "cljdoc"}]
