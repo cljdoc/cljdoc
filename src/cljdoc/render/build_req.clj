@@ -4,7 +4,7 @@
             [cljdoc.util.repositories :as repositories]
             [cljdoc.util :as util]))
 
-(defn request-build-page [route-params]
+(defn request-build-page [route-params static-resources]
   (->> [:div
         (layout/top-bar-generic)
         [:div.pa4-ns.pa2
@@ -19,4 +19,5 @@
            [:div
             [:p "We also can't find it on Clojars or Maven Central, which at this time, is required to build documentation."]
             [:p [:a.no-underline.blue {:href (util/github-url :issues)} "Let us know if this is unexpected."]]])]]
-       (layout/page {:title (str "Build docs for " (util/clojars-id route-params))})))
+       (layout/page {:title (str "Build docs for " (util/clojars-id route-params))
+                     :static-resources static-resources})))

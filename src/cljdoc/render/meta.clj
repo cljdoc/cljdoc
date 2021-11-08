@@ -6,7 +6,7 @@
    [:td.pv2.pr2.pl3.bb.b--black-20.nowrap.tr key]
    [:td.pv2.pr3.pl2.bb.b--black-20 desc]])
 
-(defn shortcuts []
+(defn shortcuts [context]
   (->> [:div
         (layout/top-bar-generic)
         [:div.pa4-ns.pa2.w-auto.flex.justify-center
@@ -18,4 +18,5 @@
              (shortcut "⌘ K" "Jump to recently viewed docs")
              (shortcut "←" "Move to previous page")
              (shortcut "→" "Move to next page")]]]]]]
-       (layout/page {:title "shortcuts"})))
+       (layout/page {:title "shortcuts"
+                     :static-resources (:static-resources context)})))
