@@ -77,7 +77,7 @@
                                                                        :static-resources (:static-resources ctx)}))
                    (let [resp {:status 404
                                :headers {"Content-Type" "text/html"}
-                               :body (str (render-build-req/request-build-page path-params))}]
+                               :body (str (render-build-req/request-build-page path-params (:static-resources ctx)))}]
                      (assoc ctx :response resp))))))}))
 
 (def doc-slug-parser
@@ -134,11 +134,12 @@
   [(pu/coerce-body-conf
     (fn html-render-fn [ctx]
       (let [artifact-ent (-> ctx :request :path-params)
-            versions-data (-> ctx :response :body)]
+            versions-data (-> ctx :response :body)
+            static-resources (:static-resources ctx)]
         (case route-name
-          :artifact/index (index-pages/artifact-index artifact-ent versions-data)
-          :group/index (index-pages/group-index artifact-ent versions-data)
-          :cljdoc/index (index-pages/full-index versions-data)))))
+          :artifact/index (index-pages/artifact-index artifact-ent versions-data static-resources)
+          :group/index (index-pages/group-index artifact-ent versions-data static-resources)
+          :cljdoc/index (index-pages/full-index versions-data static-resources)))))
    (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
    (interceptor/interceptor
     {:name ::releases-loader
@@ -299,7 +300,7 @@
    {:name ::build-index
     :enter (fn build-index-render [ctx]
              (->> (build-log/recent-builds build-tracker 30)
-                  (cljdoc.render.build-log/builds-page)
+                  (cljdoc.render.build-log/builds-page ctx)
                   (pu/ok-html ctx)))}))
 
 (defn return-badge
@@ -420,7 +421,7 @@
              (if-not (http/response? (:response context))
                (assoc context :response {:status 404
                                          :headers {"Content-Type" "text/html"}
-                                         :body (error/not-found-404)})
+                                         :body (error/not-found-404 (:static-resources context))})
                context))}))
 
 (defn build-sitemap
@@ -475,11 +476,11 @@
   (->> (case route-name
          :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home %))})]
          :search     [(interceptor/interceptor {:name ::search :enter #(pu/ok-html % (render-search/search-page %))})]
-         :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts))})]
+         :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts %))})]
          :sitemap    [(sitemap-interceptor storage)]
          :show-build [(pu/coerce-body-conf
                        (fn html-render [ctx]
-                         (cljdoc.render.build-log/build-page (-> ctx :response :body))))
+                         (cljdoc.render.build-log/build-page ctx)))
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]

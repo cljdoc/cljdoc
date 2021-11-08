@@ -19,5 +19,6 @@
           [:p.f2-ns.f3.mv3.w-90-l.lh-copy "Library search:"]
           (search-form (-> context :request :query-params :q))]]]
        (layout/page {:title "cljdoc — documentation for Clojure/Script libraries"
-                     :responsive? true})
+                     :responsive? true
+                     :static-resources (:static-resources context)})
        (str)))
