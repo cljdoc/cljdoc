@@ -47,7 +47,7 @@
                       :link-text "→ Articles"
                       :link (util/github-url :userguide/articles)}
                      {:title "Offline Docs"
-                      :text "Download documentation for any project in a zip file for easy offline use while travelling or swinging in your hammock."
+                      :text "Download documentation for any project in a zip file for easy offline use while travelling or swinging in your hammock. Supports Dash and Zeal."
                       :link-text "→ Offline Docs"
                       :link (util/github-url :userguide/offline-docs)}
                      {:title "Specs, Examples, ..."
