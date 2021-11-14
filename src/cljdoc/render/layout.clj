@@ -80,7 +80,7 @@
   [:div.fixed.left-0.right-0.bottom-0.bg-washed-red.code.b--light-red.bw3.ba.dn
    {:id "no-js-warning"}
    [:script
-    (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/index.js")) "\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
+    (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/main.js")) "\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
    [:p.ph4 "Could not find JavaScript assets, please refer to " [:a.fw7.link {:href (util/github-url :running-locally)} "the documentation"] " for how to build JS assets."]])
 
 (defn page [opts contents]
