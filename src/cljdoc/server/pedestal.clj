@@ -377,6 +377,14 @@
                        :body (format "Could not find release for %s" project)})
                     (assoc ctx :response))))}))
 
+(defn favicon-interceptor
+  "Redirects from the default favicon path /favicon.ico to the content-hashed version e.g. /favicon.f23de6ad.ico."
+  []
+  (interceptor/interceptor
+    {:name ::favicon
+     :enter (fn [ctx]
+              (assoc ctx :response {:status 303 :headers {"Location" (get (:static-resources ctx) "/favicon.ico")}}))}))
+
 (def etag-interceptor
   (interceptor/interceptor
    {:name ::etag
@@ -508,7 +516,8 @@
                               (jump-interceptor)]
          :badge-for-project  [(badge-interceptor)
                               resolve-version-interceptor
-                              (last-build-loader build-tracker)])
+                              (last-build-loader build-tracker)]
+         :favicon [(favicon-interceptor)])
        (assoc route :interceptors)))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]

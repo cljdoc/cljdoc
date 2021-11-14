@@ -59,7 +59,8 @@
      :route-name :badge-for-project
      ;; Ensure at most one slash.
      ;; See https://github.com/cljdoc/cljdoc/issues/348
-     :constraints {:project #"^[^/]+(/[^/]+)?$"}]})
+     :constraints {:project #"^[^/]+(/[^/]+)?$"}]
+    ["/favicon.ico" :get nop :route-name :favicon]})
 
 (defn routes
   "Return the expanded routes given the `opts` as passed to
