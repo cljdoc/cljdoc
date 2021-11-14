@@ -447,7 +447,7 @@
   for the project that has been injected into the context by [[artifact-data-loader]]."
   (interceptor/interceptor
    {:name ::offline-bundle
-    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
+    :enter (fn offline-bundle [{:keys [cache-bundle static-resources] :as ctx}]
              (log/info "Bundling" (str (-> cache-bundle :version-entity :artifact-id) "-"
                                        (-> cache-bundle :version-entity :version) ".zip"))
              (->> (if cache-bundle
@@ -456,7 +456,7 @@
                                "Content-Disposition" (format "attachment; filename=\"%s\""
                                                              (str (-> cache-bundle :version-entity :artifact-id) "-"
                                                                   (-> cache-bundle :version-entity :version) ".zip"))}
-                     :body (offline/zip-stream cache-bundle)}
+                     :body (offline/zip-stream cache-bundle static-resources)}
                     {:status 404
                      :headers {}
                      :body "Could not find data, please request a build first"})

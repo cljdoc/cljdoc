@@ -23,6 +23,8 @@
   (:import (java.nio.file Files)
            (java.net URL)))
 
+(def static-resource-prefix "resources-compiled/public/out")
+
 (defn- ns-url
   [ns]
   {:pre [(string? ns)]}
@@ -143,7 +145,7 @@
   "Return a list of [file-path content] pairs describing a zip archive.
 
   Content may be a java.io.File or hiccup.util.RawString"
-  [{:keys [version-entity] :as cache-bundle}]
+  [{:keys [version-entity] :as cache-bundle} static-resources]
   (cljdoc-spec/assert :cljdoc.spec/cache-bundle cache-bundle)
   (let [doc-tree     (doctree/add-slug-path (-> cache-bundle :version :doc))
         scm-info     (-> cache-bundle :version :scm)
@@ -171,9 +173,9 @@
         lib-page-features (->> doc-attrs (map :page-features) (apply merge))]
     (reduce
      into
-     [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]]
-      [["assets/js/index.js" (io/file "resources-compiled/public/js/index.js")]]
-      [["assets/js/index.js.map" (io/file "resources-compiled/public/js/index.js.map")]]
+     [[["assets/cljdoc.css" (io/file (str static-resource-prefix (get static-resources "/main.css")))]]
+      [["assets/js/index.js" (io/file (str static-resource-prefix (get static-resources "/main.js")))]]
+      [["assets/js/index.js.map" (io/file (str static-resource-prefix (get static-resources "/main.js" ".map")))]]
       (assets/offline-assets :tachyons)
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page cache-bundle fix-opts)
@@ -204,11 +206,11 @@
                                            :target-path (.getParent (io/file target-file))))
               (page' {:namespace (platf/get-field ns-data :name)}))])])))
 
-(defn zip-stream [{:keys [version-entity] :as cache-bundle}]
+(defn zip-stream [{:keys [version-entity] :as cache-bundle} static-resources]
   (let [prefix (str (-> version-entity :artifact-id)
                     "-" (-> version-entity :version)
                     "/")]
-    (->> (docs-files cache-bundle)
+    (->> (docs-files cache-bundle static-resources)
          (map (fn [[k v]]
                 [(str prefix k)
                  (cond
