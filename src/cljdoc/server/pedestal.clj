@@ -317,7 +317,7 @@
           (http-client/unexceptional-status? (:status resp))
           (assoc ctx :response {:status 200
                                 :headers {"Content-Type" "image/svg+xml;charset=utf-8"
-                                          "Cache-Control" (format "public; max-age=%s" (* 30 60))}
+                                          "Cache-Control" (format "public,max-age=%s" (* 30 60))}
                                 :body (:body resp)})
 
           (> retries-left 0)
