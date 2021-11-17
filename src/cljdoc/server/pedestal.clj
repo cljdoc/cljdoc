@@ -43,7 +43,8 @@
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
             [ring.util.codec :as ring-codec]
             [lambdaisland.uri.normalize :as normalize]
-            [net.cgrand.enlive-html :as en]))
+            [net.cgrand.enlive-html :as en]
+            [clojure.string :as str]))
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
@@ -392,6 +393,21 @@
             (fn [request _opts]
               (etag/add-file-etag request false)))}))
 
+(def cache-control-interceptor
+  (interceptor/interceptor
+    {:name  ::cache-control
+     :leave (fn [ctx]
+              (if-not (get-in ctx [:response :headers "Cache-Control"])
+                (if-let [content-type (get-in ctx [:response :headers "Content-Type"])]
+                  (assoc-in ctx [:response :headers "Cache-Control"]
+                    (if (some
+                          #(contains? #{"text/css" "text/javascript" "image/svg+xml" "image/png" "image/x-icon" "text/xml"} %)
+                          (str/split content-type #";"))
+                      "max-age=31536000,immutable,public"
+                      "no-cache"))
+                  ctx)
+                ctx))}))
+
 (def static-resource-interceptor
   "Creates a map that translates static resource names to their content-hashed counterparts.
   E.g. /main.js -> /main.db58f58a.js"
@@ -536,7 +552,8 @@
                                           static-resource-interceptor
                                           redirect-trailing-slash-interceptor
                                           (ring-middlewares/not-modified)
-                                          etag-interceptor]
+                                          etag-interceptor
+                                          cache-control-interceptor]
                                          %))
       (http/create-server)
       (http/start)))
