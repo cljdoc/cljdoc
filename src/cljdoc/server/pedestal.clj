@@ -408,23 +408,26 @@
                   ctx)
                 ctx))}))
 
+(def build-static-resource-map
+  "Extracts all static resource names (content-hashed by Parcel) from the main.html file.
+   Then creates a map that translates the plain resource names to their content-hashed counterparts.
+    E.g. /main.js -> /main.db58f58a.js"
+  (memoize (fn []
+             (let [tags (en/select (en/html-resource "public/out/main.html") [#{(en/attr? :href) (en/attr? :src)}])]
+               (->> tags
+                 (#(for [tag %] (map (:attrs tag) [:href :src])))
+                 flatten
+                 (filter some?)
+                 (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
+                         (when (and prefix suffix)
+                           {(str prefix suffix) %})))
+                 (into {}))))))
+
 (def static-resource-interceptor
-  "Creates a map that translates static resource names to their content-hashed counterparts.
-  E.g. /main.js -> /main.db58f58a.js"
   (interceptor/interceptor
     {:name  ::static-resource
      :enter (fn [ctx]
-              ;TODO memoize
-              (let [tags (en/select (en/html-resource "public/out/main.html") [#{(en/attr? :href) (en/attr? :src)}])]
-                (->> tags
-                  (#(for [tag %] (map (:attrs tag) [:href :src])))
-                  flatten
-                  (filter some?)
-                  (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
-                          (when (and prefix suffix)
-                            {(str prefix suffix) %})))
-                  (into {})
-                  (assoc ctx :static-resources))))}))
+              (assoc ctx :static-resources (build-static-resource-map)))}))
 
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247
