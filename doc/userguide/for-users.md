@@ -33,5 +33,6 @@ curl -OJ https://cljdoc.org/download/reagent/reagent/0.8.1
 
 Also see the [Docsets](/doc/docsets.md) page for more information.
 
-Integrated support for tools like [Dash](https://kapeli.com/dash) and
-[Zeal](https://zealdocs.org/) is underway.
+Integrated support for offline documentation browsers - [Dash for MacOS](https://kapeli.com/dash) 
+can already download cljdoc bundles and
+support for other tools such as [Zeal](https://zealdocs.org/) is underway.
