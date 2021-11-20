@@ -43,8 +43,7 @@
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
             [ring.util.codec :as ring-codec]
             [lambdaisland.uri.normalize :as normalize]
-            [net.cgrand.enlive-html :as en]
-            [clojure.string :as str]))
+            [net.cgrand.enlive-html :as en]))
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
@@ -241,7 +240,7 @@
   "Create an interceptor that will initiate documentation builds based
   on provided form params using `analysis-service` for analysis and tracking
   build progress/state via `build-tracker`."
-  [{:keys [analysis-service build-tracker] :as deps}]
+  [{:keys [build-tracker] :as deps}]
   (interceptor/interceptor
    {:name ::request-build
     :enter (fn request-build-handler [ctx]
@@ -301,7 +300,7 @@
    {:name ::build-index
     :enter (fn build-index-render [ctx]
              (->> (build-log/recent-builds build-tracker 30)
-                  (cljdoc.render.build-log/builds-page ctx)
+                  (render-build-log/builds-page ctx)
                   (pu/ok-html ctx)))}))
 
 (defn return-badge
@@ -402,7 +401,7 @@
                   (assoc-in ctx [:response :headers "Cache-Control"]
                     (if (some
                           #(contains? #{"text/css" "text/javascript" "image/svg+xml" "image/png" "image/x-icon" "text/xml"} %)
-                          (str/split content-type #";"))
+                          (string/split content-type #";"))
                       "max-age=31536000,immutable,public"
                       "no-cache"))
                   ctx)
@@ -453,7 +452,7 @@
 
 (defn build-sitemap
   "Build a new sitemap if previous one was built longer than 60 minutes ago."
-  [{:keys [last-generated sitemap] :as state} storage]
+  [{:keys [last-generated] :as state} storage]
   (let [now (java.util.Date.)]
     (if (or (not last-generated)
             (> (- (.getTime now) (.getTime last-generated)) (* 60 60 1000)))
