@@ -42,7 +42,8 @@
             [io.pedestal.interceptor :as interceptor]
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
             [ring.util.codec :as ring-codec]
-            [lambdaisland.uri.normalize :as normalize]))
+            [lambdaisland.uri.normalize :as normalize]
+            [net.cgrand.enlive-html :as en]))
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
@@ -72,10 +73,11 @@
                  (if cache-bundle
                    (pu/ok-html ctx (html/render page-type path-params {:cache-bundle cache-bundle
                                                                        :pom (::pom-info ctx)
-                                                                       :last-build (::last-build ctx)}))
+                                                                       :last-build (::last-build ctx)
+                                                                       :static-resources (:static-resources ctx)}))
                    (let [resp {:status 404
                                :headers {"Content-Type" "text/html"}
-                               :body (str (render-build-req/request-build-page path-params))}]
+                               :body (str (render-build-req/request-build-page path-params (:static-resources ctx)))}]
                      (assoc ctx :response resp))))))}))
 
 (def doc-slug-parser
@@ -132,11 +134,12 @@
   [(pu/coerce-body-conf
     (fn html-render-fn [ctx]
       (let [artifact-ent (-> ctx :request :path-params)
-            versions-data (-> ctx :response :body)]
+            versions-data (-> ctx :response :body)
+            static-resources (:static-resources ctx)]
         (case route-name
-          :artifact/index (index-pages/artifact-index artifact-ent versions-data)
-          :group/index (index-pages/group-index artifact-ent versions-data)
-          :cljdoc/index (index-pages/full-index versions-data)))))
+          :artifact/index (index-pages/artifact-index artifact-ent versions-data static-resources)
+          :group/index (index-pages/group-index artifact-ent versions-data static-resources)
+          :cljdoc/index (index-pages/full-index versions-data static-resources)))))
    (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
    (interceptor/interceptor
     {:name ::releases-loader
@@ -237,7 +240,7 @@
   "Create an interceptor that will initiate documentation builds based
   on provided form params using `analysis-service` for analysis and tracking
   build progress/state via `build-tracker`."
-  [{:keys [analysis-service build-tracker] :as deps}]
+  [{:keys [build-tracker] :as deps}]
   (interceptor/interceptor
    {:name ::request-build
     :enter (fn request-build-handler [ctx]
@@ -297,7 +300,7 @@
    {:name ::build-index
     :enter (fn build-index-render [ctx]
              (->> (build-log/recent-builds build-tracker 30)
-                  (cljdoc.render.build-log/builds-page)
+                  (render-build-log/builds-page ctx)
                   (pu/ok-html ctx)))}))
 
 (defn return-badge
@@ -314,7 +317,7 @@
           (http-client/unexceptional-status? (:status resp))
           (assoc ctx :response {:status 200
                                 :headers {"Content-Type" "image/svg+xml;charset=utf-8"
-                                          "Cache-Control" (format "public; max-age=%s" (* 30 60))}
+                                          "Cache-Control" (format "public,max-age=%s" (* 30 60))}
                                 :body (:body resp)})
 
           (> retries-left 0)
@@ -374,12 +377,56 @@
                        :body (format "Could not find release for %s" project)})
                     (assoc ctx :response))))}))
 
+(defn favicon-interceptor
+  "Redirects from the default favicon path /favicon.ico to the content-hashed version e.g. /favicon.f23de6ad.ico."
+  []
+  (interceptor/interceptor
+    {:name ::favicon
+     :enter (fn [ctx]
+              (assoc ctx :response {:status 303 :headers {"Location" (get (:static-resources ctx) "/favicon.ico")}}))}))
+
 (def etag-interceptor
   (interceptor/interceptor
    {:name ::etag
     :leave (ring-middlewares/response-fn-adapter
             (fn [request _opts]
               (etag/add-file-etag request false)))}))
+
+(def cache-control-interceptor
+  (interceptor/interceptor
+    {:name  ::cache-control
+     :leave (fn [ctx]
+              (if-not (get-in ctx [:response :headers "Cache-Control"])
+                (if-let [content-type (get-in ctx [:response :headers "Content-Type"])]
+                  (assoc-in ctx [:response :headers "Cache-Control"]
+                    (if (some
+                          #(contains? #{"text/css" "text/javascript" "image/svg+xml" "image/png" "image/x-icon" "text/xml"} %)
+                          (string/split content-type #";"))
+                      "max-age=31536000,immutable,public"
+                      "no-cache"))
+                  ctx)
+                ctx))}))
+
+(def build-static-resource-map
+  "Extracts all static resource names (content-hashed by Parcel) from the main.html file.
+   Then creates a map that translates the plain resource names to their content-hashed counterparts.
+    E.g. /main.js -> /main.db58f58a.js"
+  (memoize (fn []
+             (let [tags (en/select (en/html-resource "public/out/main.html") [#{(en/attr? :href) (en/attr? :src)}])]
+               (->> tags
+                 (#(for [tag %] (map (:attrs tag) [:href :src])))
+                 flatten
+                 (filter some?)
+                 (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
+                         (when (and prefix suffix)
+                           {(str prefix suffix) %})))
+                 (into {}))))))
+
+(def static-resource-interceptor
+  (interceptor/interceptor
+    {:name  ::static-resource
+     :enter (fn [ctx]
+              (assoc ctx :static-resources (build-static-resource-map)))}))
 
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247
@@ -400,12 +447,12 @@
              (if-not (http/response? (:response context))
                (assoc context :response {:status 404
                                          :headers {"Content-Type" "text/html"}
-                                         :body (error/not-found-404)})
+                                         :body (error/not-found-404 (:static-resources context))})
                context))}))
 
 (defn build-sitemap
   "Build a new sitemap if previous one was built longer than 60 minutes ago."
-  [{:keys [last-generated sitemap] :as state} storage]
+  [{:keys [last-generated] :as state} storage]
   (let [now (java.util.Date.)]
     (if (or (not last-generated)
             (> (- (.getTime now) (.getTime last-generated)) (* 60 60 1000)))
@@ -426,7 +473,7 @@
   for the project that has been injected into the context by [[artifact-data-loader]]."
   (interceptor/interceptor
    {:name ::offline-bundle
-    :enter (fn offline-bundle [{:keys [cache-bundle] :as ctx}]
+    :enter (fn offline-bundle [{:keys [cache-bundle static-resources] :as ctx}]
              (log/info "Bundling" (str (-> cache-bundle :version-entity :artifact-id) "-"
                                        (-> cache-bundle :version-entity :version) ".zip"))
              (->> (if cache-bundle
@@ -435,7 +482,7 @@
                                "Content-Disposition" (format "attachment; filename=\"%s\""
                                                              (str (-> cache-bundle :version-entity :artifact-id) "-"
                                                                   (-> cache-bundle :version-entity :version) ".zip"))}
-                     :body (offline/zip-stream cache-bundle)}
+                     :body (offline/zip-stream cache-bundle static-resources)}
                     {:status 404
                      :headers {}
                      :body "Could not find data, please request a build first"})
@@ -455,11 +502,11 @@
   (->> (case route-name
          :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home %))})]
          :search     [(interceptor/interceptor {:name ::search :enter #(pu/ok-html % (render-search/search-page %))})]
-         :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts))})]
+         :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts %))})]
          :sitemap    [(sitemap-interceptor storage)]
          :show-build [(pu/coerce-body-conf
                        (fn html-render [ctx]
-                         (cljdoc.render.build-log/build-page (-> ctx :response :body))))
+                         (cljdoc.render.build-log/build-page ctx)))
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]
@@ -487,7 +534,8 @@
                               (jump-interceptor)]
          :badge-for-project  [(badge-interceptor)
                               resolve-version-interceptor
-                              (last-build-loader build-tracker)])
+                              (last-build-loader build-tracker)]
+         :favicon [(favicon-interceptor)])
        (assoc route :interceptors)))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
@@ -499,13 +547,15 @@
        ;; TODO look into this some more:
        ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
        ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-       ::http/resource-path "public"
+       ::http/resource-path "public/out"
        ::http/not-found-interceptor not-found-interceptor}
       http/default-interceptors
       (update ::http/interceptors #(into [sentry/interceptor
+                                          static-resource-interceptor
                                           redirect-trailing-slash-interceptor
                                           (ring-middlewares/not-modified)
-                                          etag-interceptor]
+                                          etag-interceptor
+                                          cache-control-interceptor]
                                          %))
       (http/create-server)
       (http/start)))

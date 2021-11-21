@@ -76,11 +76,11 @@
 (defn no-js-warning
   "A small development utility component that will show a warning when
   the browser can't retrieve the application's JS sources."
-  []
+  [opts]
   [:div.fixed.left-0.right-0.bottom-0.bg-washed-red.code.b--light-red.bw3.ba.dn
    {:id "no-js-warning"}
    [:script
-    (hiccup/raw "fetch(\"/js/index.js\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
+    (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/main.js")) "\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
    [:p.ph4 "Could not find JavaScript assets, please refer to " [:a.fw7.link {:href (util/github-url :running-locally)} "the documentation"] " for how to build JS assets."]])
 
 (defn page [opts contents]
@@ -95,7 +95,9 @@
                  ;; Google / Search Engine Tags
                  [:meta {:content (:title opts) :itemprop "name"}]
                  [:meta {:content (:description opts) :itemprop "description"}]
-                 [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :itemprop "image"}]
+                 [:meta {:content (str "https://cljdoc.org"
+                                    (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
+                         :itemprop "image"}]
 
                  ;; OpenGraph Meta Tags (should work for Twitter/Facebook)
                  ;; TODO [:meta {:content "" :property "og:url"}]
@@ -103,27 +105,32 @@
                  [:meta {:content (:title opts) :property "og:title"}]
                  [:meta {:content (:description opts) :property "og:description"}]
                  ;; Disable image for now; doesn't add much and occupies a lot of space in Slack and similar
-                 ;; [:meta {:content "https://cljdoc.org/cljdoc-logo-beta-square.png" :property "og:image"}]
+                 ;; [:meta {:content (str "https://cljdoc.org"
+                 ;;                   (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
+                 ;;  :property "og:image"}]
 
                  ;; Canonical URL
                  (when-let [url (:canonical-url opts)]
                    (assert (.startsWith url "/"))
                    [:link {:rel "canonical" :href (str "https://cljdoc.org" url)}]); TODO read domain from config
 
+                 [:link {:rel  "icon" :type "image/x-icon"
+                         :href (get (:static-resources opts) "/favicon.ico")}]
+
                  ;; Open Search
-                 [:link {:rel "search" :type "application/opensearchdescription+xml"
-                         :href "/opensearch.xml" :title "cljdoc"}]
+                 [:link {:rel  "search" :type "application/opensearchdescription+xml"
+                         :href (get (:static-resources opts) "/opensearch.xml") :title "cljdoc"}]
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (apply hiccup.page/include-css (assets/css :tachyons))
-                 (hiccup.page/include-css "/cljdoc.css")]
+                 (hiccup.page/include-css (get (:static-resources opts) "/main.css"))]
                 [:body
                  [:div.sans-serif
                   contents]
                  (when (not= :prod (config/profile))
-                   (no-js-warning))
+                   (no-js-warning opts))
                  [:div#cljdoc-switcher]
-                 [:script {:src "/js/index.js"}]
+                 [:script {:src (get (:static-resources opts) "/main.js")}]
                  (highlight-js)
                  (add-requested-features (:page-features opts))]]))
 

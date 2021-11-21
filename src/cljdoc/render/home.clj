@@ -25,7 +25,7 @@
         [:div.mt5-ns.mw7.center.pa4.pa0-l
          [:h1.ma0
           [:span.dn "cljdoc beta"]
-          [:img {:src "/cljdoc-logo.svg" :alt "cljdoc logo" :width "150px"}]]
+          [:img {:src (get (:static-resources context) "/cljdoc-logo.svg") :alt "cljdoc logo" :width "150px"}]]
          [:p.f2-ns.f3.mv3.w-90-l.lh-copy tagline]
          (search/search-form (-> context :request :query-params :q))
          [:p#examples.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]
@@ -85,7 +85,7 @@
          [:div.dtc-l.v-mid.ph5-ns.ph4
           [:p.f2-ns.f3.fw3.lh-copy.near-black "Platform-aware documentation, clearly indicating when things differ between Clojure & Clojurescript."]]
          [:div.dtc-l.v-mid.bt.bn-l.b--light-gray.pl5-l
-          [:img.db {:src "/platform-differences-example.png" :alt "Example of platform aware documentation with rum.core"}]]]
+          [:img.db {:src (get (:static-resources context) "/platform-differences-example.png") :alt "Example of platform aware documentation with rum.core"}]]]
 
         [:div.dt-l.dt--fixed.bb.b--light-gray
          [:div.dtc-l.v-mid.ph5-ns.ph4
@@ -104,5 +104,6 @@
 
         (footer)]
        (layout/page {:title "cljdoc — documentation for Clojure/Script libraries"
-                     :responsive? true})
+                     :responsive? true
+                     :static-resources (:static-resources context)})
        (str)))
