@@ -7,6 +7,7 @@
             [cljdoc.config :as config]
             [cljdoc.render.offline :as offline]
             [cljdoc.server.system :as system]
+            [cljdoc.server.pedestal :as pedestal]
             [cljdoc.server.api :as api]
             [cljdoc.storage.api :as storage]
             [cljdoc.util :as util]
@@ -31,11 +32,12 @@
                                    [:cljdoc/storage :cljdoc/sqlite])
         sys           (ig/init sys)
         store         (:cljdoc/storage sys)
-        artifact-info (util/version-entity project version)]
+        artifact-info (util/version-entity project version)
+        static-resources (pedestal/build-static-resource-map)]
     (if (storage/exists? store artifact-info)
       (let [output (io/file output)]
         (-> (storage/bundle-docs store artifact-info)
-            (offline/zip-stream)
+            (offline/zip-stream static-resources)
             (io/copy output))
         (println "Offline bundle created:" (.getCanonicalPath output)))
       (do
