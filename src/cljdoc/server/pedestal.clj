@@ -381,9 +381,9 @@
   "Redirects from the default favicon path /favicon.ico to the content-hashed version e.g. /favicon.f23de6ad.ico."
   []
   (interceptor/interceptor
-    {:name ::favicon
-     :enter (fn [ctx]
-              (assoc ctx :response {:status 303 :headers {"Location" (get (:static-resources ctx) "/favicon.ico")}}))}))
+   {:name ::favicon
+    :enter (fn [ctx]
+             (assoc ctx :response {:status 303 :headers {"Location" (get (:static-resources ctx) "/favicon.ico")}}))}))
 
 (def etag-interceptor
   (interceptor/interceptor
@@ -394,18 +394,18 @@
 
 (def cache-control-interceptor
   (interceptor/interceptor
-    {:name  ::cache-control
-     :leave (fn [ctx]
-              (if-not (get-in ctx [:response :headers "Cache-Control"])
-                (if-let [content-type (get-in ctx [:response :headers "Content-Type"])]
-                  (assoc-in ctx [:response :headers "Cache-Control"]
-                    (if (some
-                          #(contains? #{"text/css" "text/javascript" "image/svg+xml" "image/png" "image/x-icon" "text/xml"} %)
-                          (string/split content-type #";"))
-                      "max-age=31536000,immutable,public"
-                      "no-cache"))
-                  ctx)
-                ctx))}))
+   {:name  ::cache-control
+    :leave (fn [ctx]
+             (if-not (get-in ctx [:response :headers "Cache-Control"])
+               (if-let [content-type (get-in ctx [:response :headers "Content-Type"])]
+                 (assoc-in ctx [:response :headers "Cache-Control"]
+                           (if (some
+                                #(contains? #{"text/css" "text/javascript" "image/svg+xml" "image/png" "image/x-icon" "text/xml"} %)
+                                (string/split content-type #";"))
+                             "max-age=31536000,immutable,public"
+                             "no-cache"))
+                 ctx)
+               ctx))}))
 
 (def build-static-resource-map
   "Extracts all static resource names (content-hashed by Parcel) from the main.html file.
@@ -414,19 +414,19 @@
   (memoize (fn []
              (let [tags (en/select (en/html-resource "public/out/main.html") [#{(en/attr? :href) (en/attr? :src)}])]
                (->> tags
-                 (#(for [tag %] (map (:attrs tag) [:href :src])))
-                 flatten
-                 (filter some?)
-                 (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
-                         (when (and prefix suffix)
-                           {(str prefix suffix) %})))
-                 (into {}))))))
+                    (#(for [tag %] (map (:attrs tag) [:href :src])))
+                    flatten
+                    (filter some?)
+                    (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
+                            (when (and prefix suffix)
+                              {(str prefix suffix) %})))
+                    (into {}))))))
 
 (def static-resource-interceptor
   (interceptor/interceptor
-    {:name  ::static-resource
-     :enter (fn [ctx]
-              (assoc ctx :static-resources (build-static-resource-map)))}))
+   {:name  ::static-resource
+    :enter (fn [ctx]
+             (assoc ctx :static-resources (build-static-resource-map)))}))
 
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247

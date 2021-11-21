@@ -96,7 +96,7 @@
                  [:meta {:content (:title opts) :itemprop "name"}]
                  [:meta {:content (:description opts) :itemprop "description"}]
                  [:meta {:content (str "https://cljdoc.org"
-                                    (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
+                                       (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
                          :itemprop "image"}]
 
                  ;; OpenGraph Meta Tags (should work for Twitter/Facebook)

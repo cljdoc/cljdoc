@@ -151,10 +151,10 @@
     (->> [:div.mw8.center.pa2.pv5
           ;; [:pre.pa3 (pr-str build-info)]
 
-         [:span.gray "cljdoc build #" (:id build-info)]
-         [:h1.mt2.mb4
-          (str (:group_id build-info) "/" (:artifact_id build-info))
-          [:span " v" (:version build-info)]]
+          [:span.gray "cljdoc build #" (:id build-info)]
+          [:h1.mt2.mb4
+           (str (:group_id build-info) "/" (:artifact_id build-info))
+           [:span " v" (:version build-info)]]
 
           (when-not (done? build-info)
             [:div.pa3.ba.b--blue.mb3.lh-copy.ma0.br2.bw1.f4
@@ -189,11 +189,11 @@
              [:h3.mt0 "There was an error"]
              [:p.bg-washed-red.pa3.br2 (:error build-info)]
              (when-some [ex (some-> build-info :error_info nippy/thaw)]
-               (cond-> [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.nohighlight
-                        (with-out-str (stacktrace/print-stack-trace ex))]
+               (cond->  [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.nohighlight
+                         (with-out-str (stacktrace/print-stack-trace ex))]
                  (some? (ex-data ex)) (list [:p "ex-data:"]
-                                         [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll
-                                          (zp/zprint-str (ex-data ex) {:width 70})])))
+                                            [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll
+                                             (zp/zprint-str (ex-data ex) {:width 70})])))
              (when (:analysis_job_uri build-info)
                [:p.lh-copy "Please see the "
                 [:a.link.blue {:href (:analysis_job_uri build-info)} "build job"]
@@ -201,11 +201,11 @@
 
             (succeeded? build-info)
             (section
-              ""
-              [:h3.mt0 "Build successful!"]
-              [:a.f6.link.dim.ph3.pv2.mb2.dib.white.bg-blue
-               {:href (url-for-cljdoc build-info)}
-               "Continue to Documentation →"])
+             ""
+             [:h3.mt0 "Build successful!"]
+             [:a.f6.link.dim.ph3.pv2.mb2.dib.white.bg-blue
+              {:href (url-for-cljdoc build-info)}
+              "Continue to Documentation →"])
 
             :else
             [:script
@@ -217,8 +217,8 @@
            " or "
            [:a.link.blue {:href (util/github-url :issues)} "open an issue on GitHub"]
            ". Thanks!"]]
-      (layout/page {:title            (str "cljdoc build #" (:id build-info))
-                    :static-resources (:static-resources context)}))))
+         (layout/page {:title            (str "cljdoc build #" (:id build-info))
+                       :static-resources (:static-resources context)}))))
 
 (defn seconds-diff [d1 d2]
   (let [s (.getSeconds
