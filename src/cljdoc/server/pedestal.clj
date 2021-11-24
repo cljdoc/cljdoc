@@ -390,12 +390,13 @@
     :leave (fn [ctx]
              (if-not (get-in ctx [:response :headers "Cache-Control"])
                (if-let [content-type (get-in ctx [:response :headers "Content-Type"])]
-                 (assoc-in ctx [:response :headers "Cache-Control"]
-                           (if (some
-                                #(contains? #{"text/css" "text/javascript" "image/svg+xml" "image/png" "image/x-icon" "text/xml"} %)
-                                (string/split content-type #";"))
-                             "max-age=31536000,immutable,public"
-                             "no-cache"))
+                 (let [cacheable-content-type? (fn [content-type]
+                                                 (some
+                                                  #(contains? #{"text/css" "text/javascript" "image/svg+xml"
+                                                                "image/png" "image/x-icon" "text/xml"} %)
+                                                  (string/split content-type #";")))]
+                   (assoc-in ctx [:response :headers "Cache-Control"]
+                             (if (cacheable-content-type? content-type) "max-age=31536000,immutable,public" "no-cache")))
                  ctx)
                ctx))}))
 
