@@ -80,7 +80,7 @@
   [:div.fixed.left-0.right-0.bottom-0.bg-washed-red.code.b--light-red.bw3.ba.dn
    {:id "no-js-warning"}
    [:script
-    (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/main.js")) "\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
+    (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/cljdoc.js")) "\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
    [:p.ph4 "Could not find JavaScript assets, please refer to " [:a.fw7.link {:href (util/github-url :running-locally)} "the documentation"] " for how to build JS assets."]])
 
 (defn page [opts contents]
@@ -114,8 +114,7 @@
                    (assert (.startsWith url "/"))
                    [:link {:rel "canonical" :href (str "https://cljdoc.org" url)}]); TODO read domain from config
 
-                 [:link {:rel  "icon" :type "image/x-icon"
-                         :href (get (:static-resources opts) "/favicon.ico")}]
+                 [:link {:rel  "icon" :type "image/x-icon" :href "/favicon.ico"}]
 
                  ;; Open Search
                  [:link {:rel  "search" :type "application/opensearchdescription+xml"
@@ -123,14 +122,14 @@
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (apply hiccup.page/include-css (assets/css :tachyons))
-                 (hiccup.page/include-css (get (:static-resources opts) "/main.css"))]
+                 (hiccup.page/include-css (get (:static-resources opts) "/cljdoc.css"))]
                 [:body
                  [:div.sans-serif
                   contents]
                  (when (not= :prod (config/profile))
                    (no-js-warning opts))
                  [:div#cljdoc-switcher]
-                 [:script {:src (get (:static-resources opts) "/main.js")}]
+                 [:script {:src (get (:static-resources opts) "/cljdoc.js")}]
                  (highlight-js)
                  (add-requested-features (:page-features opts))]]))
 

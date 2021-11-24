@@ -377,14 +377,6 @@
                        :body (format "Could not find release for %s" project)})
                     (assoc ctx :response))))}))
 
-(defn favicon-interceptor
-  "Redirects from the default favicon path /favicon.ico to the content-hashed version e.g. /favicon.f23de6ad.ico."
-  []
-  (interceptor/interceptor
-   {:name ::favicon
-    :enter (fn [ctx]
-             (assoc ctx :response {:status 303 :headers {"Location" (get (:static-resources ctx) "/favicon.ico")}}))}))
-
 (def etag-interceptor
   (interceptor/interceptor
    {:name ::etag
@@ -408,11 +400,11 @@
                ctx))}))
 
 (def build-static-resource-map
-  "Extracts all static resource names (content-hashed by Parcel) from the main.html file.
+  "Extracts all static resource names (content-hashed by Parcel) from the cljdoc.html file.
    Then creates a map that translates the plain resource names to their content-hashed counterparts.
-    E.g. /main.js -> /main.db58f58a.js"
+    E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
   (memoize (fn []
-             (let [tags (en/select (en/html-resource "public/out/main.html") [#{(en/attr? :href) (en/attr? :src)}])]
+             (let [tags (en/select (en/html-resource "public/out/cljdoc.html") [#{(en/attr? :href) (en/attr? :src)}])]
                (->> tags
                     (#(for [tag %] (map (:attrs tag) [:href :src])))
                     flatten
@@ -534,8 +526,7 @@
                               (jump-interceptor)]
          :badge-for-project  [(badge-interceptor)
                               resolve-version-interceptor
-                              (last-build-loader build-tracker)]
-         :favicon [(favicon-interceptor)])
+                              (last-build-loader build-tracker)])
        (assoc route :interceptors)))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]

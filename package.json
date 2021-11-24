@@ -3,8 +3,8 @@
   "scripts": {
     "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
     "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
-    "dev": "parcel watch resources/public/main.html --dist-dir resources-compiled/public/out --public-url /",
-    "build": "parcel build resources/public/main.html --dist-dir resources-compiled/public/out --public-url /",
+    "dev": "parcel watch resources/public/cljdoc.html --dist-dir resources-compiled/public/out",
+    "build": "parcel build resources/public/cljdoc.html --dist-dir resources-compiled/public/out",
     "prepare": "husky install",
     "typecheck": "npx tsc --watch"
   },
