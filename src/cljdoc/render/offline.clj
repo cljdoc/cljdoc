@@ -23,8 +23,6 @@
   (:import (java.nio.file Files)
            (java.net URL)))
 
-(def static-resource-prefix "resources-compiled/public/out")
-
 (defn- ns-url
   [ns]
   {:pre [(string? ns)]}
@@ -173,9 +171,9 @@
         lib-page-features (->> doc-attrs (map :page-features) (apply merge))]
     (reduce
      into
-     [[["assets/cljdoc.css" (io/file (str static-resource-prefix (get static-resources "/main.css")))]]
-      [["assets/js/index.js" (io/file (str static-resource-prefix (get static-resources "/main.js")))]]
-      [["assets/js/index.js.map" (io/file (str static-resource-prefix (get static-resources "/main.js" ".map")))]]
+     [[["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
+      [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
+      [["assets/js/index.js.map" (io/resource (str "public/out" (get static-resources "/cljdoc.js" ".map")))]]
       (assets/offline-assets :tachyons)
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page cache-bundle fix-opts)
