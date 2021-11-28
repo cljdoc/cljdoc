@@ -1,10 +1,4 @@
-{"manifold/manifold" {:cljdoc.doc/tree [["Readme" {:file "README.md"}]
-                                        ["Rationale" {:file "docs/rationale.md"}]
-                                        ["Deferreds" {:file "docs/deferred.md"}]
-                                        ["Streams" {:file "docs/stream.md"}]
-                                        ["Execution" {:file "docs/execution.md"}]]}
-
- "yada/yada" {:cljdoc.doc/tree [["Readme" {:file "README.md"}]
+{"yada/yada" {:cljdoc.doc/tree [["Readme" {:file "README.md"}]
                                 ["Preface" {:file "doc/preface.adoc"}]
                                 ["Basics" {}
                                  ["Introduction" {:file "doc/intro.adoc"}]
