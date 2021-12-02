@@ -404,8 +404,8 @@
   "Extracts all static resource names (content-hashed by Parcel) from the cljdoc.html file.
    Then creates a map that translates the plain resource names to their content-hashed counterparts.
     E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
-  (memoize (fn []
-             (let [tags (en/select (en/html-resource "public/out/cljdoc.html") [#{(en/attr? :href) (en/attr? :src)}])]
+  (memoize (fn [html-path]
+             (let [tags (en/select (en/html-resource html-path) [#{(en/attr? :href) (en/attr? :src)}])]
                (->> tags
                     (#(for [tag %] (map (:attrs tag) [:href :src])))
                     flatten
@@ -419,7 +419,7 @@
   (interceptor/interceptor
    {:name  ::static-resource
     :enter (fn [ctx]
-             (assoc ctx :static-resources (build-static-resource-map)))}))
+             (assoc ctx :static-resources (build-static-resource-map "public/out/cljdoc.html")))}))
 
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247
