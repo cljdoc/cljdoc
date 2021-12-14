@@ -173,7 +173,7 @@
      into
      [[["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
       [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
-      [["assets/js/index.js.map" (io/resource (str "public/out" (get static-resources "/cljdoc.js" ".map")))]]
+      [["assets/js/index.js.map" (io/resource (str "public/out" (get static-resources "/cljdoc.js") ".map"))]]
       (assets/offline-assets :tachyons)
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page cache-bundle fix-opts)
