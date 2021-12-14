@@ -168,12 +168,14 @@
                        (map #(assoc % :page-features
                                     (rich-text/determine-features (:doc-tuple %)))))
         ;; naive for now, assume a feature's value is always simply `true`
-        lib-page-features (->> doc-attrs (map :page-features) (apply merge))]
+        lib-page-features (->> doc-attrs (map :page-features) (apply merge))
+        source-map (str (get static-resources "/cljdoc.js") ".map")]
     (reduce
      into
      [[["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
       [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
-      [["assets/js/index.js.map" (io/resource (str "public/out" (get static-resources "/cljdoc.js") ".map"))]]
+      ;; use content-hashed name for source map to preserve link to index.js
+      [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
       (assets/offline-assets :tachyons)
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page cache-bundle fix-opts)
