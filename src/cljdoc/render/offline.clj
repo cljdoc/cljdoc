@@ -143,7 +143,7 @@
   "Return a list of [file-path content] pairs describing a zip archive.
 
   Content may be a java.io.File or hiccup.util.RawString"
-  [{:keys [version-entity] :as cache-bundle}]
+  [{:keys [version-entity] :as cache-bundle} static-resources]
   (cljdoc-spec/assert :cljdoc.spec/cache-bundle cache-bundle)
   (let [doc-tree     (doctree/add-slug-path (-> cache-bundle :version :doc))
         scm-info     (-> cache-bundle :version :scm)
@@ -168,12 +168,14 @@
                        (map #(assoc % :page-features
                                     (rich-text/determine-features (:doc-tuple %)))))
         ;; naive for now, assume a feature's value is always simply `true`
-        lib-page-features (->> doc-attrs (map :page-features) (apply merge))]
+        lib-page-features (->> doc-attrs (map :page-features) (apply merge))
+        source-map (str (get static-resources "/cljdoc.js") ".map")]
     (reduce
      into
-     [[["assets/cljdoc.css" (io/file (io/resource "public/cljdoc.css"))]]
-      [["assets/js/index.js" (io/file "resources-compiled/public/js/index.js")]]
-      [["assets/js/index.js.map" (io/file "resources-compiled/public/js/index.js.map")]]
+     [[["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
+      [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
+      ;; use content-hashed name for source map to preserve link to index.js
+      [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
       (assets/offline-assets :tachyons)
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page cache-bundle fix-opts)
@@ -204,11 +206,11 @@
                                            :target-path (.getParent (io/file target-file))))
               (page' {:namespace (platf/get-field ns-data :name)}))])])))
 
-(defn zip-stream [{:keys [version-entity] :as cache-bundle}]
+(defn zip-stream [{:keys [version-entity] :as cache-bundle} static-resources]
   (let [prefix (str (-> version-entity :artifact-id)
                     "-" (-> version-entity :version)
                     "/")]
-    (->> (docs-files cache-bundle)
+    (->> (docs-files cache-bundle static-resources)
          (map (fn [[k v]]
                 [(str prefix k)
                  (cond

@@ -14,7 +14,7 @@
                   :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn artifact-index
-  [{:keys [group-id artifact-id] :as artifact-entity} versions-tree]
+  [{:keys [group-id artifact-id] :as artifact-entity} versions-tree static-resources]
   (let [matching  (get-in versions-tree [group-id artifact-id])
         others    (-> (get-in versions-tree [group-id])
                       (dissoc artifact-id))
@@ -51,7 +51,8 @@
                    {:href (routes/url-for :artifact/index :path-params {:group-id group-id :artifact-id artifact-id :version latest})}
                    a-text]])]])]]
          (layout/page {:title (str (util/clojars-id artifact-entity) " — cljdoc")
-                       :description (layout/description artifact-entity)}))))
+                       :description (layout/description artifact-entity)
+                       :static-resources static-resources}))))
 
 (defn- artifact-grid-cell [artifact-entity]
   [:div.w-third-ns.fl-ns.pa2
@@ -70,7 +71,7 @@
                   :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn group-index
-  [group-entity versions-tree]
+  [group-entity versions-tree static-resources]
   (let [group-id (:group-id group-entity)]
     (->> [:div
           (layout/top-bar-generic)
@@ -86,13 +87,14 @@
                  (artifact-grid-cell {:group-id group-id :artifact-id a-id :version latest-version}))]])]]
          (layout/page {:title (str group-id " — cljdoc")
                        :description (format "All artifacts under the group-id %s for which there is documenation on cljdoc"
-                                            group-id)}))))
+                                            group-id)
+                       :static-resources static-resources}))))
 
 (spec/fdef full-index
   :args (spec/cat :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn full-index
-  [versions-tree]
+  [versions-tree static-resources]
   (->> [:div
         (layout/top-bar-generic)
         [:div.pa4-ns.pa2
@@ -105,7 +107,8 @@
              (for [[a-id versions-for-artifact] groups-artifact-id->versions
                    :let [latest-version (first versions-for-artifact)]]
                (artifact-grid-cell {:group-id group-id :artifact-id a-id :version latest-version}))]])]]
-       (layout/page {:title "all documented artifacts — cljdoc"})))
+       (layout/page {:title "all documented artifacts — cljdoc"
+                     :static-resources static-resources})))
 
 (defn sort-by-version [version-entities]
   (sort-by :version #(- (v/version-compare %1 %2)) version-entities))

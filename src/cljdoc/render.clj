@@ -19,7 +19,7 @@
   (format "%s not implemented, sorry" page-type))
 
 (defmethod render :artifact/version
-  [_ route-params {:keys [cache-bundle pom last-build]}]
+  [_ route-params {:keys [cache-bundle pom last-build static-resources]}]
   (let [version-entity (:version-entity cache-bundle)]
     (->> (layout/layout
           ;; TODO on mobile this will effectively be rendered as a blank page
@@ -27,10 +27,11 @@
           {:top-bar (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
            :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)})
          (layout/page {:title (str (util/clojars-id version-entity) " " (:version version-entity))
-                       :description (layout/artifact-description version-entity (:description pom))}))))
+                       :description (layout/artifact-description version-entity (:description pom))
+                       :static-resources static-resources}))))
 
 (defmethod render :artifact/doc
-  [_ route-params {:keys [cache-bundle pom last-build]}]
+  [_ route-params {:keys [cache-bundle pom last-build static-resources]}]
   (assert (:doc-slug-path route-params))
   (let [version-entity (:version-entity cache-bundle)
         doc-slug-path (:doc-slug-path route-params)
@@ -80,10 +81,11 @@
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
                        :description (layout/artifact-description version-entity (:description pom))
-                       :page-features (when doc-type (rich-text/determine-features [doc-type contents]))}))))
+                       :page-features (when doc-type (rich-text/determine-features [doc-type contents]))
+                       :static-resources static-resources}))))
 
 (defmethod render :artifact/namespace
-  [_ route-params {:keys [cache-bundle pom last-build]}]
+  [_ route-params {:keys [cache-bundle pom last-build static-resources]}]
   (assert (:namespace route-params))
   (let [version-entity (:version-entity cache-bundle)
         ns-emap route-params
@@ -120,7 +122,8 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/namespace :path-params))
-                       :description (layout/artifact-description version-entity (:description pom))}))))
+                       :description (layout/artifact-description version-entity (:description pom))
+                       :static-resources static-resources}))))
 
 (comment
 
