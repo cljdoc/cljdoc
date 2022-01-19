@@ -35,6 +35,17 @@ The cljdoc web site then draws on this database to present library docs to cljdo
 Note that while most Clojure developers host their source on github, gitlab and
 bitbucket are also supported source code repositories.
 
+== Database Overview
+
+Cljdoc makes use of two sqlite databases.
+The schemas are small and simple.
+
+Some data is stored in nippy blobs.
+Nippy is fast and stores data compactly, but makes data opaque when viewing a raw database.
+This little database overview diagram should help.
+
+image::database-overview.svg[]
+
 == Conventions
 
 === Diagrams
