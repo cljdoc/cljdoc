@@ -1,6 +1,6 @@
-FROM openjdk:8-jre-alpine
+FROM eclipse-temurin:17-alpine
 
-ENV CLOJURE_VERSION=1.10.3.822
+ENV CLOJURE_VERSION=1.10.3.1058
 
 WORKDIR /tmp
 
@@ -22,5 +22,5 @@ RUN clojure -Stree -M:cli
 COPY . /app
 
 EXPOSE 8000
-# Docker JDK8 Options taken from https://royvanrijn.com/blog/2018/05/java-and-docker-memory-limits/
-ENTRYPOINT ["clojure", "-J-XX:+UnlockExperimentalVMOptions", "-J-XX:+UseCGroupMemoryLimitForHeap", "-M", "-m", "cljdoc.server.system"]
+
+ENTRYPOINT ["clojure", "-M", "-m", "cljdoc.server.system"]
