@@ -156,6 +156,14 @@ tar -xf backup.tar.gz -C "${data_dir}"
 rm backup.tar.gz
 ----
 
+== Host
+
+By default the cljdoc web server binds to `localhost`.
+This is a safe default for development work.
+
+In production, we run the cljdoc web server from a docker container.
+The production docker container launches the cljdoc web server with the `cljdoc.host` JVM system property to override the `localhost` default to `0.0.0.0`.
+
 == SSL Certificates
 
 https://traefik.io[Traefik] generates SSL certificates on demand but seems to have minor

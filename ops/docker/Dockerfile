@@ -23,4 +23,4 @@ COPY . /app
 
 EXPOSE 8000
 
-ENTRYPOINT ["clojure", "-M", "-m", "cljdoc.server.system"]
+ENTRYPOINT ["clojure", "-J-Dcljdoc.host=0.0.0.0", "-M", "-m", "cljdoc.server.system"]
