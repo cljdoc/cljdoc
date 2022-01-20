@@ -17,7 +17,7 @@ clean:
 cljdoc-build: ../../target/cljdoc.zip
 	unzip ../../target/cljdoc.zip -d cljdoc-build/
 
-image: clean cljdoc-build
+image: cljdoc-build
 	cp Dockerfile cljdoc-build/
 	docker build --no-cache -t $(DOCKER_IMAGE):$(CLJDOC_VERSION) cljdoc-build/ && \
           docker tag $(DOCKER_IMAGE):$(CLJDOC_VERSION) $(DOCKER_IMAGE):latest
