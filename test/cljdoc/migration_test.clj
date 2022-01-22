@@ -33,4 +33,4 @@
                                       (update acc mbase (fnil conj #{}) dir))
                                     {}))]
     (doseq [[mbase dirs] sql-migrations]
-      (t/is (= #{ "up" "down"} dirs) mbase))))
+      (t/is (= #{"up" "down"} dirs) mbase))))
