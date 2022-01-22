@@ -6,8 +6,7 @@
  :cljdoc/version #profile {:prod #slurp "CLJDOC_VERSION"
                            :default "dev"}
  :cljdoc/server {:port 8000
-                 :host #profile {:prod "cljdoc.org"
-                                 :default "localhost"}
+                 :host #or [#prop cljdoc.host "localhost"]
                  :analysis-service #profile {:default :local
                                              :prod :circle-ci}
                  :autobuild-clojars-releases? #profile {:default false
