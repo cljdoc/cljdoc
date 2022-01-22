@@ -1,6 +1,5 @@
 (ns cljdoc.render.build-log
-  (:require [clojure.stacktrace :as stacktrace]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [cljdoc.render.layout :as layout]
             [cljdoc.util :as util]
             [cljdoc.util.datetime :as dt]
@@ -188,12 +187,9 @@
              ""
              [:h3.mt0 "There was an error"]
              [:p.bg-washed-red.pa3.br2 (:error build-info)]
-             (when-some [ex (some-> build-info :error_info nippy/thaw)]
-               (cond->  [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.nohighlight
-                         (with-out-str (stacktrace/print-stack-trace ex))]
-                 (some? (ex-data ex)) (list [:p "ex-data:"]
-                                            [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll
-                                             (zp/zprint-str (ex-data ex) {:width 70})])))
+             (when-some [ex-data (some-> build-info :error_info_map nippy/thaw)]
+               [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.nohighlight
+                (zp/zprint-str ex-data)])
              (when (:analysis_job_uri build-info)
                [:p.lh-copy "Please see the "
                 [:a.link.blue {:href (:analysis_job_uri build-info)} "build job"]

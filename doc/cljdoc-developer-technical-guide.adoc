@@ -46,6 +46,12 @@ This little database overview diagram should help.
 
 image::database-overview.svg[]
 
+Historical notes:
+
+* `builds.error_info` is obsolete.
+** It stored a nippy blob of the exception object
+** It is replaced by `builds.error_info_map`, which stores a nippy blob of a map representation of the exception
+ 
 == Conventions
 
 === Diagrams

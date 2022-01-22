@@ -15,6 +15,7 @@
             [unilog.config :as unilog]
             [ragtime.jdbc :as jdbc]
             [ragtime.core :as ragtime]
+            [ragtime.clj.core] ;; allow Clojure-based migrations
             [taoensso.nippy :as nippy]
             [tea-time.core :as tt]))
 
