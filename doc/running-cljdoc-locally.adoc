@@ -38,15 +38,15 @@ While it is also a viable path for a *library author*, a library author might pr
 To run cljdoc from source, you must first install these dependencies:
 
 * https://nodejs.org/en/[Node.js]
-* https://adoptopenjdk.net/?variant=openjdk8&jvmVariant=hotspot[Java Development Kit 8] - cljdoc currently runs on JDK8 in production so best to make sure you are running JDK8.
+* https://adoptium.net/?variant=openjdk17&jvmVariant=hotspot[Java Development Kit 17] - the cljdoc web server currently runs on JDK17 in production, so ideally, you'll want to be developing with JDK17 too.
 Example of a valid JDK:
 +
 [source,sh]
 ----
 $ java -version
-openjdk version "1.8.0_265"
-OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_265-b01)
-OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.265-b01, mixed mode)
+openjdk version "17.0.1" 2021-10-19
+OpenJDK Runtime Environment Temurin-17.0.1+12 (build 17.0.1+12)
+OpenJDK 64-Bit Server VM Temurin-17.0.1+12 (build 17.0.1+12, mixed mode, sharing)
 ----
 * https://clojure.org/guides/getting_started[Clojure CLI tools] - make sure you have upgraded to the current version
 * https://github.com/babashka/babashka[Babashka] - some of our scripts are written in babashka
