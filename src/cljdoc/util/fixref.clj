@@ -115,6 +115,12 @@
                     (routes/url-for :artifact/doc :path-params))]))
        (into {})))
 
+(defn- parse-html [html-str]
+  (let [doc (Jsoup/parse html-str)
+        props (.outputSettings doc)]
+    (.prettyPrint props false)
+    doc))
+
 (defn fix
   "Rewrite references in HTML produced from rendering markdown.
 
@@ -141,7 +147,7 @@
     * `:uri-map` - map of relative scm paths to cljdoc doc slugs (or for offline bundles html files)
     * `:scm` - scm-info from bundle used to link to correct SCM file revision"
   [html-str {:keys [scm-file-path target-path scm uri-map] :as _fix-opts}]
-  (let [doc (Jsoup/parse html-str)]
+  (let [doc (parse-html html-str)]
     (doseq [scm-relative-link (->> (.select doc "a")
                                    (map #(.attributes %))
                                    (remove #(= "wikilink" (.get % "data-source")))

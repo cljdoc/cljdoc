@@ -18,7 +18,7 @@
   (t/testing "favors git tag representing version, when present, over commit"
     (t/is (= ["<a href=\"https://scm/user/project/blob/v1.2.3/doc/doc.md\" rel=\"nofollow\">my doc</a>"
               "<img src=\"https://scm/user/project/raw/v1.2.3/doc/images/one.png\">"]
-             (fix-result (fixref/fix (str "<a href=\"doc.md\">my doc</a>"
+             (fix-result (fixref/fix (str "<a href=\"doc.md\">my doc</a>\n"
                                           "<img src=\"images/one.png\">")
                                      (assoc-in fix-opts [:scm :tag :name] "v1.2.3"))))))
 
@@ -46,7 +46,7 @@
       (t/is (= ["<a href=\"#!cljdoc-error!ref-must-be-root-relative!\">link text</a>"
                 "<img src=\"#!cljdoc-error!ref-must-be-root-relative!\">"]
                (fix-result
-                (fixref/fix (str "<a href=\"rel/ref/here.md\">link text</a>"
+                (fixref/fix (str "<a href=\"rel/ref/here.md\">link text</a>\n"
                                  "<img src=\"rel/ref/here.png\">")
                             (dissoc fix-opts :scm-file-path)))))))
 
@@ -55,7 +55,7 @@
       (t/is (= ["<a href=\"https://clojure.org\" rel=\"nofollow\">absolute link elsewhere</a>"
                 "<a href=\"http://unsecure.com\" rel=\"nofollow\">absolutely insecure</a>"]
                (fix-result
-                (fixref/fix (str "<a href=\"https://clojure.org\">absolute link elsewhere</a>"
+                (fixref/fix (str "<a href=\"https://clojure.org\">absolute link elsewhere</a>\n"
                                  "<a href=\"http://unsecure.com\">absolutely insecure</a>")
                             fix-opts))))))
 
@@ -64,7 +64,7 @@
       (t/is (= ["<a href=\"/some/path/here\">absolute link to cljdoc</a>"
                 "<a href=\"/another/path\">absolute link to cljdoc.xyz</a>"]
                (fix-result
-                (fixref/fix (str "<a href=\"https://cljdoc.org/some/path/here\">absolute link to cljdoc</a>"
+                (fixref/fix (str "<a href=\"https://cljdoc.org/some/path/here\">absolute link to cljdoc</a>\n"
                                  "<a href=\"https://cljdoc.xyz/another/path\">absolute link to cljdoc.xyz</a>")
                             fix-opts))))))
 
@@ -75,9 +75,9 @@
                 "<a href=\"https://scm/user/project/blob/#SHA#/norm2.adoc\" rel=\"nofollow\">norm2</a>"
                 "<a href=\"https://scm/user/project/blob/#SHA#/../../../norm2.adoc\" rel=\"nofollow\">norm2</a>"]
                (fix-result
-                (fixref/fix (str "<a href=\"down/deeper/to/doc.adoc\">relative link</a>"
-                                 "<a href=\"../upone/norm1.adoc\">norm1</a>"
-                                 "<a href=\"../../norm2.adoc\">norm2</a>"
+                (fixref/fix (str "<a href=\"down/deeper/to/doc.adoc\">relative link</a>\n"
+                                 "<a href=\"../upone/norm1.adoc\">norm1</a>\n"
+                                 "<a href=\"../../norm2.adoc\">norm2</a>\n"
                                  "<a href=\"../../../../../norm2.adoc\">norm2</a>")
                             (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
     (t/testing "when root relative, will point to normalized scm project root"
@@ -85,8 +85,8 @@
                 "<a href=\"https://scm/user/project/blob/#SHA#/root/a/d/doc.md\" rel=\"nofollow\">root relative link</a>"
                 "<a href=\"https://scm/user/project/blob/#SHA#/doc.md\" rel=\"nofollow\">root relative link</a>"]
                (fix-result
-                (fixref/fix (str "<a href=\"/root/relative/doc.md\">root relative link</a>"
-                                 "<a href=\"/root/./././relative/../a/b/c/../../d/doc.md\">root relative link</a>"
+                (fixref/fix (str "<a href=\"/root/relative/doc.md\">root relative link</a>\n"
+                                 "<a href=\"/root/./././relative/../a/b/c/../../d/doc.md\">root relative link</a>\n"
                                  "<a href=\"/root/relative/../../../../../doc.md\">root relative link</a>")
                             fix-opts)))))
     (t/testing "work with sourcehut"
@@ -122,16 +122,16 @@
                 "<img src=\"https://scm/user/project/raw/#SHA#/homages/rel3.png\">"
                 "<img src=\"https://scm/user/project/raw/#SHA#/../../../../../../../../rel4.png\">"]
                (fix-result
-                (fixref/fix (str "<img src=\"rel1.png\">"
-                                 "<img src=\"../../images/rel2.png\">"
-                                 "<img src=\"../../images/../homages/./././rel3.png\">"
+                (fixref/fix (str "<img src=\"rel1.png\">\n"
+                                 "<img src=\"../../images/rel2.png\">\n"
+                                 "<img src=\"../../images/../homages/./././rel3.png\">\n"
                                  "<img src=\"../../../../../../../../../../rel4.png\">")
                             (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
     (t/testing "when root relative, will point point to scm raw ref"
       (t/is (= ["<img src=\"https://scm/user/project/raw/#SHA#/root/relative/image.png\">"
                 "<img src=\"https://scm/user/project/raw/#SHA#/root/relative/.././image.png\">"]
                (fix-result
-                (fixref/fix (str "<img src=\"/root/relative/image.png\">"
+                (fixref/fix (str "<img src=\"/root/relative/image.png\">\n"
                                  "<img src=\"/root/relative/.././image.png\">")
                             (assoc fix-opts :scm-file-path "doc/path/doc.adoc"))))))
     (t/testing "can be svg"

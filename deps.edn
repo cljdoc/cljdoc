@@ -28,7 +28,7 @@
         io.sentry/sentry-logback {:mvn/version "1.7.25"},
         com.jcraft/jsch.agentproxy.connector-factory {:mvn/version "0.0.9"},
         org.clojure/core.match {:mvn/version "0.3.0"},
-        org.jsoup/jsoup {:mvn/version "1.12.1"},
+        org.jsoup/jsoup {:mvn/version "1.14.3"},
         org.xerial/sqlite-jdbc {:mvn/version "3.28.0"},
         com.layerware/hugsql {:mvn/version "0.4.9"}
         com.taoensso/tufte {:mvn/version "2.0.1"}
