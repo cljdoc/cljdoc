@@ -51,7 +51,7 @@
   (failed! [this build-id error e]
     (telegram/build-failed (assoc (get-build this build-id) :error error))
     (sql/update! db-spec "builds" (cond-> {:error error}
-                                    e (assoc :error_info (nippy/freeze e)))
+                                    e (assoc :error_info_map (nippy/freeze (Throwable->map e))))
                  ["id = ?" build-id]))
   (api-imported! [this build-id namespaces-count]
     (sql/update! db-spec

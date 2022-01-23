@@ -1,28 +1,36 @@
 (ns cljdoc.migration-test
+  "A lint, of sorts, for ragtime database migration filenames"
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.test :as t]
             [me.raynes.fs :as fs]))
 
-(t/deftest migration-names-test
-  (let [names (reduce
-               (fn [names file]
-                 (let [base (fs/base-name (.getPath file))]
-                   (update names (first (str/split base #"-")) (fnil conj #{}) base)))
-               {}
-               (fs/list-dir (io/resource "migrations")))]
-    (t/is (every?
-           true?
-           (map-indexed
-            (fn [i prefix]
-              (let [base (-> prefix
-                             names
-                             first
-                             (str/replace #"\.(up|down)\.sql$" ""))
-                    expected-names (set (map #(str base "." % ".sql") ["up" "down"]))]
-                (and (= (inc i) (try (Long/parseLong prefix) (catch Exception _e)))
-                     (= (names prefix) expected-names))))
-            (sort (keys names)))))))
+(defn- migration-files []
+  (->> (fs/list-dir (io/resource "migrations"))
+       (mapv #(fs/base-name (.getPath %)))))
 
-(comment
-  (t/run-tests))
+(t/deftest migrations-are-clj-or-sql
+  (doseq [mfile (migration-files)]
+    (t/is (or (str/ends-with? mfile ".clj")
+              (str/ends-with? mfile ".sql"))
+          mfile)))
+
+(t/deftest migration-nums-are-sequential-and-have-no-gaps
+  (let [migration-nums (->> (migration-files)
+                            (mapv #(let [re-sep (if (str/ends-with? % ".sql") #"-" #"_")]
+                                     (first (str/split % re-sep))))
+                            distinct
+                            sort)
+        expected-nums (->> (range 1 (inc (count migration-nums)))
+                           (mapv #(format "%03d" %)))]
+    (t/is (= expected-nums migration-nums))))
+
+(t/deftest sql-migrations-have-up-and-down
+  (let [sql-migrations (->> (migration-files)
+                            (filter #(str/ends-with? % ".sql"))
+                            (mapv #(rest (re-find #"(.+)\.(.+?).sql" %)))
+                            (reduce (fn [acc [mbase dir]]
+                                      (update acc mbase (fnil conj #{}) dir))
+                                    {}))]
+    (doseq [[mbase dirs] sql-migrations]
+      (t/is (= #{"up" "down"} dirs) mbase))))
