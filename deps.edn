@@ -84,6 +84,6 @@
                          deps-deploy/deps-deploy {:mvn/version "0.0.9"}}}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "0.13.0"}
-                           org.slf4j/slf4j-simple {:mvn/version "1.7.30"}} ;; to rid ourselves of logger warnings
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.4.0"}
+                           org.slf4j/slf4j-simple {:mvn/version "1.7.33"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"]}}}
