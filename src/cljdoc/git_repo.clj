@@ -3,7 +3,7 @@
             [clojure.tools.logging :as log]
             [clojure.string :as string]
             [clojure.spec.alpha :as s]
-            [digest :as digest])
+            [clj-commons.digest :as digest])
   (:import  (org.eclipse.jgit.lib RepositoryBuilder
                                   ObjectIdRef$PeeledNonTag
                                   ObjectIdRef$PeeledTag

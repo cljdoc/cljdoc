@@ -53,13 +53,13 @@
     (sql/update! db-spec "builds" (cond-> {:error error}
                                     e (assoc :error_info_map (nippy/freeze (Throwable->map e))))
                  ["id = ?" build-id]))
-  (api-imported! [this build-id namespaces-count]
+  (api-imported! [_this build-id namespaces-count]
     (sql/update! db-spec
                  "builds"
                  {:api_imported_ts (now)
                   :namespaces_count namespaces-count}
                  ["id = ?" build-id]))
-  (git-completed! [this build-id {:keys [scm-url error commit] :as git-result}]
+  (git-completed! [_this build-id {:keys [scm-url error commit] :as git-result}]
     (sql/update! db-spec
                  "builds"
                  {:scm_url scm-url
@@ -67,7 +67,7 @@
                   :git_imported_ts (when (and git-result (nil? error)) (now))
                   :git_problem (if git-result error "repo-not-provided")}
                  ["id = ?" build-id]))
-  (completed! [this build-id]
+  (completed! [_this build-id]
     (sql/update! db-spec "builds" {:import_completed_ts (now)} ["id = ?" build-id]))
   (get-build [_ build-id]
     (first (sql/query db-spec ["SELECT * FROM builds WHERE id = ?" build-id])))
@@ -149,6 +149,5 @@
   (analysis-requested! bt "bidi" "bidi" "2.1.3")
 
   (track-analysis-kick-off! db 2 "xxx"))
-
 
 ;; insert into builds (group_id, artifact_id, version, analysis_triggered_ts) values ('xxx', 'aaa', '1.0.0', datetime('now'));

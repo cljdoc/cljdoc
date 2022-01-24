@@ -178,10 +178,8 @@
 
     (.. doc body html toString)))
 
-
 ;; Some utilities to find which file in a git repository corresponds
 ;; to a file where a `def` is coming from --------------------------
-
 
 (defn- find-full-filepath
   "Take a list of filepaths, one subpath and find the best matching full path.
