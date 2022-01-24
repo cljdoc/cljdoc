@@ -92,7 +92,7 @@
     (assert (= placed-allocs desired-total) "Not enough allocs placed")
     (assert (not= "failed" status) "Deployment failed")
     (log/infof "%d healthy / %d desired - status: '%s'" healthy-allocs desired-total status)
-    (and (= desired-total healthy-allocs))))
+    (= desired-total healthy-allocs)))
 
 (defn tag-exists?
   "Check if a given tag exists in the DockerHub cljdoc/cljdoc repository."

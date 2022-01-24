@@ -41,9 +41,7 @@
   {:deps {'cljdoc/cljdoc-analyzer {:git/url "https://github.com/cljdoc/cljdoc-analyzer.git"
                                    :sha analyzer-version}}})
 
-
 ;; CircleCI AnalysisService -----------------------------------------------------
-
 
 (declare get-circle-ci-build-artifacts get-circle-ci-build poll-circle-ci-build)
 

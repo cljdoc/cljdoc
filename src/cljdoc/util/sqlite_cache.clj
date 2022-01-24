@@ -96,14 +96,14 @@
   cache/CacheProtocol
   (lookup [_ k]
     (delay (fetch-item! k (:cache-spec state))))
-  (lookup [this k not-found]
+  (lookup [_this k not-found]
     (delay (or (fetch-item! k (:cache-spec state))
                (if (derefable? not-found) (deref not-found) not-found))))
   (has? [_ k]
     (let [item (fetch! k (:cache-spec state))]
       (and (not (nil? item))
            (not (stale? item)))))
-  (hit [this k]
+  (hit [this _k]
     this)
   (miss [this k v]
     (let [item (fetch! k (:cache-spec state))]

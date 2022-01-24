@@ -39,16 +39,16 @@
 
         :else
         (first uniq-vals))))
-  (get-field [this k platf]
+  (get-field [_this k platf]
     (assert (contains? #{"clj" "cljs"} platf) (format "unknown platform: %s" platf))
     (-> (filter #(= platf (:platform %)) platforms)
         (first)
         (get k)))
-  (varies? [this k]
+  (varies? [_this k]
     (< 1 (count (set (map k platforms)))))
-  (platforms [this]
+  (platforms [_this]
     (set (map :platform platforms)))
-  (all-vals [this k]
+  (all-vals [_this k]
     (keep k platforms)))
 
 (defn multiplatform? [x]

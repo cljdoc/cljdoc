@@ -67,12 +67,10 @@
         :artifact   ::artifact-entity
         :group      ::group-entity))
 
-
 ;; Cache specific ----------------------------------------------------
 
 ;; Docs-cache: this is intended for a specific
 ;; versioned artifact, e.g. [re-frame 0.10.5]
-
 
 (s/def ::defs (s/coll-of ::def-full :gen-max 2))
 (s/def ::namespaces (s/coll-of map? :gen-max 2))
@@ -101,10 +99,8 @@
   ;; help them to understand the API faster
   (s/keys :req-un [::cache-id ::cache-contents]))
 
-
 ;; codox -------------------------------------------------------------
 ;; A spec for Codox namespace analysis data
-
 
 (s/def :cljdoc.codox.public/name symbol? #_(s/or :a string? :b symbol?))
 (s/def :cljdoc.codox.public/file string?)
@@ -133,9 +129,7 @@
                    :cljdoc.codox.namespace/publics]
           :opt-un [:cljdoc.codox.namespace/doc]))
 
-
 ;; cljdoc.edn ---------------------------------------------------------
-
 
 (s/def :cljdoc.cljdoc-edn/codox
   (s/map-of ::platform (s/coll-of :cljdoc.codox/namespace)))
@@ -146,9 +140,7 @@
   (s/keys :req-un [:cljdoc.cljdoc-edn/codox
                    :cljdoc.cljdoc-edn/pom-str]))
 
-
 ;; grimoire -----------------------------------------------------------
-
 
 (s/def :cljdoc.grimoire/def
   ;; like codox output but without name
