@@ -96,6 +96,12 @@ This will package the cljdoc application in a Docker container. A tag will be de
 based on number of commits, branch and commit SHA. Images are published to Docker Hub during
 CI. See link:/.circleci/config.yml[`.circleci/config.yml`].
 
+[TIP]
+====
+Run `make clean image` when testing your image locally.
+This will ensure you are not working with stale inputs.
+====
+
 == Packaging (Uberjar)
 
 TBD.
@@ -172,3 +178,18 @@ bugs here and there. If we need to drop Traefik for some reason we could look in
 * https://github.com/Neilpang/acme.sh
 * https://github.com/Neilpang/acme.sh/wiki/How-to-issue-a-cert
 * https://github.com/Neilpang/acme.sh/wiki/Run-acme.sh-in-docker
+
+== Checking for Vulnerabilities
+
+Experts will uncover vulnerabilities in some of the technologies we use.
+It is inevitable.
+
+We use https://github.com/rm-hull/nvd-clojure[nvd-clojure] to scan cljdoc dependencies for known security issues.
+Run `nvd-check.sh` to launch a scan.
+It generates reports to `target/nvd/` off the cljdoc project root dir.
+The html report is probably the most useful.
+Be aware that the scan sometimes reports false positives.
+After some careful verification, you can quiet false positives via `nvd-suppresions.xml`.
+
+Other tools such as https://github.com/aquasecurity/trivy[trivy] can identify security holes.
+Trivy seems to be good at finding issues in docker images and configuration.

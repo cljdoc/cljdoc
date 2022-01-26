@@ -6,9 +6,7 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      - image: circleci/clojure:openjdk-8-tools-deps-1.10.3.822-node
-        # https://discuss.circleci.com/t/builds-getting-killed-with-vague-message-received-signal-killed/10214/9
+      - image: circleci/clojure:openjdk-11-tools-deps-1.10.3.1058-buster-node
         command: "/bin/bash"
 
     working_directory: ~/repo
@@ -105,7 +103,7 @@ jobs:
   # cat ~/.ssh/cljdoc_deploy.pub | ssh root@cljdoc.org 'cat >> .ssh/authorized_keys'
   deploy-to-nomad:
     docker:
-      - image: circleci/clojure:openjdk-8-tools-deps-1.10.3.822-node
+      - image: circleci/clojure:openjdk-11-tools-deps-1.10.3.1058-buster-node
         command: "/bin/bash"
     steps:
       - add_ssh_keys:

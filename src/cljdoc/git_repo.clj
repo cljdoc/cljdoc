@@ -15,7 +15,8 @@
                                               AndTreeFilter
                                               TreeFilter)
             (org.eclipse.jgit.api Git TransportConfigCallback LsRemoteCommand)
-            (org.eclipse.jgit.transport SshTransport JschConfigSessionFactory)))
+            (org.eclipse.jgit.transport SshTransport)
+            (org.eclipse.jgit.transport.ssh.jsch JschConfigSessionFactory)))
 
 (def jsch-session-factory
   "A session-factory for use with JGit to access private
