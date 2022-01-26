@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+  <suppress>
+    <notes><![CDATA[
+    Applies to jruby versions less than v1.4.1, as of this writing, we are at v9
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/(org\.jruby/dirgra|rubygems/jruby\-readline)@.*$</packageUrl>
+    <cve>CVE-2010-1330</cve>
+  </suppress>
+  <suppress>
+   <notes><![CDATA[
+   Applies to jruby versions less than v1.6.5.1, as of this writing, we are at v9
+   ]]></notes>
+   <packageUrl regex="true">^pkg:maven/(org\.jruby/dirgra|rubygems/jruby\-readline)@.*$</packageUrl>
+   <cve>CVE-2011-4838</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    JRuby's Java re-implementation of OpenSSL is falsely detected as the C implmentation of OpenSSL
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/rubygems/jruby\-openssl@.*$</packageUrl>
+    <cpe>cpe:/a:openssl:openssl</cpe>
+    <cpe>cpe:/a:jruby:jruby</cpe>
+  </suppress>
+  <suppress>
+   <notes><![CDATA[
+   file name: jsch.agentproxy.usocket-nc-0.0.9.jar
+   I don't know why this was being associated with netcat cpe, but I see no evidence on the web of
+   this lib itself having security issues.
+   ]]></notes>
+   <packageUrl regex="true">^pkg:maven/com\.jcraft/jsch\.agentproxy\.usocket\-nc@.*$</packageUrl>
+   <cpe>cpe:/a:netcat:netcat</cpe>
+  </suppress>
+</suppressions>
