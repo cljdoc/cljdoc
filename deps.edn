@@ -1,49 +1,73 @@
-{:deps {org.clojure/clojure {:mvn/version "1.10.3"},
-        spootnik/unilog {:mvn/version "0.7.29"},
-        org.clojure/tools.logging {:mvn/version "0.5.0"},
-        io.pedestal/pedestal.jetty {:mvn/version "0.5.10"},
-        io.pedestal/pedestal.service {:mvn/version "0.5.10"},
-        tea-time/tea-time {:mvn/version "1.0.1"},
-        integrant/repl {:mvn/version "0.3.1"},
-        zprint/zprint {:mvn/version "0.4.16"},
-        aero/aero {:mvn/version "1.1.3"},
-        cheshire/cheshire {:mvn/version "5.10.2"},
+{:deps {org.clojure/clojure {:mvn/version "1.10.3"}
+
+        ;; configuration
+        aero/aero {:mvn/version "1.1.3"}                     ;; rich configuration support with profiles
+
+        ;; app component/service orchestration
+        integrant/integrant {:mvn/version "0.7.0"}           ;; configure systems/services that make up your app
+        integrant/repl {:mvn/version "0.3.1"}                ;;  with reload support
+
+        ;; web server/services
+        io.pedestal/pedestal.jetty {:mvn/version "0.5.10"}   ;; web site/service with jetty engine
+        io.pedestal/pedestal.service {:mvn/version "0.5.10"} ;; web site/service
+        co.deps/ring-etag-middleware {:mvn/version "0.2.0"}  ;; fast checksum based ETags for http responses
+
+        ;; relational database
+        org.clojure/java.jdbc {:mvn/version "0.7.9"}         ;; jdbc abstraction
+        org.xerial/sqlite-jdbc {:mvn/version "3.28.0"}       ;; jdbc driver needed to talk to our SQLite db
         ragtime/ragtime {:mvn/version "0.8.0"}               ;; database migrations
-        com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; ragtime supports SQL migrations, this adds support for Clojure code migrations
-        funcool/cuerdas {:mvn/version "2022.01.14-391"}
-        org.asciidoctor/asciidoctorj {:mvn/version "2.5.3"},
-        co.deps/ring-etag-middleware {:mvn/version "0.2.0"}
-        com.vladsch.flexmark/flexmark {:mvn/version "0.50.20"}
+        com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
+        com.layerware/hugsql {:mvn/version "0.4.9"}          ;; SQL abstraction
+        com.taoensso/nippy {:mvn/version "3.1.1"}            ;; fast compact serializer that we use for blobs
+
+        ;; full text search database
+        org.apache.lucene/lucene-core {:mvn/version "8.1.1"} ;; search engine
+        org.apache.lucene/lucene-analyzers-common {:mvn/version "8.1.1"}
+        org.apache.lucene/lucene-queryparser {:mvn/version "8.1.1"}
+
+        ;; markdown
+        org.asciidoctor/asciidoctorj {:mvn/version "2.5.3"}  ;; render adoc to html
+        com.vladsch.flexmark/flexmark {:mvn/version "0.50.20"} ;; render github markdown to html
         com.vladsch.flexmark/flexmark-ext-autolink {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-gfm-tables {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-anchorlink {:mvn/version "0.50.20"}
         com.vladsch.flexmark/flexmark-ext-wikilink {:mvn/version "0.50.20"}
-        org.clojure/java.jdbc {:mvn/version "0.7.9"},
-        hiccup/hiccup {:mvn/version "2.0.0-alpha1"},
-        org.clj-commons/digest {:mvn/version "1.4.100"},
-        integrant/integrant {:mvn/version "0.7.0"},
-        org.martinklepsch/clj-http-lite {:mvn/version "0.4.1"}
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.0.0.202111291000-r"},
-        io.sentry/sentry-logback {:mvn/version "1.7.25"},
-        org.clojure/core.match {:mvn/version "0.3.0"},
-        org.jsoup/jsoup {:mvn/version "1.14.3"},
-        org.xerial/sqlite-jdbc {:mvn/version "3.28.0"},
-        com.layerware/hugsql {:mvn/version "0.4.9"}
-        com.taoensso/tufte {:mvn/version "2.0.1"}
-        com.taoensso/nippy {:mvn/version "3.1.1"}
-        org.slf4j/slf4j-api {:mvn/version "1.7.35"},
-        expound/expound {:mvn/version "0.7.2"},
-        raven-clj/raven-clj {:mvn/version "1.6.0-alpha2"},
-        clj-commons/fs {:mvn/version "1.6.310"}
-        sitemap/sitemap {:mvn/version "0.4.0"},
-        lambdaisland/uri {:mvn/version "1.2.1"}
-        org.clojure/core.cache {:mvn/version "0.7.2"}
-        org.clojure/core.memoize {:mvn/version "0.7.2"}
-        org.apache.lucene/lucene-core {:mvn/version "8.1.1"}
-        org.apache.lucene/lucene-analyzers-common {:mvn/version "8.1.1"}
-        org.apache.lucene/lucene-queryparser {:mvn/version "8.1.1"}
-        robert/bruce {:mvn/version "0.8.0"}
-        enlive/enlive {:mvn/version "1.1.6"}
+
+        ;; html
+        hiccup/hiccup {:mvn/version "2.0.0-alpha1"}          ;; html abstraction
+        org.jsoup/jsoup {:mvn/version "1.14.3"}              ;; xml/html parser/rewriter
+        enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
+        sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
+
+        ;; logging
+        spootnik/unilog {:mvn/version "0.7.29"}              ;; easy log setup
+        org.clojure/tools.logging {:mvn/version "0.5.0"}     ;; logging facade
+        org.slf4j/slf4j-api {:mvn/version "1.7.35"}          ;; slf4j front end
+
+        ;; sentry service support
+        io.sentry/sentry-logback {:mvn/version "1.7.25"}     ;; logback appendery to Sentry service
+        raven-clj/raven-clj {:mvn/version "1.6.0-alpha2"}    ;; Sentry service interface
+
+        ;; reaching out to other services
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.0.0.202111291000-r"} ;; git with jsch
+        org.martinklepsch/clj-http-lite {:mvn/version "0.4.1"} ;; a lite version of clj-http client
+
+        ;; misc utils
+        cheshire/cheshire {:mvn/version "5.10.2"}            ;; json
+        clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
+        com.taoensso/tufte {:mvn/version "2.0.1"}            ;; profile/perf monitoring
+        funcool/cuerdas {:mvn/version "2022.01.14-391"}      ;; string manipulation
+        lambdaisland/uri {:mvn/version "1.2.1"}              ;; URI/URLs
+        org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
+        org.clojure/core.cache {:mvn/version "0.7.2"}        ;; general caching library
+        org.clojure/core.memoize {:mvn/version "0.7.2"}      ;; function caching library
+        robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
+        tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
+        zprint/zprint {:mvn/version "0.4.16"}                ;; format clojure source
+
+        ;; unused?
+        expound/expound {:mvn/version "0.7.2"}               ;; makes spec errors more readable
+        org.clojure/core.match {:mvn/version "0.3.0"}
 
         ;; These deps are dependencies of shared-utils and are
         ;; duplicated in the global modules/shared-utils/deps.edn,
