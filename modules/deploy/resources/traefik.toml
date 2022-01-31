@@ -22,7 +22,7 @@ entryPoint = "https"
 KeyType = "RSA2048"
 onHostRule = true
 [acme.httpChallenge]
-  entryPoint = "http
+  entryPoint = "http"
 
 [[acme.domains]]
 main = "cljdoc.org"
