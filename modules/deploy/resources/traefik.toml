@@ -20,8 +20,7 @@ email = "martinklepsch@googlemail.com"
 storage = "/data/acme.json"
 entryPoint = "https"
 onHostRule = true
-[acme.httpChallenge]
-  entryPoint = "http
+[acme.tlsChallenge]
 
 [[acme.domains]]
 main = "cljdoc.org"
