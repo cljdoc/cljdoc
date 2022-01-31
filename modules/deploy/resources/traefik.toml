@@ -21,7 +21,8 @@ storage = "/data/acme.json"
 entryPoint = "https"
 KeyType = "RSA2048"
 onHostRule = true
-[acme.tlsChallenge]
+[acme.httpChallenge]
+  entryPoint = "http
 
 [[acme.domains]]
 main = "cljdoc.org"
