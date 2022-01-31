@@ -19,6 +19,7 @@
 email = "martinklepsch@googlemail.com"
 storage = "/data/acme.json"
 entryPoint = "https"
+KeyType = "RSA2048"
 onHostRule = true
 [acme.tlsChallenge]
 
