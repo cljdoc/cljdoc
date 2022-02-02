@@ -38,6 +38,8 @@
         org.jsoup/jsoup {:mvn/version "1.14.3"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
+        com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
+        {:mvn/version "20211018.2"}                          ;; sanitize html converted from user markdown
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.29"}              ;; easy log setup

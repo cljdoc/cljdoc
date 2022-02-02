@@ -1,4 +1,5 @@
 (ns cljdoc.render.rich-text
+  (:require [cljdoc.render.sanitize :as sanitize])
   (:import (org.asciidoctor Asciidoctor$Factory Options)
            (com.vladsch.flexmark.parser Parser)
            (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver CustomNodeRenderer)
@@ -18,7 +19,8 @@
                (.setAttributes (java.util.HashMap. {"env-cljdoc" true
                                                     "outfilesuffix" ".adoc"
                                                     "showtitle" true})))]
-    (.convert adoc-container file-content opts)))
+    (-> (.convert adoc-container file-content opts)
+        sanitize/clean)))
 
 (def md-extensions
   [(TablesExtension/create)
@@ -85,7 +87,8 @@
    (markdown-to-html input-str {}))
   ([input-str opts]
    (->> (.parse md-container input-str)
-        (.render (md-renderer opts)))))
+        (.render (md-renderer opts))
+        sanitize/clean)))
 
 (defmulti render-text
   "An extension point for the rendering of different article types.
