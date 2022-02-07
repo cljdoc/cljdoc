@@ -50,12 +50,15 @@
         (storage/import-doc
          storage
          (util/version-entity project version)
-         {:jar          {}
-          :scm          (merge (:scm git-analysis)
-                               {:url scm-url
-                                :commit (-> git-analysis :scm :rev)})
-          :config       (:config git-analysis)
-          :doc-tree     (:doc-tree git-analysis)})
+         (cond-> {:jar          {}
+                  :scm          (merge (:scm git-analysis)
+                                       {:url scm-url
+                                        :commit (-> git-analysis :scm :rev)})
+                  :config       (:config git-analysis)
+                  :doc-tree     (:doc-tree git-analysis)}
+
+           (:links git-analysis)
+           (assoc :links (:links git-analysis))))
 
         {:scm-url scm-url
          :commit  (-> git-analysis :scm :rev)}))))

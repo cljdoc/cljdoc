@@ -114,8 +114,8 @@
        (nil? (:git_problem build))))
 
 (comment
-  (require 'ragtime.repl 'ragtime.jdbc)
-  (def config {:datastore  (ragtime.jdbc/sql-database (cljdoc.config/db))
+  (require 'ragtime.repl 'ragtime.jdbc 'cljdoc.config)
+  (def config {:datastore  (ragtime.jdbc/sql-database (cljdoc.config/db (cljdoc.config/config)))
                :migrations (ragtime.jdbc/load-resources "migrations")})
 
   (ragtime.repl/rollback config)
