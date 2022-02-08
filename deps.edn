@@ -44,11 +44,11 @@
         ;; logging
         spootnik/unilog {:mvn/version "0.7.29"}              ;; easy log setup
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
-        org.slf4j/slf4j-api {:mvn/version "1.7.35"}          ;; slf4j front end
+        org.slf4j/slf4j-api {:mvn/version "1.7.36"}          ;; slf4j front end
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "1.7.25"}     ;; logback appendery to Sentry service
-        raven-clj/raven-clj {:mvn/version "1.6.0-alpha2"}    ;; Sentry service interface
+        io.sentry/sentry-logback {:mvn/version "5.6.1"}      ;; logback appendery to Sentry service
+        raven-clj/raven-clj {:mvn/version "1.6.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.0.0.202111291000-r"} ;; git with jsch
@@ -95,5 +95,5 @@
 
            :outdated
            {:replace-deps {com.github.liquidz/antq {:mvn/version "1.4.0"}
-                           org.slf4j/slf4j-simple {:mvn/version "1.7.35"}} ;; to rid ourselves of logger warnings
+                           org.slf4j/slf4j-simple {:mvn/version "1.7.36"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"]}}}
