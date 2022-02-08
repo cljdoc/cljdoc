@@ -13,11 +13,11 @@
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
 
         ;; relational database
-        org.clojure/java.jdbc {:mvn/version "0.7.9"}         ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.28.0"}       ;; jdbc driver needed to talk to our SQLite db
-        ragtime/ragtime {:mvn/version "0.8.0"}               ;; database migrations
+        org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
+        org.xerial/sqlite-jdbc {:mvn/version "3.36.0.3"}     ;; jdbc driver needed to talk to our SQLite db
+        dev.weavejester/ragtime {:mvn/version "0.9.0"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
-        com.layerware/hugsql {:mvn/version "0.4.9"}          ;; SQL abstraction
+        com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
         com.taoensso/nippy {:mvn/version "3.1.1"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
