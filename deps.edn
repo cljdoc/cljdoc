@@ -34,7 +34,7 @@
         com.vladsch.flexmark/flexmark-ext-wikilink {:mvn/version "0.50.20"}
 
         ;; html
-        hiccup/hiccup {:mvn/version "2.0.0-alpha1"}          ;; html abstraction
+        hiccup/hiccup {:mvn/version "2.0.0-alpha2"}          ;; html abstraction
         org.jsoup/jsoup {:mvn/version "1.14.3"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
@@ -43,7 +43,7 @@
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.29"}              ;; easy log setup
-        org.clojure/tools.logging {:mvn/version "0.5.0"}     ;; logging facade
+        org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
         org.slf4j/slf4j-api {:mvn/version "1.7.35"}          ;; slf4j front end
 
         ;; sentry service support
@@ -57,20 +57,17 @@
         ;; misc utils
         cheshire/cheshire {:mvn/version "5.10.2"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
-        com.taoensso/tufte {:mvn/version "2.0.1"}            ;; profile/perf monitoring
+        com.taoensso/tufte {:mvn/version "2.2.0"}            ;; profile/perf monitoring
         funcool/cuerdas {:mvn/version "2022.01.14-391"}      ;; string manipulation
-        lambdaisland/uri {:mvn/version "1.2.1"}              ;; URI/URLs
+        lambdaisland/uri {:mvn/version "1.13.95"}            ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
         org.clojure/core.memoize {:mvn/version "1.0.253"}    ;; function caching library
         robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
-        zprint/zprint {:mvn/version "0.4.16"}                ;; format clojure source
-
-        ;; These deps are dependencies of shared-utils and are
-        ;; duplicated in the global modules/shared-utils/deps.edn,
-        ;; updates should be done in both places
-        version-clj/version-clj {:mvn/version "0.1.2"}}
+        version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
+        zprint/zprint {:mvn/version "1.2.1"}                 ;; format clojure source/edn
+        }
  ;; We don't use :local/root dependencies because the interdependencies
  ;; between main, shared-utils and analysis runner don't work well with
  ;; Cursive: https://github.com/cljdoc/cljdoc/issues/134
@@ -79,7 +76,7 @@
          "modules/shared-utils/resources"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.60.977"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.62.993"}
                          org.clojure/test.check {:mvn/version "1.1.1"}}
             :main-opts ["-m" "kaocha.runner"]}
 
