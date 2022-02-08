@@ -67,10 +67,6 @@
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         zprint/zprint {:mvn/version "0.4.16"}                ;; format clojure source
 
-        ;; unused?
-        expound/expound {:mvn/version "0.7.2"}               ;; makes spec errors more readable
-        org.clojure/core.match {:mvn/version "0.3.0"}
-
         ;; These deps are dependencies of shared-utils and are
         ;; duplicated in the global modules/shared-utils/deps.edn,
         ;; updates should be done in both places
