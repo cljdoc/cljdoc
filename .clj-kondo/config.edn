@@ -5,5 +5,6 @@
            clojure.java.jdbc/with-db-transaction clojure.core/let
            clojure.test.check.clojure-test/defspec clojure.core/def
            clojure.test.check.properties/for-all clojure.core/let}
- :linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}
+ :linters {:redundant-fn-wrapper {:level :warning} ;; experimental linter, let's give it a go
+           :unused-binding {:exclude-destructured-keys-in-fn-args true}
            :unresolved-var {:exclude [clj-commons.digest/sha-256]}}}

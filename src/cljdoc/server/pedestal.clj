@@ -501,9 +501,7 @@
          :search     [(interceptor/interceptor {:name ::search :enter #(pu/ok-html % (render-search/search-page %))})]
          :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts %))})]
          :sitemap    [(sitemap-interceptor storage)]
-         :show-build [(pu/coerce-body-conf
-                       (fn html-render [ctx]
-                         (cljdoc.render.build-log/build-page ctx)))
+         :show-build [(pu/coerce-body-conf cljdoc.render.build-log/build-page)
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]
