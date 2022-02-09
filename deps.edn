@@ -27,11 +27,16 @@
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "2.5.3"}  ;; render adoc to html
-        com.vladsch.flexmark/flexmark {:mvn/version "0.50.20"} ;; render github markdown to html
-        com.vladsch.flexmark/flexmark-ext-autolink {:mvn/version "0.50.20"}
-        com.vladsch.flexmark/flexmark-ext-gfm-tables {:mvn/version "0.50.20"}
-        com.vladsch.flexmark/flexmark-ext-anchorlink {:mvn/version "0.50.20"}
-        com.vladsch.flexmark/flexmark-ext-wikilink {:mvn/version "0.50.20"}
+        com.vladsch.flexmark/flexmark                        ;; render github markdown to html
+        {:mvn/version "0.64.0"}
+        com.vladsch.flexmark/flexmark-ext-autolink           ;; converts raw links in text to clickable links
+        {:mvn/version "0.64.0"}
+        com.vladsch.flexmark/flexmark-ext-tables             ;; support for tables
+        {:mvn/version "0.64.0"}
+        com.vladsch.flexmark/flexmark-ext-anchorlink         ;; adds github id style anchor links to headings
+        {:mvn/version "0.64.0"}
+        com.vladsch.flexmark/flexmark-ext-wikilink           ;; support for our docstring [[my-ns/var]] link feature
+        {:mvn/version "0.64.0"}
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-alpha2"}          ;; html abstraction
