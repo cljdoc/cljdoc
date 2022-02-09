@@ -1,20 +1,20 @@
 (ns cljdoc.render.rich-text
   (:require [cljdoc.render.sanitize :as sanitize])
-  (:import (org.asciidoctor Asciidoctor$Factory Options)
+  (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory Options)
            (com.vladsch.flexmark.parser Parser)
-           (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver CustomNodeRenderer)
-           (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverContext DelegatingNodeRendererFactory NodeRenderer NodeRenderingHandler)
-           (com.vladsch.flexmark.ext.gfm.tables TablesExtension)
+           (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver)
+           (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverBasicContext DelegatingNodeRendererFactory NodeRenderer NodeRenderingHandler NodeRenderingHandler$CustomNodeRenderer)
+           (com.vladsch.flexmark.ext.tables TablesExtension)
            (com.vladsch.flexmark.ext.autolink AutolinkExtension)
            (com.vladsch.flexmark.ext.anchorlink AnchorLinkExtension)
            (com.vladsch.flexmark.ext.wikilink WikiLinkExtension WikiLink)
            (com.vladsch.flexmark.ext.wikilink.internal WikiLinkNodeRenderer$Factory)
            (com.vladsch.flexmark.util.data MutableDataSet DataHolder)))
 
-(def adoc-container
+(def ^Asciidoctor adoc-container
   (Asciidoctor$Factory/create))
 
-(defn asciidoc-to-html [file-content]
+(defn asciidoc-to-html [^String file-content]
   (let [opts (doto (Options.)
                (.setAttributes (java.util.HashMap. {"env-cljdoc" true
                                                     "outfilesuffix" ".adoc"
@@ -28,20 +28,31 @@
    (AnchorLinkExtension/create)
    (WikiLinkExtension/create)])
 
-(def md-container
+(def ^Parser md-container
   (.. (Parser/builder)
       (extensions md-extensions)
       (build)))
 
 (defn- md-renderer
   "Create a Markdown renderer."
-  [{:keys [escape-html?
-           render-wiki-link]
-    :as _opts}]
+  ^HtmlRenderer [{:keys [escape-html? render-wiki-link]
+                  :as _opts}]
   (.. (HtmlRenderer/builder
        (doto (MutableDataSet.)
          (.set AnchorLinkExtension/ANCHORLINKS_ANCHOR_CLASS "md-anchor")
-         (.set HtmlRenderer/FENCED_CODE_NO_LANGUAGE_CLASS "language-clojure")))
+         (.set HtmlRenderer/FENCED_CODE_NO_LANGUAGE_CLASS "language-clojure")
+         ;; Conform to GitHub tables
+         ;; https://github.com/vsch/flexmark-java/issues/370#issuecomment-590074667
+         (.set TablesExtension/COLUMN_SPANS false)
+         (.set TablesExtension/APPEND_MISSING_COLUMNS true)
+         (.set TablesExtension/DISCARD_EXTRA_COLUMNS true)
+         (.set TablesExtension/HEADER_SEPARATOR_COLUMN_MATCH true)
+         ;; and I think these are needed too:
+         ;; https://github.com/vsch/flexmark-java/issues/370#issuecomment-1033215255
+         (.set TablesExtension/WITH_CAPTION false)
+         (.set TablesExtension/MIN_HEADER_ROWS (int 1))
+         (.set TablesExtension/MAX_HEADER_ROWS (int 1))
+         (.toImmutable)))
       (escapeHtml (boolean escape-html?))
       ;; Resolve wikilinks
       (linkResolverFactory
@@ -49,7 +60,7 @@
          (getAfterDependents [_this] nil)
          (getBeforeDependents [_this] nil)
          (affectsGlobalScope [_this] false)
-         (^LinkResolver apply [_this ^LinkResolverContext _ctx]
+         (^LinkResolver apply [_this ^LinkResolverBasicContext _ctx]
            (reify LinkResolver
              (resolveLink [_this _node _ctx link]
                (if (= (.getLinkType link) WikiLinkExtension/WIKI_LINK)
@@ -68,7 +79,7 @@
              (getNodeRenderingHandlers [_this]
                #{(NodeRenderingHandler.
                   WikiLink
-                  (reify CustomNodeRenderer
+                  (reify NodeRenderingHandler$CustomNodeRenderer
                     (render [_this node ctx html]
                       (let [resolved-link (.resolveLink ctx WikiLinkExtension/WIKI_LINK (.. node getLink unescape) nil)
                             url (.getUrl resolved-link)]
@@ -83,9 +94,9 @@
   supported options:
 
   - `:escape-html?` if true HTML in input-str will be escaped"
-  ([input-str]
+  ([^String input-str]
    (markdown-to-html input-str {}))
-  ([input-str opts]
+  ([^String input-str opts]
    (->> (.parse md-container input-str)
         (.render (md-renderer opts))
         sanitize/clean)))
