@@ -166,11 +166,6 @@
 
   (find-artifact-repository 'com.bhauman/spell-spec "0.1.0")
 
-  (def d
-    (cljdoc.util.pom/parse (slurp (:pom (artifact-uris 'metosin/reitit "0.1.2-SNAPSHOT")))))
-
-  (cljdoc.util.pom/scm-info d)
-
   (releases-since (.minus (Instant/now) (Duration/ofHours 12)))
 
   ;; (def f "/Users/martin/Downloads/clojars-downloads.edn")

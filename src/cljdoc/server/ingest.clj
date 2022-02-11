@@ -23,8 +23,8 @@
   [pom-url]
   {:pre [(string? pom-url)]}
   (let [pom-doc  (pom/parse (slurp pom-url))
-        artifact (pom/artifact-info pom-doc)
-        scm-info (pom/scm-info pom-doc)
+        artifact (:artifact-info pom-doc)
+        scm-info (:scm-info pom-doc)
         project  (str (:group-id artifact) "/" (:artifact-id artifact))
         scm-url  (some-> (or (:url scm-info)
                              (when (util/gh-url? (:url artifact))
@@ -68,6 +68,6 @@
 
   (-> (:pom-str edn)
       (pom/parse)
-      (pom/artifact-info))
+      :artifact-info)
 
   (ingest-cljdoc-edn (io/file "data") edn))

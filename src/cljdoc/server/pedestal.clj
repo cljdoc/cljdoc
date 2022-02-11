@@ -185,8 +185,8 @@
                    pom-parsed (pom/parse (pom-xml-memo
                                           (util/clojars-id params)
                                           (:version params)))]
-               (assoc ctx ::pom-info {:description (-> pom-parsed pom/artifact-info :description)
-                                      :dependencies (-> pom-parsed pom/dependencies-with-versions)})))}))
+               (assoc ctx ::pom-info {:description (-> pom-parsed :artifact-info :description)
+                                      :dependencies (-> pom-parsed :dependencies)})))}))
 
 (def resolve-version-interceptor
   "An interceptor that will look at `:path-params` and try to turn it into an artifact
