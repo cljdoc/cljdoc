@@ -29,18 +29,8 @@
    (WikiLinkExtension/create)])
 
 (def ^Parser md-container
-  (.. (Parser/builder)
-      (extensions md-extensions)
-      (build)))
-
-(defn- md-renderer
-  "Create a Markdown renderer."
-  ^HtmlRenderer [{:keys [escape-html? render-wiki-link]
-                  :as _opts}]
-  (.. (HtmlRenderer/builder
+  (.. (Parser/builder
        (doto (MutableDataSet.)
-         (.set AnchorLinkExtension/ANCHORLINKS_ANCHOR_CLASS "md-anchor")
-         (.set HtmlRenderer/FENCED_CODE_NO_LANGUAGE_CLASS "language-clojure")
          ;; Conform to GitHub tables
          ;; https://github.com/vsch/flexmark-java/issues/370#issuecomment-590074667
          (.set TablesExtension/COLUMN_SPANS false)
@@ -52,6 +42,18 @@
          (.set TablesExtension/WITH_CAPTION false)
          (.set TablesExtension/MIN_HEADER_ROWS (int 1))
          (.set TablesExtension/MAX_HEADER_ROWS (int 1))
+         (.toImmutable)))
+      (extensions md-extensions)
+      (build)))
+
+(defn- md-renderer
+  "Create a Markdown renderer."
+  ^HtmlRenderer [{:keys [escape-html? render-wiki-link]
+                  :as _opts}]
+  (.. (HtmlRenderer/builder
+       (doto (MutableDataSet.)
+         (.set AnchorLinkExtension/ANCHORLINKS_ANCHOR_CLASS "md-anchor")
+         (.set HtmlRenderer/FENCED_CODE_NO_LANGUAGE_CLASS "language-clojure")
          (.toImmutable)))
       (escapeHtml (boolean escape-html?))
       ;; Resolve wikilinks
