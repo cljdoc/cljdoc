@@ -10,12 +10,6 @@
             [clojure.walk :as walk])
   (:import (java.nio.file Files Paths)))
 
-(def hardcoded-config
-  ;; NOTE `delay` is used here because the stripped-down analysis env
-  ;; doesn't have `hardcoded-projects-config.edn` on the classpath
-  ;; TODO move elsewhere
-  (delay (edn/read-string (slurp (io/resource "hardcoded-projects-config.edn")))))
-
 (defn group-id [project]
   (or (if (symbol? project)
         (namespace project)
@@ -32,10 +26,6 @@
   {:group-id (group-id project)
    :artifact-id (artifact-id project)
    :version version})
-
-(defn codox-edn [project version]
-  ;; TODO maybe delete, currently not used (like other codox stuff)
-  (str "codox-edn/" project "/" version "/codox.edn"))
 
 (def analysis-output-prefix
   "The -main of `cljdoc.analysis.runner` will write files to this directory.

@@ -10,6 +10,7 @@
             [cljdoc.doc-tree :as doctree]
             [cljdoc.user-config :as user-config]
             [clojure.edn :as edn]
+            [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]
             [clojure.tools.logging :as log]))
 
@@ -39,6 +40,10 @@
                   :pom-revision (spec/nilable string?))
   :ret (spec/or :ok (spec/keys :req-un [::scm ::doc-tree])
                 :err (spec/keys :req-un [::error])))
+
+(def ^:private hardcoded-config
+  ;; some config for projects that do not include their own
+  (edn/read-string (slurp (io/resource "hardcoded-projects-config.edn"))))
 
 (defn analyze-git-repo
   [project version scm-url pom-revision]
@@ -93,7 +98,7 @@
                          :get-contributors (fn [f]
                                              (git/get-contributors repo revision f))}
                         (or (user-config/doc-tree config-edn project)
-                            (get-in @util/hardcoded-config
+                            (get-in hardcoded-config
                                     [(util/normalize-project project) :cljdoc.doc/tree])
                             (doctree/derive-toc git-files)))})
 
