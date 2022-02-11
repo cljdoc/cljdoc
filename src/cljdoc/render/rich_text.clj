@@ -29,20 +29,7 @@
    (WikiLinkExtension/create)])
 
 (def ^Parser md-container
-  (.. (Parser/builder
-       (doto (MutableDataSet.)
-         ;; Conform to GitHub tables
-         ;; https://github.com/vsch/flexmark-java/issues/370#issuecomment-590074667
-         (.set TablesExtension/COLUMN_SPANS false)
-         (.set TablesExtension/APPEND_MISSING_COLUMNS true)
-         (.set TablesExtension/DISCARD_EXTRA_COLUMNS true)
-         (.set TablesExtension/HEADER_SEPARATOR_COLUMN_MATCH true)
-         ;; and I think these are needed too:
-         ;; https://github.com/vsch/flexmark-java/issues/370#issuecomment-1033215255
-         (.set TablesExtension/WITH_CAPTION false)
-         (.set TablesExtension/MIN_HEADER_ROWS (int 1))
-         (.set TablesExtension/MAX_HEADER_ROWS (int 1))
-         (.toImmutable)))
+  (.. (Parser/builder)
       (extensions md-extensions)
       (build)))
 
@@ -54,6 +41,17 @@
        (doto (MutableDataSet.)
          (.set AnchorLinkExtension/ANCHORLINKS_ANCHOR_CLASS "md-anchor")
          (.set HtmlRenderer/FENCED_CODE_NO_LANGUAGE_CLASS "language-clojure")
+         ;; Conform to GitHub tables
+         ;; https://github.com/vsch/flexmark-java/issues/370#issuecomment-590074667
+         (.set TablesExtension/COLUMN_SPANS false)
+         (.set TablesExtension/APPEND_MISSING_COLUMNS true)
+         (.set TablesExtension/DISCARD_EXTRA_COLUMNS true)
+         (.set TablesExtension/HEADER_SEPARATOR_COLUMN_MATCH true)
+         ;; and I think these are needed too:
+         ;; https://github.com/vsch/flexmark-java/issues/370#issuecomment-1033215255
+         (.set TablesExtension/WITH_CAPTION false)
+         (.set TablesExtension/MIN_HEADER_ROWS (int 1))
+         (.set TablesExtension/MAX_HEADER_ROWS (int 1))
          (.toImmutable)))
       (escapeHtml (boolean escape-html?))
       ;; Resolve wikilinks
