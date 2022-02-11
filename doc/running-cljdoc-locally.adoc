@@ -7,12 +7,12 @@
 :example-project-name: cljdoc-exerciser
 :example-project-desc: a project the cljdoc team uses to review cljdoc rendering and formatting features
 :example-project-link: https://github.com/cljdoc/cljdoc-exerciser[cljdoc-exerciser]
-:example-project-local-install: script/install
+:example-project-local-install: bb install
 :example-project-update-pom: script/update-pom
 :example-project-clone-url: https://github.com/cljdoc/cljdoc-exerciser.git
 :example-project-import-url: https://github.com/cljdoc/cljdoc-exerciser
-:example-project-coords: lread/cljdoc-exerciser
-:example-project-version: 1.0.57
+:example-project-coords: org.cljdoc/cljdoc-exerciser
+:example-project-version: 1.0.71
 
 [[introduction]]
 == Introduction
@@ -364,6 +364,11 @@ docker run --rm \
 
 ===== Verifying docs Prior to Publish to Clojars
 You are getting ready to release to clojars and want to check for possible configuration errors and verify what your docs will look like on cljdoc.
+
+[TIP]
+====
+If you have fully automate your deployment, including updating/generating your `pom.xml`, this verification will not apply.
+====
 
 When a project is published to clojars its docs are automatically updated on cljdoc.
 A not entirely uncommon occurrence is a malconfigured `project/scm` in `pom.xml` and therefore wrong or missing references to GitHub.
