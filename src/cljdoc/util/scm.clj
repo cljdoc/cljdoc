@@ -62,3 +62,11 @@
                     "/tree/"
                     "/blob/")]
     (str url blob-path (or branch "master") "/" source-file)))
+
+(defn normalize-git-url
+  "Ensure that the passed string is a git URL and that it's using HTTPS"
+  [s]
+  (cond-> s
+    (.startsWith s "http") (string/replace #"^http://" "https://")
+    (.startsWith s "git@github.com:") (string/replace #"^git@github.com:" "https://github.com/")
+    (.endsWith s ".git") (string/replace #".git$" "")))

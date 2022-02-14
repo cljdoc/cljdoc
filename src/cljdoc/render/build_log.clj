@@ -1,7 +1,7 @@
 (ns cljdoc.render.build-log
   (:require [clojure.string :as string]
             [cljdoc.render.layout :as layout]
-            [cljdoc.util :as util]
+            [cljdoc.render.links :as links]
             [cljdoc.util.datetime :as dt]
             [cljdoc.server.routes :as routes]
             [taoensso.nippy :as nippy]
@@ -52,7 +52,7 @@
       "We could not find the git repository for your project or
              link a commit to this release. API docs work regardless
              of this but consider "
-      [:a.link.blue {:href (util/github-url :userguide/scm-faq)}
+      [:a.link.blue {:href (links/github-url :userguide/scm-faq)}
        "setting these for optimal results"] "."]
      [:dl
       [:dt.b.mv2 "SCM URL"]
@@ -64,7 +64,7 @@
 (defn git-import-explainer [build-info]
   [:div.lh-copy
    [:p "cljdoc allows you to combine API docs with "
-    [:a.link.blue {:href (util/github-url :userguide/articles)} "articles"]
+    [:a.link.blue {:href (links/github-url :userguide/articles)} "articles"]
     " from your Git repository. By default we import just the Readme."
     (when (:git_problem build-info)
       [:span " In this case there was a problem " [:code.f7.bg-washed-red.br2.pa1.ph2 (:git_problem build-info)]
@@ -76,7 +76,7 @@
      pushing the Git commit the release was made at."])
    (when (:git_problem build-info)
      [:p "To fix this issue, check out the FAQ on "
-      [:a.link.blue {:href (util/github-url :userguide/scm-faq)} "properly setting SCM information"]])])
+      [:a.link.blue {:href (links/github-url :userguide/scm-faq)} "properly setting SCM information"]])])
 
 (defn git-import-section [build-info]
   (cond
@@ -211,7 +211,7 @@
           [:p.lh-copy.dark-gray "Having trouble? Please reach out via "
            [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "Slack"]
            " or "
-           [:a.link.blue {:href (util/github-url :issues)} "open an issue on GitHub"]
+           [:a.link.blue {:href (links/github-url :issues)} "open an issue on GitHub"]
            ". Thanks!"]]
          (layout/page {:title            (str "cljdoc build #" (:id build-info))
                        :static-resources (:static-resources context)}))))
@@ -239,11 +239,23 @@
      :failed failed-build-cnt
      :percent-failed (* 100 (/ failed-build-cnt build-cnt))}))
 
+(defn mean [coll]
+  (if (seq coll) (/ (reduce + coll) (count coll)) 0))
+
+(defn variance
+  "Returns the variance for a collection of values."
+  ;; we should probably just use some libarry for this...
+  [coll]
+  (when (seq coll)
+    (let [sqr  (fn sqr [x] (* x x))
+          avg  (mean coll)]
+      (mean (map #(sqr (- % avg)) coll)))))
+
 (defn build-analytics
   [build-aggregates]
   (let [days   (take 5 build-aggregates)
-        stddev (Math/sqrt (util/variance (map :percent-failed days)))
-        mean   (util/mean (map :percent-failed days))
+        stddev (Math/sqrt (variance (map :percent-failed days)))
+        mean   (mean (map :percent-failed days))
         too-high? (fn [v] (< (+ mean stddev) v))]
     [:div.mb2
      (->> build-aggregates

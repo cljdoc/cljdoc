@@ -3,8 +3,9 @@
   (:require [cljdoc.server.routes :as routes]
             [cljdoc.config :as config]
             [cljdoc.render.assets :as assets]
-            [cljdoc.util :as util]
+            [cljdoc.render.links :as links]
             [cljdoc.util.scm :as scm]
+            [cljdoc-shared.proj :as proj]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]
             [hiccup.page]))
@@ -57,7 +58,7 @@
 (defn generic-description
   "Returns a generic description of a project."
   [{:keys [group-id artifact-id version] :as version-entity}]
-  (format "Documentation for %s v%s on cljdoc." (util/clojars-id version-entity) version))
+  (format "Documentation for %s v%s on cljdoc." (proj/clojars-id version-entity) version))
 
 (defn description
   "Return a string to be used as description meta tag for a given project's documentation pages."
@@ -71,7 +72,7 @@
 
   This description is same as the description in project's pom.xml file."
   [version-entity artifact-desc]
-  (str (util/clojars-id version-entity) ": " artifact-desc " " (generic-description version-entity)))
+  (str (proj/clojars-id version-entity) ": " artifact-desc " " (generic-description version-entity)))
 
 (defn no-js-warning
   "A small development utility component that will show a warning when
@@ -81,7 +82,7 @@
    {:id "no-js-warning"}
    [:script
     (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/cljdoc.js")) "\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
-   [:p.ph4 "Could not find JavaScript assets, please refer to " [:a.fw7.link {:href (util/github-url :running-locally)} "the documentation"] " for how to build JS assets."]])
+   [:p.ph4 "Could not find JavaScript assets, please refer to " [:a.fw7.link {:href (links/github-url :running-locally)} "the documentation"] " for how to build JS assets."]])
 
 (defn page [opts contents]
   (hiccup/html {:mode :html}
@@ -158,9 +159,9 @@
                   {:href link, :style {:background-color "#ECF2FB"}}
                   description])
                [["Keyboard shortcuts"  (routes/url-for :shortcuts)]
-                ["Report a problem"    (util/github-url :issues)]
+                ["Report a problem"    (links/github-url :issues)]
                 ;; ["Recent improvements" "#"] TODO add link once it exists
-                ["cljdoc on GitHub"    (util/github-url :home)]]))
+                ["cljdoc on GitHub"    (links/github-url :home)]]))
     [:a#js--meta-close.link.black.fr.pointer
      "× close"]]])
 
@@ -176,7 +177,7 @@
 (defn top-bar [version-entity scm-url]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center.bg-white
    [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params version-entity)}
-    (util/clojars-id version-entity)]
+    (proj/clojars-id version-entity)]
    [:a.dib.v-mid.link.dim.gray.f6.mr3
     {:href (routes/url-for :artifact/index :path-params version-entity)}
     (:version version-entity)]
@@ -199,7 +200,7 @@
       [:span.f6 (scm/fs-uri scm-url)]
 
       :else
-      [:a.f6.link.blue {:href (util/github-url :userguide/scm-faq)} "SCM info missing"])]])
+      [:a.f6.link.blue {:href (links/github-url :userguide/scm-faq)} "SCM info missing"])]])
 
 ;; Responsive Layout -----------------------------------------------------------
 

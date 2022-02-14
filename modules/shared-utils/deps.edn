@@ -1,3 +1,0 @@
-{:deps {org.jsoup/jsoup {:mvn/version "1.12.1"},
-        version-clj/version-clj {:mvn/version "0.1.2"}}
- :paths ["src" "resources"]}

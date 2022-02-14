@@ -7,7 +7,8 @@
 
   The basic datamodel is Group > Artifact > Version. Namespaces
   and vars are linked against versions."
-  (:require [cljdoc.spec :as cljdoc-spec]
+  (:require [cljdoc-shared.proj :as proj]
+            [cljdoc-shared.spec.analyzer :as analyzer-spec]
             [cljdoc.storage.sqlite-impl :as sqlite]))
 
 (defprotocol IStorage
@@ -20,13 +21,13 @@
 
 (defrecord SQLiteStorage [db-spec]
   IStorage
-  (import-api [_ version-entity codox]
-    (cljdoc-spec/assert :cljdoc.cljdoc-edn/codox codox)
+  (import-api [_ version-entity api-analysis]
+    (analyzer-spec/assert-result-namespaces api-analysis)
     (sqlite/store-artifact! db-spec
                             (:group-id version-entity)
                             (:artifact-id version-entity)
                             [(:version version-entity)])
-    (sqlite/import-api db-spec version-entity codox))
+    (sqlite/import-api db-spec version-entity api-analysis))
   (import-doc [_ version-entity {:keys [doc-tree scm jar config] :as version-data}]
     (sqlite/import-doc db-spec version-entity version-data))
   (exists? [_ version-entity]
@@ -40,3 +41,8 @@
     (sqlite/get-documented-versions db-spec group-id))
   (all-distinct-docs [_]
     (sqlite/all-distinct-docs db-spec)))
+
+(defn version-entity [project version]
+  {:group-id (proj/group-id project)
+   :artifact-id (proj/artifact-id project)
+   :version version})

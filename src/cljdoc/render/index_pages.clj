@@ -3,9 +3,9 @@
 
   These pages are used when switching between versions or
   browsing all artifacts under a specific group-id."
-  (:require [cljdoc.util :as util]
-            [cljdoc.render.layout :as layout]
+  (:require [cljdoc.render.layout :as layout]
             [cljdoc.server.routes :as routes]
+            [cljdoc-shared.proj :as proj]
             [clojure.spec.alpha :as spec]
             [version-clj.core :as v]))
 
@@ -23,10 +23,10 @@
     (->> [:div
           (layout/top-bar-generic)
           [:div.pa4-ns.pa2
-           [:h1 (util/clojars-id artifact-entity)]
+           [:h1 (proj/clojars-id artifact-entity)]
            (if (empty? matching)
              [:div
-              [:p "We currently don't have documentation built for " (util/clojars-id artifact-entity)]
+              [:p "We currently don't have documentation built for " (proj/clojars-id artifact-entity)]
               [:p.mt4
                [btn-link
                 {:href (routes/url-for :artifact/version :path-params (assoc artifact-entity :version "CURRENT"))}
@@ -50,7 +50,7 @@
                   [big-btn-link
                    {:href (routes/url-for :artifact/index :path-params {:group-id group-id :artifact-id artifact-id :version latest})}
                    a-text]])]])]]
-         (layout/page {:title (str (util/clojars-id artifact-entity) " — cljdoc")
+         (layout/page {:title (str (proj/clojars-id artifact-entity) " — cljdoc")
                        :description (layout/description artifact-entity)
                        :static-resources static-resources}))))
 

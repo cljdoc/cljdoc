@@ -1,6 +1,6 @@
 (ns ^:slow cljdoc.integration-test
-  (:require [cljdoc.server.system :as sys]
-            [cljdoc.util :as util]
+  (:require [babashka.fs :as fs]
+            [cljdoc.server.system :as sys]
             [io.pedestal.test :as pdt]
             [integrant.core :as ig]
             [ring.util.codec :as codec]
@@ -26,7 +26,7 @@
     (ig/halt! @sys)
     ;; we don't call shutdown-agents, because our test runner still needs them
     ;; (shutdown-agents)
-    (util/delete-directory! (io/file dir))))
+    (fs/delete-tree (io/file dir))))
 
 (t/use-fixtures :once run-system)
 

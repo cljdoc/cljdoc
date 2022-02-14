@@ -68,12 +68,3 @@
   (assoc ctx :response {:status 200
                         :body (str body)
                         :headers {"Content-Type" "text/xml"}}))
-
-(defn html
-  "Return an interceptor that will pass the context to the provided
-  function `render-fn` and return it's result as a text/html response."
-  [render-fn]
-  (interceptor/interceptor
-   {:name ::html
-    :enter (fn html-render-inner [context]
-             (ok-html context (render-fn context)))}))

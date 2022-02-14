@@ -21,9 +21,8 @@
   For most of the time this namespace only used raw `clojure.java.jdbc` functions since queries
   were basic. At some point the need for more complex queries arose [1] and HUGSQL was added
   to the mix."
-  (:require [cljdoc.spec]
-            [cljdoc.util :as util]
-            [cljdoc.user-config :as user-config]
+  (:require [cljdoc.user-config :as user-config]
+            [cljdoc-shared.proj :as proj]
             [clojure.set :as cset]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
@@ -115,7 +114,7 @@
      - `:rev` - git sha TODO: used as override for local ingest testing?
      - `:branch` - git branch
      - `:tag` when matching version tag found,
-       - `:name` - tag name ex. `"v1.0.72"`
+       - `:name` - tag name ex. `\"v1.0.72\"`
        - `:sha` - TODO: wazzis?
        - `:commit` - when would this be different from :sha?
      - `:commit` - sha specified in pom.xml scm->tag"
@@ -135,18 +134,21 @@
 ;; we would have to manually verify conformance of blob data compared to
 ;; non-null columns where conformance is ensured on insert
 
+(defn index-by [f m]
+  (into {} (map (juxt f identity) m)))
+
 (defnp ^:private get-namespaces
   "Returns a sequence of namespaces for `resolved-versions` (as in version.id).
 
   A namespace is returned for each available platform:
-  - `:platform` - either `"clj"` or `"cljs"`,
+  - `:platform` - either `\"clj\"` or `\"cljs\"`,
   - `:name` - namespace name
   - `:doc` - namespace docstring [blob]
   - `:version-entity` - link back to artifact version, example `{:id 35798}`.
 
   Database note: Items marked with [blob] are stored in nippy blob only."
   [db-spec resolved-versions]
-  (let [id-indexed (util/index-by :id resolved-versions)]
+  (let [id-indexed (index-by :id resolved-versions)]
     (->> (sql-get-namespaces db-spec {:version-ids (map :id resolved-versions)})
          ;; Match up version entities so each namespace can be linked back to it's artifact
          (map (fn [r] (assoc r :version-entity (get id-indexed (:version_id r)))))
@@ -162,7 +164,7 @@
   "Return a sequence vars for `namespaces-with-resolved-version-entities`, see the [[get-namespaces]] return.
 
   A var is returned for each available platform:
-  - `:platform` - either `"clj"` or `"cljs"`
+  - `:platform` - either `\"clj\"` or `\"cljs\"`
   - `:namespace` - namespace for var
   - `:name` - var name
   - `:type` - one of `:macro` `:multimethod` `:protocol` `:var` [blob]
@@ -239,8 +241,8 @@
     (if-not primary-resolved
       (throw (Exception. (format "Could not find version %s" v)))
       (let [version-data (or (get-version db-spec (:id primary-resolved)) {})
-            include-cfg  (user-config/include-namespaces-from-deps (:config version-data) (util/clojars-id v))
-            wanted?      (set (map util/normalize-project include-cfg))
+            include-cfg  (user-config/include-namespaces-from-deps (:config version-data) (proj/clojars-id v))
+            wanted?      (set (map proj/normalize include-cfg))
             extra-deps   (filter #(wanted? (str (:group-id %) "/" (:artifact-id %))) resolved-versions)
             namespaces   (set (get-namespaces db-spec (conj extra-deps primary-resolved)))]
         {:version    version-data

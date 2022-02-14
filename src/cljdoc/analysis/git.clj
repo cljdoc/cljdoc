@@ -3,16 +3,18 @@
 
   Cljdoc operates on source files as well as a project's Git repository
   to build API documentation and articles. "
-  (:require [cljdoc.util :as util]
+  (:require [babashka.fs :as fs]
             [cljdoc.util.telegram :as telegram]
             [cljdoc.util.scm :as scm]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.user-config :as user-config]
+            [cljdoc-shared.proj :as proj]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [clojure.string :as string]))
 
 (spec/def ::files (spec/map-of string? string?))
 (spec/def ::name string?)
@@ -48,7 +50,9 @@
 (defn analyze-git-repo
   [project version scm-url pom-revision]
   {:post [(map? %)]}
-  (let [git-dir (util/system-temp-dir (str "git-" project))
+  (let [git-dir (-> {:prefix (str "git-" (string/escape  project {\/ \-}))}
+                    fs/create-temp-dir
+                    fs/file)
         ;; While cloning via SSH is generally preferable it requires
         ;; an SSH key and thus more steps while deploying cljdoc.
         ;; By only falling back to SSH when HTTP isn't available
@@ -99,7 +103,7 @@
                                              (git/get-contributors repo revision f))}
                         (or (user-config/doc-tree config-edn project)
                             (get-in hardcoded-config
-                                    [(util/normalize-project project) :cljdoc.doc/tree])
+                                    [(proj/normalize project) :cljdoc.doc/tree])
                             (doctree/derive-toc git-files)))})
 
           {:error {:type "no-revision-found"
@@ -115,8 +119,8 @@
         {:error {:type "clone-failed"
                  :msg (.getMessage e)}})
       (finally
-        (when (.exists git-dir)
-          (util/delete-directory! git-dir))))))
+        (when (fs/exists? git-dir)
+          (fs/delete-tree git-dir))))))
 
 (comment
   (def r (analyze-git-repo "metosin/reitit" "0.2.5" "https://github.metosin/reitit" nil))

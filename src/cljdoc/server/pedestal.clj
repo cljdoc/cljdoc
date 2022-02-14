@@ -28,8 +28,8 @@
             [cljdoc.server.search.api :as search-api]
             [cljdoc.server.sitemap :as sitemap]
             [cljdoc.storage.api :as storage]
-            [cljdoc.util :as util]
-            [cljdoc.util.pom :as pom]
+            [cljdoc-shared.pom :as pom]
+            [cljdoc-shared.proj :as proj]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
@@ -183,10 +183,18 @@
              (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
                    params (-> ctx :request :path-params)
                    pom-parsed (pom/parse (pom-xml-memo
-                                          (util/clojars-id params)
+                                          (proj/clojars-id params)
                                           (:version params)))]
                (assoc ctx ::pom-info {:description (-> pom-parsed :artifact-info :description)
                                       :dependencies (-> pom-parsed :dependencies)})))}))
+
+(defn- uri-path
+  "Return path part of a URL, this is probably part of pedestal in
+  some way but I couldn't find it fast enough. TODO replace."
+  [uri]
+  (-> uri
+      (string/replace #"^https*://" "")
+      (string/replace #"^[^/]*" "")))
 
 (def resolve-version-interceptor
   "An interceptor that will look at `:path-params` and try to turn it into an artifact
@@ -199,12 +207,12 @@
    {:name ::resolve-version-interceptor
     :enter (fn resolve-version-interceptor [{:keys [route request] :as ctx}]
              (let [{:keys [project group-id artifact-id version]} (:path-params request)
-                   artifact-id     (or artifact-id (util/artifact-id project))
-                   group-id        (or group-id (util/group-id project))
+                   artifact-id     (or artifact-id (proj/artifact-id project))
+                   group-id        (or group-id (proj/group-id project))
                    current?        (= "CURRENT" version)
                    referer-version (some-> request
                                            (get-in [:headers "referer"])
-                                           util/uri-path routes/match-route :path-params :version)
+                                           uri-path routes/match-route :path-params :version)
                    artifact-entity {:artifact-id artifact-id
                                     :group-id group-id
                                     :version (cond
@@ -249,8 +257,8 @@
    {:name ::request-build
     :enter (fn request-build-handler [ctx]
              (if-let [running (build-log/running-build build-tracker
-                                                       (-> ctx :request :form-params :project util/group-id)
-                                                       (-> ctx :request :form-params :project util/artifact-id)
+                                                       (-> ctx :request :form-params :project proj/group-id)
+                                                       (-> ctx :request :form-params :project proj/artifact-id)
                                                        (-> ctx :request :form-params :version))]
                (redirect-to-build-page ctx (:id running))
                (let [build (api/kick-off-build!
@@ -364,7 +372,7 @@
     :enter (fn jump [ctx]
              (let [{:keys [project artifact-id group-id] :as params} (-> ctx :request :path-params)
                    project (cond project project
-                                 artifact-id (util/clojars-id params)
+                                 artifact-id (proj/clojars-id params)
                                  group-id group-id)
                    release (try (repos/latest-release-version project)
                                 (catch Exception e
@@ -373,8 +381,8 @@
                       {:status 302
                        :headers {"Location" (routes/url-for :artifact/version
                                                             :params
-                                                            {:group-id (util/group-id project)
-                                                             :artifact-id (util/artifact-id project)
+                                                            {:group-id (proj/group-id project)
+                                                             :artifact-id (proj/artifact-id project)
                                                              :version release})}}
                       {:status 404
                        :headers {}
