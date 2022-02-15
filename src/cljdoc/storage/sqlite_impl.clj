@@ -6,11 +6,13 @@
   For each artifact that exists we store one row in the `versions` table. This row has one
   column `meta` which stores a blob of information related to this artifact. This includes
   information about the Git repository, the cljdoc configuration file and so on.
+  See [[get-version]] for details.
 
   Similarly there are `namespaces` and `vars` tables that store namespaces and vars and link
   them back to a single artifact via a `version_id`. The `version_id` is the `ROWID` of an
   entry in the `versions` table. The `namespaces` and `vars` tables also each have a `meta`
   column which is used to store most of the information in a schema-less manner.
+  See [[get-namespaces]] and [[get-vars]] for details.
 
   All `meta` columns are serialized with [Nippy](https://github.com/ptaoussanis/nippy).
 
@@ -19,9 +21,8 @@
   For most of the time this namespace only used raw `clojure.java.jdbc` functions since queries
   were basic. At some point the need for more complex queries arose [1] and HUGSQL was added
   to the mix."
-  (:require [cljdoc.spec]
-            [cljdoc.util :as util]
-            [cljdoc.user-config :as user-config]
+  (:require [cljdoc.user-config :as user-config]
+            [cljdoc-shared.proj :as proj]
             [clojure.set :as cset]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
@@ -86,7 +87,38 @@
                group-id artifact-id version-name]
               {:row-fn :id})))
 
-(defnp ^:private get-version [db-spec version-id]
+(defnp ^:private get-version
+  "Returns metadata for specific `version-id` a map:
+   - `:config` - a copy of the actual (TODO: or sometimes generated?), cljdoc.edn in the library  git repo for example:
+       ```
+       {:cljdoc.doc/tree [[\"Readme\" {:file \"README.md\"}]
+                          [\"Document tests\" {:file \"doc/overview.adoc\"}
+                           [\"AsciiDoctor features\" {:file \"doc/tests/adoc-features.adoc\"}]
+                           [\"CommonMark features\" {:file \"doc/tests/md-features.md\"}]
+                           [\"AsciiDoctor User Manual\" {:file \"doc/tests/asciidoctor-user-manual.adoc\"}]]]}
+       ```
+   - `:doc` - a vector of maps for a hydrated version of the above articles
+      - `:title` document title from above, example: `\"Document tests\"`
+      - `:attrs` - a map of
+         - `:cljdoc.doc/source-file` - scm root relative source-file, ex: `\"doc/doverview.adoc\"`
+         - `:cldoc.doc/type` - either `:cljdoc/markdown` or `:cljdoc/asciidoc`, also acts as key for content
+         - `:cljdoc/markdown` - actual file contents when in markdown format
+         - `:cljdoc/asciidoc` - actual file contents when in asciidoc format
+         - `:slug` - url slug for article
+         - `:cljdoc.doc/contributors`  - list of scm users who made changes to file
+   - `:jar` - TODO: for local ingest testing?
+   - `:scm`
+     - `:files` - a map of a complete list of files in the scm repo, key is the root relative file, value is the sha for the file
+        - example key: `\"images/asciidoctor/sunset.jpg\"`
+        - example value: `\"fcc2526068ecf0f6e0e5509b5f2e09a31db776b190bc4fc76ccbd71fde665aaf\"`
+     - `:rev` - git sha TODO: used as override for local ingest testing?
+     - `:branch` - git branch
+     - `:tag` when matching version tag found,
+       - `:name` - tag name ex. `\"v1.0.72\"`
+       - `:sha` - TODO: wazzis?
+       - `:commit` - when would this be different from :sha?
+     - `:commit` - sha specified in pom.xml scm->tag"
+  [db-spec version-id]
   (first (sql/query db-spec ["select meta from versions where id = ?" version-id]
                     {:row-fn (fn [r] (some-> r :meta nippy/thaw))})))
 
@@ -102,8 +134,21 @@
 ;; we would have to manually verify conformance of blob data compared to
 ;; non-null columns where conformance is ensured on insert
 
-(defnp ^:private get-namespaces [db-spec resolved-versions]
-  (let [id-indexed (util/index-by :id resolved-versions)]
+(defn index-by [f m]
+  (into {} (map (juxt f identity) m)))
+
+(defnp ^:private get-namespaces
+  "Returns a sequence of namespaces for `resolved-versions` (as in version.id).
+
+  A namespace is returned for each available platform:
+  - `:platform` - either `\"clj\"` or `\"cljs\"`,
+  - `:name` - namespace name
+  - `:doc` - namespace docstring [blob]
+  - `:version-entity` - link back to artifact version, example `{:id 35798}`.
+
+  Database note: Items marked with [blob] are stored in nippy blob only."
+  [db-spec resolved-versions]
+  (let [id-indexed (index-by :id resolved-versions)]
     (->> (sql-get-namespaces db-spec {:version-ids (map :id resolved-versions)})
          ;; Match up version entities so each namespace can be linked back to it's artifact
          (map (fn [r] (assoc r :version-entity (get id-indexed (:version_id r)))))
@@ -115,7 +160,25 @@
           (format "namespace missing from meta"))
   (-> r :meta nippy/thaw (assoc :name (:name r))))
 
-(defnp ^:private get-vars [db-spec namespaces-with-resolved-version-entities]
+(defnp ^:private get-vars
+  "Return a sequence vars for `namespaces-with-resolved-version-entities`, see the [[get-namespaces]] return.
+
+  A var is returned for each available platform:
+  - `:platform` - either `\"clj\"` or `\"cljs\"`
+  - `:namespace` - namespace for var
+  - `:name` - var name
+  - `:type` - one of `:macro` `:multimethod` `:protocol` `:var` [blob]
+  - `:doc` - var docstring [blob]
+  - `:file` - classpath relative source filename [blob]
+  - `:line` - line number of var in file [blob]
+  - `:arglists` - arglists for var, ommitted for `def` `record` and `protocol` [blob]
+  - `:members` - only applicable when `:type` is `:protocol`, list of maps of: [blob]
+    - `:arglists` - list of vectors arglists
+    - `:name` - name of protocol method
+    - `:type` - always `:var`?
+
+  Database note: Items marked with [blob] are stored in nippy blob only."
+  [db-spec namespaces-with-resolved-version-entities]
   (let [ns-idents (->> namespaces-with-resolved-version-entities
                        (map (fn [ns] [(-> ns :version-entity :id) (:name ns)])))]
     (assert (seq ns-idents))
@@ -178,8 +241,8 @@
     (if-not primary-resolved
       (throw (Exception. (format "Could not find version %s" v)))
       (let [version-data (or (get-version db-spec (:id primary-resolved)) {})
-            include-cfg  (user-config/include-namespaces-from-deps (:config version-data) (util/clojars-id v))
-            wanted?      (set (map util/normalize-project include-cfg))
+            include-cfg  (user-config/include-namespaces-from-deps (:config version-data) (proj/clojars-id v))
+            wanted?      (set (map proj/normalize include-cfg))
             extra-deps   (filter #(wanted? (str (:group-id %) "/" (:artifact-id %))) resolved-versions)
             namespaces   (set (get-namespaces db-spec (conj extra-deps primary-resolved)))]
         {:version    version-data

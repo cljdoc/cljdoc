@@ -3,8 +3,8 @@
             [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
             [cljdoc.server.build-log :as build-log]
-            [cljdoc.util :as util]
             [cljdoc.util.repositories :as repositories]
+            [cljdoc-shared.analysis-edn :as analysis-edn]
             [clojure.tools.logging :as log]))
 
 (defn analyze-and-import-api!
@@ -28,7 +28,7 @@
     (try
       (let [build-result (analysis-service/wait-for-build analysis-service ana-resp)
             file-uri     (:analysis-result build-result)
-            data         (util/read-cljdoc-edn file-uri)
+            data         (analysis-edn/read file-uri)
             ns-count     (let [{:strs [clj cljs]} (:analysis data)]
                            (count (set (into (map :name cljs) (map :name clj)))))]
         (build-log/analysis-received! build-tracker build-id file-uri)
@@ -50,7 +50,7 @@
    {:keys [project version jar pom scm-url scm-rev] :as coords}]
   (let [a-uris    (when-not (and jar pom)
                     (repositories/artifact-uris project version))
-        v-entity  (util/version-entity project version)
+        v-entity  (storage/version-entity project version)
         build-id  (build-log/analysis-requested!
                    build-tracker (:group-id v-entity) (:artifact-id v-entity) version)
         ;; override default artifact-uris if they have been provided
@@ -62,7 +62,7 @@
     {:build-id build-id
      :future (future
                (try
-                 (storage/import-doc storage (util/version-entity project version) {})
+                 (storage/import-doc storage (storage/version-entity project version) {})
                  ;; Git analysis may derive the revision via tags but a URL is always required.
                  (if scm-url
                    (let [{:keys [error] :as git-result}

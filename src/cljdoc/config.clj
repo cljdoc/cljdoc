@@ -53,10 +53,6 @@
   ([] (data-dir (config)))
   ([config] (get-in config [:cljdoc/server :dir])))
 
-(defn statsd
-  [config]
-  (get config :statsd))
-
 (defn db
   [config]
   {:classname "org.sqlite.JDBC",
@@ -108,8 +104,6 @@
   (:cljdoc/server (config))
 
   (sentry-dsn)
-
-  (get-in (config) [:cljdoc/hardcoded (cljdoc.util/artifact-id project)])
 
   (clojure.pprint/pprint
    (aero/read-config (io/resource "config.edn") {:profile :default})))

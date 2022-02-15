@@ -2,7 +2,7 @@
   "Users can provide configuration via a file `doc/cljdoc.edn` in their Git repository.
 
   This namespace defines functions to query the contents of this file."
-  (:require [cljdoc.util :as util]))
+  (:require [cljdoc-shared.proj :as proj]))
 
 (defn get-project-specific
   [config-edn project]
@@ -10,8 +10,8 @@
            (filter (fn [[k _]]
                      (and
                       (symbol? k)
-                      (or (= k (symbol (util/group-id project)))
-                          (= k (symbol (util/group-id project) (util/artifact-id project)))))))
+                      (or (= k (symbol (proj/group-id project)))
+                          (= k (symbol (proj/group-id project) (proj/artifact-id project)))))))
            (first)
            (val)))
 

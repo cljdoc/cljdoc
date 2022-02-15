@@ -1,6 +1,6 @@
 (ns cljdoc.util.repositories
-  (:require [cljdoc.util :as util]
-            [cljdoc.config :as config]
+  (:require [cljdoc.config :as config]
+            [cljdoc-shared.proj :as proj]
             [clojure.string :as string]
             [clj-http.lite.client :as http]
             [cheshire.core :as json]
@@ -25,12 +25,12 @@
                  :version     (get r "version")})))))
 
 (defn group-path [project]
-  (string/replace (util/group-id project) #"\." "/"))
+  (string/replace (proj/group-id project) #"\." "/"))
 
 (defn version-directory-uri
   [repository project version]
   {:pre [(string? repository)]}
-  (format "%s%s/%s/%s/" repository (group-path project) (util/artifact-id project) version))
+  (format "%s%s/%s/%s/" repository (group-path project) (proj/artifact-id project) version))
 
 (defn artifact-uri
   ([suffix repository project version]
@@ -38,7 +38,7 @@
   ([suffix repository project version actual-version]
    (format "%s%s-%s.%s"
            (version-directory-uri repository project version)
-           (util/artifact-id project)
+           (proj/artifact-id project)
            actual-version
            suffix)))
 
@@ -66,7 +66,7 @@
    (format "%s%s/%s/maven-metadata.xml"
            repository
            (group-path project)
-           (util/artifact-id project)))
+           (proj/artifact-id project)))
   ([repository project version]
    (str (version-directory-uri repository project version)
         "maven-metadata.xml")))
@@ -119,6 +119,12 @@
     (throw (ex-info (format "Requested version cannot be found in configured repositories: [%s %s]" project version)
                     {:project project :version version}))))
 
+(defn assert-first [[x & rest :as xs]]
+  (if (empty? rest)
+    x
+    (throw (ex-info "Expected collection with one item, got multiple"
+                    {:coll xs}))))
+
 (defn latest-release-version [project]
   (if-let [repository (find-artifact-repository project)]
     (let [{:keys [body status]} (http/get (metadata-xml-uri repository project))]
@@ -129,7 +135,7 @@
           (or (some-> (.select d "metadata > version") first (.ownText))
               (->> (.select d "metadata > versioning > release")
                    (map #(.ownText %))
-                   (util/assert-first))))))
+                   assert-first)))))
     (throw (ex-info (format "Requested project cannot be found in configured repositories: %s" project)
                     {:project project}))))
 
@@ -165,11 +171,6 @@
   (find-artifact-repository 'bidi "2.1.4")
 
   (find-artifact-repository 'com.bhauman/spell-spec "0.1.0")
-
-  (def d
-    (cljdoc.util.pom/parse (slurp (:pom (artifact-uris 'metosin/reitit "0.1.2-SNAPSHOT")))))
-
-  (cljdoc.util.pom/scm-info d)
 
   (releases-since (.minus (Instant/now) (Duration/ofHours 12)))
 

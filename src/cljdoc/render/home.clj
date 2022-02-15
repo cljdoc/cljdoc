@@ -1,16 +1,16 @@
 (ns cljdoc.render.home
   (:require [cljdoc.render.layout :as layout]
-            [cljdoc.render.search :as search]
-            [cljdoc.util :as util]))
+            [cljdoc.render.links :as links]
+            [cljdoc.render.search :as search]))
 
 (def tagline
   "is a website building & hosting documentation for Clojure/Script libraries")
 
 (defn footer []
   [:div.b--light-gray.pa4.tc.f4.fw3
-   [:p "cljdoc is created by its " [:a.link.blue {:href (util/github-url :contributors)} "contributors"]
+   [:p "cljdoc is created by its " [:a.link.blue {:href (links/github-url :contributors)} "contributors"]
     ". Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on "
-    [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (util/github-url :home)} "GitHub"] "."]
+    [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (links/github-url :home)} "GitHub"] "."]
    [:p "Support cljdoc on " [:a.link.blue {:href "https://opencollective.com/cljdoc"} "OpenCollective"] "."]])
 
 (defn feature-block [{:keys [title text link link-text]}]
@@ -28,7 +28,7 @@
           [:img {:src (get (:static-resources context) "/cljdoc-logo.svg") :alt "cljdoc logo" :width "150px"}]]
          [:p.f2-ns.f3.mv3.w-90-l.lh-copy tagline]
          (search/search-form (-> context :request :query-params :q))
-         [:p#examples.lh-copy "Read " [:a.link.blue {:href (util/github-url :rationale)} "the rationale"]
+         [:p#examples.lh-copy "Read " [:a.link.blue {:href (links/github-url :rationale)} "the rationale"]
           " or check out some examples: "
           [:a.link.blue.nowrap {:href "/d/rum/rum/CURRENT"} "rum"] ", "
           [:a.link.blue.nowrap {:href "/d/lambdaisland/kaocha/CURRENT"} "kaocha"] ", "
@@ -41,19 +41,19 @@
                     [{:title "Automated Docs"
                       :text "cljdoc builds documentation for new releases that are pushed to Clojars within minutes. Ever forgot to update your docs after a release? No more."
                       :link-text "→ Basic Setup"
-                      :link (util/github-url :userguide/basic-setup)}
+                      :link (links/github-url :userguide/basic-setup)}
                      {:title "Articles & More"
                       :text "Seamless integration of articles and tutorials from Markdown and Asciidoc source files."
                       :link-text "→ Articles"
-                      :link (util/github-url :userguide/articles)}
+                      :link (links/github-url :userguide/articles)}
                      {:title "Offline Docs"
                       :text "Download documentation for any project in a zip file for easy offline use while travelling or swinging in your hammock. Supports Dash and Zeal."
                       :link-text "→ Offline Docs"
-                      :link (util/github-url :userguide/offline-docs)}
+                      :link (links/github-url :userguide/offline-docs)}
                      {:title "Specs, Examples, ..."
                       :text "In the future cljdoc may incorporate more than just API docs and articles. Specs and examples are high on the list."
                       :link-text "→ Roadmap"
-                      :link (util/github-url :roadmap)}]))]
+                      :link (links/github-url :roadmap)}]))]
 
         (let [container :div.dtc-l.pa5-ns.pa4.white.b--light-blue.hover-bg-black-10.bg-animate
               button    :a.dib.bg-white.blue.ph3.pv2.br1.no-underline.f5.fw5.grow]
@@ -61,11 +61,11 @@
            [container
             [:h2.f5.ma0.fw5.ttu.tracked.o-70 "Library Authors"]
             [:p.f4.mb4.fw3 "Learn how to publish your docs to cljdoc, integrate tutorials and other material and add a badge to your project's Readme."]
-            [button {:href (util/github-url :userguide/authors)} "Documentation for Library Authors →"]]
+            [button {:href (links/github-url :userguide/authors)} "Documentation for Library Authors →"]]
            [container
             [:h2.f5.ma0.fw5.ttu.tracked.o-70 "Library Users"]
             [:p.f4.mb4.fw3 "Learn where to find documentation, how to download it for offline use and more."]
-            [button {:href (util/github-url :userguide/users)} "Documentation for Library Users →"]]])
+            [button {:href (links/github-url :userguide/users)} "Documentation for Library Users →"]]])
 
         [:div.tc.ttu.tracked.bb.b--light-gray.pa4
          [:span.o-50.dark-blue.f6 "↓ More Features ↓"]]
@@ -98,7 +98,7 @@
          [:div.dtc-l.v-mid.ph5-ns.ph4
           [:p.f2-ns.f3.fw3.lh-copy.near.black "Open Source, so the community can work together to improve or even fork cljdoc."]]
          [:div.dtc-l.v-mid.ph5-ns.ph4.pv5-l.lh-copy.mb4
-          [:a.dt.link.black.center.o-80.glow {:href (util/github-url :home)}
+          [:a.dt.link.black.center.o-80.glow {:href (links/github-url :home)}
            [:img.dtc.v-mid.mr3 {:src "https://microicon-clone.vercel.app/github/38"}]
            [:span.dtc.v-mid.f3 "cljdoc/cljdoc"]]]]
 

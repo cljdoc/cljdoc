@@ -1,36 +1,43 @@
 (ns cljdoc.server.ingest
   "A collection of small helpers to ingest data provided via API analysis
   or Git repositories into the database (see [[cljdoc.storage.api]])"
-  (:require [cljdoc.util :as util]
-            [cljdoc.analysis.git :as ana-git]
-            [cljdoc.util.pom :as pom]
+  (:require [cljdoc.analysis.git :as ana-git]
+            [cljdoc-shared.pom :as pom]
+            [cljdoc-shared.proj :as proj]
             [cljdoc.util.codox :as codox]
+            [cljdoc.util.scm :as scm]
             [clojure.tools.logging :as log]
             [cljdoc.storage.api :as storage]
-            [cljdoc.spec]))
+            [cljdoc-shared.spec.analyzer :as analyzer-spec]))
 
 (defn ingest-cljdoc-edn
   "Store all the API-related information in the passed `cljdoc-edn` data"
   [storage {:keys [analysis group-id artifact-id version] :as cljdoc-edn}]
-  (let [project (util/clojars-id cljdoc-edn)
-        artifact (util/version-entity project version)]
+  (let [project (proj/clojars-id cljdoc-edn)
+        artifact (storage/version-entity project version)]
     (log/info "Verifying cljdoc-edn contents against spec")
-    (cljdoc.spec/assert :cljdoc/cljdoc-edn cljdoc-edn)
+    (analyzer-spec/assert-result-full cljdoc-edn)
     (log/infof "Importing API into database %s %s" project version)
     (storage/import-api storage artifact (codox/sanitize-macros analysis))))
+
+(def scm-fallback "TODO: What and why?"
+  {"yada/yada" "https://github.com/juxt/yada/"})
+
+(defn gh-url? [s]
+  (some-> s (.contains "github.com")))
 
 (defn scm-info
   [pom-url]
   {:pre [(string? pom-url)]}
   (let [pom-doc  (pom/parse (slurp pom-url))
-        artifact (pom/artifact-info pom-doc)
-        scm-info (pom/scm-info pom-doc)
+        artifact (:artifact-info pom-doc)
+        scm-info (:scm-info pom-doc)
         project  (str (:group-id artifact) "/" (:artifact-id artifact))
         scm-url  (some-> (or (:url scm-info)
-                             (when (util/gh-url? (:url artifact))
+                             (when (gh-url? (:url artifact))
                                (:url artifact))
-                             (util/scm-fallback project))
-                         util/normalize-git-url)]
+                             (scm-fallback project))
+                         scm/normalize-git-url)]
     (when scm-url
       {:url scm-url
        :sha (:sha scm-info)})))
@@ -49,7 +56,7 @@
         (log/info "Importing Articles" scm-url scm-rev)
         (storage/import-doc
          storage
-         (util/version-entity project version)
+         (storage/version-entity project version)
          {:jar          {}
           :scm          (merge (:scm git-analysis)
                                {:url scm-url
@@ -68,6 +75,6 @@
 
   (-> (:pom-str edn)
       (pom/parse)
-      (pom/artifact-info))
+      :artifact-info)
 
   (ingest-cljdoc-edn (io/file "data") edn))

@@ -9,12 +9,12 @@
             [cljdoc.doc-tree :as doctree]
             [cljdoc.spec :as cljdoc-spec]
             [cljdoc.bundle :as bundle]
-            [cljdoc.util :as util]
             [cljdoc.util.scm :as scm]
             [cljdoc.platforms :as platf]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.render.assets :as assets]
             [cljdoc.render.rich-text :as rich-text]
+            [cljdoc-shared.proj :as proj]
             [clojure.string :as string]
             [clojure.java.io :as io]
             [me.raynes.fs.compression :as fs-compression]
@@ -40,7 +40,7 @@
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
    [:a.dib.v-mid.link.dim.black.b.f6.mr3
     {:href (if sub-page? ".." "#")}
-    (util/clojars-id version-entity)]
+    (proj/clojars-id version-entity)]
    [:span.dib.v-mid.gray.f6.mr3
     (:version version-entity)]
    [:a.link.blue.ml3 {:href (if sub-page? "../index.html#namespaces" "#namespaces")} "Namespaces"]
@@ -74,7 +74,7 @@
                    [:title
                     (str
                      (some-> sub-page? (str " — "))
-                     (util/clojars-id version-entity) " v"
+                     (proj/clojars-id version-entity) " v"
                      (:version version-entity))]
                    [:meta {:charset "utf-8"}]
                    (->> (concat ["assets/cljdoc.css"] (assets/offline-css :tachyons))

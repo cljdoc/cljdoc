@@ -10,7 +10,6 @@
             [cljdoc.server.pedestal :as pedestal]
             [cljdoc.server.api :as api]
             [cljdoc.storage.api :as storage]
-            [cljdoc.util :as util]
             [cljdoc.util.repositories :as repositories]))
 
 (defn build [{:keys [project version jar pom git rev] :as args}]
@@ -32,7 +31,7 @@
                                    [:cljdoc/storage :cljdoc/sqlite])
         sys           (ig/init sys)
         store         (:cljdoc/storage sys)
-        artifact-info (util/version-entity project version)
+        artifact-info (storage/version-entity project version)
         static-resources (pedestal/build-static-resource-map)]
     (if (storage/exists? store artifact-info)
       (let [output (io/file output)]

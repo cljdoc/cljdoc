@@ -39,6 +39,20 @@
 (defn index-by [f m]
   (into {} (map (juxt f identity) m)))
 
+(defn replant-ns
+  "Given a fully-qualified `base` and a potentially relative `target` namespace,
+  return the fully qualified version of `target`. Assumes that all `target` namespaces
+  with identical first segments to `base` are already absolute."
+  [base target]
+  (if (= (first (string/split base #"\."))
+         (first (string/split target #"\.")))
+    target
+    (string/join "."
+                 (-> (string/split base #"\.")
+                     drop-last
+                     vec
+                     (conj target)))))
+
 (comment
   (def d '("instaparse.core" "instaparse.transform" "instaparse.transform.test" "instaparse.reduction" "instaparse.abnf" "instaparse.failure" "instaparse.repeat" "instaparse.macros" "instaparse.combinators" "instaparse.auto-flatten-seq" "instaparse.viz" "instaparse.util" "instaparse.print" "instaparse.line-col" "instaparse.gll" "instaparse.combinators-source" "instaparse.cfg"))
 

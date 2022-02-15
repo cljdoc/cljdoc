@@ -5,12 +5,11 @@
             [cljdoc.render.articles :as articles]
             [cljdoc.render.sidebar :as sidebar]
             [cljdoc.render.api :as api]
-            [cljdoc.util :as util]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.util.scm :as scm]
             [cljdoc.bundle :as bundle]
-            [cljdoc.spec]
-            [cljdoc.server.routes :as routes]))
+            [cljdoc.server.routes :as routes]
+            [cljdoc-shared.proj :as proj]))
 
 (defmulti render (fn [page-type _route-params _cache-bundle] page-type))
 
@@ -26,7 +25,7 @@
           ;; We could instead show a message and the namespace tree.
           {:top-bar (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
            :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)})
-         (layout/page {:title (str (util/clojars-id version-entity) " " (:version version-entity))
+         (layout/page {:title (str (proj/clojars-id version-entity) " " (:version version-entity))
                        :description (layout/artifact-description version-entity (:description pom))
                        :static-resources static-resources}))))
 
@@ -76,7 +75,7 @@
                         :prev-page prev-page
                         :next-page next-page})}))
 
-         (layout/page {:title (str (:title doc-p) " — " (util/clojars-id version-entity) " " (:version version-entity))
+         (layout/page {:title (str (:title doc-p) " — " (proj/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
@@ -118,7 +117,7 @@
                                                         :namespaces (bundle/namespaces cache-bundle)
                                                         :defs (bundle/all-defs cache-bundle)
                                                         :fix-opts fix-opts})}))
-         (layout/page {:title (str (:namespace ns-emap) " — " (util/clojars-id version-entity) " " (:version version-entity))
+         (layout/page {:title (str (:namespace ns-emap) " — " (proj/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/namespace :path-params))

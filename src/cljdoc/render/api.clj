@@ -3,7 +3,6 @@
   (:require [cljdoc.render.rich-text :as rich-text]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.util.ns-tree :as ns-tree]
-            [cljdoc.util :as util]
             [cljdoc.bundle :as bundle]
             [cljdoc.platforms :as platf]
             [cljdoc.spec]
@@ -50,7 +49,7 @@
   a `[ns var]` tuple and will return a Markdown link to the specified ns/var."
   [current-ns ns-link-fn]
   (fn render-wiki-link-inner [[ns var]]
-    (str (ns-link-fn (if ns (util/replant-ns current-ns ns) current-ns))
+    (str (ns-link-fn (if ns (ns-tree/replant-ns current-ns ns) current-ns))
          (when var (str "#" var)))))
 
 (defn render-doc [mp render-wiki-link fix-opts]

@@ -1,9 +1,9 @@
 (ns cljdoc.render.sidebar
-  (:require [cljdoc.util :as util]
-            [cljdoc.doc-tree :as doctree]
+  (:require [cljdoc.doc-tree :as doctree]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.render.layout :as layout]
+            [cljdoc.render.links :as links]
             [cljdoc.render.articles :as articles]
             [cljdoc.render.api :as api]
             [cljdoc.bundle :as bundle]))
@@ -73,10 +73,10 @@
        (seq readme-and-changelog)
        [:div.mb4
         [:p.f7.gray.lh-title
-         [:a.blue.link {:href (util/github-url :userguide/articles)} "Articles"]
+         [:a.blue.link {:href (links/github-url :userguide/articles)} "Articles"]
          " are a practical way to provide additional guidance beyond API documentation.
          Please refer to "
-         [:a.blue.link {:href (util/github-url :userguide/articles)} "the documentation"]
+         [:a.blue.link {:href (links/github-url :userguide/articles)} "the documentation"]
          " to learn more about using them."]]
 
        ;; no articles at all -> list common problems + link to docs
@@ -87,7 +87,7 @@
          we could not find the Git repository for a project or there are no articles present in
          a format that cljdoc supports. "
          [:strong "Please consult the "
-          [:a.blue.link {:href (util/github-url :userguide/articles)} "cljdoc docs"]
+          [:a.blue.link {:href (links/github-url :userguide/articles)} "cljdoc docs"]
           " on how to fix this."]]])
 
      ;; Namespace listing
@@ -102,5 +102,5 @@
            "We couldn't find any namespaces in this artifact. Most often the reason for this is
            that the analysis failed or that the artifact has been mispackaged and does not
            contain any Clojure source files. The latter might be on purpose for uber-module
-           style artifacts. " "Please " [:a.blue.link {:href (util/github-url :issues)} "open
+           style artifacts. " "Please " [:a.blue.link {:href (links/github-url :issues)} "open
            an issue"] " and we'll be happy to look into it."])])]))

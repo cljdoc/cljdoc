@@ -88,10 +88,6 @@
       (.build)
       (Git.)))
 
-(defn git-checkout-repo [^Git repo rev]
-  (log/infof "Checking out revision %s\n" rev)
-  (.. repo checkout (setName rev) call))
-
 (defn find-tag [^Git repo tag-str]
   (->> (.. repo tagList call)
        (filter (fn [t]
@@ -110,12 +106,6 @@
                ;; PeeledTags seem to have their own sha while PeeledNonTags dont
                ObjectIdRef$PeeledTag    (.. tag-obj getPeeledObjectId getName)
                ObjectIdRef$PeeledNonTag (.. tag-obj getObjectId getName))}))
-
-(defn git-tag-names [repo]
-  (->> repo
-       (.tagList)
-       (.call)
-       (map #(->> % .getName (re-matches #"refs/tags/(.*)") second))))
 
 (defn exists? [^Git g rev]
   (some? (.resolve (.getRepository g) rev)))

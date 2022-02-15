@@ -34,3 +34,11 @@
 (t/deftest scm-view-uri-test
   (t/is (= "https://github.com/circleci/clj-yaml/blob/master/README.md" (scm/view-uri {:url "https://github.com/circleci/clj-yaml", :branch "master"} "README.md")))
   (t/is (= "https://git.sr.ht/~miikka/clj-branca/tree/master/README.md" (scm/view-uri {:url "https://git.sr.ht/~miikka/clj-branca", :branch "master"} "README.md"))))
+
+(t/deftest normalize-git-url-test
+  (t/is (= (scm/normalize-git-url "git@github.com:clojure/clojure.git")
+           "https://github.com/clojure/clojure"))
+  (t/is (= (scm/normalize-git-url "http://github.com/clojure/clojure.git")
+           "https://github.com/clojure/clojure"))
+  (t/is (= (scm/normalize-git-url "http://github.com/clojure/clojure")
+           "https://github.com/clojure/clojure")))

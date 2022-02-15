@@ -25,10 +25,9 @@
 (spec/def ::ne-string (spec/and string?
                                 (complement cstr/blank?)))
 (spec/def :cljdoc.doc/source-file string?)
-(spec/def :cljdoc/asiidoc string?)
 (spec/def :cljdoc/markdown string?)
-(spec/def :cljdoc.doc/type #{:cljdoc/markdown :cljdoc/asciidoc})
 (spec/def :cljdoc/asciidoc string?)
+(spec/def :cljdoc.doc/type #{:cljdoc/markdown :cljdoc/asciidoc})
 (spec/def :cljdoc.doc/contributors (spec/coll-of string?))
 (spec/def ::slug ::ne-string)
 (spec/def ::title ::ne-string)

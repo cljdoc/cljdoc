@@ -4,7 +4,7 @@
             [clojure.java.io :as io]
             [clojure.java.shell :as sh]
             [cheshire.core :as json]
-            [cljdoc.util :as util]))
+            [cljdoc-shared.analysis :as analysis]))
 
 (defprotocol IAnalysisService
   "Services that can run analysis of Clojure code for us
@@ -35,7 +35,7 @@
    :repos   repos})
 
 (def analyzer-version
-  "223c3deea86a36ce40a47dc99691d9e14a5861f7")
+  "5caf14018c09212a558a2aa5e88bfa78dcfa64a4")
 
 (def analyzer-dependency
   {:deps {'cljdoc/cljdoc-analyzer {:git/url "https://github.com/cljdoc/cljdoc-analyzer.git"
@@ -53,7 +53,6 @@
     (log/infof "Starting CircleCI analysis for %s %s %s" project version jarpath)
     (let [build (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
                            {:accept "application/json"
-                            ;; https://github.com/hiredman/clj-http-lite/issues/15
                             :form-params {"build_parameters[CLJDOC_ANALYZER_DEP]" (pr-str analyzer-dependency)
                                           "build_parameters[CLJDOC_BUILD_ID]" build-id
                                           "build_parameters[CLJDOC_ANALYZER_ARGS]" (pr-str (ng-analysis-args arg repos))}
@@ -70,7 +69,7 @@
     (assert (integer? build-num))
     (let [done-build (poll-circle-ci-build this build-num)
           success?   (contains? #{"success" "fixed"} (get done-build "status"))
-          cljdoc-edn (cljdoc.util/cljdoc-edn project version)
+          cljdoc-edn (analysis/result-file project version)
           artifacts (-> (get-circle-ci-build-artifacts this build-num)
                         :body json/parse-string)]
       (if-let [artifact (and success?
@@ -134,12 +133,12 @@
     (future
       (log/infof "Starting local analysis for %s %s %s" project version jarpath)
       ;; Run the analysis-runner (yeah) and return the path to the file containing
-      ;; analysis results. This is also the script that is used in the "production"
-      ;; [cljdoc-builder project](https://github.com/martinklepsch/cljdoc-builder)
+      ;; analysis results. This mimics production usage in
+      ;; https://github.com/cljdoc/builder circleci config.
       (let [proc            (sh/sh "clojure" "-Sdeps" (pr-str analyzer-dependency)
                                    "-M" "-m" "cljdoc-analyzer.cljdoc-main" (pr-str (ng-analysis-args arg repos))
                                    :dir (doto (io/file "/tmp/cljdoc-analysis-runner-dir/") (.mkdir)))
-            cljdoc-edn-file (str util/analysis-output-prefix (util/cljdoc-edn project version))]
+            cljdoc-edn-file (analysis/result-path project version)]
         {:analysis-result cljdoc-edn-file
          :proc proc})))
   (wait-for-build
