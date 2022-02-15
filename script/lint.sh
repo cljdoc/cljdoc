@@ -12,8 +12,7 @@ function lint() {
         echo "--[linting and building cache]--"
         # classpath with tests paths
         local classpath;classpath="$(clojure -Spath -M:test)"
-        # include modules - but exclude shared-utils as it is already included in deps.edn
-        local modules_paths;modules_paths=$(find modules -maxdepth 2 -mindepth 2 -name "src" | xargs -I {} dirname {} | grep -v "shared-utils")
+        local modules_paths;modules_paths=$(find modules -maxdepth 2 -mindepth 2 -name "src" | xargs -I {} dirname {})
         lint_args="$classpath $modules_paths --cache"
     else
         echo "--[linting]--"

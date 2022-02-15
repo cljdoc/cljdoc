@@ -77,12 +77,8 @@
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
                               :git/sha "834006d527ac00b58194ff752eb0b5db3653e4b0"}}
- ;; We don't use :local/root dependencies because the interdependencies
- ;; between main, shared-utils and analysis runner don't work well with
- ;; Cursive: https://github.com/cljdoc/cljdoc/issues/134
- :paths ["src" "resources" "resources-compiled"
-         "modules/shared-utils/src"
-         "modules/shared-utils/resources"]
+
+ :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.62.993"}
