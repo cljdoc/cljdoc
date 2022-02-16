@@ -43,6 +43,15 @@
    [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.dn.raw
     doc-str]])
 
+(defn valid-ref-pred-fn [{:keys [defs] :as _cache-bundle}]
+  (fn [current-ns target-ns target-var]
+    (let [target-ns (if target-ns (ns-tree/replant-ns current-ns target-ns) current-ns)]
+      (if target-var
+        (some #(and (= target-var (:name %))
+                    (= target-ns (:namespace %)))
+              defs)
+        (some #(= target-ns (:namespace %)) defs)))))
+
 (defn render-wiki-link-fn
   "Given the `current-ns` and a function `ns-link-fn` that is assumed
   to return a link to a passed namespace, return a function that receives
@@ -236,15 +245,6 @@
         (for [adef defs]
           (def-block adef render-wiki-link fix-opts))
         [:p.i.blue "No vars found in this namespace."])]]))
-
-(defn valid-ref-pred-fn [{:keys [defs] :as _cache-bundle}]
-  (fn [current-ns target-ns target-var]
-    (let [target-ns (or target-ns current-ns)]
-      (if target-var
-        (some #(and (= target-var (:name %))
-                    (= target-ns (:namespace %)))
-              defs)
-        (some #(= target-ns (:namespace %)) defs)))))
 
 (comment
   (:platforms --d)
