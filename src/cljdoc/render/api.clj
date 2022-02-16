@@ -43,14 +43,24 @@
    [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.dn.raw
     doc-str]])
 
+(defn valid-ref-pred-fn [{:keys [defs] :as _cache-bundle}]
+  (fn [current-ns target-ns target-var]
+    (let [target-ns (if target-ns (ns-tree/replant-ns current-ns target-ns) current-ns)]
+      (if target-var
+        (some #(and (= target-var (:name %))
+                    (= target-ns (:namespace %)))
+              defs)
+        (some #(= target-ns (:namespace %)) defs)))))
+
 (defn render-wiki-link-fn
   "Given the `current-ns` and a function `ns-link-fn` that is assumed
   to return a link to a passed namespace, return a function that receives
   a `[ns var]` tuple and will return a Markdown link to the specified ns/var."
-  [current-ns ns-link-fn]
+  [current-ns valid-ref-pred ns-link-fn]
   (fn render-wiki-link-inner [[ns var]]
-    (str (ns-link-fn (if ns (ns-tree/replant-ns current-ns ns) current-ns))
-         (when var (str "#" var)))))
+    (when (valid-ref-pred current-ns ns var)
+      (str (ns-link-fn (if ns (ns-tree/replant-ns current-ns ns) current-ns))
+           (when var (str "#" var))))))
 
 (defn render-doc [mp render-wiki-link fix-opts]
   (if (platf/varies? mp :doc)
@@ -183,7 +193,7 @@
               (humanize-supported-platforms))])])]])
 
 (defn namespace-overview
-  [ns-url-fn mp-ns defs fix-opts]
+  [ns-url-fn mp-ns defs valid-ref-pred fix-opts]
   {:pre [(platf/multiplatform? mp-ns) (fn? ns-url-fn)]}
   (let [ns-name (platf/get-field mp-ns :name)]
     [:div
@@ -194,7 +204,7 @@
        ns-name
        [:img.ml2 {:src "https://microicon-clone.vercel.app/chevron/12/357edd"}]]]
      (render-doc mp-ns
-                 (render-wiki-link-fn ns-name ns-url-fn)
+                 (render-wiki-link-fn ns-name valid-ref-pred ns-url-fn)
                  fix-opts)
      (if-not (seq defs)
        [:p.i.blue "No vars found in this namespace."]
@@ -211,20 +221,21 @@
             def-name]])])]))
 
 (defn sub-namespace-overview-page
-  [{:keys [ns-entity namespaces defs fix-opts]}]
+  [{:keys [ns-entity namespaces defs valid-ref-pred fix-opts]}]
   [:div.mw7.center.pv4
    (for [mp-ns (->> namespaces
                     (filter #(.startsWith (platf/get-field % :name) (:namespace ns-entity))))
          :let [ns (platf/get-field mp-ns :name)
                ns-url-fn #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %))
                defs (bundle/defs-for-ns defs ns)]]
-     (namespace-overview ns-url-fn mp-ns defs fix-opts))])
+     (namespace-overview ns-url-fn mp-ns defs valid-ref-pred fix-opts))])
 
-(defn namespace-page [{:keys [ns-entity ns-data defs fix-opts]}]
+(defn namespace-page [{:keys [ns-entity ns-data defs valid-ref-pred fix-opts]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (assert (platf/multiplatform? ns-data))
   (let [render-wiki-link (render-wiki-link-fn
                           (:namespace ns-entity)
+                          valid-ref-pred
                           #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %)))]
     [:div.ns-page
      [:div.w-80-ns.pv4
@@ -237,6 +248,8 @@
 
 (comment
   (:platforms --d)
+
+  (routes/url-for :artifact/namespace :path-params {:group-id "grp" :artifact-id "art" :version "ver" :namespace "foo boo loo"})
 
   (let [platforms (:platforms --d)]
     (< 1 (count (set (map :doc platforms)))))

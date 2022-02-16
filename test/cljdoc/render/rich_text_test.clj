@@ -2,13 +2,37 @@
   (:require [cljdoc.render.rich-text :as rich-text]
             [clojure.test :as t]))
 
-(t/deftest renders-wikilinks-from-markdown
-  (t/is (= "<p><a href=\"/updated:my.namespace.here/fn1\" data-source=\"wikilink\"><code>my.namespace.here/fn1</code></a></p>\n"
-           (rich-text/markdown-to-html "[[my.namespace.here/fn1]]"
-                                       {:render-wiki-link (fn [ref] (str "/updated:" ref))}))))
+(t/deftest markdown-wikilink
+  (t/testing "renders as link when ref resolves"
+    (t/is (= "<p><a href=\"/resolved/to/something\" data-source=\"wikilink\"><code>my.namespace.here/fn1</code></a></p>\n"
+             (rich-text/markdown-to-html "[[my.namespace.here/fn1]]"
+                                         {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))}))))
+  (t/testing "is not rendered as link"
+    (t/testing "when |text is included"
+      (t/is (= "<p>[[my.namespace.here/fn1|some text here]]</p>\n"
+               (rich-text/markdown-to-html "[[my.namespace.here/fn1|some text here]]"
+                                           {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))}))))
+    (t/testing "when wikilink rendering not enabled"
+      (t/is (= "<p>[[<em>some random markdown</em>]]</p>\n"
+               (rich-text/markdown-to-html "[[*some random markdown*]]"
+                                           {}))))
+    (t/testing "when does not resolve"
+      (t/is (= "<p>[[<em>some random markdown</em>]]</p>\n"
+               (rich-text/markdown-to-html "[[*some random markdown*]]"
+                                           {:render-wiki-link (constantly nil)}))))
+    (t/testing "when empty"
+      (t/is (= "<p>[[]]</p>\n"
+               (rich-text/markdown-to-html "[[]]"
+                                           {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))}))))))
+
+(t/deftest md-html-escaping
+  (t/is (= "<p>&lt;h1&gt;Hello&lt;/h1&gt;</p>\n"
+           (rich-text/markdown-to-html "<h1>Hello</h1>" {:escape-html? true})))
+  (t/is (= "<h1>Hello</h1>\n"
+           (rich-text/markdown-to-html "<h1>Hello</h1>" {:escape-html? false}))))
 
 (t/deftest determines-doc-features
-  (t/is (nil? (rich-text/determine-features [:cljdoc/markdown "== CommonMark has not optional features"])))
+  (t/is (nil? (rich-text/determine-features [:cljdoc/markdown "== CommonMark has no optional features"])))
   (t/is (nil? (rich-text/determine-features [:cljdoc/asciidoc "= My Adoc file is short and uses no stem"])))
   (t/is (nil? (rich-text/determine-features [:cljdoc/asciidoc
                                              (str "= Stem option must be in the header which ends after the first blank line\n"

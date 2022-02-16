@@ -88,8 +88,9 @@
   (assert (:namespace route-params))
   (let [version-entity (:version-entity cache-bundle)
         ns-emap route-params
-        defs    (bundle/defs-for-ns-with-src-uri cache-bundle (:namespace ns-emap))
-        [[dominant-platf] :as platf-stats] (api/platform-stats defs)
+        valid-ref-pred (api/valid-ref-pred-fn cache-bundle)
+        ns-defs    (bundle/defs-for-ns-with-src-uri cache-bundle (:namespace ns-emap))
+        [[dominant-platf] :as platf-stats] (api/platform-stats ns-defs)
         ns-data (bundle/get-namespace cache-bundle (:namespace ns-emap))
         top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))
         fix-opts {:scm (-> cache-bundle :version :scm)
@@ -103,12 +104,13 @@
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
-             :vars-sidebar-contents (when (seq defs)
+             :vars-sidebar-contents (when (seq ns-defs)
                                       [(api/platform-support-note platf-stats)
-                                       (api/definitions-list ns-emap defs {:indicate-platforms-other-than dominant-platf})])
+                                       (api/definitions-list ns-emap ns-defs {:indicate-platforms-other-than dominant-platf})])
              :content (api/namespace-page {:ns-entity ns-emap
                                            :ns-data ns-data
-                                           :defs defs
+                                           :defs ns-defs
+                                           :valid-ref-pred valid-ref-pred
                                            :fix-opts fix-opts})})
            (layout/layout
             {:top-bar top-bar-component
@@ -116,6 +118,7 @@
              :content (api/sub-namespace-overview-page {:ns-entity ns-emap
                                                         :namespaces (bundle/namespaces cache-bundle)
                                                         :defs (bundle/all-defs cache-bundle)
+                                                        :valid-ref-pred valid-ref-pred
                                                         :fix-opts fix-opts})}))
          (layout/page {:title (str (:namespace ns-emap) " — " (proj/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)

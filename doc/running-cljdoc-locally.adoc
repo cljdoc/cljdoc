@@ -12,7 +12,7 @@
 :example-project-clone-url: https://github.com/cljdoc/cljdoc-exerciser.git
 :example-project-import-url: https://github.com/cljdoc/cljdoc-exerciser
 :example-project-coords: org.cljdoc/cljdoc-exerciser
-:example-project-version: 1.0.71
+:example-project-version: 1.0.77
 
 [[introduction]]
 == Introduction
