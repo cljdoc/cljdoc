@@ -2,7 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-clojure/ for more details
 #
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
@@ -86,7 +86,8 @@ jobs:
           command: aws s3 sync workspace/target s3://$RELEASES_BUCKET_NAME/build-$CIRCLE_SHA1/ --delete
 
   publish-docker:
-    machine: true
+    machine:
+      image: ubuntu-2004:202201-02
     steps:
       - checkout
       - attach_workspace:
@@ -115,7 +116,6 @@ jobs:
           clojure -M -m cljdoc.deploy deploy -t $(./../../script/version.sh) --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
 
 workflows:
-  version: 2
   build-and-deploy:
     jobs:
       - build
