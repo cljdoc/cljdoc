@@ -96,7 +96,7 @@ jobs:
       # because target/ has been put into place `make image` can be
       # ran without running ./script/package (which would require npm)
       - run: cd ops/docker && make image
-      - run: docker push cljdoc/cljdoc
+      - run: docker push --all-tags cljdoc/cljdoc
 
   # This assumes that an SSH key has been added to the CircleCI build
   # and it's public key has been copied to ~/.ssh/authorized_keys on
