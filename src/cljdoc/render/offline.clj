@@ -121,7 +121,7 @@
          :let [defs (bundle/defs-for-ns
                       (bundle/all-defs cache-bundle)
                       (platf/get-field ns :name))]]
-     (api/namespace-overview ns-url ns defs fix-opts))])
+     (api/namespace-overview ns-url ns defs  (api/valid-ref-pred-fn cache-bundle) fix-opts))])
 
 (defn- doc-page [doc-tuple fix-opts]
   [:div
@@ -130,9 +130,9 @@
      (fixref/fix (rich-text/render-text doc-tuple)
                  fix-opts))]])
 
-(defn- ns-page [ns defs fix-opts]
+(defn- ns-page [ns defs valid-ref-pred fix-opts]
   (let [ns-name (platf/get-field ns :name)
-        render-wiki-link (api/render-wiki-link-fn ns-name #(str % ".html"))]
+        render-wiki-link (api/render-wiki-link-fn ns-name valid-ref-pred #(str % ".html"))]
     [:div.ns-offline-page
      [:h1 ns-name]
      (api/render-doc ns render-wiki-link fix-opts)
@@ -201,9 +201,10 @@
             :let [defs (bundle/defs-for-ns-with-src-uri cache-bundle (platf/get-field ns-data :name))
                   target-file (ns-url (platf/get-field ns-data :name))]]
         [target-file
-         (->> (ns-page ns-data defs (assoc fix-opts
-                                           ;; :scm-file-path - we don't currently have scm file for namespaces
-                                           :target-path (.getParent (io/file target-file))))
+         (->> (ns-page ns-data defs (api/valid-ref-pred-fn cache-bundle)
+                       (assoc fix-opts
+                              ;; :scm-file-path - we don't currently have scm file for namespaces
+                              :target-path (.getParent (io/file target-file))))
               (page' {:namespace (platf/get-field ns-data :name)}))])])))
 
 (defn zip-stream [{:keys [version-entity] :as cache-bundle} static-resources]
