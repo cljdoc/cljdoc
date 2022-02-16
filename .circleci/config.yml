@@ -86,7 +86,8 @@ jobs:
           command: aws s3 sync workspace/target s3://$RELEASES_BUCKET_NAME/build-$CIRCLE_SHA1/ --delete
 
   publish-docker:
-    machine: true
+    machine:
+      - image: ubuntu-2004:202201-02
     steps:
       - checkout
       - attach_workspace:
