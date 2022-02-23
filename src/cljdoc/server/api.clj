@@ -32,7 +32,7 @@
             ns-count     (let [{:strs [clj cljs]} (:analysis data)]
                            (count (set (into (map :name cljs) (map :name clj)))))]
         (build-log/analysis-received! build-tracker build-id file-uri)
-        (ingest/ingest-cljdoc-edn storage data)
+        (ingest/ingest-cljdoc-analysis-edn storage data)
         (build-log/api-imported! build-tracker build-id ns-count)
         (build-log/completed! build-tracker build-id))
       (catch Exception e

@@ -10,13 +10,13 @@
             [cljdoc.storage.api :as storage]
             [cljdoc-shared.spec.analyzer :as analyzer-spec]))
 
-(defn ingest-cljdoc-edn
-  "Store all the API-related information in the passed `cljdoc-edn` data"
-  [storage {:keys [analysis group-id artifact-id version] :as cljdoc-edn}]
-  (let [project (proj/clojars-id cljdoc-edn)
+(defn ingest-cljdoc-analysis-edn
+  "Store all the API-related information in the passed `cljdoc-analysis-edn` data"
+  [storage {:keys [analysis group-id artifact-id version] :as cljdoc-analysis-edn}]
+  (let [project (proj/clojars-id cljdoc-analysis-edn)
         artifact (storage/version-entity project version)]
-    (log/info "Verifying cljdoc-edn contents against spec")
-    (analyzer-spec/assert-result-full cljdoc-edn)
+    (log/info "Verifying cljdoc analysis edn contents against spec")
+    (analyzer-spec/assert-result-full cljdoc-analysis-edn)
     (log/infof "Importing API into database %s %s" project version)
     (storage/import-api storage artifact (codox/sanitize-macros analysis))))
 

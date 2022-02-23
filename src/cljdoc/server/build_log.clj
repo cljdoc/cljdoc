@@ -12,7 +12,7 @@
     ;; "Track a request for analysis and return the build's ID."
     [_ group-id artifact-id version])
   (analysis-kicked-off! [_ build-id analysis-job-uri analyzer-version])
-  (analysis-received! [_ build-id cljdoc-edn-uri])
+  (analysis-received! [_ build-id cljdoc-analysis-edn-uri])
   (failed! [_ build-id error] [_ build-id error e])
   (api-imported! [_ build-id namespaces-count])
   (git-completed! [_ build-id git-result])
@@ -40,10 +40,10 @@
                   :analysis_triggered_ts (now)
                   :analyzer_version analyzer-version}
                  ["id = ?" build-id]))
-  (analysis-received! [_ build-id cljdoc-edn-uri]
+  (analysis-received! [_ build-id cljdoc-analysis-edn-uri]
     (sql/update! db-spec
                  "builds"
-                 {:analysis_result_uri cljdoc-edn-uri
+                 {:analysis_result_uri cljdoc-analysis-edn-uri
                   :analysis_received_ts (now)}
                  ["id = ?" build-id]))
   (failed! [this build-id error]

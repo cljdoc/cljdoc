@@ -35,7 +35,7 @@
    :repos   repos})
 
 (def analyzer-version
-  "5caf14018c09212a558a2aa5e88bfa78dcfa64a4")
+  "50d5e657172d99ec5fb046142747347036fb9859")
 
 (def analyzer-dependency
   {:deps {'cljdoc/cljdoc-analyzer {:git/url "https://github.com/cljdoc/cljdoc-analyzer.git"
@@ -69,12 +69,12 @@
     (assert (integer? build-num))
     (let [done-build (poll-circle-ci-build this build-num)
           success?   (contains? #{"success" "fixed"} (get done-build "status"))
-          cljdoc-edn (analysis/result-file project version)
+          cljdoc-analysis-edn (analysis/result-file project version)
           artifacts (-> (get-circle-ci-build-artifacts this build-num)
                         :body json/parse-string)]
       (if-let [artifact (and success?
                              (= 1 (count artifacts))
-                             (= cljdoc-edn (get (first artifacts) "path"))
+                             (= cljdoc-analysis-edn (get (first artifacts) "path"))
                              (first artifacts))]
         {:analysis-result (get artifact "url")}
         (throw (ex-info "Analysis on CircleCI failed"
@@ -138,8 +138,8 @@
       (let [proc            (sh/sh "clojure" "-Sdeps" (pr-str analyzer-dependency)
                                    "-M" "-m" "cljdoc-analyzer.cljdoc-main" (pr-str (ng-analysis-args arg repos))
                                    :dir (doto (io/file "/tmp/cljdoc-analysis-runner-dir/") (.mkdir)))
-            cljdoc-edn-file (analysis/result-path project version)]
-        {:analysis-result cljdoc-edn-file
+            cljdoc-analysis-edn-file (analysis/result-path project version)]
+        {:analysis-result cljdoc-analysis-edn-file
          :proc proc})))
   (wait-for-build
     [_ build-future]
