@@ -288,6 +288,7 @@
     (update-version-meta! db-spec version-id {:jar jar :scm scm, :doc doc-tree, :config config})))
 
 (comment
+  ;; Note to reader: if this link still worked, it would reference new naming convention: .../cljdoc-analysis-edn/.../cljdoc-analysis.edn
   (def data (clojure.edn/read-string (slurp "https://2941-119377591-gh.circle-artifacts.com/0/cljdoc-edn/stavka/stavka/0.4.1/cljdoc.edn")))
 
   (def db-spec
