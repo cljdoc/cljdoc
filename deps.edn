@@ -15,6 +15,7 @@
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.36.0.3"}     ;; jdbc driver needed to talk to our SQLite db
+        org.postgresql/postgresql {:mvn/version "42.3.3"}    ;; jdbc driver for the Postgres db
         dev.weavejester/ragtime {:mvn/version "0.9.0"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
