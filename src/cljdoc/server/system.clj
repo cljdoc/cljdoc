@@ -122,6 +122,21 @@
     (integrant.repl/set-prep! #(system-config (cfg/config)))
     (integrant.repl/go))
 
+  ;;playground for postgres ragtime migration
+  (require '[ragtime.repl :as r])
+  (def pg-db {:dbtype "postgresql"
+              :dbname "cljdoc"
+              :host "localhost"
+              :user "postgres"
+              :password "pass"
+              :ssl false ;TODO switch to true
+              :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
+  (def config {:datastore  (ragtime.jdbc/sql-database pg-db)
+               :migrations (ragtime.jdbc/load-resources "postgres_migrations")})
+
+  (r/migrate config)
+  (r/rollback config)
+
   (require '[integrant.repl]
            '[clojure.spec.test.alpha :as st])
 
