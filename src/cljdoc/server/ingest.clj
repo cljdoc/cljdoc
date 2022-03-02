@@ -65,6 +65,7 @@
           :doc-tree     (:doc-tree git-analysis)})
 
         {:scm-url scm-url
+         :config (:config git-analysis)
          :commit  (-> git-analysis :scm :rev)}))))
 
 (comment
