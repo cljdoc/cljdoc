@@ -22,7 +22,7 @@
             :Name "backend",
             :Resources
               {:CPU 800,
-               :MemoryMB 848,
+               :MemoryMB 2048,
                :Networks [{:DynamicPorts [{:Label "http", :Value 0}],
                            :MBits 10}]},
             :Services [{:Name "cljdoc",
