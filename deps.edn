@@ -15,7 +15,7 @@
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.36.0.3"}     ;; jdbc driver needed to talk to our SQLite db
-        dev.weavejester/ragtime {:mvn/version "0.9.0"}       ;; database migrations
+        dev.weavejester/ragtime {:mvn/version "0.9.1"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
         com.taoensso/nippy {:mvn/version "3.1.1"}            ;; fast compact serializer that we use for blobs
@@ -52,7 +52,7 @@
         org.slf4j/slf4j-api {:mvn/version "1.7.36"}          ;; slf4j front end
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "5.6.1"}      ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "5.6.2"}      ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.6.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -60,7 +60,7 @@
         org.clj-commons/clj-http-lite {:mvn/version "0.4.392"} ;; a lite version of clj-http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.1.2"}                   ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.1.3"}                   ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.10.2"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.2.0"}            ;; profile/perf monitoring
@@ -68,11 +68,11 @@
         lambdaisland/uri {:mvn/version "1.13.95"}            ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
-        org.clojure/core.memoize {:mvn/version "1.0.253"}    ;; function caching library
+        org.clojure/core.memoize {:mvn/version "1.0.257"}    ;; function caching library
         robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
-        zprint/zprint {:mvn/version "1.2.1"}                 ;; format clojure source/edn
+        zprint/zprint {:mvn/version "1.2.2"}                 ;; format clojure source/edn
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -81,7 +81,7 @@
  :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.62.993"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.63.998"}
                          org.clojure/test.check {:mvn/version "1.1.1"}}
             :main-opts ["-m" "kaocha.runner"]}
 
@@ -99,6 +99,6 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.4.0"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.5.1"}
                            org.slf4j/slf4j-simple {:mvn/version "1.7.36"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"]}}}
