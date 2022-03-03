@@ -99,8 +99,6 @@
                                :version-entity version-entity}
                               ns-entities)
           [:p.f7.gray.lh-title
-           "We couldn't find any namespaces in this artifact. Most often the reason for this is
-           that the analysis failed or that the artifact has been mispackaged and does not
-           contain any Clojure source files. The latter might be on purpose for uber-module
-           style artifacts. " "Please " [:a.blue.link {:href (links/github-url :issues)} "open
-           an issue"] " and we'll be happy to look into it."])])]))
+           (if (build-log/api-import-successful? last-build)
+             "None found"
+             "API analysis failed")])])]))
