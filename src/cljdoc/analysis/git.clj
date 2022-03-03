@@ -77,38 +77,51 @@
                           (git/ls-files repo revision))
             config-edn  (when revision
                           (->> (git/read-cljdoc-config repo revision)
-                               (edn/read-string)))]
+                               (edn/read-string)))
+            error (if (not revision)
+                    {:error {:type "no-revision-found"
+                             :version-tag version-tag
+                             :pom-revision pom-revision}}
+                    ;; TODO: Replace with proper, full and helpful user cljdoc.edn validation,
+                    ;; see https://github.com/cljdoc/cljdoc/issues/539
+                    ;; For now be strict on the new elements we are validating,
+                    ;; it is much easier to later loosen the reins than tighthen them.
+                    (when-let [languages (user-config/languages config-edn project)]
+                      (when (not (or (= :auto-detect languages)
+                                     (and (coll? languages)
+                                          (seq languages)
+                                          (distinct? languages)
+                                          (every? #(or (= "clj" %) (= "cljs" %)) languages))))
+                        {:error {:type "invalid-cljdoc-edn"
+                                 :msg "Invalid :cljdoc/languages"}})))]
 
-        (when config-edn
+        (when (and (not error) config-edn)
           (telegram/has-cljdoc-edn scm-url))
-        (if revision
-          (do
-            (log/info "Analyzing at revision:" revision)
-            {:scm      (cond-> {:files (git/path-sha-pairs git-files)
-                                :rev revision
-                                :branch (.. repo getRepository getBranch)}
-                         version-tag (assoc :tag version-tag))
-             :config   config-edn
-             :doc-tree (doctree/process-toc
-                        {:slurp-fn (fn [f]
-                                     ;; We are intentionally relaxed here for now
-                                     ;; In principle we should only look at files at the tagged
-                                     ;; revision but if a file has been added after the tagged
-                                     ;; revision we might as well include it to allow a smooth,
-                                     ;; even if slightly less correct, UX
-                                     (or (git/slurp-file-at repo revision f)
-                                         (when (git/exists? repo "master")
-                                           (git/slurp-file-at repo "master" f))))
-                         :get-contributors (fn [f]
-                                             (git/get-contributors repo revision f))}
-                        (or (user-config/doc-tree config-edn project)
-                            (get-in hardcoded-config
-                                    [(proj/normalize project) :cljdoc.doc/tree])
-                            (doctree/derive-toc git-files)))})
 
-          {:error {:type "no-revision-found"
-                   :version-tag version-tag
-                   :pom-revision pom-revision}}))
+        (or error
+            (do
+              (log/info "Analyzing at revision:" revision)
+              {:scm      (cond-> {:files (git/path-sha-pairs git-files)
+                                  :rev revision
+                                  :branch (.. repo getRepository getBranch)}
+                           version-tag (assoc :tag version-tag))
+               :config   config-edn
+               :doc-tree (doctree/process-toc
+                          {:slurp-fn (fn [f]
+                                        ;; We are intentionally relaxed here for now
+                                        ;; In principle we should only look at files at the tagged
+                                        ;; revision but if a file has been added after the tagged
+                                        ;; revision we might as well include it to allow a smooth,
+                                        ;; even if slightly less correct, UX
+                                       (or (git/slurp-file-at repo revision f)
+                                           (when (git/exists? repo "master")
+                                             (git/slurp-file-at repo "master" f))))
+                           :get-contributors (fn [f]
+                                               (git/get-contributors repo revision f))}
+                          (or (user-config/doc-tree config-edn project)
+                              (get-in hardcoded-config
+                                      [(proj/normalize project) :cljdoc.doc/tree])
+                              (doctree/derive-toc git-files)))})))
       (catch org.eclipse.jgit.api.errors.InvalidRemoteException e
         {:error {:type "invalid-remote"
                  :msg (.getMessage e)}})

@@ -5,14 +5,12 @@
             [cljdoc.server.build-log :as build-log]
             [cljdoc.util.repositories :as repositories]
             [cljdoc-shared.analysis-edn :as analysis-edn]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [cljdoc.user-config :as user-config]))
 
 (defn analyze-and-import-api!
   [{:keys [analysis-service storage build-tracker]}
-   {:keys [project version jar pom build-id]}]
-  ;; More work is TBD here in order to pass the configuration
-  ;; received from a users Git repository into the analysis service
-  ;; https://github.com/cljdoc/cljdoc/issues/107
+   {:keys [project version jar pom languages build-id]}]
   (let [ana-v    analysis-service/analyzer-version
         ana-resp (analysis-service/trigger-build
                   analysis-service
@@ -20,6 +18,7 @@
                    :version version
                    :jarpath jar
                    :pompath pom
+                   :languages languages
                    :build-id build-id})]
 
     ;; `build-url` and `ana-v` are only set for CircleCI
@@ -64,18 +63,23 @@
                (try
                  (storage/import-doc storage (storage/version-entity project version) {})
                  ;; Git analysis may derive the revision via tags but a URL is always required.
-                 (if scm-url
-                   (let [{:keys [error] :as git-result}
+
+                 (let [{:keys [error config] :as git-result}
+                       (if (not scm-url)
+                         {:error "Error while trying to process Git repository: no SCM URL found"}
                          (ingest/ingest-git! storage {:project project
                                                       :version version
                                                       :scm-url (or scm-url (:url pom-scm-info))
                                                       :pom-revision (:sha pom-scm-info)
-                                                      :requested-revision scm-rev})]
-                     (when error
-                       (log/warnf "Error while processing %s %s: %s" project version error))
-                     (build-log/git-completed! build-tracker build-id (update git-result :error :type)))
-                   (build-log/git-completed! build-tracker build-id {:error "Error while trying to process Git repository: no SCM URL found"}))
-                 (analyze-and-import-api! deps ana-args)
+                                                      :requested-revision scm-rev}))]
+                   (when error
+                     (log/warnf "Error while processing %s %s: %s" project version error))
+                   (build-log/git-completed! build-tracker build-id (update git-result :error :type))
+
+                   (let [languages (user-config/languages config project)
+                         ana-args (if languages (assoc ana-args :languages languages)
+                                      ana-args)]
+                     (analyze-and-import-api! deps ana-args)))
 
                  (catch Throwable e
                    (log/error e (format "Exception while processing %s %s (build %s)" project version build-id))

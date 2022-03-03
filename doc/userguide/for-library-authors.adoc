@@ -3,11 +3,11 @@
 
 == Why cljdoc?
 
-cljdoc aims to automate as much as possible of the process of publishing documentation. This means you get to spend time on crafting great documentation while cljdoc takes care of publishing and serving them to your users.
+Cljdoc aims to automate as much as possible of the process of publishing documentation. This means you get to spend time on crafting great documentation while cljdoc takes care of publishing and serving them to your users.
 
 == Basic Setup
 
-For basic docs to be available you don't have to do anything at all. cljdoc will pick up new releases as they are published to Clojars. It will automatically display the README.* and CHANGELOG.* files (case-insensitive), provided they are in a supported format (see <<Articles>> below).
+For basic docs to be available you don't have to do anything at all. Cljdoc will pick up new releases as they are published to Clojars. It will automatically display the README.* and CHANGELOG.* files (case-insensitive), provided they are in a supported format (see <<Articles>> below).
 
 *Building docs for older releases:* If you would like to build docs for a version that existed before cljdoc started building docs automatically just head to link:https://cljdoc.org[the homepage], search for your project and pick it from the list. If we haven't built docs for it yet you'll be able to do so with the press of a button.
 
@@ -127,6 +127,20 @@ TIP: Since sometimes people forget to update the paths after moving files around
 ----
 curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
 ----
+
+== API Language Detection
+Cljdoc will auto-detect which languages your library supports based on the types of source files it finds.
+You can choose to override this auto-detection in your `doc/cljdoc.edn` file via the `:cljdoc/languages` option.
+
+|===
+| Example `:cljdoc/languages` value | API Analysis run for
+
+a| `["clj"]` | Clojure only
+a| `["cljs"]` | ClojureScript only
+a| `["clj" "cljs"]` | Both Clojure and ClojureScript
+a| `:auto-detect` | Dependent upon source files found in your library,
+the default behavior.
+|===
 
 == Module Support
 

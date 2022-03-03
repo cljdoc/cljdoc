@@ -21,21 +21,17 @@
   and error prone. For this reason the `ng` analysis code always receives only a single
   argument which is expected to be an EDN map (encoded as string)
 
-  See [[cljdoc.analysis.runner-ng]] for more details."
+  See cljdoc-analyzer project for more details."
   [trigger-build-arg repos]
-  ;; TODO add a spec for this
   (assert (:project trigger-build-arg))
   (assert (:version trigger-build-arg))
   (assert (:jarpath trigger-build-arg))
   (assert (:pompath trigger-build-arg))
-  {:project (:project trigger-build-arg)
-   :version (:version trigger-build-arg)
-   :jarpath (:jarpath trigger-build-arg)
-   :pompath (:pompath trigger-build-arg)
-   :repos   repos})
+  (assoc (select-keys trigger-build-arg [:project :version :jarpath :pompath :languages])
+         :repos repos))
 
 (def analyzer-version
-  "62c4cd08cb944f067d6f92188f79a4fa0d6d25dc")
+  "a0139b72dd9656c011835fd6abaec026df805cf8")
 
 (def analyzer-dependency
   {:deps {'cljdoc/cljdoc-analyzer {:git/url "https://github.com/cljdoc/cljdoc-analyzer.git"

@@ -61,21 +61,32 @@
       [:dt.b.mv2 "Commit SHA"]
       [:dd.ml0 (or (:commit_sha build-info) "nil")]]]))
 
-(defn git-import-explainer [build-info]
+(defn- inline-error [text]
+  [:code.f7.bg-washed-red.br2.pa1.ph2 text])
+
+(defn git-import-explainer [{:keys [git_problem] :as _build-info}]
   [:div.lh-copy
    [:p "cljdoc allows you to combine API docs with "
     [:a.link.blue {:href (links/github-url :userguide/articles)} "articles"]
     " from your Git repository. By default we import just the Readme."
-    (when (:git_problem build-info)
-      [:span " In this case there was a problem " [:code.f7.bg-washed-red.br2.pa1.ph2 (:git_problem build-info)]
-       " importing from Git, but don't worry — "
-       [:b.fw6 "API docs will work regardless."]])]
-   (when (= "unknown-revision" (:git_problem build-info))
-     [:p [:code.f7.bg-washed-red.br2.pa1.ph2 (:git_problem build-info)]
+    (when git_problem
+      [:span " In this case there was a problem " (inline-error git_problem)
+       " when attempting to import from git, but don't worry — "
+       [:b.fw6 "API docs can work regardless."]])]
+
+   (when (= "unknown-revision" git_problem)
+     [:p (inline-error git_problem)
       " This issue may occur if you deployed to Clojars before
      pushing the Git commit the release was made at."])
-   (when (:git_problem build-info)
-     [:p "To fix this issue, check out the FAQ on "
+
+   (when (= "invalid-cljdoc-edn" git_problem)
+     [:p (inline-error git_problem)
+      " we found a " [:code.f7 "cljdoc.edn"]
+      " in your git repository but it seems invalid or malformed. To fix, consult the "
+      [:a.link.blue {:href (links/github-url :userguide/authors)} "the library author guide"] "."])
+
+   (when (and git_problem (not= "invalid-cljdoc-edn" git_problem))
+     [:p "To fix git issues, check out the FAQ on "
       [:a.link.blue {:href (links/github-url :userguide/scm-faq)} "properly setting SCM information"]])])
 
 (defn git-import-section [build-info]
