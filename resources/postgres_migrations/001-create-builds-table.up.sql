@@ -18,5 +18,5 @@ CREATE TABLE builds
     git_problem           text,
     namespaces_count      integer,
     error                 text,
-    error_info            bytea
+    error_info_map        bytea
 );
