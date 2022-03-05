@@ -1,6 +1,6 @@
 CREATE TABLE builds
 (
-    id                    bigint primary key,
+    id                    serial primary key,
     group_id              text        not null,
     artifact_id           text        not null,
     version               text        not null,
