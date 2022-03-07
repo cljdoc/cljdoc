@@ -11,8 +11,7 @@
 (defn analyze-and-import-api!
   [{:keys [analysis-service storage build-tracker]}
    {:keys [project version jar pom languages build-id]}]
-  (let [ana-v    analysis-service/analyzer-version
-        ana-resp (analysis-service/trigger-build
+  (let [ana-resp (analysis-service/trigger-build
                   analysis-service
                   {:project project
                    :version version
@@ -21,8 +20,10 @@
                    :languages languages
                    :build-id build-id})]
 
-    ;; `build-url` and `ana-v` are only set for CircleCI
-    (build-log/analysis-kicked-off! build-tracker build-id (:build-url ana-resp) ana-v)
+    ;; `build-url` is only set for CircleCI
+    (build-log/analysis-kicked-off! build-tracker build-id
+                                    (:build-url ana-resp)
+                                    (:analyzer-version ana-resp))
 
     (try
       (let [build-result (analysis-service/wait-for-build analysis-service ana-resp)
