@@ -5,6 +5,7 @@
             [clojure.spec.alpha :as s]
             [clj-commons.digest :as digest])
   (:import  (org.eclipse.jgit.lib RepositoryBuilder
+                                  ObjectId
                                   ObjectIdRef$PeeledNonTag
                                   ObjectIdRef$PeeledTag
                                   ObjectLoader
@@ -202,7 +203,22 @@
   (or (cljdoc.git-repo/slurp-file-at repo rev "doc/cljdoc.edn")
       (cljdoc.git-repo/slurp-file-at repo rev "docs/cljdoc.edn")))
 
+(defn ls-remote-sha
+  "Return git sha for remote tag"
+  [^String uri tag]
+  (some-> (LsRemoteCommand. nil)
+          (.setHeads false)
+          (.setTags true)
+          (.setRemote uri)
+          (.callAsMap)
+          (get (str "refs/tags/" tag) nil)
+          (.getObjectId)
+          (ObjectId/toString)))
+
 (comment
+  (ls-remote-sha "https://github.com/cljdoc/cljdoc-analyzer.git" "RELEASE")
+  (ls-remote-sha "git@github.com:cljdoc/cljdoc-analyzer.git" "RELEASE")
+
   (def r (->repo (io/file "data/git-repos/fulcrologic/fulcro/2.5.4/")))
 
   (def r (->repo (io/file "/Users/martin/code/02-oss/bidi")))

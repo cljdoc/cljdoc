@@ -4,6 +4,7 @@
             [clojure.java.io :as io]
             [clojure.java.shell :as sh]
             [cheshire.core :as json]
+            [cljdoc.git-repo :as git-repo]
             [cljdoc-shared.analysis :as analysis]))
 
 (defprotocol IAnalysisService
@@ -30,12 +31,12 @@
   (assoc (select-keys trigger-build-arg [:project :version :jarpath :pompath :languages])
          :repos repos))
 
-(def analyzer-version
-  "a0139b72dd9656c011835fd6abaec026df805cf8")
-
-(def analyzer-dependency
-  {:deps {'cljdoc/cljdoc-analyzer {:git/url "https://github.com/cljdoc/cljdoc-analyzer.git"
-                                   :sha analyzer-version}}})
+(defn- get-analyzer-dep []
+  (let [url "https://github.com/cljdoc/cljdoc-analyzer.git"
+        sha (git-repo/ls-remote-sha url "RELEASE")]
+    ;; temporarily override for dev testing or to force a specific sha as needed
+    {:deps {'cljdoc/cljdoc-analyzer {:git/url url :sha sha}}
+     :version sha}))
 
 ;; CircleCI AnalysisService -----------------------------------------------------
 
@@ -47,9 +48,10 @@
     [_ {:keys [build-id project version jarpath pompath] :as arg}]
     {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (log/infof "Starting CircleCI analysis for %s %s %s" project version jarpath)
-    (let [build (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
+    (let [analyzer-dep (get-analyzer-dep)
+          build (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
                            {:accept "application/json"
-                            :form-params {"build_parameters[CLJDOC_ANALYZER_DEP]" (pr-str analyzer-dependency)
+                            :form-params {"build_parameters[CLJDOC_ANALYZER_DEP]" (pr-str (select-keys analyzer-dep [:deps]))
                                           "build_parameters[CLJDOC_BUILD_ID]" build-id
                                           "build_parameters[CLJDOC_ANALYZER_ARGS]" (pr-str (ng-analysis-args arg repos))}
                             :basic-auth [api-token ""]})
@@ -57,7 +59,8 @@
       {:build-num (get build-data "build_num")
        :build-url (get build-data "build_url")
        :project   project
-       :version   version}))
+       :version   version
+       :analyzer-version (:version analyzer-dep)}))
   (wait-for-build
     [this {:keys [project version build-num]}]
     (assert (string? project))
@@ -126,20 +129,22 @@
   (trigger-build
     [_ {:keys [build-id project version jarpath pompath] :as arg}]
     {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
-    (future
-      (log/infof "Starting local analysis for %s %s %s" project version jarpath)
+    (log/infof "Starting local analysis for %s %s %s" project version jarpath)
       ;; Run the analysis-runner (yeah) and return the path to the file containing
       ;; analysis results. This mimics production usage in
       ;; https://github.com/cljdoc/builder circleci config.
-      (let [proc            (sh/sh "clojure" "-Sdeps" (pr-str analyzer-dependency)
-                                   "-M" "-m" "cljdoc-analyzer.cljdoc-main" (pr-str (ng-analysis-args arg repos))
-                                   :dir (doto (io/file "/tmp/cljdoc-analysis-runner-dir/") (.mkdir)))
-            cljdoc-analysis-edn-file (analysis/result-path project version)]
-        {:analysis-result cljdoc-analysis-edn-file
-         :proc proc})))
+    (let [analyzer-dep (get-analyzer-dep)
+          future-proc (future
+                        (sh/sh "clojure" "-Sdeps" (pr-str (select-keys analyzer-dep [:deps]))
+                               "-M" "-m" "cljdoc-analyzer.cljdoc-main" (pr-str (ng-analysis-args arg repos))
+                               :dir (doto (io/file "/tmp/cljdoc-analysis-runner-dir/") (.mkdir))))
+          cljdoc-analysis-edn-file (analysis/result-path project version)]
+      {:analysis-result cljdoc-analysis-edn-file
+       :analyzer-version (:version analyzer-dep)
+       :future-proc future-proc}))
   (wait-for-build
-    [_ build-future]
-    (let [{:keys [analysis-result proc]} @build-future]
+    [_ {:keys [analysis-result future-proc]}]
+    (let [proc @future-proc]
       (log/infof "Got file from Local AnalysisService %s" analysis-result)
       (if (zero? (:exit proc))
         {:analysis-result analysis-result}
