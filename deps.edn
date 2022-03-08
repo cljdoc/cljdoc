@@ -21,9 +21,9 @@
         com.taoensso/nippy {:mvn/version "3.1.1"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "8.1.1"} ;; search engine
-        org.apache.lucene/lucene-analyzers-common {:mvn/version "8.1.1"}
-        org.apache.lucene/lucene-queryparser {:mvn/version "8.1.1"}
+        org.apache.lucene/lucene-core {:mvn/version "9.0.0"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "9.0.0"}
+        org.apache.lucene/lucene-queryparser {:mvn/version "9.0.0"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "2.5.3"}  ;; render adoc to html
