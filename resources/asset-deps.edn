@@ -85,6 +85,7 @@
                 "languages/clojure-repl.min.js"]}}
  :tachyons
  {:npm-name "tachyons"
+  :note "Release notes are absent past v4.9.1, so..."
   :version "4.9.0"
   :css {:root "https://unpkg.com/tachyons@{{:version}}/"
         :assets ["css/tachyons.min.css"]}}}
