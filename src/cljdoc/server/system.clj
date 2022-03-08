@@ -27,7 +27,7 @@
                [{:appender :sentry}])})
 
 (defn index-dir [env-config]
-  (str (cfg/data-dir env-config) "index"))
+  (str (cfg/data-dir env-config) "index-lucene9"))
 
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)]
