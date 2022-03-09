@@ -82,7 +82,8 @@
   :js {:root "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@{{:version}}/build/"
        :assets ["highlight.min.js"
                 "languages/clojure.min.js"
-                "languages/clojure-repl.min.js"]}}
+                "languages/clojure-repl.min.js"
+                "languages/asciidoc.min.js"]}}
  :tachyons
  {:npm-name "tachyons"
   :note "Release notes are absent past v4.9.1, so..."
