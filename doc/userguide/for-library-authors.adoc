@@ -1,224 +1,205 @@
-= cljdoc for Library Authors
+= Cljdoc for Library Authors
 :toc:
 
-== Why cljdoc?
+== Why Cljdoc?
 
-Cljdoc aims to automate as much as possible of the process of publishing documentation. This means you get to spend time on crafting great documentation while cljdoc takes care of publishing and serving them to your users.
+Cljdoc offers a centralized hosted library of docs which are:
 
-== Basic Setup
+* Easy to publish
+* Automatically stay up to date
+* Discoverable by users
+* Look good
 
-For basic docs to be available you don't have to do anything at all. Cljdoc will pick up new releases as they are published to Clojars. It will automatically display the README.* and CHANGELOG.* files (case-insensitive), provided they are in a supported format (see <<Articles>> below).
+[[basic-setup]]
+== The Bare Minimum
 
-*Building docs for older releases:* If you would like to build docs for a version that existed before cljdoc started building docs automatically just head to link:https://cljdoc.org[the homepage], search for your project and pick it from the list. If we haven't built docs for it yet you'll be able to do so with the press of a button.
+If you publish your library to https://clojars.org[Clojars], its docs should already be available (or available to build) on https://cljdoc.org[cljdoc.org].
 
-*Point users to your project's documentation:* You can link to cljdoc from your project's README using a plain Markdown link or the cljdoc badge:
+Default handling:
 
-[source,sh]
+* link:#api[API] automatically documented
+* link:#articles[Articles] include `README`, `CHANGELOG` and articles under `doc/` (else `docs/`), see link:#auto-inferred-articles[auto-inferred articles]
+
+== Mechanics
+
+When cljdoc is link:#triggers[triggered] to build your library's documentation, it:
+
+. Downloads your library's release jar from Clojars
+. Analyzes your library's link:#git-sources[sources on git]
+. Analyzes your library's jar to discover its public link:#api[API].
+
+After building your docs, they are available at https://cljdoc.org[cljdoc.org] for online and link:for-users.md#offline-docs[offline] browsing.
+
+See also: link:/doc/cljdoc-developer-technical-guide.adoc#system-overview[System Overview].
+
+[[markup]]
+== Markup Formats
+
+Cljdoc supports two markup formats:
+
+* *Markdown* for API link:#docstrings[docstrings] and `.md` link:#articles[articles]
+** We use https://github.com/vsch/flexmark-java[flexmark-java] to render a https://github.github.com/gfm/[GitHub flavored CommonMark dialect].
+* *AsciiDoc* for `.adoc` link:#articles[articles]
+** We use https://github.com/asciidoctor/asciidoctorj[AsciidoctorJ] to render https://docs.asciidoctor.org/asciidoc/latest/[AsciiDoc].
+
+[[badges]]
+== Cljdoc Badge
+[IMPORTANT]
+====
+The following examples use `metosin/malli`.
+Replace with your library's Clojars [.nowrap]#`group-id/artifact-id`# (hint: not the GitHub org/repo name).
+====
+
+Include a cljdoc badge in your README. Here malli's badge:
+https://cljdoc.org/d/metosin/malli[image:https://cljdoc.org/badge/metosin/malli[cljdoc badge]].
+
+* Badge URL: `https://cljdoc.org/badge/metosin/malli`
+* Docs homepage URL: `https://cljdoc.org/d/metosin/malli`
+
+Expressed in Markdown:
+[source%nowrap,markdown]
 ----
-# This will redirect to the latest released version
-https://cljdoc.org/d/$group-id/$artifact-id
+[![cljdoc badge](https://cljdoc.org/badge/metosin/malli)](https://cljdoc.org/d/metosin/malli)
 ----
-
-[source,sh]
+and AsciiDoc:
+[source,asciidoc]
 ----
-# This will show a badge with the latest released version
-https://cljdoc.org/badge/$group-id/$artifact-id
-----
-
-In full it may look like this for markdown:
-
-[source,markdown]
-----
-[![cljdoc badge](https://cljdoc.org/badge/manifold/manifold)](https://cljdoc.org/d/manifold/manifold)
-----
-
-or this for asciidoctor:
-
-[source,asciidoctor]
-----
-image::https://cljdoc.org/badge/manifold/manifold[cljdoc badge, link=https://cljdoc.org/d/manifold/manifold]
-----
-
-link:https://cljdoc.org/d/manifold/manifold[image:https://cljdoc.org/badge/manifold/manifold[cljdoc badge]]
-
-IMPORTANT: In the cljdoc URLs above `$group-id` and `$artifact-id` always refer to the Clojars/Maven group/artifact ID, not e.g. GitHub's owner/repo names.
-
-*That's pretty much it.* Read on for some more advanced stuff that will make your docs extra awesome!
-
-== Docstrings
-
-Docstrings are rendered as **Markdown** in the https://commonmark.org/[CommonMark] dialect. https://www.martinklepsch.org/posts/writing-awesome-docstrings.html[Follow these 4 recommendations] for best results:
-
-:fence: ```
-1. Backtick-Quote Function Arguments & Special Keywords to make them stand out more
-2. Link To Other Functions Using `\[[Wikilink]]` Syntax
-3. Include Small Examples using Markdown fenced code blocks (`{fence}clojure ... {fence}`)
-4. Use (Markdown) Tables To Describe Complex Options Maps
-5. Can include images and links to articles, just be sure to use root relative links here (links that start with a `/`):
-  * `![my image](/dir1/dir2/image1.png)`
-  * `[my article](/dir1/dir2/article.adoc)`
-
-With the notion that it would be more problematic than helpful, HTML within docstrings is not interpreted.
-
-== Articles
-
-Some libraries may want to publish additional guides, tutorials or, as they are called in cljdoc: articles. They can be written in **Markdown** (in the https://commonmark.org/[CommonMark] dialect, file extension `.md`) or **http://asciidoc.org/[AsciiDoc]** (in the https://asciidoctor.org/[Asciidoctor] dialect, file extension `.adoc`) and you can mix and match the two formats as you please.
-
-In order to do so the following prerequisites must be met:
-
-* Articles must be stored inside your project's Git repository 
-* Your Git repository is link:faq.md#how-do-i-set-scm-info-for-my-project[properly linked in your POM]
-
-This allows cljdoc to retrieve files at the revision/commit the respective release was made. Those docs always being in sync will save your users a lot of trouble.
-
-NOTE: Articles are always read at the revision linked to the version docs are being built for. This means you cannot update docs for previous releases but are instead encouraged to cut a new release. For testing purposes you can build any `-SNAPSHOT` release which will cause cljdoc to use `master` as revision.
-
-NOTE: Referencing files in submodules is not currently supported, please open an issue if you need it.
-
-==== Automatic Link Rewriting
-
-If an article refers to another article's source file via a link cljdoc will automatically rewrite that link if one of the known articles has the same source file. All links that work on GitHub should also work on cljdoc.
-
-=== Auto-inferred Articles
-
-If your repository does not contain a `doc/cljdoc.edn` file cljdoc will try to include articles from your `doc/` or `docs/` folder automatically. 
-
-The title is read from the file's first heading. There will be no nesting and articles will be ordered alphabetically by filename. If you don't need nesting this may be sufficient.
-
-TIP: Use filenames prefixed with digits like `01-intro.md` to easily define the order of articles.
-
-=== Configuring Articles
-
-If you need more control you may provide a file `doc/cljdoc.edn` to specify a tree of articles.
-
-Assuming you have a directory `doc/` in your repository as follows:
-
-----
-doc/
-  getting-started.md
-  installation.md
-  configuration.md
+https://cljdoc.org/d/metosin/malli[image:https://cljdoc.org/badge/metosin/malli[cljdoc badge]]
 ----
 
-You can integrate those files into your cljdoc build by adding a file `doc/cljdoc.edn` with the following contents:
+[[git-sources]]
+== Git Sources
+
+Cljdoc starts with the release jar downloaded from Clojars.
+A jar is associated with its specific git revision of sources via the `<scm>` entry in the jar's `pom`.
+This allows cljdoc to consult git hosted:
+
+* link:#cljdoc-config[cljdoc config] - options on how cljdoc should process your docs
+* link:#articles[articles] - to include and present as part of your docs
+* sources files - to allows cljdoc to intelligently link back to articles, link:#api[API] source code, and your git repo
+
+TIP: a valid `pom` `<scm>` also allows other services like Clojars to point back to your release's sources.
+
+[NOTE]
+====
+* SCM stands for Source Control Management
+* pom is the Maven Project Object Model
+====
+
+An example `<scm>` entry from `metosin/malli`:
+
+[source,xml]
+----
+  <scm>
+    <url>https://github.com/metosin/malli</url>
+    <connection>scm:git:git://github.com/metosin/malli.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/metosin/malli.git</developerConnection>
+    <tag>0.8.4</tag>
+  </scm>
+----
+
+Another from `juxt/bidi`:
+[source,xml]
+----
+  <scm>
+    <url>https://github.com/juxt/bidi</url>
+    <connection>scm:git:git://github.com/juxt/bidi.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/juxt/bidi.git</developerConnection>
+    <tag>d1bfcc9c4fe247b8ada19cd7ee25acd81dd93f26</tag>
+  </scm>
+----
+
+Cljdoc will look at the `<url>` and the `<tag>`:
+
+* `<url>` points to your hosted git repo
+* `<tag>` is a valid pointer to the git commit of your release's sources. It can be a git tag, or commit sha.
+
+Here are some common ways folks set `<scm>` values:
+
+* By hand. You can edit a `pom.xml` manually when cutting a release, but this can be error-prone.
+* https://clojure.org/guides/tools_build[Clojure tools build] can be asked to populate the `<scm>` value.
+Cybermonday provides https://github.com/kiranshila/cybermonday/blob/17bb2c412171283440276a0a8e2cfd6f252aad91/build/build.clj#L27-L30[a good example of doing just that].
+* https://leiningen.org/[Leiningen] will automatically create the `<scm>` entry for you if you set the https://github.com/technomancy/leiningen/blob/bd3ecfcfb20ef7a79912879ff892e0f2317e8691/sample.project.clj#L490[`:scm` in your `project.clj`].
+For example:
++
+[source,clojure]
+----
+    :scm {:name "git" :url "https://github.com/your-github-org/your-project"}
+----
+* https://github.com/boot-clj/boot[Boot] also has support, pass the `:scm` option to the `pom` task, an https://github.com/martinklepsch/derivatives/blob/f9cc6be8eeaf21513641cb09d5a466e34ecdd565/build.boot#L18-L23[example].
+
+Whatever method you choose, take care to ensure that your jar's pom points back to the exact revision of its sources on git.
+
+[[cljdoc-config]]
+== Configuration
+
+When building your docs, cljdoc will look under the `doc` (else `docs`) directory for a `cljdoc.edn` file in your link:#git-sources[library's git repo].
+
+You can use this configuration file to tell cljdoc more about your documentation.
+
+* `:cljdoc.doc/tree` - Tells cljdoc what link:#articles[articles] to present and in what hierarchy. +
+By default, cljdoc will link:#auto-inferred-articles[automatically infer articles].
+* `:cljdoc/languages` - Tells cljdoc which link:#languages[languages] your API uses. +
+By default, cljdoc will automatically detect languages based on the sources it finds in your jar.
+* `:cljdoc/include-namespaces-from-dependencies` - Tells cljdoc to amalgamate API docs from multiple link:#modules[modules]. +
+Rarely used, but very useful when your project is made up of modules.
+
+As an example, a version of https://github.com/seancorfield/honeysql[honeysql]'s `cljdoc.edn`
+[source,Clojure]
+----
+{:cljdoc.doc/tree
+ [["Readme" {:file "README.md"}]
+  ["Changes" {:file "CHANGELOG.md"}]
+  ["Getting Started" {:file "doc/getting-started.md"}
+   ["General Reference" {:file "doc/general-reference.md"}]
+   ["SQL Clause Reference" {:file "doc/clause-reference.md"}]
+   ["SQL Operator Reference" {:file "doc/operator-reference.md"}]
+   ["SQL 'Special Syntax'" {:file "doc/special-syntax.md"}]
+   ["PostgreSQL Support" {:file "doc/postgresql.md"}]
+   ["Extending HoneySQL" {:file "doc/extending-honeysql.md"}]]
+  ["Differences from 1.x" {:file "doc/differences-from-1-x.md"}]]}
+----
+
+== Linking to docs on cljdoc
+See also: link:#badges[badges].
+
+[[link-articles]]
+=== Link to articles
+
+* When linking from article to link:#articles[article], use relative or root-relative links.
+Cljdoc will rewrite built article to article links automatically. Markdown examples:
+** `[root relative link](/doc/some-doc.md)`
+** `[relative link](other-doc.md)`
+* When linking from docstring to article, use root relative links. Markdown example:
+** `[root relative link](/doc/some-doc.md)`
+* When linking from outside your git repo:
+** doc home page
+*** `https://cljdoc.org/d/metosin/malli`
+** a specific doc in the current release, uses link:#slugs[article slugs]
+*** `https://cljdoc.org/d/metosin/malli/CURRENT/doc/changelog`
+** a specific doc for release `0.7.5`, uses link:#slugs[article slugs]
+*** `https://cljdoc.org/d/metosin/malli/0.7.5/doc/readme`
+
+=== Link to API docs
+
+* When linking from docstring to API docs, use the link:#wikilink[`+[[wikilink]]+`] 
+* When linking from article to API docs, or from outside your git repo:
+** link to var `malli.core/explain` in current release
+*** `https://cljdoc.org/d/metosin/malli/CURRENT/api/malli.core#explain`
+** link to namespace `malli.core` in release 0.7.5
+*** `https://cljdoc.org/d/metosin/malli/0.7.5/api/malli.core`
+
+[[api]]
+== API Documentation
+
+=== Declaring your Public API
+
+Cljdoc will document all namespaces and public vars it finds.
+To exclude namespaces and/or vars from API documentation, annotate them with `:no-doc` metadata:
 
 [source,clojure]
 ----
-{:cljdoc.doc/tree [["Readme" {:file "README.md"}]
-                   ["Getting Started" {:file "doc/getting-started.md"}
-                    ["Installation" {:file "doc/installation.md"}]]
-                   ["Configuration" {:file "doc/configuration.md"}]]}
-----
-
-Which will result in the following hierarchy being shown in your docs:
-
-----
-├── Readme
-├── Getting Started
-│   └── Installation
-└── Configuration
-----
-
-IMPORTANT: The resulting URLs for those articles will be based on the title provided in the `cljdoc.edn` file and _not_ on the filename.
-
-TIP: Since sometimes people forget to update the paths after moving files around we recommend you add the following to your CI setup:
-
-[source,shell]
-----
-curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
-----
-
-== API Language Detection
-Cljdoc will auto-detect which languages your library supports based on the types of source files it finds.
-You can choose to override this auto-detection in your `doc/cljdoc.edn` file via the `:cljdoc/languages` option.
-
-|===
-| Example `:cljdoc/languages` value | API Analysis run for
-
-a| `["clj"]` | Clojure only
-a| `["cljs"]` | ClojureScript only
-a| `["clj" "cljs"]` | Both Clojure and ClojureScript
-a| `:auto-detect` | Dependent upon source files found in your library,
-the default behavior.
-|===
-
-== Module Support
-
-Some libraries consist of smaller submodules and cljdoc provides some facilities for library authors to make their documentation available in one location:
-
-=== Module specific settings
-
-If you want to provide a different doc tree for one module, simply nest it in the project's name, e.g.:
-
-[source,clojure]
-----
-{
-  ;; used for metosin/reitit
-  ;; when building docs for metosin/reitit this will be used as if
-  ;; the doc/cljdoc.edn file contained just the value of this key
-  metosin/reitit {:cljdoc.doc/tree [["Introduction" {:file "intro.md"}]]}
-
-  ;; used for any project except metosin/reitit
-  ;; could contain an overview about all modules and a pointer
-  ;; to the overarching documentation for metosin/reitit
-  :cljdoc.doc/tree [["Overview" {:file "modules/README.md"}]]
-}
-----
-
-=== `:cljdoc/include-namespaces-from-dependencies`
-
-If you want a project to include API documentation for some or all of it's dependencies, specify their *maven coordinates* under `:cljdoc/include-namespaces-from-dependencies`:
-
-[source,clojure]
-----
-{:cljdoc/include-namespaces-from-dependencies
- [metosin/reitit
-  metosin/reitit-core
-  metosin/reitit-ring
-  metosin/reitit-spec
-  metosin/reitit-schema
-  metosin/reitit-swagger
-  metosin/reitit-swagger-ui]}
-----
-
-NOTE: This option can be specified on a per artifact basis as described in the previous section.
-
-NOTE: To be included, each dependency must also be specified as a maven dependency of the project itself (in the project's `deps.edn`, `project.clj`, etc).
-The project's resulting POM file will be used to load API information for the correct version.
-
-TIP: https://github.com/metosin/reitit[Reitit] is a great example reference for a project with sub modules.
-
-WARNING: If analysis for a specified dependency has failed or hasn't been run, its API documentation will not appear on cljdoc.
-
-== More Features
-
-==== Wikilinks
-
-You can refer to other namespaces and functions inside your docstrings using `\[[wikilink]]` syntax. Note that if you want to link to vars outside the current namespace you need to either fully qualify those vars or specify them relative to the current namespace. An example: if you want to link to `compojure.core/GET` from `compojure.route` you'll need to provide the wiki in one of the two forms below:
-
-----
-[[compojure.core/GET]]
-[[core/GET]]
-----
-
-==== Intelligent Version Resolving
-
-If you want to refer to namespaces, vars or similar in an article you can use `CURRENT` instead of a specific version.
-
-- If that link is clicked while viewing the project's docs on cljdoc the version will be resolved based on the referring URL.
-- If that link is clicked outside of cljdoc the version will be resolved to the latest release version.
-
-An example linking to `reagent.core`:
-
-https://cljdoc.org/d/reagent/reagent/CURRENT/api/reagent.core
-
-==== Hiding Namespaces & Vars in Documentation
-
-To hide namespaces or vars from documentation, annotate them with `:no-doc` metadata as in the examples below:
-
-[source,clojure]
-----
-(defn ^:no-doc hidden [x])
+(defn ^:no-doc hidden "Won't see me on cljdoc.org!" [x])
 ----
 
 [source,clojure]
@@ -234,26 +215,150 @@ To hide namespaces or vars from documentation, annotate them with `:no-doc` meta
   {:no-doc true})
 ----
 
-==== Getting Dependencies Right
+[[languages]]
+=== API Languages
+Cljdoc will auto-detect which languages your library supports based on the types of source files it finds.
+You can choose to override this auto-detection in your `doc/cljdoc.edn` file via the `:cljdoc/languages` option.
 
-cljdoc will try to load all namespaces that are part of the jar for your artifact. If you include namespaces that require additional/optional dependencies, make sure you declare them in your `pom.xml` (commonly done via Leiningen/Boot). If you don't want these dependencies to be included by default, mark them with `:scope "provided"`. This will cause dependency resolution to skip those dependencies but allow cljdoc to inspect your `pom.xml` and load them.
+|===
+| Example `:cljdoc/languages` value | API Analysis run for
 
-==== Offline Docs
+a| `["clj"]` | Clojure only
+a| `["cljs"]` | ClojureScript only
+a| `["clj" "cljs"]` | Both Clojure and ClojureScript
+a| `:auto-detect` | Dependent upon source files found in your library,
+the default behavior.
+|===
 
-See link:for-users.md#offline-docs[Offline Docs]
+Example usage:
+[source,Clojure]
+----
+{:cljdoc/languages ["clj"]}
+----
 
-==== Building Docs Locally
+=== Getting Dependencies Right
 
-This may be useful to test your changes without pushing new releases
-to Clojars or commits to Github. See link:/doc/running-cljdoc-locally.adoc[Running cljdoc locally] for details.
+Cljdoc discovers your API via dynamic runtime analysis.
+It will try to load all namespaces found in your jar.
+If a dependency is not found, the load, and therefore API analysis, will fail.
 
-==== Asciidoc Environment
+If you include namespaces that require additional/optional dependencies, make sure you declare them in your `pom.xml`.
+
+If these dependencies are expected to be provided by, for example, some container or JVM, mark them with a `scope` of `"provided"` in our `pom.xml`.
+Provided dependencies are skipped at runtime, but inform cljdoc they are required for API analysis.
+
+TIP: You can express `provided` in a `project.clj`, for https://github.com/funcool/cats/blob/d1b7f3d60c7791798182937c54cbafa4e81536d4/project.clj#L6-L12[example].
+The `deps.edn` file does not support scoping, you'll have to express these directly in your `pom.xml`.
+
+[[docstrings]]
+=== Docstrings
+
+Docstrings are rendered as link:#markup[Markdown]. Consider https://www.martinklepsch.org/posts/writing-awesome-docstrings.html[these recommendations] when writing your docstrings:
+
+1. Backtick-Quote ``` function arguments & special keywords to `make` them `stand` out `more`
+2. Link to other functions using link:#wikilink[`+[[wikilink]]+`] syntax
+3. Include small examples using markdown fenced `\```Clojure ... ```` code blocks 
+4. Use Markdown tables to describe complex options maps
+5. You can include images and links to articles, just be sure to use git repo root-relative links (links that start with a `/`):
+  * `![my image](/dir1/dir2/image1.png)`
+  * `[my article](/dir1/dir2/article.adoc)`
+
+Any HTML embedded within docstrings is escaped.
+
+[[wikilink]]
+==== Wikilinks
+
+You can link to other namespaces and functions from your docstrings using the `\[[wikilink]]` syntax.
+
+Note that if you want to link to vars outside the current namespace you need to either fully qualify those vars or specify them relative to the current namespace. An example: if you want to link to `compojure.core/GET` from `compojure.route` you'll need to provide the wiki in one of the two forms below:
+
+----
+[[compojure.core/GET]]
+[[core/GET]]
+----
+
+[[articles]]
+== Article Documentation
+
+Libraries often include additional guides and tutorials in link:#markup[markup] files.
+Cljdoc calls these articles.
+
+For cljdoc to find your articles:
+
+* They must be stored inside your project's git repository
+* Your git repository must be link:#git-sources[properly linked to your git sources]
+
+This allows cljdoc to retrieve article files at the revision/commit of the release.
+
+=== Automatic Link Rewriting
+
+Cljdoc hosted articles will have their links link:#link-articles[rewritten to link back to cljdoc].
+All links that work on GitHub should also work on cljdoc.
+
+[[auto-inferred-articles]]
+=== Auto-inferred Articles
+
+If your git repository does not contain a link:#article-config[doc tree configuration], cljdoc will automatically include:
+
+* `README.md` else `README.adoc` - filename search is case insensitive
+** Title is `Readme`
+* `CHANGELOG.md` else `CHANGELOG.adoc`- filename search is case insensitive
+** Title is `Changelog`
+* link:#markup[Markup] articles from your `doc/` else `docs/` folder
+** The title is read from the file's first heading. There will be no nesting and articles will be ordered alphabetically by filename. 
+
+TIP: Use filenames prefixed with digits like `01-intro.md` to define the order of articles.
+
+[[article-config]]
+=== Configuring Articles
+
+If you need more control, use a `doc/cljdoc.edn` file to specify a tree of articles.
+
+Assuming you have a directory `doc/` in your repository as follows:
+
+----
+doc/
+  getting-started.md
+  installation.md
+  configuration.md
+----
+
+You can explicitly add these articles to your cljdoc build by with the following `doc/cljdoc.edn` file:
+
+[source,clojure]
+----
+{:cljdoc.doc/tree [["Readme" {:file "README.md"}]
+                   ["Getting Started" {:file "doc/getting-started.md"}
+                    ["Installation" {:file "doc/installation.md"}]]
+                   ["Configuration" {:file "doc/configuration.md"}]]}
+----
+
+Your articles will be presented with the following hierarchy and titles:
+
+----
+├── Readme
+├── Getting Started
+│   └── Installation
+└── Configuration
+----
+
+IMPORTANT: The resulting URLs for those articles will be based on the title provided in the `cljdoc.edn` file and _not_ on the filename or title within the article file.
+
+See also: link:#verifying-articles[verifying articles]
+
+[[slugs]]
+=== Article Slugs
+
+Slugs for articles are currently based on the article title.
+Titles can be link:#article-config[explicitly configured] or link:#auto-inferred-articles[inferred].
+
+=== AsciiDoc Environment
 
 Similar to `env-github` on GitHub, cljdoc will set an `env-cljdoc` attribute when
-rendering your Asciidoc file. This allows you to hide or show sections
+rendering your AsciiDoc file. This allows you to hide or show sections
 of your document or set configuration parameters.
 
-As an example, this AsciiDoctor snippit:
+As an example, this AsciiDoctor snippet:
 [source,asciidoc,literal]
 ----
 \ifdef::env-cljdoc[]
@@ -273,11 +378,90 @@ ifndef::env-cljdoc[]
 THIS WILL BE SHOWN EVERYWHERE ELSE
 endif::[]
 
-==== Supported rich text formats
+[[verifying]]
+== Testing & Verifying
 
-Our https://github.com/cljdoc/cljdoc/blob/master/src/cljdoc/render/rich_text.clj[rich text render] supports two formats:
+=== Previewing Docs Locally
 
-* Markdown
-  - We use https://github.com/vsch/flexmark-java[flexmark-java] to render Markdown, which implements the latest version of the https://commonmark.org/[CommonMark] dialect.
-* AsciiDoc
-  - We use https://asciidoctor.org/[Asciidoctor] to render http://asciidoc.org/[AsciiDoc], which implements a https://asciidoctor.org/docs/asciidoc-asciidoctor-diffs/[custom dialect] of it.
+You can preview what your docs will look like before a Clojars release by link:/doc/running-cljdoc-locally.adoc[running cljdoc locally].
+
+=== Snapshot Builds
+
+If you are already publishing `SNAPSHOT` releases to Clojars, this can also be a useful way to experiment/preview on cljdoc.
+A `SNAPSHOT` release will use `master` as the git revision as they usually have no tag in your repo nor sha/tag in a `pom` `scm`.
+
+[[verifying-articles]]
+=== Article Verification Script
+
+Sometimes people forget to update the paths after moving files around, we recommend you add the following to your CI setup:
+
+[source,shell]
+----
+curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
+----
+
+=== GitHub Action
+We have a https://github.com/cljdoc/cljdoc-check-action[Cljdoc check action] you can incorporate into your CI workflows.
+
+[[triggers]]
+== Doc Build Triggers
+
+* Automatically
+** Every 60 seconds, cljdoc reaches out to clojars to discover new releases.
+** Every 10 minutes, it queues new releases to build
+* By request at cljdoc.org
+** If cljdoc has not already built a requested version of a library, you are given the option to build it from https://cljdoc.org[cljdoc.org].
+* By rebuild request at cljdoc.org
+** If your docs have already been built, you can request a rebuild via the barely visible rebuild hover link on the top right corner of your library docs page.
+* By REST request
+** An automated release process can trigger a build via rest link:/doc/docsets.md#trigger-a-build-for-a-project[trigger a cljdoc build via REST].
+
+[[modules]]
+== Module Support
+
+Some libraries are made up of submodules.
+Cljdoc provides some support amalgamating docs for these types of libraries.
+
+=== APIs
+
+To include API documentation for some or all of a projects submodules, specify their *maven coordinates* under `:cljdoc/include-namespaces-from-dependencies`:
+
+[source,clojure]
+----
+{:cljdoc/include-namespaces-from-dependencies
+ [metosin/reitit
+  metosin/reitit-core
+  metosin/reitit-ring
+  metosin/reitit-spec
+  metosin/reitit-schema
+  metosin/reitit-swagger
+  metosin/reitit-swagger-ui]}
+----
+
+NOTE: To be included, each dependency must also be specified as a maven dependency of the project itself (in the project's `deps.edn`, `project.clj`, etc).
+The project's resulting POM file will be used to load API information for the correct version.
+
+TIP: https://github.com/metosin/reitit[Reitit] is a great example reference for a project with submodules.
+
+WARNING: If analysis for a specified dependency has failed or hasn't been run, its API documentation will not appear on cljdoc.
+
+=== Articles
+
+The following example shows how to provide a different doc tree for project `metosin/reitit` via `cljdoc.edn`:
+
+[source,clojure]
+----
+{
+  ;; used for metosin/reitit
+  ;; when building docs for metosin/reitit this will be used as if
+  ;; the doc/cljdoc.edn file contained just the value of this key
+  metosin/reitit {:cljdoc.doc/tree [["Introduction" {:file "intro.md"}]]}
+
+  ;; used for any project except metosin/reitit
+  ;; could contain an overview about all modules and a pointer
+  ;; to the overarching documentation for metosin/reitit
+  :cljdoc.doc/tree [["Overview" {:file "modules/README.md"}]]
+}
+----
+
+NOTE: We haven't found an example usage of this in the wild yet.
