@@ -36,8 +36,9 @@
         (build-log/api-imported! build-tracker build-id ns-count)
         (build-log/completed! build-tracker build-id))
       (catch Exception e
-        (log/errorf e "analysis job failed for project: %s, version: %s, build-id: %s" project version build-id)
-        (build-log/failed! build-tracker build-id "analysis-job-failed")))))
+        (let [d (ex-data e)]
+          (log/errorf e "analysis job failed for project: %s, version: %s, build-id: %s" project version build-id)
+          (build-log/failed! build-tracker build-id (or (:cljdoc/error d) "analysis-job-failed")))))))
 
 (defn kick-off-build!
   "Run the Git analysis for the provided `project` and kick off an
