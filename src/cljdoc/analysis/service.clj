@@ -120,7 +120,8 @@
             (recur (dec n)))
 
         :else
-        (throw (ex-info "Build timeout" {:build-num build-num}))))))
+        (throw (ex-info "Build timeout" {:cljdoc/error "analysis-job-timeout"
+                                         :build-num build-num}))))))
 
 ;; Local Analysis Service -------------------------------------------------------
 
