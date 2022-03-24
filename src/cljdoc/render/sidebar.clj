@@ -8,10 +8,10 @@
             [cljdoc.render.api :as api]
             [cljdoc.bundle :as bundle]))
 
-(defn upgrade-notice [{:keys [version] :as version-map}]
+(defn current-release-notice [{:keys [version] :as version-map}]
   [:a.db.link.bg-washed-yellow.pa2.f7.mb3.dark-gray.lh-title
    {:href (routes/url-for :artifact/version :path-params version-map)}
-   "A newer version " [:span.blue "(" version ")"] " for this library is available"])
+   "Current release is " [:span.blue version]])
 
 (defn last-build-warning
   "If the provided build had problems, render a warning and link to the respective build."
@@ -50,7 +50,7 @@
         doc-tree-with-rest (second split-doc-tree)]
     [;; Upgrade notice
      (when-let [newer-v (bundle/more-recent-version cache-bundle)]
-       (upgrade-notice newer-v))
+       (current-release-notice newer-v))
 
      (when last-build
        (last-build-warning last-build))
