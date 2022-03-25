@@ -11,6 +11,9 @@
         io.pedestal/pedestal.jetty {:mvn/version "0.5.10"}   ;; web site/service with jetty engine
         io.pedestal/pedestal.service {:mvn/version "0.5.10"} ;; web site/service
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
+        ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
+        ;; delete override when pedestal updates:
+        org.clojure/tools.analyzer.jvm {:mvn/version "1.2.2"}
 
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
@@ -82,6 +85,10 @@
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
         zprint/zprint {:mvn/version "1.2.2"}                 ;; format clojure source/edn
+
+        ;; override transitive dep from nippy ant tufte to quiet clojure 1.11 warnings,
+        ;; delete if/when nippy/tufte updates bring in newer version:
+        com.taoensso/encore {:mvn/version "3.21.0"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
