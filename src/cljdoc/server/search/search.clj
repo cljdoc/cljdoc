@@ -166,19 +166,31 @@
   [^String index-dir]
   (.getVersion (DirectoryReader/open (fsdir index-dir))))
 
+(defn- snapshot? [version]
+  (string/ends-with? version "-SNAPSHOT"))
+
 (defn format-results
-  "Format search results into what the frontend expects"
+  "Format search results into what the frontend expects.
+  One lib can return two rows if both a release and snapshot versions exist.
+  Snapshot version only returned if greater than current release version (or if there are no release versions)."
   [hits-cnt docs]
   {:count   hits-cnt
-   :results (map
-             (fn [{:keys [^Document doc score]}]
-               {:artifact-id (.get doc "artifact-id")
-                :group-id    (.get doc "group-id")
-                :description (.get doc "description")
-                 ;:origin (.get doc "origin")
-                 ;; The first version appears to be the latest so this is OK:
-                :version (.get doc "versions")
-                :score       score})
+   :results (reduce
+             (fn [acc {:keys [^Document doc score]}]
+               (let
+                [versions (.getValues doc "versions")
+                 latest-version (first versions)
+                 [release-version snapshot-version] (if (snapshot? latest-version)
+                                                      [(some #(when (not (snapshot? %)) %) versions) latest-version]
+                                                      [latest-version nil])
+                 lib {:artifact-id (.get doc "artifact-id")
+                      :group-id    (.get doc "group-id")
+                      :description (.get doc "description")
+                      :score       score}]
+                 (cond-> acc
+                   release-version (conj (assoc lib :version release-version))
+                   snapshot-version (conj (assoc lib :version snapshot-version)))))
+             []
              docs)})
 
 (defn search [^String index-dir ^String query-in]
@@ -267,21 +279,24 @@
 
 (comment
 
-  (cljdoc.server.search.artifact-indexer/download-and-index! "data/index" :force)
+  (cljdoc.server.search.artifact-indexer/download-and-index! "data/index-lucene91" :force)
 
-  (search "data/index" "metosin muunta")
+  (search "data/index-lucene91" "metosin muunta")
   ;; FIXME metosin:muuntaja comes 6th because the partial match on 'muuntaja' is
   ;; less worth than 1) double match on metosin (in a, g) and 2) match on g=metosin
   ;; and a random, rare artifact name => with high idf
-  (explain-top-n 6 "data/index" "metosin muunta")
+  (explain-top-n 6 "data/index-lucene91" "metosin muunta")
 
-  (all-docs "data/index")
+  (all-docs "data/index-lucene91")
 
-  (search "data/index" "re-frame")
-  (search "data/index" "clojure")
-  (search "data/index" "testit")
-  (search "data/index" "ring")
-  (search "data/index" "conc")
-  (explain-top-n 3 "data/index" "clojure")
+  (search "data/index-lucene91" "re-frame")
+  (search "data/index-lucene91" "clojure")
+  (search "data/index-lucene91" "testit")
+  (search "data/index-lucene91" "ring")
+  (search "data/index-lucene91" "conc")
+
+  (search "data/index-lucene91" "clj-kondo")
+
+  (explain-top-n 3 "data/index-lucene91" "clojure")
 
   nil)
