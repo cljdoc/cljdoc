@@ -6,6 +6,7 @@
             [cljdoc.render.links :as links]
             [cljdoc.render.articles :as articles]
             [cljdoc.render.api :as api]
+            [cljdoc.render.docset-search :as docset-search]
             [cljdoc.bundle :as bundle]))
 
 (defn current-release-notice [{:keys [version] :as version-map}]
@@ -54,6 +55,9 @@
 
      (when last-build
        (last-build-warning last-build))
+
+     [:div.mb4
+      (docset-search/sidebar version-entity)]
 
      ;; Special documents (Readme & Changelog)
      (when (seq readme-and-changelog)

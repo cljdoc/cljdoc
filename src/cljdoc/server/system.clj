@@ -122,6 +122,11 @@
     (integrant.repl/set-prep! #(system-config (cfg/config)))
     (integrant.repl/go))
 
+  (do
+    (require '[integrant.repl])
+    (integrant.repl/set-prep! #(system-config (cfg/config)))
+    (integrant.repl/go))
+
   (require '[integrant.repl]
            '[clojure.spec.test.alpha :as st])
 
@@ -144,5 +149,15 @@
     (pdt/response-for
      (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
      :get "/api/search?q=async" #_:body :headers {"Accept" "*/*"}))
+
+  ;; reset the system and test the docset api
+  (do
+    (integrant.repl/reset)
+    (require '[cheshire.core :as json])
+    (require '[io.pedestal.test :as pdt])
+    (-> (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
+        (pdt/response-for :get "/api/docset/seancorfield/next.jdbc/1.2.659" #_:body :headers {"Accept" "*/*"})
+        :body
+        (json/parse-string keyword)))
 
   nil)
