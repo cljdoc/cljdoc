@@ -53,6 +53,16 @@
   ([] (data-dir (config)))
   ([config] (get-in config [:cljdoc/server :dir])))
 
+(defn postgres-db
+  [config]                                                  ;TODO use config for host etc.
+  {:dbtype     "postgresql"
+   :dbname     "cljdoc"
+   :host       "localhost"
+   :user       "postgres"
+   :password   "pass"
+   :ssl        false                                        ;TODO switch to true
+   :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
+
 (defn db
   [config]
   {:classname "org.sqlite.JDBC",

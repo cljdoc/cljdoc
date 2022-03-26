@@ -15,5 +15,6 @@
                                            :prod true}
                  :dir #profile {:default "data/"
                                 :test "test-data/"
-                                :prod "/var/cljdoc/"}}
+                                :prod "/var/cljdoc/"}
+                 :active-db :postgres}
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}
