@@ -131,7 +131,7 @@ class SearchInput extends Component<SearchInputProps> {
         placeholder="Jump to docs..."
         className="pa2 w-100 br1 border-box b--blue ba input-reset"
         onFocus={(_e: Event) => props.focus()}
-        onBlur={(_e: Event) => setTimeout(_ => props.unfocus(), 200)}
+        onBlur={(_e: Event) => setTimeout(() => props.unfocus(), 200)}
         onKeyDown={(e: KeyboardEvent) => this.onKeyDown(e)}
         onInput={(e: Event) => {
           const target = e.target as HTMLFormElement;
