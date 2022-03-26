@@ -7,9 +7,7 @@
 
   The basic datamodel is Group > Artifact > Version. Namespaces
   and vars are linked against versions."
-  (:require [cljdoc-shared.proj :as proj]
-            [cljdoc-shared.spec.analyzer :as analyzer-spec]
-            [cljdoc.storage.sqlite-impl :as sqlite]))
+  (:require [cljdoc-shared.proj :as proj]))
 
 (defprotocol IStorage
   (import-api [_ version-entity codox])
@@ -18,29 +16,6 @@
   (bundle-docs [_ version-entity])
   (list-versions [_ group-id])
   (all-distinct-docs [_]))
-
-(defrecord SQLiteStorage [db-spec]
-  IStorage
-  (import-api [_ version-entity api-analysis]
-    (analyzer-spec/assert-result-namespaces api-analysis)
-    (sqlite/store-artifact! db-spec
-                            (:group-id version-entity)
-                            (:artifact-id version-entity)
-                            [(:version version-entity)])
-    (sqlite/import-api db-spec version-entity api-analysis))
-  (import-doc [_ version-entity {:keys [doc-tree scm jar config] :as version-data}]
-    (sqlite/import-doc db-spec version-entity version-data))
-  (exists? [_ version-entity]
-    (sqlite/docs-available? db-spec
-                            (:group-id version-entity)
-                            (:artifact-id version-entity)
-                            (:version version-entity)))
-  (bundle-docs [_ {:keys [group-id artifact-id version] :as version-entity}]
-    (sqlite/bundle-docs db-spec version-entity))
-  (list-versions [_ group-id]
-    (sqlite/get-documented-versions db-spec group-id))
-  (all-distinct-docs [_]
-    (sqlite/all-distinct-docs db-spec)))
 
 (defn version-entity [project version]
   {:group-id (proj/group-id project)
