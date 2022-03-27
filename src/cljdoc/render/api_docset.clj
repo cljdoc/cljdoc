@@ -28,7 +28,7 @@
   [version-entity name-of-ns def-name]
   (str (path-for-namespace version-entity name-of-ns) "#" def-name))
 
-(defn elements->doc-segments
+(defn- elements->doc-segments
   "Does the tricky work of walking through the Jsoup node siblings and collecting
   headers and their text. Important considerations:
 
@@ -88,7 +88,7 @@
       :path (path-for-doc doc version-entity)
       :doc text}]))
 
-(defn doc->docs
+(defn- doc->docs
   "Performs one of two operations, depending on document type:
 
   1. For markdown it takes a single cache-bundle doc and breaks it into multiple sections by header,
@@ -99,7 +99,7 @@
     (markdown-doc->docs doc version-entity)
     (generic-doc->docs doc version-entity)))
 
-(defn ->namespaces
+(defn- ->namespaces
   "Renders cache-bundle `namespaces` into a format consumable by the API. This consists of:
 
   1. Paring down the fields in the cache-bundle's `namespaces`.
@@ -114,7 +114,7 @@
   [members]
   (map #(select-keys % [:type :name :arglists :doc]) members))
 
-(defn ->defs
+(defn- ->defs
   "Renders cache-bundle `defs` into a format consumable by the API. This consists of:
 
   1. Paring down the fields in the cache-bundle's `defs`, including in the nested
@@ -128,7 +128,7 @@
          (map #(assoc % :path (path-for-def version-entity (:namespace %) (:name %)))))
         cache-bundle-defs))
 
-(defn ->docs
+(defn- ->docs
   "Renders cache-bundle `doc` tree down into finer-grained units of text and their links.
   To accomplish this the markdown is:
 
