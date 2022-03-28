@@ -61,7 +61,8 @@
    :user       "postgres"
    :password   "pass"
    :ssl        false                                        ;TODO switch to true
-   :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
+   :sslfactory "org.postgresql.ssl.NonValidatingFactory"
+   :migrations-dir "postgres_migrations"})
 
 (defn db
   [config]
@@ -79,7 +80,8 @@
    ;; this is the easiest way to set them. In a migration
    ;; they fail because they return results.
    :synchronous "NORMAL"
-   :journal_mode "WAL"})
+   :journal_mode "WAL"
+   :migrations-dir "migrations"})
 
 (defn cache [config]
   {:table "cache"

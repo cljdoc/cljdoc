@@ -57,7 +57,7 @@
       :cljdoc/storage          {:sqlite-spec   (ig/ref :cljdoc/sqlite)
                                 :postgres-spec (ig/ref :cljdoc/postgres)
                                 :active-db     (get-in env-config [:cljdoc/server :active-db])}
-      :cljdoc/build-tracker    {:db-spec (ig/ref :cljdoc/sqlite)}
+      :cljdoc/build-tracker    {:db-spec (ig/ref :cljdoc/sqlite)} ;TODO move to Postgres
       :cljdoc/analysis-service {:service-type ana-service
                                 :opts         (merge
                                                 {:repos (->> (cfg/maven-repositories)
@@ -81,6 +81,7 @@
 
 (defmethod ig/init-key :cljdoc/storage [k {:keys [postgres-spec sqlite-spec active-db]}]
   (log/info "Starting" k)
+  (log/info "Using storage mode" active-db)
   (if (= active-db :sqlite)
     (sqlite/->SQLiteStorage sqlite-spec)
     (postgres/->PostgresStorage postgres-spec)))
@@ -105,12 +106,12 @@
                  (log/infof "Migrating %s %s" direction migration))}))
 
 (defmethod ig/init-key :cljdoc/postgres [_ {:keys [db-spec]}]
-  (run-migrations! db-spec "postgres_migrations")
+  (run-migrations! db-spec (:migrations-dir db-spec))
   db-spec)
 
 (defmethod ig/init-key :cljdoc/sqlite [_ {:keys [db-spec dir]}]
   (.mkdirs (io/file dir))
-  (run-migrations! db-spec "migrations")                    ;TODO rename and make configurable
+  (run-migrations! db-spec (:migrations-dir db-spec))
   db-spec)
 
 (defmethod ig/init-key :cljdoc/cache [_ {:keys [cache-dir] :as cache-opts}]
