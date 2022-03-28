@@ -81,7 +81,7 @@
    ;; they fail because they return results.
    :synchronous "NORMAL"
    :journal_mode "WAL"
-   :migrations-dir "migrations"})
+   :migrations-dir "sqlite_migrations"})
 
 (defn cache [config]
   {:table "cache"
