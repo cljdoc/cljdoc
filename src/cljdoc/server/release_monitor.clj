@@ -90,7 +90,6 @@
 
 (defmethod ig/init-key :cljdoc/release-monitor [_ {:keys [db-spec dry-run? searcher]}]
   (log/info "Starting ReleaseMonitor" (if dry-run? "(dry-run mode)" ""))
-  (tt/start!)
   {:release-fetcher (tt/every! 60 #(release-fetch-job-fn db-spec searcher))
    :build-queuer    (tt/every! (* 10 60) 10 #(build-queuer-job-fn db-spec dry-run?))})
 

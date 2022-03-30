@@ -44,7 +44,8 @@
                                       :serialize-fn   nippy/freeze
                                       :deserialize-fn nippy/thaw})
       :cljdoc/searcher {:index-dir       (index-dir env-config)
-                        :enable-indexer? (cfg/enable-artifact-indexer? env-config)}
+                        :enable-indexer? (cfg/enable-artifact-indexer? env-config)
+                        :tea-time        (ig/ref :cljdoc/tea-time)}
       :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
                         :host             (get-in env-config [:cljdoc/server :host])
                         :build-tracker    (ig/ref :cljdoc/build-tracker)
@@ -62,12 +63,14 @@
                                        (when (= ana-service :circle-ci)
                                          (cfg/circle-ci env-config)))}
       :cljdoc/clojars-stats   {:db-spec (ig/ref :cljdoc/sqlite)
-                               :retention-days 380}}
+                               :retention-days 380
+                               :tea-time (ig/ref :cljdoc/tea-time)}}
 
      (when (cfg/enable-release-monitor? env-config)
        {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
                                  :dry-run? (not (cfg/autobuild-clojars-releases? env-config))
-                                 :searcher (ig/ref :cljdoc/searcher)}}))))
+                                 :searcher (ig/ref :cljdoc/searcher)
+                                 :tea-time (ig/ref :cljdoc/tea-time)}}))))
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
   (log/info "Starting" k)
