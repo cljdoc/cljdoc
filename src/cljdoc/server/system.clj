@@ -63,7 +63,7 @@
                                        (when (= ana-service :circle-ci)
                                          (cfg/circle-ci env-config)))}
       :cljdoc/clojars-stats   {:db-spec (ig/ref :cljdoc/sqlite)
-                               :retention-days 380
+                               :retention-days (cfg/get-in env-config [:cljdoc/server :clojars-stats-retention-days])
                                :tea-time (ig/ref :cljdoc/tea-time)}}
 
      (when (cfg/enable-release-monitor? env-config)
