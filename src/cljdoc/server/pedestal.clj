@@ -13,6 +13,7 @@
   - Handling build requests (see [[request-build]], [[full-build]] & [[circle-ci-webhook]])
   - Redirecting to newer releases (see [[resolve-version-interceptor]] & [[jump-interceptor]])"
   (:require [cheshire.core :as json]
+            [cljdoc.render.api-searchset :as api-searchset]
             [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.index-pages :as index-pages]
@@ -510,15 +511,17 @@
                      :body "Could not find data, please request a build first"})
                   (assoc ctx :response)))}))
 
-(def api-docset
-  "Creates an API response with a JSON representation of a docset."
+(def api-searchset
+  "Creates an API response with a JSON representation of a searchset."
   (interceptor/interceptor
-   {:name ::api-docset
-    :enter (fn api-docset [{:keys [cache-bundle] :as ctx}]
+   {:name ::api-searchset
+    :enter (fn api-searchset [{:keys [cache-bundle] :as ctx}]
+             #_(spit (io/resource "test_data/cache_bundle.edn") (with-out-str (pp/pprint cache-bundle)))
+             #_(spit (io/resource "test_data/searchset.edn") (with-out-str (pp/pprint (api-searchset/cache-bundle->searchset cache-bundle))))
              (->> (if cache-bundle
                     {:status 200
                      :headers {"Content-Type" "application/json"}
-                     :body (json/generate-string (api-docset/cache-bundle->docset cache-bundle))}
+                     :body (json/generate-string (api-searchset/cache-bundle->searchset cache-bundle))}
                     {:status 404
                      :headers {"Content-Type" "application/json"}
                      :body (json/generate-string {:error "Could not find data, please request a build first"})})
@@ -548,9 +551,9 @@
          :api/search [pu/coerce-body (pu/negotiate-content #{"application/json"}) (search-interceptor searcher)]
          :api/search-suggest [pu/coerce-body (pu/negotiate-content #{"application/x-suggestions+json"}) (search-suggest-interceptor searcher)]
 
-         :api/docset [(pom-loader cache)
-                      (artifact-data-loader storage)
-                      api-docset]
+         :api/searchset [(pom-loader cache)
+                         (artifact-data-loader storage)
+                         api-searchset]
 
          :ping          [(interceptor/interceptor {:name ::pong :enter #(pu/ok-html % "pong")})]
          :request-build [(body/body-params) request-build-validate (request-build deps)]

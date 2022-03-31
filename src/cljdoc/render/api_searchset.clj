@@ -1,4 +1,4 @@
-(ns cljdoc.render.api-docset
+(ns cljdoc.render.api-searchset
   "Renders a cache bundle into the format needed by the API to feed client-side search."
   (:require
    [cljdoc.doc-tree :as doctree]
@@ -110,7 +110,7 @@
               (map #(assoc % :path (path-for-namespace version-entity (:name %)))))
         cache-bundle-namespaces))
 
-(defn- ->docset-members
+(defn- ->searchset-members
   [members]
   (map #(select-keys % [:type :name :arglists :doc]) members))
 
@@ -124,7 +124,7 @@
   (into []
         (comp
          (map #(select-keys % [:platform :type :namespace :name :arglists :doc :members]))
-         (map #(update % :members ->docset-members))
+         (map #(update % :members ->searchset-members))
          (map #(assoc % :path (path-for-def version-entity (:namespace %) (:name %)))))
         cache-bundle-defs))
 
@@ -139,10 +139,10 @@
      title is the document title and the header title, path is the path portion of the
      URL to deep-link to that section of the document, and doc is the text without HTML."
   [cache-bundle-docs version-entity]
-  (mapcat #(doc->docs % version-entity)
-          (-> cache-bundle-docs doctree/add-slug-path doctree/flatten*)))
+  (vec (mapcat #(doc->docs % version-entity)
+               (-> cache-bundle-docs doctree/add-slug-path doctree/flatten*))))
 
-(defn cache-bundle->docset
+(defn cache-bundle->searchset
   [{namespaces :namespaces
     defs :defs
     {docs :doc} :version
