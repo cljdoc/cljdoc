@@ -131,10 +131,15 @@
            '[clojure.spec.test.alpha :as st])
 
   (integrant.repl/set-prep! #(system-config (cfg/config)))
-
+  (integrant.repl/go)
+  (integrant.repl/halt)
+  (integrant.repl/clear)
+  (integrant.repl/reset)
   (taoensso.tufte/add-basic-println-handler! {})
 
-  (integrant.repl/go)
+  integrant.repl.state/system
+  integrant.repl.state/config
+  integrant.repl.state/preparer
 
   (do (integrant.repl/halt)
       (st/instrument)
@@ -142,8 +147,6 @@
 
   (do (integrant.repl/halt)
       (integrant.repl/go))
-
-  (integrant.repl/reset)
 
   ;; To invoke a URL in a started system
   integrant.repl.state/system
