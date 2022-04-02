@@ -4,8 +4,7 @@
             [cljdoc.spec.searchset :as ss]
             [clojure.edn :as edn]
             [clojure.test :as t]
-            [clojure.java.io :as io]
-            [clojure.spec.alpha :as s]))
+            [clojure.java.io :as io]))
 
 (def cache-bundle (-> "test_data/cache_bundle.edn"
                       io/resource

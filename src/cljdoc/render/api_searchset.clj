@@ -95,10 +95,9 @@
   each with their own name, doc, and URL path.
   2. For anything else it renders to HTML and then grabs all the text from the body as a single link."
   [doc version-entity]
-  (when (nil? doc)
-    (prn "OMG, IT'S NIL"))
   (case (:cljdoc.doc/type doc)
     :cljdoc/markdown (markdown-doc->docs doc version-entity)
+    ;; TODO: asciidoc rendering
     (generic-doc->docs doc version-entity)))
 
 (defn- ->namespaces
