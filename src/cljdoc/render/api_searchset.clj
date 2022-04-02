@@ -1,9 +1,9 @@
 (ns cljdoc.render.api-searchset
   "Renders a cache bundle into the format needed by the API to feed client-side search."
-  (:require
-   [cljdoc.doc-tree :as doctree]
-   [cljdoc.render.rich-text :as rt]
-   [cljdoc.server.routes :as routes])
+  (:require [cljdoc.doc-tree :as doctree]
+            [cljdoc.render.rich-text :as rt]
+            [cljdoc.server.routes :as routes]
+            [cljdoc.spec])
   (:import
    (org.jsoup Jsoup)))
 
