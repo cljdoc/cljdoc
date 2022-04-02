@@ -3,9 +3,7 @@
   generated via `cljdoc.storage.sqlite-impl/bundle-docs`."
   (:require [malli.core :as malli]
             [malli.error]
-            [malli.provider]
-            [clojure.string :as str]))
-
+            [malli.provider]))
 
 (def schema
   (let [doc-attrs
@@ -108,6 +106,12 @@
   (malli.error/humanize (explain cache-bundle)))
 
 (comment
+
+  (require '[cljdoc.server.pedestal :as server.pedestal]
+           '[clojure.string :as str]
+           '[integrant.repl.state :as state]
+           '[malli.provider])
+
   (defn format-version-entity
     "Trickery to handle when a string version-entity is missing a group-id."
     ([group-and-artifact-id version]
@@ -130,17 +134,17 @@
     "Load pom info for an analyzed docset."
     [version-entity]
     (let [version-entity (parse-version-entity version-entity)
-          cache (:cljdoc/cache integrant.repl.state/system)
+          cache (:cljdoc/cache state/system)
           get-pom-xml (:cljdoc.util.repositories/get-pom-xml cache)]
-      (cljdoc.server.pedestal/load-pom get-pom-xml version-entity)))
+      (server.pedestal/load-pom get-pom-xml version-entity)))
 
-  ;; load cache-bundle for an analyzed docset
   (defn load-cache-bundle
+    "Load the cache-bundle for the analyzed docset."
     [version-entity]
     (let [version-entity (parse-version-entity version-entity)
-          storage (:cljdoc/storage integrant.repl.state/system)
+          storage (:cljdoc/storage state/system)
           pom-info (load-pom version-entity)]
-      (cljdoc.server.pedestal/load-cache-bundle storage pom-info version-entity)))
+      (server.pedestal/load-cache-bundle storage pom-info version-entity)))
 
   (def version-entities
     ["org.cljdoc/cljdoc-exerciser/1.0.77"
@@ -171,7 +175,6 @@
     (explain-humanized
      (assoc cache-bundle :version :vInfinity)))
 
-  (require '[malli.provider])
   ;; infer a schema to get you started
   (malli.provider/provide (mapv load-cache-bundle version-entities))
 
