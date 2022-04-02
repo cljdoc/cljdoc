@@ -1,6 +1,7 @@
 (ns cljdoc.render.api-searchset-test
   (:require [cljdoc.render.api-searchset :as api-searchset]
-            [cljdoc.spec]
+            [cljdoc.spec.cache-bundle :as cbs]
+            [cljdoc.spec.searchset :as ss]
             [clojure.edn :as edn]
             [clojure.test :as t]
             [clojure.java.io :as io]
@@ -37,9 +38,13 @@
 
 (t/deftest cache-bundle->searchset
   (let [generated-searchset (api-searchset/cache-bundle->searchset cache-bundle)]
-    ;; (t/testing "begins from a valid cache-bundle"
-    ;;   (t/is (s/explain :cljdoc.spec/cache-bundle cache-bundle)))
+    (t/testing "input cache bundle is valid"
+      (let [explanation (cbs/explain-humanized cache-bundle)]
+        (t/is (nil? explanation) {:explanation explanation
+                                  :data cache-bundle})))
     (t/testing "converts a cache-bundle into a searchset"
       (t/is (= searchset generated-searchset)))
     (t/testing "produces a valid searchset"
-      (t/is (nil? (s/explain :cljdoc/searchset generated-searchset))))))
+      (let [explanation (ss/explain-humanized generated-searchset)]
+        (t/is (nil? explanation) {:explanation explanation
+                                  :data generated-searchset})))))
