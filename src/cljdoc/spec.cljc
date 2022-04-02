@@ -1,6 +1,8 @@
 (ns cljdoc.spec
   (:refer-clojure :exclude [assert])
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [malli.core]
+            [malli.error]))
 
 ;;
 ;; API data
@@ -111,261 +113,156 @@
 ;;
 ;; The other cache bundle (generated via `cljdoc.storage.sqlite-impl/bundle-docs`)
 ;;
-;;
 
+(def cache-bundle-schema
+  (let [doc-attrs
+        [:map
+         [:cljdoc.doc/source-file {:optional true} string?]
+         [:cljdoc/markdown {:optional true} string?]
+         [:cljdoc.doc/type {:optional true} qualified-keyword?]
+         [:slug string?]
+         [:cljdoc.doc/contributors {:optional true} [:sequential string?]]
+         [:cljdoc/asciidoc {:optional true} string?]]
 
+        arglists [:sequential [:vector any?]]]
+    [:map
+     [:version
+      [:map
+       [:jar [:maybe [:map]]]
+       [:scm
+        [:maybe
+         [:map
+          [:files [:map-of string? string?]]
+          [:rev string?]
+          [:branch string?]
+          [:tag {:optional true} [:map-of keyword? string?]]
+          [:url string?]
+          [:commit string?]]]]
+       [:doc
+        [:maybe
+         [:vector
+          [:map
+           [:title string?]
+           [:attrs doc-attrs]
+           [:children
+            {:optional true}
+            [:vector
+             [:map
+              [:title string?]
+              [:attrs doc-attrs]]]]]]]]
+       [:config
+        [:maybe
+         [:map
+          [:cljdoc.doc/tree
+           [:vector
+            [:vector
+             [:or
+              string?
+              [:map [:file {:optional true} string?]]
+              [:vector [:or string? [:map [:file string?]]]]]]]]
+          [:cljdoc/include-namespaces-from-dependencies
+           {:optional true}
+           [:vector symbol?]]]]]]]
+     [:namespaces
+      [:set
+       [:map
+        [:name string?]
+        [:doc {:optional true} string?]
+        [:platform string?]
+        [:version-entity
+         [:map
+          [:id int?]
+          [:group-id string?]
+          [:artifact-id string?]
+          [:version string?]]]
+        [:author {:optional true} string?]
+        [:deprecated {:optional true} string?]]]]
+     [:defs
+      [:set
+       [:map
+        [:name string?]
+        [:file string?]
+        [:type keyword?]
+        [:dynamic {:optional true} boolean?]
+        [:line int?]
+        [:deprecated {:optional true} some?]
+        [:members
+         {:optional true}
+         [:sequential
+          [:map
+           [:name symbol?]
+           [:arglists arglists]
+           [:doc {:optional true} string?]
+           [:type keyword?]]]]
+        [:arglists {:optional true} arglists]
+        [:doc {:optional true} string?]
+        [:namespace string?]
+        [:platform string?]]]]
+     [:latest string?]
+     [:version-entity [:map-of keyword? string?]]]))
 
+(def cache-bundle-valid?
+  "Given a cache-bundle structure, return true if valid or false if not."
+  (malli.core/validator cache-bundle-schema))
 
+(def cache-bundle-explain
+  "Given a cache-bundle structure, return the explanation for the validation."
+  (malli.core/explainer cache-bundle-schema))
 
-
-
-
-(s/def :cache-bundle/version-entity ::version-entity)
-(s/def :cache-bundle/latest ::version)
-
-(s/def :cache-bundle-def/platform ::platform)
-(s/def :cache-bundle-def/type ::type)
-(s/def :cache-bundle-def/namespace ::namespace)
-(s/def :cache-bundle-def/name string?)
-(s/def :cache-bundle-def/path string?)
-(s/def :cache-bundle-def/file string?)
-(s/def :cache-bundle-def/line number?)
-(s/def :cache-bundle-def/dynamic boolean?)
-(s/def :cache-bundle-def/arglist (s/or :symbol symbol?
-                                       :vector-of-symbols (s/coll-of symbol?)
-                                       (s/keys :req-un [])))
-(s/def :cache-bundle-def/arglists (s/coll-of (s/coll-of symbol?)))
-[:or
-      symbol?
-      [:vector symbol?]
-      [:map [:keys [:vector symbol?]] [:as symbol?]]]
-(s/def :cache-bundle-def-member/type ::type)
-(s/def :cache-bundle-def-member/name symbol?)
-(s/def :cache-bundle-def-member/arglists :cache-bundle-def/arglists)
-(s/def :cache-bundle-def-member/doc ::doc)
-(s/def :cache-bundle-def/member (s/keys :req-un [:cache-bundle-def-member/name
-                                                 :cache-bundle-def-member/arglists
-                                                 :cache-bundle-def-member/doc
-                                                 :cache-bundle-def-member/type]))
-(s/def :cache-bundle-def/members (s/coll-of :cache-bundle-def/member))
-
-(s/def :cache-bundle/def-with-members (s/keys :req-un [:cache-bundle-def/name
-                                                       :cache-bundle-def/file
-                                                       :cache-bundle-def/line
-                                                       :cache-bundle-def/doc
-                                                       :cache-bundle-def/type
-                                                       :cache-bundle-def/members
-                                                       :cache-bundle-def/namespace
-                                                       :cache-bundle-def/platform]))
-
-
-[:sequential
- [:map
-  [:name string?]
-  [:file string?]
-  [:line int?]
-  [:arglists
-   [:sequential
-    [:vector
-     [:or
-      symbol?
-      [:vector symbol?]
-      [:map [:keys [:vector symbol?]] [:as symbol?]]]]]]
-  [:doc {:optional true} string?]
-  [:type keyword?]
-  [:namespace string?]
-  [:platform string?]]]
-
-
-(s/def :cache-bundle/def-with-arglists (s/keys :req-un [:cache-bundle-def/name
-                                                        :cache-bundle-def/file
-                                                        :cache-bundle-def/line
-                                                        :cache-bundle-def/doc
-                                                        :cache-bundle-def/type
-                                                        :cache-bundle-def/namespace
-                                                        :cache-bundle-def/platform
-                                                        :cache-bundle-def/arglists]))
-
-(s/def :cache-bundle-defs/def (s/or :def-with-members :cache-bundle/def-with-members
-                                    :def-with-arglists :cache-bundle/def-with-arglists))
-
-(s/def :cache-bundle/defs (s/coll-of :cache-bundle-defs/def :distinct true :into #{}))
+(defn cache-bundle-explain-humanized
+  "Given a cache-bundle structure, return the humanized explanation for the validation."
+  [cache-bundle]
+  (malli.error/humanize (cache-bundle-explain cache-bundle)))
 
 (comment
-  (require '[clojure.java.io :as io]
-           '[clojure.edn :as edn]
-           '[malli.provider :as mp])
-  (def cache-bundle (-> "test_data/cache_bundle.edn"
-                        io/resource
-                        slurp
-                        edn/read-string))
+  ;; load pom info for an analyzed docset
+  (defn load-pom
+    [version-entity]
+    (let [cache (:cljdoc/cache integrant.repl.state/system)
+          get-pom-xml (:cljdoc.util.repositories/get-pom-xml cache)]
+      (cljdoc.server.pedestal/load-pom get-pom-xml version-entity)))
 
+  ;; load cache-bundle for an analyzed docset
+  (defn load-cache-bundle
+    [version-entity]
+    (let [storage (:cljdoc/storage integrant.repl.state/system)
+          pom-info (load-pom version-entity)]
+      (cljdoc.server.pedestal/load-cache-bundle storage pom-info version-entity)))
 
-    (def members-defs (->> cache-bundle :defs (filter :members)))
-    (def arglists-defs (->> cache-bundle :defs (filter :arglists)))
-    (def dynamic-defs (->> cache-bundle :defs (filter :dynamic)))
-    (def remainder-defs (->> cache-bundle :defs (remove :members) (remove :arglists) (filter :dynamic)))
+  (def version-entities
+    [{:group-id "org.cljdoc", :artifact-id "cljdoc-exerciser", :version "1.0.77"}
+     {:group-id "net.cgrand", :artifact-id "xforms", :version "0.19.2"}
+     {:group-id "meander", :artifact-id "epsilon", :version "0.0.650"}
+     {:group-id "methodical", :artifact-id "methodical", :version "0.12.2"}
+     {:group-id "com.wsscode", :artifact-id "pathom3", :version "2022.03.17-alpha"}
+     {:group-id "com.rpl", :artifact-id "specter", :version "1.1.4"}
+     {:group-id "cli-matic", :artifact-id "cli-matic", :version "0.5.1"}
+     {:group-id "prismatic", :artifact-id "schema", :version "1.2.0"}
+     {:group-id "com.fulcrologic", :artifact-id "fulcro", :version "3.5.15"}
+     {:group-id "fulcrologic", :artifact-id "fulcro", :version "2.8.13"}
+     {:group-id "metosin", :artifact-id "reitit", :version "0.5.17"}
+     {:group-id "compojure", :artifact-id "compojure", :version "1.6.2"}
+     {:group-id "luminus-db", :artifact-id "luminus-db", :version "0.1.1"}
+     {:group-id "rum", :artifact-id "rum", :version "0.12.9"}])
 
+  (load-pom {:group-id "org.cljdoc"
+             :artifact-id "cljdoc-exerciser"
+             :version "1.0.77"})
 
-    (:latest cache-bundle)
-    [:defs [:or
-    (mp/provide [members-defs])
-    (mp/provide [arglists-defs])
-    (mp/provide [dynamic-defs])
-    (mp/provide [remainder-defs])
+  (load-cache-bundle {:group-id "org.cljdoc"
+                      :artifact-id "cljdoc-exerciser"
+                      :version "1.0.77"})
 
-            ]]
+  (cljdoc.spec/cache-bundle-explain-humanized
+   (load-cache-bundle {:group-id "org.cljdoc"
+                       :artifact-id "cljdoc-exerciser"
+                       :version "1.0.77"}))
 
+  (require '[malli.provider])
+  ;; infer a schema to get you started
+  (malli.provider/provide (mapv load-cache-bundle version-entities))
 
-    [:defs
- [:or
-  [:sequential
-   [:map
-    [:name string?]
-    [:file string?]
-    [:line int?]
-    [:doc string?]
-    [:type keyword?]
-    [:members
-     [:sequential
-      [:map
-       [:name symbol?]
-       [:arglists [:sequential [:vector symbol?]]]
-       [:doc string?]
-       [:type keyword?]]]]
-    [:namespace string?]
-    [:platform string?]]]
-  [:sequential
-   [:map
-    [:name string?]
-    [:file string?]
-    [:line int?]
-    [:arglists
-     [:sequential
-      [:vector
-       [:or
-        symbol?
-        [:vector symbol?]
-        [:map [:keys [:vector symbol?]] [:as symbol?]]]]]]
-    [:doc {:optional true} string?]
-    [:type keyword?]
-    [:namespace string?]
-    [:platform string?]]]
-  [:sequential
-   [:map
-    [:name string?]
-    [:file string?]
-    [:line int?]
-    [:doc string?]
-    [:dynamic boolean?]
-    [:type keyword?]
-    [:namespace string?]
-    [:platform string?]]]
-  [:sequential
-   [:map
-    [:name string?]
-    [:file string?]
-    [:line int?]
-    [:doc string?]
-    [:dynamic boolean?]
-    [:type keyword?]
-    [:namespace string?]
-    [:platform string?]]]]]
-
-    (mp/provide [cache-bundle])
-    (mp/provide [members-defs])
-    (mp/provide [arglists-defs])
-    (mp/provide [dynamic-defs])
-    (mp/provide [remainder-defs])
-
-
-    )
-
-[:map
- [:version
-  [:map
-   [:jar [:map]]
-   [:scm
-    [:map
-     [:files [:map-of string? string?]]
-     [:rev string?]
-     [:branch string?]
-     [:tag [:map-of keyword? string?]]
-     [:url string?]
-     [:commit string?]]]
-   [:doc
-    [:vector
-     [:map
-      [:title string?]
-      [:attrs
-       [:map
-        [:cljdoc.doc/source-file string?]
-        [:cljdoc/markdown string?]
-        [:cljdoc.doc/type qualified-keyword?]
-        [:slug string?]
-        [:cljdoc.doc/contributors [:sequential string?]]]]
-      [:children
-       {:optional true}
-       [:vector
-        [:map
-         [:title string?]
-         [:attrs
-          [:map
-           [:cljdoc.doc/source-file string?]
-           [:cljdoc/markdown string?]
-           [:cljdoc.doc/type qualified-keyword?]
-           [:slug string?]
-           [:cljdoc.doc/contributors [:sequential string?]]]]]]]]]]
-   [:config
-    [:map
-     [:cljdoc.doc/tree
-      [:vector
-       [:vector
-        [:or
-         string?
-         [:map [:file string?]]
-         [:vector [:or string? [:map [:file string?]]]]]]]]]]]]
- [:namespaces
-  [:set
-   [:map
-    [:doc string?]
-    [:name string?]
-    [:platform string?]
-    [:version-entity
-     [:map
-      [:id int?]
-      [:group-id string?]
-      [:artifact-id string?]
-      [:version string?]]]]]]
- [:defs
-  [:set
-   [:map
-    [:name string?]
-    [:file string?]
-    [:type keyword?]
-    [:dynamic {:optional true} boolean?]
-    [:line int?]
-    [:members
-     {:optional true}
-     [:sequential
-      [:map
-       [:name symbol?]
-       [:arglists [:sequential [:vector symbol?]]]
-       [:doc string?]
-       [:type keyword?]]]]
-    [:arglists
-     {:optional true}
-     [:sequential
-      [:vector
-       [:or
-        symbol?
-        [:vector symbol?]
-        [:map [:keys [:vector symbol?]] [:as symbol?]]]]]]
-    [:doc {:optional true} string?]
-    [:namespace string?]
-    [:platform string?]]]]
- [:latest string?]
- [:version-entity [:map-of keyword? string?]]]
+  )
 
 ;;
 ;; search ----------------------------------------------------------
