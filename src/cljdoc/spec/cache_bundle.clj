@@ -106,45 +106,8 @@
   (malli.error/humanize (explain cache-bundle)))
 
 (comment
-
-  (require '[cljdoc.server.pedestal :as server.pedestal]
-           '[clojure.string :as str]
-           '[integrant.repl.state :as state]
+  (require '[cljdoc.spec.util :as util]
            '[malli.provider])
-
-  (defn format-version-entity
-    "Trickery to handle when a string version-entity is missing a group-id."
-    ([group-and-artifact-id version]
-     (format-version-entity group-and-artifact-id
-                            group-and-artifact-id
-                            version))
-    ([group-id artifact-id version]
-     {:group-id group-id
-      :artifact-id artifact-id
-      :version version}))
-
-  (defn parse-version-entity
-    "Parse the version entity if it is a string, and just return it if it's not."
-    [version-entity]
-    (if (string? version-entity)
-      (apply format-version-entity (str/split version-entity #"/"))
-      version-entity))
-
-  (defn load-pom
-    "Load pom info for an analyzed docset."
-    [version-entity]
-    (let [version-entity (parse-version-entity version-entity)
-          cache (:cljdoc/cache state/system)
-          get-pom-xml (:cljdoc.util.repositories/get-pom-xml cache)]
-      (server.pedestal/load-pom get-pom-xml version-entity)))
-
-  (defn load-cache-bundle
-    "Load the cache-bundle for the analyzed docset."
-    [version-entity]
-    (let [version-entity (parse-version-entity version-entity)
-          storage (:cljdoc/storage state/system)
-          pom-info (load-pom version-entity)]
-      (server.pedestal/load-cache-bundle storage pom-info version-entity)))
 
   (def version-entities
     ["org.cljdoc/cljdoc-exerciser/1.0.77"
@@ -162,20 +125,11 @@
      "luminus-db/luminus-db/0.1.1"
      "rum/rum/0.12.9"])
 
-  (load-pom (first version-entities))
-
-  (let [cache-bundle (load-cache-bundle (first version-entities))]
-    (valid? cache-bundle))
-
-  (let [cache-bundle (load-cache-bundle (first version-entities))]
-    (explain
-     (assoc cache-bundle :version :vInfinity)))
-
-  (let [cache-bundle (load-cache-bundle (first version-entities))]
-    (explain-humanized
-     (assoc cache-bundle :version :vInfinity)))
-
   ;; infer a schema to get you started
-  (malli.provider/provide (mapv load-cache-bundle version-entities))
+  (malli.provider/provide (mapv util/load-cache-bundle version-entities))
+
+  (every? (comp valid?
+                util/load-cache-bundle)
+          version-entities)
 
   )

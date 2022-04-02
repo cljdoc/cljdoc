@@ -4,8 +4,7 @@
             [cljdoc.render.rich-text :as rt]
             [cljdoc.server.routes :as routes]
             [cljdoc.spec])
-  (:import
-   (org.jsoup Jsoup)))
+  (:import (org.jsoup Jsoup)))
 
 (def header-tag? #{"h1" "h2" "h3" "h4" "h5" "h6"})
 
@@ -81,12 +80,13 @@
 
 (defn- generic-doc->docs
   [doc version-entity]
-  (let [type-and-contents (doctree/entry->type-and-content doc)
-        html (rt/render-text type-and-contents)
-        text (-> html Jsoup/parse (.getElementsByTag "body") first .text)]
-    [{:name (:title doc)
-      :path (path-for-doc doc version-entity)
-      :doc text}]))
+  (let [[type contents] (doctree/entry->type-and-content doc)]
+    (when contents
+      (let [html (rt/render-text [type contents])
+            text (-> html Jsoup/parse (.getElementsByTag "body") first .text)]
+        [{:name (:title doc)
+          :path (path-for-doc doc version-entity)
+          :doc text}]))))
 
 (defn- doc->docs
   "Performs one of two operations, depending on document type:
@@ -95,8 +95,10 @@
   each with their own name, doc, and URL path.
   2. For anything else it renders to HTML and then grabs all the text from the body as a single link."
   [doc version-entity]
-  (if (= (:cljdoc.doc/type doc) :cljdoc/markdown)
-    (markdown-doc->docs doc version-entity)
+  (when (nil? doc)
+    (prn "OMG, IT'S NIL"))
+  (case (:cljdoc.doc/type doc)
+    :cljdoc/markdown (markdown-doc->docs doc version-entity)
     (generic-doc->docs doc version-entity)))
 
 (defn- ->namespaces
