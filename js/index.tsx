@@ -15,6 +15,7 @@ import {
   saveSidebarScrollPos
 } from "./cljdoc";
 import { initRecentDocLinks } from "./recent-doc-links";
+import { mountSingleDocsetSearch } from "./single-docset-search";
 
 export type SidebarScrollPos = { page: string; scrollTop: number };
 
@@ -73,6 +74,9 @@ const docLinks = document.querySelector("#doc-links");
 if (docLinks) {
   initRecentDocLinks(docLinks);
 }
+
+// Mount the single docset search if the search element is present.
+mountSingleDocsetSearch();
 
 // Save the sidebar scroll position when navigating away from the site so we can restore it later.
 window.onbeforeunload = saveSidebarScrollPos;
