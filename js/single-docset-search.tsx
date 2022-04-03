@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { Document } from "flexsearch";
 import { debounced } from "./search";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
+import cx from "classnames";
 
 type Namespace = {
   name: string;
@@ -52,6 +53,9 @@ interface SearchsetsDB extends DBSchema {
     value: IndexItem[];
   };
 }
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
 
 const mountSingleDocsetSearch = async () => {
   const singleDocsetSearchNode: HTMLElement | null = document.querySelector(
@@ -104,12 +108,42 @@ const buildSearchIndex = (indexItems: IndexItem[]) => {
     },
     tokenize: "forward",
     context: true,
-    encode: "advanced"
+    charset: "utf-8:advanced"
   });
 
   indexItems.forEach((indexItem, i) => searchIndex.append(i, indexItem));
 
   return searchIndex;
+};
+
+const ResultListItem = (props: {
+  result: IndexItem;
+  index: number;
+  selected: boolean;
+}) => {
+  const { result, selected } = props;
+
+  switch (result.kind) {
+    case "namespace":
+    case "def":
+    case "doc":
+      return (
+        <li
+          className={cx("pv1 pa1 bb b--light-gray", {
+            "bg-light-blue": selected
+          })}
+        >
+          <a className="no-underline black" href={result.path}>
+            {result.name}
+          </a>
+        </li>
+      );
+
+    default:
+      // This should never happen but... just in case.
+      // @ts-ignore
+      throw new Error(`Unknown result type: ${result.kind}`);
+  }
 };
 
 const SingleDocsetSearch = (props: { url: string }) => {
@@ -121,6 +155,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
   >();
   const [results, setResults] = useState<IndexItem[]>([]);
   const [outline, setOutline] = useState<boolean>(false);
+  const [selectedIndex, setSelectedIndex] = useState<number | undefined>();
 
   useEffect(() => {
     openDB<SearchsetsDB>("cljdoc-searchsets-store", 1, {
@@ -149,15 +184,59 @@ const SingleDocsetSearch = (props: { url: string }) => {
         .flatMap(r => r.result.map(d => d.doc))
   );
 
-  console.log({ results });
+  const onArrowUp = () => {
+    if (results.length > 0) {
+      const max = results.length - 1;
+
+      if (typeof selectedIndex === "undefined" || selectedIndex === 0) {
+        setSelectedIndex(max);
+      } else {
+        setSelectedIndex(selectedIndex - 1);
+      }
+    } else {
+      setSelectedIndex(undefined);
+    }
+  };
+
+  const onArrowDown = () => {
+    if (results.length > 0) {
+      const max = results.length - 1;
+
+      if (typeof selectedIndex === "undefined" || selectedIndex === max) {
+        setSelectedIndex(0);
+      } else {
+        setSelectedIndex(selectedIndex + 1);
+      }
+    } else {
+      setSelectedIndex(undefined);
+    }
+  };
+
+  const clampSelectedIndex = () => {
+    if (typeof selectedIndex === "undefined") {
+      return;
+    }
+
+    if (results.length === 0 && typeof selectedIndex !== "undefined") {
+      setSelectedIndex(undefined);
+      return;
+    }
+
+    const index = clamp(selectedIndex, 0, results.length - 1);
+
+    if (index !== selectedIndex) {
+      setSelectedIndex(index);
+    }
+  };
+
+  clampSelectedIndex();
 
   return (
     <div
-      className={
-        outline || results.length > 0
-          ? "ba b--solid b--black-40"
-          : "ba b--dashed b--black-40"
-      }
+      className={cx(
+        "ba b--black-40",
+        outline || results.length > 0 ? "b--solid" : "b--dashed"
+      )}
       style={{ margin: "-1rem", padding: "1rem" }}
     >
       <form className="black-80" onSubmit={e => e.preventDefault()}>
@@ -180,12 +259,13 @@ const SingleDocsetSearch = (props: { url: string }) => {
               if (event.key === "Escape") {
                 input.value = "";
                 setResults([]);
+                input.blur();
               } else if (event.key === "ArrowUp") {
                 event.preventDefault(); // prevents caret from moving in input field
-                // onArrowUp();
+                onArrowUp();
               } else if (event.key === "ArrowDown") {
                 event.preventDefault(); // prevents caret from moving in input field
-                // onArrowDown();
+                onArrowDown();
               }
             }}
             onInput={event => {
@@ -199,17 +279,19 @@ const SingleDocsetSearch = (props: { url: string }) => {
         </div>
         <small
           id="single-docset-search-term-description"
-          className="f6 black-60 db mb2"
+          className={cx("f6 black-60 mb2", results.length > 0 ? "dn" : "db")}
         >
           Search documents, namespaces, vars, macros, protocols, and more.
         </small>
       </form>
       {results && (
-        <ol className="list pl0">
-          {results.map(r => (
-            <li>
-              <a href={r.path}>{r.name}</a>
-            </li>
+        <ol className="list pl0 no-underline black">
+          {results.map((result, index) => (
+            <ResultListItem
+              result={result}
+              index={index}
+              selected={selectedIndex === index}
+            />
           ))}
         </ol>
       )}
