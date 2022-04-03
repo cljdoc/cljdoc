@@ -253,4 +253,4 @@ class App extends Component<AppProps, AppState> {
   }
 }
 
-export { App };
+export { App, debounced };
