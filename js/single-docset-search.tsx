@@ -1,4 +1,4 @@
-import { h, render, Fragment } from "preact";
+import { h, render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { Document } from "flexsearch";
 import { debounced } from "./search";
