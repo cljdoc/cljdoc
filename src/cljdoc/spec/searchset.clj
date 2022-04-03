@@ -79,6 +79,4 @@
   (set (mapcat keys (:docs searchset)))
 
   (every? (comp valid? util/load-searchset)
-          version-entities)
-
-  )
+          version-entities))

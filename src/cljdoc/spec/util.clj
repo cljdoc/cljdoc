@@ -81,6 +81,4 @@
 
   (let [searchset (load-searchset (first version-entities))]
     (ss/explain-humanized
-     (assoc searchset :namespaces :bad-value)))
-
-  )
+     (assoc searchset :namespaces :bad-value))))

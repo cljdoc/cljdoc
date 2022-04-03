@@ -130,6 +130,4 @@
 
   (every? (comp valid?
                 util/load-cache-bundle)
-          version-entities)
-
-  )
+          version-entities))
