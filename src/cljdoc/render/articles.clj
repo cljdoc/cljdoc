@@ -49,7 +49,7 @@
   (assert doc-type)
   [:div.mw7.center
    (if doc-html
-     [:div#doc-html.cljdoc-article.lh-copy.pv4
+     [:div#doc-html.cljdoc-article.cljdoc-markup.lh-copy.pv4
       {:class (name doc-type)}
       (hiccup/raw doc-html)
       (prev-next-navigation {:prev-page prev-page

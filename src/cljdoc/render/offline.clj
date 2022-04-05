@@ -125,7 +125,8 @@
 
 (defn- doc-page [doc-tuple fix-opts]
   [:div
-   [:div.markdown.lh-copy.pv4
+   [:div.cljdoc-article.cljdoc-markup.lh-copy.pv4
+    {:class (name (first doc-tuple))}
     (hiccup/raw
      (fixref/fix (rich-text/render-text doc-tuple)
                  fix-opts))]])

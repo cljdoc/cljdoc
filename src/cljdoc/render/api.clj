@@ -31,7 +31,7 @@
 
 (defn docstring->html [doc-str render-wiki-link fix-opts]
   [:div
-   [:div.lh-copy.markdown
+   [:div.lh-copy.markdown.cljdoc-markup
     ;; If someone sets `{:doc false}`, there will be no docstring
     (when doc-str
       (-> doc-str
