@@ -21,21 +21,21 @@
 (t/deftest migration-nums-are-sequential-and-have-no-gaps
   (doseq [dir dirs]
     (let [migration-nums (->> (migration-files dir)
-                           (mapv #(let [re-sep (if (str/ends-with? % ".sql") #"-" #"_")]
-                                    (first (str/split % re-sep))))
-                           distinct
-                           sort)
+                              (mapv #(let [re-sep (if (str/ends-with? % ".sql") #"-" #"_")]
+                                       (first (str/split % re-sep))))
+                              distinct
+                              sort)
           expected-nums (->> (range 1 (inc (count migration-nums)))
-                          (mapv #(format "%03d" %)))]
+                             (mapv #(format "%03d" %)))]
       (t/is (= expected-nums migration-nums)))))
 
 (t/deftest sql-migrations-have-up-and-down
   (doseq [dir dirs]
     (let [sql-migrations (->> (migration-files dir)
-                           (filter #(str/ends-with? % ".sql"))
-                           (mapv #(rest (re-find #"(.+)\.(.+?)\.sql" %)))
-                           (reduce (fn [acc [mbase dir]]
-                                     (update acc mbase (fnil conj #{}) dir))
-                             {}))]
+                              (filter #(str/ends-with? % ".sql"))
+                              (mapv #(rest (re-find #"(.+)\.(.+?)\.sql" %)))
+                              (reduce (fn [acc [mbase dir]]
+                                        (update acc mbase (fnil conj #{}) dir))
+                                      {}))]
       (doseq [[mbase dirs] sql-migrations]
         (t/is (= #{"up" "down"} dirs) mbase)))))

@@ -41,10 +41,10 @@
                                 :dir     (cfg/data-dir env-config)}
       :cljdoc/postgres         {:db-spec (cfg/postgres-db env-config)}
       :cljdoc/cache            (merge (cfg/cache env-config)
-                                 {:cache-dir      (cfg/data-dir env-config)
-                                  :key-prefix     "get-pom-xml"
-                                  :serialize-fn   nippy/freeze
-                                  :deserialize-fn nippy/thaw})
+                                      {:cache-dir      (cfg/data-dir env-config)
+                                       :key-prefix     "get-pom-xml"
+                                       :serialize-fn   nippy/freeze
+                                       :deserialize-fn nippy/thaw})
       :cljdoc/searcher         {:index-dir       (index-dir env-config)
                                 :enable-indexer? (cfg/enable-artifact-indexer? env-config)}
       :cljdoc/pedestal         {:port             (cfg/get-in env-config [:cljdoc/server :port])
@@ -60,11 +60,11 @@
       :cljdoc/build-tracker    {:db-spec (ig/ref :cljdoc/sqlite)} ;TODO move to Postgres
       :cljdoc/analysis-service {:service-type ana-service
                                 :opts         (merge
-                                                {:repos (->> (cfg/maven-repositories)
-                                                          (map (fn [{:keys [id url]}] [id {:url url}]))
-                                                          (into {}))}
-                                                (when (= ana-service :circle-ci)
-                                                  (cfg/circle-ci env-config)))}
+                                               {:repos (->> (cfg/maven-repositories)
+                                                            (map (fn [{:keys [id url]}] [id {:url url}]))
+                                                            (into {}))}
+                                               (when (= ana-service :circle-ci)
+                                                 (cfg/circle-ci env-config)))}
       :cljdoc/clojars-stats    {:db-spec        (ig/ref :cljdoc/sqlite)  ;TODO move to Postgres
                                 :retention-days 380}}
 
@@ -100,10 +100,10 @@
 
 (defn run-migrations! [db-spec dir]
   (ragtime/migrate-all (jdbc/sql-database db-spec)
-    {}
-    (jdbc/load-resources dir)
-    {:reporter (fn [_store direction migration]
-                 (log/infof "Migrating %s %s" direction migration))}))
+                       {}
+                       (jdbc/load-resources dir)
+                       {:reporter (fn [_store direction migration]
+                                    (log/infof "Migrating %s %s" direction migration))}))
 
 (defmethod ig/init-key :cljdoc/postgres [_ {:keys [db-spec]}]
   (run-migrations! db-spec (:migrations-dir db-spec))

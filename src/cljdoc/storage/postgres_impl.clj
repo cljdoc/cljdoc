@@ -22,9 +22,9 @@
   (import-api [_ version-entity api-analysis]
     (analyzer-spec/assert-result-namespaces api-analysis)
     (store-artifact! db-spec
-      (:group-id version-entity)
-      (:artifact-id version-entity)
-      [(:version version-entity)])
+                     (:group-id version-entity)
+                     (:artifact-id version-entity)
+                     [(:version version-entity)])
     (db/import-api db-spec version-entity api-analysis))
   (import-doc [_ {:keys [group-id artifact-id version]} {:keys [doc-tree scm jar config]}]
     {:pre [(string? group-id) (string? artifact-id) (string? version)]}
@@ -33,10 +33,10 @@
       (db/update-version-meta! db-spec version-id {:jar jar :scm scm, :doc doc-tree, :config config})))
   (exists? [_ version-entity]
     (db/docs-available? db-spec
-      sql-exists?
-      (:group-id version-entity)
-      (:artifact-id version-entity)
-      (:version version-entity)))
+                        sql-exists?
+                        (:group-id version-entity)
+                        (:artifact-id version-entity)
+                        (:version version-entity)))
   (bundle-docs [_ version-entity]
     (db/bundle-docs db-spec version-entity))
   (list-versions [_ group-id]

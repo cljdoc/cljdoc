@@ -58,8 +58,8 @@
                            version-id platform name (nippy/freeze data)])
     (catch SQLException e
       (throw (ex-info (format "Failed to insert namespace %s" data)
-               {:var data}
-               e)))))
+                      {:var data}
+                      e)))))
 
 (defn- write-var!
   [db-spec version-id {:keys [platform namespace name] :as data}]
@@ -69,8 +69,8 @@
                            version-id platform namespace name (nippy/freeze data)])
     (catch SQLException e
       (throw (ex-info (format "Failed to insert var %s" data)
-               {:var data}
-               e)))))
+                      {:var data}
+                      e)))))
 
 (defn clear-vars-and-nss! [db-spec version-id]
   (sql/execute! db-spec ["DELETE FROM vars WHERE version_id = ?" version-id])
@@ -82,10 +82,10 @@
   [db-spec group-id artifact-id version-name]
   {:pre [(and group-id artifact-id version-name)]}
   (first
-    (sql/query db-spec
-      ["select id from versions where group_id = ? and artifact_id = ? and name = ?"
-       group-id artifact-id version-name]
-      {:row-fn :id})))
+   (sql/query db-spec
+              ["select id from versions where group_id = ? and artifact_id = ? and name = ?"
+               group-id artifact-id version-name]
+              {:row-fn :id})))
 
 (defnp ^:private get-version
   "Returns metadata for specific `version-id` a map:
@@ -120,7 +120,7 @@
      - `:commit` - sha specified in pom.xml scm->tag"
   [db-spec version-id]
   (first (sql/query db-spec ["select meta from versions where id = ?" version-id]
-           {:row-fn (fn [r] (some-> r :meta nippy/thaw))})))
+                    {:row-fn (fn [r] (some-> r :meta nippy/thaw))})))
 
 (defn- version-row-fn [r]
   (cset/rename-keys r {:group_id :group-id, :artifact_id :artifact-id, :name :version}))
@@ -151,13 +151,13 @@
   (let [id-indexed (index-by :id resolved-versions)]
     (->> (sql-get-namespaces db-spec {:version-ids (map :id resolved-versions)})
       ;; Match up version entities so each namespace can be linked back to it's artifact
-      (map (fn [r] (assoc r :version-entity (get id-indexed (:version_id r)))))
+         (map (fn [r] (assoc r :version-entity (get id-indexed (:version_id r)))))
       ;; Deserialize nippy, add name and version entity to map
-      (map (fn [r] (merge (-> r :meta nippy/thaw) (select-keys r [:name :version-entity])))))))
+         (map (fn [r] (merge (-> r :meta nippy/thaw) (select-keys r [:name :version-entity])))))))
 
 (defnp ^:private vars-row-fn [r]
   (assert (-> r :meta nippy/thaw :namespace)
-    (format "namespace missing from meta"))
+          (format "namespace missing from meta"))
   (-> r :meta nippy/thaw (assoc :name (:name r))))
 
 (defnp ^:private get-vars
@@ -180,11 +180,11 @@
   Database note: Items marked with [blob] are stored in nippy blob only."
   [db-spec namespaces-with-resolved-version-entities]
   (let [ns-idents (->> namespaces-with-resolved-version-entities
-                    (map (fn [ns] [(-> ns :version-entity :id) (:name ns)])))]
+                       (map (fn [ns] [(-> ns :version-entity :id) (:name ns)])))]
     (assert (seq ns-idents))
     (sql-get-vars db-spec {:ns-idents ns-idents}
-      {}
-      {:row-fn vars-row-fn})))
+                  {}
+                  {:row-fn vars-row-fn})))
 
 ;; API --------------------------------------------------------------------------
 
@@ -200,10 +200,10 @@
 
 (defnp latest-release-version [db-spec {:keys [group-id artifact-id]}]
   (->> (get-documented-versions db-spec group-id artifact-id)
-    (map :version)
-    (remove #(.endsWith % "-SNAPSHOT"))
-    (version-clj/version-sort)
-    (last)))
+       (map :version)
+       (remove #(.endsWith % "-SNAPSHOT"))
+       (version-clj/version-sort)
+       (last)))
 
 (defn all-distinct-docs [db-spec]
   (sql/query db-spec ["select group_id, artifact_id, name from versions"] {:row-fn version-row-fn}))
@@ -214,8 +214,8 @@
     ;; meta should always be set to at least {} but hasn't been set for a while.
     ;; this is a temporary fix for this that should get revisited when switching
     ;; the order of GIT vs API imports.
-    (let [v-id (get-version-id db-spec group-id artifact-id version-name)]
-      (sql-exists? db-spec ["select exists(select id from vars where version_id = ?)" v-id]))))
+      (let [v-id (get-version-id db-spec group-id artifact-id version-name)]
+        (sql-exists? db-spec ["select exists(select id from vars where version_id = ?)" v-id]))))
 
 (defn bundle-docs
   "Bundles the documentation for a particular artifact.
@@ -259,19 +259,18 @@
       (doseq [ns (for [[platf namespaces] codox
                        ns namespaces]
                    (-> (dissoc ns :publics)
-                     (update :name name)
-                     (assoc :platform platf)))]
+                       (update :name name)
+                       (assoc :platform platf)))]
         (write-ns! tx version-id ns))
       (let [vars (for [[platf namespaces] codox
                        ns namespaces
                        var (:publics ns)]
                    (assoc var
-                     :namespace (name (:name ns))
-                     :name (name (:name var))
-                     :platform platf))]
+                          :namespace (name (:name ns))
+                          :name (name (:name var))
+                          :platform platf))]
         (doseq [var (set vars)]
           (write-var! tx version-id var))))))
-
 
 (comment
   ;; Note to reader: if this link still worked, it would reference new naming convention: .../cljdoc-analysis-edn/.../cljdoc-analysis.edn
@@ -284,8 +283,8 @@
   (all-distinct-docs db-spec)
 
   (import-api db-spec
-    (select-keys data [:group-id :artifact-id :version])
-    (:codox data))
+              (select-keys data [:group-id :artifact-id :version])
+              (:codox data))
 
   (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data)))
 
