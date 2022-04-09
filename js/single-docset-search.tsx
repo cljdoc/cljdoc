@@ -5,6 +5,8 @@ import { debounced } from "./search";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import cx from "classnames";
 
+import lunr from "lunr";
+
 type Namespace = {
   name: string;
   path: string;
@@ -12,7 +14,7 @@ type Namespace = {
   doc?: string;
 };
 
-type NamespaceWithKind = Namespace & { kind: "namespace" };
+type NamespaceWithKindAndId = Namespace & { kind: "namespace"; id: number };
 
 type Def = {
   namespace: string;
@@ -30,14 +32,14 @@ type Def = {
   };
 };
 
-type DefWithKind = Def & { kind: "def" };
+type DefWithKindAndId = Def & { kind: "def"; id: number };
 
 type Doc = {
   name: string;
   path: string;
   doc: string;
 };
-type DocWithKind = Doc & { kind: "doc" };
+type DocWithKindAndId = Doc & { kind: "doc"; id: number };
 
 type Searchset = {
   namespaces: Namespace[];
@@ -45,7 +47,7 @@ type Searchset = {
   docs: Doc[];
 };
 
-type IndexItem = NamespaceWithKind | DefWithKind | DocWithKind;
+type IndexItem = NamespaceWithKindAndId | DefWithKindAndId | DocWithKindAndId;
 
 interface SearchsetsDB extends DBSchema {
   searchsets: {
@@ -53,6 +55,13 @@ interface SearchsetsDB extends DBSchema {
     value: IndexItem[];
   };
 }
+
+type LunrSearchMetadata = {
+  [query: string]: {
+    name?: { position: number[][] };
+    doc?: { position: number[][] };
+  };
+};
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -70,33 +79,58 @@ const mountSingleDocsetSearch = async () => {
 };
 
 const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
-  let items = await db.get("searchsets", url);
+  let items = (await db.get("searchsets", url)) ?? [];
 
-  if (items) {
+  if (items.length > 0) {
     return items;
   }
 
   const response = await fetch(url);
   const searchset: Searchset = await response.json();
 
-  items = [
-    ...searchset.namespaces.map<NamespaceWithKind>(ns => ({
+  searchset.namespaces.forEach((ns, i) => {
+    items.push({
       ...ns,
-      kind: "namespace"
-    })),
-    ...searchset.defs.map<DefWithKind>(def => ({
+      kind: "namespace",
+      id: i
+    });
+  });
+
+  let offset = searchset.namespaces.length;
+
+  searchset.defs.forEach((def, i) => {
+    items.push({
       ...def,
-      kind: "def"
-    })),
-    ...searchset.docs.map<DocWithKind>(doc => ({
+      kind: "def",
+      id: offset + i
+    });
+  });
+
+  offset += searchset.defs.length;
+
+  searchset.docs.forEach((doc, i) => {
+    items.push({
       ...doc,
-      kind: "doc"
-    }))
-  ];
+      kind: "doc",
+      id: offset + i
+    });
+  });
 
   await db.put("searchsets", items, url);
 
   return items;
+};
+
+const buildLunrSearchIndex = (indexItems: IndexItem[]) => {
+  const searchIndex = lunr(function () {
+    this.ref("id");
+    this.field("name", { boost: 5 });
+    this.field("doc", { boost: 1 });
+    this.metadataWhitelist = ["position"];
+    indexItems.forEach(indexItem => this.add(indexItem));
+  });
+
+  return searchIndex;
 };
 
 const buildSearchIndex = (indexItems: IndexItem[]) => {
@@ -153,6 +187,10 @@ const SingleDocsetSearch = (props: { url: string }) => {
   const [searchIndex, setSearchIndex] = useState<
     Document<IndexItem, true> | undefined
   >();
+  const [lunrSearchIndex, setLunrSearchIndex] = useState<
+    lunr.Index | undefined
+  >();
+
   const [results, setResults] = useState<IndexItem[]>([]);
   const [outline, setOutline] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>();
@@ -172,17 +210,54 @@ const SingleDocsetSearch = (props: { url: string }) => {
   }, [url, db]);
 
   useEffect(() => {
-    indexItems && setSearchIndex(buildSearchIndex(indexItems));
+    if (indexItems) {
+      setSearchIndex(buildSearchIndex(indexItems));
+      setLunrSearchIndex(buildLunrSearchIndex(indexItems));
+    }
   }, [indexItems]);
 
-  const debouncedSearch = debounced(
-    100,
-    (query: string) =>
+  const debouncedSearch = debounced(100, (query: string) => {
+    const lunrRawResults = lunrSearchIndex?.search(query);
+    const lunrResults = lunrRawResults?.map(
+      result => indexItems![Number(result.ref)]
+    );
+    const lunrMatchedText = lunrRawResults
+      ?.map(result => {
+        const metadata = result.matchData.metadata as LunrSearchMetadata;
+        const indexItem = indexItems![Number(result.ref)];
+        const matchedText: string[] = [];
+
+        for (const q in metadata) {
+          const matches = metadata[q];
+
+          if (matches.name) {
+            matches.name.position.forEach(([startPosition, length]) => {
+              matchedText.push(
+                indexItem.name.slice(startPosition, startPosition + length)
+              );
+            });
+          }
+
+          if (matches.doc) {
+            matches.doc.position.forEach(([startPosition, length]) => {
+              matchedText.push(
+                indexItem.doc!.slice(startPosition, startPosition + length)
+              );
+            });
+          }
+        }
+
+        return matchedText;
+      })
+      .flat();
+    console.log({ lunrResults, lunrRawResults, lunrMatchedText });
+    return (
       searchIndex &&
       searchIndex
         .search(query, undefined, { enrich: true })
         .flatMap(r => r.result.map(d => d.doc))
-  );
+    );
+  });
 
   const onArrowUp = () => {
     if (results.length > 0) {
