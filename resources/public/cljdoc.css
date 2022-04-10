@@ -455,3 +455,8 @@ table.frame-sides > colgroup + * > :first-child > * {
 .hljs-link {
   text-decoration: underline;
 }
+
+mark {
+  background: orange;
+  color: black;
+}

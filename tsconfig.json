@@ -21,7 +21,8 @@
     "checkJs": true,
     "allowJs": true,
     "allowUnreachableCode": false,
-    "pretty": true
+    "pretty": true,
+    "downlevelIteration": true
   },
   "include": ["js/**/*"]
 }

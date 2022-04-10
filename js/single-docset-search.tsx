@@ -1,11 +1,10 @@
 import { h, render } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { Document } from "flexsearch";
 import { debounced } from "./search";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import cx from "classnames";
-
 import lunr from "lunr";
+import { flatMap, isUndefined, over, partition, sortBy } from "lodash";
 
 type Namespace = {
   name: string;
@@ -49,22 +48,89 @@ type Searchset = {
 
 type IndexItem = NamespaceWithKindAndId | DefWithKindAndId | DocWithKindAndId;
 
+type StoredSearchset = {
+  storedAt: string;
+  indexItems: IndexItem[];
+};
+
 interface SearchsetsDB extends DBSchema {
   searchsets: {
     key: string;
-    value: IndexItem[];
+    value: StoredSearchset;
   };
 }
 
+type StartLengthRange = [start: number, length: number];
+type StartEndRange = [start: number, end: number];
+
+type LunrSearchMetadataValue = {
+  name?: { position: StartLengthRange[] };
+  doc?: { position: StartLengthRange[] };
+};
+
 type LunrSearchMetadata = {
-  [query: string]: {
-    name?: { position: number[][] };
-    doc?: { position: number[][] };
-  };
+  [term: string]: LunrSearchMetadataValue;
+};
+
+type SearchResult = {
+  indexItem: IndexItem;
+  lunrResult: lunr.Index.Result;
+  highlightedName: () => (string | h.JSX.Element)[];
+  highlightedDoc: () => (string | h.JSX.Element)[] | undefined;
 };
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
+
+const minMax = over([Math.min, Math.max]);
+
+const isOverlap = (
+  [aStart, aEnd]: StartEndRange,
+  [bStart, bEnd]: StartEndRange
+) => {
+  return aStart <= bEnd && aEnd >= bStart;
+};
+
+const processPositions = (startLengthRanges: StartLengthRange[]) => {
+  let remainingStartEndRanges = startLengthRanges.map(
+    m => [m[0], m[0] + m[1]] as StartEndRange
+  );
+
+  const ranges: StartEndRange[] = [];
+
+  while (remainingStartEndRanges.length > 0) {
+    const [overlapping, nonOverlapping] = partition(
+      remainingStartEndRanges,
+      r => isOverlap(remainingStartEndRanges[0], r)
+    );
+
+    ranges.push(minMax(...overlapping.flat()) as StartEndRange);
+
+    remainingStartEndRanges = nonOverlapping;
+  }
+
+  return sortBy(ranges, r => r[0]);
+};
+
+const mark = (ranges: StartEndRange[], text: string) => {
+  let cursor = 0;
+
+  const chunks = flatMap(ranges, range => {
+    const before = text.slice(cursor, range[0]);
+    const mark = <mark>{text.slice(range[0], range[1])}</mark>;
+    cursor = range[1];
+
+    return before.length > 0 ? [before, mark] : [mark];
+  });
+
+  const after = text.slice(cursor, text.length);
+
+  if (after.length > 0) {
+    chunks.push(after);
+  }
+
+  return chunks;
+};
 
 const mountSingleDocsetSearch = async () => {
   const singleDocsetSearchNode: HTMLElement | null = document.querySelector(
@@ -78,54 +144,78 @@ const mountSingleDocsetSearch = async () => {
   }
 };
 
-const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
-  let items = (await db.get("searchsets", url)) ?? [];
+const isExpired = (dateString: string) => {
+  const date = new Date(dateString);
+  const expiresAt = new Date();
+  // gross, mutation
+  expiresAt.setDate(date.getDate() + 1);
 
-  if (items.length > 0) {
-    return items;
+  const now = new Date();
+
+  // now > expiresAt === true when the current timestamp is after the expiration
+  return now > expiresAt;
+};
+
+const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
+  const storedSearchset = await db.get("searchsets", url);
+  if (
+    storedSearchset &&
+    !isExpired(storedSearchset.storedAt) &&
+    storedSearchset.indexItems.length > 0
+  ) {
+    return storedSearchset.indexItems;
   }
+
+  const items: IndexItem[] = [];
 
   const response = await fetch(url);
   const searchset: Searchset = await response.json();
 
-  searchset.namespaces.forEach((ns, i) => {
+  let id = 0;
+
+  searchset.namespaces.forEach(ns => {
+    id += 1;
     items.push({
       ...ns,
       kind: "namespace",
-      id: i
+      id
     });
   });
 
-  let offset = searchset.namespaces.length;
-
-  searchset.defs.forEach((def, i) => {
+  searchset.defs.forEach(def => {
+    id += 1;
     items.push({
       ...def,
       kind: "def",
-      id: offset + i
+      id
     });
   });
 
-  offset += searchset.defs.length;
-
-  searchset.docs.forEach((doc, i) => {
+  searchset.docs.forEach(doc => {
     items.push({
       ...doc,
       kind: "doc",
-      id: offset + i
+      id
     });
   });
 
-  await db.put("searchsets", items, url);
+  await db.put(
+    "searchsets",
+    {
+      storedAt: new Date().toISOString(),
+      indexItems: items
+    },
+    url
+  );
 
   return items;
 };
 
-const buildLunrSearchIndex = (indexItems: IndexItem[]) => {
+const buildSearchIndex = (indexItems: IndexItem[]) => {
   const searchIndex = lunr(function () {
     this.ref("id");
-    this.field("name", { boost: 5 });
-    this.field("doc", { boost: 1 });
+    this.field("name");
+    this.field("doc");
     this.metadataWhitelist = ["position"];
     indexItems.forEach(indexItem => this.add(indexItem));
   });
@@ -133,31 +223,14 @@ const buildLunrSearchIndex = (indexItems: IndexItem[]) => {
   return searchIndex;
 };
 
-const buildSearchIndex = (indexItems: IndexItem[]) => {
-  const searchIndex = new Document<IndexItem, true>({
-    document: {
-      id: "id",
-      index: ["name", "doc"],
-      store: true
-    },
-    tokenize: "forward",
-    context: true,
-    charset: "utf-8:advanced"
-  });
-
-  indexItems.forEach((indexItem, i) => searchIndex.append(i, indexItem));
-
-  return searchIndex;
-};
-
 const ResultListItem = (props: {
-  result: IndexItem;
+  result: SearchResult;
   index: number;
   selected: boolean;
 }) => {
   const { result, selected } = props;
 
-  switch (result.kind) {
+  switch (result.indexItem.kind) {
     case "namespace":
     case "def":
     case "doc":
@@ -167,8 +240,8 @@ const ResultListItem = (props: {
             "bg-light-blue": selected
           })}
         >
-          <a className="no-underline black" href={result.path}>
-            {result.name}
+          <a className="no-underline black" href={result.indexItem.path}>
+            {result.highlightedName()}
           </a>
         </li>
       );
@@ -180,18 +253,69 @@ const ResultListItem = (props: {
   }
 };
 
+const search = (
+  searchIndex: lunr.Index | undefined,
+  indexItems: IndexItem[] | undefined,
+  query: string
+) => {
+  if (!searchIndex || !indexItems) {
+    return undefined;
+  }
+
+  // const tokenizedQuery = [...query.split(/\W+/).filter(v => v)];
+
+  const lunrResults = searchIndex.query(lunrQuery => {
+    lunrQuery.term(query, {
+      fields: ["name"],
+      boost: 20
+    });
+    lunrQuery.term(query, {
+      fields: ["name"],
+      boost: 10,
+      wildcard: lunr.Query.wildcard.LEADING | lunr.Query.wildcard.TRAILING
+    });
+    // lunrQuery.term(tokenizedQuery, {
+    //   fields: ["name", "doc"],
+    //   boost: 5,
+    //   wildcard: lunr.Query.wildcard.LEADING | lunr.Query.wildcard.TRAILING
+    // });
+  });
+
+  const results: SearchResult[] = lunrResults.map(lunrResult => {
+    const indexItem = indexItems[Number(lunrResult.ref) - 1];
+    const metadata = lunrResult.matchData.metadata as LunrSearchMetadata;
+
+    const docRanges = processPositions(
+      flatMap(metadata, m => m.doc?.position ?? [])
+    );
+
+    const nameRanges = processPositions(
+      flatMap(metadata, m => m.name?.position ?? [])
+    );
+
+    const result = {
+      indexItem,
+      lunrResult: lunrResult,
+      highlightedName: () => mark(nameRanges, indexItem.name),
+      highlightedDoc: () =>
+        isUndefined(indexItem.doc) ? undefined : mark(docRanges, indexItem.doc)
+    };
+
+    return result;
+  });
+
+  return results;
+};
+
+const debouncedSearch = debounced(100, search);
+
 const SingleDocsetSearch = (props: { url: string }) => {
   const { url } = props;
   const [db, setDb] = useState<IDBPDatabase<SearchsetsDB> | undefined>();
   const [indexItems, setIndexItems] = useState<IndexItem[] | undefined>();
-  const [searchIndex, setSearchIndex] = useState<
-    Document<IndexItem, true> | undefined
-  >();
-  const [lunrSearchIndex, setLunrSearchIndex] = useState<
-    lunr.Index | undefined
-  >();
+  const [searchIndex, setSearchIndex] = useState<lunr.Index | undefined>();
 
-  const [results, setResults] = useState<IndexItem[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [outline, setOutline] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>();
 
@@ -212,52 +336,8 @@ const SingleDocsetSearch = (props: { url: string }) => {
   useEffect(() => {
     if (indexItems) {
       setSearchIndex(buildSearchIndex(indexItems));
-      setLunrSearchIndex(buildLunrSearchIndex(indexItems));
     }
   }, [indexItems]);
-
-  const debouncedSearch = debounced(100, (query: string) => {
-    const lunrRawResults = lunrSearchIndex?.search(query);
-    const lunrResults = lunrRawResults?.map(
-      result => indexItems![Number(result.ref)]
-    );
-    const lunrMatchedText = lunrRawResults
-      ?.map(result => {
-        const metadata = result.matchData.metadata as LunrSearchMetadata;
-        const indexItem = indexItems![Number(result.ref)];
-        const matchedText: string[] = [];
-
-        for (const q in metadata) {
-          const matches = metadata[q];
-
-          if (matches.name) {
-            matches.name.position.forEach(([startPosition, length]) => {
-              matchedText.push(
-                indexItem.name.slice(startPosition, startPosition + length)
-              );
-            });
-          }
-
-          if (matches.doc) {
-            matches.doc.position.forEach(([startPosition, length]) => {
-              matchedText.push(
-                indexItem.doc!.slice(startPosition, startPosition + length)
-              );
-            });
-          }
-        }
-
-        return matchedText;
-      })
-      .flat();
-    console.log({ lunrResults, lunrRawResults, lunrMatchedText });
-    return (
-      searchIndex &&
-      searchIndex
-        .search(query, undefined, { enrich: true })
-        .flatMap(r => r.result.map(d => d.doc))
-    );
-  });
 
   const onArrowUp = () => {
     if (results.length > 0) {
@@ -341,14 +421,26 @@ const SingleDocsetSearch = (props: { url: string }) => {
               } else if (event.key === "ArrowDown") {
                 event.preventDefault(); // prevents caret from moving in input field
                 onArrowDown();
+              } else if (event.key === "Enter") {
+                event.preventDefault();
+                if (selectedIndex && results.length > 0) {
+                  window.location.assign(results[selectedIndex].indexItem.path);
+                }
               }
             }}
             onInput={event => {
               event.preventDefault();
               const input = event.target as HTMLInputElement;
-              debouncedSearch(input.value)
-                .then(results => results && setResults(results))
-                .catch(console.error);
+
+              if (input.value.length < 3) {
+                setResults([]);
+              } else {
+                debouncedSearch(searchIndex, indexItems, input.value)
+                  .then(results =>
+                    results ? setResults(results) : setResults([])
+                  )
+                  .catch(console.error);
+              }
             }}
           />
         </div>
@@ -375,18 +467,3 @@ const SingleDocsetSearch = (props: { url: string }) => {
 };
 
 export { SingleDocsetSearch, mountSingleDocsetSearch };
-
-// [:form.black-80
-//    [:div.measure
-//     [:label.f6.b.db.mb2
-//      {:for "cljdoc-searchset-search"}
-//      "Search"]
-//     [:input#cljdoc-searchset-search-input.input-reset.ba.b--black-20.pa2.mb2.db.w-100
-//      {:name "cljdoc-searchset-search"
-//       :type "text"
-//       :aria-describedby "cljdoc-searchset-search-desc"
-//       :data-searchset-index-url (routes/url-for :api/searchset
-//                                                 :params
-//                                                 version-entity)}]
-//     [:small#cljdoc-searchset-search-desc.f6.black-60.db.mb2
-//      "Search documents, namespaces, vars, macros, protocols, and more."]]]
