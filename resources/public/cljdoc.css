@@ -457,6 +457,6 @@ table.frame-sides > colgroup + * > :first-child > * {
 }
 
 mark {
-  background: orange;
-  color: black;
+  font-weight: bolder;
+  background-color: inherit;
 }

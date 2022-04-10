@@ -212,9 +212,16 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
 };
 
 const buildSearchIndex = (indexItems: IndexItem[]) => {
+  lunr.tokenizer.separator = /\s+/;
+  lunr.trimmer = token => token.update(s => s);
+  // @ts-ignore
+  console.log(lunr.Pipeline.registeredFunctions);
+  // @ts-ignore
+  delete lunr.Pipeline.registeredFunctions.trimmer;
+  lunr.Pipeline.registerFunction(lunr.trimmer, "trimmer");
   const searchIndex = lunr(function () {
     this.ref("id");
-    this.field("name");
+    this.field("name", { boost: 100 });
     this.field("doc");
     this.metadataWhitelist = ["position"];
     indexItems.forEach(indexItem => this.add(indexItem));
@@ -262,23 +269,27 @@ const search = (
     return undefined;
   }
 
-  // const tokenizedQuery = [...query.split(/\W+/).filter(v => v)];
+  const tokenizedQuery = [...query.split(/\s+/).filter(v => v.length > 0)];
 
   const lunrResults = searchIndex.query(lunrQuery => {
     lunrQuery.term(query, {
       fields: ["name"],
-      boost: 20
+      boost: 100,
+      wildcard: lunr.Query.wildcard.LEADING
     });
-    lunrQuery.term(query, {
+    lunrQuery.term(tokenizedQuery, {
       fields: ["name"],
-      boost: 10,
+      boost: 50,
       wildcard: lunr.Query.wildcard.LEADING | lunr.Query.wildcard.TRAILING
     });
-    // lunrQuery.term(tokenizedQuery, {
-    //   fields: ["name", "doc"],
-    //   boost: 5,
-    //   wildcard: lunr.Query.wildcard.LEADING | lunr.Query.wildcard.TRAILING
-    // });
+    lunrQuery.term(tokenizedQuery, {
+      fields: ["doc"],
+      wildcard: lunr.Query.wildcard.TRAILING
+    });
+    lunrQuery.term(tokenizedQuery, {
+      fields: ["doc"],
+      wildcard: lunr.Query.wildcard.LEADING | lunr.Query.wildcard.TRAILING
+    });
   });
 
   const results: SearchResult[] = lunrResults.map(lunrResult => {
@@ -307,7 +318,7 @@ const search = (
   return results;
 };
 
-const debouncedSearch = debounced(100, search);
+const debouncedSearch = debounced(300, search);
 
 const SingleDocsetSearch = (props: { url: string }) => {
   const { url } = props;
@@ -423,7 +434,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
                 onArrowDown();
               } else if (event.key === "Enter") {
                 event.preventDefault();
-                if (selectedIndex && results.length > 0) {
+                if (!isUndefined(selectedIndex) && results.length > 0) {
                   window.location.assign(results[selectedIndex].indexItem.path);
                 }
               }
