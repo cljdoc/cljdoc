@@ -1,23 +1,129 @@
 ;; TODO Take download count into account - see "Integrating field values into the score" at https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/search/package-summary.html#changingScoring
 (ns cljdoc.server.search.search
-  "Search the Lucene index for artifacts best matching a query.
+  "Index and search the Lucene index for artifacts best matching a query.
 
   ## Troubleshooting and tuning tips ##
 
   * Use `explain-top-n` to get a detailed analysis of the score of the top N results for a query
   * Print out a Query - it's toString shows nicely what is it composed of, boosts, etc.
   "
-  (:require [clojure.string :as string])
-  (:import (org.apache.lucene.analysis TokenStream)
-           (org.apache.lucene.analysis.standard StandardAnalyzer)
-           (org.apache.lucene.document Document)
-           (org.apache.lucene.index DirectoryReader Term)
-           (org.apache.lucene.search Query IndexSearcher TopDocs ScoreDoc BooleanClause$Occur PrefixQuery BoostQuery BooleanQuery$Builder TermQuery Query MatchAllDocsQuery)
-           (org.apache.lucene.store FSDirectory)
-           (java.nio.file Paths)))
+  (:require
+   [cljdoc.server.search.clojars :as clojars]
+   [cljdoc.server.search.maven-central :as maven-central]
+   [cljdoc.spec :as cljdoc-spec]
+   [clojure.spec.alpha :as s]
+   [clojure.string :as string]
+   [clojure.tools.logging :as log])
+  (:import
+   (java.nio.file Paths)
+   (org.apache.lucene.analysis CharArraySet TokenStream)
+   (org.apache.lucene.analysis.core StopAnalyzer)
+   (org.apache.lucene.analysis.miscellaneous PerFieldAnalyzerWrapper)
+   (org.apache.lucene.analysis.standard StandardAnalyzer)
+   (org.apache.lucene.document Document Field FieldType Field$Store StringField TextField)
+   (org.apache.lucene.index DirectoryReader IndexOptions IndexWriter IndexWriterConfig IndexWriterConfig$OpenMode Term)
+   (org.apache.lucene.search BooleanQuery$Builder BooleanClause$Occur BoostQuery IndexSearcher MatchAllDocsQuery PrefixQuery Query ScoreDoc TermQuery TopDocs)
+   (org.apache.lucene.store FSDirectory)))
 
-(defn ^FSDirectory fsdir [index-dir] ;; BEWARE: Duplicated in artifact-indexer and search ns
+(defn ^FSDirectory fsdir [index-dir]
   (FSDirectory/open (Paths/get index-dir (into-array String nil))))
+
+(defn ^String artifact->id [{:keys [artifact-id group-id]}]
+  (str group-id ":" artifact-id))
+
+(defn unsearchable-stored-field [^String name ^String value]
+  (let [type (doto (FieldType.)
+               (.setOmitNorms true)
+               (.setIndexOptions (IndexOptions/NONE))
+               (.setTokenized false)
+               (.setStored true)
+               (.freeze))]
+    (Field.
+     name
+     value
+     type)))
+
+(defn add-versions [doc versions]
+  (run!
+   #(.add doc
+          (unsearchable-stored-field "versions" %))
+   versions))
+
+(defn ^Iterable artifact->doc
+  [{:keys [^String artifact-id
+           ^String group-id
+           ^String description
+           ^String origin
+           versions]
+    :or {description "", origin "N/A"}
+    :as artifact}]
+  (doto (Document.)
+    ;; *StringField* is indexed but not tokenized, term freq. or positional info not indexed
+    ;; id: We need a unique identifier for each doc so that we can use updateDocument
+    (.add (StringField. "id" (artifact->id artifact) Field$Store/YES))
+    (.add (StringField. "origin" ^String (name origin) Field$Store/YES))
+    (.add (TextField. "artifact-id" artifact-id Field$Store/YES))
+    ;; Keep also un-tokenized version of the id for RegExp searches (Better to replace with
+    ;; a custom tokenizer that produces both the original + individual tokens)
+    (.add (StringField. "artifact-id-raw" artifact-id Field$Store/YES))
+    (.add (TextField. "group-id" group-id Field$Store/YES))
+    (.add (TextField. "group-id-packages" group-id Field$Store/YES))
+    (.add (StringField. "group-id-raw" group-id Field$Store/YES))
+    (.add (TextField. "description" description Field$Store/YES))
+    (add-versions versions)))
+
+(defn index-artifacts [^IndexWriter idx-writer artifacts create?]
+  (run!
+   (fn [artifact]
+     (if create?
+       (.addDocument idx-writer (artifact->doc artifact))
+       (.updateDocument
+        idx-writer
+        (Term. "id" (artifact->id artifact))
+        (artifact->doc artifact))))
+
+   artifacts))
+
+(defn mk-indexing-analyzer []
+  (PerFieldAnalyzerWrapper.
+   (StandardAnalyzer.)
+    ;; StandardAnalyzer does not break at . as in 'org.clojure':
+   {"group-id"          (StopAnalyzer. (CharArraySet. ["." "-"] true))
+     ;; Group ID with token per package component, not breaking at '-' this
+     ;; time so that 'clojure' will match 'org.clojure' better than 'org-clojure':
+    "group-id-packages" (StopAnalyzer. (CharArraySet. ["."] true))}))
+
+(defn index! [^String index-dir artifacts]
+  (let [create?   false ;; => update, see how we use `.updateDocument` above
+        analyzer (mk-indexing-analyzer)
+        iw-cfg   (doto (IndexWriterConfig. analyzer)
+                   (.setOpenMode (if create?
+                                   IndexWriterConfig$OpenMode/CREATE
+                                   IndexWriterConfig$OpenMode/CREATE_OR_APPEND))
+                   ;; Increase RAM for speed up. BEWARE: Increase also JVM heap size: -Xmx512m or -Xmx1g
+                   (.setRAMBufferSizeMB 256.0))
+        idx-dir  (fsdir index-dir)]
+    (with-open [idx-writer (IndexWriter. idx-dir iw-cfg)]
+      (index-artifacts
+       idx-writer
+       artifacts
+       create?))))
+
+(defn download-and-index!
+  ([^String index-dir] (download-and-index! index-dir false))
+  ([^String index-dir force?]
+   (log/info "Download & index starting...")
+   (let [result (index! index-dir (into
+                                   (clojars/load-clojars-artifacts force?)
+                                   (maven-central/load-maven-central-artifacts force?)))]
+     (log/info "Finished downloading & indexing.")
+     result)))
+
+(defn index-artifact [^String index-dir artifact]
+  (index! index-dir [artifact]))
+
+(s/fdef index-artifact
+  :args (s/cat :index-dir string? :artifact ::cljdoc-spec/artifact))
 
 (defn tokenize
   "Split search text into tokens. It is reasonable to use the same tokenization <> analyzer
@@ -279,7 +385,7 @@
 
 (comment
 
-  (cljdoc.server.search.artifact-indexer/download-and-index! "data/index-lucene91" :force)
+  (download-and-index! "data/index-lucene91" :force)
 
   (search "data/index-lucene91" "metosin muunta")
   ;; FIXME metosin:muuntaja comes 6th because the partial match on 'muuntaja' is
