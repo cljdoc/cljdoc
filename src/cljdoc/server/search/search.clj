@@ -1,4 +1,3 @@
-;; TODO Take download count into account - see "Integrating field values into the score" at https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/search/package-summary.html#changingScoring
 (ns cljdoc.server.search.search
   "Index and search the Lucene index for artifacts best matching a query.
 
@@ -49,6 +48,36 @@
           (unsearchable-stored-field "versions" %))
    versions))
 
+(defn- trim-inner-ws [s]
+  (string/replace s #"\s+" " "))
+
+(defn- first-sentence [s]
+  (if (string/includes? s ". ")
+    (string/replace s #"(.*?\.) .*" "$1")
+    s))
+
+(defn- truncate-at-word [s max-chars]
+  (let [len (count s)]
+    (if (<= len max-chars)
+      s
+      (if-let [sp-ndx (string/last-index-of s " " max-chars)]
+        (subs s 0 sp-ndx)
+        (subs s 0 max-chars)))))
+
+(defn- description->blurb
+  "Return blurb for description `s`.
+  Strategy:
+  - trim whitespace
+  - then take first sentence if there seems to be one
+  - then truncate to a maximum length of 200 chars respecting word boundary"
+  [s]
+  (let [max-chars 200]
+    (-> s
+        string/trim
+        trim-inner-ws
+        first-sentence
+        (truncate-at-word max-chars))))
+
 (defn ^Iterable artifact->doc
   [{:keys [^String artifact-id
            ^String group-id
@@ -69,7 +98,8 @@
     (.add (TextField. "group-id" group-id Field$Store/YES))
     (.add (TextField. "group-id-packages" group-id Field$Store/YES))
     (.add (StringField. "group-id-raw" group-id Field$Store/YES))
-    (.add (TextField. "description" description Field$Store/YES))
+    (cond-> description
+      (.add (TextField. "blurb" (description->blurb description) Field$Store/YES)))
     (add-versions versions)))
 
 (defn index-artifacts [^IndexWriter idx-writer artifacts create?]
@@ -138,15 +168,15 @@
       (repeatedly
        #(when (.incrementToken stream) (str attr)))))))
 
-(def search-fields [:artifact-id :group-id :group-id-packages :description])
+(def search-fields [:artifact-id :group-id :group-id-packages :blurb])
 
 (def boosts
-  "Boosts for selected artifact fields (artifact id > group id > description
+  "Boosts for selected artifact fields (artifact id > group id > blurb
    The numbers were determined somewhat randomly but seem to work well enough."
   {:artifact-id       3
    :group-id-packages 3
    :group-id          2
-   :description       1})
+   :blurb             1})
 
 (defn raw-field [field]
   (get {:artifact-id :artifact-id-raw
@@ -291,7 +321,8 @@
                                                       [latest-version nil])
                  lib {:artifact-id (.get doc "artifact-id")
                       :group-id    (.get doc "group-id")
-                      :description (.get doc "description")
+                      :blurb       (.get doc "blurb")
+                      :origin      (.get doc "origin")
                       :score       score}]
                  (cond-> acc
                    release-version (conj (assoc lib :version release-version))
@@ -333,12 +364,8 @@
                        (let [doc (.doc searcher (.-doc sdoc))]
                          {:artifact-id (.get doc "artifact-id")
                           :group-id    (.get doc "group-id")
-                            ;:description (.get doc "description")
-                            ;:origin (.get doc "origin")
-                            ;; The first version appears to be the latest so this is OK:
+                          ;; The first version appears to be the latest so this is OK:
                           :versions (->> (.getValues doc "versions")
-                                           ;; Weird version: libpython-clj 1.12, cirru:writer 0.1.4-a4, -betaN, -alphaN
-                                           ;; v20150729-0, v4.1.1, zeta.1.2.1, v1.9.49-184-g75528b51, 0.0-2371-16, -RCN
                                          (remove #(string/ends-with? % "-SNAPSHOT"))
                                          (into []))}))
 
@@ -370,8 +397,7 @@
 
 (defn explain-top-n
   "Debugging function to print out the score and its explanation of the
-   top `n` matches for the given query.
-   "
+   top `n` matches for the given query."
   ([index-dir query-in] (explain-top-n 5 index-dir query-in))
   ([n index-dir query-in]
    (search->results

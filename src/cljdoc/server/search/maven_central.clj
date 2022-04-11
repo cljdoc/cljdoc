@@ -4,12 +4,15 @@
    [cheshire.core :as json]
    [clj-http.lite.client :as http]
    [cljdoc.spec :as cljdoc-spec]
+   [cljdoc-shared.pom :as pom]
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
    [robert.bruce :as rb]))
 
+;; There are not many clojars libraries on maven central.
+;; We'll manualy adjust this list for now:
 (def ^:private maven-groups ["org.clojure"
                              "com.turtlequeue"])
 
@@ -18,30 +21,31 @@
   Used to find out whether there is any new stuff => refetch needed."
   (atom nil))
 
-(comment
-  (reset! maven-grp-version-counts nil))
+(defn- fetch-body [url]
+  (let [max-tries 10]
+    (try
+      (rb/try-try-again
+       {:sleep 500
+        :decay :double
+        :tries max-tries
+        :catch Throwable}
+       #(do
+          (when (not rb/*first-try*)
+            (log/errorf rb/*error*  "Try %d of %d: %s" (dec rb/*try*) max-tries url))
+          (-> url
+              (http/get {:as :stream :throw-exceptions true})
+              :body
+              io/input-stream
+              io/reader)))
+      (catch Exception e
+        (log/infof e "Failed to download maven artifacts from %s after %d tries" url max-tries)
+        nil))))
 
-(defn fetch-body [url]
-  (try
-    (rb/try-try-again
-     {:sleep 500
-      :decay :double
-      :tries 10
-      :catch Throwable}
-     #(-> url
-          (http/get {:as :stream :throw-exceptions true})
-          :body
-          io/input-stream
-          io/reader))
-    (catch Exception e
-      (log/info e "Failed to download artifacts from url")
-      nil)))
-
-(defn fetch-json [url]
+(defn- fetch-json [url]
   (when-let [body (fetch-body url)]
     (json/parse-stream body keyword)))
 
-(defn fetch-maven-docs
+(defn- fetch-maven-docs
   "Fetch documents matching the query from Maven Central; supports pagination."
   [query]
   (loop [start 0, acc nil]
@@ -60,24 +64,23 @@
         (recur (+ start rows) acc')
         acc'))))
 
-(defn fetch-maven-description
+(defn- fetch-maven-description
   "Fetch the description of a Maven Central artifact (if it has any)"
   [{:keys [artifact-id group-id], [version] :versions}]
   (let [g-path (str/replace group-id "." "/")
         url (str "https://search.maven.org/remotecontent?filepath=" g-path "/" artifact-id "/" version "/" artifact-id "-" version ".pom")]
     (->> (fetch-body url)
-         line-seq
-         (some (fn [l] (re-find #"<description>(.*)</description>" l)))
-         second)))
+         slurp
+         pom/parse
+         :artifact-info
+         :description)))
 
-(defn add-description! [{a :artifact-id, g :group-id :as artifact}]
-  (assoc artifact
-         :description
-         (or
-          (fetch-maven-description artifact)
-          (str "Maven Central Clojure library " g "/" a))))
+(defn- add-description! [artifact]
+  (if-let [d (fetch-maven-description artifact)]
+    (assoc artifact :description d)
+    artifact))
 
-(defn maven-doc->artifact [{:keys [g a v #_versionCount #_timestamp]}]
+(defn- maven-doc->artifact [{:keys [g a v #_versionCount #_timestamp]}]
   {:artifact-id a
    :group-id g
    :version v
@@ -87,7 +90,7 @@
    ;; -> `<description>...</description>`
    :origin :maven-central})
 
-(defn new-artifacts?
+(defn- new-artifacts?
   "Are the new artifacts or versions in Maven Central within this group?
   Maven Central does not support ETAG / If-Modified-Since so we use the artifacts+versions count as an
   indication that there is something new and we need to re-fetch."
@@ -96,13 +99,13 @@
                          :response :numFound)]
     (> versions-cnt (get @maven-grp-version-counts group-id -1))))
 
-(defn update-grp-version-count! [group-id group-docs]
+(defn- update-grp-version-count! [group-id group-docs]
   (swap! maven-grp-version-counts assoc group-id (count group-docs))
   group-docs)
 
-(defn mvn-merge-versions [artifacts]
+(defn- mvn-merge-versions [artifacts]
   (->> artifacts
-       ;; NOTE Different artifacts are interleaved but in total newer versions it seems come boefore older ones of any given artifact
+       ;; NOTE Different artifacts are interleaved but in total newer versions it seems come before older ones of any given artifact
        ;; so we cannot use `partition` but `group-by` (which preserves order) works perfectly
        (group-by (juxt :group-id :artifact-id))
        vals
@@ -111,8 +114,11 @@
                   (dissoc :version)
                   (assoc :versions (map :version versions)))))))
 
-(defn load-maven-central-artifacts-for [group-id force?]
-  (when (or force? (new-artifacts? group-id))
+(defn- load-maven-central-artifacts-for [group-id force?]
+  (when (or force? (let [new? (new-artifacts? group-id)]
+                     (when (not new?)
+                       (log/infof "Skipping Maven download for %s, no change detected" group-id))
+                     new?))
     (->> (fetch-maven-docs (str "g:" group-id))
          (update-grp-version-count! group-id)
          (map maven-doc->artifact)
@@ -123,7 +129,18 @@
   "Load artifacts from Maven Central - if there are any new ones (or `force?`)
   NOTE: Takes ± 2s as of 11/2019"
   [force?]
-  (mapcat #(load-maven-central-artifacts-for % force?) maven-groups))
+  (let [artifacts (mapcat #(load-maven-central-artifacts-for % force?) maven-groups)]
+    (log/infof "Downloaded %d artfacts from Maven Central" (count artifacts))
+    artifacts))
 
 (s/fdef load-maven-central-artifacts
   :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
+
+(comment
+  (fetch-maven-description {:group-id "org.clojure" :artifact-id "clojurescript" :versions ["1.11.5"]})
+
+  (load-maven-central-artifacts true)
+
+  (reset! maven-grp-version-counts nil)
+
+  nil)
