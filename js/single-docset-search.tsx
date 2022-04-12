@@ -133,6 +133,41 @@ const mark = (ranges: StartEndRange[], text: string) => {
   return chunks;
 };
 
+const trimMark = (range: StartEndRange, text: string) => {
+  const marked = mark([range], text);
+
+  const textPaddingCharacterCount = 60;
+
+  const prefixLength = Math.min(range[0], textPaddingCharacterCount / 2);
+  const postfixLength = textPaddingCharacterCount - prefixLength;
+
+  const lastElement = marked[marked.length - 1];
+  const hasPostEllipsis =
+    typeof lastElement === "string" && lastElement.length > 50;
+
+  const hasPreEllipsis = typeof marked[0] === "string" && marked[0].length > 50;
+
+  console.log({ prefixLength, postfixLength });
+
+  if (typeof marked[0] === "string") {
+    marked[0] = marked[0].slice(-prefixLength);
+  }
+
+  if (typeof lastElement === "string") {
+    marked[marked.length - 1] = lastElement.slice(0, postfixLength - 1);
+  }
+
+  const truncatedMarkedText = [];
+
+  hasPreEllipsis && truncatedMarkedText.push("... ");
+
+  truncatedMarkedText.push(...marked);
+
+  hasPostEllipsis && truncatedMarkedText.push(" ...");
+
+  return truncatedMarkedText;
+};
+
 const mountSingleDocsetSearch = async () => {
   const singleDocsetSearchNode: HTMLElement | null = document.querySelector(
     "#js--single-docset-search"
@@ -235,6 +270,7 @@ const ResultListItem = (props: {
     case "namespace":
     case "def":
     case "doc":
+      const highlightedDoc = result.highlightedDoc();
       return (
         <li
           className={cx("pa2 bb b--light-gray", {
@@ -242,7 +278,8 @@ const ResultListItem = (props: {
           })}
         >
           <a className="no-underline black" href={result.indexItem.path}>
-            {result.highlightedName()}
+            <div>{result.highlightedName()}</div>
+            {highlightedDoc && <div>{result.highlightedDoc()}</div>}
           </a>
         </li>
       );
@@ -293,8 +330,11 @@ const search = (
       indexItem,
       lunrResult: lunrResult,
       highlightedName: () => mark(nameRanges, indexItem.name),
-      highlightedDoc: () =>
-        isUndefined(indexItem.doc) ? undefined : mark(docRanges, indexItem.doc)
+      highlightedDoc: () => {
+        return isUndefined(indexItem.doc)
+          ? undefined
+          : trimMark(docRanges[0], indexItem.doc);
+      }
     };
 
     return result;

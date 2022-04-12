@@ -463,6 +463,6 @@ table.frame-sides > colgroup + * > :first-child > * {
 }
 
 mark {
-  font-weight: bolder;
+  font-weight: bold;
   background-color: inherit;
 }
