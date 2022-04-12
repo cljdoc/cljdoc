@@ -327,7 +327,6 @@ const SingleDocsetSearch = (props: { url: string }) => {
   const [searchIndex, setSearchIndex] = useState<lunr.Index | undefined>();
 
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [outline, setOutline] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>();
 
   useEffect(() => {
@@ -398,82 +397,77 @@ const SingleDocsetSearch = (props: { url: string }) => {
   clampSelectedIndex();
 
   return (
-    <div
-      className={cx(
-        "ba b--black-40",
-        outline || results.length > 0 ? "b--solid" : "b--dashed"
-      )}
-      style={{ margin: "-1rem", padding: "1rem" }}
-    >
-      <form className="black-80" onSubmit={e => e.preventDefault()}>
-        <div className="measure">
-          <label className="f6 b db mb2" for="single-docset-search-term">
-            Search
-          </label>
-          <input
-            name="single-docset-search-term"
-            type="text"
-            aria-describedby="single-docset-search-term-description"
-            className="input-reset ba b--black-20 pa2 mb2 db w-100"
-            disabled={!searchIndex}
-            placeholder={searchIndex ? undefined : "Loading..."}
-            onFocus={() => setOutline(true)}
-            onBlur={() => setOutline(false)}
-            onKeyDown={(event: KeyboardEvent) => {
-              const input = event.target as HTMLInputElement;
+    <form className="black-80" onSubmit={e => e.preventDefault()}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "baseline"
+        }}
+      >
+        <label className="f12 b db mr2" for="single-docset-search-term">
+          Search
+        </label>
+        <input
+          name="single-docset-search-term"
+          type="text"
+          aria-describedby="single-docset-search-term-description"
+          className="input-reset ba b--black-20 pa2 db"
+          style={{ width: "100%" }}
+          disabled={!searchIndex}
+          placeholder={
+            searchIndex
+              ? "Search documents, namespaces, vars, macros, protocols, and more."
+              : "Loading..."
+          }
+          onKeyDown={(event: KeyboardEvent) => {
+            const input = event.target as HTMLInputElement;
 
-              if (event.key === "Escape") {
-                input.value = "";
-                setResults([]);
-                input.blur();
-              } else if (event.key === "ArrowUp") {
-                event.preventDefault(); // prevents caret from moving in input field
-                onArrowUp();
-              } else if (event.key === "ArrowDown") {
-                event.preventDefault(); // prevents caret from moving in input field
-                onArrowDown();
-              } else if (event.key === "Enter") {
-                event.preventDefault();
-                if (!isUndefined(selectedIndex) && results.length > 0) {
-                  window.location.assign(results[selectedIndex].indexItem.path);
-                }
-              }
-            }}
-            onInput={event => {
+            if (event.key === "Escape") {
+              input.value = "";
+              setResults([]);
+              input.blur();
+            } else if (event.key === "ArrowUp") {
+              event.preventDefault(); // prevents caret from moving in input field
+              onArrowUp();
+            } else if (event.key === "ArrowDown") {
+              event.preventDefault(); // prevents caret from moving in input field
+              onArrowDown();
+            } else if (event.key === "Enter") {
               event.preventDefault();
-              const input = event.target as HTMLInputElement;
-
-              if (input.value.length < 3) {
-                setResults([]);
-              } else {
-                debouncedSearch(searchIndex, indexItems, input.value)
-                  .then(results =>
-                    results ? setResults(results) : setResults([])
-                  )
-                  .catch(console.error);
+              if (!isUndefined(selectedIndex) && results.length > 0) {
+                window.location.assign(results[selectedIndex].indexItem.path);
               }
-            }}
-          />
-        </div>
-        <small
-          id="single-docset-search-term-description"
-          className={cx("f6 black-60 mb2", results.length > 0 ? "dn" : "db")}
-        >
-          Search documents, namespaces, vars, macros, protocols, and more.
-        </small>
-      </form>
-      {results && (
-        <ol className="list pl0 no-underline black">
-          {results.map((result, index) => (
-            <ResultListItem
-              result={result}
-              index={index}
-              selected={selectedIndex === index}
-            />
-          ))}
-        </ol>
-      )}
-    </div>
+            }
+          }}
+          onInput={event => {
+            event.preventDefault();
+            const input = event.target as HTMLInputElement;
+
+            if (input.value.length < 3) {
+              setResults([]);
+            } else {
+              debouncedSearch(searchIndex, indexItems, input.value)
+                .then(results =>
+                  results ? setResults(results) : setResults([])
+                )
+                .catch(console.error);
+            }
+          }}
+        />
+      </div>
+    </form>
+    // {results.length > 0 && (
+    //   <ol className="list pl0 no-underline black">
+    //     {results.map((result, index) => (
+    //       <ResultListItem
+    //         result={result}
+    //         index={index}
+    //         selected={selectedIndex === index}
+    //       />
+    //     ))}
+    //   </ol>
+    // )}
   );
 };
 
