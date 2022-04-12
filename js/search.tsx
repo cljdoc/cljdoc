@@ -33,7 +33,7 @@ export type RawSearchResult = {
   ["artifact-id"]: string;
   ["group-id"]: string;
   description: string;
-  origin: string;
+  blurb: string;
   version: string;
   score: number;
 };
@@ -46,7 +46,7 @@ type RawSearchResults = {
 export type SearchResult = {
   artifact_id: string;
   group_id: string;
-  description: string;
+  blurb: string;
   origin: string;
   version: string;
   score: number;
@@ -152,7 +152,7 @@ function resultUri(result: CljdocProject) {
 }
 
 const SingleResultView = (props: {
-  result: CljdocProject;
+  result: SearchResult;
   isSelected: boolean;
   selectResult: () => any;
 }) => {
@@ -172,10 +172,12 @@ const SingleResultView = (props: {
           {project}
           <span class="ml2 gray normal">{result.version}</span>{" "}
         </h4>{" "}
-        <a class="link blue ml2" href={docsUri}>
+        <a class="link blue ml2 nowrap" href={docsUri}>
           view docs{" "}
         </a>{" "}
-      </div>{" "}
+        <div class="gray f6">{result.blurb}</div>{" "}
+        <div class="gray i f7">{result.origin}</div>{" "}
+      </div>
     </a>
   );
 };
