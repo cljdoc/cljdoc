@@ -11,6 +11,9 @@
                                              :prod :circle-ci}
                  :autobuild-clojars-releases? #profile {:default false
                                                         :prod true}
+                 :clojars-stats-retention-days #profile {:default 20
+                                                         :test 5
+                                                         :prod 380}
                  :enable-sentry? #profile {:default false
                                            :prod true}
                  :dir #profile {:default "data/"

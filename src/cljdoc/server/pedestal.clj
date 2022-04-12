@@ -34,6 +34,7 @@
             [cljdoc-shared.proj :as proj]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
+            [clojure.core.memoize :as memoize]
             [clojure.tools.logging :as log]
             [clojure.stacktrace :as stacktrace]
             [clojure.string :as string]
@@ -434,16 +435,21 @@
   "Extracts all static resource names (content-hashed by Parcel) from the cljdoc.html file.
    Then creates a map that translates the plain resource names to their content-hashed counterparts.
     E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
-  (memoize (fn [html-path]
-             (let [tags (en/select (en/html-resource html-path) [#{(en/attr? :href) (en/attr? :src)}])]
-               (->> tags
-                    (#(for [tag %] (map (:attrs tag) [:href :src])))
-                    flatten
-                    (filter some?)
-                    (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
-                            (when (and prefix suffix)
-                              {(str prefix suffix) %})))
-                    (into {}))))))
+  (memoize/memo
+   (fn [html-path]
+     (log/info "building static resource map")
+     (let [tags (en/select (en/html-resource html-path) [#{(en/attr? :href) (en/attr? :src)}])]
+       (->> tags
+            (#(for [tag %] (map (:attrs tag) [:href :src])))
+            flatten
+            (filter some?)
+            (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
+                    (when (and prefix suffix)
+                      {(str prefix suffix) %})))
+            (into {}))))))
+
+(defn clear-static-resource-map-cache! []
+  (memoize/memo-clear! build-static-resource-map))
 
 (def static-resource-interceptor
   (interceptor/interceptor
@@ -627,4 +633,5 @@
         (http/start))))
 
 (defmethod ig/halt-key! :cljdoc/pedestal [_ server]
+  (clear-static-resource-map-cache!)
   (http/stop server))
