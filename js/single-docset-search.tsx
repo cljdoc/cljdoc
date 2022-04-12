@@ -5,6 +5,7 @@ import { DBSchema, IDBPDatabase, openDB } from "idb";
 import cx from "classnames";
 import lunr from "lunr";
 import { flatMap, isUndefined, over, partition, sortBy } from "lodash";
+import searchIcon from "../resources/public/search-icon.svg";
 
 type Namespace = {
   name: string;
@@ -212,13 +213,6 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
 };
 
 const buildSearchIndex = (indexItems: IndexItem[]) => {
-  lunr.tokenizer.separator = /\s+/;
-  lunr.trimmer = token => token.update(s => s);
-  // @ts-ignore
-  console.log(lunr.Pipeline.registeredFunctions);
-  // @ts-ignore
-  delete lunr.Pipeline.registeredFunctions.trimmer;
-  lunr.Pipeline.registerFunction(lunr.trimmer, "trimmer");
   const searchIndex = lunr(function () {
     this.ref("id");
     this.field("name", { boost: 100 });
@@ -243,7 +237,7 @@ const ResultListItem = (props: {
     case "doc":
       return (
         <li
-          className={cx("pv1 pa1 bb b--light-gray", {
+          className={cx("pa2 bb b--light-gray", {
             "bg-light-blue": selected
           })}
         >
@@ -276,15 +270,6 @@ const search = (
       fields: ["name"],
       boost: 100,
       wildcard: lunr.Query.wildcard.LEADING
-    });
-    lunrQuery.term(tokenizedQuery, {
-      fields: ["name"],
-      boost: 50,
-      wildcard: lunr.Query.wildcard.LEADING | lunr.Query.wildcard.TRAILING
-    });
-    lunrQuery.term(tokenizedQuery, {
-      fields: ["doc"],
-      wildcard: lunr.Query.wildcard.TRAILING
     });
     lunrQuery.term(tokenizedQuery, {
       fields: ["doc"],
@@ -397,77 +382,90 @@ const SingleDocsetSearch = (props: { url: string }) => {
   clampSelectedIndex();
 
   return (
-    <form className="black-80" onSubmit={e => e.preventDefault()}>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "baseline"
-        }}
-      >
-        <label className="f12 b db mr2" for="single-docset-search-term">
-          Search
-        </label>
-        <input
-          name="single-docset-search-term"
-          type="text"
-          aria-describedby="single-docset-search-term-description"
-          className="input-reset ba b--black-20 pa2 db"
-          style={{ width: "100%" }}
-          disabled={!searchIndex}
-          placeholder={
-            searchIndex
-              ? "Search documents, namespaces, vars, macros, protocols, and more."
-              : "Loading..."
-          }
-          onKeyDown={(event: KeyboardEvent) => {
-            const input = event.target as HTMLInputElement;
+    <div>
+      <form className="black-80 w-100" onSubmit={e => e.preventDefault()}>
+        <div style={{ position: "relative" }}>
+          <img
+            src={searchIcon}
+            className="w1 h1"
+            style={{
+              position: "absolute",
+              left: "0.58rem",
+              top: "0.58rem",
+              zIndex: 1
+            }}
+          />
+          <input
+            name="single-docset-search-term"
+            type="text"
+            aria-describedby="single-docset-search-term-description"
+            className="input-reset ba b--black-20 pa2 pl4 db br1"
+            disabled={!searchIndex}
+            placeholder={searchIndex ? "Search..." : "Loading..."}
+            onFocus={(event: FocusEvent) => {
+              const input = event.target as HTMLInputElement;
+              input.classList.toggle("b--blue");
+            }}
+            onBlur={(event: FocusEvent) => {
+              const input = event.target as HTMLInputElement;
+              input.classList.toggle("b--blue");
+            }}
+            onKeyDown={(event: KeyboardEvent) => {
+              const input = event.target as HTMLInputElement;
 
-            if (event.key === "Escape") {
-              input.value = "";
-              setResults([]);
-              input.blur();
-            } else if (event.key === "ArrowUp") {
-              event.preventDefault(); // prevents caret from moving in input field
-              onArrowUp();
-            } else if (event.key === "ArrowDown") {
-              event.preventDefault(); // prevents caret from moving in input field
-              onArrowDown();
-            } else if (event.key === "Enter") {
-              event.preventDefault();
-              if (!isUndefined(selectedIndex) && results.length > 0) {
-                window.location.assign(results[selectedIndex].indexItem.path);
+              if (event.key === "Escape") {
+                input.value = "";
+                setResults([]);
+                input.blur();
+              } else if (event.key === "ArrowUp") {
+                event.preventDefault(); // prevents caret from moving in input field
+                onArrowUp();
+              } else if (event.key === "ArrowDown") {
+                event.preventDefault(); // prevents caret from moving in input field
+                onArrowDown();
+              } else if (event.key === "Enter") {
+                event.preventDefault();
+                if (!isUndefined(selectedIndex) && results.length > 0) {
+                  window.location.assign(results[selectedIndex].indexItem.path);
+                }
               }
-            }
-          }}
-          onInput={event => {
-            event.preventDefault();
-            const input = event.target as HTMLInputElement;
+            }}
+            onInput={event => {
+              event.preventDefault();
+              const input = event.target as HTMLInputElement;
 
-            if (input.value.length < 3) {
-              setResults([]);
-            } else {
-              debouncedSearch(searchIndex, indexItems, input.value)
-                .then(results =>
-                  results ? setResults(results) : setResults([])
-                )
-                .catch(console.error);
-            }
+              if (input.value.length < 3) {
+                setResults([]);
+              } else {
+                debouncedSearch(searchIndex, indexItems, input.value)
+                  .then(results =>
+                    results ? setResults(results) : setResults([])
+                  )
+                  .catch(console.error);
+              }
+            }}
+          />
+        </div>
+      </form>
+      {results.length > 0 && (
+        <ol
+          className="list pa0 ma0 no-underline black bg-white br--bottom ba br1 b--blue absolute"
+          style={{
+            position: "absolute",
+            zIndex: 1,
+            minWidth: "16rem"
           }}
-        />
-      </div>
-    </form>
-    // {results.length > 0 && (
-    //   <ol className="list pl0 no-underline black">
-    //     {results.map((result, index) => (
-    //       <ResultListItem
-    //         result={result}
-    //         index={index}
-    //         selected={selectedIndex === index}
-    //       />
-    //     ))}
-    //   </ol>
-    // )}
+        >
+          {results.map((result, index) => (
+            <ResultListItem
+              result={result}
+              index={index}
+              selected={selectedIndex === index}
+            />
+          ))}
+        </ol>
+      )}
+    </div>
   );
 };
 

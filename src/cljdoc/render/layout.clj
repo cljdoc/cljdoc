@@ -4,7 +4,6 @@
             [cljdoc.config :as config]
             [cljdoc.render.assets :as assets]
             [cljdoc.render.links :as links]
-            [cljdoc.render.searchset-search :as searchset-search]
             [cljdoc.util.scm :as scm]
             [cljdoc-shared.proj :as proj]
             [clojure.string :as string]
@@ -184,7 +183,6 @@
      {:href (routes/url-for :artifact/index :path-params version-entity)}
      (:version version-entity)]
     home-link]
-   (searchset-search/searchbar version-entity)
    [:div.tr
     [:form.dn.dib-ns.mr3 {:action "/api/request-build2" :method "POST"}
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id version-entity) "/" (:artifact-id version-entity))}]
