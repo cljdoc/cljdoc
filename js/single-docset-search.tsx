@@ -147,8 +147,6 @@ const trimMark = (range: StartEndRange, text: string) => {
 
   const hasPreEllipsis = typeof marked[0] === "string" && marked[0].length > 50;
 
-  console.log({ prefixLength, postfixLength });
-
   if (typeof marked[0] === "string") {
     marked[0] = marked[0].slice(-prefixLength);
   }
@@ -263,8 +261,9 @@ const ResultListItem = (props: {
   result: SearchResult;
   index: number;
   selected: boolean;
+  hideResults: () => void;
 }) => {
-  const { result, selected } = props;
+  const { result, selected, hideResults } = props;
 
   switch (result.indexItem.kind) {
     case "namespace":
@@ -277,7 +276,11 @@ const ResultListItem = (props: {
             "bg-light-blue": selected
           })}
         >
-          <a className="no-underline black" href={result.indexItem.path}>
+          <a
+            className="no-underline black"
+            href={result.indexItem.path}
+            onClick={hideResults}
+          >
             <div>{result.highlightedName()}</div>
             {highlightedDoc && <div>{result.highlightedDoc()}</div>}
           </a>
@@ -352,7 +355,12 @@ const SingleDocsetSearch = (props: { url: string }) => {
   const [searchIndex, setSearchIndex] = useState<lunr.Index | undefined>();
 
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [showResults, setShowResults] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>();
+  const currentURL = new URL(window.location.href);
+  const [inputValue, setInputValue] = useState<string>(
+    currentURL.searchParams.get("q") || ""
+  );
 
   useEffect(() => {
     openDB<SearchsetsDB>("cljdoc-searchsets-store", 1, {
@@ -440,6 +448,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
             type="text"
             aria-describedby="single-docset-search-term-description"
             className="input-reset ba b--black-20 pa2 pl4 db br1"
+            value={inputValue}
             disabled={!searchIndex}
             placeholder={searchIndex ? "Search..." : "Loading..."}
             onFocus={(event: FocusEvent) => {
@@ -454,19 +463,40 @@ const SingleDocsetSearch = (props: { url: string }) => {
               const input = event.target as HTMLInputElement;
 
               if (event.key === "Escape") {
-                input.value = "";
-                setResults([]);
-                input.blur();
+                setShowResults(false);
               } else if (event.key === "ArrowUp") {
                 event.preventDefault(); // prevents caret from moving in input field
+                !showResults && setShowResults(true);
                 onArrowUp();
               } else if (event.key === "ArrowDown") {
                 event.preventDefault(); // prevents caret from moving in input field
+                !showResults && setShowResults(true);
                 onArrowDown();
               } else if (event.key === "Enter") {
                 event.preventDefault();
-                if (!isUndefined(selectedIndex) && results.length > 0) {
-                  window.location.assign(results[selectedIndex].indexItem.path);
+
+                if (showResults) {
+                  if (!isUndefined(selectedIndex) && results.length > 0) {
+                    const redirectTo = new URL(
+                      window.location.origin +
+                        results[selectedIndex].indexItem.path
+                    );
+
+                    if (currentURL.toString() != redirectTo.toString()) {
+                      console.log("assigning!", {
+                        pathname: currentURL,
+                        redirectTo
+                      });
+
+                      const params = redirectTo.searchParams;
+                      params.set("q", input.value);
+                      redirectTo.search = params.toString();
+                      window.location.assign(redirectTo.toString());
+                    }
+                    setShowResults(false);
+                  }
+                } else {
+                  setShowResults(true);
                 }
               }
             }}
@@ -474,26 +504,36 @@ const SingleDocsetSearch = (props: { url: string }) => {
               event.preventDefault();
               const input = event.target as HTMLInputElement;
 
+              setInputValue(input.value);
+
               if (input.value.length < 3) {
                 setResults([]);
               } else {
                 debouncedSearch(searchIndex, indexItems, input.value)
-                  .then(results =>
-                    results ? setResults(results) : setResults([])
-                  )
+                  .then(results => {
+                    if (results) {
+                      setResults(results);
+                    } else {
+                      setResults([]);
+                    }
+
+                    if (!showResults) {
+                      setShowResults(true);
+                    }
+                  })
                   .catch(console.error);
               }
             }}
           />
         </div>
       </form>
-      {results.length > 0 && (
+      {showResults && results.length > 0 && (
         <ol
-          className="list pa0 ma0 no-underline black bg-white br--bottom ba br1 b--blue absolute"
+          className="list pa0 ma0 no-underline black bg-white br--bottom ba br1 b--blue absolute overflow-y-scroll"
           style={{
-            position: "absolute",
             zIndex: 1,
-            minWidth: "16rem"
+            maxWidth: "90vw",
+            maxHeight: "80vh"
           }}
         >
           {results.map((result, index) => (
@@ -501,6 +541,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
               result={result}
               index={index}
               selected={selectedIndex === index}
+              hideResults={() => showResults && setShowResults(false)}
             />
           ))}
         </ol>
