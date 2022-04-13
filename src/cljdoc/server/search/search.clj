@@ -392,7 +392,11 @@
                     (str
                      (.get doc "group-id")
                      "/"
-                     (.get doc "artifact-id")))))))]
+                     (.get doc "artifact-id")
+                     ;; without this trailing space browsers (Firefox for one)
+                     ;; will skip the suggestion because it thinks the / char makes
+                     ;; it looks like a URL
+                     " "))))))]
     [query-in suggestions]))
 
 (defn explain-top-n
