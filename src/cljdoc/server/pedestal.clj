@@ -292,7 +292,6 @@
     :enter (fn search-suggest-handler [ctx]
              (if-let [q (-> ctx :request :params :q)]
                (assoc ctx :response {:status  200
-                                     :headers {"Content-Type" "application/x-suggestions+json"}
                                      :body    (search-api/suggest searcher q)})
                (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))}))
 
