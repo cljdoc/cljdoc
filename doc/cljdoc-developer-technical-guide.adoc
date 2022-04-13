@@ -38,7 +38,9 @@ bitbucket are also supported source code repositories.
 
 == Database Overview
 
-Cljdoc makes use of two sqlite databases.
+=== SQLite
+
+Cljdoc makes use of two https://sqlite.org[SQLite] databases.
 The schemas are small and simple.
 
 Some data is stored in nippy blobs.
@@ -52,7 +54,49 @@ Historical notes:
 * `builds.error_info` is obsolete.
 ** It stored a nippy blob of the exception object
 ** It is replaced by `builds.error_info_map`, which stores a nippy blob of a map representation of the exception
- 
+
+Tips:
+
+* You'll find the SQLite databases under the `data` dir.
+* Using more modern features of SQLite can be problematic.
+Features such as renaming a column, for example.
+Cljdoc developers often use MacOS, and it bundles an older version of SQLite.
+* You might find a tools such as the  https://sqlitebrowser.org/[DB Browser for SQLite] useful.
+* It can sometimes be useful to work locally with a backup of the production databases.
+Reach out on Slack if you think this would be helpful to you.
+
+=== Lucene
+
+Cljdoc supports full text querying for libraries with a https://lucene.apache.org/[Lucene] index.
+
+The Lucene index allows cljdoc users to search all available libraries, not necessarily just the ones cljdoc has already built docs for. Available libraries are automatically sourced from:
+
+* Clojars via `\https://clojars.org/repo/feed.clj.gz` daily, and updates by the minute via the `\https://clojars.org/search` API.
+* Maven Central via `\http://search.maven.org` APIs.
+Not many Clojurians host on Maven Central but, quite notably, the Clojure core team does.
+We only fetch for a list of explicit group-ids and are happy to update this list on request.
+
+At the time of this writing we index:
+
+* `group-id` & `artifact-id` - we also store an exact untokenized version of these to support exact matches
+* `blurb` - a shortened description from the library's pom
+* `origin` - either `clojars` or `maven-central` (not currently searched but presented)
+* `versions` - a list of all available library versions is stored unindexed, we present available library versions in various spots throughout the cljdoc web site.
+
+At index time, we incorporate clojars download stats, stored in our SQLite `clojars_stats` table, as popularity ranking.
+
+Lucene is powerful, fast and widely used.
+It can also be a bit overwhelming to wade through its many features and options, many of which have evolved over decades.
+
+Tips
+
+* You'll find the Lucene index under `data/index-lucene-{some identifiter}`.
+Feel free to change `{some-identifier}` when making an incompatible change to the Lucene index.
+(As of this writing specified under `index-dir` in the `cljdoc.server.system` ns).
+Lucene will simply create a fresh new index.
+* Luke is a useful tool to take a peek at your Lucene index.
+Download https://lucene.apache.org/core/downloads.html[a full Lucene binary release], unpack it and then launch luke via the `bin/luke.sh` script.
+
 == Conventions
 
 === Diagrams
