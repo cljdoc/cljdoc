@@ -1,317 +1,412 @@
-;; TODO Take download count into account - see "Integrating field values into the score" at https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/search/package-summary.html#changingScoring
 (ns cljdoc.server.search.search
   "Index and search the Lucene index for artifacts best matching a query.
 
+  See [[cljdoc.server.search.api]] for design goals.
+
   ## Troubleshooting and tuning tips ##
 
-  * Use `explain-top-n` to get a detailed analysis of the score of the top N results for a query
-  * Print out a Query - it's toString shows nicely what is it composed of, boosts, etc.
-  "
+  * Use [[explain-top-n]] to get a detailed analysis of the score of the top N results for a query
+  * Print out a Query - it's toString shows nicely what is it composed of, boosts, etc."
   (:require
+   [cljdoc.server.clojars-stats :as clojars-stats]
    [cljdoc.server.search.clojars :as clojars]
    [cljdoc.server.search.maven-central :as maven-central]
-   [cljdoc.spec :as cljdoc-spec]
-   [clojure.spec.alpha :as s]
    [clojure.string :as string]
    [clojure.tools.logging :as log])
   (:import
    (java.nio.file Paths)
-   (org.apache.lucene.analysis CharArraySet TokenStream)
-   (org.apache.lucene.analysis.core StopAnalyzer)
-   (org.apache.lucene.analysis.miscellaneous PerFieldAnalyzerWrapper)
-   (org.apache.lucene.analysis.standard StandardAnalyzer)
-   (org.apache.lucene.document Document Field FieldType Field$Store StringField TextField)
-   (org.apache.lucene.index DirectoryReader IndexOptions IndexWriter IndexWriterConfig IndexWriterConfig$OpenMode Term)
-   (org.apache.lucene.search BooleanQuery$Builder BooleanClause$Occur BoostQuery IndexSearcher MatchAllDocsQuery PrefixQuery Query ScoreDoc TermQuery TopDocs)
-   (org.apache.lucene.store FSDirectory)))
+   (org.apache.lucene.analysis Analyzer Analyzer$TokenStreamComponents Tokenizer TokenStream)
+   (org.apache.lucene.analysis.icu ICUFoldingFilter)
+   (org.apache.lucene.analysis.ngram NGramTokenizer)
+   (org.apache.lucene.analysis.tokenattributes CharTermAttribute)
+   (org.apache.lucene.search DoubleValuesSource ScoreDoc TopDocs)
+   (org.apache.lucene.search.similarities BM25Similarity)
+   (org.apache.lucene.analysis.util CharTokenizer)
+   (org.apache.lucene.document Document DoubleDocValuesField Field FieldType Field$Store StringField TextField)
+   (org.apache.lucene.index DirectoryReader IndexOptions IndexReader IndexWriter IndexWriterConfig IndexWriterConfig$OpenMode Term)
+   (org.apache.lucene.queries.function FunctionScoreQuery)
+   (org.apache.lucene.search BooleanQuery$Builder BooleanClause$Occur BoostQuery IndexSearcher MatchAllDocsQuery Query ScoreDoc TermQuery)
+   (org.apache.lucene.store Directory FSDirectory)))
 
-(defn ^FSDirectory fsdir [index-dir]
-  (FSDirectory/open (Paths/get index-dir (into-array String nil))))
+(set! *warn-on-reflection* true)
 
-(defn ^String artifact->id [{:keys [artifact-id group-id]}]
+(defn- artifact->index-id ^String [{:keys [artifact-id group-id]}]
   (str group-id ":" artifact-id))
 
-(defn unsearchable-stored-field [^String name ^String value]
+(defn- unsearchable-stored-field ^Field [^String name ^String value]
   (let [type (doto (FieldType.)
                (.setOmitNorms true)
                (.setIndexOptions (IndexOptions/NONE))
                (.setTokenized false)
                (.setStored true)
                (.freeze))]
-    (Field.
-     name
-     value
-     type)))
+    (Field. name value type)))
 
-(defn add-versions [doc versions]
+(defn- add-versions [^Document doc versions]
   (run!
    #(.add doc
           (unsearchable-stored-field "versions" %))
    versions))
 
-(defn ^Iterable artifact->doc
-  [{:keys [^String artifact-id
-           ^String group-id
-           ^String description
-           ^String origin
-           versions]
-    :or {description "", origin "N/A"}
-    :as artifact}]
-  (doto (Document.)
-    ;; *StringField* is indexed but not tokenized, term freq. or positional info not indexed
-    ;; id: We need a unique identifier for each doc so that we can use updateDocument
-    (.add (StringField. "id" (artifact->id artifact) Field$Store/YES))
-    (.add (StringField. "origin" ^String (name origin) Field$Store/YES))
-    (.add (TextField. "artifact-id" artifact-id Field$Store/YES))
-    ;; Keep also un-tokenized version of the id for RegExp searches (Better to replace with
-    ;; a custom tokenizer that produces both the original + individual tokens)
-    (.add (StringField. "artifact-id-raw" artifact-id Field$Store/YES))
-    (.add (TextField. "group-id" group-id Field$Store/YES))
-    (.add (TextField. "group-id-packages" group-id Field$Store/YES))
-    (.add (StringField. "group-id-raw" group-id Field$Store/YES))
-    (.add (TextField. "description" description Field$Store/YES))
-    (add-versions versions)))
+(defn- string-field
+  "Return field that is:
+  - indexed but not tokenized,
+  - term freq. or positional info not indexed
+  As far as I can tell, these are for exact matches."
+  [^String name ^String value]
+  (StringField. name value Field$Store/YES))
 
-(defn index-artifacts [^IndexWriter idx-writer artifacts create?]
+(defn- text-field
+  "Return field that is indexed and tokenized."
+  [^String name ^String value]
+  (TextField. name value Field$Store/YES))
+
+(defn- term
+  "Return a lucene unit of search"
+  [^String name ^String value]
+  (Term. name value))
+
+(defn- trim-inner-ws [s]
+  (string/replace s #"\s+" " "))
+
+(defn- first-sentence [s]
+  (if (string/includes? s ". ")
+    (string/replace s #"(.*?\.) .*" "$1")
+    s))
+
+(defn- truncate-at-word [s max-chars]
+  (let [len (count s)]
+    (if (<= len max-chars)
+      s
+      (if-let [sp-ndx (string/last-index-of s " " max-chars)]
+        (subs s 0 sp-ndx)
+        (subs s 0 max-chars)))))
+
+(defn- description->blurb
+  "Return blurb for description `s`.
+  Strategy:
+  - trim whitespace
+  - then take first sentence if there seems to be one
+  - then truncate to a maximum length of 200 chars respecting word boundary"
+  [s]
+  (let [max-chars 200]
+    (-> s
+        string/trim
+        trim-inner-ws
+        first-sentence
+        (truncate-at-word max-chars))))
+
+(defn- artifact->doc
+  ^Iterable [{:keys [artifact-id
+                     group-id
+                     description
+                     origin
+                     versions]
+              :as artifact}
+             popularity]
+  (doto (Document.)
+    (.add (string-field "id" (artifact->index-id artifact))) ;; lucene unique id
+    (cond-> origin
+      (.add (string-field "origin" (name origin))))    ;; maven-central or clojars
+    (.add (text-field "artifact-id" artifact-id))      ;; tokenized artifact-id
+    (.add (text-field "group-id" group-id))            ;; tokenized group-id
+    (.add (string-field "artifact-id.exact" artifact-id))
+    (.add (string-field "group-id.exact" group-id))
+    (cond-> description
+      (.add (text-field "blurb" (description->blurb description)))) ;; tokenized jar pom.xml blurbified description
+    (add-versions versions)
+    (.add (DoubleDocValuesField. "popularity" popularity)) ;; 0 to 1 - popularity rating
+    ;; we'll use this as our boost score at query time
+    (.add (DoubleDocValuesField. "_score" (* 1.5 popularity)))))
+
+(defn- clojars-download-boost [dl-max dl-lib]
+  (if (or (nil? dl-max) (zero? dl-max))
+    0 ;; if dl-max 0 or not available, we don't have stats yet.
+    (/ dl-lib dl-max)))
+
+(defn- calculate-doc-popularity
+  "Return document's popularity relative to other documents.
+
+  For clojars this is the artifact download count divided the download count for the most downloaded artifact.
+  For maven we don't have download stats, so are return 1.0 for now."
+  [clojars-stats {:as _jar :keys [origin artifact-id group-id]}]
+  (case origin
+    :maven-central 1.0
+    :clojars (let [dl-max (clojars-stats/download-count-max clojars-stats)
+                   dl-lib (clojars-stats/download-count-artifact clojars-stats group-id artifact-id)]
+               (clojars-download-boost dl-max dl-lib))))
+
+(defn- index-artifact [clojars-stats ^IndexWriter idx-writer artifact]
+  (.updateDocument
+   idx-writer
+   (term "id" (artifact->index-id artifact))
+   (artifact->doc artifact (calculate-doc-popularity clojars-stats artifact))))
+
+(defn- index-artifacts [clojars-stats ^IndexWriter idx-writer artifacts]
   (run!
    (fn [artifact]
-     (if create?
-       (.addDocument idx-writer (artifact->doc artifact))
-       (.updateDocument
-        idx-writer
-        (Term. "id" (artifact->id artifact))
-        (artifact->doc artifact))))
-
+     (.updateDocument
+      idx-writer
+      (term "id" (artifact->index-id artifact))
+      (artifact->doc artifact (calculate-doc-popularity clojars-stats artifact))))
    artifacts))
 
-(defn mk-indexing-analyzer []
-  (PerFieldAnalyzerWrapper.
-   (StandardAnalyzer.)
-    ;; StandardAnalyzer does not break at . as in 'org.clojure':
-   {"group-id"          (StopAnalyzer. (CharArraySet. ["." "-"] true))
-     ;; Group ID with token per package component, not breaking at '-' this
-     ;; time so that 'clojure' will match 'org.clojure' better than 'org-clojure':
-    "group-id-packages" (StopAnalyzer. (CharArraySet. ["."] true))}))
+(defn- track-indexing-status [{:keys [last-report-time] :as status}]
+  (let [status (update status :artifacts-indexed inc)
+        indexed (-> status :artifacts-indexed)
+        report-every 1000]
+    (if (= 0 (rem indexed report-every))
+      (let [cur-time (System/currentTimeMillis)]
+        (log/infof "Indexed %d artifacts (%.2f/second)" indexed (float (/ (* 1000 report-every) (- cur-time last-report-time))))
+        (assoc status :last-report-time cur-time))
+      status)))
 
-(defn index! [^String index-dir artifacts]
-  (let [create?   false ;; => update, see how we use `.updateDocument` above
-        analyzer (mk-indexing-analyzer)
+(defn- custom-similarity
+  "Return similarity (which affects ranking) that overrides some lucene defaults.
+
+  From Lucene docs:
+
+    BM25Similarity has two parameters that may be tuned:
+    - k1, which calibrates term frequency saturation and must be positive or null.
+      A value of 0 makes term frequency completely ignored, making documents scored only based on the value of the IDF of the matched terms.
+      Higher values of k1 increase the impact of term frequency on the final score.
+      Default value is 1.2.
+    - b, which controls how much document length should normalize term frequency values and must be in [0, 1].
+      A value of 0 disables length normalization completely.
+      Default value is 0.75."
+  []
+  (let [k1 0 ;; term frequency unimportant
+        b 0 ;; document length unimportant
+        discount-overlaps true]
+    (BM25Similarity. k1 b discount-overlaps)))
+
+(defn- simple-tokenizer
+  "Returns tokenizer suitable group-id and artifact-id and probably also pom descriptions.
+  Effectively splits on punctuation or whitespace.
+  No special attention paid to special characters at this time.
+  Not sure if there is any benefit to splitting when alpha <-> numeric, so not bothering at this time (ex. lee42read will remain a single token)."
+  ^Tokenizer []
+  (proxy [CharTokenizer] []
+    (isTokenChar [^long c]
+      (Character/isLetterOrDigit c))))
+
+(defn- ngram-tokenizer
+  ^Tokenizer []
+  (let [min-gram 1
+        max-gram 80]
+    (proxy [NGramTokenizer] [min-gram max-gram]
+      (isTokenChar [^long c]
+        (Character/isLetterOrDigit c)))))
+
+(defn- artifact-analyzer
+  "Returns analyzer for artifacts, `usage` must be:
+  - `:search` for search time analysis
+  - `:index` for index time analysis
+
+  The only difference between the two is that at index time we employ the ngram tokenizer.
+  The ngram filter will index token `yas` as `y`,`ya`,`yas`,`a`,`as`,`s` which
+  supports substring matches at search time.
+
+  BTW: We use an ngram tokenizer rather than an ngram filter to allow to allow lucene
+  to store positions of each ngram in its index. This supports highlighting of fragments
+  rather than entire tokens."
+  ^Analyzer [usage]
+  (proxy [Analyzer] []
+    (createComponents [_fieldname]
+      (let [tok (case usage
+                  :search (simple-tokenizer)
+                  :index (ngram-tokenizer))
+            token-stream (ICUFoldingFilter. tok)]
+        (Analyzer$TokenStreamComponents. tok token-stream)))))
+
+;; public index fns
+
+(defn index! [clojars-stats ^Directory index artifacts]
+  (let [analyzer (artifact-analyzer :index)
         iw-cfg   (doto (IndexWriterConfig. analyzer)
-                   (.setOpenMode (if create?
-                                   IndexWriterConfig$OpenMode/CREATE
-                                   IndexWriterConfig$OpenMode/CREATE_OR_APPEND))
-                   ;; Increase RAM for speed up. BEWARE: Increase also JVM heap size: -Xmx512m or -Xmx1g
-                   (.setRAMBufferSizeMB 256.0))
-        idx-dir  (fsdir index-dir)]
-    (with-open [idx-writer (IndexWriter. idx-dir iw-cfg)]
-      (index-artifacts
-       idx-writer
-       artifacts
-       create?))))
+                   (.setOpenMode IndexWriterConfig$OpenMode/CREATE_OR_APPEND)
+                   (.setSimilarity (custom-similarity)))]
+    (with-open [idx-writer (IndexWriter. index iw-cfg)]
+      (let [{:keys [artifacts-indexed start-time]}
+            (reduce (fn [status artifact]
+                      (try
+                        (index-artifact clojars-stats idx-writer artifact)
+                        (catch Exception e
+                          (log/errorf e "Failed to index %s/%s" (:group-id artifact) (:artifact-id artifact))))
+                      (track-indexing-status status))
+                    {:artifacts-indexed 0
+                     :last-report-time (System/currentTimeMillis)
+                     :start-time (System/currentTimeMillis)}
+                    artifacts)
+            seconds-elapsed (float (/ (- (System/currentTimeMillis) start-time) 1000))]
+        (log/infof "Artifact indexing complete. Indexed %d jars in %.2f seconds (%.2f/second)"
+                   artifacts-indexed seconds-elapsed (/ artifacts-indexed seconds-elapsed)))
+      (index-artifacts clojars-stats idx-writer artifacts))))
 
 (defn download-and-index!
-  ([^String index-dir] (download-and-index! index-dir false))
-  ([^String index-dir force?]
-   (log/info "Download & index starting...")
-   (let [result (index! index-dir (into
-                                   (clojars/load-clojars-artifacts force?)
-                                   (maven-central/load-maven-central-artifacts force?)))]
-     (log/info "Finished downloading & indexing.")
-     result)))
+  [clojars-stats ^Directory index & {:keys [force-download?]}]
+  (log/info "Download & index starting...")
+  (let [result (index! clojars-stats index (into (clojars/load-clojars-artifacts force-download?)
+                                                 (maven-central/load-maven-central-artifacts force-download?)))]
+    (log/info "Finished downloading & indexing.")
+    result))
 
-(defn index-artifact [^String index-dir artifact]
-  (index! index-dir [artifact]))
+;; --- search support -----
 
-(s/fdef index-artifact
-  :args (s/cat :index-dir string? :artifact ::cljdoc-spec/artifact))
+(defn- tokenize
+  "Return a sequence of String tokens for `text`."
+  [^String text]
+  (let [analyzer (artifact-analyzer :search)
+        ^TokenStream stream (.tokenStream analyzer "fake-field-name" text)
+        attr                (.addAttribute stream CharTermAttribute)]
+    (.reset stream)
+    (take-while
+     identity
+     (repeatedly
+      #(when (.incrementToken stream) (str attr))))))
 
-(defn tokenize
-  "Split search text into tokens. It is reasonable to use the same tokenization <> analyzer
-   as when indexing."
-  ([text] (tokenize (StandardAnalyzer.) text))
-  ([analyzer text]
-   (let [^TokenStream stream (.tokenStream analyzer "fake-field-name" text)
-         attr                (.addAttribute stream org.apache.lucene.analysis.tokenattributes.CharTermAttribute)]
-     (.reset stream)
-     (take-while
-      identity
-      (repeatedly
-       #(when (.incrementToken stream) (str attr)))))))
+(defn- term-query ^Query [field ^String value]
+  (-> field
+      name
+      (term value)
+      (TermQuery.)))
 
-(def search-fields [:artifact-id :group-id :group-id-packages :description])
+(def ^:private boolean-ops {:should BooleanClause$Occur/SHOULD
+                            :must BooleanClause$Occur/MUST})
 
-(def boosts
-  "Boosts for selected artifact fields (artifact id > group id > description
-   The numbers were determined somewhat randomly but seem to work well enough."
-  {:artifact-id       3
-   :group-id-packages 3
-   :group-id          2
-   :description       1})
+(defn- boolean-query ^Query [op queries]
+  (let [^BooleanQuery$Builder builder (->> queries
+                                           (reduce (fn [^BooleanQuery$Builder builder q]
+                                                     (.add builder q (op boolean-ops)))
+                                                   (BooleanQuery$Builder.)))]
+    (.build builder)))
 
-(defn raw-field [field]
-  (get {:artifact-id :artifact-id-raw
-        :group-id    :group-id-raw}
-       field))
-;
-;(defn lucene-quote-regexp
-;  "Lucene RegExp is only a subset of Java RegExp so we cannot use Pattern/quote.
-;   The only character likely to appear in search that we want to escape is '.',
-;   used in group names.
-;   See http://lucene.apache.org/core/8_0_0/core/org/apache/lucene/util/automaton/RegExp.html
-;  "
-;  [text]
-;  (clojure.string/replace text "." "\\."))
-;
-;(defn ^String tokens->regexp [tokens]
-;  (str
-;    (->> tokens
-;         (map lucene-quote-regexp)
-;         (join "."))
-;    ".*"))
-;
-;(defn ^Query regexp-query [field tokens]
-;  (when-let [field (raw-field field)]
-;    (RegexpQuery.
-;      (term field (tokens->regexp tokens)))))
+(defn- boost ^Query [query val]
+  (BoostQuery. query val))
 
-(defn term [field ^String value]
-  (Term. (name field) value))
+(defn- exact-match-query [query-text]
+  (let [query-text (string/trim query-text)
+        terms (remove string/blank? (string/split query-text #"(\s+|/)"))
+        cnt (count terms)]
+    (case cnt
+      1 (-> (boolean-query :should [(term-query :group-id.exact (first terms))
+                                    (term-query :artifact-id.exact (first terms))])
+            (boost 10.0))
+      2 (-> (boolean-query :must [(term-query :group-id.exact (first terms))
+                                  (term-query :artifact-id.exact (second terms))])
+            (boost 10.0))
+      nil)))
 
-(defn ^Query boolean-query*
-  ([queries] (boolean-query* BooleanClause$Occur/SHOULD queries))
-  ([occur queries]
-   (case (count queries)
-     0 nil
-     1 (first queries)
-     (let [builder (BooleanQuery$Builder.)]
-       (run! (fn [^Query q]
-               (when q
-                 (.add builder q occur)))
-             queries)
-       (.build builder)))))
-
-(defn ^Query boolean-query
-  ([occur-or-q & queries]
-   (if (instance? BooleanClause$Occur occur-or-q)
-     ;; NOTE: Order of subqueries does not matter so it's OK to re-order
-     (boolean-query* occur-or-q queries)
-     (boolean-query* (conj queries occur-or-q)))))
-
-(defn ^Query exact-or-prefix-query
-  "Check for 'token' or 'token.*'"
-  [field token]
-  (let [t (term field token)]
-    (boolean-query
-     (TermQuery. t)
-     (BoostQuery.
-      (PrefixQuery. t)
-        ;; Give a prefix less weight than an exact match
-      0.5))))
-
-(defn single-token->query [field ^String token match-mode]
-  (case match-mode
-    :exact (TermQuery. (term field token))
-    :prefix (exact-or-prefix-query field token)))
-
-(defn field-and-token->query [field token match-mode full-match-text]
-  (-> (boolean-query
-       (single-token->query field token match-mode)
-        ;; Add an exact-match query to boost exact matches of the
-        ;; whole name so that "re-frame" -> "re-frame:re-frame" comes first
-        ;; FIXME This works for group OR artifact-id but breaks for `group/artifact` (x group-id-packages search looks at just the group => use same tokenization? Or split manually at `/`?)
-       (when-let [raw-fld (and full-match-text (raw-field field))]
-         (TermQuery. (term raw-fld full-match-text))))
-      (BoostQuery.
-       (get boosts field))))
-
-(defn token->query
-  "Create a Lucene Query from a tokenized search string.
-   The search is expected to be just search terms, we do not support/expect any
-   special search modifiers such as regexp, wildcards, or fuzzy indicators, as
-   Lucene's QueryParser does."
-  [token match-mode full-match-text]
-  (->> search-fields
-       (map
-        #(field-and-token->query
-          % token match-mode full-match-text))
-       (apply boolean-query)))
-
-(defn ^Query parse-query [^String query-text]
+(defn- freetext-match-query [query-text]
   (let [tokens (tokenize query-text)
-        multitoken? (next tokens)
-        match-modes (->> (cons :prefix (repeat :exact))
-                         (take (count tokens))
-                         reverse)]
-    (->> (map
-          #(token->query %1 %2 (when multitoken? query-text))
-          tokens match-modes)
-         (apply boolean-query BooleanClause$Occur/MUST))))
+        clauses (map (fn [t] (boolean-query :should [(term-query :group-id t)
+                                                     (term-query :artifact-id t)
+                                                     (-> (term-query :blurb t) (boost 0.01))]))
+                     tokens)]
+    (if (next clauses)
+      (boolean-query :must clauses)
+      (first clauses))))
 
-(defn search->results
-  "NOTE: We take the result formatting function `f` as a parameter because it
-   must be run within the context of our `with-open`."
-  ([^String index-dir ^String query-in f]
-   (search->results index-dir query-in 30 f))
-  ([^String index-dir ^String query-in ^long max-results f]
-   (with-open [reader (DirectoryReader/open (fsdir index-dir))]
-     (let [^int max-results' (if (zero? max-results)
-                               (.maxDoc reader)
-                               max-results)
-           searcher         (IndexSearcher. reader)
-           ;parser           (QueryParser. "artifact-id" analyzer)
-           ;query            (.parse parser query-str)
-           ^Query query     (if (instance? Query query-in)
-                              query-in
-                              (parse-query query-in))
-           ^TopDocs topdocs (.search searcher query max-results')
-           hits             (.scoreDocs topdocs)]
-       (f {:topdocs topdocs :score-docs hits :searcher searcher :query query})))))
+(defn- parse-query
+  ^Query [query-text]
+  (let [exact (exact-match-query query-text)
+        free (freetext-match-query query-text)
+        free (when free (FunctionScoreQuery/boostByValue free (DoubleValuesSource/fromDoubleField "_score")))
+        queries (->> [exact free]
+                     (keep identity)
+                     (into []))]
+    (when (seq queries)
+      (-> (boolean-query :should queries)))))
+
+(defn- hitdoc-num [^ScoreDoc scoredoc]
+  (.-doc scoredoc))
+
+(defn- hitdoc-score [^ScoreDoc scoredoc]
+  (.score scoredoc))
+
+(defn- total-hits
+  "Return total hits for `topdocs`.
+  This counts the number of hits and not the number of docs returned (ex. we asked for 10 but there were 800 hits).
+  Lucene will only count accurately for up to 1000 hits, but that is fine for our usage."
+  [^TopDocs topdocs]
+  (-> topdocs (.-totalHits) (.value)))
+
+(defn- matched-doc ^Document [^IndexSearcher searcher ^ScoreDoc scoredoc]
+  (.doc searcher (hitdoc-num scoredoc)))
+
+(defn- doc->artifact [^Document doc score]
+  {:group-id (.get doc "group-id")
+   :artifact-id (.get doc "artifact-id")
+   :blurb (.get doc "blurb")
+   :origin (.get doc "origin")
+   :versions (.getValues doc "versions")
+   :score score})
+
+(defn- search->results*
+  [^IndexReader index-reader ^Query query ^long max-results]
+  (let [^long max-results' (if (zero? max-results)
+                             (.maxDoc index-reader)
+                             max-results)
+        searcher (doto (IndexSearcher. index-reader)
+                   (.setSimilarity (custom-similarity)))
+        topdocs (.search searcher query max-results')]
+    {:topdocs topdocs :searcher searcher}))
+
+(defn- search->results
+  "Return docs matching `query-in` in `index` formatted with function `f`.
+  Result keys:
+  - :count - total hits
+  - :results - vector of matching artifacts with :score"
+  ([index query]
+   (search->results index query 30))
+  ([^Directory index ^Query query ^long max-results]
+   (if query
+     (with-open [reader (DirectoryReader/open index)]
+       (let [{:keys [^TopDocs topdocs searcher]}
+             (search->results* reader query max-results)]
+         {:count (total-hits topdocs)
+          :results (->> (.scoreDocs topdocs)
+                        (mapv (fn [^ScoreDoc scoredoc]
+                                (doc->artifact (matched-doc searcher scoredoc)
+                                               (hitdoc-score scoredoc)))))}))
+     {:count 0 :results []})))
 
 (defn index-version
-  "Version of the index content, updated every time the index is changed."
-  [^String index-dir]
-  (.getVersion (DirectoryReader/open (fsdir index-dir))))
+  "Return version of the index content, updated every time the index is changed."
+  [^Directory index]
+  (.getVersion (DirectoryReader/open index)))
 
 (defn- snapshot? [version]
   (string/ends-with? version "-SNAPSHOT"))
 
-(defn format-results
-  "Format search results into what the frontend expects.
-  One lib can return two rows if both a release and snapshot versions exist.
-  Snapshot version only returned if greater than current release version (or if there are no release versions)."
-  [hits-cnt docs]
-  {:count   hits-cnt
-   :results (reduce
-             (fn [acc {:keys [^Document doc score]}]
-               (let
-                [versions (.getValues doc "versions")
-                 latest-version (first versions)
-                 [release-version snapshot-version] (if (snapshot? latest-version)
-                                                      [(some #(when (not (snapshot? %)) %) versions) latest-version]
-                                                      [latest-version nil])
-                 lib {:artifact-id (.get doc "artifact-id")
-                      :group-id    (.get doc "group-id")
-                      :description (.get doc "description")
-                      :score       score}]
-                 (cond-> acc
-                   release-version (conj (assoc lib :version release-version))
-                   snapshot-version (conj (assoc lib :version snapshot-version)))))
-             []
-             docs)})
+;; public general purpose fns
 
-(defn search [^String index-dir ^String query-in]
-  (search->results
-   index-dir query-in
-   #(format-results
-     (-> (:topdocs %) (.-totalHits) (.-value))
-     (doall
-      (map
-       (fn [^ScoreDoc h]
-         {:score (.score h)
-          :doc (.doc (:searcher %) (.-doc h))})
-       (:score-docs %))))))
+(defn disk-index [index-path]
+  (FSDirectory/open ;; automatically chooses best implementation for OS
+   (Paths/get index-path (into-array String nil))))
 
-(defonce all-docs-cache (atom nil)) ;; As of 11/2019 it takes ± 2.6MB (well, when stringified)
+;; public search fns
+
+(defn search
+  "Search lucene `index` for `query-in` text as typed by user."
+  [index ^String query-in]
+  (let [r (search->results index (parse-query query-in))]
+    (assoc r :results
+           (reduce
+            (fn [acc {:keys [versions] :as artifact}]
+              (let
+               [latest-version (first versions)
+                [release-version snapshot-version] (if (snapshot? latest-version)
+                                                     [(some #(when (not (snapshot? %)) %) versions) latest-version]
+                                                     [latest-version nil])
+                lib (select-keys artifact [:artifact-id :group-id :blurb :origin :score])]
+                (cond-> acc
+                  release-version (conj (assoc lib :version release-version))
+                  snapshot-version (conj (assoc lib :version snapshot-version)))))
+            []
+            (:results r)))))
+
+(defonce ^:private all-docs-cache (atom nil)) ;; As of 11/2019 it takes ± 2.6MB (well, when stringified)
 
 ;; TODO Add variants fetching versions for a group / a group+artifact => presumabely faster, no need for caching as all-docs will be needed rarely
 ;; (If we still want to preserve its caching - Move the state into the ISearcher impl so that integrant can manage and restart it properly)
@@ -323,86 +418,111 @@
         [cached-version cached-docs] @all-docs-cache]
     (if (= idx-version cached-version)
       cached-docs
-      (let [docs (search->results
-                  index-dir
-                  (MatchAllDocsQuery.)
-                  0 ; = "all"
-                  (fn [{docs :score-docs, searcher :searcher}]
-                    (mapv ;; non-lazy
-                     (fn [^ScoreDoc sdoc]
-                       (let [doc (.doc searcher (.-doc sdoc))]
-                         {:artifact-id (.get doc "artifact-id")
-                          :group-id    (.get doc "group-id")
-                            ;:description (.get doc "description")
-                            ;:origin (.get doc "origin")
-                            ;; The first version appears to be the latest so this is OK:
-                          :versions (->> (.getValues doc "versions")
-                                           ;; Weird version: libpython-clj 1.12, cirru:writer 0.1.4-a4, -betaN, -alphaN
-                                           ;; v20150729-0, v4.1.1, zeta.1.2.1, v1.9.49-184-g75528b51, 0.0-2371-16, -RCN
-                                         (remove #(string/ends-with? % "-SNAPSHOT"))
-                                         (into []))}))
-
-                     docs)))]
+      (let [docs (->> (search->results index-dir (MatchAllDocsQuery.) 0)
+                      :results
+                      (mapv (fn [artifact]
+                              (-> artifact
+                                  (select-keys [:group-id :artifact-id])
+                                  (assoc :versions (->> artifact
+                                                        :versions
+                                                        (remove #(string/ends-with? % "-SNAPSHOT"))
+                                                        (into [])))))))]
         (reset! all-docs-cache [idx-version docs])
         docs))))
 
 (defn suggest
-  "Provides suggestions for auto-completing the search terms the user is typing.
+  "Returns [`query-in` [project1 project2... project5]] for `query-in`.
+
+   For OpenSearch as-you-type suggest support used in web browsers.
+
    Note: In Firefox, the response needs to reach the browser within 500ms otherwise it will be discarded.
    For more information, see:
-   - http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.0
+   - https://github.com/dewitt/opensearch/blob/master/mediawiki/Specifications/OpenSearch/Extensions/Suggestions/1.1/Draft%201.wiki
    - https://developer.mozilla.org/en-US/docs/Web/OpenSearch
-   - https://developer.mozilla.org/en-US/docs/Archive/Add-ons/Supporting_search_suggestions_in_search_plugins
-   "
-  [index-dir query-in]
-  (let [suggestions
-        (search->results
-         index-dir query-in 5
-         #(->> (:score-docs %)
-               (mapv
-                (fn [^ScoreDoc h]
-                  (let [doc (.doc (:searcher %) (.-doc h))]
-                    (str
-                     (.get doc "group-id")
-                     "/"
-                     (.get doc "artifact-id")))))))]
+   - https://developer.mozilla.org/en-US/docs/Archive/Add-ons/Supporting_search_suggestions_in_search_plugins"
+  [index query-in]
+  (let [suggestions (->> (search->results index (parse-query query-in) 5)
+                         :results
+                         (mapv (fn [{:keys [group-id artifact-id]}]
+                                 (str group-id "/" artifact-id
+                                      ;; without this trailing space browsers (Firefox for one)
+                                      ;; will skip the suggestion because it thinks the / char makes
+                                      ;; it looks like a URL
+                                      " "))))]
     [query-in suggestions]))
 
+;; REPL exploratory support
+
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn explain-top-n
   "Debugging function to print out the score and its explanation of the
-   top `n` matches for the given query.
-   "
-  ([index-dir query-in] (explain-top-n 5 index-dir query-in))
-  ([n index-dir query-in]
-   (search->results
-    index-dir query-in
-    (fn [{:keys [searcher score-docs ^Query query]}]
-      (run!
-       #(println
-         (.get (.doc searcher (.-doc %)) "id")
-         (.explain searcher query (.-doc %)))
-       (take n score-docs))))))
+   top `n` matches for the given query."
+  ([index query-in] (explain-top-n 5 index query-in))
+  ([n ^Directory index query-in]
+   (with-open [^IndexReader reader (DirectoryReader/open index)]
+     (let [query (parse-query query-in)
+           {:keys [^TopDocs topdocs ^IndexSearcher searcher]} (search->results* reader query n)]
+       (println query)
+       (run!
+        (fn [^ScoreDoc score-doc]
+          (println (.get (.doc searcher (.-doc score-doc)) "id")
+                   (.explain searcher query (.-doc score-doc))))
+        (take n (.scoreDocs topdocs)))))))
 
 (comment
 
-  (download-and-index! "data/index-lucene91" :force)
+  (exact-match-query "hello-billy/there")
+  (exact-match-query "hello")
 
-  (search "data/index-lucene91" "metosin muunta")
-  ;; FIXME metosin:muuntaja comes 6th because the partial match on 'muuntaja' is
-  ;; less worth than 1) double match on metosin (in a, g) and 2) match on g=metosin
-  ;; and a random, rare artifact name => with high idf
-  (explain-top-n 6 "data/index-lucene91" "metosin muunta")
+  (freetext-match-query "hello")
+  (parse-query "hello billy boy")
 
-  (all-docs "data/index-lucene91")
+  (exact-match-query "q")
 
-  (search "data/index-lucene91" "re-frame")
-  (search "data/index-lucene91" "clojure")
-  (search "data/index-lucene91" "testit")
-  (search "data/index-lucene91" "ring")
-  (search "data/index-lucene91" "conc")
+  (freetext-match-query "")
 
-  (search "data/index-lucene91" "clj-kondo")
+  (parse-query "q")
+  (parse-query "")
+  (parse-query "   ")
 
-  (explain-top-n 3 "data/index-lucene91" "clojure")
+  (def clojars-stats (:cljdoc/clojars-stats integrant.repl.state/system))
+
+  (def index (disk-index "data/index-lucene91-v2"))
+
+  (download-and-index! clojars-stats
+                       index
+                       :force-download? true)
+
+  (search index "metosin muunta")
+  (explain-top-n 6 index "metosin muunta")
+
+  (all-docs index)
+
+  (search index "re-frame")
+  (search index "org.clojure")
+  (search index "testit")
+  (search index "ring")
+  (search index "conc")
+  (search index "facade")
+
+  (.toString (parse-query "q/q"))
+  ;; => "FunctionScoreQuery((+group-id.exact:q +artifact-id.exact:q)^100.0 (+(group-id:q artifact-id:q (blurb:q)^0.01) +(group-id:q artifact-id:q (blurb:q)^0.01)), scored by boost(double(_score)))"
+
+  (search index "q/q")
+  (explain-top-n 3 index "q/q")
+
+  (search index "")
+
+  (suggest index "clojure tools")
+  (suggest index "nothingatall")
+
+  (search index "clj-kondo")
+
+  (explain-top-n 3 index "clojure")
+
+  (tokenize "façade");; => ("facade")
+  (tokenize "XL---42+'Autocoder billy");; => ("xl" "42" "autocoder" "billy")
+  (tokenize "hEy42-the⓰re.slugger.");; => ("hey42" "the" "re" "slugger")
+  (tokenize "com.github.lread/test-doc-blocks");; => ("com" "github" "lread" "test" "doc" "blocks")
 
   nil)

@@ -13,7 +13,10 @@
 
 (defonce clojars-last-modified (atom nil))
 
-(defn process-clojars-response [{:keys [headers body]}]
+(comment
+  (reset! clojars-last-modified nil))
+
+(defn- process-clojars-response [{:keys [headers body]}]
   {:pre [(instance? InputStream body)]}
   (with-open [in (io/reader (GZIPInputStream. body))]
     (let [artifacts     (into []
@@ -24,7 +27,7 @@
                                (filter #(not= "org.clojure" (:group-id %))))
                               (line-seq in))
           last-modified (get headers "last-modified")]
-      (log/debug (str "Downloaded " (count artifacts) " artifacts from Clojars with last-modified " last-modified))
+      (log/info (str "Downloaded " (count artifacts) " artifacts from Clojars with last-modified " last-modified))
       (reset! clojars-last-modified last-modified)
       artifacts)))
 

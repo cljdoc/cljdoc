@@ -27,7 +27,10 @@
                [{:appender :sentry}])})
 
 (defn index-dir [env-config]
-  (str (cfg/data-dir env-config) "index-lucene91"))
+  ;; change the index name when making incompatible changes, this will
+  ;; - create a new index from scratch
+  ;; - leave the old index around should we want to revert and
+  (str (cfg/data-dir env-config) "index-lucene91-v2"))
 
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)]
@@ -45,14 +48,16 @@
                                       :deserialize-fn nippy/thaw})
       :cljdoc/searcher {:index-dir       (index-dir env-config)
                         :enable-indexer? (cfg/enable-artifact-indexer? env-config)
-                        :tea-time        (ig/ref :cljdoc/tea-time)}
-      :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
-                        :host             (get-in env-config [:cljdoc/server :host])
-                        :build-tracker    (ig/ref :cljdoc/build-tracker)
-                        :analysis-service (ig/ref :cljdoc/analysis-service)
-                        :storage          (ig/ref :cljdoc/storage)
-                        :cache            (ig/ref :cljdoc/cache)
-                        :searcher         (ig/ref :cljdoc/searcher)}
+                        :tea-time        (ig/ref :cljdoc/tea-time)
+                        :clojars-stats   (ig/ref :cljdoc/clojars-stats)}
+      :cljdoc/pedestal {:port                (cfg/get-in env-config [:cljdoc/server :port])
+                        :host                (get-in env-config [:cljdoc/server :host])
+                        :opensearch-base-url (cfg/get-in env-config [:cljdoc/server :opensearch-base-url])
+                        :build-tracker       (ig/ref :cljdoc/build-tracker)
+                        :analysis-service    (ig/ref :cljdoc/analysis-service)
+                        :storage             (ig/ref :cljdoc/storage)
+                        :cache               (ig/ref :cljdoc/cache)
+                        :searcher            (ig/ref :cljdoc/searcher)}
       :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/analysis-service {:service-type ana-service
@@ -87,7 +92,7 @@
   (tt/start!))
 
 (defmethod ig/halt-key! :cljdoc/tea-time [k _]
-  (log/info "Starting" k)
+  (log/info "Stopping" k)
   (tt/stop!))
 
 (defmethod ig/init-key :cljdoc/build-tracker [k {:keys [db-spec]}]

@@ -35,6 +35,7 @@
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
             [clojure.core.memoize :as memoize]
+            [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [clojure.stacktrace :as stacktrace]
             [clojure.string :as string]
@@ -310,7 +311,6 @@
     :enter (fn search-suggest-handler [ctx]
              (if-let [q (-> ctx :request :params :q)]
                (assoc ctx :response {:status  200
-                                     :headers {"Content-Type" "application/x-suggestions+json"}
                                      :body    (search-api/suggest searcher q)})
                (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))}))
 
@@ -497,6 +497,17 @@
      {:name  ::sitemap
       :enter #(pu/ok-xml % (:sitemap (swap! state build-sitemap storage)))})))
 
+(defn opensearch
+  [opensearch-base-url]
+  (interceptor/interceptor
+   {:name ::opensearch
+    :enter (fn opensearch [ctx]
+             (let [template (slurp (io/resource "opensearch.xml"))]
+               (->> {:status 200
+                     :headers {"Content-Type" "application/opensearchdescription+xml"}
+                     :body (string/replace template "{{base.url}}" opensearch-base-url)}
+                    (assoc ctx :response))))}))
+
 (def offline-bundle
   "Creates an HTTP response with a zip file containing offline docs
   for the project that has been injected into the context by [[artifact-data-loader]]."
@@ -542,13 +553,14 @@
   interesting for ClojureScript where Pededestal can't go.
 
   For more details see `cljdoc.server.routes`."
-  [{:keys [build-tracker storage cache searcher] :as deps}
+  [{:keys [opensearch-base-url build-tracker storage cache searcher] :as deps}
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home %))})]
          :search     [(interceptor/interceptor {:name ::search :enter #(pu/ok-html % (render-search/search-page %))})]
          :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts %))})]
          :sitemap    [(sitemap-interceptor storage)]
+         :opensearch [(opensearch opensearch-base-url)]
          :show-build [(pu/coerce-body-conf cljdoc.render.build-log/build-page)
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]

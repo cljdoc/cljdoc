@@ -119,7 +119,7 @@
 
                  ;; Open Search
                  [:link {:rel  "search" :type "application/opensearchdescription+xml"
-                         :href (get (:static-resources opts) "/opensearch.xml") :title "cljdoc"}]
+                         :href "/opensearch.xml" :title "cljdoc"}]
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
                  (apply hiccup.page/include-css (assets/css :tachyons))
