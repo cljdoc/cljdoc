@@ -15,7 +15,10 @@
 (defn run-system [tests]
   (st/instrument)
   (let [dir "test-data/"
-        cfg {:cljdoc/server {:port (+ 8000 (rand-int 1000))
+        port (+ 8000 (rand-int 1000))
+        opensearch-base-url (format "http://localhost:%d" port)
+        cfg {:cljdoc/server {:port port
+                             :opensearch-base-url opensearch-base-url
                              :analysis-service :local
                              :autobuild-clojars-releases? false
                              :clojars-stats-retention-days 5
