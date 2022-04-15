@@ -50,13 +50,14 @@
                         :enable-indexer? (cfg/enable-artifact-indexer? env-config)
                         :tea-time        (ig/ref :cljdoc/tea-time)
                         :clojars-stats   (ig/ref :cljdoc/clojars-stats)}
-      :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
-                        :host             (get-in env-config [:cljdoc/server :host])
-                        :build-tracker    (ig/ref :cljdoc/build-tracker)
-                        :analysis-service (ig/ref :cljdoc/analysis-service)
-                        :storage          (ig/ref :cljdoc/storage)
-                        :cache            (ig/ref :cljdoc/cache)
-                        :searcher         (ig/ref :cljdoc/searcher)}
+      :cljdoc/pedestal {:port                (cfg/get-in env-config [:cljdoc/server :port])
+                        :host                (get-in env-config [:cljdoc/server :host])
+                        :opensearch-base-url (cfg/get-in env-config [:cljdoc/server :opensearch-base-url])
+                        :build-tracker       (ig/ref :cljdoc/build-tracker)
+                        :analysis-service    (ig/ref :cljdoc/analysis-service)
+                        :storage             (ig/ref :cljdoc/storage)
+                        :cache               (ig/ref :cljdoc/cache)
+                        :searcher            (ig/ref :cljdoc/searcher)}
       :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/analysis-service {:service-type ana-service

@@ -18,5 +18,7 @@
                                            :prod true}
                  :dir #profile {:default "data/"
                                 :test "test-data/"
-                                :prod "/var/cljdoc/"}}
+                                :prod "/var/cljdoc/"}
+                 :opensearch-base-url #profile {:default "http://localhost:8000"
+                                                :prod "https://cljdoc.org"}}
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}

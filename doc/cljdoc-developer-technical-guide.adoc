@@ -1,4 +1,5 @@
 = cljdoc Developer Technical Guide
+:toc:
 
 == Introduction
 
@@ -96,6 +97,47 @@ Feel free to change `{some-identifier}` when making an incompatible change to th
 Lucene will simply create a fresh new index.
 * Luke is a useful tool to take a peek at your Lucene index.
 Download https://lucene.apache.org/core/downloads.html[a full Lucene binary release], unpack it and then launch luke via the `bin/luke.sh` script.
+
+== Testing OpenSearch
+
+Cljdoc includes OpenSearch support for searching for Clojure libraries.
+It also supports the OpenSearch Suggestions extension.
+Supporting OpenSearch means a website can be used as a search engine in the end user's web browser.
+
+Many websites offer this support: Ebay, DuckDuckGo, Google, Bing, to name some.
+
+So great, but what does this look like and how do I test it?
+
+Here's what I've learnt to do with Firefox (I'm using Firefox Developer Edition v100 as of this writing).
+
+Type anything in your url bar:
+
+image::opensearch-engines.png[]
+
+If you see cljdoc in there, delete it via settings.
+
+Now navigate to the site you want to test, this is likely `\http://localhost:8000` if you are testing locally, but could be `\https://cljdoc.org` if you are hitting production.
+Repeat typing `anything`.
+Now you should see cljdoc as available to install, click on it to install it.
+
+image::opensearch-install-cljdoc.png[]
+
+Finally click on the cljdoc icon to select it, and you should be testing cljdoc's OpenSearch suggestions support:
+
+image::opensearch-search-cljdoc.png[]
+
+For this example, the browser reaches out to get suggestions by hitting:
+
+* `\http://localhost:8000/api/search-suggest?q=best` - when running locally
+* `\https://cljdoc.org/api/search-suggest?q=best` - when running in production
+
+TIP: It is important to remove and re-add the cljdoc search engine from your browser when moving between local dev and production.
+The `opensearch.xml` file that web browser consults to learn about cljdoc's OpenSearch capabilities is updated dynamically to target the correct environment.
+
+Resources:
+
+* https://developer.mozilla.org/en-US/docs/Web/OpenSearch[Mozilla's docs on the subject] - includes some useful troubleshooting tips.
+* https://github.com/dewitt/opensearch[An archive of the OpenSearch spec] - as of this writing, it is a bit of an oddly formatted shambles, but it is useful none-the-less.
 
 == Conventions
 
