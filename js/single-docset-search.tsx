@@ -1,11 +1,12 @@
 import { h, render } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { debounced } from "./search";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import cx from "classnames";
 import lunr from "lunr";
-import { flatMap, isUndefined, over, partition, sortBy } from "lodash";
+import { flatMap, isUndefined, merge, over, partition, sortBy } from "lodash";
 import searchIcon from "../resources/public/search-icon.svg";
+import Fuse from "fuse.js";
 
 type Namespace = {
   name: string;
@@ -244,6 +245,30 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
 
   return items;
 };
+const buildFuseSearchIndex = (indexItems: IndexItem[]) => {
+  const fuseOptions = merge({}, Fuse.config, {
+    isCaseSensitive: false,
+    includeScore: true,
+    includeMatches: true,
+    minMatchCharLength: 2,
+    shouldSort: true,
+    findAllMatches: true,
+    ignoreLocation: true,
+    useExtendedSearch: false,
+    keys: [
+      {
+        name: "name",
+        weight: 1
+      },
+      {
+        name: "doc",
+        weight: 0.5
+      }
+    ]
+  });
+
+  return new Fuse(indexItems, fuseOptions);
+};
 
 const buildSearchIndex = (indexItems: IndexItem[]) => {
   const searchIndex = lunr(function () {
@@ -265,11 +290,11 @@ const ResultListItem = (props: {
 }) => {
   const { result, selected, hideResults } = props;
 
-  switch (result.indexItem.kind) {
+  const highlightedDoc = result.highlightedDoc();
+  const indexItem = result.indexItem;
+
+  switch (indexItem.kind) {
     case "namespace":
-    case "def":
-    case "doc":
-      const highlightedDoc = result.highlightedDoc();
       return (
         <li
           className={cx("pa2 bb b--light-gray", {
@@ -281,8 +306,78 @@ const ResultListItem = (props: {
             href={result.indexItem.path}
             onClick={hideResults}
           >
-            <div>{result.highlightedName()}</div>
-            {highlightedDoc && <div>{result.highlightedDoc()}</div>}
+            <div className="flex flex-row items-center">
+              <div
+                className="bg-light-purple pa2 pt3 pb3 white-90 br1 mr2 tc"
+                style={{ width: "3rem" }}
+                aria-label="namespace"
+              >
+                NS
+              </div>
+              <div className="flex flex-column">
+                <div className="mb1">{result.highlightedName()}</div>
+                {highlightedDoc && <div>{highlightedDoc}</div>}
+              </div>
+            </div>
+          </a>
+        </li>
+      );
+    case "def":
+      return (
+        <li
+          className={cx("pa2 bb b--light-gray", {
+            "bg-light-blue": selected
+          })}
+        >
+          <a
+            className="no-underline black"
+            href={result.indexItem.path}
+            onClick={hideResults}
+          >
+            <div className="flex flex-row items-center">
+              <div
+                className="bg-light-red pa2 pt3 pb3 white-90 br1 mr2 tc"
+                style={{ width: "3rem" }}
+                aria-label="def"
+              >
+                DEF
+              </div>
+              <div className="flex flex-column">
+                <div className="mb1 code">
+                  <span className="">{indexItem.namespace}</span>/
+                  {result.highlightedName()}
+                </div>
+                {highlightedDoc && <div>{highlightedDoc}</div>}
+              </div>
+            </div>
+          </a>
+        </li>
+      );
+    case "doc":
+      return (
+        <li
+          className={cx("pa2 bb b--light-gray", {
+            "bg-light-blue": selected
+          })}
+        >
+          <a
+            className="no-underline black"
+            href={result.indexItem.path}
+            onClick={hideResults}
+          >
+            <div className="flex flex-row items-center">
+              <div
+                className="bg-light-red pa2 pt3 pb3 white-90 br1 mr2 tc"
+                style={{ width: "3rem" }}
+                aria-label="def"
+              >
+                DOC
+              </div>
+              <div className="flex flex-column">
+                <div className="mb1 code">{result.highlightedName()}</div>
+                {highlightedDoc && <div>{highlightedDoc}</div>}
+              </div>
+            </div>
           </a>
         </li>
       );
@@ -334,7 +429,7 @@ const search = (
       lunrResult: lunrResult,
       highlightedName: () => mark(nameRanges, indexItem.name),
       highlightedDoc: () => {
-        return isUndefined(indexItem.doc)
+        return isUndefined(indexItem.doc) || isUndefined(docRanges[0])
           ? undefined
           : trimMark(docRanges[0], indexItem.doc);
       }
@@ -353,6 +448,9 @@ const SingleDocsetSearch = (props: { url: string }) => {
   const [db, setDb] = useState<IDBPDatabase<SearchsetsDB> | undefined>();
   const [indexItems, setIndexItems] = useState<IndexItem[] | undefined>();
   const [searchIndex, setSearchIndex] = useState<lunr.Index | undefined>();
+  const [fuseSearchIndex, setFuseSearchIndex] = useState<
+    Fuse<IndexItem> | undefined
+  >();
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
@@ -361,6 +459,28 @@ const SingleDocsetSearch = (props: { url: string }) => {
   const [inputValue, setInputValue] = useState<string>(
     currentURL.searchParams.get("q") || ""
   );
+
+  const inputElement = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // const { metaKey, ctrlKey, key } = event;
+      // console.log({ metaKey, ctrlKey, key });
+      if (
+        inputElement.current &&
+        (event.metaKey || event.ctrlKey) &&
+        event.key === "/"
+      ) {
+        inputElement.current.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [inputElement]);
 
   useEffect(() => {
     openDB<SearchsetsDB>("cljdoc-searchsets-store", 1, {
@@ -381,6 +501,12 @@ const SingleDocsetSearch = (props: { url: string }) => {
       setSearchIndex(buildSearchIndex(indexItems));
     }
   }, [indexItems]);
+
+  useEffect(() => {
+    if (indexItems) {
+      setFuseSearchIndex(buildFuseSearchIndex(indexItems));
+    }
+  });
 
   const onArrowUp = () => {
     if (results.length > 0) {
@@ -451,9 +577,27 @@ const SingleDocsetSearch = (props: { url: string }) => {
             value={inputValue}
             disabled={!searchIndex}
             placeholder={searchIndex ? "Search..." : "Loading..."}
+            ref={inputElement}
             onFocus={(event: FocusEvent) => {
               const input = event.target as HTMLInputElement;
               input.classList.toggle("b--blue");
+              console.log({
+                fuseSearchIndex: fuseSearchIndex?.search(input.value)
+              });
+
+              debouncedSearch(searchIndex, indexItems, input.value)
+                .then(results => {
+                  if (results) {
+                    setResults(results);
+                  } else {
+                    setResults([]);
+                  }
+
+                  if (!showResults) {
+                    setShowResults(true);
+                  }
+                })
+                .catch(console.error);
             }}
             onBlur={(event: FocusEvent) => {
               const input = event.target as HTMLInputElement;
@@ -463,7 +607,11 @@ const SingleDocsetSearch = (props: { url: string }) => {
               const input = event.target as HTMLInputElement;
 
               if (event.key === "Escape") {
-                setShowResults(false);
+                if (showResults) {
+                  setShowResults(false);
+                } else {
+                  input.blur();
+                }
               } else if (event.key === "ArrowUp") {
                 event.preventDefault(); // prevents caret from moving in input field
                 !showResults && setShowResults(true);
@@ -482,18 +630,15 @@ const SingleDocsetSearch = (props: { url: string }) => {
                         results[selectedIndex].indexItem.path
                     );
 
-                    if (currentURL.toString() != redirectTo.toString()) {
-                      console.log("assigning!", {
-                        pathname: currentURL,
-                        redirectTo
-                      });
+                    const params = redirectTo.searchParams;
+                    params.set("q", input.value);
+                    redirectTo.search = params.toString();
 
-                      const params = redirectTo.searchParams;
-                      params.set("q", input.value);
-                      redirectTo.search = params.toString();
+                    if (currentURL.href !== redirectTo.href) {
                       window.location.assign(redirectTo.toString());
                     }
                     setShowResults(false);
+                    input.blur();
                   }
                 } else {
                   setShowResults(true);
@@ -509,6 +654,9 @@ const SingleDocsetSearch = (props: { url: string }) => {
               if (input.value.length < 3) {
                 setResults([]);
               } else {
+                console.log({
+                  fuseSearchIndex: fuseSearchIndex?.search(input.value)
+                });
                 debouncedSearch(searchIndex, indexItems, input.value)
                   .then(results => {
                     if (results) {
