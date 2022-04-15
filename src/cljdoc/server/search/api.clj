@@ -1,48 +1,29 @@
 (ns cljdoc.server.search.api
   "Index and search Maven/Clojars artifacts.
 
-  Requirements:
-   1. Prioritize artifact id >= group id > description.
-   2. Boost if match both in artifact id and group id, such as in 're-frame:re-frame'.
-   3. Boost the shortest match.
-   4. Prefix search - not necessary to type the whole name, e.g. 'concord' -> 'concordia'.
-   5. Word search - match even just a single word from the name, e.g. 'http' -> 'clj-http' for artifact-id
-     and 'nervous' -> 'io.nervous' from the group-id. But match the whole thing too, e.g.
-     'clj-nyam' -> 1. 'clj-nyam' 2. 'nyam'. Especially important for names like 're-frame' where - is an
-     integral part of the name.
-   6. Boost by download count so that if multiple artifacts with similar score, the most popular ones come first.
-   7. (?) Most similar match when no direct one - if I search for 'clj-http2' but there is no such package, only 'http2',
-      I want to get 'http2' back despite the fact there is no 'clj' in it.
+   Design goals:
+   1. Prefer matches in artifact id and group id over blurb.
+   2. Prefer an exact match in artifact id and/or group id over partial matches
+   3. Match anywhere in text, ex. `corfield` matches `seancorfield`, `cow` matches `scowl`, etc.
+   4. Boost by clojars download count so that if multiple artifacts with similar score, the most popular ones come first.
 
   Examples:
-   conc -> clj-concordion
-   ring -> ring:ring-core
-   clojure -> org.clojure:clojure, org.clojure:clojurescript
+   conco -> clj-concordion
+   ring -> ring
+   org.clojure -> org.clojure:clojure, org.clojure:clojurescript
    nyam -> clj-nyam
-   re-frame -> re-frame with re-frame:re-frame first (even if disregarding download count)
-   frame -> re-frame:re-frame
+   re-frame -> re-frame with re-frame:re-frame first
+   frame -> licaltown/frame (because exact match weighs heavy) then later re-frame:re-frame
    RiNg -> ring
-   nervous ->io.nervous:* artifacts
-
-  Decisions:
-   1. Search each field individually so that we can boost artifact-id > group-id > description.
-   2. Don't use RegexpQuery by default, i.e. 'clj-http' -> '.*clj-http.*' because:
-      a) I'm not sure whether it is good w.r.t. our scoring preferences - prefer the shortest match,
-         prefer to match at word start rather than its middle
-      b) Tokenizing the names and description makes it possible to find similar artifacts when no direct match.
-      c) Prepending '.*' (so we can match 'http' -> 'clj-http') makes the query slow (and we run it on 3 fields);
-         but maybe not relevant with our data set size?
-   3. Break names at '.', '-' so that we can search for their meaningful parts, see #5 above.
-   4. Use PrefixQuery so that the whole name does not need to be typed.
-   5. Add boost to artifact id then group id to support req. 1.
-   6. Include '-raw' fields for group, artifact so that we can boost exact matches.
-  "
+   RèWRïTÉ -> rewrite-clj
+   nervous ->io.nervous:* artifacts"
   (:require
    [cljdoc.server.search.search :as search]
    [tea-time.core :as tt]
    [clojure.tools.logging :as log]
    [integrant.core :as ig])
-  (:import (java.util.concurrent TimeUnit)))
+  (:import (java.util.concurrent TimeUnit)
+           (org.apache.lucene.store Directory)))
 
 (defprotocol ISearcher
   ;; We use a protocol so that we can create once the datatype implementing it and
@@ -51,30 +32,39 @@
   "Index and search artifacts."
   (all-docs [_] "Return all the documents, with all the version")
   (index-artifact [_ artifact])
-  (search [_ query])
-  (suggest [_ query] "Provides suggestions for auto-completing the search terms the user is typing."))
+  (search [_ query] "Supports web app libraries search")
+  (suggest [_ query] "Supports OpenSearch libraries suggest search."))
 
-(defrecord Searcher [index-dir]
+(defrecord Searcher [clojars-stats ^Directory index]
   ISearcher
   (all-docs [_]
-    (search/all-docs index-dir))
+    (search/all-docs index))
   (index-artifact [_ artifact]
-    (search/index-artifact index-dir artifact))
+    (search/index! clojars-stats index [artifact]))
   (search [_ query]
-    (search/search index-dir query))
+    (search/search index query))
   (suggest [_ query]
-    (search/suggest index-dir query)))
+    (search/suggest index query)))
 
-(defmethod ig/init-key :cljdoc/searcher [_ {:keys [index-dir enable-indexer?] :or {enable-indexer? true}}]
-  (map->Searcher {:index-dir        index-dir
-                  :artifact-indexer (when enable-indexer?
-                                      (log/info "Starting ArtifactIndexer")
-                                      (tt/every! (.toSeconds TimeUnit/HOURS 1) #(search/download-and-index! index-dir)))}))
+(defmethod ig/init-key :cljdoc/searcher [k {:keys [clojars-stats index-factory index-dir enable-indexer?] :or {enable-indexer? true}}]
+  (log/info "Starting" k)
+  (let [index (if index-factory ;; to support unit testing
+                (index-factory)
+                (search/disk-index index-dir))]
+    (map->Searcher {:index index
+                    :clojars-stats clojars-stats
+                    :artifact-indexer (when enable-indexer?
+                                        (log/info "Starting ArtifactIndexer")
+                                        (tt/every! (.toSeconds TimeUnit/HOURS 1)
+                                                   #(search/download-and-index! clojars-stats index)))})))
 
-(defmethod ig/halt-key! :cljdoc/searcher [_ searcher]
-  (when-let [indexer (:artifact-indexer searcher)]
+(defmethod ig/halt-key! :cljdoc/searcher [k {:keys [artifact-indexer index] :as _searcher}]
+  (log/info "Stopping" k)
+  (when artifact-indexer
     (log/info "Stopping ArtifactIndexer")
-    (tt/cancel! indexer)))
+    (tt/cancel! artifact-indexer))
+  (when index
+    (.close index)))
 
 (comment
 
