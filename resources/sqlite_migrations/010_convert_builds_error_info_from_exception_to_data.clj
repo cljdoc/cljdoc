@@ -1,4 +1,4 @@
-(ns migrations.010-convert-builds-error-info-from-exception-to-data
+(ns sqlite-migrations.010-convert-builds-error-info-from-exception-to-data
   "Adds new error_info_map column to builds table leaving existing error_info column to support
    reversion to old code if necessary."
   (:require [clojure.java.jdbc :as jdbc]

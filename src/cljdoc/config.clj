@@ -53,6 +53,17 @@
   ([] (data-dir (config)))
   ([config] (get-in config [:cljdoc/server :dir])))
 
+(defn postgres-db
+  [config]                                                  ;TODO use config for host etc.
+  {:dbtype     "postgresql"
+   :dbname     "cljdoc"
+   :host       "localhost"
+   :user       "postgres"
+   :password   "pass"
+   :ssl        false                                        ;TODO switch to true
+   :sslfactory "org.postgresql.ssl.NonValidatingFactory"
+   :migrations-dir "postgres_migrations"})
+
 (defn db
   [config]
   {:classname "org.sqlite.JDBC",
@@ -69,7 +80,8 @@
    ;; this is the easiest way to set them. In a migration
    ;; they fail because they return results.
    :synchronous "NORMAL"
-   :journal_mode "WAL"})
+   :journal_mode "WAL"
+   :migrations-dir "sqlite_migrations"})
 
 (defn cache [config]
   {:table "cache"
