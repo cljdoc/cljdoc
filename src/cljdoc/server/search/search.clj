@@ -30,10 +30,10 @@
 
 (set! *warn-on-reflection* true)
 
-(defn- ^String artifact->index-id [{:keys [artifact-id group-id]}]
+(defn- artifact->index-id ^String [{:keys [artifact-id group-id]}]
   (str group-id ":" artifact-id))
 
-(defn- ^Field unsearchable-stored-field [^String name ^String value]
+(defn- unsearchable-stored-field ^Field [^String name ^String value]
   (let [type (doto (FieldType.)
                (.setOmitNorms true)
                (.setIndexOptions (IndexOptions/NONE))
@@ -96,14 +96,14 @@
         first-sentence
         (truncate-at-word max-chars))))
 
-(defn- ^Iterable artifact->doc
-  [{:keys [artifact-id
-           group-id
-           description
-           origin
-           versions]
-    :as artifact}
-   popularity]
+(defn- artifact->doc
+  ^Iterable [{:keys [artifact-id
+                     group-id
+                     description
+                     origin
+                     versions]
+              :as artifact}
+             popularity]
   (doto (Document.)
     (.add (string-field "id" (artifact->index-id artifact))) ;; lucene unique id
     (cond-> origin
@@ -180,25 +180,25 @@
         discount-overlaps true]
     (BM25Similarity. k1 b discount-overlaps)))
 
-(defn- ^Tokenizer simple-tokenizer
+(defn- simple-tokenizer
   "Returns tokenizer suitable group-id and artifact-id and probably also pom descriptions.
   Effectively splits on punctuation or whitespace.
   No special attention paid to special characters at this time.
   Not sure if there is any benefit to splitting when alpha <-> numeric, so not bothering at this time (ex. lee42read will remain a single token)."
-  []
+  ^Tokenizer []
   (proxy [CharTokenizer] []
     (isTokenChar [^long c]
       (Character/isLetterOrDigit c))))
 
-(defn- ^Tokenizer ngram-tokenizer
-  []
+(defn- ngram-tokenizer
+  ^Tokenizer []
   (let [min-gram 1
         max-gram 80]
     (proxy [NGramTokenizer] [min-gram max-gram]
       (isTokenChar [^long c]
         (Character/isLetterOrDigit c)))))
 
-(defn- ^Analyzer artifact-analyzer
+(defn- artifact-analyzer
   "Returns analyzer for artifacts, `usage` must be:
   - `:search` for search time analysis
   - `:index` for index time analysis
@@ -210,7 +210,7 @@
   BTW: We use an ngram tokenizer rather than an ngram filter to allow to allow lucene
   to store positions of each ngram in its index. This supports highlighting of fragments
   rather than entire tokens."
-  [usage]
+  ^Analyzer [usage]
   (proxy [Analyzer] []
     (createComponents [_fieldname]
       (let [tok (case usage
@@ -265,7 +265,7 @@
      (repeatedly
       #(when (.incrementToken stream) (str attr))))))
 
-(defn- ^Query term-query [field ^String value]
+(defn- term-query ^Query [field ^String value]
   (-> field
       name
       (term value)
@@ -274,14 +274,14 @@
 (def ^:private boolean-ops {:should BooleanClause$Occur/SHOULD
                             :must BooleanClause$Occur/MUST})
 
-(defn- ^Query boolean-query [op queries]
+(defn- boolean-query ^Query [op queries]
   (let [^BooleanQuery$Builder builder (->> queries
                                            (reduce (fn [^BooleanQuery$Builder builder q]
                                                      (.add builder q (op boolean-ops)))
                                                    (BooleanQuery$Builder.)))]
     (.build builder)))
 
-(defn- ^Query boost [query val]
+(defn- boost ^Query [query val]
   (BoostQuery. query val))
 
 (defn- exact-match-query [query-text]
@@ -307,8 +307,8 @@
       (boolean-query :must clauses)
       (first clauses))))
 
-(defn- ^Query parse-query
-  [query-text]
+(defn- parse-query
+  ^Query [query-text]
   (let [exact (exact-match-query query-text)
         free (freetext-match-query query-text)
         free (when free (FunctionScoreQuery/boostByValue free (DoubleValuesSource/fromDoubleField "_score")))
@@ -331,7 +331,7 @@
   [^TopDocs topdocs]
   (-> topdocs (.-totalHits) (.value)))
 
-(defn- ^Document matched-doc [^IndexSearcher searcher ^ScoreDoc scoredoc]
+(defn- matched-doc ^Document [^IndexSearcher searcher ^ScoreDoc scoredoc]
   (.doc searcher (hitdoc-num scoredoc)))
 
 (defn- doc->artifact [^Document doc score]
