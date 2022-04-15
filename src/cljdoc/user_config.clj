@@ -28,6 +28,9 @@
 (defn include-namespaces-from-deps [config-edn project]
   (:cljdoc/include-namespaces-from-dependencies (get-project config-edn project)))
 
+(defn languages [config-edn project]
+  (:cljdoc/languages (get-project config-edn project)))
+
 (comment
   (def d
     '{metosin/reitit {:cljdoc.doc/tree [["Introduction" {:file "intro.md"}]]}

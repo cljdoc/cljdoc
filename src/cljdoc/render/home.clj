@@ -8,9 +8,10 @@
 
 (defn footer []
   [:div.b--light-gray.pa4.tc.f4.fw3
-   [:p "cljdoc is created by its " [:a.link.blue {:href (links/github-url :contributors)} "contributors"]
-    ". Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on "
-    [:a.link.blue {:href "http://clojurians.net/"} "Slack"] ". Report issues on " [:a.link.blue {:href (links/github-url :home)} "GitHub"] "."]
+   [:p "cljdoc is created and maintained by its " [:a.link.blue {:href (links/github-url :contributors)} "contributors"] "."]
+   [:p "Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on " [:a.link.blue {:href "http://clojurians.net/"} "Slack"]
+    ". Report issues on " [:a.link.blue {:href (links/github-url :home)} "GitHub"]
+    ". Check out " [:a.link.blue {:href "https://clojure.org/community/resources"} "other Clojure resources"] "."]
    [:p "Support cljdoc on " [:a.link.blue {:href "https://opencollective.com/cljdoc"} "OpenCollective"] "."]])
 
 (defn feature-block [{:keys [title text link link-text]}]

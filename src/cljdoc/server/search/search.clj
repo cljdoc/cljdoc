@@ -1,23 +1,159 @@
-;; TODO Take download count into account - see "Integrating field values into the score" at https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/search/package-summary.html#changingScoring
 (ns cljdoc.server.search.search
-  "Search the Lucene index for artifacts best matching a query.
+  "Index and search the Lucene index for artifacts best matching a query.
 
   ## Troubleshooting and tuning tips ##
 
   * Use `explain-top-n` to get a detailed analysis of the score of the top N results for a query
   * Print out a Query - it's toString shows nicely what is it composed of, boosts, etc.
   "
-  (:require [clojure.string :as string])
-  (:import (org.apache.lucene.analysis TokenStream)
-           (org.apache.lucene.analysis.standard StandardAnalyzer)
-           (org.apache.lucene.document Document)
-           (org.apache.lucene.index DirectoryReader Term)
-           (org.apache.lucene.search Query IndexSearcher TopDocs ScoreDoc BooleanClause$Occur PrefixQuery BoostQuery BooleanQuery$Builder TermQuery Query MatchAllDocsQuery)
-           (org.apache.lucene.store FSDirectory)
-           (java.nio.file Paths)))
+  (:require
+   [cljdoc.server.search.clojars :as clojars]
+   [cljdoc.server.search.maven-central :as maven-central]
+   [cljdoc.spec :as cljdoc-spec]
+   [clojure.spec.alpha :as s]
+   [clojure.string :as string]
+   [clojure.tools.logging :as log])
+  (:import
+   (java.nio.file Paths)
+   (org.apache.lucene.analysis CharArraySet TokenStream)
+   (org.apache.lucene.analysis.core StopAnalyzer)
+   (org.apache.lucene.analysis.miscellaneous PerFieldAnalyzerWrapper)
+   (org.apache.lucene.analysis.standard StandardAnalyzer)
+   (org.apache.lucene.document Document Field FieldType Field$Store StringField TextField)
+   (org.apache.lucene.index DirectoryReader IndexOptions IndexWriter IndexWriterConfig IndexWriterConfig$OpenMode Term)
+   (org.apache.lucene.search BooleanQuery$Builder BooleanClause$Occur BoostQuery IndexSearcher MatchAllDocsQuery PrefixQuery Query ScoreDoc TermQuery TopDocs)
+   (org.apache.lucene.store FSDirectory)))
 
-(defn ^FSDirectory fsdir [index-dir] ;; BEWARE: Duplicated in artifact-indexer and search ns
+(defn ^FSDirectory fsdir [index-dir]
   (FSDirectory/open (Paths/get index-dir (into-array String nil))))
+
+(defn ^String artifact->id [{:keys [artifact-id group-id]}]
+  (str group-id ":" artifact-id))
+
+(defn unsearchable-stored-field [^String name ^String value]
+  (let [type (doto (FieldType.)
+               (.setOmitNorms true)
+               (.setIndexOptions (IndexOptions/NONE))
+               (.setTokenized false)
+               (.setStored true)
+               (.freeze))]
+    (Field.
+     name
+     value
+     type)))
+
+(defn add-versions [doc versions]
+  (run!
+   #(.add doc
+          (unsearchable-stored-field "versions" %))
+   versions))
+
+(defn- trim-inner-ws [s]
+  (string/replace s #"\s+" " "))
+
+(defn- first-sentence [s]
+  (if (string/includes? s ". ")
+    (string/replace s #"(.*?\.) .*" "$1")
+    s))
+
+(defn- truncate-at-word [s max-chars]
+  (let [len (count s)]
+    (if (<= len max-chars)
+      s
+      (if-let [sp-ndx (string/last-index-of s " " max-chars)]
+        (subs s 0 sp-ndx)
+        (subs s 0 max-chars)))))
+
+(defn- description->blurb
+  "Return blurb for description `s`.
+  Strategy:
+  - trim whitespace
+  - then take first sentence if there seems to be one
+  - then truncate to a maximum length of 200 chars respecting word boundary"
+  [s]
+  (let [max-chars 200]
+    (-> s
+        string/trim
+        trim-inner-ws
+        first-sentence
+        (truncate-at-word max-chars))))
+
+(defn ^Iterable artifact->doc
+  [{:keys [^String artifact-id
+           ^String group-id
+           ^String description
+           ^String origin
+           versions]
+    :or {description "", origin "N/A"}
+    :as artifact}]
+  (doto (Document.)
+    ;; *StringField* is indexed but not tokenized, term freq. or positional info not indexed
+    ;; id: We need a unique identifier for each doc so that we can use updateDocument
+    (.add (StringField. "id" (artifact->id artifact) Field$Store/YES))
+    (.add (StringField. "origin" ^String (name origin) Field$Store/YES))
+    (.add (TextField. "artifact-id" artifact-id Field$Store/YES))
+    ;; Keep also un-tokenized version of the id for RegExp searches (Better to replace with
+    ;; a custom tokenizer that produces both the original + individual tokens)
+    (.add (StringField. "artifact-id-raw" artifact-id Field$Store/YES))
+    (.add (TextField. "group-id" group-id Field$Store/YES))
+    (.add (TextField. "group-id-packages" group-id Field$Store/YES))
+    (.add (StringField. "group-id-raw" group-id Field$Store/YES))
+    (cond-> description
+      (.add (TextField. "blurb" (description->blurb description) Field$Store/YES)))
+    (add-versions versions)))
+
+(defn index-artifacts [^IndexWriter idx-writer artifacts create?]
+  (run!
+   (fn [artifact]
+     (if create?
+       (.addDocument idx-writer (artifact->doc artifact))
+       (.updateDocument
+        idx-writer
+        (Term. "id" (artifact->id artifact))
+        (artifact->doc artifact))))
+
+   artifacts))
+
+(defn mk-indexing-analyzer []
+  (PerFieldAnalyzerWrapper.
+   (StandardAnalyzer.)
+    ;; StandardAnalyzer does not break at . as in 'org.clojure':
+   {"group-id"          (StopAnalyzer. (CharArraySet. ["." "-"] true))
+     ;; Group ID with token per package component, not breaking at '-' this
+     ;; time so that 'clojure' will match 'org.clojure' better than 'org-clojure':
+    "group-id-packages" (StopAnalyzer. (CharArraySet. ["."] true))}))
+
+(defn index! [^String index-dir artifacts]
+  (let [create?   false ;; => update, see how we use `.updateDocument` above
+        analyzer (mk-indexing-analyzer)
+        iw-cfg   (doto (IndexWriterConfig. analyzer)
+                   (.setOpenMode (if create?
+                                   IndexWriterConfig$OpenMode/CREATE
+                                   IndexWriterConfig$OpenMode/CREATE_OR_APPEND))
+                   ;; Increase RAM for speed up. BEWARE: Increase also JVM heap size: -Xmx512m or -Xmx1g
+                   (.setRAMBufferSizeMB 256.0))
+        idx-dir  (fsdir index-dir)]
+    (with-open [idx-writer (IndexWriter. idx-dir iw-cfg)]
+      (index-artifacts
+       idx-writer
+       artifacts
+       create?))))
+
+(defn download-and-index!
+  ([^String index-dir] (download-and-index! index-dir false))
+  ([^String index-dir force?]
+   (log/info "Download & index starting...")
+   (let [result (index! index-dir (into
+                                   (clojars/load-clojars-artifacts force?)
+                                   (maven-central/load-maven-central-artifacts force?)))]
+     (log/info "Finished downloading & indexing.")
+     result)))
+
+(defn index-artifact [^String index-dir artifact]
+  (index! index-dir [artifact]))
+
+(s/fdef index-artifact
+  :args (s/cat :index-dir string? :artifact ::cljdoc-spec/artifact))
 
 (defn tokenize
   "Split search text into tokens. It is reasonable to use the same tokenization <> analyzer
@@ -32,15 +168,15 @@
       (repeatedly
        #(when (.incrementToken stream) (str attr)))))))
 
-(def search-fields [:artifact-id :group-id :group-id-packages :description])
+(def search-fields [:artifact-id :group-id :group-id-packages :blurb])
 
 (def boosts
-  "Boosts for selected artifact fields (artifact id > group id > description
+  "Boosts for selected artifact fields (artifact id > group id > blurb
    The numbers were determined somewhat randomly but seem to work well enough."
   {:artifact-id       3
    :group-id-packages 3
    :group-id          2
-   :description       1})
+   :blurb             1})
 
 (defn raw-field [field]
   (get {:artifact-id :artifact-id-raw
@@ -166,19 +302,32 @@
   [^String index-dir]
   (.getVersion (DirectoryReader/open (fsdir index-dir))))
 
+(defn- snapshot? [version]
+  (string/ends-with? version "-SNAPSHOT"))
+
 (defn format-results
-  "Format search results into what the frontend expects"
+  "Format search results into what the frontend expects.
+  One lib can return two rows if both a release and snapshot versions exist.
+  Snapshot version only returned if greater than current release version (or if there are no release versions)."
   [hits-cnt docs]
   {:count   hits-cnt
-   :results (map
-             (fn [{:keys [^Document doc score]}]
-               {:artifact-id (.get doc "artifact-id")
-                :group-id    (.get doc "group-id")
-                :description (.get doc "description")
-                 ;:origin (.get doc "origin")
-                 ;; The first version appears to be the latest so this is OK:
-                :version (.get doc "versions")
-                :score       score})
+   :results (reduce
+             (fn [acc {:keys [^Document doc score]}]
+               (let
+                [versions (.getValues doc "versions")
+                 latest-version (first versions)
+                 [release-version snapshot-version] (if (snapshot? latest-version)
+                                                      [(some #(when (not (snapshot? %)) %) versions) latest-version]
+                                                      [latest-version nil])
+                 lib {:artifact-id (.get doc "artifact-id")
+                      :group-id    (.get doc "group-id")
+                      :blurb       (.get doc "blurb")
+                      :origin      (.get doc "origin")
+                      :score       score}]
+                 (cond-> acc
+                   release-version (conj (assoc lib :version release-version))
+                   snapshot-version (conj (assoc lib :version snapshot-version)))))
+             []
              docs)})
 
 (defn search [^String index-dir ^String query-in]
@@ -215,12 +364,8 @@
                        (let [doc (.doc searcher (.-doc sdoc))]
                          {:artifact-id (.get doc "artifact-id")
                           :group-id    (.get doc "group-id")
-                            ;:description (.get doc "description")
-                            ;:origin (.get doc "origin")
-                            ;; The first version appears to be the latest so this is OK:
+                          ;; The first version appears to be the latest so this is OK:
                           :versions (->> (.getValues doc "versions")
-                                           ;; Weird version: libpython-clj 1.12, cirru:writer 0.1.4-a4, -betaN, -alphaN
-                                           ;; v20150729-0, v4.1.1, zeta.1.2.1, v1.9.49-184-g75528b51, 0.0-2371-16, -RCN
                                          (remove #(string/ends-with? % "-SNAPSHOT"))
                                          (into []))}))
 
@@ -247,13 +392,16 @@
                     (str
                      (.get doc "group-id")
                      "/"
-                     (.get doc "artifact-id")))))))]
+                     (.get doc "artifact-id")
+                     ;; without this trailing space browsers (Firefox for one)
+                     ;; will skip the suggestion because it thinks the / char makes
+                     ;; it looks like a URL
+                     " "))))))]
     [query-in suggestions]))
 
 (defn explain-top-n
   "Debugging function to print out the score and its explanation of the
-   top `n` matches for the given query.
-   "
+   top `n` matches for the given query."
   ([index-dir query-in] (explain-top-n 5 index-dir query-in))
   ([n index-dir query-in]
    (search->results
@@ -267,21 +415,24 @@
 
 (comment
 
-  (cljdoc.server.search.artifact-indexer/download-and-index! "data/index" :force)
+  (download-and-index! "data/index-lucene91" :force)
 
-  (search "data/index" "metosin muunta")
+  (search "data/index-lucene91" "metosin muunta")
   ;; FIXME metosin:muuntaja comes 6th because the partial match on 'muuntaja' is
   ;; less worth than 1) double match on metosin (in a, g) and 2) match on g=metosin
   ;; and a random, rare artifact name => with high idf
-  (explain-top-n 6 "data/index" "metosin muunta")
+  (explain-top-n 6 "data/index-lucene91" "metosin muunta")
 
-  (all-docs "data/index")
+  (all-docs "data/index-lucene91")
 
-  (search "data/index" "re-frame")
-  (search "data/index" "clojure")
-  (search "data/index" "testit")
-  (search "data/index" "ring")
-  (search "data/index" "conc")
-  (explain-top-n 3 "data/index" "clojure")
+  (search "data/index-lucene91" "re-frame")
+  (search "data/index-lucene91" "clojure")
+  (search "data/index-lucene91" "testit")
+  (search "data/index-lucene91" "ring")
+  (search "data/index-lucene91" "conc")
+
+  (search "data/index-lucene91" "clj-kondo")
+
+  (explain-top-n 3 "data/index-lucene91" "clojure")
 
   nil)

@@ -18,6 +18,7 @@
         cfg {:cljdoc/server {:port (+ 8000 (rand-int 1000))
                              :analysis-service :local
                              :autobuild-clojars-releases? false
+                             :clojars-stats-retention-days 5
                              :dir dir}}]
     (assert (not (.exists (io/file dir)))
             (format "test data directory exists, please clear before running tests: %s" dir))

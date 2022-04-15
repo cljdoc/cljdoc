@@ -39,7 +39,6 @@
   "
   (:require
    [cljdoc.server.search.search :as search]
-   [cljdoc.server.search.artifact-indexer :as indexer]
    [tea-time.core :as tt]
    [clojure.tools.logging :as log]
    [integrant.core :as ig])
@@ -60,7 +59,7 @@
   (all-docs [_]
     (search/all-docs index-dir))
   (index-artifact [_ artifact]
-    (indexer/index-artifact index-dir artifact))
+    (search/index-artifact index-dir artifact))
   (search [_ query]
     (search/search index-dir query))
   (suggest [_ query]
@@ -70,7 +69,7 @@
   (map->Searcher {:index-dir        index-dir
                   :artifact-indexer (when enable-indexer?
                                       (log/info "Starting ArtifactIndexer")
-                                      (tt/every! (.toSeconds TimeUnit/HOURS 1) #(indexer/download-and-index! index-dir)))}))
+                                      (tt/every! (.toSeconds TimeUnit/HOURS 1) #(search/download-and-index! index-dir)))}))
 
 (defmethod ig/halt-key! :cljdoc/searcher [_ searcher]
   (when-let [indexer (:artifact-indexer searcher)]

@@ -1,46 +1,64 @@
-/** HTML elements **/
+/*
+ * General HTML elements
+ */
 
-code, pre {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+code,
+pre {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
+    monospace;
 }
 
-/** Tachyons style helpers ---------------------------------- **/
+/*
+ * Tachyons extras
+ */
 
 .f7 {
   font-size: 12px;
 }
 
-/** Markdown / AsciiDoc ------------------------------------------------ **/
-/** Most of this should be implemented via Visitors when rendering Markdown I believe **/
+/* Markdown / AsciiDoc
+ *
+ * Class legend
+ *
+ * Div containing markdown will have
+ * - cljdoc-article - for articles containers only (not docstrings)
+ * - cljdoc-markup - for all cljdoc rendered markup containers (docstrings and articles)
+ * - markdown - for html rendered from CommonMark
+ * - asciidoc - for html rendered from AsciiDoc
+ *
+ * Much of the the AsciiDoc CSS is carefully poached from:
+ * https://raw.githubusercontent.com/asciidoctor/asciidoctor/main/src/stylesheets/asciidoctor.css
+ * We try to take only what we need.
+*/
 
-.cljdoc-article a, .markdown a {
-  /* Extra .markdown a is added because links may also appear in docstrings */
+.cljdoc-markup a {
   text-decoration: none;
   color: #357edd;
 }
 
-.cljdoc-article hr {
-    height: .25em;
-    padding: 0;
-    margin: 24px 0;
-    background-color: #e1e4e8;
-    border: 0;
+.cljdoc-markup hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: #e1e4e8;
+  border: 0;
 }
 
-
 .markdown a.md-anchor {
-  color: black
+  color: black;
 }
 
 .markdown li + li {
-  margin-top: .25em;
+  margin-top: 0.25em;
 }
 
 .markdown img[align="right"] {
-    padding-left: 20px;
+  padding-left: 20px;
 }
 
-.markdown pre, .literalblock > .content > pre, .listingblock > .content > pre {
+.markdown pre,
+.literalblock > .content > pre,
+.asciidoc .listingblock > .content > pre {
   padding: 1rem;
   background-color: rgb(246, 248, 250);
   border-radius: 3px;
@@ -48,7 +66,8 @@ code, pre {
   overflow-x: auto;
 }
 
-.markdown code, .asciidoc :not(.highlight) > code {
+.markdown code,
+.asciidoc :not(.highlight) > code {
   padding: 0.2em 0.4em;
   margin: 0;
   font-size: 85%;
@@ -62,6 +81,35 @@ code, pre {
   background-color: transparent;
 }
 
+.asciidoc :not(pre).nobreak {
+  word-wrap: normal;
+}
+
+.asciidoc :not(pre).nowrap {
+  white-space: nowrap;
+}
+
+.asciidoc :not(pre).pre-wrap {
+  white-space: pre-wrap;
+}
+
+.asciidoc pre code,
+.asciidoc pre pre {
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.asciidoc pre > code {
+  display: block;
+}
+
+.asciidoc pre.nowrap,
+.asciidoc pre.nowrap pre {
+  white-space: pre;
+  word-wrap: normal;
+}
+
 .markdown blockquote {
   margin: 0;
   padding: 0 1em;
@@ -69,30 +117,217 @@ code, pre {
   border-left: 0.25em solid #dfe2e5;
 }
 
-.markdown table {
+.cljdoc-markup table {
   border-spacing: 0;
   border-collapse: collapse;
 }
 
-.markdown table tr {
-  border-top: 1px solid #c6cbd1;
+.cljdoc-markup table thead,
+.cljdoc-markup table tfoot {
+  background: rgba(0, 0, 0, 0.025);
 }
 
-.markdown table th, .markdown table td {
+.asciidoc table {
+  margin-bottom: 1.25em;
+}
+
+.asciidoc table,
+.asciidoc table th,
+.asciidoc table tr,
+.asciidoc table td {
+  border: 0 solid rgba(0, 0, 0, 0.15);
+}
+
+.markdown table th,
+.markdown table td {
+  border: 1px solid rgba(0, 0, 0, 0.15);
   padding: 6px 13px;
-  border: 1px solid #dfe2e5;
 }
 
-.markdown table tr:nth-child(2n) {
-  background-color: #f6f8fa;
+.asciidoc .stretch {
+  width: 100%;
 }
 
-/** Asciidoc tip / note blocks **/
+.asciidoc p,
+.asciidoc th,
+.asciidoc td {
+  margin: 0;
+  padding: 0;
+}
+
+.asciidoc p {
+  margin-bottom: 1.25rem;
+}
+
+.asciidoc .subheader,
+.asciidoc .admonitionblock td.content > .title,
+.asciidoc .audioblock > .title,
+.asciidoc .exampleblock > .title,
+.asciidoc .imageblock > .title,
+.asciidoc .listingblock > .title,
+.asciidoc .literalblock > .title,
+.asciidoc .stemblock > .title,
+.asciidoc .openblock > .title,
+.asciidoc .paragraph > .title,
+.asciidoc .quoteblock > .title,
+.asciidoc table.tableblock > .title,
+.asciidoc .verseblock > .title,
+.asciidoc .videoblock > .title,
+.asciidoc .dlist > .title,
+.asciidoc .olist > .title,
+.asciidoc .ulist > .title,
+.asciidoc .qlist > .title,
+.asciidoc .hdlist > .title {
+  line-height: 1.45;
+  color: #333;
+  font-weight: 400;
+  font-style: italic;
+  margin-top: 0;
+  margin-bottom: 0.25em;
+}
+
+.asciidoc table thead tr th,
+.asciidoc table thead tr td,
+.asciidoc table tfoot tr th,
+.asciidoc table tfoot tr td {
+  padding: 0.5em 0.625em 0.625em;
+  font-size: inherit;
+  color: rgb(0 0 0 / 0.8);
+  text-align: left;
+}
+
+.asciidoc table tr th,
+.asciidoc table tr td {
+  padding: 0.5625em 0.625em;
+  font-size: inherit;
+  color: rgb(0 0 0 / 0.8);
+}
+
+.asciidoc table.tableblock.fit-content > caption.title {
+  white-space: nowrap;
+  width: 0;
+}
+
+.asciidoc p.tableblock:last-child {
+  margin-bottom: 0;
+}
+
+.asciidoc td.tableblock > .content {
+  margin-bottom: 1.25em;
+  word-wrap: anywhere;
+}
+
+.asciidoc td.tableblock > .content > :last-child {
+  margin-bottom: -1.25em;
+}
+
+.asciidoc table.grid-all > * > tr > * {
+  border-width: 1px;
+}
+
+.asciidoc table.grid-cols > * > tr > * {
+  border-width: 0 1px;
+}
+
+.asciidoc table.grid-rows > * > tr > * {
+  border-width: 1px 0;
+}
+
+.asciidoc table.frame-all {
+  border-width: 1px;
+}
+
+.asciidoc table.frame-ends {
+  border-width: 1px 0;
+}
+
+.asciidoc table.frame-sides {
+  border-width: 0 1px;
+}
+
+.asciidoc table.frame-none > colgroup + * > :first-child > *,
+table.frame-sides > colgroup + * > :first-child > * {
+  border-top-width: 0;
+}
+
+.asciidoc table.frame-none > :last-child > :last-child > *,
+.asciidoc table.frame-sides > :last-child > :last-child > * {
+  border-bottom-width: 0;
+}
+
+.asciidoc table.frame-none > * > tr > :first-child,
+.asciidoc table.frame-ends > * > tr > :first-child {
+  border-left-width: 0;
+}
+
+.asciidoc table.frame-none > * > tr > :last-child,
+.asciidoc table.frame-ends > * > tr > :last-child {
+  border-right-width: 0;
+}
+
+.asciidoc th.halign-left,
+.asciidoc td.halign-left {
+  text-align: left;
+}
+
+.asciidoc th.halign-right,
+.asciidoc td.halign-right {
+  text-align: right;
+}
+
+.asciidoc th.halign-center,
+.asciidoc td.halign-center {
+  text-align: center;
+}
+
+.asciidoc th.valign-top,
+.asciidoc td.valign-top {
+  vertical-align: top;
+}
+
+.asciidoc th.valign-bottom,
+.asciidoc td.valign-bottom {
+  vertical-align: bottom;
+}
+
+.asciidoc th.valign-middle,
+.asciidoc td.valign-middle {
+  vertical-align: middle;
+}
+
+.asciidoc table thead th,
+.asciidoc table tfoot th {
+  font-weight: bold;
+}
+
+.asciidoc tbody tr th,
+.asciidoc tbody tr th p,
+.asciidoc tfoot tr th,
+.asciidoc tfoot tr th p {
+  color: rgb(0 0 0 / 0.8);
+  font-weight: bold;
+}
+
+.asciidoc p.tableblock > code:only-child {
+  background: none;
+  padding: 0;
+}
+
+.asciidoc p.tableblock {
+  font-size: 1em;
+}
+
+/* Asciidoc admonition tip/note blocks */
 
 .asciidoc .admonitionblock {
   padding: 1rem;
   border-radius: 3px;
   border-left: 3px solid;
+  margin-bottom: 1.25em;
+}
+
+.asciidoc .admonitionblock table {
+  margin: 0;
 }
 
 .asciidoc .admonitionblock .icon {
@@ -101,6 +336,10 @@ code, pre {
   font-size: 0.8rem;
   color: #777;
   font-weight: 600;
+}
+
+.asciidoc .admonitionblock table tr td {
+  padding: 1px;
 }
 
 .asciidoc .admonitionblock .content {
@@ -114,12 +353,12 @@ code, pre {
 
 .asciidoc .admonitionblock.note {
   background-color: #cdecff; /** tachyons light-blue **/
-  border-color: #357edd /** tachyons blue **/
+  border-color: #357edd; /** tachyons blue **/
 }
 
 .asciidoc .admonitionblock.important {
   background-color: #fffceb; /** tachyons washed-yellow **/
-  border-color: #ffd700 /** tachyons yellow **/
+  border-color: #ffd700; /** tachyons yellow **/
 }
 
 .asciidoc .admonitionblock.warning {
@@ -127,71 +366,92 @@ code, pre {
   border-color: #ff725c; /** tachyons light-red **/
 }
 
-/** Scroll Indicator ------------------------------------------------ **/
+/*
+ * Scroll Indicator
+ */
+
 .def-item.scroll-indicator {
   position: relative;
 }
 
 .def-item.scroll-indicator::before {
   border-left: 2px solid rgb(53, 126, 221);
-  content: ' ';
+  content: " ";
   position: absolute;
   top: 0;
   bottom: 0;
   left: -2rem;
 }
 
-/** cljdoc-gist highlighting --------------------------------------- **/
-/** original source: https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css **/
+/*
+ * Highlight.js syntax highlighting
+ *
+ * original source: https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/styles/github-gist.min.css
+ */
 
 .hljs {
-    display: block;
-    /* background: white; */
-    /* padding: 0.5em; */
-    color: #333333;
-    overflow-x: auto
+  display: block;
+  /* background: white; */
+  /* padding: 0.5em; */
+  color: #333333;
+  overflow-x: auto;
 }
 
-.hljs-comment, .hljs-meta {
-    color: #969896
+.hljs-comment,
+.hljs-meta {
+  color: #969896;
 }
 
-.hljs-string, .hljs-variable, .hljs-template-variable, .hljs-strong,
-.hljs-emphasis, .hljs-quote {
-    color: #df5000
+.hljs-string,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-strong,
+.hljs-emphasis,
+.hljs-quote {
+  color: #df5000;
 }
 
-.hljs-keyword, .hljs-selector-tag, .hljs-type {
-    color: #a71d5d
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-type {
+  color: #a71d5d;
 }
 
-.hljs-literal, .hljs-symbol, .hljs-bullet, .hljs-attribute {
-    color: #0086b3
+.hljs-literal,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-attribute {
+  color: #0086b3;
 }
 
-.hljs-section, .hljs-name {
-    color: #63a35c
+.hljs-section,
+.hljs-name {
+  color: #63a35c;
 }
 
 .hljs-tag {
-    color: #333333
+  color: #333333;
 }
 
-.hljs-title, .hljs-attr, .hljs-selector-id, .hljs-selector-class,
-.hljs-selector-attr, .hljs-selector-pseudo {
-    color: #795da3
+.hljs-title,
+.hljs-attr,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: #795da3;
 }
 
 .hljs-addition {
-    color: #55a532;
-    background-color: #eaffea
+  color: #55a532;
+  background-color: #eaffea;
 }
 
 .hljs-deletion {
-    color: #bd2c00;
-    background-color: #ffecec
+  color: #bd2c00;
+  background-color: #ffecec;
 }
 
 .hljs-link {
-    text-decoration: underline
+  text-decoration: underline;
 }

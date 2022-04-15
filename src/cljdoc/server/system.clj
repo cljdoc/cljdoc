@@ -28,7 +28,7 @@
                [{:appender :sentry}])})
 
 (defn index-dir [env-config]
-  (str (cfg/data-dir env-config) "index"))
+  (str (cfg/data-dir env-config) "index-lucene91"))
 
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)]
@@ -36,42 +36,45 @@
       (log/info "Loading extension namespace" ns)
       (require ns))
     (merge
-     {:cljdoc/tea-time         {}
-      :cljdoc/sqlite           {:db-spec (cfg/db env-config)
-                                :dir     (cfg/data-dir env-config)}
+     {:cljdoc/tea-time        {}
+      :cljdoc/sqlite          {:db-spec (cfg/db env-config)
+                               :dir     (cfg/data-dir env-config)}
       :cljdoc/postgres         {:db-spec (cfg/postgres-db env-config)}
-      :cljdoc/cache            (merge (cfg/cache env-config)
-                                      {:cache-dir      (cfg/data-dir env-config)
-                                       :key-prefix     "get-pom-xml"
-                                       :serialize-fn   nippy/freeze
-                                       :deserialize-fn nippy/thaw})
-      :cljdoc/searcher         {:index-dir       (index-dir env-config)
-                                :enable-indexer? (cfg/enable-artifact-indexer? env-config)}
-      :cljdoc/pedestal         {:port             (cfg/get-in env-config [:cljdoc/server :port])
-                                :host             (get-in env-config [:cljdoc/server :host])
-                                :build-tracker    (ig/ref :cljdoc/build-tracker)
-                                :analysis-service (ig/ref :cljdoc/analysis-service)
-                                :storage          (ig/ref :cljdoc/storage)
-                                :cache            (ig/ref :cljdoc/cache)
-                                :searcher         (ig/ref :cljdoc/searcher)}
-      :cljdoc/storage          {:sqlite-spec   (ig/ref :cljdoc/sqlite)
-                                :postgres-spec (ig/ref :cljdoc/postgres)
-                                :active-db     (get-in env-config [:cljdoc/server :active-db])}
-      :cljdoc/build-tracker    {:db-spec (ig/ref :cljdoc/sqlite)} ;TODO move to Postgres
+      :cljdoc/cache           (merge (cfg/cache env-config)
+                                     {:cache-dir      (cfg/data-dir env-config)
+                                      :key-prefix     "get-pom-xml"
+                                      :serialize-fn   nippy/freeze
+                                      :deserialize-fn nippy/thaw})
+      :cljdoc/searcher {:index-dir       (index-dir env-config)
+                        :enable-indexer? (cfg/enable-artifact-indexer? env-config)
+                        :tea-time        (ig/ref :cljdoc/tea-time)}
+      :cljdoc/pedestal {:port             (cfg/get-in env-config [:cljdoc/server :port])
+                        :host             (get-in env-config [:cljdoc/server :host])
+                        :build-tracker    (ig/ref :cljdoc/build-tracker)
+                        :analysis-service (ig/ref :cljdoc/analysis-service)
+                        :storage          (ig/ref :cljdoc/storage)
+                        :cache            (ig/ref :cljdoc/cache)
+                        :searcher         (ig/ref :cljdoc/searcher)}
+      :cljdoc/storage       {:sqlite-spec   (ig/ref :cljdoc/sqlite)
+                             :postgres-spec (ig/ref :cljdoc/postgres)
+                             :active-db     (get-in env-config [:cljdoc/server :active-db])}
+      :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)} ;TODO move to Postgres
       :cljdoc/analysis-service {:service-type ana-service
-                                :opts         (merge
-                                               {:repos (->> (cfg/maven-repositories)
-                                                            (map (fn [{:keys [id url]}] [id {:url url}]))
-                                                            (into {}))}
-                                               (when (= ana-service :circle-ci)
-                                                 (cfg/circle-ci env-config)))}
-      :cljdoc/clojars-stats    {:db-spec        (ig/ref :cljdoc/sqlite)  ;TODO move to Postgres
-                                :retention-days 380}}
+                                :opts (merge
+                                       {:repos (->> (cfg/maven-repositories)
+                                                    (map (fn [{:keys [id url]}] [id {:url url}]))
+                                                    (into {}))}
+                                       (when (= ana-service :circle-ci)
+                                         (cfg/circle-ci env-config)))}
+      :cljdoc/clojars-stats   {:db-spec (ig/ref :cljdoc/sqlite) ;TODO move to Postgres
+                               :retention-days (cfg/get-in env-config [:cljdoc/server :clojars-stats-retention-days])
+                               :tea-time (ig/ref :cljdoc/tea-time)}}
 
      (when (cfg/enable-release-monitor? env-config)
-       {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite) ;TODO move to Postgres
+       {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)  ;TODO move to Postgres
                                  :dry-run? (not (cfg/autobuild-clojars-releases? env-config))
-                                 :searcher (ig/ref :cljdoc/searcher)}}))))
+                                 :searcher (ig/ref :cljdoc/searcher)
+                                 :tea-time (ig/ref :cljdoc/tea-time)}}))))
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
   (log/info "Starting" k)
