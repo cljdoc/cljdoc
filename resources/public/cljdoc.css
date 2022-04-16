@@ -455,14 +455,3 @@ table.frame-sides > colgroup + * > :first-child > * {
 .hljs-link {
   text-decoration: underline;
 }
-
-@media screen and (max-width: 800px) {
-  .dn-max800 {
-    display: none;
-  }
-}
-
-mark {
-  font-weight: bold;
-  background-color: inherit;
-}
