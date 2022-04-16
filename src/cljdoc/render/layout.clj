@@ -175,15 +175,15 @@
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center home-link])
 
 (defn top-bar [version-entity scm-url]
-  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center.justify-between.bg-white
-   [:div
-    [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params version-entity)}
-     (proj/clojars-id version-entity)]
-    [:a.dib.v-mid.link.dim.gray.f6.mr3
-     {:href (routes/url-for :artifact/index :path-params version-entity)}
-     (:version version-entity)]
-    home-link]
+  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center.bg-white
+   [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params version-entity)}
+    (proj/clojars-id version-entity)]
+   [:a.dib.v-mid.link.dim.gray.f6.mr3
+    {:href (routes/url-for :artifact/index :path-params version-entity)}
+    (:version version-entity)]
+   home-link
    [:div.tr
+    {:style {:flex-grow 1}}
     [:form.dn.dib-ns.mr3 {:action "/api/request-build2" :method "POST"}
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id version-entity) "/" (:artifact-id version-entity))}]
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version version-entity)}]
