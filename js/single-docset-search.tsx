@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { debounced } from "./search";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import cx from "classnames";
-import searchIcon from "../resources/public/search-icon.svg";
 
 import elasticlunr from "elasticlunr";
 
@@ -356,7 +355,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
       <form className="black-80 w-100" onSubmit={e => e.preventDefault()}>
         <div style={{ position: "relative" }}>
           <img
-            src={searchIcon}
+            src="/search-icon.svg"
             className="w1 h1"
             style={{
               position: "absolute",
