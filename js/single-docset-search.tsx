@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { debounced } from "./search";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import cx from "classnames";
-import { isUndefined } from "lodash";
 import searchIcon from "../resources/public/search-icon.svg";
 
 import elasticlunr from "elasticlunr";
@@ -418,7 +417,10 @@ const SingleDocsetSearch = (props: { url: string }) => {
                 event.preventDefault();
 
                 if (showResults) {
-                  if (!isUndefined(selectedIndex) && results.length > 0) {
+                  if (
+                    typeof selectedIndex !== "undefined" &&
+                    results.length > 0
+                  ) {
                     const redirectTo = new URL(
                       window.location.origin + results[selectedIndex].doc.path
                     );
