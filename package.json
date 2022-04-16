@@ -11,18 +11,17 @@
   "dependencies": {
     "classnames": "^2.3.1",
     "date-fns": "^2.28.0",
-    "fuse.js": "^6.5.3",
+    "elasticlunr": "^0.9.5",
     "fuzzysort": "^1.2.1",
     "idb": "^7.0.1",
     "lodash": "^4.17.21",
-    "lunr": "^2.3.9",
     "preact": "^10.6.6"
   },
   "devDependencies": {
     "@parcel/packager-xml": "^2.4.0",
     "@parcel/transformer-image": "^2.4.0",
     "@parcel/transformer-xml": "^2.4.0",
-    "@types/flexsearch": "^0.7.3",
+    "@types/elasticlunr": "^0.9.4",
     "@types/lodash": "^4.14.181",
     "@types/lunr": "^2.3.4",
     "husky": "^7.0.4",

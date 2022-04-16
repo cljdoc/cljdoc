@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { debounced } from "./search";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import cx from "classnames";
-import lunr from "lunr";
-import { flatMap, isUndefined, merge, over, partition, sortBy } from "lodash";
+import { isUndefined } from "lodash";
 import searchIcon from "../resources/public/search-icon.svg";
-import Fuse from "fuse.js";
+
+import elasticlunr from "elasticlunr";
 
 type Namespace = {
   name: string;
@@ -62,110 +62,14 @@ interface SearchsetsDB extends DBSchema {
   };
 }
 
-type StartLengthRange = [start: number, length: number];
-type StartEndRange = [start: number, end: number];
-
-type LunrSearchMetadataValue = {
-  name?: { position: StartLengthRange[] };
-  doc?: { position: StartLengthRange[] };
-};
-
-type LunrSearchMetadata = {
-  [term: string]: LunrSearchMetadataValue;
-};
-
+type Index = elasticlunr.Index<IndexItem>;
 type SearchResult = {
-  indexItem: IndexItem;
-  lunrResult: lunr.Index.Result;
-  highlightedName: () => (string | h.JSX.Element)[];
-  highlightedDoc: () => (string | h.JSX.Element)[] | undefined;
+  result: elasticlunr.SearchResults;
+  doc: IndexItem;
 };
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
-
-const minMax = over([Math.min, Math.max]);
-
-const isOverlap = (
-  [aStart, aEnd]: StartEndRange,
-  [bStart, bEnd]: StartEndRange
-) => {
-  return aStart <= bEnd && aEnd >= bStart;
-};
-
-const processPositions = (startLengthRanges: StartLengthRange[]) => {
-  let remainingStartEndRanges = startLengthRanges.map(
-    m => [m[0], m[0] + m[1]] as StartEndRange
-  );
-
-  const ranges: StartEndRange[] = [];
-
-  while (remainingStartEndRanges.length > 0) {
-    const [overlapping, nonOverlapping] = partition(
-      remainingStartEndRanges,
-      r => isOverlap(remainingStartEndRanges[0], r)
-    );
-
-    ranges.push(minMax(...overlapping.flat()) as StartEndRange);
-
-    remainingStartEndRanges = nonOverlapping;
-  }
-
-  return sortBy(ranges, r => r[0]);
-};
-
-const mark = (ranges: StartEndRange[], text: string) => {
-  let cursor = 0;
-
-  const chunks = flatMap(ranges, range => {
-    const before = text.slice(cursor, range[0]);
-    const mark = <mark>{text.slice(range[0], range[1])}</mark>;
-    cursor = range[1];
-
-    return before.length > 0 ? [before, mark] : [mark];
-  });
-
-  const after = text.slice(cursor, text.length);
-
-  if (after.length > 0) {
-    chunks.push(after);
-  }
-
-  return chunks;
-};
-
-const trimMark = (range: StartEndRange, text: string) => {
-  const marked = mark([range], text);
-
-  const textPaddingCharacterCount = 60;
-
-  const prefixLength = Math.min(range[0], textPaddingCharacterCount / 2);
-  const postfixLength = textPaddingCharacterCount - prefixLength;
-
-  const lastElement = marked[marked.length - 1];
-  const hasPostEllipsis =
-    typeof lastElement === "string" && lastElement.length > 50;
-
-  const hasPreEllipsis = typeof marked[0] === "string" && marked[0].length > 50;
-
-  if (typeof marked[0] === "string") {
-    marked[0] = marked[0].slice(-prefixLength);
-  }
-
-  if (typeof lastElement === "string") {
-    marked[marked.length - 1] = lastElement.slice(0, postfixLength - 1);
-  }
-
-  const truncatedMarkedText = [];
-
-  hasPreEllipsis && truncatedMarkedText.push("... ");
-
-  truncatedMarkedText.push(...marked);
-
-  hasPostEllipsis && truncatedMarkedText.push(" ...");
-
-  return truncatedMarkedText;
-};
 
 const mountSingleDocsetSearch = async () => {
   const singleDocsetSearchNode: HTMLElement | null = document.querySelector(
@@ -245,200 +149,105 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
 
   return items;
 };
-const buildFuseSearchIndex = (indexItems: IndexItem[]) => {
-  const fuseOptions = merge({}, Fuse.config, {
-    isCaseSensitive: false,
-    includeScore: true,
-    includeMatches: true,
-    minMatchCharLength: 2,
-    shouldSort: true,
-    findAllMatches: true,
-    ignoreLocation: true,
-    useExtendedSearch: false,
-    keys: [
-      {
-        name: "name",
-        weight: 1
-      },
-      {
-        name: "doc",
-        weight: 0.5
-      }
-    ]
+
+const buildSearchIndex = (indexItems: IndexItem[]): Index => {
+  const searchIndex = elasticlunr<IndexItem>(index => {
+    index.setRef("id");
+    index.addField("name");
+    index.addField("doc");
+    index.saveDocument(true);
   });
 
-  return new Fuse(indexItems, fuseOptions);
-};
-
-const buildSearchIndex = (indexItems: IndexItem[]) => {
-  const searchIndex = lunr(function () {
-    this.ref("id");
-    this.field("name", { boost: 100 });
-    this.field("doc");
-    this.metadataWhitelist = ["position"];
-    indexItems.forEach(indexItem => this.add(indexItem));
-  });
+  indexItems.forEach(indexItem => searchIndex.addDoc(indexItem));
 
   return searchIndex;
 };
 
+const ResultIcon = (props: { item: IndexItem }) => {
+  const { item } = props;
+
+  return (
+    <div
+      className={cx("pa1 white-90 br1 mr2 tc f6", {
+        "bg-light-purple": item.kind === "namespace",
+        "bg-light-red": item.kind === "def",
+        "bg-green": item.kind === "doc"
+      })}
+      style={{ width: "2.5rem", fontSize: "13px", marginBottom: "2px" }}
+      aria-label={props.item.kind}
+    >
+      {item.kind === "namespace" && "NS"}
+      {item.kind === "def" && "DEF"}
+      {item.kind === "doc" && "DOC"}
+    </div>
+  );
+};
+
+const ResultName = (props: { item: IndexItem }) => {
+  const { item } = props;
+
+  if (item.kind === "def") {
+    return (
+      <div className="mb1">
+        <span className="">{item.namespace}</span>/{item.name}
+      </div>
+    );
+  }
+
+  return <div className="mb1">{item.name}</div>;
+};
+
 const ResultListItem = (props: {
-  result: SearchResult;
+  searchResult: SearchResult;
   index: number;
   selected: boolean;
   hideResults: () => void;
 }) => {
-  const { result, selected, hideResults } = props;
+  const { searchResult, selected, hideResults } = props;
 
-  const highlightedDoc = result.highlightedDoc();
-  const indexItem = result.indexItem;
+  const result = searchResult.doc;
 
-  switch (indexItem.kind) {
-    case "namespace":
-      return (
-        <li
-          className={cx("pa2 bb b--light-gray", {
-            "bg-light-blue": selected
-          })}
-        >
-          <a
-            className="no-underline black"
-            href={result.indexItem.path}
-            onClick={hideResults}
-          >
-            <div className="flex flex-row items-center">
-              <div
-                className="bg-light-purple pa2 pt3 pb3 white-90 br1 mr2 tc"
-                style={{ width: "3rem" }}
-                aria-label="namespace"
-              >
-                NS
-              </div>
-              <div className="flex flex-column">
-                <div className="mb1">{result.highlightedName()}</div>
-                {highlightedDoc && <div>{highlightedDoc}</div>}
-              </div>
-            </div>
-          </a>
-        </li>
-      );
-    case "def":
-      return (
-        <li
-          className={cx("pa2 bb b--light-gray", {
-            "bg-light-blue": selected
-          })}
-        >
-          <a
-            className="no-underline black"
-            href={result.indexItem.path}
-            onClick={hideResults}
-          >
-            <div className="flex flex-row items-center">
-              <div
-                className="bg-light-red pa2 pt3 pb3 white-90 br1 mr2 tc"
-                style={{ width: "3rem" }}
-                aria-label="def"
-              >
-                DEF
-              </div>
-              <div className="flex flex-column">
-                <div className="mb1 code">
-                  <span className="">{indexItem.namespace}</span>/
-                  {result.highlightedName()}
-                </div>
-                {highlightedDoc && <div>{highlightedDoc}</div>}
-              </div>
-            </div>
-          </a>
-        </li>
-      );
-    case "doc":
-      return (
-        <li
-          className={cx("pa2 bb b--light-gray", {
-            "bg-light-blue": selected
-          })}
-        >
-          <a
-            className="no-underline black"
-            href={result.indexItem.path}
-            onClick={hideResults}
-          >
-            <div className="flex flex-row items-center">
-              <div
-                className="bg-light-red pa2 pt3 pb3 white-90 br1 mr2 tc"
-                style={{ width: "3rem" }}
-                aria-label="def"
-              >
-                DOC
-              </div>
-              <div className="flex flex-column">
-                <div className="mb1 code">{result.highlightedName()}</div>
-                {highlightedDoc && <div>{highlightedDoc}</div>}
-              </div>
-            </div>
-          </a>
-        </li>
-      );
-
-    default:
-      // This should never happen but... just in case.
-      // @ts-ignore
-      throw new Error(`Unknown result type: ${result.kind}`);
-  }
+  return (
+    <li
+      className={cx("pa2 bb b--light-gray", {
+        "bg-light-blue": selected
+      })}
+    >
+      <a
+        className="no-underline black"
+        href={result.path}
+        onClick={hideResults}
+      >
+        <div className="flex flex-row items-end">
+          <ResultIcon item={result} />
+          <div className="flex flex-column">
+            <ResultName item={result} />
+          </div>
+        </div>
+      </a>
+    </li>
+  );
 };
 
 const search = (
-  searchIndex: lunr.Index | undefined,
-  indexItems: IndexItem[] | undefined,
+  searchIndex: Index | undefined,
   query: string
-) => {
-  if (!searchIndex || !indexItems) {
-    return undefined;
-  }
-
-  const tokenizedQuery = [...query.split(/\s+/).filter(v => v.length > 0)];
-
-  const lunrResults = searchIndex.query(lunrQuery => {
-    lunrQuery.term(query, {
-      fields: ["name"],
-      boost: 100,
-      wildcard: lunr.Query.wildcard.LEADING
-    });
-    lunrQuery.term(tokenizedQuery, {
-      fields: ["doc"],
-      wildcard: lunr.Query.wildcard.LEADING | lunr.Query.wildcard.TRAILING
-    });
-  });
-
-  const results: SearchResult[] = lunrResults.map(lunrResult => {
-    const indexItem = indexItems[Number(lunrResult.ref) - 1];
-    const metadata = lunrResult.matchData.metadata as LunrSearchMetadata;
-
-    const docRanges = processPositions(
-      flatMap(metadata, m => m.doc?.position ?? [])
-    );
-
-    const nameRanges = processPositions(
-      flatMap(metadata, m => m.name?.position ?? [])
-    );
-
-    const result = {
-      indexItem,
-      lunrResult: lunrResult,
-      highlightedName: () => mark(nameRanges, indexItem.name),
-      highlightedDoc: () => {
-        return isUndefined(indexItem.doc) || isUndefined(docRanges[0])
-          ? undefined
-          : trimMark(docRanges[0], indexItem.doc);
+): SearchResult[] | undefined => {
+  const results =
+    searchIndex &&
+    searchIndex.search(query, {
+      bool: "OR",
+      expand: true,
+      fields: {
+        name: { boost: 5 },
+        doc: { boost: 2 }
       }
-    };
-
-    return result;
-  });
-
-  return results;
+    });
+  console.log({ results });
+  return results?.map(r => ({
+    result: r,
+    doc: searchIndex?.documentStore.getDoc(r.ref)!
+  }));
 };
 
 const debouncedSearch = debounced(300, search);
@@ -447,10 +256,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
   const { url } = props;
   const [db, setDb] = useState<IDBPDatabase<SearchsetsDB> | undefined>();
   const [indexItems, setIndexItems] = useState<IndexItem[] | undefined>();
-  const [searchIndex, setSearchIndex] = useState<lunr.Index | undefined>();
-  const [fuseSearchIndex, setFuseSearchIndex] = useState<
-    Fuse<IndexItem> | undefined
-  >();
+  const [searchIndex, setSearchIndex] = useState<Index | undefined>();
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
@@ -501,12 +307,6 @@ const SingleDocsetSearch = (props: { url: string }) => {
       setSearchIndex(buildSearchIndex(indexItems));
     }
   }, [indexItems]);
-
-  useEffect(() => {
-    if (indexItems) {
-      setFuseSearchIndex(buildFuseSearchIndex(indexItems));
-    }
-  });
 
   const onArrowUp = () => {
     if (results.length > 0) {
@@ -581,11 +381,8 @@ const SingleDocsetSearch = (props: { url: string }) => {
             onFocus={(event: FocusEvent) => {
               const input = event.target as HTMLInputElement;
               input.classList.toggle("b--blue");
-              console.log({
-                fuseSearchIndex: fuseSearchIndex?.search(input.value)
-              });
 
-              debouncedSearch(searchIndex, indexItems, input.value)
+              debouncedSearch(searchIndex, input.value)
                 .then(results => {
                   if (results) {
                     setResults(results);
@@ -626,8 +423,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
                 if (showResults) {
                   if (!isUndefined(selectedIndex) && results.length > 0) {
                     const redirectTo = new URL(
-                      window.location.origin +
-                        results[selectedIndex].indexItem.path
+                      window.location.origin + results[selectedIndex].doc.path
                     );
 
                     const params = redirectTo.searchParams;
@@ -654,10 +450,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
               if (input.value.length < 3) {
                 setResults([]);
               } else {
-                console.log({
-                  fuseSearchIndex: fuseSearchIndex?.search(input.value)
-                });
-                debouncedSearch(searchIndex, indexItems, input.value)
+                debouncedSearch(searchIndex, input.value)
                   .then(results => {
                     if (results) {
                       setResults(results);
@@ -686,7 +479,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
         >
           {results.map((result, index) => (
             <ResultListItem
-              result={result}
+              searchResult={result}
               index={index}
               selected={selectedIndex === index}
               hideResults={() => showResults && setShowResults(false)}
