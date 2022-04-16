@@ -1,8 +1,6 @@
 (ns cljdoc.spec
   (:refer-clojure :exclude [assert])
-  (:require [clojure.spec.alpha :as s]
-            [malli.core]
-            [malli.error]))
+  (:require [clojure.spec.alpha :as s]))
 
 ;;
 ;; API data
