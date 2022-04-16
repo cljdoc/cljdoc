@@ -243,7 +243,6 @@ const search = (
         doc: { boost: 2 }
       }
     });
-  console.log({ results });
   return results?.map(r => ({
     result: r,
     doc: searchIndex?.documentStore.getDoc(r.ref)!
@@ -270,8 +269,6 @@ const SingleDocsetSearch = (props: { url: string }) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // const { metaKey, ctrlKey, key } = event;
-      // console.log({ metaKey, ctrlKey, key });
       if (
         inputElement.current &&
         (event.metaKey || event.ctrlKey) &&
