@@ -179,7 +179,7 @@ const ResultIcon = (props: { item: IndexItem }) => {
     DOC: "bg-green",
     VAR: "bg-dark-blue",
     MAC: "bg-dark-red",
-    PRO: "bg-orange"
+    PRO: "bg-light-red"
   };
   const defaultColor = "bg-black-70";
 
