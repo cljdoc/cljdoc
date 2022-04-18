@@ -227,20 +227,24 @@
      :slug "migration-from-clojure-java-jdbc",
      :cljdoc.doc/contributors ("Sean Corfield" "Lauri Oherd")}}],
   :config
-  {:cljdoc.doc/tree
-   [["Readme" {:file "README.md"}]
-    ["Changes" {:file "CHANGELOG.md"}]
-    ["Getting Started"
-     {:file "doc/getting-started.md"}
-     ["Friendly SQL Functions" {:file "doc/friendly-sql-functions.md"}]
-     ["Tips & Tricks" {:file "doc/tips-and-tricks.md"}]
-     ["Result Set Builders" {:file "doc/result-set-builders.md"}]
-     ["Prepared Statements" {:file "doc/prepared-statements.md"}]
-     ["Transactions" {:file "doc/transactions.md"}]]
-    ["All The Options" {:file "doc/all-the-options.md"}]
-    ["datafy, nav, and :schema" {:file "doc/datafy-nav-and-schema.md"}]
-    ["Migration from clojure.java.jdbc"
-     {:file "doc/migration-from-clojure-java-jdbc.md"}]]}},
+  #:cljdoc.doc{:tree
+               [["Readme" {:file "README.md"}]
+                ["Changes" {:file "CHANGELOG.md"}]
+                ["Getting Started"
+                 {:file "doc/getting-started.md"}
+                 ["Friendly SQL Functions"
+                  {:file "doc/friendly-sql-functions.md"}]
+                 ["Tips & Tricks" {:file "doc/tips-and-tricks.md"}]
+                 ["Result Set Builders"
+                  {:file "doc/result-set-builders.md"}]
+                 ["Prepared Statements"
+                  {:file "doc/prepared-statements.md"}]
+                 ["Transactions" {:file "doc/transactions.md"}]]
+                ["All The Options" {:file "doc/all-the-options.md"}]
+                ["datafy, nav, and :schema"
+                 {:file "doc/datafy-nav-and-schema.md"}]
+                ["Migration from clojure.java.jdbc"
+                 {:file "doc/migration-from-clojure-java-jdbc.md"}]]}},
  :namespaces
  #{{:doc
     "Some utility functions for building SQL strings.\n\nThese were originally private functions in `next.jdbc.sql` but\nthey may proof useful to developers who want to write their own\n'SQL sugar' functions, such as a database-specific `upsert!` etc.",

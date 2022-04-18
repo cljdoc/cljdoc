@@ -11,10 +11,17 @@
                       slurp
                       edn/read-string))
 
+
+
 (comment
-  (require '[clojure.pprint])
-  (let [searchset (api-searchset/cache-bundle->searchset cache-bundle)]
-    (spit "resources/test_data/searchset.edn" (with-out-str (clojure.pprint/pprint searchset)))))
+  (require '[clojure.pprint]
+           '[cljdoc.spec.util :as util])
+  (let [cache-bundle (util/load-cache-bundle "seancorfield/next.jdbc/1.2.659")
+        searchset (api-searchset/cache-bundle->searchset cache-bundle)]
+    (spit "resources/test_data/cache_bundle.edn" (with-out-str (clojure.pprint/pprint cache-bundle)))
+    (spit "resources/test_data/searchset.edn" (with-out-str (clojure.pprint/pprint searchset)))
+    ;; make sure you check these to confirm that namespaces + defs + docs are all generating correctly
+    ))
 
 (def doc (get-in cache-bundle [:version :doc 0]))
 

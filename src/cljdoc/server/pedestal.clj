@@ -533,8 +533,6 @@
   (interceptor/interceptor
    {:name ::api-searchset
     :enter (fn api-searchset [{:keys [cache-bundle] :as ctx}]
-             #_(spit (io/resource "test_data/cache_bundle.edn") (with-out-str (pp/pprint cache-bundle)))
-             #_(spit (io/resource "test_data/searchset.edn") (with-out-str (pp/pprint (api-searchset/cache-bundle->searchset cache-bundle))))
              (->> (if cache-bundle
                     {:status 200
                      :headers {"Content-Type" "application/json"}
