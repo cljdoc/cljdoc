@@ -98,6 +98,24 @@ const isExpired = (dateString: string) => {
   return now > expiresAt;
 };
 
+const evictBadSearchsets = async (db: IDBPDatabase<SearchsetsDB>) => {
+  const keys = await db.getAllKeys("searchsets");
+
+  for (const key in keys) {
+    const storedSearchset = await db.get("searchsets", key);
+    if (
+      storedSearchset &&
+      (storedSearchset.version !== SEARCHSET_VERSION ||
+        isExpired(storedSearchset.storedAt) ||
+        storedSearchset.indexItems.length === 0)
+    ) {
+      await db.delete("searchsets", key);
+    }
+  }
+
+  return db;
+};
+
 const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
   const storedSearchset = await db.get("searchsets", url);
   if (
@@ -361,6 +379,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
         db.createObjectStore("searchsets");
       }
     })
+      .then(evictBadSearchsets)
       .then(setDb)
       .catch(console.error);
   }, []);
