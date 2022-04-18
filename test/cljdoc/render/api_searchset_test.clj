@@ -11,9 +11,10 @@
                       slurp
                       edn/read-string))
 
-;; (require '[clojure.pprint :as pp])
-;; (let [searchset (api-searchset/cache-bundle->searchset cache-bundle)]
-;;   (spit "resources/test_data/searchset.edn" (with-out-str (pp/pprint searchset))))
+(comment
+  (require '[clojure.pprint])
+  (let [searchset (api-searchset/cache-bundle->searchset cache-bundle)]
+    (spit "resources/test_data/searchset.edn" (with-out-str (clojure.pprint/pprint searchset)))))
 
 (def doc (get-in cache-bundle [:version :doc 0]))
 
