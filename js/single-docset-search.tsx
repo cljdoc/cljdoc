@@ -106,7 +106,6 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
     !isExpired(storedSearchset.storedAt) &&
     storedSearchset.indexItems.length > 0
   ) {
-    console.log({ indexItems: storedSearchset.indexItems });
     return storedSearchset.indexItems;
   }
 
@@ -172,20 +171,44 @@ const buildSearchIndex = (indexItems: IndexItem[]): Index => {
 
 const ResultIcon = (props: { item: IndexItem }) => {
   const { item } = props;
+  let label: string = item.kind;
+  let text: string;
+
+  const colors = {
+    NS: "bg-light-purple",
+    DOC: "bg-green",
+    VAR: "bg-dark-blue",
+    MAC: "bg-dark-red",
+    PRO: "bg-orange"
+  };
+  const defaultColor = "bg-black-70";
+
+  switch (item.kind) {
+    case "namespace":
+      text = "NS";
+      break;
+    case "def":
+      label = item.type;
+      text = item.type.slice(0, 3).toUpperCase();
+      break;
+    case "doc":
+      text = "DOC";
+      break;
+    default:
+      throw new Error(`Unknown item kind: ${item}`);
+  }
+
+  // @ts-ignore
+  const color = colors[text] || defaultColor;
 
   return (
     <div
-      className={cx("pa1 white-90 br1 mr2 tc f6", {
-        "bg-light-purple": item.kind === "namespace",
-        "bg-light-red": item.kind === "def",
-        "bg-green": item.kind === "doc"
-      })}
+      className={`pa1 white-90 br1 mr2 tc f6 ${color}`}
       style={{ width: "2.5rem", fontSize: "13px", marginBottom: "2px" }}
-      aria-label={props.item.kind}
+      aria-label={label}
+      title={label}
     >
-      {item.kind === "namespace" && "NS"}
-      {item.kind === "def" && "DEF"}
-      {item.kind === "doc" && "DOC"}
+      {text}
     </div>
   );
 };
@@ -211,6 +234,13 @@ const ResultListItem = (props: {
   hideResults: () => void;
 }) => {
   const { searchResult, selected, hideResults } = props;
+  const item = useRef<HTMLLIElement>(null);
+
+  useEffect(() => {
+    if (item.current && selected) {
+      item.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [item.current, selected]);
 
   const result = searchResult.doc;
 
@@ -219,6 +249,7 @@ const ResultListItem = (props: {
       className={cx("pa2 bb b--light-gray", {
         "bg-light-blue": selected
       })}
+      ref={item}
     >
       <a
         className="no-underline black"
