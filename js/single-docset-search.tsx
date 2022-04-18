@@ -108,6 +108,27 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
   const response = await fetch(url);
   const searchset: Searchset = await response.json();
 
+  // filter down so we only have one entry per ns
+  searchset.namespaces = searchset.namespaces.filter(
+    (outerNs, index) =>
+      index ===
+      searchset.defs.findIndex(
+        innerNs => innerNs.name == outerNs.name && innerNs.path === outerNs.path
+      )
+  );
+
+  // filter down so we only have one entry per def
+  searchset.defs = searchset.defs.filter(
+    (outerDef, index) =>
+      index ===
+      searchset.defs.findIndex(
+        innerDef =>
+          innerDef.namespace == outerDef.namespace &&
+          innerDef.name == outerDef.name &&
+          innerDef.path === outerDef.path
+      )
+  );
+
   let id = 0;
 
   searchset.namespaces.forEach(ns => {
