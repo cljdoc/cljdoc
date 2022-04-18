@@ -3,7 +3,8 @@
   (:require [cljdoc.doc-tree :as doctree]
             [cljdoc.render.rich-text :as rt]
             [cljdoc.server.routes :as routes]
-            [cljdoc.spec])
+            [cljdoc.spec]
+            [clojure.string :as str])
   (:import (org.jsoup Jsoup)))
 
 (def header-tag? #{"h1" "h2" "h3" "h4" "h5" "h6"})
@@ -14,7 +15,8 @@
                   :params
                   (assoc version-entity
                          :article-slug
-                         (get-in doc [:attrs :slug]))))
+                         (str/join "/" (or (get-in doc [:attrs :slug-path])
+                                           [(get-in doc [:attrs :slug])])))))
 
 (defn path-for-namespace
   [{:keys [group-id artifact-id version]} name-of-ns]

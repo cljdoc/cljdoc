@@ -23,7 +23,13 @@
 (t/deftest path-for-doc
   (t/testing "gets the route for a given doc"
     (t/is (= "/d/seancorfield/next.jdbc/1.2.659/doc/readme"
-             (api-searchset/path-for-doc doc version-entity)))))
+             (api-searchset/path-for-doc doc version-entity))))
+  (t/testing "gets the route if the doc has a slug path instead of a slug"
+    (let [attrs (:attrs doc)
+          slug-path-attrs (-> attrs (dissoc :slug) (assoc :slug-path ["read" "me"]))
+          slug-path-doc (assoc doc :attrs slug-path-attrs)]
+      (t/is (= "/d/seancorfield/next.jdbc/1.2.659/doc/read/me"
+               (api-searchset/path-for-doc slug-path-doc version-entity))))))
 
 (t/deftest path-for-namespace
   (t/testing "gets a route for a namespace"

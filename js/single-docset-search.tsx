@@ -8,6 +8,8 @@ import elasticlunr from "elasticlunr";
 
 elasticlunr.tokenizer.setSeperator(/[\s-.>=+\/]+/);
 
+const SEARCHSET_VERSION = 1;
+
 type Namespace = {
   name: string;
   path: string;
@@ -52,6 +54,7 @@ type IndexItem = NamespaceWithKindAndId | DefWithKindAndId | DocWithKindAndId;
 
 type StoredSearchset = {
   storedAt: string;
+  version: number;
   indexItems: IndexItem[];
 };
 
@@ -99,9 +102,11 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
   const storedSearchset = await db.get("searchsets", url);
   if (
     storedSearchset &&
+    storedSearchset.version === SEARCHSET_VERSION &&
     !isExpired(storedSearchset.storedAt) &&
     storedSearchset.indexItems.length > 0
   ) {
+    console.log({ indexItems: storedSearchset.indexItems });
     return storedSearchset.indexItems;
   }
 
@@ -143,6 +148,7 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
     "searchsets",
     {
       storedAt: new Date().toISOString(),
+      version: SEARCHSET_VERSION,
       indexItems: items
     },
     url
