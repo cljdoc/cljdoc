@@ -11,8 +11,6 @@
                       slurp
                       edn/read-string))
 
-
-
 (comment
   (require '[clojure.pprint]
            '[cljdoc.spec.util :as util])
