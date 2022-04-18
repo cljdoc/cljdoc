@@ -129,6 +129,7 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
   });
 
   searchset.docs.forEach(doc => {
+    id += 1;
     items.push({
       ...doc,
       kind: "doc",
