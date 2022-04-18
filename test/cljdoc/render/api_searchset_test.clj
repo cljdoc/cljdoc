@@ -15,7 +15,6 @@
 ;; (let [searchset (api-searchset/cache-bundle->searchset cache-bundle)]
 ;;   (spit "resources/test_data/searchset.edn" (with-out-str (pp/pprint searchset))))
 
-
 (def doc (get-in cache-bundle [:version :doc 0]))
 
 (def version-entity (:version-entity cache-bundle))
