@@ -6,6 +6,8 @@ import cx from "classnames";
 
 import elasticlunr from "elasticlunr";
 
+elasticlunr.tokenizer.setSeperator(/[\s-.>=+\/]+/);
+
 type Namespace = {
   name: string;
   path: string;
@@ -107,27 +109,6 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
 
   const response = await fetch(url);
   const searchset: Searchset = await response.json();
-
-  // filter down so we only have one entry per ns
-  searchset.namespaces = searchset.namespaces.filter(
-    (outerNs, index) =>
-      index ===
-      searchset.defs.findIndex(
-        innerNs => innerNs.name == outerNs.name && innerNs.path === outerNs.path
-      )
-  );
-
-  // filter down so we only have one entry per def
-  searchset.defs = searchset.defs.filter(
-    (outerDef, index) =>
-      index ===
-      searchset.defs.findIndex(
-        innerDef =>
-          innerDef.namespace == outerDef.namespace &&
-          innerDef.name == outerDef.name &&
-          innerDef.path === outerDef.path
-      )
-  );
 
   let id = 0;
 
@@ -263,10 +244,42 @@ const search = (
         doc: { boost: 2 }
       }
     });
-  return results?.map(r => ({
+
+  const resultsWithDocs = results?.map(r => ({
     result: r,
     doc: searchIndex?.documentStore.getDoc(r.ref)!
   }));
+
+  // filter out duplicates
+  return resultsWithDocs?.filter((outer, index) => {
+    const outerDoc = outer.doc;
+
+    switch (outerDoc.kind) {
+      case "namespace":
+        return (
+          index ===
+          resultsWithDocs.findIndex(
+            inner =>
+              inner.doc.kind === "namespace" &&
+              inner.doc.name == outerDoc.name &&
+              inner.doc.path === outerDoc.path
+          )
+        );
+      case "def":
+        return (
+          index ===
+          resultsWithDocs.findIndex(
+            inner =>
+              inner.doc.kind === "def" &&
+              inner.doc.namespace == outerDoc.namespace &&
+              inner.doc.name == outerDoc.name &&
+              inner.doc.path === outerDoc.path
+          )
+        );
+      default:
+        return true;
+    }
+  });
 };
 
 const debouncedSearch = debounced(300, search);
@@ -467,7 +480,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
 
               setInputValue(input.value);
 
-              if (input.value.length < 3) {
+              if (input.value.length === 0) {
                 setResults([]);
               } else {
                 debouncedSearch(searchIndex, input.value)
