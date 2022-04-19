@@ -18,6 +18,6 @@
              (shortcut "⌘ K" "Jump to recently viewed docs")
              (shortcut "←" "Move to previous page")
              (shortcut "→" "Move to next page")
-             (shortcut "⌘ /" "Focus the search field")]]]]]]
+             (shortcut "⌘ /" "Jump to the search field")]]]]]]
        (layout/page {:title "shortcuts"
                      :static-resources (:static-resources context)})))
