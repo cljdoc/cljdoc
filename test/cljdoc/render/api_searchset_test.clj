@@ -14,7 +14,7 @@
 (comment
   (require '[clojure.pprint]
            '[cljdoc.spec.util :as util])
-  (let [cache-bundle (util/load-cache-bundle "seancorfield/next.jdbc/1.2.659")
+  (let [cache-bundle (util/load-cache-bundle "rewrite-clj/rewrite-clj/1.0.767-alpha")
         searchset (api-searchset/cache-bundle->searchset cache-bundle)]
     (spit "resources/test_data/cache_bundle.edn" (with-out-str (clojure.pprint/pprint cache-bundle)))
     (spit "resources/test_data/searchset.edn" (with-out-str (clojure.pprint/pprint searchset)))
@@ -32,24 +32,24 @@
 
 (t/deftest path-for-doc
   (t/testing "gets the route for a given doc"
-    (t/is (= "/d/seancorfield/next.jdbc/1.2.659/doc/readme"
+    (t/is (= "/d/rewrite-clj/rewrite-clj/1.0.767-alpha/doc/readme"
              (api-searchset/path-for-doc doc version-entity))))
   (t/testing "gets the route if the doc has a slug path instead of a slug"
     (let [attrs (:attrs doc)
           slug-path-attrs (-> attrs (dissoc :slug) (assoc :slug-path ["read" "me"]))
           slug-path-doc (assoc doc :attrs slug-path-attrs)]
-      (t/is (= "/d/seancorfield/next.jdbc/1.2.659/doc/read/me"
+      (t/is (= "/d/rewrite-clj/rewrite-clj/1.0.767-alpha/doc/read/me"
                (api-searchset/path-for-doc slug-path-doc version-entity))))))
 
 (t/deftest path-for-namespace
   (t/testing "gets a route for a namespace"
-    (t/is (= "/d/seancorfield/next.jdbc/1.2.659/api/next.jdbc.connection"
-             (api-searchset/path-for-namespace version-entity "next.jdbc.connection")))))
+    (t/is (= "/d/rewrite-clj/rewrite-clj/1.0.767-alpha/api/rewrite-clj.node"
+             (api-searchset/path-for-namespace version-entity "rewrite-clj.node")))))
 
 (t/deftest path-for-def
   (t/testing "gets a route for a def"
-    (t/is (= "/d/seancorfield/next.jdbc/1.2.659/api/next.jdbc#prepare"
-             (api-searchset/path-for-def version-entity "next.jdbc" "prepare")))))
+    (t/is (= "/d/rewrite-clj/rewrite-clj/1.0.767-alpha/api/rewrite-clj.node#coerce"
+             (api-searchset/path-for-def version-entity "rewrite-clj.node" "coerce")))))
 
 (t/deftest cache-bundle->searchset
   (let [generated-searchset (api-searchset/cache-bundle->searchset cache-bundle)]

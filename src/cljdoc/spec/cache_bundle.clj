@@ -14,7 +14,6 @@
          [:slug string?]
          [:cljdoc.doc/contributors {:optional true} [:sequential string?]]
          [:cljdoc/asciidoc {:optional true} string?]]
-
         arglists [:sequential [:vector any?]]]
     [:map
      [:version
@@ -46,11 +45,13 @@
          [:map
           [:cljdoc.doc/tree
            [:vector
-            [:vector
-             [:or
-              string?
-              [:map [:file {:optional true} string?]]
-              [:vector [:or string? [:map [:file string?]]]]]]]]
+            {:registry
+             {::doc-tree-entry [:or
+                                :string
+                                [:map-of :keyword :string]
+                                [:vector
+                                 [:ref ::doc-tree-entry]]]}}
+            ::doc-tree-entry]]
           [:cljdoc/include-namespaces-from-dependencies
            {:optional true}
            [:vector symbol?]]]]]]]
