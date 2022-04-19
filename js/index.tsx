@@ -11,18 +11,27 @@ import {
   initToggleRaw,
   restoreSidebarScrollPos,
   toggleMetaDialog,
-  addPrevNextPageKeyHandlers
+  addPrevNextPageKeyHandlers,
+  saveSidebarScrollPos
 } from "./cljdoc";
 import { initRecentDocLinks } from "./recent-doc-links";
+import { mountSingleDocsetSearch } from "./single-docset-search";
 
 export type SidebarScrollPos = { page: string; scrollTop: number };
 
+// Tracks recently opened projects in localStorage.
 trackProjectOpened();
+
+// Sidebar scroll position is saved when navigating away from the site.
+// Here we restore that position when the site loads.
 restoreSidebarScrollPos();
 
+// Enable the switcher, which lets you rapidly switch between recently opened
+// projects. The switcher is not included in offline docs.
 const switcher = document.querySelector("#cljdoc-switcher");
 switcher && render(<Switcher />, switcher);
 
+// Libraries search, found on cljdoc homepage and the 404 page.
 const searchNode: HTMLElement | null = document.querySelector("#cljdoc-search");
 if (searchNode && searchNode.dataset) {
   render(
@@ -36,35 +45,38 @@ if (searchNode && searchNode.dataset) {
   );
 }
 
+// Used for navigating on the /versions page.
 const navigatorNode = document.querySelector("#js--cljdoc-navigator");
 navigatorNode && render(<Navigator />, navigatorNode);
 
+// Namespace page for online docs.
 if (isNSPage()) {
   initSrollIndicator();
   initToggleRaw();
 }
 
+// Namespace page for offline docs.
 if (isNSOfflinePage()) {
   initToggleRaw();
 }
 
+// For just general documentation pages, specifically routes that begin with /d/.
 if (isProjectDocumentationPage()) {
+  // Special handling for mobile nav. It makes the sidebar from desktop toggleable.
   const mobileNav = document.querySelector("#js--mobile-nav");
   mobileNav && render(<MobileNav />, mobileNav);
   toggleMetaDialog();
   addPrevNextPageKeyHandlers();
 }
 
+// Links to recent docsets on the homepage.
 const docLinks = document.querySelector("#doc-links");
 if (docLinks) {
   initRecentDocLinks(docLinks);
 }
-window.onbeforeunload = function () {
-  var sidebar = Array.from(document.querySelectorAll(".js--main-sidebar"))[0];
-  if (sidebar) {
-    var scrollTop = sidebar.scrollTop;
-    var page = window.location.pathname.split("/").slice(0, 5).join("/");
-    var data: SidebarScrollPos = { page: page, scrollTop: scrollTop };
-    localStorage.setItem("sidebarScrollPos", JSON.stringify(data));
-  }
-};
+
+// Mount the single docset search if the search element is present.
+mountSingleDocsetSearch();
+
+// Save the sidebar scroll position when navigating away from the site so we can restore it later.
+window.onbeforeunload = saveSidebarScrollPos;

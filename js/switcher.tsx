@@ -200,7 +200,6 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
   }
 
   render(_props: SwitcherProps, state: SwitcherState) {
-    console.log(state.results);
     if (state.show) {
       return (
         <div

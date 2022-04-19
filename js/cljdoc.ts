@@ -1,3 +1,5 @@
+import { SidebarScrollPos } from "./index";
+
 function isNSPage(): boolean {
   return !!document.querySelector(".ns-page");
 }
@@ -100,6 +102,16 @@ function restoreSidebarScrollPos() {
   localStorage.removeItem("sidebarScrollPos");
 }
 
+function saveSidebarScrollPos() {
+  var sidebar = Array.from(document.querySelectorAll(".js--main-sidebar"))[0];
+  if (sidebar) {
+    var scrollTop = sidebar.scrollTop;
+    var page = window.location.pathname.split("/").slice(0, 5).join("/");
+    var data: SidebarScrollPos = { page: page, scrollTop: scrollTop };
+    localStorage.setItem("sidebarScrollPos", JSON.stringify(data));
+  }
+}
+
 function toggleMetaDialog() {
   if (document.querySelector(".js--main-scroll-view")) {
     const metaIcon = document.getElementById("js--meta-icon");
@@ -145,6 +157,7 @@ export {
   initSrollIndicator,
   initToggleRaw,
   restoreSidebarScrollPos,
+  saveSidebarScrollPos,
   toggleMetaDialog,
   isNSPage,
   isNSOfflinePage,

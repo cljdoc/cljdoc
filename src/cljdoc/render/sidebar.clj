@@ -5,6 +5,7 @@
             [cljdoc.render.layout :as layout]
             [cljdoc.render.links :as links]
             [cljdoc.render.articles :as articles]
+            [cljdoc.render.searchset-search :as searchset-search]
             [cljdoc.render.api :as api]
             [cljdoc.bundle :as bundle]))
 
@@ -54,6 +55,9 @@
 
      (when last-build
        (last-build-warning last-build))
+
+     [:div.mb4
+      (searchset-search/searchbar version-entity)]
 
      ;; Special documents (Readme & Changelog)
      (when (seq readme-and-changelog)

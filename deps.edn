@@ -93,6 +93,8 @@
         ;; delete if/when nippy/tufte updates bring in newer version:
         com.taoensso/encore {:mvn/version "3.21.0"}
 
+        metosin/malli {:mvn/version "0.8.4"}
+
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
                               :git/sha "3d19b5d6d6c1af80c5e27126b5be10c84fecc33e"}}

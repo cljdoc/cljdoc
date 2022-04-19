@@ -12,7 +12,9 @@
   - Rendering a sitemap (see [[sitemap-interceptor]])
   - Handling build requests (see [[request-build]], [[full-build]] & [[circle-ci-webhook]])
   - Redirecting to newer releases (see [[resolve-version-interceptor]] & [[jump-interceptor]])"
-  (:require [cljdoc.render.build-req :as render-build-req]
+  (:require [cheshire.core :as json]
+            [cljdoc.render.api-searchset :as api-searchset]
+            [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.index-pages :as index-pages]
             [cljdoc.render.home :as render-home]
@@ -152,6 +154,16 @@
      :enter (fn releases-loader-inner [ctx]
               (pu/ok ctx (versions-data searcher store route-name ctx)))})])
 
+(defn load-cache-bundle
+  "Given a `store` (see `:cljdoc/storage` in system.clj), `pom-info` (as returned from
+  `load-pom`), and a `version-entity` (see `:cljdoc.spec/version-entity` in spec.cljc),
+  load a `cache-bundle` from storage."
+  [store pom-info version-entity]
+  (let [params (assoc version-entity :dependency-version-entities (:dependencies pom-info))]
+    (log/info "Loading artifact cache bundle for" params)
+    (when (storage/exists? store params)
+      (storage/bundle-docs store params))))
+
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
   relevant for the artifact identified via the entity map in `:path-params`."
@@ -159,13 +171,11 @@
   (interceptor/interceptor
    {:name ::artifact-data-loader
     :enter (fn artifact-data-loader-inner [ctx]
-             (let [params (-> ctx :request :path-params)
-                   pom-data (::pom-info ctx)
-                   bundle-params (assoc params :dependency-version-entities (:dependencies pom-data))]
-               (log/info "Loading artifact cache bundle for" params (:cache-bundle ctx))
-               (if (storage/exists? store params)
-                 (assoc ctx :cache-bundle (storage/bundle-docs store bundle-params))
-                 ctx)))}))
+             (if-let [cache-bundle (load-cache-bundle store
+                                                      (::pom-info ctx)
+                                                      (get-in ctx [:request :path-params]))]
+               (assoc ctx :cache-bundle cache-bundle)
+               ctx))}))
 
 (defn last-build-loader
   "Load a projects last build into the context"
@@ -176,19 +186,27 @@
              (let [{:keys [group-id artifact-id version]} (-> ctx :request :path-params)]
                (assoc ctx ::last-build (build-log/last-build build-tracker group-id artifact-id version))))}))
 
+(defn load-pom
+  "Given a `fetch-pom-xml` function, one that takes a clojars-id and a version number as parameters, and a
+  `version-entity (see `:cljdoc.spec/version-entity` in spec.cljc)`, fetch the pom xml and get the description
+  and dependencies."
+  [fetch-pom-xml version-entity]
+  (let [parsed-pom (pom/parse
+                    (fetch-pom-xml
+                     (proj/clojars-id version-entity)
+                     (:version version-entity)))
+        {:keys [artifact-info dependencies]} parsed-pom]
+    {:description (:description artifact-info)
+     :dependencies dependencies}))
+
 (defn pom-loader
   "Load a projects POM file, parse it and inject some information from it into the context."
   [cache]
   (interceptor/interceptor
    {:name ::pom-loader
     :enter (fn pom-loader-inner [ctx]
-             (let [pom-xml-memo (:cljdoc.util.repositories/get-pom-xml cache)
-                   params (-> ctx :request :path-params)
-                   pom-parsed (pom/parse (pom-xml-memo
-                                          (proj/clojars-id params)
-                                          (:version params)))]
-               (assoc ctx ::pom-info {:description (-> pom-parsed :artifact-info :description)
-                                      :dependencies (-> pom-parsed :dependencies)})))}))
+             (assoc ctx ::pom-info (load-pom (:cljdoc.util.repositories/get-pom-xml cache)
+                                             (get-in ctx [:request :path-params]))))}))
 
 (defn- uri-path
   "Return path part of a URL, this is probably part of pedestal in
@@ -510,6 +528,20 @@
                      :body "Could not find data, please request a build first"})
                   (assoc ctx :response)))}))
 
+(def api-searchset
+  "Creates an API response with a JSON representation of a searchset."
+  (interceptor/interceptor
+   {:name ::api-searchset
+    :enter (fn api-searchset [{:keys [cache-bundle] :as ctx}]
+             (->> (if cache-bundle
+                    {:status 200
+                     :headers {"Content-Type" "application/json"}
+                     :body (json/generate-string (api-searchset/cache-bundle->searchset cache-bundle))}
+                    {:status 404
+                     :headers {"Content-Type" "application/json"}
+                     :body (json/generate-string {:error "Could not find data, please request a build first"})})
+                  (assoc ctx :response)))}))
+
 (defn route-resolver
   "Given a route name return a list of interceptors to handle requests
   to that route.
@@ -534,6 +566,10 @@
 
          :api/search [pu/coerce-body (pu/negotiate-content #{"application/json"}) (search-interceptor searcher)]
          :api/search-suggest [pu/coerce-body (pu/negotiate-content #{"application/x-suggestions+json"}) (search-suggest-interceptor searcher)]
+
+         :api/searchset [(pom-loader cache)
+                         (artifact-data-loader storage)
+                         api-searchset]
 
          :ping          [(interceptor/interceptor {:name ::pong :enter #(pu/ok-html % "pong")})]
          :request-build [(body/body-params) request-build-validate (request-build deps)]

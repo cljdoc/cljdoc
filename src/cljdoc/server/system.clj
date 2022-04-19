@@ -130,20 +130,31 @@
     (integrant.repl/set-prep! #(system-config (cfg/config)))
     (integrant.repl/go))
 
-  (require '[integrant.repl]
-           '[clojure.spec.test.alpha :as st])
+  (do
+    (require '[integrant.repl])
+    (integrant.repl/set-prep! #(system-config (cfg/config)))
+    (integrant.repl/go))
+
+  (require '[clojure.spec.test.alpha :as st])
+  (require '[integrant.repl])
 
   (integrant.repl/set-prep! #(system-config (cfg/config)))
-
+  (integrant.repl/go)
+  (integrant.repl/halt)
+  (integrant.repl/clear)
+  (integrant.repl/reset)
   (taoensso.tufte/add-basic-println-handler! {})
 
-  (integrant.repl/go)
+  integrant.repl.state/system
+  integrant.repl.state/config
+  integrant.repl.state/preparer
 
   (do (integrant.repl/halt)
       (st/instrument)
       (integrant.repl/go))
 
-  (integrant.repl/reset)
+  (do (integrant.repl/halt)
+      (integrant.repl/go))
 
   ;; To invoke a URL in a started system
   integrant.repl.state/system
@@ -152,5 +163,15 @@
     (pdt/response-for
      (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
      :get "/api/search?q=async" #_:body :headers {"Accept" "*/*"}))
+
+  ;; reset the system and test the searchset api
+  (do
+    (integrant.repl/reset)
+    (require '[cheshire.core :as json])
+    (require '[io.pedestal.test :as pdt])
+    (-> (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
+        (pdt/response-for :get "/api/searchset/seancorfield/next.jdbc/1.2.659" #_:body :headers {"Accept" "*/*"})
+        :body
+        (json/parse-string keyword)))
 
   nil)

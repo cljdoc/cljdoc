@@ -23,7 +23,8 @@
   #{["/api/ping" :get nop :route-name :ping]
     ["/api/request-build2" :post nop :route-name :request-build]
     ["/api/search" :get nop :route-name :api/search]
-    ["/api/search-suggest" :get nop :route-name :api/search-suggest]})
+    ["/api/search-suggest" :get nop :route-name :api/search-suggest]
+    ["/api/searchset/:group-id/:artifact-id/:version" :get nop :route-name :api/searchset]})
 
 (defn build-log-routes []
   #{["/builds/:id" :get nop :route-name :show-build]
