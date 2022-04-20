@@ -317,7 +317,25 @@ table.frame-sides > colgroup + * > :first-child > * {
   font-size: 1em;
 }
 
-/* Asciidoc admonition tip/note blocks */
+/* Asciidoc admonition tip/note blocks
+
+   When adoc icons attribute is set to fonts, example rendering:
+
+   <div class="admonitionblock warning">
+     <table>
+       <tbody>
+         <tr>
+           <td class="icon">
+             <i title="Warning"></i>
+           </td>
+           <td class="content">
+             Warning to the wise.
+           </td>
+        </tr>
+      </tbody>
+    </table>
+   </div>
+*/
 
 .asciidoc .admonitionblock {
   padding: 1rem;
@@ -332,10 +350,19 @@ table.frame-sides > colgroup + * > :first-child > * {
 
 .asciidoc .admonitionblock .icon {
   display: block;
-  text-transform: uppercase;
   font-size: 0.8rem;
+}
+
+.asciidoc .admonitionblock .icon i {
+  text-transform: uppercase;
   color: #777;
   font-weight: 600;
+  font-style: normal;
+  height: 1em;
+}
+
+.asciidoc .admonitionblock .icon i:after {
+  content: attr(title);
 }
 
 .asciidoc .admonitionblock table tr td {
@@ -364,6 +391,70 @@ table.frame-sides > colgroup + * > :first-child > * {
 .asciidoc .admonitionblock.warning {
   background-color: #ffdfdf; /** tachyons washed-red **/
   border-color: #ff725c; /** tachyons light-red **/
+}
+
+/*
+ * Callout numbers and lists
+ */
+
+.asciidoc .literalblock + .colist,
+.listingblock + .colist {
+  margin-top: -0.5em;
+}
+
+.asciidoc .colist td:not([class]):first-child {
+  padding: 0.4em 0.75em 0;
+  line-height: 1;
+  vertical-align: top;
+}
+
+.asciidoc .colist td:not([class]):first-child img {
+  max-width: none;
+}
+
+.asciidoc .colist td:not([class]):last-child {
+  padding: 0.25em 0;
+}
+
+.asciidoc .conum[data-value] {
+  display: inline-block;
+  color: #fff !important;
+  background: rgb(0 0 0 / 0.8);
+  border-radius: 50%;
+  text-align: center;
+  font-size: 0.75em;
+  width: 1.67em;
+  height: 1.67em;
+  line-height: 1.67em;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
+    monospace;
+  font-style: normal;
+  font-weight: bold;
+}
+
+.asciidoc .conum[data-value] * {
+  color: #fff !important;
+}
+
+.asciidoc .conum[data-value] + b {
+  display: none;
+}
+
+.asciidoc .conum[data-value]::after {
+  content: attr(data-value);
+}
+
+.asciidoc pre .conum[data-value] {
+  position: relative;
+  top: -0.125em;
+}
+
+.asciidoc b.conum * {
+  color: inherit !important;
+}
+
+.asciidoc .conum:not([data-value]):empty {
+  display: none;
 }
 
 /*

@@ -14,7 +14,7 @@
   [:script
    (hiccup/raw
     "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });
-      hljs.highlightAll();")])
+     hljs.highlightAll();")])
 
 (defn highlight-js []
   [:div

@@ -203,6 +203,10 @@
       (matching-vals "wikilink")
       (on-tags "a")
 
+      ;; for code block callouts
+      (allow-attributes "data-value")
+      (on-tags "i")
+
       ;; mimic from github pipeline
       (allow-attributes "itemscope" "itemtype")
       (on-tags "div")
@@ -333,6 +337,11 @@
       (sanitize-classes
        ["float"])
       (on-tags "h2" "h3" "h4" "h5" "h6")
+
+      ;; for callout numbers and and potentially icons on admonitions
+      (sanitize-classes
+       ["conum" "icon-important" "icon-warning" "icon-caution" "icon-tip" "icon-note"])
+      (on-tags "i")
 
       (sanitize-classes
        ["arabic"]
