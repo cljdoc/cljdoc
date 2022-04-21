@@ -317,6 +317,24 @@ table.frame-sides > colgroup + * > :first-child > * {
   font-size: 1em;
 }
 
+/* Asciidoc table of contents title is rendered as:
+
+   <div id="toctitle">Table of Contents</div>
+
+   Well give it the same ooomph as a level 1 heading (which is rendered as h2)
+ */
+
+.asciidoc #toctitle {
+  /* mimic h2 defaults */
+  font-size: 1.5em;
+  font-weight: bolder;
+  /* copied from tachyons css */
+  box-sizing: border-box;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir,
+    helvetica neue, helvetica, ubuntu, roboto, noto, segoe ui, arial, sans-serif;
+}
+
 /* Asciidoc admonition tip/note blocks
 
    When adoc icons attribute is set to fonts, example rendering:
