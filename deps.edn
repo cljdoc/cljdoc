@@ -1,4 +1,4 @@
-{:deps {org.clojure/clojure {:mvn/version "1.11.0"}
+{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
 
         ;; configuration
         aero/aero {:mvn/version "1.1.6"}                     ;; rich configuration support with profiles
@@ -56,7 +56,7 @@
         org.slf4j/slf4j-api {:mvn/version "1.7.36"}          ;; slf4j front end
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "5.7.0"}      ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "5.7.3"}      ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.6.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -75,11 +75,10 @@
         com.fasterxml.jackson.dataformat/jackson-dataformat-smile {:mvn/version "2.13.2"}
         com.fasterxml.jackson.dataformat/jackson-dataformat-cbor {:mvn/version "2.13.2"
                                                                   :exclusions [com.fasterxml.jackson.core/jackson-databind]}
-        com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.13.2.1"}
+        com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.13.2.2"}
 
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.2.0"}            ;; profile/perf monitoring
-        funcool/cuerdas {:mvn/version "2022.01.14-391"}      ;; string manipulation
         lambdaisland/uri {:mvn/version "1.13.95"}            ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
@@ -87,7 +86,7 @@
         robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
-        zprint/zprint {:mvn/version "1.2.2"}                 ;; format clojure source/edn
+        zprint/zprint {:mvn/version "1.2.3"}                 ;; format clojure source/edn
 
         ;; override transitive dep from nippy ant tufte to quiet clojure 1.11 warnings,
         ;; delete if/when nippy/tufte updates bring in newer version:
@@ -102,7 +101,7 @@
  :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.64.1010"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.65.1029"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
                          nubank/matcher-combinators {:mvn/version "3.5.0" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
@@ -113,7 +112,7 @@
 
            :cli
            {:extra-paths ["modules/cli/src"]
-            :extra-deps {cli-matic/cli-matic {:mvn/version "0.4.3"}}
+            :extra-deps {cli-matic/cli-matic {:mvn/version "0.5.3"}}
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :code-format
@@ -121,6 +120,6 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.6.0"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.6.1"}
                            org.slf4j/slf4j-simple {:mvn/version "1.7.36"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"]}}}

@@ -19,11 +19,10 @@
   doctree based on a list of files. This is used to derive the doctree
   for projects that haven't provided one explicitly."
   (:require [clojure.spec.alpha :as spec]
-            [clojure.string :as cstr]
-            [cuerdas.core :as cuerdas]))
+            [clojure.string :as string]))
 
 (spec/def ::ne-string (spec/and string?
-                                (complement cstr/blank?)))
+                                (complement string/blank?)))
 (spec/def :cljdoc.doc/source-file string?)
 (spec/def :cljdoc/markdown string?)
 (spec/def :cljdoc/asciidoc string?)
@@ -82,6 +81,29 @@
 (defmethod filepath->type "md" [_] :cljdoc/markdown)
 (defmethod filepath->type "adoc" [_] :cljdoc/asciidoc)
 
+(defn- uslug
+  "Unicode friendly version of `slug` function.
+  Adapated from:
+  https://github.com/funcool/cuerdas/blob/af39a75bb0f180536c6026fd6bd1728ba1665365/src/cuerdas/core.cljc#L618-L623
+  BSD 2-Clause Simlified - Copyright (c) Andrey Antukh <niwi@niwi.nz>"
+  [s]
+  (some-> (string/lower-case s)
+          ;; (?u) = unicode aware
+          ;; \p = character class
+          ;; {L} = any kind of letter from any language
+          ;; {N} = any kind of numeric character in any script
+          ;; {Z} = any kind of whitespace of invisible separator
+          ;; replace sequences of non-alphanumerics with space
+          (string/replace #"(?u)[^\p{L}\p{N}]+" " ")
+          ;; replace sequences of whitespace with dash
+          (string/replace #"(?u)\p{Z}+" "-")))
+
+(comment
+  (uslug "Русский 001   fo!!!obar +++ blap\n\tblorp")
+  ;; => "русский-001-fo-obar-blap-blorp"
+
+  nil)
+
 (defn- process-toc-entry
   [{:keys [slurp-fn get-contributors] :as fns}
    {:keys [title attrs children]}]
@@ -104,7 +126,7 @@
       (assoc-in [:attrs :cljdoc.doc/type] entry-type)
 
       (nil? (:slug attrs))
-      (assoc-in [:attrs :slug] (cuerdas/uslug title))
+      (assoc-in [:attrs :slug] (uslug title))
 
       (:file attrs)
       (assoc-in [:attrs :cljdoc.doc/contributors] (get-contributors file))
@@ -206,7 +228,7 @@
         ;; NOTE infer-title will fail with non adoc/md files
         :cljdoc/markdown (second (re-find #"(?m)^\s*#+\s*(.*)\s*$" file-contents))
         :cljdoc/asciidoc (second (re-find #"(?m)^\s*=+\s*(.*)\s*$" file-contents)))
-      (first (butlast (take-last 2 (cuerdas/split path #"[/\.]"))))
+      (first (butlast (take-last 2 (string/split path #"[/\.]"))))
       (throw (ex-info (format "No title found for %s" path)
                       {:path path :contents file-contents}))))
 
