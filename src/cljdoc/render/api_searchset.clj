@@ -106,12 +106,15 @@
   "Renders cache-bundle `namespaces` into a format consumable by the API. This consists of:
 
   1. Paring down the fields in the cache-bundle's `namespaces`.
-  2. Adding a URL path to the produced map."
+  2. Adding a URL path to the produced map.
+  3. Sorting for a deterministic ordering."
   [cache-bundle-namespaces version-entity]
-  (into []
-        (comp (map #(select-keys % [:platform :name :doc]))
-              (map #(assoc % :path (path-for-namespace version-entity (:name %)))))
-        cache-bundle-namespaces))
+  (->> (into []
+             (comp (map #(select-keys % [:platform :name :doc]))
+                   (map #(assoc % :path (path-for-namespace version-entity (:name %)))))
+             cache-bundle-namespaces)
+       (sort-by (juxt :name :platform))
+       vec))
 
 (defn- ->searchset-members
   [members]
@@ -122,14 +125,17 @@
 
   1. Paring down the fields in the cache-bundle's `defs`, including in the nested
      `:members` map..
-  2. Adding a URL path to the produced map."
+  2. Adding a URL path to the produced map.
+  3. Sorting for a deterministic ordering"
   [cache-bundle-defs version-entity]
-  (into []
-        (comp
-         (map #(select-keys % [:platform :type :namespace :name :arglists :doc :members]))
-         (map #(update % :members ->searchset-members))
-         (map #(assoc % :path (path-for-def version-entity (:namespace %) (:name %)))))
-        cache-bundle-defs))
+  (->> (into []
+             (comp
+              (map #(select-keys % [:platform :type :namespace :name :arglists :doc :members]))
+              (map #(update % :members ->searchset-members))
+              (map #(assoc % :path (path-for-def version-entity (:namespace %) (:name %)))))
+             cache-bundle-defs)
+       (sort-by (juxt :namespace :name :platform))
+       vec))
 
 (defn- ->docs
   "Renders cache-bundle `doc` tree down into finer-grained units of text and their links.

@@ -3,30 +3,91 @@
             [cljdoc.spec.cache-bundle :as cbs]
             [cljdoc.spec.searchset :as ss]
             [clojure.edn :as edn]
-            [clojure.test :as t]
-            [clojure.java.io :as io]))
+            [clojure.test :as t]))
 
-(def cache-bundle (-> "test_data/cache_bundle.edn"
-                      io/resource
+(def cache-bundle (-> "resources/test_data/cache_bundle.edn"
                       slurp
                       edn/read-string))
 
 (comment
+  ;; run regen-results to regenerate expected results.
+  ;; test project docs will need to have been built and server started from cljdoc.server.system
   (require '[clojure.pprint]
-           '[cljdoc.spec.util :as util])
-  (let [cache-bundle (util/load-cache-bundle "rewrite-clj/rewrite-clj/1.0.767-alpha")
-        searchset (api-searchset/cache-bundle->searchset cache-bundle)]
-    (spit "resources/test_data/cache_bundle.edn" (with-out-str (clojure.pprint/pprint cache-bundle)))
-    (spit "resources/test_data/searchset.edn" (with-out-str (clojure.pprint/pprint searchset)))
-    ;; make sure you check these to confirm that namespaces + defs + docs are all generating correctly
-    ))
+           '[cljdoc.spec.util :as util]
+           '[clojure.walk :as walk])
+
+  (defn pp-str [f]
+    (with-out-str (clojure.pprint/pprint f)))
+
+  (defn sort-k-set [k by-keys m]
+    (assoc m k
+           (into (sorted-set-by (fn [x y]
+                                  (reduce (fn [c k]
+                                            (if (not (zero? c))
+                                              (reduced c)
+                                              (compare (k x) (k y))))
+                                          0
+                                          by-keys)))
+                 (k m))))
+
+  (defn sort-results-form [form]
+    (cond->> form
+      (set? (:namespaces form)) (sort-k-set :namespaces [:name :platform])
+      (set? (:defs form)) (sort-k-set :defs [:namespace :name :platform])
+      :always (walk/postwalk (fn [n] (if (map? n)
+                                       (into (sorted-map) n)
+                                       n)))))
+
+  (defn regen-results []
+    (let [cache-bundle (util/load-cache-bundle "rewrite-clj/rewrite-clj/1.0.767-alpha")
+          searchset (api-searchset/cache-bundle->searchset cache-bundle)]
+      (spit "resources/test_data/cache_bundle.edn.regen" (pp-str (sort-results-form cache-bundle)))
+      (spit "resources/test_data/searchset.edn.regen" (pp-str (sort-results-form searchset)))
+      ;; make sure you check these to confirm that namespaces + defs + docs are all generating correctly
+      ;;
+      ;; don't worry about the namespace id, the id comes from an auto-increment column
+      ;; in the database and will be different for each system
+      ))
+
+  (regen-results)
+
+  (defn sort-results-file [fname extra-sort-fn]
+    (->> fname
+         slurp
+         edn/read-string
+         sort-results-form
+         extra-sort-fn
+         pp-str
+         (spit fname #_(str fname ".out"))))
+
+  ;; start with sorting existing results
+  (sort-results-file "resources/test_data/cache_bundle.edn" identity)
+
+  (defn ss-sort [x]
+    (-> x
+        (update :namespaces #(vec (sort-by (juxt :name :platform) %)))
+        (update :defs #(vec (sort-by (juxt :namespace :name :platform) %)))))
+
+  (sort-results-file "resources/test_data/searchset.edn" ss-sort)
+
+  (def orig (-> "resources/test_data/searchset.edn" slurp edn/read-string))
+  (def new (-> "resources/test_data/searchset.edn.out" slurp edn/read-string))
+
+  (= orig new)
+
+  (-> origcb :defs count)
+
+  (->> origcb :defs vec (group-by :name))
+
+  (-> newcb :defs count)
+
+  nil)
 
 (def doc (get-in cache-bundle [:version :doc 0]))
 
 (def version-entity (:version-entity cache-bundle))
 
-(def searchset (-> "test_data/searchset.edn"
-                   io/resource
+(def searchset (-> "resources/test_data/searchset.edn"
                    slurp
                    edn/read-string))
 
