@@ -51,36 +51,6 @@
 
   (regen-results)
 
-  (defn sort-results-file [fname extra-sort-fn]
-    (->> fname
-         slurp
-         edn/read-string
-         sort-results-form
-         extra-sort-fn
-         pp-str
-         (spit fname #_(str fname ".out"))))
-
-  ;; start with sorting existing results
-  (sort-results-file "resources/test_data/cache_bundle.edn" identity)
-
-  (defn ss-sort [x]
-    (-> x
-        (update :namespaces #(vec (sort-by (juxt :name :platform) %)))
-        (update :defs #(vec (sort-by (juxt :namespace :name :platform) %)))))
-
-  (sort-results-file "resources/test_data/searchset.edn" ss-sort)
-
-  (def orig (-> "resources/test_data/searchset.edn" slurp edn/read-string))
-  (def new (-> "resources/test_data/searchset.edn.out" slurp edn/read-string))
-
-  (= orig new)
-
-  (-> origcb :defs count)
-
-  (->> origcb :defs vec (group-by :name))
-
-  (-> newcb :defs count)
-
   nil)
 
 (def doc (get-in cache-bundle [:version :doc 0]))
