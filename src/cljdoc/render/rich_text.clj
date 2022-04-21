@@ -20,6 +20,7 @@
 (defn asciidoc-to-html [^String file-content]
   (let [opts (doto (Options.)
                (.setAttributes (java.util.HashMap. {"env-cljdoc" true
+                                                    "sectlinks" true
                                                     "icons" "font"
                                                     "outfilesuffix" ".adoc"
                                                     "showtitle" true})))]
