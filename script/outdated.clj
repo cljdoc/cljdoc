@@ -3,8 +3,8 @@
 (ns outdated
   (:require [babashka.fs :as fs]
             [clojure.edn :as edn]
-            [clojure.pprint :as pprint]
             [clojure.string :as string]
+            [doric.core :as doric]
             [helper.process :as ps]
             [lread.status-line :as status]))
 
@@ -48,7 +48,14 @@
                                          :current version
                                          :latest latest-version))))))]
     (if (seq outdated)
-      (pprint/print-table [:file :npm-name :current :latest :note] outdated)
+      (->> (for [o outdated
+                 :let [note-lines (when (:note o)
+                                    (string/split-lines (:note o)))]]
+             (concat [(assoc o :note (first note-lines))]
+                     (map (fn [l] {:note l}) (rest note-lines))))
+           (mapcat identity)
+           (doric/table [:file :npm-name :current :latest :note])
+           println)
       (status/line :detail "All CDN JavaScript deps seem up to date."))))
 
 (defn -main []

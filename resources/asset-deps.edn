@@ -78,7 +78,8 @@
                  "jax/output/PreviewHTML/jax.js"]}}
  :highlightjs
  {:npm-name "highlight.js"
-  :version "11.5.0"
+  :note "Highlight.js v11 will require some plugin to support our AsciiDoc inline code callouts.\nSee: https://github.com/highlightjs/highlight.js/issues/2889"
+  :version "10.7.2"
   :js {:root "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@{{:version}}/build/"
        :assets ["highlight.min.js"
                 "languages/clojure.min.js"
