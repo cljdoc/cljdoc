@@ -41,8 +41,8 @@
   (defn regen-results []
     (let [cache-bundle (util/load-cache-bundle "rewrite-clj/rewrite-clj/1.0.767-alpha")
           searchset (api-searchset/cache-bundle->searchset cache-bundle)]
-      (spit "resources/test_data/cache_bundle.edn.regen" (pp-str (sort-results-form cache-bundle)))
-      (spit "resources/test_data/searchset.edn.regen" (pp-str (sort-results-form searchset)))
+      (spit "resources/test_data/cache_bundle.edn" (pp-str (sort-results-form cache-bundle)))
+      (spit "resources/test_data/searchset.edn" (pp-str (sort-results-form searchset)))
       ;; make sure you check these to confirm that namespaces + defs + docs are all generating correctly
       ;;
       ;; don't worry about the namespace id, the id comes from an auto-increment column
