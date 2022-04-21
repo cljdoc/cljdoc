@@ -317,12 +317,31 @@ table.frame-sides > colgroup + * > :first-child > * {
   font-size: 1em;
 }
 
+/* Asciidoc when asked to via sectlinks attribute, renders section headings as:
+
+   <h2 id="_formatting_marks">
+     <a class="link" href="#_formatting_marks">Formatting marks</a>
+   </h2>
+
+   As far as I know, it does not use the link class elsewhere.
+   Tachyons defines a style for the link class.
+   For now we'll match Markdown styling of black.
+ */
+.asciidoc h1 a,
+.asciidoc h2 a,
+.asciidoc h3 a,
+.asciidoc h4 a,
+.asciidoc h5 a,
+.asciidoc h6 a {
+  color: black;
+}
+
 /* Asciidoc table of contents title is rendered as:
 
    <div id="toctitle">Table of Contents</div>
 
    Well give it the same ooomph as a level 1 heading (which is rendered as h2)
- */
+*/
 
 .asciidoc #toctitle {
   /* mimic h2 defaults */
