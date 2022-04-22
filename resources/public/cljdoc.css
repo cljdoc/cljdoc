@@ -198,12 +198,78 @@ pre {
     </ul>
    </div>
 
-   Same idea for olist.
+   Same idea for qlist and olist.
 */
 
 .asciidoc .ulist li p,
+.asciidoc .qlist li p,
 .asciidoc .olist li p {
   margin-bottom: 0.2em;
+}
+
+/* AsciiDoctor definition list example:
+
+   <div class="dlist">
+    <dl>
+      <dt class="hdlist1">Clojure</dt>
+      <dd>
+        <p>Clojure for the JVM</p>
+      </dd>
+      <dt class="hdlist1">ClojureScript</dt>
+      <dd>
+        <p>Clojure for JavaScript compiled by the JVM</p>
+      </dd>
+    </dl>
+   </div>
+
+  I think we can go generic here and target all all markdowns
+*/
+
+.cljdoc-article dl dt {
+  margin-bottom: 0.3125em;
+  font-weight: bold;
+}
+
+.cljdoc-article dl dd {
+  margin-bottom: 1.25em;
+  margin-left: 1.125em;
+}
+
+/* AsciiDdoctor Description List example:
+
+   <div class="hdlist">
+    <table>
+     <tbody>
+      <tr>
+       <td class="hdlist1"> Clojure </td>
+       <td class="hdlist2">
+         <p>Clojure for the JVM</p>
+       </td>
+      </tr>
+      <tr>
+       <td class="hdlist1"> ClojureScript </td>
+       <td class="hdlist2">
+         <p>Clojure for JavaScript compiled by the JVM</p>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+*/
+
+.asciidoc td.hdlist1,
+.asciidoc td.hdlist2 {
+  vertical-align: top;
+  padding: 0 0.625em;
+}
+
+.asciidoc td.hdlist1 {
+  font-weight: bold;
+  padding-bottom: 1.25em;
+}
+
+.asciidoc td.hdlist2 {
+  word-wrap: anywhere;
 }
 
 /* AsciiDoctor renders attributions (used in quotes and verse blocks):
