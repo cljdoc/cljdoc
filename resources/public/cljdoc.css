@@ -110,11 +110,12 @@ pre {
   word-wrap: normal;
 }
 
-.markdown blockquote {
+.cljdoc-markup blockquote {
   margin: 0;
   padding: 0 1em;
   color: #6a737d;
   border-left: 0.25em solid #dfe2e5;
+  width: fit-content;
 }
 
 .cljdoc-markup table {
@@ -203,6 +204,47 @@ pre {
 .asciidoc .ulist li p,
 .asciidoc .olist li p {
   margin-bottom: 0.2em;
+}
+
+/* AsciiDoctor renders attributions (used in quotes and verse blocks):
+
+  <div class="attribution">
+   — Yogi Berra<br>
+   <cite>life</cite>
+  </div>
+*/
+
+.asciidoc .verseblock,
+.asciidoc .quoteblock {
+  width: fit-content;
+  margin-bottom: 1.25em;
+}
+
+.asciidoc .verseblock div > .paragraph:last-child p,
+.asciidoc .quoteblock blockquote > .paragraph:last-child p {
+  margin-bottom: 0.2em;
+}
+
+.asciidoc .verseblock .attribution,
+.asciidoc .quoteblock .attribution {
+  margin-top: 0;
+  margin-right: 1em;
+  text-align: right;
+  font-size: 1rem;
+  line-height: 1.45;
+  font-style: italic;
+  color: #555;
+}
+
+.asciidoc .quoteblock .attribution br,
+.asciidoc .verseblock .attribution br {
+  display: none;
+}
+
+.asciidoc .quoteblock .attribution cite,
+.asciidoc .verseblock .attribution cite {
+  display: block;
+  color: #777;
 }
 
 /** AsciiDoc tables */
