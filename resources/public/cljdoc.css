@@ -410,26 +410,45 @@ table.frame-sides > colgroup + * > :first-child > * {
   display: block;
 }
 
-.asciidoc .admonitionblock.tip {
-  background-color: #e8fdf5; /** tachyons washed-green **/
-  border-color: #9eebcf; /** tachyons light-green **/
+.asciidoc .admonitionblock.important .icon i:after {
+  color: #7d0047;
 }
-
-.asciidoc .admonitionblock.note {
-  background-color: #cdecff; /** tachyons light-blue **/
-  border-color: #357edd; /** tachyons blue **/
-}
-
 .asciidoc .admonitionblock.important {
-  background-color: #fffceb; /** tachyons washed-yellow **/
-  border-color: #ffd700; /** tachyons yellow **/
+  background-color: #ffa3d7;
+  border-color: #ff4136;
 }
 
+.asciidoc .admonitionblock.warning .icon i:after {
+  color: #8f0000;
+}
 .asciidoc .admonitionblock.warning {
-  background-color: #ffdfdf; /** tachyons washed-red **/
-  border-color: #ff725c; /** tachyons light-red **/
+  background-color: #ffdfdf;
+  border-color: #ff725c;
 }
 
+.asciidoc .admonitionblock.caution .icon i:after {
+  color: #937d00;
+}
+.asciidoc .admonitionblock.caution {
+  background-color: #fffceb;
+  border-color: #ffd700;
+}
+
+.asciidoc .admonitionblock.note .icon i:after {
+  color: #00568a;
+}
+.asciidoc .admonitionblock.note {
+  background-color: #cdecff;
+  border-color: #357edd;
+}
+
+.asciidoc .admonitionblock.tip .icon i:after {
+  color: #0c8657;
+}
+.asciidoc .admonitionblock.tip {
+  background-color: #e8fdf5;
+  border-color: #19a974;
+}
 /*
  * Callout numbers and lists
  */
