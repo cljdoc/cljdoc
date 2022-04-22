@@ -186,6 +186,27 @@ pre {
   margin-bottom: 0.25em;
 }
 
+/*
+   AsciiDoctor renders lists like so:
+
+   <div class="ulist">
+    <ul>
+     <li>
+      <p>apples</p>
+     </li>
+    </ul>
+   </div>
+
+   Same idea for olist.
+*/
+
+.asciidoc .ulist li p,
+.asciidoc .olist li p {
+  margin-bottom: 0.2em;
+}
+
+/** AsciiDoc tables */
+
 .asciidoc table thead tr th,
 .asciidoc table thead tr td,
 .asciidoc table tfoot tr th,
