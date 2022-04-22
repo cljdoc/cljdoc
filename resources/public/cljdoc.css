@@ -653,8 +653,23 @@ table.frame-sides > colgroup + * > :first-child > * {
   </div>
 </div>
 
+  And example block is similar, the main difference is that the title appears outside the content:
+
+<div class="exampleblock">
+  <div class="title">Example 1. I am a sample</div>
+  <div class="content">
+    <div class="paragraph">
+      <p>Do I look like a subdoc?</p>
+    </div>
+    <div class="paragraph">
+      <p>Blah blah</p>
+    </div>
+  </div>
+</div>
+
 */
 
+/* we don't want these blocks to look like admonitions, so style in white/greytones */
 .asciidoc .sidebarblock {
   border: 1px solid #ccc;
   color: #777;
@@ -664,11 +679,21 @@ table.frame-sides > colgroup + * > :first-child > * {
   border-radius: 4px;
 }
 
-.asciidoc .sidebarblock > :first-child {
+.asciidoc .exampleblock > .content {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  margin-bottom: 1.25em;
+  padding: 0.75em;
+  border-radius: 4px;
+}
+
+.asciidoc .sidebarblock > :first-child,
+.asciidoc .exampleblock > .content > :first-child {
   margin-top: 0;
 }
 
-.asciidoc .sidebarblock > :last-child {
+.asciidoc .sidebarblock > :last-child,
+.asciidoc .exampleblock > .content > :first-child {
   margin-bottom: 0;
 }
 
@@ -678,6 +703,10 @@ table.frame-sides > colgroup + * > :first-child > * {
   margin-bottom: 0.25em;
 }
 
+.asciidoc .exampleblock > .content > :last-child > :last-child,
+.asciidoc .exampleblock > .content .olist > ol > li:last-child > :last-child,
+.asciidoc .exampleblock > .content .ulist > ul > li:last-child > :last-child,
+.asciidoc .exampleblock > .content .qlist > ol > li:last-child > :last-child,
 .asciidoc .sidebarblock > .content > :last-child > :last-child,
 .asciidoc .sidebarblock > .content .olist > ol > li:last-child > :last-child,
 .asciidoc .sidebarblock > .content .ulist > ul > li:last-child > :last-child,
