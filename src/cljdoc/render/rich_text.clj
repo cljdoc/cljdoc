@@ -19,11 +19,16 @@
 
 (defn asciidoc-to-html [^String file-content]
   (let [opts (doto (Options.)
-               (.setAttributes (java.util.HashMap. {"env-cljdoc" true
-                                                    "sectlinks" true
-                                                    "icons" "font"
-                                                    "outfilesuffix" ".adoc"
-                                                    "showtitle" true})))]
+               (.setAttributes
+                 (java.util.HashMap.
+                   {"env-cljdoc" true
+                    "sectlinks" true
+                    "experimental" true ;; don't let the "experimental" worry you,
+                                        ;; it now only means enable the stable
+                                        ;; kbd, menu and button macros
+                    "icons" "font"
+                    "outfilesuffix" ".adoc"
+                    "showtitle" true})))]
     (-> (.convert adoc-container file-content opts)
         sanitize/clean)))
 
