@@ -340,7 +340,13 @@
 
       ;; for callout numbers and and potentially icons on admonitions
       (sanitize-classes
-       ["conum" "icon-important" "icon-warning" "icon-caution" "icon-tip" "icon-note"])
+       ["conum"]
+       ["caret"]
+       ["icon-important"]
+       ["icon-warning"]
+       ["icon-caution"]
+       ["icon-tip"]
+       ["icon-note"])
       (on-tags "i")
 
       (sanitize-classes

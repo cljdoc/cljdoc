@@ -715,6 +715,95 @@ table.frame-sides > colgroup + * > :first-child > * {
 }
 
 /*
+ * Keyboard
+ *
+ * Can be as simple as: <kbd>q</kbd>
+ */
+
+/* styling for any markup kdb element */
+.cljdoc-markup kbd {
+  display: inline-block;
+  color: #555;
+  font-size: 0.875rem;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin: 0 0.15em;
+  padding: 0.2em 0.5em;
+  vertical-align: middle;
+  position: relative;
+  top: -0.1em;
+  white-space: nowrap;
+}
+
+/*
+  For AsciiDoc can be wrapped in a keyseq:
+  <span class="keyseq"><kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>space</kbd></span>
+*/
+
+.asciidoc .keyseq {
+  color: #777;
+}
+
+.asciidoc .keyseq kbd:first-child {
+  margin-left: 0;
+}
+
+.asciidoc .keyseq kbd:last-child {
+  margin-right: 0;
+}
+
+/* AsciiDoc ui menuseq
+<span class="menuseq">
+ <b class="menu">View</b>&nbsp;<i class="caret"></i>
+ <b class="submenu">Zoom</b>&nbsp;<i class="caret"></i>
+ <b class="menuitem">Reset</b>
+</span>
+*/
+.asciidoc .menuseq,
+.asciidoc .menuref {
+  color: #000;
+  font-weight: bold;
+}
+
+.asciidoc .menuseq b:not(.caret) {
+  font-weight: inherit;
+}
+
+.asciidoc .menuseq {
+  word-spacing: -0.02em;
+}
+
+.asciidoc .menuseq i.caret::before {
+  font-weight: bold;
+  text-align: center;
+  width: 0.45em;
+  font-style: normal;
+  content: ">";
+}
+
+/* AsciiDoc ui button
+   <b class="button">OK</b>
+*/
+
+.asciidoc b.button::before,
+.asciidoc b.button::after {
+  position: relative;
+  top: -1px;
+  font-weight: 400;
+}
+
+.asciidoc b.button::before {
+  content: "[";
+  padding: 0 3px 0 2px;
+}
+
+.asciidoc b.button::after {
+  content: "]";
+  padding: 0 2px 0 3px;
+}
+
+/*
  * Scroll Indicator
  */
 
