@@ -153,6 +153,29 @@ alongside, in the same directory, the draw.io source `system-overview.drawio`.
 
 To make things easy to find, images should sit in the same directory as the doc.
 
+== Tasks
+
+=== Honoring People who Contribute
+
+We honor the many good folks who contribute to cljdoc in our link:/README.adoc[README] file.
+
+Add new people to the end of the vector in `./doc/people.edn`.
+Then run:
+
+```
+bb doc-update-readme
+```
+
+This will generate the images for people and update the README file.
+Sometimes people update their GitHub avatars, so images can change even when the README does not.
+
+TIP: Image generation depends on `chromedriver`.
+On macOS this can be installed via `brew install chromedriver`.
+
+TIP: Current contribution keywords can be found in `./script/doc_update_readme.clj`.
+
+Preview the changes, commit and push.
+
 === Linting
 
 We use https://github.com/borkdude/clj-kondo[clj-kondo] to help catch common

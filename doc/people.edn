@@ -1,0 +1,104 @@
+;; inputs for contributors section of README.adoc
+{:contributors
+ [{:github-id "martinklepsch"
+   :contributions [:code :doc :design :issue :sponsor :ops :support :review]}
+  {:github-id "borkdude"
+   :contributions [:code :issue]}
+  {:github-id "avichalp"
+   :contributions [:code]}
+  {:github-id "dawranliou"
+   :contributions [:code :doc :sponsor]}
+  {:github-id "residentsummer"
+   :contributions [:code]}
+  {:github-id "tonsky"
+   :contributions [:code :doc]}
+  {:github-id "danielcompton"
+   :contributions [:code :infra]}
+  {:github-id "samihda"
+   :contributions [:code]}
+  {:github-id "saskali"
+   :contributions [:code]}
+  {:github-id "jorinvo"
+   :contributions [:code :doc]}
+  {:github-id "IamDrowsy"
+   :contributions [:code]}
+  {:github-id "angusiguess"
+   :contributions [:code :doc]}
+  {:github-id "greg-kargin"
+   :contributions [:code]}
+  {:github-id "rakyi"
+   :contributions [:infra :code]}
+  {:github-id "nikolap"
+   :contributions [:code]}
+  {:github-id "mhuebert"
+   :contributions [:code :design]}
+  {:github-id "elarous"
+   :contributions [:code]}
+  {:github-id "mk"
+   :contributions [:code]}
+  {:github-id "bbatsov"
+   :contributions [:doc]}
+  {:github-id "SevereOverfl0w"
+   :contributions [:doc :code]}
+  {:github-id "roman01la"
+   :contributions [:design :code]}
+  {:github-id "mfikes"
+   :contributions [:doc]}
+  {:github-id "anthonygalea"
+   :contributions [:code]}
+  {:github-id "devurandom"
+   :contributions [:doc]}
+  {:github-id "jsimpson-ovo"
+   :contributions [:code]}
+  {:github-id "Tavistock"
+   :contributions [:code]}
+  {:github-id "alex-dixon"
+   :contributions [:code]}
+  {:github-id "timothypratley"
+   :contributions [:code]}
+  {:github-id "kkinnear"
+   :contributions [:code]}
+  {:github-id "karls"
+   :contributions [:code]}
+  {:github-id "ikitommi"
+   :contributions [:code]}
+  {:github-id "pesterhazy"
+   :contributions [:code]}
+  {:github-id "eerohele"
+   :contributions [:code]}
+  {:github-id "nberger"
+   :contributions [:sponsor]}
+  {:github-id "ajoberstar"
+   :contributions [:sponsor]}
+  {:github-id "polymeris"
+   :contributions [:sponsor]}
+  {:github-id "ryrobes"
+   :contributions [:sponsor]}
+  {:github-id "julienba"
+   :contributions [:sponsor]}
+  {:github-id "crimeminister"
+   :contributions [:sponsor]}
+  {:github-id "seancorfield"
+   :contributions [:support]}
+  {:github-id "holyjak"
+   :contributions [:code :doc]}
+  {:github-id "lread"
+   :contributions [:doc :code :review :support :design]}
+  {:github-id "nha"
+   :contributions [:code]}
+  {:github-id "mjhanninen"
+   :contributions [:doc]}
+  {:github-id "jacobobryant"
+   :contributions [:code]}
+  {:github-id "lins05"
+   :contributions [:code]}
+  {:github-id "jimmyhmiller"
+   :contributions [:code]}
+  {:github-id "awkay"
+   :contributions [:issue]}
+  {:github-id "tobias"
+   :contributions [:issue :code]}
+  {:github-id "frozar"
+   :contributions [:doc]}
+  {:github-id "moonbrv"
+   :contributions [:code]}]}
