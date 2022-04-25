@@ -449,6 +449,27 @@ const SingleDocsetSearch = (props: { url: string }) => {
     }
   };
 
+  const onResultNavigation = (path: string) => {
+    const input = inputElement.current;
+
+    if (!input) {
+      return;
+    }
+
+    const redirectTo = new URL(window.location.origin + path);
+
+    const params = redirectTo.searchParams;
+    params.set("q", input.value);
+    redirectTo.search = params.toString();
+
+    if (currentURL.href !== redirectTo.href) {
+      window.location.assign(redirectTo.toString());
+    }
+
+    showResults && setShowResults(false);
+    input.blur();
+  };
+
   clampSelectedIndex();
 
   return (
@@ -527,19 +548,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
                     typeof selectedIndex !== "undefined" &&
                     results.length > 0
                   ) {
-                    const redirectTo = new URL(
-                      window.location.origin + results[selectedIndex].doc.path
-                    );
-
-                    const params = redirectTo.searchParams;
-                    params.set("q", input.value);
-                    redirectTo.search = params.toString();
-
-                    if (currentURL.href !== redirectTo.href) {
-                      window.location.assign(redirectTo.toString());
-                    }
-                    setShowResults(false);
-                    input.blur();
+                    onResultNavigation(results[selectedIndex].doc.path);
                   }
                 } else {
                   setShowResults(true);
@@ -590,9 +599,9 @@ const SingleDocsetSearch = (props: { url: string }) => {
               onMouseDown={(event: MouseEvent) => {
                 event.preventDefault();
               }}
-              onClick={(_event: MouseEvent) => {
-                window.location.assign(result.doc.path);
-                showResults && setShowResults(false);
+              onClick={(event: MouseEvent) => {
+                event.preventDefault();
+                onResultNavigation(result.doc.path);
               }}
             />
           ))}
