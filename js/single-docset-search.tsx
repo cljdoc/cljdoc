@@ -485,6 +485,9 @@ const SingleDocsetSearch = (props: { url: string }) => {
             onBlur={(event: FocusEvent) => {
               const input = event.target as HTMLInputElement;
               input.classList.toggle("b--blue");
+              if (showResults) {
+                setShowResults(false);
+              }
             }}
             onKeyDown={(event: KeyboardEvent) => {
               const input = event.target as HTMLInputElement;
