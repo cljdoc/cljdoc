@@ -249,9 +249,10 @@ const ResultListItem = (props: {
   searchResult: SearchResult;
   index: number;
   selected: boolean;
-  hideResults: () => void;
+  onClick?: (event: MouseEvent) => void;
+  onMouseDown?: (event: MouseEvent) => void;
 }) => {
-  const { searchResult, selected, hideResults } = props;
+  const { searchResult, selected, onClick, onMouseDown } = props;
   const item = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
@@ -272,7 +273,16 @@ const ResultListItem = (props: {
       <a
         className="no-underline black"
         href={result.path}
-        onClick={hideResults}
+        onMouseDown={(event: MouseEvent) => {
+          if (onMouseDown) {
+            onMouseDown(event);
+          }
+        }}
+        onClick={(event: MouseEvent) => {
+          if (onClick) {
+            onClick(event);
+          }
+        }}
       >
         <div className="flex flex-row items-end">
           <ResultIcon item={result} />
@@ -439,6 +449,27 @@ const SingleDocsetSearch = (props: { url: string }) => {
     }
   };
 
+  const onResultNavigation = (path: string) => {
+    const input = inputElement.current;
+
+    if (!input) {
+      return;
+    }
+
+    const redirectTo = new URL(window.location.origin + path);
+
+    const params = redirectTo.searchParams;
+    params.set("q", input.value);
+    redirectTo.search = params.toString();
+
+    if (currentURL.href !== redirectTo.href) {
+      window.location.assign(redirectTo.toString());
+    }
+
+    showResults && setShowResults(false);
+    input.blur();
+  };
+
   clampSelectedIndex();
 
   return (
@@ -483,8 +514,14 @@ const SingleDocsetSearch = (props: { url: string }) => {
                 .catch(console.error);
             }}
             onBlur={(event: FocusEvent) => {
+              // this event will not fire when a ResultListItem
+              // is clicked because onMouseDown calls
+              // event.preventDefault()
               const input = event.target as HTMLInputElement;
               input.classList.toggle("b--blue");
+              if (showResults) {
+                setShowResults(false);
+              }
             }}
             onKeyDown={(event: KeyboardEvent) => {
               const input = event.target as HTMLInputElement;
@@ -511,19 +548,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
                     typeof selectedIndex !== "undefined" &&
                     results.length > 0
                   ) {
-                    const redirectTo = new URL(
-                      window.location.origin + results[selectedIndex].doc.path
-                    );
-
-                    const params = redirectTo.searchParams;
-                    params.set("q", input.value);
-                    redirectTo.search = params.toString();
-
-                    if (currentURL.href !== redirectTo.href) {
-                      window.location.assign(redirectTo.toString());
-                    }
-                    setShowResults(false);
-                    input.blur();
+                    onResultNavigation(results[selectedIndex].doc.path);
                   }
                 } else {
                   setShowResults(true);
@@ -571,7 +596,13 @@ const SingleDocsetSearch = (props: { url: string }) => {
               searchResult={result}
               index={index}
               selected={selectedIndex === index}
-              hideResults={() => showResults && setShowResults(false)}
+              onMouseDown={(event: MouseEvent) => {
+                event.preventDefault();
+              }}
+              onClick={(event: MouseEvent) => {
+                event.preventDefault();
+                onResultNavigation(result.doc.path);
+              }}
             />
           ))}
         </ol>
