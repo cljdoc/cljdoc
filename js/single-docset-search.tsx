@@ -8,7 +8,7 @@ import elasticlunr from "elasticlunr";
 
 elasticlunr.tokenizer.setSeperator(/[\s-.>=+\/]+/);
 
-const SEARCHSET_VERSION = 1;
+const SEARCHSET_VERSION = 2;
 
 type Namespace = {
   name: string;
