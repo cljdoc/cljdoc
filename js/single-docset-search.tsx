@@ -249,9 +249,10 @@ const ResultListItem = (props: {
   searchResult: SearchResult;
   index: number;
   selected: boolean;
-  hideResults: () => void;
+  onClick?: (event: MouseEvent) => void;
+  onMouseDown?: (event: MouseEvent) => void;
 }) => {
-  const { searchResult, selected, hideResults } = props;
+  const { searchResult, selected, onClick, onMouseDown } = props;
   const item = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
@@ -272,7 +273,16 @@ const ResultListItem = (props: {
       <a
         className="no-underline black"
         href={result.path}
-        onClick={hideResults}
+        onMouseDown={(event: MouseEvent) => {
+          if (onMouseDown) {
+            onMouseDown(event);
+          }
+        }}
+        onClick={(event: MouseEvent) => {
+          if (onClick) {
+            onClick(event);
+          }
+        }}
       >
         <div className="flex flex-row items-end">
           <ResultIcon item={result} />
@@ -483,8 +493,14 @@ const SingleDocsetSearch = (props: { url: string }) => {
                 .catch(console.error);
             }}
             onBlur={(event: FocusEvent) => {
+              // this event will not fire when a ResultListItem
+              // is clicked because onMouseDown calls
+              // event.preventDefault()
               const input = event.target as HTMLInputElement;
               input.classList.toggle("b--blue");
+              if (showResults) {
+                setShowResults(false);
+              }
             }}
             onKeyDown={(event: KeyboardEvent) => {
               const input = event.target as HTMLInputElement;
@@ -571,7 +587,13 @@ const SingleDocsetSearch = (props: { url: string }) => {
               searchResult={result}
               index={index}
               selected={selectedIndex === index}
-              hideResults={() => showResults && setShowResults(false)}
+              onMouseDown={(event: MouseEvent) => {
+                event.preventDefault();
+              }}
+              onClick={(_event: MouseEvent) => {
+                window.location.assign(result.doc.path);
+                showResults && setShowResults(false);
+              }}
             />
           ))}
         </ol>
