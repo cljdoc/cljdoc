@@ -42,10 +42,10 @@
 
 ;; Writing ----------------------------------------------------------------------
 
-(defn store-artifact! [db-spec query group-id artifact-id versions]
+(defn store-artifact! [db-spec query versions]
   (assert (coll? versions))
   (doseq [v versions]
-    (sql/execute! db-spec [query group-id artifact-id v])))
+    (sql/execute! db-spec (conj query v))))
 
 (defn update-version-meta! [db-spec version-id data]
   (sql/execute! db-spec ["UPDATE versions SET meta = ? WHERE id = ?" (nippy/freeze data) version-id]))

@@ -13,9 +13,10 @@
   (val (first (first (sql/query db-spec sqlvec)))))
 
 (defn store-artifact! [db-spec group-id artifact-id versions]
-  (assert (coll? versions))
-  (doseq [v versions]
-    (sql/execute! db-spec ["INSERT INTO versions (group_id, artifact_id, name) VALUES (?, ?, ?) ON CONFLICT DO NOTHING" group-id artifact-id v])))
+  (db/store-artifact!
+    db-spec
+    ["INSERT INTO versions (group_id, artifact_id, name) VALUES (?, ?, ?) ON CONFLICT DO NOTHING" group-id artifact-id]
+    versions))
 
 (defrecord PostgresStorage [db-spec]
   IStorage

@@ -15,9 +15,10 @@
     1 true))
 
 (defn store-artifact! [db-spec group-id artifact-id versions]
-  (assert (coll? versions))
-  (doseq [v versions]
-    (sql/execute! db-spec ["INSERT OR IGNORE INTO versions (group_id, artifact_id, name) VALUES (?, ?, ?)" group-id artifact-id v])))
+  (db/store-artifact!
+    db-spec
+    ["INSERT OR IGNORE INTO versions (group_id, artifact_id, name) VALUES (?, ?, ?)" group-id artifact-id]
+    versions))
 
 (defrecord SQLiteStorage [db-spec]
   IStorage
