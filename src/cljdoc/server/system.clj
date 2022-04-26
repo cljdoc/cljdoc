@@ -152,7 +152,7 @@
                :migrations (ragtime.jdbc/load-resources "postgres_migrations")})
 
   (r/migrate config)
-  (r/rollback config 5)
+  (r/rollback config 1)
 
   (require '[integrant.repl]
            '[clojure.spec.test.alpha :as st])
