@@ -14,13 +14,7 @@
   column which is used to store most of the information in a schema-less manner.
   See [[get-namespaces]] and [[get-vars]] for details.
 
-  All `meta` columns are serialized with [Nippy](https://github.com/ptaoussanis/nippy).
-
-  #### JDBC, HUGSQL
-
-  For most of the time this namespace only used raw `clojure.java.jdbc` functions since queries
-  were basic. At some point the need for more complex queries arose [1] and HUGSQL was added
-  to the mix. The more complex queries can be found in `sql/complex_queries.sql`."
+  All `meta` columns are serialized with [Nippy](https://github.com/ptaoussanis/nippy)."
   (:require [cljdoc.user-config :as user-config]
             [cljdoc-shared.proj :as proj]
             [clojure.set :as cset]
@@ -28,17 +22,8 @@
             [clojure.tools.logging :as log]
             [taoensso.nippy :as nippy]
             [taoensso.tufte :as tufte :refer [defnp]]
-            [version-clj.core :as version-clj]
-            [hugsql.core :as hugsql])
+            [version-clj.core :as version-clj])
   (:import (java.sql SQLException)))
-
-;; keep our linter happy by declaring hugsql imported functions
-(declare sql-resolve-version-ids)
-(declare sql-get-namespaces)
-(declare sql-get-vars)
-
-(hugsql/def-db-fns "sql/complex_queries.sql")
-;; (hugsql/def-sqlvec-fns "sql/complex_queries.sql")
 
 ;; Writing ----------------------------------------------------------------------
 
@@ -125,7 +110,7 @@
 (defn- version-row-fn [r]
   (cset/rename-keys r {:group_id :group-id, :artifact_id :artifact-id, :name :version}))
 
-(defnp ^:private resolve-version-ids [db-spec version-entities]
+(defnp ^:private resolve-version-ids [db-spec sql-resolve-version-ids version-entities]
   (let [v-tuples (map (fn [v] [(:group-id v) (:artifact-id v) (:version v)]) version-entities)]
     (sql-resolve-version-ids db-spec {:version-entities v-tuples} {} {:row-fn version-row-fn})))
 
@@ -147,7 +132,7 @@
   - `:version-entity` - link back to artifact version, example `{:id 35798}`.
 
   Database note: Items marked with [blob] are stored in nippy blob only."
-  [db-spec resolved-versions]
+  [db-spec sql-get-namespaces resolved-versions]
   (let [id-indexed (index-by :id resolved-versions)]
     (->> (sql-get-namespaces db-spec {:version-ids (map :id resolved-versions)})
       ;; Match up version entities so each namespace can be linked back to it's artifact
@@ -178,7 +163,7 @@
     - `:type` - always `:var`?
 
   Database note: Items marked with [blob] are stored in nippy blob only."
-  [db-spec namespaces-with-resolved-version-entities]
+  [db-spec sql-get-vars namespaces-with-resolved-version-entities]
   (let [ns-idents (->> namespaces-with-resolved-version-entities
                        (map (fn [ns] [(-> ns :version-entity :id) (:name ns)])))]
     (assert (seq ns-idents))
@@ -227,27 +212,32 @@
   repository to create proper source links. For now this is only supported if the modules
   included via `dependency-version-entities`are backed by the same Git repository as the primary
   artifact."
-  [db-spec {:keys [group-id artifact-id version dependency-version-entities] :as v}]
+  [db-spec
+   {:keys [group-id artifact-id version dependency-version-entities] :as v}
+   {:keys [sql-resolve-version-ids sql-get-namespaces sql-get-vars]}]
   (let [primary-version-entity (select-keys v [:group-id :artifact-id :version])
-        resolved-versions      (resolve-version-ids db-spec (conj dependency-version-entities primary-version-entity))
-        primary-resolved       (first (filter #(= primary-version-entity (dissoc % :id)) resolved-versions))]
+        resolved-versions (resolve-version-ids
+                           db-spec
+                           sql-resolve-version-ids
+                           (conj dependency-version-entities primary-version-entity))
+        primary-resolved (first (filter #(= primary-version-entity (dissoc % :id)) resolved-versions))]
     (if-not primary-resolved
       (throw (Exception. (format "Could not find version %s" v)))
       (let [version-data (or (get-version db-spec (:id primary-resolved)) {})
-            include-cfg  (user-config/include-namespaces-from-deps (:config version-data) (proj/clojars-id v))
-            wanted?      (set (map proj/normalize include-cfg))
-            extra-deps   (filter #(wanted? (str (:group-id %) "/" (:artifact-id %))) resolved-versions)
-            namespaces   (set (get-namespaces db-spec (conj extra-deps primary-resolved)))]
-        {:version    version-data
-         :namespaces namespaces
+            include-cfg (user-config/include-namespaces-from-deps (:config version-data) (proj/clojars-id v))
+            wanted? (set (map proj/normalize include-cfg))
+            extra-deps (filter #(wanted? (str (:group-id %) "/" (:artifact-id %))) resolved-versions)
+            namespaces (set (get-namespaces db-spec sql-get-namespaces (conj extra-deps primary-resolved)))]
+        {:version        version-data
+         :namespaces     namespaces
          ;; NOTE maybe we should only load defs for a subset of namespaces
-         :defs       (if (seq namespaces)
-                       (set (get-vars db-spec namespaces))
-                       #{})
-         :latest (latest-release-version db-spec v)
-         :version-entity {:group-id group-id
+         :defs           (if (seq namespaces)
+                           (set (get-vars db-spec sql-get-vars namespaces))
+                           #{})
+         :latest         (latest-release-version db-spec v)
+         :version-entity {:group-id    group-id
                           :artifact-id artifact-id
-                          :version version}}))))
+                          :version     version}}))))
 
 (defn import-api [db-spec
                   {:keys [group-id artifact-id version]}
