@@ -1,4 +1,4 @@
-DROP TABLE builds;
+DROP TABLE builds CASCADE ;
 --;;
 DROP TABLE releases;
 --;
@@ -7,7 +7,5 @@ DROP TABLE namespaces;
 DROP TABLE vars;
 --;;
 DROP TABLE versions;
---;;
-DROP INDEX builds_artifact_index;
 --;
 DROP TABLE clojars_stats;
