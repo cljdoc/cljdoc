@@ -5,7 +5,6 @@
     "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
     "dev": "parcel watch resources/public/cljdoc.html --dist-dir resources-compiled/public/out",
     "build": "parcel build resources/public/cljdoc.html --dist-dir resources-compiled/public/out",
-    "prepare": "husky install",
     "typecheck": "npx tsc --watch"
   },
   "dependencies": {
@@ -22,7 +21,6 @@
     "@parcel/transformer-xml": "^2.4.0",
     "@types/elasticlunr": "^0.9.4",
     "@types/lunr": "^2.3.4",
-    "husky": "^7.0.4",
     "parcel": "^2.4.0",
     "parcel-reporter-static-files-copy": "^1.3.4",
     "parcel-resolver-ignore": "^2.0.0",
