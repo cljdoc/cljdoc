@@ -3,65 +3,65 @@
  [{:github-id "martinklepsch"
    :contributions [:code :doc :design :issue :sponsor :ops :support :review]}
   {:github-id "borkdude"
-   :contributions [:code :issue]}
+   :contributions [:code :doc :issue]}
   {:github-id "avichalp"
-   :contributions [:code]}
+   :contributions [:code :issue]}
   {:github-id "dawranliou"
-   :contributions [:code :doc :sponsor]}
+   :contributions [:code :doc :issue :sponsor]}
   {:github-id "residentsummer"
-   :contributions [:code]}
+   :contributions [:code :issue]}
   {:github-id "tonsky"
-   :contributions [:code :doc]}
+   :contributions [:code :doc :issue]}
   {:github-id "danielcompton"
-   :contributions [:code :infra]}
+   :contributions [:code :infra :issue]}
   {:github-id "samihda"
    :contributions [:code]}
   {:github-id "saskali"
-   :contributions [:code]}
-  {:github-id "jorinvo"
    :contributions [:code :doc]}
+  {:github-id "jorinvo"
+   :contributions [:code :doc :issue]}
   {:github-id "IamDrowsy"
-   :contributions [:code]}
+   :contributions [:code :issue]}
   {:github-id "angusiguess"
    :contributions [:code :doc]}
   {:github-id "greg-kargin"
    :contributions [:code]}
   {:github-id "rakyi"
-   :contributions [:infra :code]}
+   :contributions [:infra :code :issue]}
   {:github-id "nikolap"
    :contributions [:code]}
   {:github-id "mhuebert"
-   :contributions [:code :design]}
+   :contributions [:code :design :issue]}
   {:github-id "elarous"
    :contributions [:code]}
   {:github-id "mk"
    :contributions [:code]}
   {:github-id "bbatsov"
-   :contributions [:doc]}
+   :contributions [:doc :issue]}
   {:github-id "SevereOverfl0w"
    :contributions [:doc :code]}
   {:github-id "roman01la"
    :contributions [:design :code]}
   {:github-id "mfikes"
-   :contributions [:doc]}
+   :contributions [:doc :issue]}
   {:github-id "anthonygalea"
-   :contributions [:code]}
+   :contributions [:code :issue]}
   {:github-id "devurandom"
    :contributions [:doc]}
   {:github-id "jsimpson-ovo"
    :contributions [:code]}
   {:github-id "Tavistock"
-   :contributions [:code]}
+   :contributions [:code :issue]}
   {:github-id "alex-dixon"
    :contributions [:code]}
   {:github-id "timothypratley"
    :contributions [:code]}
   {:github-id "kkinnear"
-   :contributions [:code]}
+   :contributions [:code :issue]}
   {:github-id "karls"
    :contributions [:code]}
   {:github-id "ikitommi"
-   :contributions [:code]}
+   :contributions [:code :issue]}
   {:github-id "pesterhazy"
    :contributions [:code]}
   {:github-id "eerohele"
@@ -69,7 +69,7 @@
   {:github-id "nberger"
    :contributions [:sponsor]}
   {:github-id "ajoberstar"
-   :contributions [:sponsor]}
+   :contributions [:sponsor :issue]}
   {:github-id "polymeris"
    :contributions [:sponsor]}
   {:github-id "ryrobes"
@@ -79,13 +79,13 @@
   {:github-id "crimeminister"
    :contributions [:sponsor]}
   {:github-id "seancorfield"
-   :contributions [:support]}
+   :contributions [:support :design :issue]}
   {:github-id "holyjak"
-   :contributions [:code :doc]}
+   :contributions [:code :doc :design :issue]}
   {:github-id "lread"
-   :contributions [:doc :code :review :support :design]}
+   :contributions [:code :doc :design :issue :ops :review :support]}
   {:github-id "nha"
-   :contributions [:code]}
+   :contributions [:code :issue]}
   {:github-id "mjhanninen"
    :contributions [:doc]}
   {:github-id "jacobobryant"
@@ -99,6 +99,110 @@
   {:github-id "tobias"
    :contributions [:issue :code]}
   {:github-id "frozar"
-   :contributions [:doc]}
+   :contributions [:doc :issue]}
   {:github-id "moonbrv"
-   :contributions [:code]}]}
+   :contributions [:code]}
+  {:github-id "plexus"
+   :contributions [:code :issue]}
+  {:github-id "davidjameshumphreys"
+   :contributions [:code]}
+  {:github-id "KingMob"
+   :contributions [:code :issue]}
+  {:github-id "green-coder"
+   :contributions [:code :issue]}
+  {:github-id "kolharsam"
+   :contributions [:code]}
+  {:github-id "miikka"
+   :contributions [:code :issue]}
+  {:github-id "renatoalencar"
+   :contributions [:code]}
+  {:github-id "kloimhardt"
+   :contributions [:code :doc]}
+  {:github-id "superstructor"
+   :contributions [:code]}
+  {:github-id "corasaurus-hex"
+   :contributions [:code :design :issue :ops :support :review]}
+  {:github-id "rvalentini"
+   :contributions [:code :design :issue :ops]}
+  {:github-id "rollacaster"
+   :contributions [:code :design :issue]}
+  {:github-id "vemv"
+   :contributions [:issue]}
+  {:github-id "piotr-yuxuan"
+   :contributions [:issue]}
+  {:github-id "RickMoynihan"
+   :contributions [:issue]}
+  {:github-id "FieryCod"
+   :contributions [:issue]}
+  {:github-id "cloojure"
+   :contributions [:issue]}
+  {:github-id "IGJoshua"
+   :contributions [:issue]}
+  {:github-id "clyfe"
+   :contributions [:issue]}
+  {:github-id "sritchie"
+   :contributions [:issue]}
+  {:github-id "metasoarous"
+   :contributions [:issue]}
+  {:github-id "BrunoBonacci"
+   :contributions [:issue]}
+  {:github-id "anthony-khong"
+   :contributions [:issue]}
+  {:github-id "aaronEberhart"
+   :contributions [:issue]}
+  {:github-id "mpenet"
+   :contributions [:issue]}
+  {:github-id "cldwalker"
+   :contributions [:issue]}
+  {:github-id "dAnjou"
+   :contributions [:issue]}
+  {:github-id "wilkerlucio"
+   :contributions [:issue]}
+  {:github-id "jpmonettas"
+   :contributions [:issue]}
+  {:github-id "heypragyan"
+   :contributions [:issue]}
+  {:github-id "kxygk"
+   :contributions [:issue]}
+  {:github-id "JulienRouse"
+   :contributions [:issue]}
+  {:github-id "nblumoe"
+   :contributions [:issue]}
+  {:github-id "cjohansen"
+   :contributions [:issue]}
+  {:github-id "marcomorain"
+   :contributions [:issue]}
+  {:github-id "f-f"
+   :contributions [:issue]}
+  {:github-id "ghost"
+   :contributions [:issue]}
+  {:github-id "smahood"
+   :contributions [:issue]}
+  {:github-id "witek"
+   :contributions [:issue]}
+  {:github-id "thheller"
+   :contributions [:issue]}
+  {:github-id "zcaudate"
+   :contributions [:issue]}
+  {:github-id "rubygeek"
+   :contributions [:issue]}
+  {:github-id "Biserkov"
+   :contributions [:issue]}
+  {:github-id "bhb"
+   :contributions [:issue]}
+  {:github-id "aviflax"
+   :contributions [:issue]}
+  {:github-id "gnl"
+   :contributions [:issue]}
+  {:github-id "jmlsf"
+   :contributions [:issue]}
+  {:github-id "JoelSanchez"
+   :contributions [:issue]}
+  {:github-id "l3nz"
+   :contributions [:issue]}
+  {:github-id "bfontaine"
+   :contributions [:issue]}
+  {:github-id "kumarshantanu"
+   :contributions [:issue]}
+  {:github-id "glts"
+   :contributions [:issue]}]}

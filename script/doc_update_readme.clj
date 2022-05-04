@@ -18,13 +18,13 @@
 (def contributions-lookup
   {:code ["💻" "code"]
    :doc ["📖" "doc"]
-   :design ["⚖️" "design"]
-   :issue ["💡" "issue"]
+   :design ["⚖️" "design"]   ;; upfront design/collab/hamocking
+   :issue ["💡" "issue"]     ;; raise an issue
    :sponsor ["💵" "sponsor"]
-   :ops ["🔧️" "ops"]
+   :ops ["🔧️" "ops"]         ;; keeps the servers running
    :infra ["☁️" "infra"]
-   :support ["💬" "support"]
-   :review ["👀" "review"]})
+   :support ["💬" "support"] ;; answers questions on Slack or GitHub
+   :review ["👀" "review"]}) ;; reviews work/PR
 
 (defn- generate-asciidoc [contributors {:keys [images-dir image-width]}]
   (str ":imagesdir: " images-dir "\n"
@@ -109,11 +109,10 @@
            [:div.contribs
             (doall
               (for [c (sort contributions)]
-                (if-let [[c-sym c-text] (c contributions-lookup)]
+                (let [[c-sym c-text] (c contributions-lookup)]
                   [:span.contrib
                    [:span.symbol c-sym]
-                   [:span.text c-text]]
-                  (throw (ex-info (format "unrecognized contribution key %s for %s" c github-id) {})))))]
+                   [:span.text c-text]])))]
            [:p.name (str "@" github-id)]]]]))))
 
 (defn- move-path [source target]
@@ -144,9 +143,7 @@
        (for [contributor-type (keys contributors)]
          (do
            (status/line :detail (str contributor-type))
-           (doseq [{:keys [github-id contributions] :as person} (contributor-type contributors)]
-             (when (not (and github-id contributions))
-               (throw (ex-info (str "malformed: " person) {})))
+           (doseq [{:keys [github-id contributions]} (contributor-type contributors)]
              (status/line :detail (str "  " github-id " " contributions))
              (generate-image! driver (str work-dir) github-id contributions image-opts)))))
       (let [target-path (:images-dir image-opts)]
@@ -167,17 +164,33 @@
         nil)
       (format "not found: %s" need))))
 
+(defn- load-people []
+  (let [people-source "doc/people.edn"
+        people (-> (slurp people-source) edn/read-string)
+        contributors (-> people :contributors)]
+    (status/line :detail (str  "people source: " people-source))
+    (doseq [{:keys [github-id contributions] :as p} contributors]
+      (when (not (and github-id contributions))
+        (status/die 1 "Malformed entry: %s" p)))
+    (doseq [{:keys [contributions] :as p} contributors
+            c contributions]
+      (when (not (get contributions-lookup c))
+        (status/die 1 "Unrecognized contribution keyword %s in %s" c p)))
+    (let [dupes (for [[id freq] (->> contributors (map :github-id) frequencies)
+                      :when (> freq 1)]
+                  id)]
+      (when (seq dupes)
+        (status/die 1 "Found duplicate github-id entries: %s" (into [] dupes))))
+    people))
+
 (defn -main [& _args]
   (let [readme-filename "README.adoc"
-        people-source "doc/people.edn"
         image-opts {:image-width 273
                     :images-dir "./doc/generated/people"}
-        people (->> (slurp people-source)
-                          edn/read-string)]
+        people (load-people)]
     (status/line :head "updating docs to honor those who contributed")
     (when-let [missing (missing-prerequesites)]
       (status/die 1 "Pre-requisites not met\n%s" missing))
-    (status/line :detail (str  "people source: " people-source))
     (generate-contributor-images! people image-opts)
     (update-readme-file! people readme-filename image-opts)
     (status/line :detail "SUCCESS"))
