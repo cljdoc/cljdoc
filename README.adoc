@@ -165,6 +165,7 @@ image:kumarshantanu.png[kumarshantanu,width=273,link="https://github.com/kumarsh
 image:glts.png[glts,width=273,link="https://github.com/glts"]
 --
 // AUTO-GENERATED:CONTRIBUTORS-END
+Did we leave someone out? That certainly was not our intention, please do let us know!
 
 == License
 
