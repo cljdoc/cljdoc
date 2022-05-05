@@ -10,7 +10,6 @@
            (com.vladsch.flexmark.ext.wikilink WikiLinkExtension WikiLink)
            (com.vladsch.flexmark.ext.wikilink.internal WikiLinkNodeRenderer$Factory)
            (com.vladsch.flexmark.util.data MutableDataSet DataHolder)
-           #_{:clj-kondo/ignore [:unused-import]} ;; clj-kondo thinks we are not using Node
            (com.vladsch.flexmark.util.ast Document Node)
            (com.vladsch.flexmark.util.sequence BasedSequence)))
 
