@@ -6,38 +6,62 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/clojure:openjdk-11-tools-deps-1.10.3.1058-buster-node
-        command: "/bin/bash"
+      - image: cimg/clojure:1.11.1-node
 
     working_directory: ~/repo
 
     steps:
       - checkout
 
-      - run: curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
+      - run:
+          name: "Validate our own cljdoc.edn"
+          command: curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
 
       - restore_cache:
           keys:
             - v1-npm-dependencies-{{ checksum "package-lock.json" }}
             - v1-npm-dependencies- # fallback if cache not found
 
-      - run: npm ci
-      - run: ./script/package
+      - run:
+          name: Report Tools Versions
+          command: |
+            node --version
+            java --version
+            clojure --version
+            bb --version
+
+      - run:
+          name: Install JavaScript Depedencies
+          command: npm ci
+
+      - run:
+          name: Package cljdoc
+          command: ./script/package
 
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "deps.edn" }}
             - v1-dependencies- # fallback if cache not found
 
-      - run: clojure -Spath
+      - run:
+          name: Bring Down Clojure deps
+          command: clojure -Spath
 
-      - run: ./script/lint.sh
+      - run:
+          name: Lint
+          command: bb lint
 
-      - run: ./script/code-format.sh check
+      - run:
+          name: Code Style Check
+          command: bb code-format check
 
-      - run: ./script/cljdoc ingest --project bidi --version 2.1.3
+      - run:
+          name: Build Docs for Sample Library
+          command: ./script/cljdoc ingest --project bidi --version 2.1.3
 
-      - run: clojure -M:test --reporter documentation
+      - run:
+          name: Run Tests
+          command: clojure -M:test --reporter documentation
 
       - persist_to_workspace:
           root: .
@@ -48,6 +72,7 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
+
       - save_cache:
           paths:
             - ./node_modules

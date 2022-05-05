@@ -35,7 +35,7 @@
        "--\n"))
 
 (defn- update-readme-text [old-text marker-id new-content]
-  (let [marker (str "// AUTO-GENERATED:" marker-id )
+  (let [marker (str "// AUTO-GENERATED:" marker-id)
         marker-start (str marker "-START")
         marker-end (str marker "-END")]
     (string/replace-first old-text
@@ -73,47 +73,47 @@
         avatar-size 110
         contrib-font-size (if (< (count contributions) 5) "1.2em" "0.8em")]
     (str
-      (h/html
-        [:head
-         [:link {:href "https://fonts.googleapis.com", :rel "preconnect"}]
-         [:link {:href "https://fonts.gstatic.com", :rel "preconnect" :crossorigin "crossorigin"}]
-         [:link {:type "text/css", :href "https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" :rel "stylesheet"}]
-         [:style
-          (hu/raw-string
-            (str
-              "* {-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;}\n"
-              "body {font-family: 'Fira Code', monospace; margin: 0;}\n"
-              (format ".wrapper {overflow:hidden; min-width: %dpx; max-width: %dpx;}" image-width image-width) "\n"
-              (format ".card {float: left; border-radius: 5px;
-                                   border: %dpx solid #ccc;
-                                   padding: %dpx;
-                                   margin: 0 5px %dpx 0;
-                                   box-shadow: %dpx 4px 3px grey;
-                                   background-color: #f4f4f4;
-                                   width: %dpx;}"
-                           card-border card-padding card-margin-right card-shadow-h-offset card-width) "\n"
-              (format ".avatar {float: left; height: %dpx; border-radius: 5px; padding: 0; margin-right: 10px;}"
-                      avatar-size) "\n"
-              ".image {margin: 2px;}\n"
-              (format ".contribs {padding-top: 3px; margin-left: 5px; line-height: 1.4; max-height: %dpx; overflow: hidden;}"
-                      avatar-size) "\n"
-              (format ".contrib {display:inline-block;font-size: %s;white-space: nowrap;margin: 0;margin-right: 0.8em;}\n"
-                      contrib-font-size)
-              ".symbol {margin-right: 0.3em;}\n"
-              ".text {}\n"
-              ".name {font-size: 1.3em; margin: 0; clear:both;}\n"))]]
-        [:div.wrapper
-         [:div.card
-          [:div
-           [:img.avatar {:src (str "https://github.com/" github-id ".png")}]
-           [:div.contribs
-            (doall
-              (for [c (sort contributions)]
-                (let [[c-sym c-text] (c contributions-lookup)]
-                  [:span.contrib
-                   [:span.symbol c-sym]
-                   [:span.text c-text]])))]
-           [:p.name (str "@" github-id)]]]]))))
+     (h/html
+      [:head
+       [:link {:href "https://fonts.googleapis.com", :rel "preconnect"}]
+       [:link {:href "https://fonts.gstatic.com", :rel "preconnect" :crossorigin "crossorigin"}]
+       [:link {:type "text/css", :href "https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" :rel "stylesheet"}]
+       [:style
+        (hu/raw-string
+         (str
+          "* {-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;}\n"
+          "body {font-family: 'Fira Code', monospace; margin: 0;}\n"
+          (format ".wrapper {overflow:hidden; min-width: %dpx; max-width: %dpx;}" image-width image-width) "\n"
+          (format ".card {float: left; border-radius: 5px;
+                          border: %dpx solid #ccc;
+                          padding: %dpx;
+                          margin: 0 5px %dpx 0;
+                          box-shadow: %dpx 4px 3px grey;
+                          background-color: #f4f4f4;
+                          width: %dpx;}"
+                  card-border card-padding card-margin-right card-shadow-h-offset card-width) "\n"
+          (format ".avatar {float: left; height: %dpx; border-radius: 5px; padding: 0; margin-right: 10px;}"
+                  avatar-size) "\n"
+          ".image {margin: 2px;}\n"
+          (format ".contribs {padding-top: 3px; margin-left: 5px; line-height: 1.4; max-height: %dpx; overflow: hidden;}"
+                  avatar-size) "\n"
+          (format ".contrib {display:inline-block;font-size: %s;white-space: nowrap;margin: 0;margin-right: 0.8em;}\n"
+                  contrib-font-size)
+          ".symbol {margin-right: 0.3em;}\n"
+          ".text {}\n"
+          ".name {font-size: 1.3em; margin: 0; clear:both;}\n"))]]
+      [:div.wrapper
+       [:div.card
+        [:div
+         [:img.avatar {:src (str "https://github.com/" github-id ".png")}]
+         [:div.contribs
+          (doall
+           (for [c (sort contributions)]
+             (let [[c-sym c-text] (c contributions-lookup)]
+               [:span.contrib
+                [:span.symbol c-sym]
+                [:span.text c-text]])))]
+         [:p.name (str "@" github-id)]]]]))))
 
 (defn- move-path [source target]
   (when (fs/exists? target)

@@ -5,24 +5,25 @@
             [clojure.edn :as edn]
             [clojure.string :as string]
             [doric.core :as doric]
-            [helper.process :as ps]
+            [helper.main :as main]
+            [helper.shell :as shell]
             [lread.status-line :as status]))
 
 (defn check-clojure []
   (status/line :head "Checking Clojure deps")
   ;; antq will return 1 when there are outdated deps, so don't fail on non-zero exit
-  (ps/unchecked-process ["clojure" "-M:outdated"] {:inherit true}))
+  (shell/command {:continue true} "clojure -M:outdated"))
 
 (defn check-npm-js []
   (when (not (fs/exists? "node_modules"))
     (status/line :head "Checking npm JavaScript deps: installing node_modules")
-    (-> (ps/process ["npm" "ci"] {:inherit true})))
+    (shell/command "npm ci"))
 
   ;; don't understand exit code convention for npm outdated, but do know it
   ;; spits nothing to stdout, we don't have anything to update
   (status/line :head "Checking npm JavaScript deps")
-  (let [out (-> (ps/unchecked-process ["npm" "outdated"] {:out :string
-                                                          :err :string})
+  (let [out (-> (shell/command {:out :string :err :string :continue true}
+                               "npm outdated")
                 :out)]
     (print out)
     (flush)
@@ -37,9 +38,8 @@
                       edn/read-string
                       vals
                       (keep (fn [{:keys [npm-name version note] :as asset}]
-                              (let [latest-version (-> (ps/process ["npm" "show" npm-name "dist-tags.latest"]
-                                                                   {:out :string
-                                                                    :err :string})
+                              (let [latest-version (-> (shell/command {:out :string :err :string}
+                                                                      "npm show" npm-name "dist-tags.latest")
                                                        :out
                                                        string/trim)]
                                 (when (not= version latest-version)
@@ -63,4 +63,5 @@
   (check-npm-js)
   (check-cdn-js))
 
-(-main)
+(main/when-invoked-as-script
+ (apply -main *command-line-args*))

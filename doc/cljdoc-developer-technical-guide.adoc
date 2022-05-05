@@ -155,6 +155,9 @@ To make things easy to find, images should sit in the same directory as the doc.
 
 == Tasks
 
+We make use of babashka tasks.
+Run `bb tasks` to see what is available.
+
 === Honoring People who Contribute
 
 We honor the many good folks who contribute to cljdoc in our link:/README.adoc[README] file.
@@ -180,11 +183,13 @@ Preview the changes, commit and push.
 
 We use https://github.com/borkdude/clj-kondo[clj-kondo] to help catch common
 coding errors early. The build server will fail the build if any lint errors are
-found. To find lint errors it runs `script/lint.sh` and so can you!
+found. To find lint errors it runs `bb lint` and so can you!
 
 Note that clj-kondo really shines when you
 https://github.com/borkdude/clj-kondo/blob/master/doc/editor-integration.md[integrate
 it with your development environment].
+
+NOTE: CI also lints JavaScript source via `npm run lint`.
 
 === Coding style
 
@@ -192,12 +197,12 @@ We try to follow https://guide.clojure.style[The Clojure Style Guide].
 
 We use https://github.com/weavejester/cljfmt[cljfmt] check for any code formatting problems.
 The build server will fail the build if any formatting issues are detected.
-To check for issues it runs `script/code-format.sh check` and so can you!
+To check for issues it runs `bb code-format check` and so can you!
 
-You can also run `script/code-format.sh fix` to have cljfmt fix any code formatting issues it has detected.
+You can also run `bb code-format fix` to have cljfmt fix any code formatting issues it has detected.
 
 === Outdated dependencies
 
 Carefully applying available updates keeps up with security patches and reduces the overall maintenance burden.
 
-To check for outdated Clojure and JavaScript dependencies run `bb script/outdated.clj`.
+To check for outdated Clojure and JavaScript dependencies run `bb outdated`.

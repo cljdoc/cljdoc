@@ -64,7 +64,7 @@
         org.clj-commons/clj-http-lite {:mvn/version "0.4.392"} ;; a lite version of clj-http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.1.4"}                   ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.1.6"}                   ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.10.2"             ;; json
                            ;; for CVE in jackson, can turf after cheschire addresses https://github.com/dakrone/cheshire/issues/190
                            :exclusions [com.fasterxml.jackson.core/jackson-core
@@ -90,7 +90,7 @@
 
         ;; override transitive dep from nippy ant tufte to quiet clojure 1.11 warnings,
         ;; delete if/when nippy/tufte updates bring in newer version:
-        com.taoensso/encore {:mvn/version "3.21.0"}
+        com.taoensso/encore {:mvn/version "3.22.0"}
 
         metosin/malli {:mvn/version "0.8.4"}
 
@@ -101,13 +101,13 @@
  :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.65.1029"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.66.1034"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
                          nubank/matcher-combinators {:mvn/version "3.5.0" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.04.08"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.04.25"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :cli
