@@ -23,7 +23,7 @@
   ;; spits nothing to stdout, we don't have anything to update
   (status/line :head "Checking npm JavaScript deps")
   (let [out (-> (shell/command {:out :string :err :string :continue true}
-                               "npm outdated" )
+                               "npm outdated")
                 :out)]
     (print out)
     (flush)

@@ -5,10 +5,10 @@
 
 (def default-opts {:error-fn
                    (fn die-on-error [{{:keys [exit cmd]} :proc}]
-                               (status/die exit
-                                           "shell exited with %d for: %s"
-                                           exit
-                                           (with-out-str (pprint/pprint cmd))))})
+                     (status/die exit
+                                 "shell exited with %d for: %s"
+                                 exit
+                                 (with-out-str (pprint/pprint cmd))))})
 
 (defn command
   "Thin wrapper on babashka.tasks/shell that on error, prints status error message and exits.
