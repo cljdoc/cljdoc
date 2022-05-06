@@ -30,7 +30,7 @@ jobs:
 
       - run:
           name: Bring Down Clojure deps
-          command: clojure -Spath
+          command: clojure -P -X:cli:test
 
       - run:
           name: Lint
@@ -104,7 +104,7 @@ jobs:
 
       - run:
           name: Bring Down Clojure deps
-          command: clojure -Spath
+          command: clojure -P -X:cli:test
 
       - run:
           name: Build Docs for Sample Library
