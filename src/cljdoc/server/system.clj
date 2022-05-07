@@ -49,7 +49,7 @@
                         :cache            (ig/ref :cljdoc/cache)
                         :searcher         (ig/ref :cljdoc/searcher)}
       :cljdoc/storage (st/config env-config)
-      :cljdoc/build-tracker {:db-spec (get-in (st/config env-config) [:sqlite-spec :db-spec])} ;TODO move to Postgres
+      :cljdoc/build-tracker {:db-spec (get-in (st/config env-config) [:db-spec :sqlite])} ;TODO move to Postgres
       :cljdoc/analysis-service {:service-type ana-service
                                 :opts (merge
                                        {:repos (->> (cfg/maven-repositories)
@@ -57,13 +57,13 @@
                                                     (into {}))}
                                        (when (= ana-service :circle-ci)
                                          (cfg/circle-ci env-config)))}
-      :cljdoc/clojars-stats   {:db-spec (get-in (st/config env-config) [:sqlite-spec :db-spec])  ;TODO move to Postgres
+      :cljdoc/clojars-stats   {:db-spec (get-in (st/config env-config) [:db-spec :sqlite])  ;TODO move to Postgres
 
                                :retention-days (cfg/get-in env-config [:cljdoc/server :clojars-stats-retention-days])
                                :tea-time (ig/ref :cljdoc/tea-time)}}
 
      (when (cfg/enable-release-monitor? env-config)
-       {:cljdoc/release-monitor {:db-spec  (get-in (st/config env-config) [:sqlite-spec :db-spec])  ;TODO move to Postgres
+       {:cljdoc/release-monitor {:db-spec  (get-in (st/config env-config) [:db-spec :sqlite])  ;TODO move to Postgres
                                  :dry-run? (not (cfg/autobuild-clojars-releases? env-config))
                                  :searcher (ig/ref :cljdoc/searcher)
                                  :tea-time (ig/ref :cljdoc/tea-time)}}))))
