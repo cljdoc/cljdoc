@@ -34,7 +34,16 @@
     :postgres (ps/->PostgresStorage postgres)))
 
 (comment
-  (def sqlite-spec (cfg/sqlite (cfg/config)))
-  (def postgres-spec (cfg/postgres (cfg/config)))
+  (do
+    (require '[ragtime.repl :as r])
+
+    (def sqlite-spec (cfg/sqlite (cfg/config)))
+    (def postgres-spec (cfg/postgres (cfg/config)))
+
+    (def config {:datastore  (ragtime.jdbc/sql-database postgres-spec)
+                 :migrations (ragtime.jdbc/load-resources "postgres_migrations")}))
+
+  (r/rollback config 1)
   (run-migrations! postgres-spec)
-  (run-migrations! sqlite-spec))
+  (run-migrations! sqlite-spec)
+  )
