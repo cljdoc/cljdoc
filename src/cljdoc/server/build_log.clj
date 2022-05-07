@@ -115,14 +115,14 @@
 
 (comment
   (require 'ragtime.repl 'ragtime.jdbc)
-  (def config {:datastore  (ragtime.jdbc/sql-database (cljdoc.config/db))
+  (def config {:datastore  (ragtime.jdbc/sql-database (cljdoc.config/sqlite))
                :migrations (ragtime.jdbc/load-resources "migrations")})
 
   (ragtime.repl/rollback config)
 
   (ragtime.repl/migrate config)
 
-  (def bt (->SQLBuildTracker (cljdoc.config/db)))
+  (def bt (->SQLBuildTracker (cljdoc.config/sqlite)))
 
   (running-build bt "amazonica" "amazonica" "0.3.132")
 

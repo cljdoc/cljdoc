@@ -65,7 +65,7 @@
   (def data (clojure.edn/read-string (slurp "https://2941-119377591-gh.circle-artifacts.com/0/cljdoc-edn/stavka/stavka/0.4.1/cljdoc.edn")))
 
   (def db-spec
-    (cljdoc.config/db (cljdoc.config/config)))
+    (cljdoc.config/sqlite (cljdoc.config/config)))
 
   (all-distinct-docs db-spec)
 

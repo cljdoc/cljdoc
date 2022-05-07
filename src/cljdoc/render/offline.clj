@@ -228,7 +228,7 @@
 
   (i/inspect-tree --c)
 
-  (def --c (storage/bundle-docs (storage/->SQLiteStorage (cljdoc.config/db (cljdoc.config/config)))
+  (def --c (storage/bundle-docs (storage/->SQLiteStorage (cljdoc.config/sqlite (cljdoc.config/config)))
                                 #_{:group-id "reagent" :artifact-id "reagent" :version "0.8.1"}
                                 {:group-id "re-frame" :artifact-id "re-frame" :version "0.10.5"}
                                 #_{:group-id "manifold" :artifact-id "manifold" :version "0.1.6"}))

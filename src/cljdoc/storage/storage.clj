@@ -10,8 +10,8 @@
             [ragtime.clj.core]))                            ;; allow Clojure-based migrations
 
 (defn config [env-config]
-  {:db-spec {:postgres (cfg/postgres-db env-config)
-             :sqlite (cfg/db env-config)}
+  {:db-spec {:postgres (cfg/postgres env-config)
+             :sqlite (cfg/sqlite env-config)}
    :data-dir (cfg/data-dir env-config)
    :active-db     (get-in env-config [:cljdoc/server :active-db])})
 
@@ -34,7 +34,7 @@
     :postgres (ps/->PostgresStorage postgres)))
 
 (comment
-  (def sqlite-spec (cfg/db (cfg/config)))
-  (def postgres-spec (cfg/postgres-db (cfg/config)))
+  (def sqlite-spec (cfg/sqlite (cfg/config)))
+  (def postgres-spec (cfg/postgres (cfg/config)))
   (run-migrations! postgres-spec)
   (run-migrations! sqlite-spec))

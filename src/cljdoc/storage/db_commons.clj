@@ -268,7 +268,7 @@
 
   (require '[cljdoc.config])
   (def db-spec
-    (cljdoc.config/db (cljdoc.config/config)))
+    (cljdoc.config/sqlite (cljdoc.config/config)))
 
   (all-distinct-docs db-spec)
 

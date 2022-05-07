@@ -53,7 +53,7 @@
   ([] (data-dir (config)))
   ([config] (get-in config [:cljdoc/server :dir])))
 
-(defn postgres-db
+(defn postgres
   [config]                                                  ;TODO use config for host etc.
   {:dbtype     "postgresql"
    :dbname     "cljdoc"
@@ -64,7 +64,7 @@
    :sslfactory "org.postgresql.ssl.NonValidatingFactory"
    :migrations-dir "postgres_migrations"})
 
-(defn db
+(defn sqlite
   [config]
   {:classname "org.sqlite.JDBC",
    :subprotocol "sqlite",

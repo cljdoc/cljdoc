@@ -100,7 +100,7 @@
   (tt/stop!))
 
 (comment
-  (def db-spec (cljdoc.config/db))
+  (def db-spec (cljdoc.config/sqlite))
 
   (build-queuer-job-fn db-spec true)
 
