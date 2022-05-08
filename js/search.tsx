@@ -48,7 +48,7 @@ interface SearchResult extends Library {
   blurb: string;
   origin: string;
   score: number;
-};
+}
 
 type SearchResults = {
   count: number;
@@ -143,7 +143,7 @@ class SearchInput extends Component<SearchInputProps> {
   }
 }
 
-const SingleResultView: ResultViewComponent <SearchResult> = props => {
+const SingleResultView: ResultViewComponent<SearchResult> = props => {
   const { result, isSelected, selectResult } = props;
   const uri = docsUri(result);
   const rowClass = isSelected

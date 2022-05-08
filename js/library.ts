@@ -11,9 +11,7 @@ export function docsUri(library: Library) {
 }
 
 export function project(library: Library) {
-  return (
-    library.group_id === library.artifact_id
-      ? library.group_id
-      : library.group_id + "/" + library.artifact_id
-  );
+  return library.group_id === library.artifact_id
+    ? library.group_id
+    : library.group_id + "/" + library.artifact_id;
 }

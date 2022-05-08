@@ -43,10 +43,7 @@ export const initRecentDocLinks = (docLinks: Element) => {
             .map(visited => {
               return (
                 <li className="mr1 pt2">
-                  <a
-                    className="link blue nowrap"
-                    href={docsUri(visited)}
-                  >
+                  <a className="link blue nowrap" href={docsUri(visited)}>
                     {project(visited)}
                     <span className="gray f6">
                       {lastViewedMessage(visited.last_viewed)}

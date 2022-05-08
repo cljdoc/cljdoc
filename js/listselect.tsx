@@ -45,10 +45,16 @@ type ResultsViewProps<Type> = {
 
 type ResultsViewState = any;
 
-export class ResultsView<Type> extends Component<ResultsViewProps<Type>, ResultsViewState> {
+export class ResultsView<Type> extends Component<
+  ResultsViewProps<Type>,
+  ResultsViewState
+> {
   resultsViewNode?: Element | null;
 
-  componentDidUpdate(prevProps: ResultsViewProps<Type>, _state: ResultsViewState) {
+  componentDidUpdate(
+    prevProps: ResultsViewProps<Type>,
+    _state: ResultsViewState
+  ) {
     if (
       this.props.selectedIndex !== prevProps.selectedIndex &&
       this.resultsViewNode
