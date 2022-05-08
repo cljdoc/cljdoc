@@ -1,5 +1,4 @@
 import { h, Component, FunctionComponent } from "preact";
-import { CljdocProject } from "./switcher";
 
 // Various functions and components used to show lists of results
 
@@ -31,25 +30,25 @@ function restrictToViewport(container: Element, selectedIndex: number) {
 //   - isSelected: whether the result should be displayed as currently selected
 //   - onMouseOver: a no-args function to call when hovering the result
 
-export type ResultViewComponent = FunctionComponent<{
-  result: CljdocProject;
+export type ResultViewComponent<Type> = FunctionComponent<{
+  result: Type;
   isSelected: boolean;
   selectResult: () => any;
 }>;
 
-type ResultsViewProps = {
-  resultView: ResultViewComponent;
-  results: CljdocProject[];
+type ResultsViewProps<Type> = {
+  resultView: ResultViewComponent<Type>;
+  results: Type[];
   selectedIndex: number;
   onMouseOver: (index: number) => any;
 };
 
 type ResultsViewState = any;
 
-export class ResultsView extends Component<ResultsViewProps, ResultsViewState> {
+export class ResultsView<Type> extends Component<ResultsViewProps<Type>, ResultsViewState> {
   resultsViewNode?: Element | null;
 
-  componentDidUpdate(prevProps: ResultsViewProps, _state: ResultsViewState) {
+  componentDidUpdate(prevProps: ResultsViewProps<Type>, _state: ResultsViewState) {
     if (
       this.props.selectedIndex !== prevProps.selectedIndex &&
       this.resultsViewNode
@@ -58,7 +57,7 @@ export class ResultsView extends Component<ResultsViewProps, ResultsViewState> {
     }
   }
 
-  render(props: ResultsViewProps, _state: any) {
+  render(props: ResultsViewProps<Type>, _state: any) {
     return (
       <div
         className="bg-white br1 br--bottom bb bl br b--blue w-100 overflow-y-scroll"

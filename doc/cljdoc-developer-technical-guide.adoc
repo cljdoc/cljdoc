@@ -189,7 +189,7 @@ Note that clj-kondo really shines when you
 https://github.com/borkdude/clj-kondo/blob/master/doc/editor-integration.md[integrate
 it with your development environment].
 
-NOTE: CI also lints JavaScript source via `npm run lint`.
+NOTE: CI also lints JavaScript source via `npm run lint` and TypeScript via `npx tsc`.
 
 === Coding style
 

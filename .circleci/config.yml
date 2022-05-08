@@ -64,15 +64,21 @@ jobs:
 
       - run:
           name: Report Tools Versions
-          command: node --version
+          command: |
+            node --version
+            npx tsc --version
 
       - run:
           name: Install JavaScript Depedencies
           command: npm ci
 
       - run:
-          name: Lint Front End Source
+          name: Lint Front End Source Format
           command: npm run lint
+
+      - run:
+          name: Compile TypeScript to Check for Issues
+          command: npx tsc
 
       - save_cache:
           paths:

@@ -1,6 +1,6 @@
 import { h, Component } from "preact";
-import { ResultsView } from "./listselect";
-import { CljdocProject } from "./switcher";
+import { ResultsView, ResultViewComponent } from "./listselect";
+import { Library, docsUri, project } from "./library";
 
 // Doing types for debouncing functions is really hard.
 // https://gist.github.com/ca0v/73a31f57b397606c9813472f7493a940
@@ -29,7 +29,8 @@ function cleanSearchStr(str: string) {
   return str.replace(/[\{\}\[\]\"]+/g, "");
 }
 
-export type RawSearchResult = {
+// Raw JSON response from cljdoc server
+type RawSearchResult = {
   ["artifact-id"]: string;
   ["group-id"]: string;
   description: string;
@@ -43,12 +44,9 @@ type RawSearchResults = {
   results: RawSearchResult[];
 };
 
-export type SearchResult = {
-  artifact_id: string;
-  group_id: string;
+interface SearchResult extends Library {
   blurb: string;
   origin: string;
-  version: string;
   score: number;
 };
 
@@ -145,34 +143,20 @@ class SearchInput extends Component<SearchInputProps> {
   }
 }
 
-function resultUri(result: CljdocProject) {
-  return (
-    "/d/" + result.group_id + "/" + result.artifact_id + "/" + result.version
-  );
-}
-
-const SingleResultView = (props: {
-  result: SearchResult;
-  isSelected: boolean;
-  selectResult: () => any;
-}) => {
+const SingleResultView: ResultViewComponent <SearchResult> = props => {
   const { result, isSelected, selectResult } = props;
-  const project =
-    result.group_id === result.artifact_id
-      ? result.group_id
-      : result.group_id + "/" + result.artifact_id;
-  const docsUri = resultUri(result);
+  const uri = docsUri(result);
   const rowClass = isSelected
     ? "pa3 bb b--light-gray bg-light-blue"
     : "pa3 bb b--light-gray";
   return (
-    <a class="no-underline black" href={docsUri}>
+    <a class="no-underline black" href={uri}>
       <div class={rowClass} onMouseOver={selectResult}>
         <h4 class="dib ma0">
-          {project}
+          {project(result)}
           <span class="ml2 gray normal">{result.version}</span>{" "}
         </h4>{" "}
-        <a class="link blue ml2 nowrap" href={docsUri}>
+        <a class="link blue ml2 nowrap" href={uri}>
           view docs{" "}
         </a>{" "}
         <div class="gray f6">{result.blurb}</div>{" "}
@@ -226,7 +210,7 @@ class App extends Component<AppProps, AppState> {
             const result = this.state.results[this.state.selectedIndex];
 
             if (result) {
-              window.open(resultUri(result), "_self");
+              window.open(docsUri(result), "_self");
             }
           }}
           onArrowUp={() =>
