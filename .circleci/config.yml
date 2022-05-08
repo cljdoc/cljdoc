@@ -63,14 +63,14 @@ jobs:
             - v1-npm-dependencies-{{ checksum "package-lock.json" }}
 
       - run:
+          name: Install JavaScript Depedencies
+          command: npm ci
+
+      - run:
           name: Report Tools Versions
           command: |
             node --version
             npx tsc --version
-
-      - run:
-          name: Install JavaScript Depedencies
-          command: npm ci
 
       - run:
           name: Lint Front End Source Format
