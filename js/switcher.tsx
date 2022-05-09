@@ -1,21 +1,18 @@
 import { h, Component } from "preact";
 import fuzzysort from "fuzzysort";
+import { Library, docsUri, project } from "./library";
 import { ResultsView, ResultViewComponent } from "./listselect";
 
-export type CljdocProject = {
-  group_id: string;
-  artifact_id: string;
-  version: string;
-  project_id?: string;
-  last_viewed?: string;
-};
-
-function isSameProject(p1: CljdocProject, p2: CljdocProject): boolean {
-  // I can't believe you have to do this
-  return p1.group_id === p2.group_id && p1.artifact_id === p2.artifact_id; //&& p1.version == p2.version
+export interface VisitedLibrary extends Library {
+  project_id: string;
+  last_viewed: string;
 }
 
-function parseCljdocURI(uri: string): CljdocProject | void {
+function isSameProject(p1: Library, p2: Library): boolean {
+  return p1.group_id === p2.group_id && p1.artifact_id === p2.artifact_id;
+}
+
+function parseCljdocURI(uri: string): Library | void {
   const splitted = uri.split("/");
   if (splitted.length >= 5 && splitted[1] === "d") {
     return {
@@ -28,9 +25,9 @@ function parseCljdocURI(uri: string): CljdocProject | void {
 
 function trackProjectOpened() {
   const maxTrackedCount = 15;
-  const project = parseCljdocURI(window.location.pathname);
+  const project = parseCljdocURI(window.location.pathname) as VisitedLibrary;
   if (project) {
-    var previouslyOpened: CljdocProject[] = JSON.parse(
+    var previouslyOpened: VisitedLibrary[] = JSON.parse(
       localStorage.getItem("previouslyOpened") || "[]"
     );
     // remove identical values
@@ -48,16 +45,11 @@ function trackProjectOpened() {
   }
 }
 
-const SwitcherSingleResultView: ResultViewComponent = props => {
+const SwitcherSingleResultView: ResultViewComponent<VisitedLibrary> = props => {
   const { result, isSelected, selectResult } = props;
-  const project =
-    result.group_id === result.artifact_id
-      ? result.group_id
-      : result.group_id + "/" + result.artifact_id;
-  const docsUri =
-    "/d/" + result.group_id + "/" + result.artifact_id + "/" + result.version;
+  const uri = docsUri(result);
   return (
-    <a className="no-underline black" href={docsUri} onMouseOver={selectResult}>
+    <a className="no-underline black" href={uri} onMouseOver={selectResult}>
       <div
         className={
           isSelected
@@ -66,9 +58,10 @@ const SwitcherSingleResultView: ResultViewComponent = props => {
         }
       >
         <h4 className="dib ma0">
-          #{project} <span className="ml2 gray normal">{result.version}</span>
+          {project(result)}{" "}
+          <span className="ml2 gray normal">{result.version}</span>
         </h4>
-        <a className="link blue ml2" href={docsUri}>
+        <a className="link blue ml2" href={uri}>
           view docs
         </a>
       </div>
@@ -79,8 +72,8 @@ const SwitcherSingleResultView: ResultViewComponent = props => {
 type SwitcherProps = any;
 
 type SwitcherState = {
-  results: CljdocProject[];
-  previouslyOpened: CljdocProject[];
+  results: VisitedLibrary[];
+  previouslyOpened: VisitedLibrary[];
   selectedIndex: number;
   show: boolean;
 };
@@ -140,7 +133,6 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
       let fuzzysortOptions = {
         allowTypo: false,
         key: "project_id"
-        //keys: ['group_id', 'artifact_id']
       };
       let results = fuzzysort.go(
         searchStr,
@@ -162,7 +154,7 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
   }
 
   initializeState() {
-    let previouslyOpened: CljdocProject[] = JSON.parse(
+    let previouslyOpened: VisitedLibrary[] = JSON.parse(
       localStorage.getItem("previouslyOpened") || "[]"
     );
 

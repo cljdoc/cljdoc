@@ -1,5 +1,6 @@
 import { h, render } from "preact";
-import { CljdocProject } from "./switcher";
+import { VisitedLibrary } from "./switcher";
+import { docsUri, project } from "./library";
 import { formatDistanceToNowStrict } from "date-fns";
 
 const dayInMs = 86400000;
@@ -24,7 +25,7 @@ const lastViewedMessage = (last_viewed: string | undefined) => {
 };
 
 export const initRecentDocLinks = (docLinks: Element) => {
-  const previouslyOpened: Array<CljdocProject> = JSON.parse(
+  const previouslyOpened: Array<VisitedLibrary> = JSON.parse(
     localStorage.getItem("previouslyOpened") || "[]"
   );
   if (previouslyOpened.length > 0) {
@@ -39,16 +40,13 @@ export const initRecentDocLinks = (docLinks: Element) => {
           {previouslyOpened
             .reverse()
             .slice(0, 3)
-            .map(({ group_id, artifact_id, version, last_viewed }) => {
+            .map(visited => {
               return (
                 <li className="mr1 pt2">
-                  <a
-                    className="link blue nowrap"
-                    href={`/d/${group_id}/${artifact_id}/${version}`}
-                  >
-                    {artifact_id}
+                  <a className="link blue nowrap" href={docsUri(visited)}>
+                    {project(visited)}
                     <span className="gray f6">
-                      {lastViewedMessage(last_viewed)}
+                      {lastViewedMessage(visited.last_viewed)}
                     </span>
                   </a>
                 </li>
