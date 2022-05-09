@@ -30,8 +30,8 @@ function restrictToViewport(container: Element, selectedIndex: number) {
 //   - isSelected: whether the result should be displayed as currently selected
 //   - onMouseOver: a no-args function to call when hovering the result
 
-export type ResultViewComponent<Type> = FunctionComponent<{
-  result: Type;
+export type ResultViewComponent<ResultType> = FunctionComponent<{
+  result: ResultType;
   isSelected: boolean;
   selectResult: () => any;
 }>;
@@ -45,14 +45,14 @@ type ResultsViewProps<Type> = {
 
 type ResultsViewState = any;
 
-export class ResultsView<Type> extends Component<
-  ResultsViewProps<Type>,
+export class ResultsView<ResultType> extends Component<
+  ResultsViewProps<ResultType>,
   ResultsViewState
 > {
   resultsViewNode?: Element | null;
 
   componentDidUpdate(
-    prevProps: ResultsViewProps<Type>,
+    prevProps: ResultsViewProps<ResultType>,
     _state: ResultsViewState
   ) {
     if (
@@ -63,7 +63,7 @@ export class ResultsView<Type> extends Component<
     }
   }
 
-  render(props: ResultsViewProps<Type>, _state: any) {
+  render(props: ResultsViewProps<ResultType>, _state: any) {
     return (
       <div
         className="bg-white br1 br--bottom bb bl br b--blue w-100 overflow-y-scroll"
