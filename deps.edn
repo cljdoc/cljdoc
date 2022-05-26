@@ -52,6 +52,10 @@
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.29"}              ;; easy log setup
+        ;; spootnik uses a version of logstash.logback encoder which uses jackson database which has a CVE
+        ;; override logstash dep, delete after spootnik is updated appropriately
+        net.logstash.logback/logstash-logback-encoder {:mvn/version "7.2"}
+
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
         org.slf4j/slf4j-api {:mvn/version "1.7.36"}          ;; slf4j front end
 
@@ -67,18 +71,7 @@
 
         ;; misc utils
         babashka/fs {:mvn/version "0.1.6"}                   ;; file system utilities (a modern version of clj-commons/fs)
-        cheshire/cheshire {:mvn/version "5.10.2"             ;; json
-                           ;; for CVE in jackson, can turf after cheschire addresses https://github.com/dakrone/cheshire/issues/190
-                           :exclusions [com.fasterxml.jackson.core/jackson-core
-                                        com.fasterxml.jackson.dataformat/jackson-dataformat-smile
-                                        com.fasterxml.jackson.dataformat/jackson-dataformat-cbor]}
-        ;; for CVE in jackson, can turf after cheschire addresses https://github.com/dakrone/cheshire/issues/190
-        com.fasterxml.jackson.core/jackson-core  {:mvn/version "2.13.3"}
-        com.fasterxml.jackson.dataformat/jackson-dataformat-smile {:mvn/version "2.13.3"}
-        com.fasterxml.jackson.dataformat/jackson-dataformat-cbor {:mvn/version "2.13.3"
-                                                                  :exclusions [com.fasterxml.jackson.core/jackson-databind]}
-        com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.13.3"}
-
+        cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.2.0"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.13.95"}            ;; URI/URLs
