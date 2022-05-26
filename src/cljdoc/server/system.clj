@@ -30,7 +30,7 @@
   ;; change the index name when making incompatible changes, this will
   ;; - create a new index from scratch
   ;; - leave the old index around should we want to revert and
-  (str (cfg/data-dir env-config) "index-lucene91-v2"))
+  (str (cfg/data-dir env-config) "index-lucene92"))
 
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)]
