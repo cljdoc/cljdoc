@@ -31,4 +31,20 @@
    <packageUrl regex="true">^pkg:maven/com\.jcraft/jsch\.agentproxy\.usocket\-nc@.*$</packageUrl>
    <cpe>cpe:/a:netcat:netcat</cpe>
   </suppress>
+  <suppress>
+   <notes><![CDATA[
+   file name: core.async-1.5.648.jar
+   False match with https://github.com/caolan/async
+   ]]></notes>
+   <packageUrl regex="true">^pkg:maven/org\.clojure/core\.async@.*$</packageUrl>
+   <cpe>cpe:/a:async_project:async</cpe>
+  </suppress>
+  <suppress>
+   <notes><![CDATA[
+   file name: snappy-0.4.jar
+   How a vulnerability in the Python Electrum project matched snappy, I dunno! False positive.
+   ]]></notes>
+   <packageUrl regex="true">^pkg:maven/org\.iq80\.snappy/snappy@.*$</packageUrl>
+   <cve>CVE-2018-6353</cve>
+  </suppress>
 </suppressions>
