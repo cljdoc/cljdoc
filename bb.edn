@@ -3,9 +3,7 @@
         lread/status-line {:git/url "https://github.com/lread/status-line.git"
                            :sha "35ed39645038e81b42cb15ed6753b8462e60a06d"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}}
- :tasks {lint {:task lint/-main :doc "[--rebuild-cache] lint source code using clj-kondo"}
+ :tasks {lint {:task lint/-main :doc "[--rebuild] lint source code using clj-kondo"}
          code-format {:task code-format/-main :doc "(check|fix) check whitespace formatting"}
          outdated {:task outdated/-main :doc "report on outdated Clojure and JavaScript dependencies"}
-         doc-update-readme {:task doc-update-readme/-main :doc "honour our contributors in README"}
-
- }}
+         doc-update-readme {:task doc-update-readme/-main :doc "honour our contributors in README"}}}
