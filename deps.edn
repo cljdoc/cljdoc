@@ -51,11 +51,7 @@
         {:mvn/version "20211018.2"}                          ;; sanitize html converted from user markdown
 
         ;; logging
-        spootnik/unilog {:mvn/version "0.7.29"}              ;; easy log setup
-        ;; spootnik uses a version of logstash.logback encoder which uses jackson database which has a CVE
-        ;; override logstash dep, delete after spootnik is updated appropriately
-        net.logstash.logback/logstash-logback-encoder {:mvn/version "7.2"}
-
+        spootnik/unilog {:mvn/version "0.7.30"}              ;; easy log setup
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
         org.slf4j/slf4j-api {:mvn/version "1.7.36"}          ;; slf4j front end
 
@@ -102,12 +98,12 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.05.28"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.05.29"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :cli
            {:extra-paths ["modules/cli/src"]
-            :extra-deps {cli-matic/cli-matic {:mvn/version "0.5.3"}}
+            :extra-deps {cli-matic/cli-matic {:mvn/version "0.5.4"}}
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :code-format
