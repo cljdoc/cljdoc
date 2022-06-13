@@ -30,7 +30,7 @@
         org.apache.lucene/lucene-queryparser {:mvn/version "9.2.0"}
 
         ;; markdown
-        org.asciidoctor/asciidoctorj {:mvn/version "2.5.3"}  ;; render adoc to html
+        org.asciidoctor/asciidoctorj {:mvn/version "2.5.4"}  ;; render adoc to html
         com.vladsch.flexmark/flexmark                        ;; render github markdown to html
         {:mvn/version "0.64.0"}
         com.vladsch.flexmark/flexmark-ext-autolink           ;; converts raw links in text to clickable links
@@ -48,7 +48,7 @@
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
-        {:mvn/version "20211018.2"}                          ;; sanitize html converted from user markdown
+        {:mvn/version "20220608.1"}                          ;; sanitize html converted from user markdown
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.30"}              ;; easy log setup
@@ -56,13 +56,11 @@
         org.slf4j/slf4j-api {:mvn/version "1.7.36"}          ;; slf4j front end
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "5.7.4"}      ;; logback appendery to Sentry service
-        ;; CVE-2022-25647 in gson used by sentry, remove after sentry upgrades its deps
-        com.google.code.gson/gson {:mvn/version "2.9.0"}
+        io.sentry/sentry-logback {:mvn/version "6.0.0"}      ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.6.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.1.0.202203080745-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.2.0.202206071550-r"} ;; git with jsch
         org.clj-commons/clj-http-lite {:mvn/version "0.4.392"} ;; a lite version of clj-http client
 
         ;; misc utils
@@ -98,7 +96,7 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.05.29"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.05.31"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :cli
@@ -111,7 +109,7 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.6.774"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.7.804"}
                            org.slf4j/slf4j-simple {:mvn/version "1.7.36"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
