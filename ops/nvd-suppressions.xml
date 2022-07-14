@@ -47,4 +47,11 @@
    <packageUrl regex="true">^pkg:maven/org\.iq80\.snappy/snappy@.*$</packageUrl>
    <cve>CVE-2018-6353</cve>
   </suppress>
+  <suppress>
+   <notes><![CDATA[
+   file name: data.priority-map-1.1.0.jar
+   ]]></notes>
+   <packageUrl regex="true">^pkg:maven/org\.clojure/data\.priority\-map@.*$</packageUrl>
+   <cpe>cpe:/a:priority-software:priority</cpe>
+  </suppress>
 </suppressions>

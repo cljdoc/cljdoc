@@ -14,6 +14,14 @@
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
         ;; delete override when pedestal updates:
         org.clojure/tools.analyzer.jvm {:mvn/version "1.2.2"}
+        ;; override pedestal jetty deps for CVEs
+        org.eclipse.jetty/jetty-server {:mvn/version "9.4.48.v20220622"}
+        org.eclipse.jetty/jetty-servlet {:mvn/version "9.4.48.v20220622"}
+        org.eclipse.jetty/jetty-alpn-server {:mvn/version "9.4.48.v20220622"}
+        org.eclipse.jetty.http2/http2-server {:mvn/version "9.4.48.v20220622"}
+        org.eclipse.jetty.websocket/websocket-api {:mvn/version "9.4.48.v20220622"}
+        org.eclipse.jetty.websocket/websocket-servlet {:mvn/version "9.4.48.v20220622"}
+        org.eclipse.jetty.websocket/websocket-server {:mvn/version "9.4.48.v20220622"}
 
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
