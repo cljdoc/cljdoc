@@ -26,10 +26,10 @@
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.36.0.3"}     ;; jdbc driver needed to talk to our SQLite db
-        dev.weavejester/ragtime {:mvn/version "0.9.1"}       ;; database migrations
+        dev.weavejester/ragtime {:mvn/version "0.9.2"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
-        com.taoensso/nippy {:mvn/version "3.1.1"}            ;; fast compact serializer that we use for blobs
+        com.taoensso/nippy {:mvn/version "3.1.3"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
         org.apache.lucene/lucene-core {:mvn/version "9.2.0"} ;; search engine
@@ -52,7 +52,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-alpha2"}          ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.15.1"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.15.2"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
@@ -64,7 +64,7 @@
         org.slf4j/slf4j-api {:mvn/version "1.7.36"}          ;; slf4j front end
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.0.0"}      ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.2.1"}      ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.6.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -85,26 +85,26 @@
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
         zprint/zprint {:mvn/version "1.2.3"}                 ;; format clojure source/edn
 
-        ;; override transitive dep from nippy ant tufte to quiet clojure 1.11 warnings,
+        ;; override transitive dep from nippy and tufte to quiet clojure 1.11 warnings,
         ;; delete if/when nippy/tufte updates bring in newer version:
-        com.taoensso/encore {:mvn/version "3.23.0"}
+        com.taoensso/encore {:mvn/version "3.24.0"}
 
-        metosin/malli {:mvn/version "0.8.4"}
+        metosin/malli {:mvn/version "0.8.9"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
-                              :git/sha "3d19b5d6d6c1af80c5e27126b5be10c84fecc33e"}}
+                              :git/sha "53c113e375df94d50cf96c6f2c1b3842dc0e9b35"}}
 
  :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.66.1034"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.68.1059"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
                          nubank/matcher-combinators {:mvn/version "3.5.0" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.05.31"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.06.22"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :cli
@@ -113,11 +113,11 @@
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :code-format
-           {:extra-deps {cljfmt/cljfmt {:mvn/version "0.8.0"}}
+           {:extra-deps {cljfmt/cljfmt {:mvn/version "0.8.2"}}
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.7.804"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.9.863"}
                            org.slf4j/slf4j-simple {:mvn/version "1.7.36"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
