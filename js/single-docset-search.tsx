@@ -175,14 +175,14 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
 };
 
 const buildSearchIndex = (indexItems: IndexItem[]): Index => {
-  const newStopWords = {...elasticlunr.defaultStopWords}
+  const newStopWords = { ...elasticlunr.defaultStopWords };
 
-  for (const indexItem of indexItems) {
-    delete newStopWords[indexItem.name]
-  }
+  indexItems
+    .flatMap(ii => elasticlunr.tokenizer(ii.name))
+    .forEach(word => delete newStopWords[word]);
 
   elasticlunr.clearStopWords();
-  elasticlunr.addStopWords(Object.keys(newStopWords))
+  elasticlunr.addStopWords(Object.keys(newStopWords));
 
   const searchIndex = elasticlunr<IndexItem>(index => {
     index.setRef("id");
