@@ -131,7 +131,6 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
       this.initializeState();
     } else {
       let fuzzysortOptions = {
-        allowTypo: false,
         key: "project_id"
       };
       let results = fuzzysort.go(
