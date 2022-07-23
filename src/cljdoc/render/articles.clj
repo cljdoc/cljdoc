@@ -73,7 +73,10 @@
         (case (scm/provider doc-scm-url)
           :gitlab "Edit on GitLab"
           :sourcehut "Edit on sourcehut"
-          "Edit on GitHub")]]])])
+          :github "Edit on GitHub"
+          :codeberg "Edit on Codeberg"
+          :bitbucket "Edit on Bitbucket"
+          "Edit at git repository")]]])])
 
 (defn doc-overview
   [{:keys [version-entity doc-tree prev-page next-page]}]

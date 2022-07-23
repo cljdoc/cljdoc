@@ -27,22 +27,6 @@
 (defn- get-cljdoc-url-prefix [s]
   (first (filter #(string/starts-with? s %) ["https://cljdoc.org" "https://cljdoc.xyz"])))
 
-(defn- scm-rev [scm]
-  (or (:name (:tag scm))
-      (:commit scm)))
-
-(defn- scm-blob-base-url [scm]
-  (let [blob-path (case (scm/provider (:url scm))
-                    :sourcehut "/tree/"
-                    "/blob/")]
-    (str (:url scm) blob-path (scm-rev scm) "/")))
-
-(defn- scm-raw-base-url [scm]
-  (let [raw-path (case (scm/provider (:url scm))
-                   :sourcehut "/blob/"
-                   "/raw/")]
-    (str (:url scm) raw-path (scm-rev scm) "/")))
-
 (defn- rebase-path
   "Rebase path `s1` to directory of relative path `s2`.
   When path `s1` is absolute it is returned."
@@ -157,7 +141,7 @@
                         (.get scm-relative-link "href")
                         {:scm-file-path scm-file-path
                          :target-path target-path
-                         :scm-base (scm-blob-base-url scm)
+                         :scm-base (scm/rev-formatted-base-url scm)
                          :uri-map uri-map})]
         (.put scm-relative-link "href" fixed-link)))
 
@@ -166,7 +150,7 @@
                                   (remove #(absolute-uri? (.get % "src"))))]
       (.put scm-relative-img "src" (fix-image (.get scm-relative-img "src")
                                               {:scm-file-path scm-file-path
-                                               :scm-base (scm-raw-base-url scm)})))
+                                               :scm-base (scm/rev-raw-base-url scm)})))
 
     (doseq [absolute-link (->> (.select doc "a")
                                (map #(.attributes %))

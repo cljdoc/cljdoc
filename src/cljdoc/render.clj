@@ -55,8 +55,8 @@
             {:top-bar top-bar-component
              :main-sidebar-contents sidebar-contents
              :content (articles/doc-page
-                       {:doc-scm-url (scm/view-uri (bundle/scm-info cache-bundle)
-                                                   (-> doc-p :attrs :cljdoc.doc/source-file))
+                       {:doc-scm-url (scm/branch-url (bundle/scm-info cache-bundle)
+                                                     (-> doc-p :attrs :cljdoc.doc/source-file))
                         :contributors (-> doc-p :attrs :cljdoc.doc/contributors)
                         :doc-type (name doc-type)
                         :doc-html (fixref/fix (rich-text/render-text [doc-type contents])
