@@ -2,6 +2,7 @@
   "Functions to operate on cache bundles"
   (:require [cljdoc.spec]
             [cljdoc.util.fixref :as fixref]
+            [cljdoc.util.scm :as scm]
             [cljdoc.platforms :as platf]
             [clojure.string :as string]))
 
@@ -53,12 +54,12 @@
        (sort-by platf-name)))
 
 (defn- add-src-uri
-  [{:keys [platforms] :as mp-var} scm-base file-mapping]
+  [{:keys [platforms] :as mp-var} scm-base line-anchor file-mapping]
   {:pre [(platf/multiplatform? mp-var)]}
   (if file-mapping
     (->> platforms
          (map (fn [{:keys [file line] :as p}]
-                (assoc p :src-uri (str scm-base (get file-mapping file) "#L" line))))
+                (assoc p :src-uri (str scm-base (get file-mapping file) line-anchor line))))
          (assoc mp-var :platforms))
     mp-var))
 
@@ -66,13 +67,13 @@
   [bundle ns]
   (let [defs         (defs-for-ns (all-defs bundle) ns)
         scm-info     (scm-info bundle)
-        blob         (or (:name (:tag scm-info)) (:commit scm-info))
-        scm-base     (str (:url scm-info) "/blob/" blob "/")
+        scm-base     (scm/rev-formatted-base-url scm-info)
+        line-anchor  (scm/line-anchor scm-info)
         file-mapping (when (:files scm-info)
                        (fixref/match-files
                         (keys (:files scm-info))
                         (set (mapcat #(platf/all-vals % :file) defs))))]
-    (map #(add-src-uri % scm-base file-mapping) defs)))
+    (map #(add-src-uri % scm-base line-anchor file-mapping) defs)))
 
 (defn more-recent-version
   [{:keys [version-entity] :as cache-bundle}]

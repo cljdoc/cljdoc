@@ -50,9 +50,8 @@
     (when scm-url
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
-       (let [icon (get #{:github :gitlab} (scm/provider scm-url) :code)]
-         [:img.v-mid.mr2 {:src (str "https://microicon-clone.vercel.app/" (name icon))}])
-       [:span.dib (scm/coordinate scm-url)]])]])
+       [:img.v-mid.mr2.w1.h1 {:src (scm/icon-url scm-url {:asset-prefix (if sub-page? "../assets/static/" "assets/static/")})}]
+       [:span.v-mid.dib (scm/coordinate scm-url)]])]])
 
 (defn adjust-refs [sub-page? refs]
   (map #(cond->> % sub-page? (str "../"))
@@ -175,6 +174,8 @@
      into
      [[["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
       [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
+      [["assets/static/codeberg.svg" (io/resource (str "public/out/codeberg.svg"))]]
+      [["assets/static/sourcehut.svg" (io/resource (str "public/out/sourcehut.svg"))]]
       ;; use content-hashed name for source map to preserve link to index.js
       [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
       (assets/offline-assets :tachyons)
