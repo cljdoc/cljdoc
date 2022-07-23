@@ -250,6 +250,18 @@ Provided dependencies are skipped at runtime, but inform cljdoc they are require
 TIP: You can express `provided` in a `project.clj`, for https://github.com/funcool/cats/blob/d1b7f3d60c7791798182937c54cbafa4e81536d4/project.clj#L6-L12[example].
 The `deps.edn` file does not support scoping, you'll have to express these directly in your `pom.xml`.
 
+Cljdoc will automatically search Clojars and Maven Central for dependencies.
+If any of your library's dependencies are hosted elsewhere, those maven repositories will need to be specified in your `pom.xml`.
+This includes any transitive dependencies.
+
+[TIP]
+====
+You can specify maven repositories:
+
+* in a `project.clj` under `:repositories`, for https://github.com/IamDrowsy/cloudship/blob/93ebdf7fdb1f404436ccdb68fafc8cd4f88ab256/project.clj#L30[example].
+* in a `deps.edn` under `:mvn/repos`, for https://github.com/phronmophobic/membrane.term/blob/d1c8eb6f682b797e371fe8a6e9e1e9caf7dbc79b/deps.edn#L20-L21[example].
+====
+
 [[docstrings]]
 === Docstrings
 
