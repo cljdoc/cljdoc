@@ -139,6 +139,70 @@ Resources:
 * https://developer.mozilla.org/en-US/docs/Web/OpenSearch[Mozilla's docs on the subject] - includes some useful troubleshooting tips.
 * https://github.com/dewitt/opensearch[An archive of the OpenSearch spec] - as of this writing, it is a bit of an oddly formatted shambles, but it is useful none-the-less.
 
+== Offline Docsets
+
+=== Manually Invoking
+
+Cljdoc allows its users to download its docs for offline use.
+
+NOTE: Offline use is currently a bit of an exageration, we don't for example, include referenced images in the download.
+
+A cljdoc user invokes this feature via a download URL.
+For example, a user browsing docset:
+
+`\https://cljdoc.org/d/org.clj-commons/clj-http-lite/0.4.392`
+
+Would request a download of this docset via:
+
+`\https://cljdoc.org/*download*/org.clj-commons/clj-http-lite/0.4.392`
+
+Which results in zip file `clj-http-lite-0.4.392.zip`.
+
+=== Dash Integration
+
+I don't know, but I'm guessing that folks don't typically download docsets manually.
+I expect they mostly download cljdoc docsets indirectly via https://kapeli.com/dash[Dash], an API document browser available for macOS.
+
+As a cljdoc developer, it is useful for us to understand how Dash uses cljdoc docsets.
+
+Dash offers cljdoc support via a "3rd party source", here's what that looks like at the time of this writing:
+
+image::dev-guide-dash-app.png[]
+
+Let's assume a Dash user is interested in docs for rewrite-clj:
+
+. The Dash user types in `rewrite` in the search box
+.. For each key entered, the Dash app hits the cljdoc search api, the final request would be: +
+`\https://cljdoc.org/api/search?q=rewrite`.
+.. Cljdoc responds to each request with matching library docsets.
+. The Dash app presents the matching docsets for download to the Dash user.
+. The Dash user sees rewrite-clj in the list and requests to see all versions.
+.. The Dash app requests a json response for: +
+`\https://cljdoc.org/versions/rewrite-clj/rewrite-clj?all=true` +
+(Dash will also hit this endpoint when checking for available updates of a docset).
+.. Cljdoc responds with all known versions of rewrite-clj.
+. The Dash app presents available versions of rewrite-clj.
+. The Dash user selects version 1.1.45.
+.. The Dash app requests a download of rewrite-clj via: +
+`\https://cljdoc.org/download/rewrite-clj/rewrite-clj/1.1.45`
+.. Cljdoc responds with zip file `rewrite-clj-1.1.45.zip`.
+. The Dash app unzips and converts the cljdoc into a Dash docset.
+.. It pays special attention to the `data-cljdoc-type` HTML attribute to distinguish API types (e.g. `var`, `function`, `namespace` etc).
+. The Dash user can now browse/search rewrite-clj 1.1.45 in the Dash app.
+
+TIP: When making changes in these areas consider doing a sanity test with Dash.
+Dash is not free but reasonably priced and pretty darn cool.
+It also offers a 30 day free trial period.
+Or ping a cljdoc dev team member who has a Dash license: @lread @martinklepsch @holyjak.
+
+If we do want to make changes that might impact Dash, we should first discuss amongst ourselves and then reach out to support@kapeli.com.
+You will find that Bogdan, the author of Dash, is super nice and supportive.
+
+NOTE: What about Zeal?
+https://zealdocs.org/[Zeal] is an open source offline document browser for Linux and Windows.
+The author of Dash has been generous with sharing docsets with Zeal, but cljdoc support is a custom addon to Dash.
+See https://github.com/cljdoc/cljdoc/issues/646[#646] for some notes on supporting Zeal.
+
 == Conventions
 
 === Diagrams
