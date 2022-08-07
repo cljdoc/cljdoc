@@ -4,16 +4,16 @@
   "Script to update README.adoc to credit people who have contributed
   Run manually as needed."
   (:require [babashka.fs :as fs]
-            [babashka.pods :as pods]
             [clojure.edn :as edn]
             [clojure.string :as string]
+            [etaoin.api :as etaoin]
             [hiccup.util :as hu]
             [hiccup2.core :as h]
+            [taoensso.timbre :as timbre]
             [lread.status-line :as status]))
 
-;; use etaoin pod to capture html renderings to pngs
-(pods/load-pod 'org.babashka/etaoin "0.1.0")
-(require '[pod.babashka.etaoin :as etaoin])
+;; default log level for bb is debug, change it to info
+(alter-var-root #'timbre/*config* #(assoc % :min-level :info))
 
 (def contributions-lookup
   {:code ["💻" "code"]
@@ -126,6 +126,12 @@
     (try
       (spit html-file (generate-contributor-html github-id contributions opts))
       (etaoin/go driver (str "file://" html-file))
+      ;; send the Chrome-specific request for a transparent background
+      (etaoin/execute {:driver driver
+                       :method :post
+                       :path [:session (:session driver) "chromium" "send_command_and_get_result"]
+                       :data {:cmd "Emulation.setDefaultBackgroundColorOverride"
+                              :params {:color {:r 0 :g 0 :b 0 :a 0}}}})
       (etaoin/screenshot-element driver
                                  {:tag :div :class :wrapper}
                                  (str target-dir "/" github-id ".png"))
