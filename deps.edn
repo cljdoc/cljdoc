@@ -25,7 +25,7 @@
 
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.39.2.0"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.39.2.1"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.2"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
@@ -52,7 +52,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-alpha2"}          ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.15.2"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.15.3"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
@@ -61,10 +61,9 @@
         ;; logging
         spootnik/unilog {:mvn/version "0.7.30"}              ;; easy log setup
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
-        org.slf4j/slf4j-api {:mvn/version "1.7.36"}          ;; slf4j front end
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.3.1"}      ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.4.0"}      ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.6.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -96,7 +95,7 @@
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.69.1069"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
-                         nubank/matcher-combinators {:mvn/version "3.5.0" :exclusions [midje/midje]}}
+                         nubank/matcher-combinators {:mvn/version "3.5.1" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
@@ -113,8 +112,8 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "1.9.874"}
-                           org.slf4j/slf4j-simple {:mvn/version "1.7.36"}} ;; to rid ourselves of logger warnings
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.0.889"}
+                           org.slf4j/slf4j-simple {:mvn/version "2.0.0"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
                         "--exclude=com.layerware/hugsql@0.5.3"
