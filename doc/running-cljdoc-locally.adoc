@@ -149,7 +149,6 @@ mkdir -p /tmp/cljdoc
 ----
 docker run --rm \
   --publish 8000:8000 \
-  --volume "$HOME/.m2:/root/.m2" \
   --volume /tmp/cljdoc:/app/data \
   {docker-image}
 ----
@@ -271,7 +270,7 @@ docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume /tmp/cljdoc:/app/data \
   --entrypoint clojure \
-  {docker-image} -M:cli ingest \
+  {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
     --version {example-project-version}
 ----
@@ -317,7 +316,7 @@ docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume /tmp/cljdoc:/app/data \
   --entrypoint clojure \
-  {docker-image} -M:cli ingest \
+  {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
     --version {example-project-version} \
     --git /repo-to-import \
@@ -354,7 +353,7 @@ docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume /tmp/cljdoc:/app/data \
   --entrypoint clojure \
-  {docker-image} -M:cli ingest \
+  {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
     --version {example-project-version} \
     --git {example-project-import-url} \
@@ -404,7 +403,7 @@ docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume /tmp/cljdoc:/app/data \
   --entrypoint clojure \
-  {docker-image} -M:cli ingest \
+  {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
     --version {example-project-version}
 
