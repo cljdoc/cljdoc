@@ -209,6 +209,6 @@ http://localhost:8000/download/{example-project-coords}/{example-project-version
 
 == Example Docker Scripts
 The above examples show the minimal commands to run cljdoc under docker and almost beg for scripting.
-We've done just that as an example for {example-project-link}, see https://github.com/cljdoc/cljdoc-exerciser/script/cljdoc_preview.clj[cljdoc_preview.clj]
+You might find inspiration/ideas from {example-project-link}'s https://github.com/cljdoc/cljdoc-exerciser/blob/master/script/cljdoc_preview.clj[cljdoc_preview.clj]
 
 *Thats pretty much it!* Stop by on Slack if you have any problems!
