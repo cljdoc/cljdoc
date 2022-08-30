@@ -115,8 +115,6 @@ TIP: If your project has link:/doc/userguide/for-library-authors.adoc#module-sup
 We have chosen {example-project-link}, {example-project-desc}, as our example import library.
 Feel free to substitute your own, or another, library when walking through examples.
 
-All example commands assume you are running from your library project root dir, and that both cljdoc and your project share the same parent dir.
-
 === Importing a Published Library
 If you have an unpublished work in progress you'd like to import for preview, instead see <<importing-unpublished-library>>.
 
@@ -148,6 +146,8 @@ You can now <<browse>>.
 
 If you are going to walk through the examples, you'll want to clone {example-project-link}.
 Fork it if you want to walk though pushing changes for a full preview.
+
+All example commands assume you are running from your library project root dir, and that both cljdoc and your project share the same parent dir.
 
 [TIP]
 ====
