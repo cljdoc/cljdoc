@@ -1,0 +1,243 @@
+// This doc follows https://asciidoctor.org/docs/asciidoc-recommended-practices/#one-sentence-per-line
+// There is a lot of duplication between this doc and running-cljoc-locally-author.adoc, please update them together
+= Running cljdoc Locally for cljdoc Developers
+:toc:
+:toclevels: 4
+// make it easier to update the example project
+:example-project-name: cljdoc-exerciser
+:example-project-desc: a project the cljdoc team uses to review cljdoc rendering and formatting features
+:example-project-link: https://github.com/cljdoc/cljdoc-exerciser[cljdoc-exerciser]
+:example-project-local-install: bb install
+:example-project-clone-url: https://github.com/cljdoc/cljdoc-exerciser.git
+:example-project-import-url: https://github.com/cljdoc/cljdoc-exerciser
+:example-project-coords: org.cljdoc/cljdoc-exerciser
+:example-project-maven-path: org/cljdoc/cljdoc-exerciser
+:example-project-version: 1.0.80
+
+== Audience
+You are a cljdoc developer who wants to run cljdoc locally while making changes to cljdoc itself.
+
+Library authors should instead read link:running-cljdoc-locally-author.adoc[running cljdoc locally for library authors].
+
+== Run cljdoc Locally From Source
+
+=== Prerequisites
+To run cljdoc from source, you must first install these dependencies:
+
+* https://nodejs.org/en/[Node.js]
+* https://adoptium.net/?variant=openjdk17&jvmVariant=hotspot[Java Development Kit 17] - the cljdoc web server currently runs on JDK17 in production, so ideally, you'll want to be developing with JDK17 too.
+Example of a valid JDK:
++
+[source,sh]
+----
+$ java -version
+openjdk version "17.0.1" 2021-10-19
+OpenJDK Runtime Environment Temurin-17.0.1+12 (build 17.0.1+12)
+OpenJDK 64-Bit Server VM Temurin-17.0.1+12 (build 17.0.1+12, mixed mode, sharing)
+----
+* https://clojure.org/guides/getting_started[Clojure CLI tools] - make sure you have upgraded to the current version
+* https://github.com/babashka/babashka[Babashka] - some of our scripts are written in babashka
+* https://git-scm.com[Git]
+
+=== Launch cljdoc Server
+
+. Clone cljdoc (adjust as appropriate when you are working from a fork of cljdoc)
++
+[source,shell]
+----
+git clone https://github.com/cljdoc/cljdoc.git
+cd cljdoc
+----
+
+. Build the JavaScript files used by the cljdoc pages:
+
+** If you want to replicate production:
++
+[source,shell]
+----
+npm ci                 # reproducibly install packages into node_modules
+npm run format         # format JS code with Prettier
+npm run build          # production build
+----
++
+Check that `resources-compiled` folder was generated.
+
+** If you are a developer planning to work on JavaScript files (instead of `npm run build` we have `npm run dev`):
++
+[source,shell]
+----
+npm ci                 # reproducibly install packages into node_modules
+npm run format         # format JS code with Prettier
+npm run dev            # watch mode for automatic rebuilding of JavaScript files
+----
++
+NOTE: Leave watch mode session open. Continue any work in a separate terminal shell.
+. Start the cljdoc web server
++
+[source,shell]
+----
+./script/cljdoc run
+----
++
+IMPORTANT: Leave this web server session open. Continue any work in a separate terminal shell.
++
+Alternatively you can start a REPL with `clj` (or your favorite editor integration), then load the system, move into its namespace and start the server:
++
+[source,clojure]
+----
+(require '[cljdoc.server.system])
+(in-ns 'cljdoc.server.system)
+(require '[integrant.repl])
+(integrant.repl/set-prep! #(system-config (cfg/config)))
+(integrant.repl/go)
+----
+
+. (Optional, but recommended) Run tests.
+It is recommended that you run tests before making any changes.
+This way you'll be pretty sure that the cljdoc main branch and your local setup are sound.
+From the cljdoc directory:
++
+[source,clojure]
+----
+clojure -M:test
+----
+
+== Import a Library's Docs
+Here's an overview of importing library docs when running cljdoc locally:
+
+image::running-local.svg[running locally overview]
+
+NOTE: In the discussions that follow, we'll assume that your hosted SCM (Source Code Management) system is GitHub.
+
+TIP: If your project has link:/doc/userguide/for-library-authors.adoc#module-support[sub modules], you'll need to ingest each of the sub modules in order to see their APIs on your locally running cljdoc web server.
+
+=== Example Library
+We have chosen {example-project-link}, {example-project-desc}, as our example import library.
+Feel free to substitute your own, or another, library when walking through examples.
+
+All example commands assume you are running from your library project root dir, and that both cljdoc and your project share the same parent dir.
+
+=== Importing a Published Library
+If you have an unpublished work in progress you'd like to import for preview, instead see <<importing-unpublished-library>>.
+
+Steps 1 and 2 don't apply here, we can move directly to steps 3 then 4.
+
+[TIP]
+====
+If you have been testing {example-project-name} {example-project-version} locally, be sure to first delete it from your local maven repository.
+
+[source,shell,subs="verbatim,attributes"]
+----
+rm -rf ~/.m2/repository/{example-project-maven-path}/{example-project-version}
+----
+====
+
+To import {example-project-name} {example-project-version}:
+
+[source,shell,subs="verbatim,attributes"]
+----
+../cljdoc/script/cljdoc ingest \
+  --project {example-project-coords} \
+  --version {example-project-version}
+----
+
+You can now <<browse>>.
+
+[[importing-unpublished-library]]
+=== Importing an Unpublished Library
+
+If you are going to walk through the examples, you'll want to clone {example-project-link}.
+Fork it if you want to walk though pushing changes for a full preview.
+
+[TIP]
+====
+Repeat steps 1 through 4 as needed (see overview diagram).
+Confusion can usually be resolved by asking:
+
+* Did I remember to commit/push to GitHub?
+* Did I remember to install to my local maven repository?
+====
+
+==== Step 1) Commit/Push Library Changes
+Cljdoc only imports from 2 sources: your jar file and your GitHub repo.
+
+[TIP]
+====
+If you want a full preview where you can verify that references to your GitHub repo work work, then you'll need to push your commits to GitHub.
+References to GitHub include:
+
+* links from articles and docstrings to articles, images, etc.
+* links from API vars and functions to back to their source on GitHub
+====
+
+==== Step 2) Install Library Locally
+To publish {example-project-name} to your local maven repository, run:
+
+[source,shell,subs="verbatim,attributes"]
+----
+{example-project-local-install}
+----
+
+[TIP]
+====
+The command issued to install a library to the local maven repo varies by build technology (leiningen, boot, tools deps cli, etc) and project.
+The `{example-project-local-install}` command is appropriate for {example-project-name}, be sure to use the appropriate command for your project.
+====
+
+==== Step 3) Import Library Docs
+
+Perhaps you want to verify some library that is not available on clojars.
+
+Normally cljdoc will look in your published library's `pom.xml` under `project/scm` to learn what GitHub `url` and `tag` it should use to reference articles and source code.
+To avoid having to alter your `pom.xml` while testing changes during development, the cljdoc `ingest` command provides:
+
+* `--git` to override `pom.xml` `project/scm/url`
+* `--rev` to override `pom.xml` `project/scm/tag`
+
+You have a choice on how to handle relative references from docs to other files (e.g. images, source code, etc) in your library's GitHub repository when testing locally:
+
+* *Quick preview* `--git` specifies your library's root directory on your local filesystem.
++
+WARNING: In a quick preview, relative references to GitHub WON'T work.
++
+From {example-project-name}'s root dir:
++
+[source,shell,subs="verbatim,attributes"]
+----
+../cljdoc/script/cljdoc ingest \
+  --project {example-project-coords} \
+  --version {example-project-version} \
+  --git $(pwd) \
+  --rev $(git rev-parse HEAD)
+----
+
+* *Full preview* `--git` specifies your library's https GitHub project URL.
++
+NOTE: In a full preview, relative references to GitHub DO work.
++
+TIP: Change `pass:a[{example-project-import-url}]` to your own org if you have forked {example-project-name}.
++
+From {example-project-name}'s root dir:
++
+[source,shell,subs="verbatim,attributes"]
+----
+../cljdoc/script/cljdoc ingest \
+  --project {example-project-coords} \
+  --version {example-project-version} \
+  --git {example-project-import-url} \
+  --rev $(git rev-parse HEAD)
+----
+
+[[browse]]
+==== Step 4) Browse Library Docs
+The final step is you browsing the imported library docs in your web browser.
+For example, after importing version {example-project-version} of {example-project-name} you'd browse the docs locally via: +
+http://localhost:8000/d/{example-project-coords}/{example-project-version}
+
+[NOTE]
+====
+When testing locally, you may also want verify what a library docs look like as an offline bundle: +
+http://localhost:8000/download/{example-project-coords}/{example-project-version}.
+====
+
+*Thats pretty much it!* Stop by on Slack if you have any problems!
