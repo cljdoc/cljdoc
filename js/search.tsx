@@ -1,4 +1,5 @@
 import { h, Component } from "preact";
+import { useState } from "preact/hooks";
 import { ResultsView, ResultViewComponent } from "./listselect";
 import { Library, docsUri, project } from "./library";
 
@@ -79,11 +80,14 @@ const refineSearchResults = (raw: RawSearchResults): SearchResults => ({
 });
 
 const loadResults = (str: string, cb: LoadCallback) => {
-  if (!str) return;
-  const uri = "/api/search?q=" + str; //+ "&format=json";
-  fetch(uri)
-    .then(response => response.json())
-    .then((json: RawSearchResults) => cb(refineSearchResults(json).results));
+  if (!str) {
+    cb([]);
+  } else {
+    const uri = "/api/search?q=" + str; //+ "&format=json";
+    fetch(uri)
+      .then(response => response.json())
+      .then((json: RawSearchResults) => cb(refineSearchResults(json).results));
+  }
 };
 
 type SearchInputProps = {
@@ -121,6 +125,9 @@ class SearchInput extends Component<SearchInputProps> {
   }
 
   render(props: SearchInputProps) {
+    const [inputValue, setInputValue] = useState<string>(
+      props.initialValue || ""
+    );
     const debouncedLoader = debounced(300, loadResults);
 
     return (
@@ -128,11 +135,13 @@ class SearchInput extends Component<SearchInputProps> {
         autofocus={true}
         placeholder="Jump to docs..."
         className="pa2 w-100 br1 border-box b--blue ba input-reset"
+        value={inputValue}
         onFocus={(_e: Event) => props.focus()}
         onBlur={(_e: Event) => setTimeout(() => props.unfocus(), 200)}
         onKeyDown={(e: KeyboardEvent) => this.onKeyDown(e)}
         onInput={(e: Event) => {
           const target = e.target as HTMLFormElement;
+          setInputValue(target.value);
           debouncedLoader(
             cleanSearchStr(target.value),
             props.newResultsCallback
