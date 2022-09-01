@@ -35,7 +35,7 @@
           (map (fn [doc-page]
                  (let [slug-path (-> doc-page :attrs :slug-path)]
                    [:li
-                    {:class (when (seq (:children doc-page)) "mv2")}
+                    {:class (when (seq (:children doc-page)) "mv0")}
                     [:a.link.blue.hover-dark-blue.dib.pv1
                      {:style {:word-wrap "break-word"}
                       :href  (doc-link version-entity slug-path)

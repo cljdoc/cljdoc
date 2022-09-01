@@ -18,7 +18,7 @@ If you publish your library to https://clojars.org[Clojars], its docs should alr
 Default handling:
 
 * link:#api[API] automatically documented
-* link:#articles[Articles] include `README`, `CHANGELOG` and articles under `doc/` (else `docs/`), see link:#auto-inferred-articles[auto-inferred articles]
+* link:#articles[Articles] include `README`, `CHANGELOG` and articles under `doc/` (else `docs/`), see link:#auto-discovered-articles[auto-discovered articles]
 
 == Mechanics
 
@@ -138,7 +138,7 @@ When building your docs, cljdoc will look under the `doc` (else `docs`) director
 You can use this configuration file to tell cljdoc more about your documentation.
 
 * `:cljdoc.doc/tree` - Tells cljdoc what link:#articles[articles] to present and in what hierarchy. +
-By default, cljdoc will link:#auto-inferred-articles[automatically infer articles].
+By default, cljdoc will link:#auto-discovered-articles[automatically discover articles].
 * `:cljdoc/languages` - Tells cljdoc which link:#languages[languages] your API uses. +
 By default, cljdoc will automatically detect languages based on the sources it finds in your jar.
 * `:cljdoc/include-namespaces-from-dependencies` - Tells cljdoc to amalgamate API docs from multiple link:#modules[modules]. +
@@ -307,8 +307,8 @@ This allows cljdoc to retrieve article files at the revision/commit of the relea
 Cljdoc hosted articles will have their links link:#link-articles[rewritten to link back to cljdoc].
 All links that work on GitHub should also work on cljdoc.
 
-[[auto-inferred-articles]]
-=== Auto-inferred Articles
+[[auto-discovered-articles]]
+=== Auto-discovered Articles
 
 If your git repository does not contain a link:#article-config[doc tree configuration], cljdoc will automatically include:
 
@@ -317,7 +317,7 @@ If your git repository does not contain a link:#article-config[doc tree configur
 * `CHANGELOG.md` else `CHANGELOG.adoc`- filename search is case insensitive
 ** Title is `Changelog`
 * link:#markup[Markup] articles from your `doc/` else `docs/` folder
-** The title is read from the file's first heading. There will be no nesting and articles will be ordered alphabetically by filename. 
+** The title is read from the file's first heading. There will be no nesting and articles will be ordered alphabetically by filename.
 
 TIP: Use filenames prefixed with digits like `01-intro.md` to define the order of articles.
 
@@ -354,6 +354,8 @@ Your articles will be presented with the following hierarchy and titles:
 └── Configuration
 ----
 
+TIP: Cljdoc will always present the readme and changelog articles first.
+
 IMPORTANT: The resulting URLs for those articles will be based on the title provided in the `cljdoc.edn` file and _not_ on the filename or title within the article file.
 
 See also: link:#verifying-articles[verifying articles]
@@ -362,7 +364,7 @@ See also: link:#verifying-articles[verifying articles]
 === Article Slugs
 
 Slugs for articles are currently based on the article title.
-Titles can be link:#article-config[explicitly configured] or link:#auto-inferred-articles[inferred].
+Titles can be link:#article-config[explicitly configured] or link:#auto-discovered-articles[discovered].
 
 === AsciiDoc Environment
 

@@ -48,7 +48,11 @@
                         #(contains? #{"Readme" "Changelog"} (:title %))
                         doc-tree)
         readme-and-changelog (first split-doc-tree)
-        doc-tree-with-rest (second split-doc-tree)]
+        doc-tree-with-rest (second split-doc-tree)
+        no-articles? (not (seq doc-tree))
+        no-cljdoc-config? (not (some-> cache-bundle :version :config))
+        no-scm? (not (some-> cache-bundle :version :scm))
+        articles-tip? (or no-articles? no-cljdoc-config? no-scm?)]
     [;; Upgrade notice
      (when-let [newer-v (bundle/more-recent-version cache-bundle)]
        (current-release-notice newer-v))
@@ -59,40 +63,38 @@
      [:div.mb4
       (searchset-search/searchbar version-entity)]
 
-     ;; Special documents (Readme & Changelog)
-     (when (seq readme-and-changelog)
-       [:div.mb4
-        (articles/doc-tree-view version-entity readme-and-changelog (:doc-slug-path route-params))])
+     [:div.mb4.js--articles
+      (layout/sidebar-title [:span "Articles"
+                             (when articles-tip?
+                               [:sup.ttl
+                                [:a#js--articles-tip-toggler {:href "#"}
+                                 [:span.link.dib.ml1.v-mid.hover-blue.ttl.silver "tip"]]])])
+      (when articles-tip?
+        [:div#js--articles-tip.dn
+         [:div.mb1.ba.br3.silver.b--blue.bw1.db.f6.w-100.pt1.pa1
+          (cond
+            no-scm?
+            (list [:p.ma1 "No Git repository found for library."]
+                  [:p.ma1 [:a.blue.link {:href (links/github-url :userguide/scm-faq)} "→ Git Sources docs"]])
+            no-articles?
+            (list [:p.ma1 "No articles found in Git repository."]
+                  [:p.ma1 [:a.blue.link {:href (links/github-url :userguide/articles)} "→ Article docs"]])
+            no-cljdoc-config?
+            (list [:p.ma1 "No cljdoc config found, articles auto discovered."]
+                  [:p.ma1 "Library authors can specify article order and hierarchy."]
+                  [:p.ma1 [:a.blue.link {:href (links/github-url :userguide/articles)} "→ Articles docs"]]))]])
 
-     ;; Remaining doctree or note if missing
-     (cond
-       ;; custom doctree has been provided and so we can assume the authors are aware of
-       ;; cljdoc's articles feature -> no further notes required
-       (seq doc-tree-with-rest)
-       [:div.mb4.js--articles
-        (layout/sidebar-title "Articles" {:separator-line? (seq readme-and-changelog)})
-        [:div.mv3 (articles/doc-tree-view version-entity doc-tree-with-rest (:doc-slug-path route-params))]]
-
-       ;; only readme and changelog -> inform user about custom articles
-       (seq readme-and-changelog)
-       [:div.mb4
-        [:p.f7.gray.lh-title
-         [:a.blue.link {:href (links/github-url :userguide/articles)} "Articles"]
-         " are a practical way to provide additional guidance beyond API documentation.
-         Please refer to "
-         [:a.blue.link {:href (links/github-url :userguide/articles)} "the documentation"]
-         " to learn more about using them."]]
-
-       ;; no articles at all -> list common problems + link to docs
-       :else
-       [:div.mb4
-        [:p.f7.gray.lh-title
-         "We couldn't find a Readme or any other articles for this project. This happens when
-         we could not find the Git repository for a project or there are no articles present in
-         a format that cljdoc supports. "
-         [:strong "Please consult the "
-          [:a.blue.link {:href (links/github-url :userguide/articles)} "cljdoc docs"]
-          " on how to fix this."]]])
+      (if no-articles?
+        [:div.mb4
+         [:p.f6.gray.lh-title
+          "No articles found."]]
+        (list
+         ;; Special documents (Readme & Changelog)
+         (when (seq readme-and-changelog)
+           [:div.mv3
+            (articles/doc-tree-view version-entity readme-and-changelog (:doc-slug-path route-params))])
+         (when (seq doc-tree-with-rest)
+           [:div.mb3 (articles/doc-tree-view version-entity doc-tree-with-rest (:doc-slug-path route-params))])))]
 
      ;; Namespace listing
      (let [ns-entities (bundle/ns-entities cache-bundle)]

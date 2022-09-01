@@ -134,6 +134,20 @@ function toggleMetaDialog() {
   }
 }
 
+function toggleArticlesTip() {
+  const tipToggler = document.getElementById("js--articles-tip-toggler");
+  const tip = document.getElementById("js--articles-tip");
+  if (tipToggler && tip) {
+    tipToggler.onclick = () => {
+      if (tip.classList.contains("dn")) {
+        tip.classList.remove("dn");
+      } else {
+        tip.classList.add("dn");
+      }
+    };
+  }
+}
+
 function addPrevNextPageKeyHandlers() {
   const prevLink: HTMLAnchorElement | null = document.querySelector(
     "a#prev-article-page-link"
@@ -159,6 +173,7 @@ export {
   restoreSidebarScrollPos,
   saveSidebarScrollPos,
   toggleMetaDialog,
+  toggleArticlesTip,
   isNSPage,
   isNSOfflinePage,
   isProjectDocumentationPage,
