@@ -83,7 +83,9 @@ const loadResults = (str: string, cb: LoadCallback) => {
   if (!str) {
     cb([]);
   } else {
-    const uri = "/api/search?q=" + str; //+ "&format=json";
+    const uri = new URL(window.location.origin);
+    uri.pathname = "/api/search";
+    uri.searchParams.set("q", str);
     fetch(uri)
       .then(response => response.json())
       .then((json: RawSearchResults) => cb(refineSearchResults(json).results));
