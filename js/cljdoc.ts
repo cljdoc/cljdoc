@@ -139,11 +139,7 @@ function toggleArticlesTip() {
   const tip = document.getElementById("js--articles-tip");
   if (tipToggler && tip) {
     tipToggler.onclick = () => {
-      if (tip.classList.contains("dn")) {
-        tip.classList.remove("dn");
-      } else {
-        tip.classList.add("dn");
-      }
+      tip.classList.toggle("dn");
     };
   }
 }
