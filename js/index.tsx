@@ -11,6 +11,7 @@ import {
   initToggleRaw,
   restoreSidebarScrollPos,
   toggleMetaDialog,
+  toggleArticlesTip,
   addPrevNextPageKeyHandlers,
   saveSidebarScrollPos
 } from "./cljdoc";
@@ -66,6 +67,7 @@ if (isProjectDocumentationPage()) {
   const mobileNav = document.querySelector("#js--mobile-nav");
   mobileNav && render(<MobileNav />, mobileNav);
   toggleMetaDialog();
+  toggleArticlesTip();
   addPrevNextPageKeyHandlers();
 }
 
