@@ -36,6 +36,10 @@ pre {
   color: #357edd;
 }
 
+.cljdoc-markup a:hover {
+  text-decoration: underline;
+}
+
 .cljdoc-markup hr {
   height: 0.25em;
   padding: 0;
