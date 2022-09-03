@@ -3,26 +3,8 @@
             [cljdoc-shared.proj :as proj]
             [clojure.string :as string]
             [clj-http.lite.client :as http]
-            [cheshire.core :as json]
             [clojure.java.io :as io])
-  (:import (org.jsoup Jsoup)
-           (java.time Instant)))
-
-; TODO. Maven Central
-(defn releases-since [inst]
-  (let [req (http/get "https://clojars.org/search"
-                      {;:throw-exceptions? false
-                       :query-params {"q" (format "at:[%s TO %s]" (str inst) (str (Instant/now)))
-                                      "format" "json"
-                                      "page" 1}})
-        results (-> req :body json/parse-string (get "results"))]
-    (->> results
-         (sort-by #(get % "created"))
-         (map (fn [r]
-                {:created_ts  (Instant/ofEpochMilli (Long. (get r "created")))
-                 :group_id    (get r "group_name")
-                 :artifact_id (get r "jar_name")
-                 :version     (get r "version")})))))
+  (:import (org.jsoup Jsoup)))
 
 (defn group-path [project]
   (string/replace (proj/group-id project) #"\." "/"))

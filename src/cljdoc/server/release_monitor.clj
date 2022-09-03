@@ -1,14 +1,47 @@
 (ns cljdoc.server.release-monitor
-  (:require [cljdoc.util.repositories :as repositories]
-            [cljdoc.server.search.api :as sc]
-            [cljdoc.config])
-  (:require [integrant.core :as ig]
+  (:require [cheshire.core :as json]
             [clj-http.lite.client :as http]
+            [cljdoc.config]
+            [cljdoc.server.search.api :as sc]
+            [clojure.edn :as edn]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
+            [integrant.core :as ig]
             [tea-time.core :as tt])
-  (:import (java.time Instant Duration)
-           (cljdoc.server.search.api ISearcher)))
+  (:import (cljdoc.server.search.api ISearcher)
+           (java.time Duration Instant)))
+
+; TODO. Maven Central
+
+;;
+;; Clojars
+;;
+
+(defn- clojars-artifact-info [{:keys [group-id artifact-id]}]
+  (let [result (->> (http/get (format "http://clojars.org/api/artifacts/%s/%s" group-id artifact-id)
+                              {:accept :edn})
+                    :body
+                    edn/read-string)]
+    {:description (:description result)
+     :versions (->> result :recent_versions (mapv :version))}))
+
+(defn- clojars-releases-since [from-inst]
+  (let [req (http/get "https://clojars.org/search"
+                      {:query-params {"q" (format "at:[%s TO %s]" (str from-inst) (str (Instant/now)))
+                                      "format" "json"
+                                      "page" 1}})
+        results (-> req :body json/parse-string (get "results"))]
+    (->> results
+         (sort-by #(get % "created"))
+         (map (fn [r]
+                {:created_ts  (Instant/ofEpochMilli (Long. (get r "created")))
+                 :group_id    (get r "group_name")
+                 :artifact_id (get r "jar_name")
+                 :version     (get r "version")})))))
+
+;;
+;; Local sql db
+;;
 
 (defn- last-release-ts [db-spec]
   (some-> (sql/query db-spec ["SELECT * FROM releases ORDER BY datetime(created_ts) DESC LIMIT 1"])
@@ -31,6 +64,14 @@
                {:build_id build-id}
                ["id = ?" release-id]))
 
+(defn- queue-new-releases [db-spec releases]
+  (log/infof "Queuing %s new releases" (count releases))
+  (sql/insert-multi! db-spec "releases" releases))
+
+;;
+;; Logic and jobs
+;;
+
 (defn- trigger-build
   [release]
   {:pre [(:id release) (:group_id release) (:artifact_id release) (:version release)]}
@@ -46,7 +87,16 @@
     (assert build-id "Could not extract build-id from response")
     build-id))
 
-(defn exclude?
+(defn- update-artifact-index [searcher releases]
+  (run! #(let [a {:artifact-id (:artifact_id %)
+                  :group-id (:group_id %)
+                  :origin :clojars}]
+           (sc/index-artifact
+            searcher
+            (merge a (clojars-artifact-info a))))
+        releases))
+
+(defn- exclude-new-release?
   [{:keys [group_id artifact_id version] :as _build}]
   (or (= "cljsjs" group_id)
       (.endsWith version "-SNAPSHOT")
@@ -56,31 +106,17 @@
       (.contains group_id "gradle-clojure")
       (.contains group_id "gradle-clj")))
 
-(defn release-fetch-job-fn [db-spec ^ISearcher searcher]
+(defn- release-fetch-job-fn [db-spec ^ISearcher searcher]
   (let [ts (or (some-> (last-release-ts db-spec)
                        (.plus (Duration/ofSeconds 1)))
                (.minus (Instant/now) (Duration/ofHours 24)))
-        releases (->> (repositories/releases-since ts)
-                      (remove exclude?))]
+        releases (->> (clojars-releases-since ts)
+                      (remove exclude-new-release?))]
     (when (seq releases)
-      (log/infof "Storing %s new releases in releases table" (count releases))
-      (sql/insert-multi! db-spec "releases" releases)
-      (run!
-        ;; Index them at once so that they appear in search results, if the author
-        ;; wants to check that his new release appeared on Cljdoc; we will re-fetch
-        ;; all Clojars artifact at the next scheduled period, when we will also get
-        ;; past versions and description
-       #(sc/index-artifact
-         searcher
-         {:artifact-id (:artifact_id %)
-          :group-id (:group_id %)
-            ;; NOTE: Ideally we would include also the old versions;
-            ;; but they will be re-added once the full re-import runs anyway
-          :origin :clojars
-          :versions [(:version %)]})
-       releases))))
+      (queue-new-releases db-spec releases)
+      (update-artifact-index searcher releases))))
 
-(defn build-queuer-job-fn [db-spec dry-run?]
+(defn- build-queuer-job-fn [db-spec dry-run?]
   (when-let [to-build (oldest-not-built db-spec)]
     (if dry-run?
       (log/infof "Dry-run mode: not triggering build for %s/%s %s"
