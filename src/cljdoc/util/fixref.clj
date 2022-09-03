@@ -170,13 +170,21 @@
 
   We use this to find the full path to files in Git for a given file in a jar."
   [known-files fpath]
-  (let [matches (filter #(or (= fpath %) (.endsWith % (str "/" fpath))) known-files)]
+  (let [matches (filter #(string/ends-with? (str "/" %) (str "/" fpath)) known-files)]
     (if (= 1 (count matches))
       (first matches)
-      (do
-        (log/warnf "Could not find unique file for fpath %s - canidates: %s" fpath (pr-str matches))
-        (->> (filter #(.startsWith % "src") matches)
-             first)))))
+      ;; choose shortest path where file sits under what looks like a src dir
+      (let [best-guess (->> matches
+                            (filter #(or (string/ends-with? (str "/" %) (str "/src/" fpath))
+                                         (string/ends-with? (str "/" %) (str "/src/main/" fpath))))
+                            (sort-by count)
+                            first)]
+        (if best-guess
+          (log/warnf "Did not find unique file on SCM for jar file %s - chose %s from candidates: %s"
+                     fpath best-guess (pr-str matches))
+          (log/errorf "Did not find unique file on SCM for jar file %s - found no good candidate from candidates: %s"
+                      fpath (pr-str matches)))
+        best-guess))))
 
 (defn match-files
   [known-files fpaths]
