@@ -120,21 +120,19 @@
 
   The `:all` option is in support of the Dash offline reader."
   [searcher store route-name {{:keys [path-params params]} :request}]
-  (let [{:keys [group-id] :as artifact-ent} path-params
-        source (if (:all params) :available :built)]
-    {:source source
-     :versions (->> (if (= :available source)
-                      (available-docs-denormalized searcher artifact-ent)
-                      (case route-name
-                        (:artifact/index :group/index)
+  (let [{:keys [group-id] :as artifact-ent} path-params]
+    (->> (if (:all params)
+           (available-docs-denormalized searcher artifact-ent)
+           (case route-name
+             (:artifact/index :group/index)
                         ;; NOTE: We do not filter by artifact-id b/c in the UI version we want
                         ;; to show "Other artifacts under the <XY> group"
                         ;; This is not appropriate for Dash, so we only do this for :built docs
-                        (storage/list-versions store group-id)
+             (storage/list-versions store group-id)
 
-                        :cljdoc/index
-                        (storage/all-distinct-docs store)))
-                    (index-pages/versions-tree))}))
+             :cljdoc/index
+             (storage/all-distinct-docs store)))
+         (index-pages/versions-tree))))
 
 (defn index-pages
   "Return a list of interceptors suitable to render an index page appropriate for the provided `route-name`.
@@ -143,9 +141,9 @@
   [(pu/coerce-body-conf
     (fn html-render-fn [ctx]
       (let [artifact-ent (-> ctx :request :path-params)
-            versions-data (-> ctx :response :body :versions)
-            source (-> ctx :response :body :source)
-            static-resources (:static-resources ctx)]
+            versions-data (-> ctx :response :body)
+            static-resources (:static-resources ctx)
+            source (if (some-> ctx :request :params :all) :available :built)]
         (case route-name
           :artifact/index (index-pages/artifact-index artifact-ent versions-data source static-resources)
           :group/index (index-pages/group-index artifact-ent versions-data source static-resources)
