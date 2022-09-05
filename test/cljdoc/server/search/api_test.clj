@@ -218,11 +218,48 @@
     (t/is (= ["for" ["clj-commons/byte-transforms "
                      "com.github.seancorfield/next.jdbc "]] (api/suggest searcher "for")))))
 
-(t/deftest alldocs
-  (run! #(api/index-artifact searcher %) [next-jdbc byte-transforms])
-  (t/is (match? (m/in-any-order
-                 (map #(select-keys % [:group-id :artifact-id :versions]) [next-jdbc byte-transforms]))
-                (api/all-docs searcher))))
+(defn- expected-versions-result [indexed-artifacts]
+  (->> indexed-artifacts
+       (map (fn [{:keys [group-id artifact-id versions]}]
+              {:group-id group-id
+               :artifact-id artifact-id
+               :versions (remove #(string/ends-with? % "-SNAPSHOT") versions)}))))
+
+(t/deftest versions
+  (let [g1-a1 {:group-id "g1"
+               :artifact-id "a1"
+               :description "g1-a1 has a snapshot release"
+               :origin :clojars
+               :versions ["1.1.0" "1.1.1" "1.1.2-SNAPSHOT"]}
+        g1-a2 {:group-id "g1"
+               :artifact-id "a2"
+               :description "g1-a2"
+               :origin :clojars
+               :versions ["1.2.0" "1.2.1"]}
+        g2-a1 {:group-id "g2"
+               :artifact-id "a1"
+               :description "g2-a1"
+               :origin :clojars
+               :versions ["2.1.0"]}
+        g2-a2 {:group-id "g2"
+               :artifact-id "a2"
+               :description "g2-a2 all snapshot releases"
+               :origin :clojars
+               :versions ["2.2.0-SNAPSHOT" "2.2.1-SNAPSHOT"]}
+        indexed [g1-a1 g1-a2 g2-a1 g2-a2]]
+    (run! #(api/index-artifact searcher %) indexed)
+    (t/testing "no refinements - return all"
+      (t/is (match? (m/in-any-order (expected-versions-result indexed))
+                    (api/artifact-versions searcher {}))))
+    (t/testing "refine by group-id"
+      (t/is (match? (m/in-any-order (expected-versions-result [g1-a1 g1-a2]))
+                    (api/artifact-versions searcher {:group-id "g1"}))))
+    (t/testing "refine by group-id and artifact-id"
+      (t/is (= (expected-versions-result [g1-a2])
+               (api/artifact-versions searcher {:group-id "g1" :artifact-id "a2"}))))
+    (t/testing "refine by group-id and unknown artifact-id"
+      (t/is (= (expected-versions-result [])
+               (api/artifact-versions searcher {:group-id "g1" :artifact-id "nope"}))))))
 
 (comment
   (def s (ig/init-key :cljdoc/searcher {:clojars-stats (reify clojars-stats/IClojarsStats

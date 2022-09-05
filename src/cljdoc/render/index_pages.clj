@@ -14,7 +14,7 @@
                   :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn artifact-index
-  [{:keys [group-id artifact-id] :as artifact-entity} versions-tree static-resources]
+  [{:keys [group-id artifact-id] :as artifact-entity} versions-tree source static-resources]
   (let [matching  (get-in versions-tree [group-id artifact-id])
         others    (-> (get-in versions-tree [group-id])
                       (dissoc artifact-id))
@@ -26,22 +26,27 @@
            [:h1 (proj/clojars-id artifact-entity)]
            (if (empty? matching)
              [:div
-              [:p "We currently don't have documentation built for " (proj/clojars-id artifact-entity)]
-              [:p.mt4
-               [btn-link
-                {:href (routes/url-for :artifact/version :path-params (assoc artifact-entity :version "CURRENT"))}
-                "Go to the latest version of this artefact →"]]]
+              [:p (if (= :built source)
+                    "We currently don't have any documentation built for artifact "
+                    "There is no known artifact ")
+               [:b (proj/clojars-id artifact-entity)]]
+              (when (= :built source)
+                [:p.mt4
+                 [btn-link
+                  {:href (routes/url-for :artifact/version :path-params (assoc artifact-entity :version "CURRENT"))}
+                  "Go to the latest version of this artifact →"]])]
              [:div
-              [:span.db "Known versions on cljdoc:"]
+              [:span.db (if (= :built source) "Built " "Available ") "versions:"]
               [:ol.list.pl0.pv3
                (for [v matching]
                  [:li.dib.mr3.mb3
                   [big-btn-link
                    {:href (routes/url-for :artifact/version :path-params {:group-id group-id :artifact-id artifact-id :version v})}
                    v]])]])
+           ;; NOTE: by design, "others" is never populated for artifacts when source is not= :built
            (when (seq others)
              [:div
-              [:h3 "Other artifacts under the " group-id " group"]
+              [:h3 "Other artifacts built under group " group-id]
               [:ol.list.pl0.pv3
                (for [[artifact-id versions] others
                      :let [latest (first versions)
@@ -71,35 +76,43 @@
                   :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn group-index
-  [group-entity versions-tree static-resources]
+  [group-entity versions-tree source static-resources]
   (let [group-id (:group-id group-entity)]
     (->> [:div
           (layout/top-bar-generic)
           [:div.pa4-ns.pa2
            [:h1 group-id]
            (if (empty? versions-tree)
-             [:span.db "There have not been any documentation builds for artifacts under this group, to trigger a build please go the page of a specific artefact."]
+             [:span.db
+              (if (= :built source)
+                "There have not been any documentation builds for artifacts under this group, to trigger a build please go the page of a specific artifact."
+                "There is no known artifact under this group.")]
              [:div
-              [:span.db "Known artifacts and versions under the group " group-id]
+              [:span.db
+               (if (= :built source) "Built" "Known") " artifacts and versions under group " [:b group-id]]
               [:ol.list.pl0.pv3.nl2.nr2.cf
                (for [[a-id versions] (get versions-tree group-id)
                      :let [latest-version (first versions)]]
                  (artifact-grid-cell {:group-id group-id :artifact-id a-id :version latest-version}))]])]]
          (layout/page {:title (str group-id " — cljdoc")
-                       :description (format "All artifacts under the group-id %s for which there is documenation on cljdoc"
-                                            group-id)
+                       :description (if (= :built source)
+                                      (format "All artifacts under group %s for which there is documenation on cljdoc"
+                                              group-id)
+                                      (format "All known artifacts under group %s" group-id))
                        :static-resources static-resources}))))
 
 (spec/fdef full-index
   :args (spec/cat :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn full-index
-  [versions-tree static-resources]
+  [versions-tree source static-resources]
   (->> [:div
         (layout/top-bar-generic)
         [:div.pa4-ns.pa2
          [:div#js--cljdoc-navigator]
-         [:h1.mt5 "All documented artifacts on cljdoc:"]
+         [:h1.mt5 (if (= :built source)
+                    "All built artifacts on cljdoc:"
+                    "All known available artifacts:")]
          (for [[group-id groups-artifact-id->versions] versions-tree]
            [:div.cf
             [:h2 group-id [:span.gray.fw3.ml3.f5 "Group ID"]]
@@ -107,7 +120,9 @@
              (for [[a-id versions-for-artifact] groups-artifact-id->versions
                    :let [latest-version (first versions-for-artifact)]]
                (artifact-grid-cell {:group-id group-id :artifact-id a-id :version latest-version}))]])]]
-       (layout/page {:title "all documented artifacts — cljdoc"
+       (layout/page {:title (if (= :built source)
+                              "all documented artifacts — cljdoc"
+                              "all known available artifacts - cljdoc")
                      :static-resources static-resources})))
 
 (defn sort-by-version [version-entities]
@@ -124,4 +139,4 @@
           [group-id
            (into (sorted-map)
                  (for [[a-id versions-for-artifact] (group-by :artifact-id versions-for-group)]
-                   [a-id (->>  versions-for-artifact sort-by-version (map :version))]))])))
+                   [a-id (->> versions-for-artifact sort-by-version (map :version))]))])))

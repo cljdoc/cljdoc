@@ -406,29 +406,28 @@
             []
             (:results r)))))
 
-(defonce ^:private all-docs-cache (atom nil)) ;; As of 11/2019 it takes ± 2.6MB (well, when stringified)
-
-;; TODO Add variants fetching versions for a group / a group+artifact => presumabely faster, no need for caching as all-docs will be needed rarely
-;; (If we still want to preserve its caching - Move the state into the ISearcher impl so that integrant can manage and restart it properly)
-(defn all-docs
-  "Returns all the documents in the Lucene index, with all the versions.
-  NOTE: Takes a few seconds."
-  [^String index-dir]
-  (let [idx-version (index-version index-dir)
-        [cached-version cached-docs] @all-docs-cache]
-    (if (= idx-version cached-version)
-      cached-docs
-      (let [docs (->> (search->results index-dir (MatchAllDocsQuery.) 0)
-                      :results
-                      (mapv (fn [artifact]
-                              (-> artifact
-                                  (select-keys [:group-id :artifact-id])
-                                  (assoc :versions (->> artifact
-                                                        :versions
-                                                        (remove #(string/ends-with? % "-SNAPSHOT"))
-                                                        (into [])))))))]
-        (reset! all-docs-cache [idx-version docs])
-        docs))))
+(defn versions
+  "Returns artifacts and their non-SNAPSHOT versions.
+  Result sort order is indeterminate.
+  By default returns all artifacts, can optionally specify:
+  - group-id - return all matches for exact match on group id
+  - artifact-id - return all matches for exact match on artifact-id under group-id (ignored if group-id not specified)"
+  [index {:keys [group-id artifact-id]}]
+  (->> (cond (and group-id artifact-id)
+             (search->results index (boolean-query :must [(term-query :group-id.exact group-id)
+                                                          (term-query :artifact-id.exact artifact-id)]))
+             group-id
+             (search->results index (term-query :group-id.exact group-id))
+             :else
+             (search->results index (MatchAllDocsQuery.) 0))
+       :results
+       (mapv (fn [artifact]
+               (-> artifact
+                   (select-keys [:group-id :artifact-id])
+                   (assoc :versions (->> artifact
+                                         :versions
+                                         (remove #(string/ends-with? % "-SNAPSHOT"))
+                                         (into []))))))))
 
 (defn suggest
   "Returns [`query-in` [project1 project2... project5]] for `query-in`.
@@ -487,7 +486,7 @@
 
   (def clojars-stats (:cljdoc/clojars-stats integrant.repl.state/system))
 
-  (def index (disk-index "data/index-lucene91-v2"))
+  (def index (disk-index "data/index-lucene93"))
 
   (download-and-index! clojars-stats
                        index
@@ -496,7 +495,8 @@
   (search index "metosin muunta")
   (explain-top-n 6 index "metosin muunta")
 
-  (all-docs index)
+  (docs-versions index {:group-id "rewrite-clj"})
+  (docs-versions index {:group-id "babashka" :artifact-id "fs"})
 
   (search index "re-frame")
   (search index "org.clojure")

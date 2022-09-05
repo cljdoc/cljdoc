@@ -30,15 +30,15 @@
   ;; wrap the required configuration in it, passing the type instead of the raw config
   ;; to each of the functions that need it.
   "Index and search artifacts."
-  (all-docs [_] "Return all the documents, with all the version")
+  (artifact-versions [_ refined-by] "Return all artifact versions, optionally refined-by a group-id or a group-id and artifact-id.")
   (index-artifact [_ artifact])
   (search [_ query] "Supports web app libraries search")
   (suggest [_ query] "Supports OpenSearch libraries suggest search."))
 
 (defrecord Searcher [clojars-stats ^Directory index]
   ISearcher
-  (all-docs [_]
-    (search/all-docs index))
+  (artifact-versions [_ refined-by]
+    (search/versions index refined-by))
   (index-artifact [_ artifact]
     (search/index! clojars-stats index [artifact]))
   (search [_ query]

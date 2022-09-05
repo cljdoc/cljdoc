@@ -104,36 +104,37 @@
                   (assoc-in ctx [:request :path-params :doc-slug-path])))}))
 
 (defn available-docs-denormalized
-  "Return all available documents with one item per version
+  "Return all available documents (built or not) with one item per version
   (i.e. in the same format as expected by index-pages/versions-tree)"
   [searcher {:keys [group-id artifact-id] :as artifact-ent}]
-  (let [match-keys (cond
-                     artifact-id [:artifact-id :group-id]
-                     group-id [:group-id]
-                     :else nil)
-        matches #(= (select-keys % match-keys) (select-keys artifact-ent match-keys))]
-    (->> (search-api/all-docs searcher)
-         (filter matches)
-         (mapcat (fn [artifact]
-                   (map
-                    #(-> artifact (dissoc :versions) (assoc :version %))
-                    (:versions artifact)))))))
+  (->> (search-api/artifact-versions searcher artifact-ent)
+       (mapcat (fn [artifact]
+                 (map
+                  #(-> artifact (dissoc :versions) (assoc :version %))
+                  (:versions artifact))))))
 
 (defn versions-data
-  "Return matching documents with version info in a tree"
-  [searcher store route-name {{:keys [path-params params]} :request}]
-  (let [{:keys [group-id] :as artifact-ent} path-params]
-    (->> (if (:all params)
-           (available-docs-denormalized searcher artifact-ent)
-           (case route-name
-             (:artifact/index :group/index)
-             ;; NOTE: We do not filter by artifact-id b/c in the UI we want
-             ;; to show "Other artifacts under the <XY> group"
-             (storage/list-versions store group-id)
+  "Return matching documents with version info in a tree.
+  If `:all` `params` specified, returns all artifact non-SNAPSHOT versions we know about from clojars
+  and maven central, else returns all artifact versions we've attempted to build.
 
-             :cljdoc/index
-             (storage/all-distinct-docs store)))
-         (index-pages/versions-tree))))
+  The `:all` option is in support of the Dash offline reader."
+  [searcher store route-name {{:keys [path-params params]} :request}]
+  (let [{:keys [group-id] :as artifact-ent} path-params
+        source (if (:all params) :available :built)]
+    {:source source
+     :versions (->> (if (= :available source)
+                      (available-docs-denormalized searcher artifact-ent)
+                      (case route-name
+                        (:artifact/index :group/index)
+                        ;; NOTE: We do not filter by artifact-id b/c in the UI version we want
+                        ;; to show "Other artifacts under the <XY> group"
+                        ;; This is not appropriate for Dash, so we only do this for :built docs
+                        (storage/list-versions store group-id)
+
+                        :cljdoc/index
+                        (storage/all-distinct-docs store)))
+                    (index-pages/versions-tree))}))
 
 (defn index-pages
   "Return a list of interceptors suitable to render an index page appropriate for the provided `route-name`.
@@ -142,12 +143,13 @@
   [(pu/coerce-body-conf
     (fn html-render-fn [ctx]
       (let [artifact-ent (-> ctx :request :path-params)
-            versions-data (-> ctx :response :body)
+            versions-data (-> ctx :response :body :versions)
+            source (-> ctx :response :body :source)
             static-resources (:static-resources ctx)]
         (case route-name
-          :artifact/index (index-pages/artifact-index artifact-ent versions-data static-resources)
-          :group/index (index-pages/group-index artifact-ent versions-data static-resources)
-          :cljdoc/index (index-pages/full-index versions-data static-resources)))))
+          :artifact/index (index-pages/artifact-index artifact-ent versions-data source static-resources)
+          :group/index (index-pages/group-index artifact-ent versions-data source static-resources)
+          :cljdoc/index (index-pages/full-index versions-data source static-resources)))))
    (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
    (interceptor/interceptor
     {:name ::releases-loader
