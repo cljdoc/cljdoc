@@ -426,7 +426,7 @@ We have a https://github.com/cljdoc/cljdoc-check-action[Cljdoc check action] you
 * By request at cljdoc.org
 ** If cljdoc has not already built a requested version of a library, you are given the option to build it from https://cljdoc.org[cljdoc.org].
 * By rebuild request at cljdoc.org
-** If your docs have already been built, you can request a rebuild via the barely visible rebuild hover link on the top right corner of your library docs page.
+** If your docs have already been built, you can request a rebuild via the barely visible rebuild hover link on the top right corner of your library docs page: image:/doc/assets/cljdoc-rebuild-link.png[]
 * By REST request
 ** An automated release process can trigger a build via rest link:/doc/docsets.md#trigger-a-build-for-a-project[trigger a cljdoc build via REST].
 
