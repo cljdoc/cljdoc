@@ -4,7 +4,6 @@
   Cljdoc operates on source files as well as a project's Git repository
   to build API documentation and articles. "
   (:require [babashka.fs :as fs]
-            [cljdoc.util.telegram :as telegram]
             [cljdoc.util.scm :as scm]
             [cljdoc.git-repo :as git]
             [cljdoc.doc-tree :as doctree]
@@ -94,9 +93,6 @@
                                           (every? #(or (= "clj" %) (= "cljs" %)) languages))))
                         {:error {:type "invalid-cljdoc-edn"
                                  :msg "Invalid :cljdoc/languages"}})))]
-
-        (when (and (not error) config-edn)
-          (telegram/has-cljdoc-edn scm-url))
 
         (or error
             (do

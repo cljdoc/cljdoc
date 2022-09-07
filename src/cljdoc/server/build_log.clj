@@ -1,6 +1,5 @@
 (ns cljdoc.server.build-log
   (:require [clojure.java.jdbc :as sql]
-            [cljdoc.util.telegram :as telegram]
             [taoensso.nippy :as nippy])
   (:import (java.time Instant Duration)))
 
@@ -48,8 +47,7 @@
                  ["id = ?" build-id]))
   (failed! [this build-id error]
     (failed! this build-id error nil))
-  (failed! [this build-id error e]
-    (telegram/build-failed (assoc (get-build this build-id) :error error))
+  (failed! [_ build-id error e]
     (sql/update! db-spec "builds" (cond-> {:error error}
                                     e (assoc :error_info_map (nippy/freeze (Throwable->map e))))
                  ["id = ?" build-id]))
