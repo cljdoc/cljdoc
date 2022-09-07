@@ -38,6 +38,10 @@
 (defn scm-info [bundle]
   (-> bundle :version :scm))
 
+(defn articles-scm-info [bundle]
+  (or (-> bundle :version :scm-articles)
+      (scm-info bundle)))
+
 (defn scm-url [bundle]
   (-> bundle scm-info :url))
 

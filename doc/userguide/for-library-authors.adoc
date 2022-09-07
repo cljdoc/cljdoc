@@ -112,7 +112,16 @@ Another from `juxt/bidi`:
 Cljdoc will look at the `<url>` and the `<tag>`:
 
 * `<url>` points to your hosted git repo
-* `<tag>` is a valid pointer to the git commit of your release's sources. It can be a git tag, or commit sha.
+* `<tag>` is a valid pointer to the git revision of your release's sources.
+It can be a git tag, or commit sha.
+
+TIP: You can optionally link:#articles-override[override] the revision for articles.
+
+NOTE: We strongly recommend you explicitly specify the `<tag>` in your `pom.xml` for cljdoc and other tools. +
+But... If you do not specify a `<tag>`, cljdoc will search for a version tag based on the artifact version.
+For artifact version `1.2.3` it will look for a git tag `1.2.3` (else `v1.2.3`).
+
+NOTE: Cljdoc will assume a found version tag is equivalent to `<tag>` even when the `<tag>` specifies a commit sha.
 
 Here are some common ways folks set `<scm>` values:
 
@@ -129,6 +138,26 @@ For example:
 * https://github.com/boot-clj/boot[Boot] also has support, pass the `:scm` option to the `pom` task, an https://github.com/martinklepsch/derivatives/blob/f9cc6be8eeaf21513641cb09d5a466e34ecdd565/build.boot#L18-L23[example].
 
 Whatever method you choose, take care to ensure that your jar's pom points back to the exact revision of its sources on git.
+
+[[articles-override]]
+=== Overriding Articles Revision
+Sometimes you'll want cljdoc to present articles from your git repo after your library's release commit.
+For examples:
+
+* a README that includes the git sha of the release will necessarily appear in a commit after the library release.
+* perhaps you'd like fix or edit an article without cutting a new release
+* you'd like to adjust your link:#cljdoc-config[article table of contents]
+
+To support these scenarios, cljdoc recognizes the `cljdoc-<version>` git tag.
+For library version `1.2.3` cljdoc will look for git tag `cljdoc-1.2.3` (or `cljdoc-v1.2.3`) and import your articles from that commit instead of the link:#git-sources[default commit].
+
+If you add/move a `cljdoc-<version>` tag after the initial cljdoc build is complete, you can request a link:#rebuild[rebuild].
+
+TIP: This affects articles only.
+Any changes to docstrings will require a new library release.
+
+TIP: You'll want to make articles adjustments before you start working on your next release.
+All articles are re-imported.
 
 [[cljdoc-config]]
 == Configuration
@@ -401,8 +430,15 @@ You can preview what your docs will look like before a Clojars release by link:/
 
 === Snapshot Builds
 
-If you are already publishing `SNAPSHOT` releases to Clojars, this can also be a useful way to experiment/preview on cljdoc.
-A `SNAPSHOT` release will use `master` as the git revision as they usually have no tag in your repo nor sha/tag in a `pom` `scm`.
+If you are already publishing `-SNAPSHOT` releases to Clojars, this can also be a useful way to experiment/preview on cljdoc.
+
+We recommend that you populate `<scm>` `<tag>` in your `pom.xml` with the git commit sha of your snapshot release.
+
+Cljdoc does not automatically build snapshot releases, but they will show up in the library search result.
+Upon selecting a snapshot release, cljdoc will offer to build its docset.
+
+By its nature, a snapshot release will likely have many releases under the same version.
+You can choose to link:#rebuild[rebuild] for against the current releases.
 
 [[verifying-articles]]
 === Article Verification Script
@@ -426,9 +462,10 @@ We have a https://github.com/cljdoc/cljdoc-check-action[Cljdoc check action] you
 * By request at cljdoc.org
 ** If cljdoc has not already built a requested version of a library, you are given the option to build it from https://cljdoc.org[cljdoc.org].
 * By rebuild request at cljdoc.org
+[[rebuild]]
 ** If your docs have already been built, you can request a rebuild via the barely visible rebuild hover link on the top right corner of your library docs page: 
 +
-image::/doc/assets/cljdoc-rebuild-link.png[]
+image::cljdoc-rebuild-link.png[]
 * By REST request
 ** An automated release process can trigger a build via rest link:/doc/docsets.md#trigger-a-build-for-a-project[trigger a cljdoc build via REST].
 

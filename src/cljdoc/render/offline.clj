@@ -146,14 +146,14 @@
   [{:keys [version-entity] :as cache-bundle} static-resources]
   (cljdoc-spec/assert :cljdoc.spec/cache-bundle cache-bundle)
   (let [doc-tree     (doctree/add-slug-path (-> cache-bundle :version :doc))
-        scm-info     (-> cache-bundle :version :scm)
+        scm-info     (bundle/scm-info cache-bundle)
+        articles-scm-info (bundle/articles-scm-info cache-bundle)
         flat-doctree (-> doc-tree doctree/flatten*)
         uri-map (->> flat-doctree
                      (map (fn [d]
                             [(-> d :attrs :cljdoc.doc/source-file)
                              (article-url (-> d :attrs :slug-path))]))
                      (into {}))
-        fix-opts {:scm scm-info :uri-map uri-map}
         page' (fn [opts contents]
                 (page (assoc opts
                              :scm-url (-> cache-bundle :version :scm :url)
@@ -180,7 +180,7 @@
       [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
       (assets/offline-assets :tachyons)
       (assets/offline-assets :highlightjs)
-      [["index.html" (->> (index-page cache-bundle fix-opts)
+      [["index.html" (->> (index-page cache-bundle {:scm scm-info :uri-map uri-map})
                           (page' {}))]]
 
       ;; Optional assets
@@ -192,9 +192,9 @@
             :let [target-file (article-url (:slug-path doc))]]
         [target-file
          (->> (doc-page (:doc-tuple doc)
-                        (assoc fix-opts
-                               :scm-file-path (:cljdoc.doc/source-file doc)
-                               :target-path (.getParent (io/file target-file))))
+                        {:scm articles-scm-info :uri-map uri-map
+                         :scm-file-path (:cljdoc.doc/source-file doc)
+                         :target-path (.getParent (io/file target-file))})
               (page' {:article-title (:title doc)
                       :page-features (:page-features doc)}))])
 
@@ -204,7 +204,7 @@
                   target-file (ns-url (platf/get-field ns-data :name))]]
         [target-file
          (->> (ns-page ns-data defs (api/valid-ref-pred-fn cache-bundle)
-                       (assoc fix-opts
+                       (assoc {:scm scm-info :uri-map uri-map}
                               ;; :scm-file-path - we don't currently have scm file for namespaces
                               :target-path (.getParent (io/file target-file))))
               (page' {:namespace (platf/get-field ns-data :name)}))])])))

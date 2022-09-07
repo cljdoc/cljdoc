@@ -89,6 +89,9 @@
       (.build)
       (Git.)))
 
+(defn default-branch [^Git repo]
+  (.getBranch (.getRepository repo)))
+
 (defn find-tag [^Git repo tag-str]
   (->> (.. repo tagList call)
        (filter (fn [t]
@@ -96,20 +99,20 @@
                     (str "refs/tags/" tag-str))))
        first))
 
-(defn version-tag [^Git g version-str]
-  (when-let [tag-obj (or (find-tag g version-str)
-                         (find-tag g (str "v" version-str)))]
-    {:name (-> (.. tag-obj getName)
-               (string/replace #"^refs/tags/" ""))
-     :sha  (.. tag-obj getObjectId getName)
-     :commit (condp instance? tag-obj
-               ;; Not sure I really understand the difference between these two
-               ;; PeeledTags seem to have their own sha while PeeledNonTags dont
-               ObjectIdRef$PeeledTag    (.. tag-obj getPeeledObjectId getName)
-               ObjectIdRef$PeeledNonTag (.. tag-obj getObjectId getName))}))
-
-(defn exists? [^Git g rev]
-  (some? (.resolve (.getRepository g) rev)))
+(defn version-tag
+  ([^Git g version-str]
+   (version-tag g "" version-str))
+  ([^Git g prefix version-str]
+   (when-let [tag-obj (or (find-tag g (str prefix version-str))
+                          (find-tag g (str prefix "v" version-str)))]
+     {:name (-> (.. tag-obj getName)
+                (string/replace #"^refs/tags/" ""))
+      :sha  (.. tag-obj getObjectId getName)
+      :commit (condp instance? tag-obj
+                ;; Not sure I really understand the difference between these two
+                ;; PeeledTags seem to have their own sha while PeeledNonTags dont
+                ObjectIdRef$PeeledTag    (.. tag-obj getPeeledObjectId getName)
+                ObjectIdRef$PeeledNonTag (.. tag-obj getObjectId getName))})))
 
 (defn- tree-for
   [g rev]
@@ -200,8 +203,8 @@
 (defn read-cljdoc-config
   [repo rev]
   {:pre [(some? repo) (string? rev) (seq rev)]}
-  (or (cljdoc.git-repo/slurp-file-at repo rev "doc/cljdoc.edn")
-      (cljdoc.git-repo/slurp-file-at repo rev "docs/cljdoc.edn")))
+  (or (slurp-file-at repo rev "doc/cljdoc.edn")
+      (slurp-file-at repo rev "docs/cljdoc.edn")))
 
 (defn ls-remote-sha
   "Return git sha for remote tag"
@@ -216,6 +219,8 @@
           (ObjectId/toString)))
 
 (comment
+  (ls-files (->repo (io/file "/Users/lee/proj/oss/-verify/foo")) "v1.2.0")
+
   (ls-remote-sha "https://github.com/cljdoc/cljdoc-analyzer.git" "RELEASE")
   (ls-remote-sha "git@github.com:cljdoc/cljdoc-analyzer.git" "RELEASE")
 

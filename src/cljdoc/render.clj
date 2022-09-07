@@ -61,7 +61,7 @@
                         :doc-type (name doc-type)
                         :doc-html (fixref/fix (rich-text/render-text [doc-type contents])
                                               {:scm-file-path (-> doc-p :attrs :cljdoc.doc/source-file)
-                                               :scm (bundle/scm-info cache-bundle)
+                                               :scm (bundle/articles-scm-info cache-bundle)
                                                :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})
                         :version-entity version-entity
                         :prev-page prev-page
@@ -93,7 +93,7 @@
         [[dominant-platf] :as platf-stats] (api/platform-stats ns-defs)
         ns-data (bundle/get-namespace cache-bundle (:namespace ns-emap))
         top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))
-        fix-opts {:scm (-> cache-bundle :version :scm)
+        fix-opts {:scm (bundle/scm-info cache-bundle)
                   :uri-map (fixref/uri-mapping version-entity
                                                (-> cache-bundle
                                                    :version
