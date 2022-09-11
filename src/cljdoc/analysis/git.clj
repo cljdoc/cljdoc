@@ -5,8 +5,8 @@
   to build API documentation and articles. "
   (:require [babashka.fs :as fs]
             [cljdoc.util.scm :as scm]
-            [cljdoc.git-repo :as git]
-            [cljdoc.doc-tree :as doctree]
+            [cljdoc.git-repo :as git-repo]
+            [cljdoc.doc-tree :as doc-tree]
             [cljdoc.user-config :as user-config]
             [cljdoc-shared.proj :as proj]
             [clojure.edn :as edn]
@@ -28,7 +28,7 @@
   (spec/keys :req-un [::files ::rev]
              :opt-un [::tag]))
 
-(spec/def ::doc-tree ::doctree/doctree)
+(spec/def ::doc-tree ::doc-tree/doctree)
 
 (spec/def ::type string?)
 (spec/def ::error
@@ -46,78 +46,94 @@
   ;; some config for projects that do not include their own
   (edn/read-string (slurp (io/resource "hardcoded-projects-config.edn"))))
 
+(defn- cljdoc-config [repo revision]
+  (when revision
+    (->> (git-repo/read-cljdoc-config repo revision)
+         (edn/read-string))))
+
+(defn- git-url [url]
+  ;; While cloning via SSH is generally preferable it requires
+  ;; an SSH key and thus more steps while deploying cljdoc.
+  ;; By only falling back to SSH when HTTP isn't available
+  ;; we avoid this.
+  (or (when (git-repo/clonable? (scm/http-uri url))
+        (scm/http-uri url))
+      (scm/ssh-uri url)
+      (scm/fs-uri url)))
+
+(defn- cljdoc-config-error [config project]
+  ;; TODO: Replace with proper, full and helpful user cljdoc.edn validation,
+  ;; see https://github.com/cljdoc/cljdoc/issues/539
+  ;; For now be strict on the new elements we are validating,
+  ;; it is much easier to later loosen the reins than tighthen them.
+  (when-let [languages (user-config/languages config project)]
+    (and languages
+         (not (or (= :auto-detect languages)
+                  (and (coll? languages)
+                       (seq languages)
+                       (distinct? languages)
+                       (every? #(or (= "clj" %) (= "cljs" %)) languages))))
+         {:error {:type "invalid-cljdoc-edn"
+                  :msg "Invalid :cljdoc/languages"}})))
+
+(defn- scm-config [url repo revision version-tag]
+  (when revision
+    (cond->
+     {:url url
+      :files (-> (git-repo/ls-files repo revision)
+                 git-repo/path-sha-pairs)
+      :rev revision
+      :commit revision ;; was this always intended to be a synonym for :rev?
+      :branch (git-repo/default-branch repo)}
+      version-tag (assoc :tag version-tag))))
+
+(defn- realize-doc-tree [repo project {:keys [rev files]} user-config]
+  (let [slurp-fn (fn [f] (git-repo/slurp-file-at repo rev f))]
+    (doc-tree/process-toc
+     {:slurp-fn slurp-fn
+      :get-contributors (fn [f] (git-repo/get-contributors repo rev f))}
+     (or (user-config/doc-tree user-config project)
+         (get-in hardcoded-config [(proj/normalize project) :cljdoc.doc/tree])
+         (doc-tree/derive-toc (keys files) slurp-fn)))))
+
 (defn analyze-git-repo
   [project version scm-url pom-revision]
   {:post [(map? %)]}
   (let [git-dir (-> {:prefix (str "git-" (string/escape  project {\/ \-}))}
                     fs/create-temp-dir
                     fs/file)
-        ;; While cloning via SSH is generally preferable it requires
-        ;; an SSH key and thus more steps while deploying cljdoc.
-        ;; By only falling back to SSH when HTTP isn't available
-        ;; we avoid this.
-        scm-ssh (or (when (git/clonable? (scm/http-uri scm-url))
-                      (scm/http-uri scm-url))
-                    (scm/ssh-uri scm-url)
-                    (scm/fs-uri scm-url))]
+        git-url (git-url scm-url)]
     (try
-      (log/infof "Cloning Git repo {:url %s :revision %s}" scm-ssh pom-revision)
-      (git/clone scm-ssh git-dir)
-
-      ;; Stuff that depends on a SCM url being present
-      (let [repo        (git/->repo git-dir)
-            version-tag (git/version-tag repo version)
-            default-branch (.getBranch (.getRepository repo))
-            revision    (or pom-revision
-                            (:name version-tag)
-                            (when (.endsWith version "-SNAPSHOT")
-                              default-branch))
-            git-files   (when revision
-                          (git/ls-files repo revision))
-            config-edn  (when revision
-                          (->> (git/read-cljdoc-config repo revision)
-                               (edn/read-string)))
-            error (if (not revision)
-                    {:error {:type "no-revision-found"
-                             :version-tag version-tag
-                             :pom-revision pom-revision}}
-                    ;; TODO: Replace with proper, full and helpful user cljdoc.edn validation,
-                    ;; see https://github.com/cljdoc/cljdoc/issues/539
-                    ;; For now be strict on the new elements we are validating,
-                    ;; it is much easier to later loosen the reins than tighthen them.
-                    (when-let [languages (user-config/languages config-edn project)]
-                      (when (not (or (= :auto-detect languages)
-                                     (and (coll? languages)
-                                          (seq languages)
-                                          (distinct? languages)
-                                          (every? #(or (= "clj" %) (= "cljs" %)) languages))))
-                        {:error {:type "invalid-cljdoc-edn"
-                                 :msg "Invalid :cljdoc/languages"}})))]
-
-        (or error
-            (do
-              (log/info "Analyzing at revision:" revision)
-              {:scm      (cond-> {:files (git/path-sha-pairs git-files)
-                                  :rev revision
-                                  :branch (.. repo getRepository getBranch)}
-                           version-tag (assoc :tag version-tag))
-               :config   config-edn
-               :doc-tree (doctree/process-toc
-                          {:slurp-fn (fn [f]
-                                        ;; We are intentionally relaxed here for now
-                                        ;; In principle we should only look at files at the tagged
-                                        ;; revision but if a file has been added after the tagged
-                                        ;; revision we might as well include it to allow a smooth,
-                                        ;; even if slightly less correct, UX
-                                       (or (git/slurp-file-at repo revision f)
-                                           (when (git/exists? repo "master")
-                                             (git/slurp-file-at repo "master" f))))
-                           :get-contributors (fn [f]
-                                               (git/get-contributors repo revision f))}
-                          (or (user-config/doc-tree config-edn project)
-                              (get-in hardcoded-config
-                                      [(proj/normalize project) :cljdoc.doc/tree])
-                              (doctree/derive-toc git-files)))})))
+      (log/infof "Cloning Git repo from %s" git-url)
+      (git-repo/clone git-url git-dir)
+      (let [repo (git-repo/->repo git-dir)
+            version-tag (git-repo/version-tag repo version)
+            revision (or pom-revision
+                         (:name version-tag)
+                         (when (.endsWith version "-SNAPSHOT")
+                           (git-repo/default-branch repo)))]
+        (if (not revision)
+          {:error {:type "no-revision-found"
+                   ;; TODO: Won't these values be nil when revision is nil?
+                   :version-tag version-tag
+                   :pom-revision pom-revision}}
+          (let [user-config (cljdoc-config repo revision)
+                articles-tag (git-repo/version-tag repo "cljdoc-" version)
+                articles-revision  (:name articles-tag)
+                articles-user-config (cljdoc-config repo articles-revision)]
+            (or (cljdoc-config-error user-config project)
+                (and articles-user-config (cljdoc-config-error articles-user-config project))
+                (let [scm (scm-config scm-url repo revision version-tag)
+                      scm-articles  (scm-config scm-url repo articles-revision articles-tag)
+                      merged-config (merge user-config (select-keys articles-user-config [:cljdoc.doc/tree]))
+                      scm-doc-tree (or scm-articles scm)]
+                  (log/info "Analyzing git repo at revision:" revision)
+                  (when articles-revision
+                    (log/info "... and articles at revision:" articles-revision))
+                  (cond-> {:scm scm
+                           :config merged-config
+                           :doc-tree (realize-doc-tree repo project scm-doc-tree merged-config)}
+                    scm-articles (assoc :scm-articles scm-articles)))))))
       (catch org.eclipse.jgit.api.errors.InvalidRemoteException e
         {:error {:type "invalid-remote"
                  :msg (.getMessage e)}})
@@ -132,6 +148,6 @@
           (fs/delete-tree git-dir))))))
 
 (comment
-  (def r (analyze-git-repo "metosin/reitit" "0.2.5" "https://github.metosin/reitit" nil))
+  (def r (analyze-git-repo "metosin/reitit" "0.2.5" "https://github.com/metosin/reitit" nil))
 
   (spec/explain (:ret (spec/get-spec `analyze-git-repo)) r))

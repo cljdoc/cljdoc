@@ -226,8 +226,8 @@
 (defn- infer-title [path file-contents]
   (or (case (filepath->type path)
         ;; NOTE infer-title will fail with non adoc/md files
-        :cljdoc/markdown (second (re-find #"(?m)^\s*#+\s*(.*)\s*$" file-contents))
-        :cljdoc/asciidoc (second (re-find #"(?m)^\s*=+\s*(.*)\s*$" file-contents)))
+        :cljdoc/markdown (second (re-find #"(?m)^\s*#+\s*(.*?)\s*$" file-contents))
+        :cljdoc/asciidoc (second (re-find #"(?m)^\s*=+\s*(.*?)\s*$" file-contents)))
       (first (butlast (take-last 2 (string/split path #"[/\.]"))))
       (throw (ex-info (format "No title found for %s" path)
                       {:path path :contents file-contents}))))
@@ -235,24 +235,23 @@
 (defn derive-toc
   "Given a list of `files` (as strings) return a doctree that can be
   passed to `process-toc`. By default this function will return a
-  doctree consisting of the project's Readme and Changelog as well as
-  other files in `doc/` or `docs/`.
+  doctree consisting of the project's Readme and Changelog and
+  other articles in `doc/` or `docs/`.
 
   Only files written in supported formats (Markdown or Asciidoc) will
-  be taken into account during this process."
-  [files]
-  (let [readme-path?    (comp readme? :path)
-        changelog-path? (comp changelog? :path)
-        readme          (first (filter readme-path? files))
-        changelog       (first (filter changelog-path? files))]
+  be taken into account during this process.
+
+  `slurp-fn` is used in support of inferring the doc title."
+  [files slurp-fn]
+  (let [readme (first (filter readme? files))
+        changelog (first (filter changelog? files))]
     (into (cond-> []
-            readme    (conj ["Readme" {:file (:path readme)}])
-            changelog (conj ["Changelog" {:file (:path changelog)}]))
-          (->> (filter #(doc? (:path %)) files)
-               (sort-by :path)
-               (mapv (fn [{:keys [path object-loader]}]
-                       [(infer-title path (slurp object-loader))
-                        {:file path}]))))))
+            readme    (conj ["Readme" {:file readme}])
+            changelog (conj ["Changelog" {:file changelog}]))
+          (->> (filter doc? files)
+               sort
+               (mapv (fn [f] [(infer-title f (slurp-fn f))
+                              {:file f}]))))))
 
 (defn get-neighbour-entries
   "Return list with 3 entry of doctree, where second is entry that matched 

@@ -8,7 +8,7 @@
             [clojure.tools.logging :as log]
             [cljdoc.user-config :as user-config]))
 
-(defn analyze-and-import-api!
+(defn- analyze-and-import-api!
   [{:keys [analysis-service storage build-tracker]}
    {:keys [project version jar pom languages build-id]}]
   (let [ana-resp (analysis-service/trigger-build

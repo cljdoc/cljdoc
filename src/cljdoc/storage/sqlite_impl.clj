@@ -281,11 +281,11 @@
 
 (defn import-doc [db-spec
                   {:keys [group-id artifact-id version]}
-                  {:keys [jar scm doc-tree config]}]
+                  {:keys [jar scm scm-articles doc-tree config]}]
   {:pre [(string? group-id) (string? artifact-id) (string? version)]}
   (store-artifact! db-spec group-id artifact-id [version])
   (let [version-id (get-version-id db-spec group-id artifact-id version)]
-    (update-version-meta! db-spec version-id {:jar jar :scm scm, :doc doc-tree, :config config})))
+    (update-version-meta! db-spec version-id {:jar jar :scm scm :scm-articles scm-articles :doc doc-tree, :config config})))
 
 (comment
   ;; Note to reader: if this link still worked, it would reference new naming convention: .../cljdoc-analysis-edn/.../cljdoc-analysis.edn

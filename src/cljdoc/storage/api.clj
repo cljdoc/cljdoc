@@ -13,7 +13,7 @@
 
 (defprotocol IStorage
   (import-api [_ version-entity codox])
-  (import-doc [_ version-entity {:keys [doc-tree scm jar]}])
+  (import-doc [_ version-entity {:keys [doc-tree scm scm-articles jar config]}])
   (exists? [_ entity])
   (bundle-docs [_ version-entity])
   (list-versions [_ group-id])
@@ -28,7 +28,7 @@
                             (:artifact-id version-entity)
                             [(:version version-entity)])
     (sqlite/import-api db-spec version-entity api-analysis))
-  (import-doc [_ version-entity {:keys [doc-tree scm jar config] :as version-data}]
+  (import-doc [_ version-entity {:keys [doc-tree scm scm-articles jar config] :as version-data}]
     (sqlite/import-doc db-spec version-entity version-data))
   (exists? [_ version-entity]
     (sqlite/docs-available? db-spec

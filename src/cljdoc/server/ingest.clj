@@ -20,10 +20,10 @@
     (log/infof "Importing API into database %s %s" project version)
     (storage/import-api storage artifact (codox/sanitize-macros analysis))))
 
-(def scm-fallback "TODO: What and why?"
+(def ^:private scm-fallback "TODO: What and why?"
   {"yada/yada" "https://github.com/juxt/yada/"})
 
-(defn gh-url? [s]
+(defn- gh-url? [s]
   (some-> s (.contains "github.com")))
 
 (defn scm-info
@@ -43,30 +43,31 @@
        :sha (:sha scm-info)})))
 
 (defn ingest-git!
-  "Analyze the git repository `repo` and store the result in `storage`"
+  "Returns map of `:scm-url` and
+  - `:config` - processed user `cljdoc.edn` config
+  - or `:error`
+  for analysis of git repository `repo`, saves full result in `storage`"
   [storage {:keys [project version scm-url pom-revision requested-revision] :as _repo}]
   {:pre [(string? scm-url)]}
   (let [scm-rev (or requested-revision pom-revision)
-        git-analysis (cond-> (ana-git/analyze-git-repo project version scm-url scm-rev)
-                       ;; The git tag expressing the project version is not relevant if git revision specifically requested
-                       requested-revision (update-in [:scm] dissoc :tag))]
-    (if (:error git-analysis)
-      {:scm-url scm-url :error (:error git-analysis)}
+        {:keys [error scm scm-articles config doc-tree]}
+        (cond-> (ana-git/analyze-git-repo project version scm-url scm-rev)
+          ;; The git tag expressing the project version is not relevant if git revision specifically requested
+          requested-revision (update-in [:scm] dissoc :tag))]
+    (if error
+      {:scm-url scm-url :error error}
       (do
-        (log/info "Importing Articles" scm-url scm-rev)
+        (log/info "Importing Articles from" scm-url)
         (storage/import-doc
          storage
          (storage/version-entity project version)
-         {:jar          {}
-          :scm          (merge (:scm git-analysis)
-                               {:url scm-url
-                                :commit (-> git-analysis :scm :rev)})
-          :config       (:config git-analysis)
-          :doc-tree     (:doc-tree git-analysis)})
-
+         (cond-> {:jar          {}
+                  :scm          scm
+                  :config       config
+                  :doc-tree     doc-tree}
+           scm-articles (assoc :scm-articles scm-articles)))
         {:scm-url scm-url
-         :config (:config git-analysis)
-         :commit  (-> git-analysis :scm :rev)}))))
+         :config config}))))
 
 (comment
 

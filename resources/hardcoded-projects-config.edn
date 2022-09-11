@@ -1,3 +1,5 @@
+;; IMPORTANT: please only add to this file if there is no alternative
+;; strongly prefer reaching out to library author and helping them add a proper cljdoc.edn
 {"yada/yada" {:cljdoc.doc/tree [["Readme" {:file "README.md"}]
                                 ["Preface" {:file "doc/preface.adoc"}]
                                 ["Basics" {}
