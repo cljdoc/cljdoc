@@ -79,12 +79,12 @@
 (defn- scm-config [url repo revision version-tag]
   (when revision
     (cond->
-        {:url url
-         :files (-> (git-repo/ls-files repo revision)
-                    git-repo/path-sha-pairs)
-         :rev revision
-         :commit revision ;; was this always intended to be a synonym for :rev?
-         :branch (git-repo/default-branch repo)}
+     {:url url
+      :files (-> (git-repo/ls-files repo revision)
+                 git-repo/path-sha-pairs)
+      :rev revision
+      :commit revision ;; was this always intended to be a synonym for :rev?
+      :branch (git-repo/default-branch repo)}
       version-tag (assoc :tag version-tag))))
 
 (defn- realize-doc-tree [repo project {:keys [rev files]} user-config]
