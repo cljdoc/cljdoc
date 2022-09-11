@@ -67,7 +67,8 @@
                   :doc-tree     doc-tree}
            scm-articles (assoc :scm-articles scm-articles)))
         {:scm-url scm-url
-         :config config}))))
+         :config config
+         :commit (:rev scm)}))))
 
 (comment
 
