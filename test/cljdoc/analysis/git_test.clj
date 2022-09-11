@@ -45,18 +45,18 @@
 (t/deftest ^:slow pom-scm-tag-does-not-exclude-version-tags-test
   (t/is (match?
          {:scm {:tag {:name "v1.0.1"}
-                :rev "a9d0465e417afe03de0fcc354e845691a758b26a"}
+                :rev "167e0037b18e9669e8c24a007c39ecae0e9980d4"}
           :scm-articles {:tag {:name "cljdoc-v1.0.1"}}}
          (git-ana/analyze-git-repo "org.cljdoc/cljdoc-test-repo" "1.0.1" "https://github.com/cljdoc/cljdoc-test-repo"
-                                   "a9d0465e417afe03de0fcc354e845691a758b26a"))))
+                                   "167e0037b18e9669e8c24a007c39ecae0e9980d4"))))
 
 (t/deftest ^:slow snapshot-version-with-pom-scm-tag-test
   (t/is (match?
          {:scm {:tag m/absent
-                :rev "a9d0465e417afe03de0fcc354e845691a758b26a"}
+                :rev "42ef51c8f8f4444a138baf1d9bbf7c71f8ea724e"}
           :scm-articles m/absent}
          (git-ana/analyze-git-repo "org.cljdoc/cljdoc-test-repo" "1.0.1-SNAPSHOT" "https://github.com/cljdoc/cljdoc-test-repo"
-                                   "a9d0465e417afe03de0fcc354e845691a758b26a"))))
+                                   "42ef51c8f8f4444a138baf1d9bbf7c71f8ea724e"))))
 
 (t/deftest ^:slow snapshot-version-without-pom-scm-tag-test
   (t/is (match?
