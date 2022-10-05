@@ -94,7 +94,7 @@
        (map (fn [d]
               [(-> d :attrs :cljdoc.doc/source-file)
                (->> (-> d :attrs :slug-path)
-                    (clojure.string/join "/")
+                    (string/join "/")
                     (assoc version-entity :article-slug)
                     (routes/url-for :artifact/doc :path-params))]))
        (into {})))

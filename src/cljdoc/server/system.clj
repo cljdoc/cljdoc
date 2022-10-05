@@ -113,7 +113,7 @@
   {:cljdoc.util.repositories/get-pom-xml (sqlite-cache/memo-sqlite repos/get-pom-xml cache-opts)})
 
 (defn -main []
-  (integrant.core/init
+  (ig/init
    (cljdoc.server.system/system-config
     (cfg/config)))
   (deref (promise)))

@@ -90,17 +90,17 @@
   See https://github.com/pedestal/pedestal/issues/572"
   [routes & default-options]
   (let [{:as default-opts} default-options
-        m (#'io.pedestal.http.route/linker-map routes)]
+        m (#'route/linker-map routes)]
     (fn [route-name & options]
       (let [{:keys [app-name] :as options-map} options
             default-app-name (:app-name default-opts)
-            route (#'io.pedestal.http.route/find-route m (or app-name default-app-name) route-name)
-            opts (#'io.pedestal.http.route/combine-opts options-map default-opts route)]
+            route (#'route/find-route m (or app-name default-app-name) route-name)
+            opts (#'route/combine-opts options-map default-opts route)]
         (doseq [k (:path-params route)]
           (when-not (get-in opts [:path-params k])
             (throw (ex-info (format "Missing path-param %s" k)
                             {:route-path (:path route) :route-name (:route-name route) :opts opts}))))
-        (#'io.pedestal.http.route/link-str route opts)))))
+        (#'route/link-str route opts)))))
 
 (def url-for
   (url-for-routes (routes identity {})))
