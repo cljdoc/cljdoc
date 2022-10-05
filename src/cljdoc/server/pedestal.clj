@@ -559,7 +559,7 @@
          :shortcuts  [(interceptor/interceptor {:name ::shortcuts :enter #(pu/ok-html % (render-meta/shortcuts %))})]
          :sitemap    [(sitemap-interceptor storage)]
          :opensearch [(opensearch opensearch-base-url)]
-         :show-build [(pu/coerce-body-conf cljdoc.render.build-log/build-page)
+         :show-build [(pu/coerce-body-conf render-build-log/build-page)
                       (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]
@@ -612,10 +612,10 @@
 
 ; io.pedestal.http.impl.servlet-interceptor/stylobate
 (def quieter-stylobate
-  (io.pedestal.interceptor/interceptor
+  (interceptor/interceptor
    {:name ::stylobate
-    :enter @#'io.pedestal.http.impl.servlet-interceptor/enter-stylobate
-    :leave @#'io.pedestal.http.impl.servlet-interceptor/leave-stylobate
+    :enter @#'servlet-interceptor/enter-stylobate
+    :leave @#'servlet-interceptor/leave-stylobate
     :error quieter-error-stylobate}))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
