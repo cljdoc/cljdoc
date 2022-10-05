@@ -68,10 +68,10 @@
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.2.0.202206071550-r"} ;; git with jsch
-        org.clj-commons/clj-http-lite {:mvn/version "0.4.392"} ;; a lite version of clj-http client
+        org.clj-commons/clj-http-lite {:mvn/version "1.0.13"} ;; a lite version of clj-http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.1.6"}                   ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.1.11"}                  ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.2.0"}            ;; profile/perf monitoring
@@ -112,7 +112,7 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.1.927"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.1.932"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.3"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
