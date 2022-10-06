@@ -371,11 +371,6 @@
                                                (hitdoc-score scoredoc)))))}))
      {:count 0 :results []})))
 
-(defn index-version
-  "Return version of the index content, updated every time the index is changed."
-  [^Directory index]
-  (.getVersion (DirectoryReader/open index)))
-
 (defn- snapshot? [version]
   (string/ends-with? version "-SNAPSHOT"))
 
