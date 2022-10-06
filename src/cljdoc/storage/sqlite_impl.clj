@@ -29,7 +29,8 @@
             [taoensso.nippy :as nippy]
             [taoensso.tufte :as tufte :refer [defnp]]
             [version-clj.core :as version-clj]
-            [hugsql.core :as hugsql])
+            [hugsql.core :as hugsql]
+            [clojure.string :as string])
   (:import (org.sqlite SQLiteException)))
 
 ;; keep our linter happy by declaring hugsql imported functions
@@ -208,7 +209,7 @@
 (defnp latest-release-version [db-spec {:keys [group-id artifact-id]}]
   (->> (get-documented-versions db-spec group-id artifact-id)
        (map :version)
-       (remove #(.endsWith % "-SNAPSHOT"))
+       (remove #(string/ends-with? % "-SNAPSHOT"))
        (version-clj/version-sort)
        (last)))
 

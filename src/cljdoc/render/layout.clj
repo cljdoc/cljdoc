@@ -112,7 +112,7 @@
 
                  ;; Canonical URL
                  (when-let [url (:canonical-url opts)]
-                   (assert (.startsWith url "/"))
+                   (assert (string/starts-with? url "/"))
                    [:link {:rel "canonical" :href (str "https://cljdoc.org" url)}]); TODO read domain from config
 
                  [:link {:rel  "icon" :type "image/x-icon" :href "/favicon.ico"}]

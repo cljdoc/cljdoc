@@ -4,20 +4,25 @@
             [clojure.string :as string]
             [clojure.spec.alpha :as s]
             [clj-commons.digest :as digest])
-  (:import  (org.eclipse.jgit.lib RepositoryBuilder
+  (:import  (com.jcraft.jsch Session)
+            (org.eclipse.jgit.lib RepositoryBuilder
                                   ObjectId
                                   ObjectIdRef$PeeledNonTag
                                   ObjectIdRef$PeeledTag
                                   ObjectLoader
-                                  FileMode)
-            (org.eclipse.jgit.revwalk RevWalk)
+                                  FileMode
+                                  Repository
+                                  Ref)
+            (org.eclipse.jgit.revwalk RevWalk RevTree RevCommit)
             (org.eclipse.jgit.treewalk TreeWalk)
             (org.eclipse.jgit.treewalk.filter PathFilter
                                               AndTreeFilter
                                               TreeFilter)
             (org.eclipse.jgit.api Git TransportConfigCallback LsRemoteCommand)
-            (org.eclipse.jgit.transport SshTransport)
+            (org.eclipse.jgit.transport SshTransport RemoteConfig URIish)
             (org.eclipse.jgit.transport.ssh.jsch JschConfigSessionFactory)))
+
+(set! *warn-on-reflection* true)
 
 (def jsch-session-factory
   "A session-factory for use with JGit to access private
@@ -32,7 +37,7 @@
 
   Read https://security.stackexchange.com/questions/143114 for details."
   (proxy [JschConfigSessionFactory] []
-    (configure [host session]
+    (configure [host ^Session session]
       (.setConfig session  "StrictHostKeyChecking" "no"))
     ;; This could be used to specify keys explicitly
     #_(createDefaultJSch [fs]
@@ -51,24 +56,28 @@
          (catch Exception _ false))))
 
 (defn clone [uri target-dir]
-  (.. Git
-      cloneRepository
-      (setURI uri)
-      (setCloneAllBranches true)
-      (setDirectory target-dir)
-      (setTransportConfigCallback
+  (-> (Git/cloneRepository)
+      (.setURI uri)
+      (.setCloneAllBranches true)
+      (.setDirectory target-dir)
+      (.setTransportConfigCallback
        (reify TransportConfigCallback
          (configure [_ transport]
            (when (instance? SshTransport transport)
              (.setSshSessionFactory ^SshTransport transport jsch-session-factory)))))
-      call))
+      .call))
 
 (defn read-origin
   [^Git git-repo]
-  (let [remotes (->> (.. git-repo remoteList call)
-                     (map (fn [remote]
+  (let [remotes (->> git-repo
+                     .remoteList
+                     .call
+                     (map (fn [^RemoteConfig remote]
                             [(keyword (.getName remote))
-                             (.toString (first (.getURIs remote)))]))
+                             (-> remote
+                                 .getURIs
+                                 ^URIish first
+                                 .toString)]))
                      (into {}))]
     ;; TODO for some reason on Circle CI the ssh:// protocol is used
     ;; despite us explicitly providing the http URI. Probably we should
@@ -92,9 +101,11 @@
 (defn default-branch [^Git repo]
   (.getBranch (.getRepository repo)))
 
-(defn find-tag [^Git repo tag-str]
-  (->> (.. repo tagList call)
-       (filter (fn [t]
+(defn find-tag ^Ref [^Git repo tag-str]
+  (->> repo
+       .tagList
+       .call
+       (filter (fn [^Ref t]
                  (= (.getName t)
                     (str "refs/tags/" tag-str))))
        first))
@@ -105,17 +116,18 @@
   ([^Git g prefix version-str]
    (when-let [tag-obj (or (find-tag g (str prefix version-str))
                           (find-tag g (str prefix "v" version-str)))]
-     {:name (-> (.. tag-obj getName)
+     {:name (-> tag-obj
+                .getName
                 (string/replace #"^refs/tags/" ""))
-      :sha  (.. tag-obj getObjectId getName)
+      :sha  (-> tag-obj .getObjectId .getName)
       :commit (condp instance? tag-obj
                 ;; Not sure I really understand the difference between these two
                 ;; PeeledTags seem to have their own sha while PeeledNonTags dont
-                ObjectIdRef$PeeledTag    (.. tag-obj getPeeledObjectId getName)
-                ObjectIdRef$PeeledNonTag (.. tag-obj getObjectId getName))})))
+                ObjectIdRef$PeeledTag    (-> tag-obj .getPeeledObjectId .getName)
+                ObjectIdRef$PeeledNonTag (-> tag-obj .getObjectId .getName))})))
 
 (defn- tree-for
-  [g rev]
+  ^RevTree [^Git g rev]
   {:pre [(string? rev)]}
   (let [repo        (.getRepository g)
         last-commit (.resolve repo rev)]
@@ -131,9 +143,9 @@
   "Read a file `f` in the Git repository `g` at revision `rev`.
 
    If the file cannot be found, return `nil`."
-  [^Git g rev f]
+  [^Git g rev ^String f]
   (if-some [tree (tree-for g rev)]
-    (let [repo      (.getRepository g)
+    (let [^Repository repo (.getRepository g)
           tree-walk (TreeWalk/forPath repo f tree)]
       (when tree-walk
         (slurp (.openStream (.open repo (.getObjectId tree-walk 0))))))
@@ -149,7 +161,7 @@
     (.setTreeFilter revwalk
                     (AndTreeFilter/create (PathFilter/create f)
                                           (TreeFilter/ANY_DIFF)))
-    (->> (map #(.. % getAuthorIdent getName)
+    (->> (map (fn [^RevCommit rev-commit] (-> rev-commit .getAuthorIdent .getName))
               (iterator-seq (.iterator revwalk)))
          frequencies
          (sort-by val >)
@@ -197,8 +209,8 @@
 (extend ObjectLoader
   io/IOFactory
   (assoc io/default-streams-impl
-         :make-input-stream (fn [x _opts] (.openStream x))
-         :make-reader (fn [x _opts] (io/reader (.openStream x)))))
+         :make-input-stream (fn [^ObjectLoader x _opts] (.openStream x))
+         :make-reader (fn [^ObjectLoader x _opts] (io/reader (.openStream x)))))
 
 (defn read-cljdoc-config
   [repo rev]
@@ -214,7 +226,7 @@
           (.setTags true)
           (.setRemote uri)
           (.callAsMap)
-          (get (str "refs/tags/" tag) nil)
+          ^Ref (get (str "refs/tags/" tag) nil)
           (.getObjectId)
           (ObjectId/toString)))
 

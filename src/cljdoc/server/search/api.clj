@@ -64,7 +64,7 @@
     (log/info "Stopping ArtifactIndexer")
     (tt/cancel! artifact-indexer))
   (when index
-    (.close index)))
+    (search/index-close index)))
 
 (comment
 

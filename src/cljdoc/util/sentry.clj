@@ -31,7 +31,7 @@
    (cfg/sentry-dsn)
    {:packet-transform (fn [packet] (assoc packet :release (cfg/version)))
     :app-namespaces app-namespaces
-    :handler (fn [thread ex] (log/errorf ex "Uncaught exception on thread %s" (.getName thread)))}))
+    :handler (fn [^Thread thread ex] (log/errorf ex "Uncaught exception on thread %s" (.getName thread)))}))
 
 (defn capture [{:keys [req ex]}]
   (if (cfg/sentry-dsn)

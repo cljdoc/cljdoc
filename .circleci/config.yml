@@ -33,8 +33,12 @@ jobs:
           command: clojure -P -X:cli:test
 
       - run:
-          name: Lint
+          name: Lint with clj-kondo
           command: bb lint
+
+      - run:
+          name: Lint with eastwood
+          command: bb eastwood
 
       - run:
           name: Code Style Check

@@ -3,7 +3,8 @@
             [sitemap.core :as sitemap]
             [cljdoc.storage.api :as storage]
             [cljdoc.server.routes :as routes]
-            [version-clj.core :as version-clj]))
+            [version-clj.core :as version-clj]
+            [clojure.string :as string]))
 
 (spec/fdef query->url-entries
   :args (spec/cat :version :cljdoc.spec/version-entity)
@@ -22,7 +23,7 @@
 (defn- latest-release-version [docs]
   (->> docs
        (map :version)
-       (remove #(.endsWith % "-SNAPSHOT"))
+       (remove #(string/ends-with? % "-SNAPSHOT"))
        (version-clj/version-sort)
        last))
 

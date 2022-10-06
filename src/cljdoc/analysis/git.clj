@@ -110,7 +110,7 @@
             version-tag (git-repo/version-tag repo version)
             revision (or pom-revision
                          (:name version-tag)
-                         (when (.endsWith version "-SNAPSHOT")
+                         (when (string/ends-with? version "-SNAPSHOT")
                            (git-repo/default-branch repo)))]
         (if (not revision)
           {:error {:type "no-revision-found"

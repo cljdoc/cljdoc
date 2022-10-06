@@ -46,7 +46,6 @@
   IAnalysisService
   (trigger-build
     [_ {:keys [build-id project version jarpath pompath] :as arg}]
-    {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (log/infof "Starting CircleCI analysis for %s %s %s" project version jarpath)
     (let [analyzer-dep (get-analyzer-dep)
           build (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
@@ -129,7 +128,6 @@
   IAnalysisService
   (trigger-build
     [_ {:keys [build-id project version jarpath pompath] :as arg}]
-    {:pre [(int? build-id) (string? project) (string? version) (string? jarpath) (string? pompath)]}
     (log/infof "Starting local analysis for %s %s %s" project version jarpath)
       ;; Run the analysis-runner (yeah) and return the path to the file containing
       ;; analysis results. This mimics production usage in

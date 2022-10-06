@@ -14,7 +14,7 @@
 
 (defn instant-now
   "abstraction for time so we can redef it in tests"
-  []
+  ^Instant []
   (Instant/now))
 
 (defn- derefable? [v]

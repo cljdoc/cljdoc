@@ -1,6 +1,6 @@
 (ns cljdoc.render.rich-text
   (:require [cljdoc.render.sanitize :as sanitize])
-  (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory Options)
+  (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory Options Attributes)
            (com.vladsch.flexmark.parser Parser LinkRefProcessorFactory LinkRefProcessor)
            (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver)
            (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverBasicContext DelegatingNodeRendererFactory NodeRenderer NodeRenderingHandler NodeRenderingHandler$CustomNodeRenderer)
@@ -13,21 +13,24 @@
            (com.vladsch.flexmark.util.ast Document Node)
            (com.vladsch.flexmark.util.sequence BasedSequence)))
 
+(set! *warn-on-reflection* true)
+
 (def ^Asciidoctor adoc-container
   (Asciidoctor$Factory/create))
 
 (defn asciidoc-to-html [^String file-content]
-  (let [opts (doto (Options.)
-               (.setAttributes
-                (java.util.HashMap.
-                 {"env-cljdoc" true
-                  "sectlinks" true
-                  "experimental" true ;; don't let the "experimental" worry you,
-                                      ;; it now only means enable the stable
-                                      ;; kbd, menu and button macros
-                  "icons" "font"
-                  "outfilesuffix" ".adoc"
-                  "showtitle" true})))]
+  (let [opts (-> (Options/builder)
+                 (.attributes (-> (Attributes/builder)
+                                  (.attribute "env-cljdoc" true)
+                                  (.attribute "sectlinks" true)
+                                  (.experimental true) ;; don't let the "experimental" worry you,
+                                                       ;; it now only means enable the stable
+                                                       ;; kbd, menu and button macros
+                                  (.icons Attributes/FONT_ICONS)
+                                  (.attribute "outfilesuffix" ".adoc")
+                                  (.showTitle true)
+                                  .build))
+                 .build)]
     (-> (.convert adoc-container file-content opts)
         sanitize/clean)))
 
@@ -46,8 +49,8 @@
                       ;; and I think these are needed too:
                       ;; https://github.com/vsch/flexmark-java/issues/370#issuecomment-1033215255
                       (.set TablesExtension/WITH_CAPTION false)
-                      (.set TablesExtension/MIN_HEADER_ROWS (int 1))
-                      (.set TablesExtension/MAX_HEADER_ROWS (int 1))
+                      (.set TablesExtension/MIN_HEADER_ROWS ^Integer (int 1))
+                      (.set TablesExtension/MAX_HEADER_ROWS ^Integer (int 1))
                       (.toImmutable)))
 
 (defn- md-parser
@@ -78,7 +81,7 @@
                     (= \] (.endCharAt node-chars 1) (.endCharAt node-chars 2))
                     (boolean (render-wiki-link (str (.subSequence node-chars 2 (- length 2))))))))
            (adjustInlineText [_this _doc node]
-             (.getText node))
+             (.getText ^WikiLink node))
            (allowDelimiters [_this _chars _doc _node] false)
            (updateNodeElements [_this _doc _node])
            (^Node createNode [_this ^BasedSequence chars]
@@ -139,9 +142,11 @@
                     WikiLink
                     (reify NodeRenderingHandler$CustomNodeRenderer
                       (render [_this node ctx html]
-                        (let [url (-> (.resolveLink ctx WikiLinkExtension/WIKI_LINK (-> node .getLink .unescape) nil)
+                        (let [url (-> (.resolveLink ctx WikiLinkExtension/WIKI_LINK (-> ^WikiLink node
+                                                                                        .getLink
+                                                                                        .unescape) nil)
                                       .getUrl)]
-                          (.raw html (str "<a href=\"" url "\" data-source=\"wikilink\"><code>" (.getLink node) "</code></a>"))))))}))))))
+                          (.raw html (str "<a href=\"" url "\" data-source=\"wikilink\"><code>" (.getLink ^WikiLink node) "</code></a>"))))))}))))))
 
     :always (-> (.extensions md-extensions)
                 (.build))))
@@ -179,7 +184,8 @@
   (fn [[type _contents]]
     type))
 
-(defmethod determine-features :cljdoc/markdown [[_ _content]])
+(defmethod determine-features :cljdoc/markdown [[_ _content]]
+  nil)
 
 (defmethod determine-features :cljdoc/asciidoc [[_ content]]
   (when-let [doc-header (re-find #"(?s).*?\R\R" content)]

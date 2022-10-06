@@ -47,25 +47,33 @@
                            HtmlStreamEventProcessor$Processors
                            HtmlStreamEventReceiver
                            HtmlStreamRenderer
-                           HtmlPolicyBuilder))
+                           HtmlPolicyBuilder
+                           HtmlPolicyBuilder$AttributeBuilder
+                           PolicyFactory))
   (:require [clojure.string :as string]))
 
-;; helpers for awkward interop
-(defn- allow-tags [policy & tags]
-  (.allowElements policy (into-array String tags)))
+(set! *warn-on-reflection* true)
 
-(defn- allow-attributes [policy & attrs]
-  (.allowAttributes policy (into-array String attrs)))
+;; helpers for awkward interop
+(defn- allow-tags
+  ^HtmlPolicyBuilder [^HtmlPolicyBuilder builder & tags]
+  (.allowElements builder (into-array String tags)))
+
+(defn- allow-attributes
+  ^HtmlPolicyBuilder$AttributeBuilder [^HtmlPolicyBuilder builder & attrs]
+  (.allowAttributes builder (into-array String attrs)))
 
 (defn- with-protocols
-  [attribute-policy & protocols]
-  (.matching attribute-policy (FilterUrlByProtocolAttributePolicy. protocols)))
+  ^HtmlPolicyBuilder$AttributeBuilder [^HtmlPolicyBuilder$AttributeBuilder builder & protocols]
+  (.matching builder (FilterUrlByProtocolAttributePolicy. protocols)))
 
-(defn- on-tags [attribute-policy & tags]
-  (.onElements attribute-policy (into-array String tags)))
+(defn- on-tags
+  ^HtmlPolicyBuilder [^HtmlPolicyBuilder$AttributeBuilder builder & tags]
+  (.onElements builder (into-array String tags)))
 
-(defn- matching-vals [attribute-policy & expected-values]
-  (-> attribute-policy
+(defn- matching-vals
+  ^HtmlPolicyBuilder$AttributeBuilder [^HtmlPolicyBuilder$AttributeBuilder builder & expected-values]
+  (-> builder
       (.matching (proxy [AttributePolicy] []
                    (apply [tag-name attribute-name value]
                      (when (some (fn [test-value]
@@ -120,8 +128,8 @@
   "If tag does not include required-attribute with required-value, it will be dropped.
   We deal with this at the tag level (rather than the attribute level) to allow dropping
   a tag based on its attributes (rather than just dropping the attribute only)."
-  [policy tag required-attribute required-value]
-  (-> policy
+  ^HtmlPolicyBuilder [^HtmlPolicyBuilder builder tag required-attribute required-value]
+  (-> builder
       (.allowElements (proxy [ElementPolicy] []
                         (apply [tag-name av-pairs]
                           (let [avs (->> av-pairs (partition 2) (map vec) (into {}))
@@ -130,7 +138,7 @@
                               tag-name))))
                       (into-array String [tag]))))
 
-(def ^:private policy
+(def ^:private ^PolicyFactory policy
   (-> (HtmlPolicyBuilder.)
 
       ;; github pipeline sanitization ref:

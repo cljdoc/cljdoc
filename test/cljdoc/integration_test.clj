@@ -39,12 +39,12 @@
   (get-in sys [:cljdoc/pedestal :io.pedestal.http/service-fn]))
 
 (t/deftest home-page-test
-  (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get "/"))
-                          "is a website building &amp; hosting documentation for Clojure/Script libraries"))))
+  (t/is (true? (string/includes? (:body (pdt/response-for (service-fn @sys) :get "/"))
+                                 "is a website building &amp; hosting documentation for Clojure/Script libraries"))))
 
 (t/deftest full-cycle-test
-  ;; (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get "/d/reagent/reagent/0.8.1"))
-  ;;                         "We currently don't have documentation built for reagent v0.8.1")))
+  ;; (t/is (true? (string/includes? (:body (pdt/response-for (service-fn @sys) :get "/d/reagent/reagent/0.8.1"))
+  ;;                                "We currently don't have documentation built for reagent v0.8.1")))
 
   (let [params    (codec/form-encode {:project "metosin/muuntaja" :version "0.6.4"})
         build-req (pdt/response-for (service-fn @sys)
@@ -57,26 +57,26 @@
     (let [build-uri   (get-in build-req [:headers "Location"])
           builds-page (pdt/response-for (service-fn @sys) :get build-uri)]
 
-      (t/is (true? (.contains (:body builds-page) "metosin/muuntaja")))
-      (t/is (true? (.contains (:body builds-page) "v0.6.4")))
-      (t/is (true? (.contains (:body builds-page) "Analysis Requested")))
+      (t/is (true? (string/includes? (:body builds-page) "metosin/muuntaja")))
+      (t/is (true? (string/includes? (:body builds-page) "v0.6.4")))
+      (t/is (true? (string/includes? (:body builds-page) "Analysis Requested")))
 
       (loop [i 60]
         (if (pos? i)
-          (when-not (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri))
-                               "Successfully imported 10 namespaces")
+          (when-not (string/includes? (:body (pdt/response-for (service-fn @sys) :get build-uri))
+                                      "Successfully imported 10 namespaces")
             (Thread/sleep 2000)
             (recur (dec i)))
           (throw (Exception. "Import took too long"))))
 
-      (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri)) "Git Import Completed")))
-      (t/is (true? (.contains (:body (pdt/response-for (service-fn @sys) :get build-uri)) "Successfully imported 10 namespaces")))
+      (t/is (true? (string/includes? (:body (pdt/response-for (service-fn @sys) :get build-uri)) "Git Import Completed")))
+      (t/is (true? (string/includes? (:body (pdt/response-for (service-fn @sys) :get build-uri)) "Successfully imported 10 namespaces")))
 
       (t/is (= 302 (:status (pdt/response-for (service-fn @sys) :get "/d/metosin/muuntaja/0.6.4"))))
 
       (doseq [[p str] {"/d/metosin/muuntaja/0.6.4/api/muuntaja.core" "decode-response-body"
                        "/d/metosin/muuntaja/0.6.4/doc/creating-new-formats" "To allow easier customization"}]
-        (t/is (.contains (:body (pdt/response-for (service-fn @sys) :get p)) str)))))
+        (t/is (string/includes? (:body (pdt/response-for (service-fn @sys) :get p)) str)))))
 
   ;; test if atleast one meta tag has the project's description
   (t/is
@@ -85,7 +85,7 @@
          (service-fn @sys)
          :get
          "/d/metosin/muuntaja/0.6.4/doc/configuration")
-        (:body)
+        ^String (:body)
         (Jsoup/parse)
         (.select "head > meta")
         (str)

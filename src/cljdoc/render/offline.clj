@@ -4,7 +4,8 @@
   While more reuse would be possible this is intentionally
   kept somewhat separately as DOM stability is more important
   for tools like Dash etc."
-  (:require [cljdoc.render.layout :as layout]
+  (:require [babashka.fs :as fs]
+            [cljdoc.render.layout :as layout]
             [cljdoc.render.api :as api]
             [cljdoc.doc-tree :as doctree]
             [cljdoc.spec :as cljdoc-spec]
@@ -20,8 +21,7 @@
             [me.raynes.fs.compression :as fs-compression]
             [hiccup2.core :as hiccup]
             [hiccup.page])
-  (:import (java.nio.file Files)
-           (java.net URL)))
+  (:import (java.net URL)))
 
 (defn- ns-url
   [ns]
@@ -218,7 +218,7 @@
                 [(str prefix k)
                  (cond
                    (instance? URL v)                   (slurp v)
-                   (instance? java.io.File v)          (Files/readAllBytes (.toPath v))
+                   (instance? java.io.File v)          (fs/read-all-bytes v)
                    (instance? hiccup.util.RawString v) (.getBytes (str v))
                    :else (throw (Exception. (str "Unsupported value " (class v)))))]))
          (fs-compression/make-zip-stream))))

@@ -316,7 +316,7 @@
                      (keep identity)
                      (into []))]
     (when (seq queries)
-      (-> (boolean-query :should queries)))))
+      (boolean-query :should queries))))
 
 (defn- hitdoc-num [^ScoreDoc scoredoc]
   (.-doc scoredoc))
@@ -371,11 +371,6 @@
                                                (hitdoc-score scoredoc)))))}))
      {:count 0 :results []})))
 
-(defn index-version
-  "Return version of the index content, updated every time the index is changed."
-  [^Directory index]
-  (.getVersion (DirectoryReader/open index)))
-
 (defn- snapshot? [version]
   (string/ends-with? version "-SNAPSHOT"))
 
@@ -384,6 +379,9 @@
 (defn disk-index [index-path]
   (FSDirectory/open ;; automatically chooses best implementation for OS
    (Paths/get index-path (into-array String nil))))
+
+(defn index-close [^Directory index]
+  (.close index))
 
 ;; public search fns
 

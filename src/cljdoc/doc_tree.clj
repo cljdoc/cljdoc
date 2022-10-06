@@ -211,16 +211,16 @@
 ;; Deriving doctrees -----------------------------------------------------------
 
 (defn- readme? [path]
-  (and (.startsWith (.toLowerCase path) "readme.")
+  (and (string/starts-with? (string/lower-case path) "readme.")
        (try (filepath->type path) (catch Exception _ false))))
 
 (defn- changelog? [path]
-  (and (some #(.startsWith (.toLowerCase path) %) ["changelog." "changes."  "history." "news." "releases."])
+  (and (some #(string/starts-with? (string/lower-case path) %) ["changelog." "changes."  "history." "news." "releases."])
        (try (filepath->type path) (catch Exception _ false))))
 
 (defn- doc? [path]
-  (and (or (.startsWith path "doc/")
-           (.startsWith path "docs/"))
+  (and (or (string/starts-with? path "doc/")
+           (string/starts-with? path "docs/"))
        (try (filepath->type path) (catch Exception _ false))))
 
 (defn- infer-title [path file-contents]

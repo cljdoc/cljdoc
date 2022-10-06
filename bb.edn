@@ -5,6 +5,7 @@
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
         etaoin/etaoin {:mvn/version "1.0.38"}}
  :tasks {lint {:task lint/-main :doc "[--rebuild] lint source code using clj-kondo"}
+         eastwood {:task (clojure "-M:test:eastwood") :doc "lint source code using eastwood"}
          code-format {:task code-format/-main :doc "(check|fix) check whitespace formatting"}
          outdated {:task outdated/-main :doc "report on outdated Clojure and JavaScript dependencies"}
          doc-update-readme {:task doc-update-readme/-main :doc "honour our contributors in README"}}}

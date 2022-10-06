@@ -7,9 +7,12 @@
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
-            [tea-time.core :as tt])
+            [tea-time.core :as tt]
+            [clojure.string :as string])
   (:import (cljdoc.server.search.api ISearcher)
            (java.time Duration Instant)))
+
+(set! *warn-on-reflection* true)
 
 ; TODO. Maven Central
 
@@ -34,7 +37,7 @@
     (->> results
          (sort-by #(get % "created"))
          (map (fn [r]
-                {:created_ts  (Instant/ofEpochMilli (Long. (get r "created")))
+                {:created_ts  (Instant/ofEpochMilli (parse-long (get r "created")))
                  :group_id    (get r "group_name")
                  :artifact_id (get r "jar_name")
                  :version     (get r "version")})))))
@@ -43,7 +46,7 @@
 ;; Local sql db
 ;;
 
-(defn- last-release-ts [db-spec]
+(defn- last-release-ts ^Instant [db-spec]
   (some-> (sql/query db-spec ["SELECT * FROM releases ORDER BY datetime(created_ts) DESC LIMIT 1"])
           first
           :created_ts
@@ -99,12 +102,12 @@
 (defn- exclude-new-release?
   [{:keys [group_id artifact_id version] :as _build}]
   (or (= "cljsjs" group_id)
-      (.endsWith version "-SNAPSHOT")
+      (string/ends-with? version "-SNAPSHOT")
       (and (= "org.akvo.flow" group_id)
            (= "akvo-flow" artifact_id))
       (= "lein-template" artifact_id)
-      (.contains group_id "gradle-clojure")
-      (.contains group_id "gradle-clj")))
+      (string/includes? group_id "gradle-clojure")
+      (string/includes? group_id "gradle-clj")))
 
 (defn- release-fetch-job-fn [db-spec ^ISearcher searcher]
   (let [ts (or (some-> (last-release-ts db-spec)

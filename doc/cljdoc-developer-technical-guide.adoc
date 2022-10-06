@@ -245,6 +245,7 @@ Preview the changes, commit and push.
 
 === Linting
 
+==== clj-kondo
 We use https://github.com/borkdude/clj-kondo[clj-kondo] to help catch common
 coding errors early. The build server will fail the build if any lint errors are
 found. To find lint errors it runs `bb lint` and so can you!
@@ -253,7 +254,14 @@ Note that clj-kondo really shines when you
 https://github.com/borkdude/clj-kondo/blob/master/doc/editor-integration.md[integrate
 it with your development environment].
 
-NOTE: CI also lints JavaScript source via `npm run lint` and TypeScript via `npx tsc`.
+==== eastwood
+While clj-kondo is awesome-sauce, https://github.com/jonase/eastwood[eastwood] will also find interesting things.
+Run it via `bb eastwood`.
+Note that we are currently having eastwood check reflection warnings.
+This seems to be working out nicely, but if you strongly disagree, let us know.
+
+==== other linting
+CI also lints JavaScript source via `npm run lint` and TypeScript via `npx tsc`.
 
 === Coding style
 

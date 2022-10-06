@@ -8,7 +8,8 @@
             [cljdoc.util.scm :as scm]
             [clojure.tools.logging :as log]
             [cljdoc.storage.api :as storage]
-            [cljdoc-shared.spec.analyzer :as analyzer-spec]))
+            [cljdoc-shared.spec.analyzer :as analyzer-spec]
+            [clojure.string :as string]))
 
 (defn ingest-cljdoc-analysis-edn
   "Store all the API-related information in the passed `cljdoc-analysis-edn` data"
@@ -24,7 +25,7 @@
   {"yada/yada" "https://github.com/juxt/yada/"})
 
 (defn- gh-url? [s]
-  (some-> s (.contains "github.com")))
+  (some-> s (string/includes? "github.com")))
 
 (defn scm-info
   [pom-url]
