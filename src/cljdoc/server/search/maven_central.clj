@@ -50,13 +50,13 @@
   [query]
   (loop [start 0, acc nil]
     (let [rows 200
-          latest-version-only? false
+          opt-get-all-versions "&core=gav"
 
           {total :numFound, docs :docs}
           (:response (fetch-json
                       (str "http://search.maven.org/solrsearch/select?q=" query
                            "&start=" start "&rows=" rows
-                           (when-not latest-version-only? "&core=gav"))))
+                           opt-get-all-versions)))
 
           more? (pos? (- total start rows))
           acc'  (concat acc docs)]
