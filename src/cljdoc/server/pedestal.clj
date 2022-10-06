@@ -51,7 +51,9 @@
             [ring.util.codec :as ring-codec]
             [lambdaisland.uri.normalize :as normalize]
             [net.cgrand.enlive-html :as en])
-  (:import (java.io IOException)))
+  (:import (java.io IOException)
+           (java.net URLDecoder)
+           (java.util Date)))
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
@@ -100,7 +102,7 @@
              (->> (string/split (get-in ctx [:request :path-params :article-slug])  #"/")
                   ;; I feel like pedestal should take care of this url-decoding
                   ;; https://github.com/cljdoc/cljdoc/issues/113
-                  (map #(java.net.URLDecoder/decode % "UTF-8"))
+                  (map #(URLDecoder/decode ^String % "UTF-8"))
                   (assoc-in ctx [:request :path-params :doc-slug-path])))}))
 
 (defn available-docs-denormalized
@@ -467,7 +469,7 @@
                  (and (string/ends-with? uri "/")
                       (not= uri "/"))
                  (assoc :response {:status 301
-                                   :headers {"Location" (subs uri 0 (dec (.length uri)))}}))))}))
+                                   :headers {"Location" (subs uri 0 (dec (count uri)))}}))))}))
 
 (def not-found-interceptor
   (interceptor/interceptor
@@ -481,8 +483,8 @@
 
 (defn build-sitemap
   "Build a new sitemap if previous one was built longer than 60 minutes ago."
-  [{:keys [last-generated] :as state} storage]
-  (let [now (java.util.Date.)]
+  [{:keys [^Date last-generated] :as state} storage]
+  (let [now (Date.)]
     (if (or (not last-generated)
             (> (- (.getTime now) (.getTime last-generated)) (* 60 60 1000)))
       ;; Return updated state
@@ -602,7 +604,7 @@
 (defn quieter-error-stylobate [{:keys [servlet-response] :as context} exception]
   (let [cause (stacktrace/root-cause exception)]
     (if (and (instance? IOException cause)
-             (= "Broken pipe" (.getMessage cause)))
+             (= "Broken pipe" (ex-message cause)))
       (log/info "broken pipe")
       (plog/error
        :msg "error-stylobate triggered"

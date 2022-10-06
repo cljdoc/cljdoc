@@ -85,7 +85,7 @@
          (service-fn @sys)
          :get
          "/d/metosin/muuntaja/0.6.4/doc/configuration")
-        (:body)
+        ^String (:body)
         (Jsoup/parse)
         (.select "head > meta")
         (str)

@@ -15,6 +15,8 @@
            (java.time.format DateTimeFormatter)
            (java.util.concurrent TimeUnit)))
 
+(set! *warn-on-reflection* true)
+
 (defn- stats-files
   "Clojars download stats are hosted on s3 and generated once per day
   to https://clojars.org/stats/downloads-YYYYMMDD.edn.
@@ -28,7 +30,7 @@
   https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html
   Note that a maxium of 1000 entries will be returned by s3 per fetch and we currently make no
   attempt to do multiple fetches to overcome this limit."
-  [retention-date]
+  [^LocalDate retention-date]
   (let [start-after-key (format "downloads-%s.edn" (.format DateTimeFormatter/BASIC_ISO_DATE (.minusDays retention-date 1)))]
     ;; notes:
     ;; - in v2 of the aws API, marker is renamed to start-after, clojars seems to be using v1 at this time
@@ -43,11 +45,11 @@
   (-> (last (re-find #"(?:downloads-)(\d{8})" uri))
       (LocalDate/parse DateTimeFormatter/BASIC_ISO_DATE)))
 
-(defn- to-import [db-spec retention-date]
+(defn- to-import [db-spec ^LocalDate retention-date]
   (let [existing (set (map :date (sql/query db-spec ["select distinct date from clojars_stats"])))]
     (->> (stats-files retention-date)
          (map (fn [f] {:file f :date (uri->date f)}))
-         (remove #(.isBefore (:date %) retention-date))
+         (remove #(.isBefore ^LocalDate (:date %) retention-date))
          (remove #(contains? existing (str (:date %))))
          (map :file)
          sort)))
@@ -151,6 +153,8 @@
 
   (require '[cljdoc.config :as cfg])
   (def db-spec (-> (cfg/config) (cfg/db)))
+
+  (set (map :date (sql/query db-spec ["select distinct date from clojars_stats"])))
 
   (::max (memoized-download-counts db-spec))
 
