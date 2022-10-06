@@ -180,7 +180,8 @@
   (fn [[type _contents]]
     type))
 
-(defmethod determine-features :cljdoc/markdown [[_ _content]])
+(defmethod determine-features :cljdoc/markdown [[_ _content]]
+  nil)
 
 (defmethod determine-features :cljdoc/asciidoc [[_ content]]
   (when-let [doc-header (re-find #"(?s).*?\R\R" content)]
