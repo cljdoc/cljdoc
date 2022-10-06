@@ -7,7 +7,10 @@
             [clojure.string :as string]
             [cljdoc.util.scm :as scm]
             [cljdoc.server.routes :as routes])
-  (:import (org.jsoup Jsoup)))
+  (:import (org.jsoup Jsoup)
+           (org.jsoup.nodes Document Element Attributes)))
+
+(set! *warn-on-reflection* true)
 
 (defn- absolute-uri? [s]
   (or (string/starts-with? s "http://")
@@ -60,7 +63,7 @@
 
 (defn- fix-link
   "Return the cljdoc location for a given URL `href` or it's page on GitHub/GitLab etc."
-  [href {:keys [scm-file-path target-path scm-base uri-map] :as _opts}]
+  ^String [href {:keys [scm-file-path target-path scm-base uri-map] :as _opts}]
   (or (error-ref href scm-file-path)
       (let [[href-rel-to-scm-base anchor]
             (-> href
@@ -75,7 +78,7 @@
           (str scm-base href-rel-to-scm-base anchor)))))
 
 (defn- fix-image
-  [src {:keys [scm-file-path scm-base]}]
+  ^String [src {:keys [scm-file-path scm-base]}]
   (or (error-ref src scm-file-path)
       (let [suffix (when (and (= :github (scm/provider scm-base))
                               (string/ends-with? src ".svg"))
@@ -99,7 +102,7 @@
                     (routes/url-for :artifact/doc :path-params))]))
        (into {})))
 
-(defn- parse-html [html-str]
+(defn- parse-html ^Document [^String html-str]
   (let [doc (Jsoup/parse html-str)
         props (.outputSettings doc)]
     (.prettyPrint props false)
@@ -132,11 +135,11 @@
     * `:scm` - scm-info from bundle used to link to correct SCM file revision"
   [html-str {:keys [scm-file-path target-path scm uri-map] :as _fix-opts}]
   (let [doc (parse-html html-str)]
-    (doseq [scm-relative-link (->> (.select doc "a")
-                                   (map #(.attributes %))
-                                   (remove #(= "wikilink" (.get % "data-source")))
-                                   (remove #(absolute-uri? (.get % "href")))
-                                   (remove #(anchor-uri? (.get % "href"))))]
+    (doseq [^Attributes scm-relative-link (->> (.select doc "a")
+                                               (map (fn [^Element e] (.attributes e)))
+                                               (remove (fn [^Attributes a] (= "wikilink" (.get a "data-source"))))
+                                               (remove (fn [^Attributes a] (absolute-uri? (.get a "href"))))
+                                               (remove (fn [^Attributes a] (anchor-uri? (.get a "href")))))]
       (let [fixed-link (fix-link
                         (.get scm-relative-link "href")
                         {:scm-file-path scm-file-path
@@ -145,16 +148,16 @@
                          :uri-map uri-map})]
         (.put scm-relative-link "href" fixed-link)))
 
-    (doseq [scm-relative-img (->> (.select doc "img")
-                                  (map #(.attributes %))
-                                  (remove #(absolute-uri? (.get % "src"))))]
+    (doseq [^Attributes scm-relative-img (->> (.select doc "img")
+                                              (map (fn [^Element e] (.attributes e)))
+                                              (remove (fn [^Attributes a] (absolute-uri? (.get a "src")))))]
       (.put scm-relative-img "src" (fix-image (.get scm-relative-img "src")
                                               {:scm-file-path scm-file-path
                                                :scm-base (scm/rev-raw-base-url scm)})))
 
-    (doseq [absolute-link (->> (.select doc "a")
-                               (map #(.attributes %))
-                               (filter #(absolute-uri? (.get % "href"))))]
+    (doseq [^Attributes absolute-link (->> (.select doc "a")
+                                           (map (fn [^Element e] (.attributes e)))
+                                           (filter (fn [^Attributes a] (absolute-uri? (.get a "href")))))]
       (let [href (.get absolute-link "href")]
         (if-let [cljdoc-prefix (get-cljdoc-url-prefix href)]
           (.put absolute-link "href" (subs href (count cljdoc-prefix)))
