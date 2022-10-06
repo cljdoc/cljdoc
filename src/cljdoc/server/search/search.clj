@@ -316,7 +316,7 @@
                      (keep identity)
                      (into []))]
     (when (seq queries)
-      (-> (boolean-query :should queries)))))
+      (boolean-query :should queries))))
 
 (defn- hitdoc-num [^ScoreDoc scoredoc]
   (.-doc scoredoc))
