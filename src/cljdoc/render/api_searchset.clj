@@ -5,7 +5,10 @@
             [cljdoc.server.routes :as routes]
             [cljdoc.spec]
             [clojure.string :as str])
-  (:import (org.jsoup Jsoup)))
+  (:import (org.jsoup Jsoup)
+           (org.jsoup.nodes Element TextNode)))
+
+(set! *warn-on-reflection* true)
 
 (defn path-for-doc
   [doc version-entity]
@@ -30,38 +33,49 @@
 (defn- soup-elem?
   "Returns true if Jsoup elem is an html element (as oppposed to a text node)"
   [elem]
-  (instance? org.jsoup.nodes.Element elem))
+  (instance? Element elem))
 
 (defn heading-elem?
-  [elem]
+  [^Element elem]
   (and
    (soup-elem? elem)
    (#{"h1" "h2" "h3" "h4" "h5" "h6"} (.tagName elem))
-   (= "a" (some-> elem .children first .tagName))))
+   (= "a" (some-> elem .children .first .tagName))))
 
-(defn- adoc-section? [elem]
+(defn- adoc-section? [^Element elem]
   (and (soup-elem? elem)
        (= "div" (.tagName elem))
        (.hasAttr elem "class")
        (re-matches #"sect[1-9]" (.attr elem "class"))
        (heading-elem? (first (.children elem)))))
 
-(defn- adoc-section-title [section-elem]
+(defn- adoc-section-title [^Element section-elem]
   (-> section-elem .children .first .text))
 
-(defn- adoc-section-anchor [section-elem]
+(defn- adoc-section-anchor [^Element section-elem]
   (-> section-elem .children .first .attributes (.get "id")))
 
+(defprotocol ElemText
+  (text [elem]))
+
+;; I don't see a common way to get .text for JSoup nodes, perhaps
+;; a bit contrived way to avoid reflection warnings?
+(extend-protocol ElemText
+  Element
+  (text [elem] (.text elem))
+  TextNode
+  (text [elem] (.text elem)))
+
 (defn- append-text [s elem]
-  (let [t (-> elem .text str/trim)]
+  (let [t (-> elem text str/trim)]
     (if (= "" t)
       s
       (str s t " "))))
 
-(defn adoc-section-text [section-elem]
+(defn adoc-section-text [^Element section-elem]
   (let [elems (if (= "sectionbody" (some-> section-elem
                                            .children
-                                           first
+                                           .first
                                            .nextElementSibling
                                            (.attr "class")))
                 (-> section-elem .children .first .nextElementSibling .childNodes)
@@ -105,8 +119,9 @@
   </body>
 
   Also: adoc documents can end with trailing non-header content like footers."
-  [body-elem doc-title]
-  (let [all-nodes (tree-seq #(.childNodes %) #(.childNodes %) body-elem)]
+  [^Element body-elem doc-title]
+  (let [all-nodes (tree-seq (fn [^Element e] (.childNodes e))
+                            (fn [^Element e] (.childNodes e)) body-elem)]
     (reduce (fn [acc elem]
               (if (adoc-section? elem)
                 (conj acc
@@ -127,11 +142,11 @@
   <h2><a href=x id=x>Formatting marks</a></h2>
   ```
   The md structure is simple and flat."
-  [body-elem doc-title]
+  [^Element body-elem doc-title]
   (loop [doc-segment {:title doc-title
                       :anchor nil
                       :text nil}
-         [element & remaining-elements] (.childNodes body-elem)
+         [^Element element & remaining-elements] (.childNodes body-elem)
          doc-segments []]
     (cond
       (nil? element)
@@ -158,7 +173,7 @@
         [doc-type contents] doc-tuple]
     (when contents
       (let [html (rt/render-text doc-tuple)
-            doc-elements (Jsoup/parse html)
+            doc-elements (Jsoup/parse ^String html)
             body-elements (-> doc-elements (.getElementsByTag "body") .first)
             doc-title (:title doc)]
         (case doc-type
