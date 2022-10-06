@@ -464,7 +464,7 @@
     :leave (fn [ctx]
              (let [uri (-> ctx :request :uri)]
                (cond-> ctx
-                 (and (.endsWith uri "/")
+                 (and (string/ends-with? uri "/")
                       (not= uri "/"))
                  (assoc :response {:status 301
                                    :headers {"Location" (subs uri 0 (dec (.length uri)))}}))))}))

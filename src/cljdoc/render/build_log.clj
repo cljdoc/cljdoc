@@ -140,7 +140,7 @@
     (:analysis_received_ts build-info)
     [:h3.mt0 "Analysis Received"]
     [:a.link.blue
-     {:href (if (some-> (:analysis_result_uri build-info) (.startsWith  "/"))
+     {:href (if (some-> (:analysis_result_uri build-info) (string/starts-with?  "/"))
               (str "file://" (:analysis_result_uri build-info))
               (:analysis_result_uri build-info))}
      "view result"])
@@ -300,7 +300,7 @@
                 (and (:import_completed_ts b)
                      (not (:scm_url b)))           [:span.db.bg-washed-yellow.pa3.br2 "SCM URL missing"]
                 (some-> (:error b)
-                        (.startsWith "cljdoc.analysis.git")) [:span.db.bg-washed-yellow.pa3.br2 (:error b)]))]]
+                        (string/starts-with? "cljdoc.analysis.git")) [:span.db.bg-washed-yellow.pa3.br2 (:error b)]))]]
           [:div.cf.tc.bt.b--moon-gray.pa2.o-30
            ;; (def requested (:analysis_requested_ts b))
            ;; (def completed (:import_completed_ts b))

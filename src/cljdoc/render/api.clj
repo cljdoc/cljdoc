@@ -19,13 +19,13 @@
     (zp/zprint-str args-str {:parse-string? true :width 70})]])
 
 (defn parse-wiki-link [m]
-  (if (.contains m "/")
+  (if (string/includes? m "/")
     (let [[ns var] (string/split m #"/")]
       [ns var])
     ;; While in theory vars can contain dots it's fairly uncommon and
     ;; so we assume if there's no / and a dot that the user is
     ;; referring to a namespace
-    (if (.contains m ".")
+    (if (string/includes? m ".")
       [m nil]
       [nil m])))
 
@@ -224,7 +224,7 @@
   [{:keys [ns-entity namespaces defs valid-ref-pred fix-opts]}]
   [:div.mw7.center.pv4
    (for [mp-ns (->> namespaces
-                    (filter #(.startsWith (platf/get-field % :name) (:namespace ns-entity))))
+                    (filter #(string/starts-with? (platf/get-field % :name) (:namespace ns-entity))))
          :let [ns (platf/get-field mp-ns :name)
                ns-url-fn #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %))
                defs (bundle/defs-for-ns defs ns)]]

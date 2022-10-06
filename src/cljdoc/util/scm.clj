@@ -18,12 +18,12 @@
 (defn provider [scm-url]
   (when-some [host (:host (uri/uri scm-url))]
     (cond
-      (.endsWith host "github.com") :github
-      (.endsWith host "gitlab.com") :gitlab
-      (.endsWith host "sr.ht") :sourcehut
-      (.endsWith host "codeberg.org") :codeberg
-      (.endsWith host "bitbucket.org") :bitbucket
-      (.startsWith host "gitea.") :gitea)))
+      (string/ends-with? host "github.com") :github
+      (string/ends-with? host "gitlab.com") :gitlab
+      (string/ends-with? host "sr.ht") :sourcehut
+      (string/ends-with? host "codeberg.org") :codeberg
+      (string/ends-with? host "bitbucket.org") :bitbucket
+      (string/starts-with? host "gitea.") :gitea)))
 
 (defn icon-url
   "Return url to icon for `scm-url`.
@@ -54,11 +54,11 @@
   "Given a URI pointing to a git remote, normalize that URI to an HTTP one."
   [scm-url]
   (cond
-    (.startsWith scm-url "http")
+    (string/starts-with? scm-url "http")
     scm-url
 
-    (or (.startsWith scm-url "git@")
-        (.startsWith scm-url "ssh://"))
+    (or (string/starts-with? scm-url "git@")
+        (string/starts-with? scm-url "ssh://"))
     (-> scm-url
         (string/replace #":" "/")
         (string/replace #"\.git$" "")
@@ -77,10 +77,10 @@
   "Given a URI pointing to a git remote, normalize that URI to an SSH one."
   [scm-url]
   (cond
-    (.startsWith scm-url "git@")
+    (string/starts-with? scm-url "git@")
     scm-url
 
-    (.startsWith scm-url "http")
+    (string/starts-with? scm-url "http")
     (let [{:keys [host path]} (uri/uri scm-url)]
       (str "git@" host ":" (subs path 1) ".git"))))
 
@@ -136,6 +136,6 @@
   "Ensure that the passed string is a git URL and that it's using HTTPS"
   [s]
   (cond-> s
-    (.startsWith s "http") (string/replace #"^http://" "https://")
-    (.startsWith s "git@github.com:") (string/replace #"^git@github.com:" "https://github.com/")
-    (.endsWith s ".git") (string/replace #".git$" "")))
+    (string/starts-with? s "http") (string/replace #"^http://" "https://")
+    (string/starts-with? s "git@github.com:") (string/replace #"^git@github.com:" "https://github.com/")
+    (string/ends-with? s ".git") (string/replace #".git$" "")))

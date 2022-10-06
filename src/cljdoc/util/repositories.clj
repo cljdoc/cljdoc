@@ -67,7 +67,7 @@
 
 (defn snapshot-version?
   [version]
-  (.endsWith version "-SNAPSHOT"))
+  (string/ends-with? version "-SNAPSHOT"))
 
 (defn exists?
   ([repository project]
@@ -83,7 +83,7 @@
   [repository project version]
   {:pre [(string? repository) (some? project) (some? version)]}
   (let [version' (if (and (snapshot-version? version)
-                          (.startsWith repository "http"))
+                          (string/starts-with? repository "http"))
                    (resolve-snapshot repository project version)
                    version)]
     {:pom (pom-uri repository project version version')

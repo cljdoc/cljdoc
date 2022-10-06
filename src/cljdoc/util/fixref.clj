@@ -10,11 +10,11 @@
   (:import (org.jsoup Jsoup)))
 
 (defn- absolute-uri? [s]
-  (or (.startsWith s "http://")
-      (.startsWith s "https://")))
+  (or (string/starts-with? s "http://")
+      (string/starts-with? s "https://")))
 
 (defn- anchor-uri? [s]
-  (.startsWith s "#"))
+  (string/starts-with? s "#"))
 
 (defn- split-relpath-anchor
   "Returns `[relpath anchor]` for path `s`"
@@ -78,7 +78,7 @@
   [src {:keys [scm-file-path scm-base]}]
   (or (error-ref src scm-file-path)
       (let [suffix (when (and (= :github (scm/provider scm-base))
-                              (.endsWith src ".svg"))
+                              (string/ends-with? src ".svg"))
                      "?sanitize=true")]
         (if (root-relative-path? src)
           (str scm-base (subs src 1) suffix)

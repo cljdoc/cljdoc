@@ -7,7 +7,8 @@
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
-            [tea-time.core :as tt])
+            [tea-time.core :as tt]
+            [clojure.string :as string])
   (:import (cljdoc.server.search.api ISearcher)
            (java.time Duration Instant)))
 
@@ -99,12 +100,12 @@
 (defn- exclude-new-release?
   [{:keys [group_id artifact_id version] :as _build}]
   (or (= "cljsjs" group_id)
-      (.endsWith version "-SNAPSHOT")
+      (string/ends-with? version "-SNAPSHOT")
       (and (= "org.akvo.flow" group_id)
            (= "akvo-flow" artifact_id))
       (= "lein-template" artifact_id)
-      (.contains group_id "gradle-clojure")
-      (.contains group_id "gradle-clj")))
+      (string/includes? group_id "gradle-clojure")
+      (string/includes? group_id "gradle-clj")))
 
 (defn- release-fetch-job-fn [db-spec ^ISearcher searcher]
   (let [ts (or (some-> (last-release-ts db-spec)
