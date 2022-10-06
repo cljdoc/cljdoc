@@ -17,12 +17,12 @@
 
 (defn search-fixture [f]
   (binding [*searcher* (ig/init-key :cljdoc/searcher {:enable-indexer? false
-                                                    :index-factory memory-index
-                                                    :clojars-stats (reify clojars-stats/IClojarsStats
-                                                                     (download-count-max [_]
-                                                                       (*download-count-max*))
-                                                                     (download-count-artifact [_ g a]
-                                                                       (*download-count-artifact* g a)))})]
+                                                      :index-factory memory-index
+                                                      :clojars-stats (reify clojars-stats/IClojarsStats
+                                                                       (download-count-max [_]
+                                                                         (*download-count-max*))
+                                                                       (download-count-artifact [_ g a]
+                                                                         (*download-count-artifact* g a)))})]
     (try
       (f)
       (finally
