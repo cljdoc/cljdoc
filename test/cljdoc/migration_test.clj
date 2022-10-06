@@ -3,11 +3,11 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.test :as t]
-            [me.raynes.fs :as fs]))
+            [babashka.fs :as fs]))
 
 (defn- migration-files []
   (->> (fs/list-dir (io/resource "migrations"))
-       (mapv #(fs/base-name (.getPath %)))))
+       (mapv fs/file-name)))
 
 (t/deftest migrations-are-clj-or-sql
   (doseq [mfile (migration-files)]
