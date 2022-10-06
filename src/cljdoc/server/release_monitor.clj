@@ -12,6 +12,8 @@
   (:import (cljdoc.server.search.api ISearcher)
            (java.time Duration Instant)))
 
+(set! *warn-on-reflection* true)
+
 ; TODO. Maven Central
 
 ;;
@@ -35,7 +37,7 @@
     (->> results
          (sort-by #(get % "created"))
          (map (fn [r]
-                {:created_ts  (Instant/ofEpochMilli (Long. (get r "created")))
+                {:created_ts  (Instant/ofEpochMilli (parse-long (get r "created")))
                  :group_id    (get r "group_name")
                  :artifact_id (get r "jar_name")
                  :version     (get r "version")})))))
@@ -44,7 +46,7 @@
 ;; Local sql db
 ;;
 
-(defn- last-release-ts [db-spec]
+(defn- last-release-ts ^Instant [db-spec]
   (some-> (sql/query db-spec ["SELECT * FROM releases ORDER BY datetime(created_ts) DESC LIMIT 1"])
           first
           :created_ts
