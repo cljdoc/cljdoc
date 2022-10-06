@@ -1,6 +1,6 @@
 (ns cljdoc.render.rich-text
   (:require [cljdoc.render.sanitize :as sanitize])
-  (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory Options)
+  (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory Options Attributes)
            (com.vladsch.flexmark.parser Parser LinkRefProcessorFactory LinkRefProcessor)
            (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver)
            (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverBasicContext DelegatingNodeRendererFactory NodeRenderer NodeRenderingHandler NodeRenderingHandler$CustomNodeRenderer)
@@ -17,17 +17,18 @@
   (Asciidoctor$Factory/create))
 
 (defn asciidoc-to-html [^String file-content]
-  (let [opts (doto (Options.)
-               (.setAttributes
-                (java.util.HashMap.
-                 {"env-cljdoc" true
-                  "sectlinks" true
-                  "experimental" true ;; don't let the "experimental" worry you,
-                                      ;; it now only means enable the stable
-                                      ;; kbd, menu and button macros
-                  "icons" "font"
-                  "outfilesuffix" ".adoc"
-                  "showtitle" true})))]
+  (let [opts (-> (Options/builder)
+                 (.attributes (-> (Attributes/builder)
+                                  (.attribute "env-cljdoc" true)
+                                  (.attribute "sectlinks" true)
+                                  (.experimental true) ;; don't let the "experimental" worry you,
+                                                       ;; it now only means enable the stable
+                                                       ;; kbd, menu and button macros
+                                  (.icons Attributes/FONT_ICONS)
+                                  (.attribute "outfilesuffix" ".adoc")
+                                  (.showTitle true)
+                                  .build))
+                 .build)]
     (-> (.convert adoc-container file-content opts)
         sanitize/clean)))
 
