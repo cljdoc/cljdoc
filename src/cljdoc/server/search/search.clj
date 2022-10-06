@@ -380,6 +380,9 @@
   (FSDirectory/open ;; automatically chooses best implementation for OS
    (Paths/get index-path (into-array String nil))))
 
+(defn index-close [^Directory index]
+  (.close index))
+
 ;; public search fns
 
 (defn search
