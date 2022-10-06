@@ -4,7 +4,10 @@
             [clojure.string :as string]
             [clj-http.lite.client :as http]
             [clojure.java.io :as io])
-  (:import (org.jsoup Jsoup)))
+  (:import (org.jsoup Jsoup)
+           (org.jsoup.nodes Element)))
+
+(set! *warn-on-reflection* true)
 
 (defn group-path [project]
   (string/replace (proj/group-id project) #"\." "/"))
@@ -57,9 +60,9 @@
   (let [{:keys [body status]} (http/get (metadata-xml-uri repository project version)
                                         {:throw-exceptions false})]
     (if (= 200 status)
-      (let [d (Jsoup/parse body)
-            timestamp (.ownText (first (.select d "versioning > snapshot > timestamp")))
-            build-num (.ownText (first (.select d "versioning > snapshot > buildNumber")))]
+      (let [d (Jsoup/parse ^String body)
+            timestamp (.ownText ^Element (first (.select d "versioning > snapshot > timestamp")))
+            build-num (.ownText ^Element (first (.select d "versioning > snapshot > buildNumber")))]
         (assert timestamp "Could not extract SNAPSHOT timestamp from metadata.xml")
         (assert build-num "Could not extract SNAPSHOT buildNumber from metadata.xml")
         (string/replace version #"-SNAPSHOT$" (str "-" timestamp "-" build-num)))
@@ -111,12 +114,12 @@
   (if-let [repository (find-artifact-repository project)]
     (let [{:keys [body status]} (http/get (metadata-xml-uri repository project))]
       (when (= 200 status)
-        (let [d (Jsoup/parse body)]
+        (let [d (Jsoup/parse ^String body)]
           ;; for some very old uploads to clojars the structure of maven-metadata.xml
           ;; is slightly different: https://repo.clojars.org/clansi/clansi/maven-metadata.xml
-          (or (some-> (.select d "metadata > version") first (.ownText))
+          (or (some-> (.select d "metadata > version") .first (.ownText))
               (->> (.select d "metadata > versioning > release")
-                   (map #(.ownText %))
+                   (map (fn [^Element e] (.ownText e)))
                    assert-first)))))
     (throw (ex-info (format "Requested project cannot be found in configured repositories: %s" project)
                     {:project project}))))
