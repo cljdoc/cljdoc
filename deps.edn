@@ -32,10 +32,11 @@
         com.taoensso/nippy {:mvn/version "3.2.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "9.3.0"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "9.3.0"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "9.3.0"}
-        org.apache.lucene/lucene-queryparser {:mvn/version "9.3.0"}
+        ;; when upgrading also a good idea to change cljdoc.server.system/index-dir
+        org.apache.lucene/lucene-core {:mvn/version "9.4.0"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "9.4.0"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "9.4.0"}
+        org.apache.lucene/lucene-queryparser {:mvn/version "9.4.0"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "2.5.6"}  ;; render adoc to html
