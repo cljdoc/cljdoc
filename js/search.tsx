@@ -58,7 +58,10 @@ type SearchResults = {
 
 type LoadCallback = (sr: SearchResult[]) => any;
 
-const renameKeys = <T, U>(obj: T, keys: { [key: string]: string }): U => {
+const renameKeys = <T extends {}, U>(
+  obj: T,
+  keys: { [key: string]: string }
+): U => {
   const newObj: { [key: string]: any } = {};
 
   for (const [k, v] of Object.entries(obj)) {
