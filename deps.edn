@@ -64,7 +64,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.4.0"}      ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.5.0"}      ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.6.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -75,7 +75,7 @@
         babashka/fs {:mvn/version "0.1.11"}                  ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
-        com.taoensso/tufte {:mvn/version "2.2.0"}            ;; profile/perf monitoring
+        com.taoensso/tufte {:mvn/version "2.3.0"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.13.95"}            ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
