@@ -60,9 +60,7 @@
         {:mvn/version "20220608.1"}                          ;; sanitize html converted from user markdown
 
         ;; logging
-        spootnik/unilog {:mvn/version "0.7.30"}              ;; easy log setup
-        ;; delete next line when unilog bumps for jackon fix https://github.com/pyr/unilog/issues/32
-        com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.14.0-rc2"}
+        spootnik/unilog {:mvn/version "0.7.31"}              ;; easy log setup
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
