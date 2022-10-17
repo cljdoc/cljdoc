@@ -25,7 +25,7 @@
 
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.39.2.1"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.39.3.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.2"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
@@ -100,7 +100,7 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.10.05"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.10.14"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
