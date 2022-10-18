@@ -183,6 +183,4 @@
     (deploy!
      (or "0.0.1160-blue-green-8b4cdad" "0.0.1151-blue-green-c329ed1")))
 
-  (wait-until "docker tag foo exists" #(tag-exists? "0.0.2101-05f1c27") 1000 3)
-
-  )
+  (wait-until "docker tag foo exists" #(tag-exists? "0.0.2101-05f1c27") 1000 3))
