@@ -71,12 +71,15 @@
       (throw (ex-info (str "Could not find deploy opt for " value)
                       {:opts opts}))))
 
-(defn- wait-until [pred test-interval tries]
-  (cond
-    (pred)       true
-    (pos? tries) (do (Thread/sleep test-interval)
-                     (recur pred test-interval (dec tries)))
-    :else        (throw (Exception. "wait-until pred took too long"))))
+(defn- wait-until [desc pred test-interval max-tries]
+  (loop [try-num 1]
+    (or (pred)
+        (let [msg (format "%s: failed on try %d of %d" desc try-num max-tries)]
+          (when (>= try-num max-tries)
+            (throw (Exception. msg)))
+          (log/info msg)
+          (Thread/sleep test-interval)
+          (recur (inc try-num))))))
 
 (defn promote-deployment! [deployment-id]
   (nomad-post! (str "/v1/deployment/promote/" deployment-id)
@@ -94,11 +97,13 @@
     (log/infof "%d healthy / %d desired - status: '%s'" healthy-allocs desired-total status)
     (= desired-total healthy-allocs)))
 
-(defn tag-exists?
-  "Check if a given tag exists in the DockerHub cljdoc/cljdoc repository."
+(defn- tag-exists?
+  "Return true if given `tag` exists in the DockerHub cljdoc/cljdoc repository."
   [tag]
-  (= 200 (:status (http/head (format "https://hub.docker.com/v2/repositories/cljdoc/cljdoc/tags/%s/" tag)
-                             {:throw-exceptions? false}))))
+  (let [status (:status (http/head (format "https://hub.docker.com/v2/repositories/cljdoc/cljdoc/tags/%s/" tag)
+                                   {:throw-exceptions? false}))]
+    (log/info "check for existence of docker tag" tag "returned" status)
+    (= 200 status)))
 
 (defn jobspec [docker-tag]
   (aero/read-config (io/resource "cljdoc.jobspec.edn")
@@ -120,7 +125,6 @@
   This assumes that either the port has been forwarded from a remote
   host or that Nomad is running on localhost."
   [docker-tag]
-  (assert (tag-exists? docker-tag) (format "Provided tag '%s' could not be found" docker-tag))
   (sync-config!)
   (let [run-result (nomad-post! "/v1/jobs" (jobspec docker-tag))
         eval-id (get run-result "EvalID")
@@ -129,7 +133,7 @@
     (assert deployment-id "Deployment ID missing")
     (log/info "Evaluation ID:" eval-id)
     (log/info "Deployment ID:" deployment-id)
-    (wait-until #(deployment-healthy? deployment-id) 5000 40)
+    (wait-until "deployment healthy" #(deployment-healthy? deployment-id) 5000 40)
     (let [deployment (nomad-get (str "/v1/deployment/" deployment-id))]
       (if (= "running" (get deployment "Status"))
         (do
@@ -151,14 +155,11 @@
          (.disconnect session#)))))
 
 (defn cli-deploy! [{:keys [ssh-key docker-tag nomad-ip]}]
+  (wait-until (format "docker tag %s exists" docker-tag) #(tag-exists? docker-tag) 2000 90)
   (let [ip (or nomad-ip (main-ip))]
     (log/infof "Deploying to Nomad server at %s:4646" ip)
-    (if (tag-exists? docker-tag)
-      (with-nomad {:ip ip, :ssh-key ssh-key}
-        (deploy! docker-tag))
-      (do
-        (log/errorf "Provided tag '%s' could not be found" docker-tag)
-        (System/exit 1)))))
+    (with-nomad {:ip ip, :ssh-key ssh-key}
+      (deploy! docker-tag))))
 
 (def CONFIGURATION
   {:app         {:command     "cljdoc-deploy"
@@ -180,4 +181,8 @@
   (with-nomad ip
     (nomad-get "/v1/deployments")
     (deploy!
-     (or "0.0.1160-blue-green-8b4cdad" "0.0.1151-blue-green-c329ed1"))))
+     (or "0.0.1160-blue-green-8b4cdad" "0.0.1151-blue-green-c329ed1")))
+
+  (wait-until "docker tag foo exists" #(tag-exists? "0.0.2101-05f1c27") 1000 3)
+
+  )
