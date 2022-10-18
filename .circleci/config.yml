@@ -1,25 +1,78 @@
 version: 2.1
+
+aliases:
+  - &clojure_image
+    - image: cimg/clojure:1.11.1-node
+
+  - &restore_clojure_cache
+    restore_cache:
+      name: Restore clojure cache
+      keys:
+        - v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "bb.edn" }}
+        - v1-dependencies-
+
+  - &save_clojure_cache
+    save_cache:
+      name: Save clojure cache
+      paths:
+        - ~/.m2
+        - ~/.gitlibs
+      key: v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "bb.edn" }}
+
+  - &restore_npm_cache
+    restore_cache:
+      name: Save npm cache
+      keys:
+        - v1-npm-dependencies-{{ checksum "package-lock.json" }}
+
+  - &save_npm_cache
+    save_cache:
+      name: Restore npm cache
+      paths:
+        - ./node_modules
+      key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
+
+  # The circle image does have a recent version of Clojure but we'd rather use the current one
+  - &clojure_install
+    run:
+      name: Install Clojure
+      command: |
+        wget -nc https://download.clojure.org/install/linux-install-1.11.1.1165.sh
+        chmod +x linux-install-1.11.1.1165.sh
+        sudo ./linux-install-1.11.1.1165.sh
+
+   # The circle image does have a recent version of babashka, but we'd rather use the latest
+  - &bb_install
+    run:
+      name: Install bb
+      command: |
+        sudo bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
+
+  - &npm_deps_install
+    run:
+      name: Install JavaScript Depedencies
+      command: npm ci
+
+  - &clojure_deps_download
+    run:
+      name: Bring Down Clojure deps
+      command: clojure -P -X:cli:test
+
 jobs:
   #
   # build: back-end-checks
   #
   back-end-checks:
-    docker:
-      - image: cimg/clojure:1.11.1
-
-    working_directory: ~/repo
+    docker: *clojure_image
 
     steps:
       - checkout
-
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "bb.edn" }}
-            - v1-dependencies- # fallback if cache not found
-
+      - *restore_clojure_cache
       - run:
           name: Validate our own cljdoc.edn
           command: curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
+      - *clojure_install
+      - *bb_install
 
       - run:
           name: Report Tools Versions
@@ -28,9 +81,7 @@ jobs:
             clojure --version
             bb --version
 
-      - run:
-          name: Bring Down Clojure deps
-          command: clojure -P -X:cli:test
+      - *clojure_deps_download
 
       - run:
           name: Lint with clj-kondo
@@ -44,11 +95,7 @@ jobs:
           name: Code Style Check
           command: bb code-format check
 
-      - save_cache:
-          paths:
-            - ~/.m2
-            - ~/.gitlibs
-          key: v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "bb.edn" }}
+      - *save_clojure_cache
 
   #
   # build: front-end-checks
@@ -62,13 +109,8 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-            - v1-npm-dependencies-{{ checksum "package-lock.json" }}
-
-      - run:
-          name: Install JavaScript Depedencies
-          command: npm ci
+      - *restore_npm_cache
+      - *npm_deps_install
 
       - run:
           name: Report Tools Versions
@@ -84,31 +126,19 @@ jobs:
           name: Compile TypeScript to Check for Issues
           command: npx tsc
 
-      - save_cache:
-          paths:
-            - ./node_modules
-          key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
+      - *save_npm_cache
 
   #
   # build: test
   #
   test:
-    docker:
-      - image: cimg/clojure:1.11.1-node
-
-    working_directory: ~/repo
+    docker: *clojure_image
 
     steps:
       - checkout
-
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "bb.edn" }}
-            - v1-dependencies- # fallback if cache not found
-
-      - restore_cache:
-          keys:
-            - v1-npm-dependencies-{{ checksum "package-lock.json" }}
+      - *restore_clojure_cache
+      - *restore_npm_cache
+      - *clojure_install
 
       - run:
           name: Report Tools Versions
@@ -117,17 +147,13 @@ jobs:
            java --version
            clojure --version
 
-      - run:
-          name: Install JavaScript Depedencies
-          command: npm ci
+      - *npm_deps_install
 
       - run:
           name: Build Front End
           command: npm run build
 
-      - run:
-          name: Bring Down Clojure deps
-          command: clojure -P -X:cli:test
+      - *clojure_deps_download
 
       - run:
           name: Build Docs for Sample Library
@@ -137,16 +163,8 @@ jobs:
           name: Run Tests
           command: clojure -M:test --reporter documentation
 
-      - save_cache:
-          paths:
-            - ~/.m2
-            - ~/.gitlibs
-          key: v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "bb.edn" }}
-
-      - save_cache:
-          paths:
-            - ./node_modules
-          key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
+      - *save_clojure_cache
+      - *save_npm_cache
 
   #
   # build: package, output used by:
@@ -162,19 +180,14 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-            - v1-npm-dependencies-{{ checksum "package-lock.json" }}
-            - v1-npm-dependencies- # fallback if cache not found
+      - *restore_npm_cache
 
       - run:
           name: Report Tools Versions
           command: |
             node --version
 
-      - run:
-          name: Install JavaScript Depedencies
-          command: npm ci
+      - *npm_deps_install
 
       - run:
           name: Package cljdoc
@@ -186,10 +199,7 @@ jobs:
           paths:
             - target
 
-      - save_cache:
-          paths:
-            - ./node_modules
-          key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
+      - *save_npm_cache
   #
   # build - used later in workflow to group all build jobs
   #
@@ -257,14 +267,14 @@ jobs:
   # the production machine:
   # cat ~/.ssh/cljdoc_deploy.pub | ssh root@cljdoc.org 'cat >> .ssh/authorized_keys'
   deploy-to-nomad:
-    docker:
-      - image: cimg/clojure:1.11.1-node
+    docker: *clojure_image
 
     steps:
       - add_ssh_keys:
           fingerprints:
             - "75:fb:98:1f:f6:21:7f:bf:cc:c9:0e:b2:9e:be:5c:e8"
       - checkout
+      - *clojure_install
       - run: >
           cd modules/deploy &&
           clojure -M -m cljdoc.deploy deploy -t $(./../../script/version.sh) --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
