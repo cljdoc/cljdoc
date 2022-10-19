@@ -14,7 +14,7 @@
             [clojure.pprint :as pp]
             [clojure.java.shell :as sh]
             [clojure.string :as string]
-            [clj-http.client :as http]
+            [clj-http.lite.client :as http]
             [cheshire.core :as json]
             [clojure.tools.logging :as log]
             [cli-matic.core :as cli-matic]
@@ -101,7 +101,7 @@
   "Return true if given `tag` exists in the DockerHub cljdoc/cljdoc repository."
   [tag]
   (let [status (:status (http/head (format "https://hub.docker.com/v2/repositories/cljdoc/cljdoc/tags/%s/" tag)
-                                   {:throw-exceptions? false}))]
+                                   {:throw-exceptions false}))]
     (log/info "check for existence of docker tag" tag "returned" status)
     (= 200 status)))
 
@@ -177,10 +177,12 @@
   (cli-matic/run-cmd args CONFIGURATION))
 
 (comment
-
   (with-nomad ip
     (nomad-get "/v1/deployments")
     (deploy!
      (or "0.0.1160-blue-green-8b4cdad" "0.0.1151-blue-green-c329ed1")))
 
+  ;; exists
+  (wait-until "docker tag foo exists" #(tag-exists? "0.0.2101-05f1c28") 1000 3)
+  ;; does not exist
   (wait-until "docker tag foo exists" #(tag-exists? "0.0.2101-05f1c27") 1000 3))

@@ -12,7 +12,7 @@
 (defn check-clojure []
   (status/line :head "Checking Clojure deps")
   ;; antq will return 1 when there are outdated deps, so don't fail on non-zero exit
-  (shell/command {:continue true} "clojure -M:outdated"))
+  (shell/command {:continue true} "clojure -M:outdated" "--directory=.:modules/deploy"))
 
 (defn check-npm-js []
   (when (not (fs/exists? "node_modules"))
