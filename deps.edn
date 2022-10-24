@@ -68,7 +68,7 @@
         raven-clj/raven-clj {:mvn/version "1.6.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.2.0.202206071550-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.3.0.202209071007-r"} ;; git with jsch
         org.clj-commons/clj-http-lite {:mvn/version "1.0.13"} ;; a lite version of clj-http client
 
         ;; misc utils
@@ -94,7 +94,7 @@
  :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.70.1086"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.71.1119"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
                          nubank/matcher-combinators {:mvn/version "3.5.1" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
@@ -117,7 +117,7 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.1.932"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.1.939"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.3"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
