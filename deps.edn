@@ -33,10 +33,10 @@
 
         ;; full text search database
         ;; when upgrading also a good idea to change cljdoc.server.system/index-dir
-        org.apache.lucene/lucene-core {:mvn/version "9.4.0"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "9.4.0"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "9.4.0"}
-        org.apache.lucene/lucene-queryparser {:mvn/version "9.4.0"}
+        org.apache.lucene/lucene-core {:mvn/version "9.4.1"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "9.4.1"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "9.4.1"}
+        org.apache.lucene/lucene-queryparser {:mvn/version "9.4.1"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "2.5.6"}  ;; render adoc to html
