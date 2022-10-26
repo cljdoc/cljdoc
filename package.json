@@ -13,7 +13,7 @@
     "elasticlunr": "^0.9.5",
     "fuzzysort": "^2.0.1",
     "idb": "^7.1.0",
-    "preact": "^10.10.1"
+    "preact": "^10.10.2"
   },
   "devDependencies": {
     "@parcel/packager-xml": "^2.7.0",
