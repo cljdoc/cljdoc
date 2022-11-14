@@ -499,7 +499,7 @@ const SingleDocsetSearch = (props: { url: string }) => {
             name="single-docset-search-term"
             type="text"
             aria-describedby="single-docset-search-term-description"
-            className="input-reset ba b--black-20 pa2 pl4 db br1"
+            className="input-reset ba b--black-20 pa2 pl4 db br1 w-100"
             value={inputValue}
             disabled={!searchIndex}
             placeholder={searchIndex ? "Search..." : "Loading..."}
