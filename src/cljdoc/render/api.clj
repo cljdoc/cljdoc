@@ -14,8 +14,8 @@
 (defn def-code-block
   [args-str]
   {:pre [(string? args-str)]}
-  [:pre
-   [:code.db.mb2.pa0 {:class "language-clojure"}
+  [:pre.ma0.pa0.pb3
+   [:code.db {:class "language-clojure"}
     (zp/zprint-str args-str {:parse-string? true :width 70})]])
 
 (defn parse-wiki-link [m]
@@ -62,21 +62,63 @@
       (str (ns-link-fn (if ns (ns-tree/replant-ns current-ns ns) current-ns))
            (when var (str "#" var))))))
 
-(defn render-doc [mp render-wiki-link fix-opts]
-  (if (platf/varies? mp :doc)
-    (for [p (sort (platf/platforms mp))
-          :when (platf/get-field mp :doc p)]
-      [:div.relative
-       [:div.f7.gray.absolute-ns.nl5-ns.pr2-ns.tr-ns.w3.pv1.nb3
-        [:span.db-ns.dn p]
-        [:span.dn-ns (get {"clj" "Clojure" "cljs" "ClojureScript"} p)]]
-       (some-> (platf/get-field mp :doc p) (docstring->html render-wiki-link fix-opts))])
-    (some-> (platf/get-field mp :doc) (docstring->html render-wiki-link fix-opts))))
+(defn render-platform-specific [platform content]
+  [:div.relative
+   [:div.f7.gray.dib.w2.v-top.mt1 platform]
+   [:div.dib content]])
+
+(defn render-ns-docs
+  "Render docstring for ns `n` distinguishing platform differences, if any."
+  [n render-wiki-link fix-opts]
+  (let [render-docs #(docstring->html % render-wiki-link fix-opts)]
+    (if (platf/varies? n :doc)
+      (for [p (sort (platf/platforms n))
+            :let [doc (platf/get-field n :doc p)]
+            :when doc]
+        (render-platform-specific p (render-docs doc)))
+      (render-docs (platf/get-field n :doc)))))
 
 (defn render-arglists [def-name arglists]
   (for [argv (sort-by count arglists)]
     (def-code-block
       (str "(" def-name (when (seq argv) " ") (string/join " " argv) ")"))))
+
+(defn render-var-args-and-docs
+  "Render arglists and docstring for var `d` distinguishing platform differences, if any."
+  [d render-wiki-link fix-opts]
+  (let [def-name (platf/get-field d :name)
+        fpdoc #(platf/get-field d :doc %)
+        fpargs #(platf/get-field d :arglists %)
+        fdoc #(platf/get-field d :doc)
+        fargs #(platf/get-field d :arglists)
+        render-args #(render-arglists def-name %)
+        render-docs #(docstring->html % render-wiki-link fix-opts)
+        platforms (sort (platf/platforms d))]
+    (cond
+      (and (platf/varies? d :arglists) (platf/varies? d :doc))
+      (for [p platforms]
+        (render-platform-specific p [:div
+                                     (render-args (fpargs p))
+                                     (render-docs (fpdoc p))]))
+
+      (platf/varies? d :arglists)
+      [:div
+       (for [p platforms]
+         (render-platform-specific p (render-args (fpargs p))))
+       (render-docs (fdoc))]
+
+      (platf/varies? d :doc)
+      [:div
+       (render-args (fargs))
+       (for [p (sort (platf/platforms d))
+             :let [doc (fpdoc p)]
+             :when doc]
+         (render-platform-specific p (render-docs doc)))]
+
+      :else
+      [:div
+       (render-args (fargs))
+       (render-docs (fdoc))])))
 
 (defn def-block
   [def render-wiki-link fix-opts]
@@ -91,15 +133,7 @@
         [:span.f7.ttu.normal.gray.ml2 (platf/get-field def :type)])
       (when (platf/get-field def :deprecated)
         [:span.fw3.f6.light-red.ml2 "deprecated"])]
-     [:div.lh-copy
-      (if (platf/varies? def :arglists)
-        (for [p (sort (platf/platforms def))
-              :when (platf/get-field def :arglists p)]
-          [:div
-           [:span.f7.ttu.gray.db.nb2 (get {"clj" "Clojure" "cljs" "ClojureScript"} p) " arglists"]
-           (render-arglists def-name (platf/get-field def :arglists p))])
-        (render-arglists def-name (platf/get-field def :arglists)))]
-     (render-doc def render-wiki-link fix-opts)
+     (render-var-args-and-docs def render-wiki-link fix-opts)
      (when (seq (platf/get-field def :members))
        [:div.lh-copy.pl3.bl.b--black-10
         (for [m (platf/get-field def :members)]
@@ -203,9 +237,9 @@
        {:data-cljdoc-type "namespace"}
        ns-name
        [:img.ml2 {:src "https://microicon-clone.vercel.app/chevron/12/357edd"}]]]
-     (render-doc mp-ns
-                 (render-wiki-link-fn ns-name valid-ref-pred ns-url-fn)
-                 fix-opts)
+     (render-ns-docs mp-ns
+                     (render-wiki-link-fn ns-name valid-ref-pred ns-url-fn)
+                     fix-opts)
      (if-not (seq defs)
        [:p.i.blue "No vars found in this namespace."]
        [:ul.list.pl0
@@ -240,7 +274,7 @@
     [:div.ns-page
      [:div.w-80-ns.pv4
       [:h2 (:namespace ns-entity)]
-      (render-doc ns-data render-wiki-link fix-opts)
+      (render-ns-docs ns-data render-wiki-link fix-opts)
       (if (seq defs)
         (for [adef defs]
           (def-block adef render-wiki-link fix-opts))
