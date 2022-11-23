@@ -48,6 +48,11 @@ pre {
   border: 0;
 }
 
+/* Suppress top margin for first paragraph in docstring markdown */
+.markdown > p:first-child {
+  margin-top: 0;
+}
+
 .markdown a.md-anchor {
   color: black;
 }

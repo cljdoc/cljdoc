@@ -135,7 +135,7 @@
         render-wiki-link (api/render-wiki-link-fn ns-name valid-ref-pred #(str % ".html"))]
     [:div.ns-offline-page
      [:h1 ns-name]
-     (api/render-doc ns render-wiki-link fix-opts)
+     (api/render-ns-docs ns render-wiki-link fix-opts)
      (for [def defs]
        (api/def-block def render-wiki-link fix-opts))]))
 
