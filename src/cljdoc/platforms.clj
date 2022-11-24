@@ -23,22 +23,16 @@
   (get-field [this k]
     (let [ignore-nil #{:doc}
           uniq-vals (set ((if (ignore-nil k) keep map) k platforms))]
-      (cond
-        (and (= k :type) (second uniq-vals))
+      (if-not (second uniq-vals)
+        (first uniq-vals)
         ;; Current codox doesn't return consistent results for mulitmethods that are defined
         ;; by running a function, i.e. (defn x [a] (defmulti b first))
         ;; This is kind of an unusual case but there are libraries doing that and until this issue
         ;; is fixed we don't want to break docs for those libraries completetly, see precept 0.5.0-alpha for an example
         ;; https://github.com/CoNarrative/precept/blob/73113feec5bff11f5195261a81a015f882544614/src/cljc/precept/core.cljc#L356
-        (do (log/warnf "Varying :type %s <> %s: %s/%s" (first uniq-vals) (second uniq-vals)
+        (do (log/warnf "Varying %s %s <> %s: %s/%s" k (first uniq-vals) (second uniq-vals)
                        (get-field this :namespace) (get-field this :name))
-            (get-field this k "cljs"))
-
-        (second uniq-vals)
-        (throw (Exception. (format "%s varies: %s" k (pr-str platforms))))
-
-        :else
-        (first uniq-vals))))
+            (get-field this k "cljs")))))
   (get-field [_this k platf]
     (assert (contains? #{"clj" "cljs"} platf) (format "unknown platform: %s" platf))
     (-> (filter #(= platf (:platform %)) platforms)
