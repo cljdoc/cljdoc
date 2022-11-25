@@ -8,7 +8,8 @@
   a thing (namespace, var)'s properties while also retaining and exposing
   information about platform differences."
   (:require [clojure.tools.logging :as log]
-            [cljdoc.spec]))
+            [cljdoc.spec]
+            [clojure.string :as string]))
 
 (defprotocol IMultiPlatform
   (get-field [this k] [this k platf]
@@ -18,18 +19,30 @@
   (platforms [this] "Return a set of all platforms this thing supports.")
   (all-vals [this k] "Return all non-nil values for the provided field `k`."))
 
+(declare unify-defs)
+
 (defrecord MultiPlatform [platforms]
   IMultiPlatform
   (get-field [this k]
     (let [ignore-nil #{:doc}
           uniq-vals (set ((if (ignore-nil k) keep map) k platforms))]
-      (if-not (second uniq-vals)
+      (cond
+        ;; a single protocol's member's can be defined differently for different platforms
+        (= k :members)
+        (let [members (for [p platforms
+                            m (:members p)]
+                        (assoc m :platform (:platform p)))]
+          (->> members
+               (map #(dissoc % :file :line))
+               (group-by :name)
+               vals
+               (sort-by #(some-> % :name string/lower-case))
+               (map unify-defs)))
+
+        (not (second uniq-vals))
         (first uniq-vals)
-        ;; Current codox doesn't return consistent results for mulitmethods that are defined
-        ;; by running a function, i.e. (defn x [a] (defmulti b first))
-        ;; This is kind of an unusual case but there are libraries doing that and until this issue
-        ;; is fixed we don't want to break docs for those libraries completetly, see precept 0.5.0-alpha for an example
-        ;; https://github.com/CoNarrative/precept/blob/73113feec5bff11f5195261a81a015f882544614/src/cljc/precept/core.cljc#L356
+
+        :else
         (do (log/warnf "Varying %s %s <> %s: %s/%s" k (first uniq-vals) (second uniq-vals)
                        (get-field this :namespace) (get-field this :name))
             (get-field this k "cljs")))))
@@ -53,16 +66,10 @@
   platforms. Returns an instance of the MultiPlatform record that
   allows accessing fields in a platform-aware manner."
   [platforms]
-  (let [clean-members (fn clean-members [members]
-                        (->> members
-                             (sort-by :name)
-                             (map #(dissoc % :file :line))))]
-    ;; todo assert names are equal
-    (doseq [p platforms]
-      (cljdoc.spec/assert :cljdoc.spec/def-full p))
-    (->> platforms
-         (map #(update % :members clean-members))
-         (->MultiPlatform))))
+  ;; todo assert names are equal
+  (doseq [p platforms]
+    (cljdoc.spec/assert :cljdoc.spec/def-full p))
+  (->MultiPlatform platforms))
 
 (defn unify-namespaces [platforms]
   (->MultiPlatform platforms))
