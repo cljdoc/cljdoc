@@ -120,6 +120,15 @@
        (render-args (fargs))
        (render-docs (fdoc))])))
 
+(defn- render-protocol-members [def render-wiki-link fix-opts]
+  (let [members (platf/get-field def :members)]
+    (when (seq members)
+      [:div.pl3.bl.b--black-10
+       (for [m members]
+         [:div.bb.b--black-10.mb1
+          [:h4.def-block-title.mv0.pt2.pb3 (platf/get-field m :name)]
+          (render-var-args-and-docs m render-wiki-link fix-opts)])])))
+
 (defn def-block
   [def render-wiki-link fix-opts]
   {:pre [(platf/multiplatform? def)]}
@@ -134,6 +143,7 @@
       (when (platf/get-field def :deprecated)
         [:span.fw3.f6.light-red.ml2 "deprecated"])]
      (render-var-args-and-docs def render-wiki-link fix-opts)
+     (render-protocol-members def render-wiki-link fix-opts)
      (when (seq (platf/get-field def :members))
        [:div.lh-copy.pl3.bl.b--black-10
         (for [m (platf/get-field def :members)]
