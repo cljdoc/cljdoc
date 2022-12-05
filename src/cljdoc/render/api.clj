@@ -62,6 +62,39 @@
       (str (ns-link-fn (if ns (ns-tree/replant-ns current-ns ns) current-ns))
            (when var (str "#" var))))))
 
+(defn- varies-for-platforms?
+  "Does element vary, for rendering purposes, across platforms?
+
+  Note: from an API perspective, src-uri is, I think, uninteresting to note as a variation."
+  [d]
+  (or (platf/varies? d :members)
+      (platf/varies? d :doc)
+      (platf/varies? d :arglists)))
+
+(defn- platforms->short-text [platforms]
+  (case platforms
+    #{"clj" "cljs"} "clj/s"
+    #{"clj"}        "clj"
+    #{"cljs"}       "cljs"))
+
+(defn- platforms->long-text [platforms]
+  (case platforms
+    #{"clj" "cljs"} "All platforms"
+    #{"clj"}        "Clojure"
+    #{"cljs"}       "ClojureScript"))
+
+(defn- platforms->var-annotation [d]
+  (let [platforms (platf/platforms d)
+        text (platforms->short-text platforms)]
+    (if (varies-for-platforms? d)
+      ;; for vars we indicate when the definition varies for platforms
+      "clj/s≠"
+      text)))
+
+(defn render-var-annotation [annotation]
+  (when annotation
+    [:sup.f7.fw2.gray.ml1 annotation]))
+
 (defn render-platform-specific [platform content]
   [:div.relative
    [:div.f7.gray.dib.w2.v-top.mt1 platform]
@@ -126,7 +159,9 @@
       [:div.pl3.bl.b--black-10
        (for [m members]
          [:div.bb.b--black-10.mb1
-          [:h4.def-block-title.mv0.pt2.pb3 (platf/get-field m :name)]
+          [:h4.def-block-title.mv0.pt2.pb3
+           (platf/get-field m :name)
+           (render-var-annotation (platforms->var-annotation m))]
           (render-var-args-and-docs m render-wiki-link fix-opts)])])))
 
 (defn def-block
@@ -137,7 +172,7 @@
      [:hr.mv3.b--black-10]
      [:h4.def-block-title.mv0.pv3
       {:name (platf/get-field def :name), :id def-name}
-      def-name
+      def-name (render-var-annotation (platforms->var-annotation def))
       (when-not (= :var (platf/get-field def :type))
         [:span.f7.ttu.normal.gray.ml2 (platf/get-field def :type)])
       (when (platf/get-field def :deprecated)
@@ -186,20 +221,6 @@
      (when (some from-dependency? namespaces)
        [:p.f7.fw5.gray.mt4 [:sup.f6.db "†"] "Included via a transitive dependency."])]))
 
-(defn humanize-supported-platforms
-  ([supported-platforms]
-   (humanize-supported-platforms supported-platforms :short))
-  ([supported-platforms style]
-   (case style
-     :short (case supported-platforms
-              #{"clj" "cljs"} "clj/s"
-              #{"clj"}        "clj"
-              #{"cljs"}       "cljs")
-     :long  (case supported-platforms
-              #{"clj" "cljs"} "Clojure & ClojureScript"
-              #{"clj"}        "Clojure"
-              #{"cljs"}       "ClojureScript"))))
-
 (defn platform-stats [defs]
   (let [grouped-by-platform-support (->> defs
                                          (map platf/platforms)
@@ -210,16 +231,24 @@
                                (update #{"clj" "cljs"} count))]
     (->> counts-by-platform (sort-by val) reverse (filter (comp pos? second)))))
 
-(defn platform-support-note [[[dominant-platf] :as platf-stats]]
-  (let [node :span.f7.fw5.gray]
-    (if (= 1 (count platf-stats))
-      (if (or (= dominant-platf #{"clj"})
-              (= dominant-platf #{"cljs"}))
-        [node (str (humanize-supported-platforms dominant-platf :long) " only.")]
-        #_[node "All forms support " (str (humanize-supported-platforms dominant-platf :long) ".")]
-        [node "All platforms."])
-      [node (str "Mostly " (humanize-supported-platforms dominant-platf) " forms.")
-       [:br] " Exceptions indicated."])))
+(defn platforms-supported-note [[[dominant-platf] :as platf-stats]]
+  [:span.f7.fw5.gray
+   (if (= 1 (count platf-stats))
+     (let [text (platforms->long-text dominant-platf)]
+       ;; we use long text when all vars share same platforms
+       (if (= 1 (count dominant-platf))
+         (str text " only.")
+         (str text ".")))
+     (list
+       ;; we use short form here to match annotations we will be using on vars
+      (str "Mostly " (platforms->short-text dominant-platf) ".")
+      [:br] " Exceptions indicated."))])
+
+(defn var-index-platform-annotation [ns-dominant-platform d]
+  (when (or (not= (platf/platforms d) ns-dominant-platform)
+            ;; always show annotation when platforms vary for def
+            (varies-for-platforms? d))
+    (platforms->var-annotation d)))
 
 (defn definitions-list [_ns-entity defs {:keys [indicate-platforms-other-than]}]
   [:div.pb4
@@ -227,14 +256,8 @@
     (for [def defs
           :let [def-name (platf/get-field def :name)]]
       [:li.def-item
-       [:a.link.dim.blue.dib.pa1.pl0
-        {:href (str "#" def-name)}
-        def-name]
-       (when-not (= (platf/platforms def)
-                    indicate-platforms-other-than)
-         [:sup.f7.gray
-          (-> (platf/platforms def)
-              (humanize-supported-platforms))])])]])
+       [:a.link.dim.blue.dib.pa1.pl0 {:href (str "#" def-name)} def-name
+        (render-var-annotation (var-index-platform-annotation indicate-platforms-other-than def))]])]])
 
 (defn namespace-overview
   [ns-url-fn mp-ns defs valid-ref-pred fix-opts]
