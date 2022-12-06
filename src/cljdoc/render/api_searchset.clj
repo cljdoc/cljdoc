@@ -42,6 +42,14 @@
    (#{"h1" "h2" "h3" "h4" "h5" "h6"} (.tagName elem))
    (= "a" (some-> elem .children .first .tagName))))
 
+(defn- md-section?
+  [^Element elem]
+  (and (heading-elem? elem)
+       (let [child (.firstElementChild elem)]
+         (and child
+              (= "a" (.tagName child))
+              (not= "" (.id child))))))
+
 (defn- adoc-section? [^Element elem]
   (and (soup-elem? elem)
        (= "div" (.tagName elem))
@@ -154,9 +162,9 @@
         (conj doc-segments doc-segment)
         doc-segments)
 
-      (heading-elem? element)
+      (md-section? element)
       (recur {:title (.text element)
-              :anchor (-> element .children (.select ".md-anchor") .first .attributes (.get "id"))
+              :anchor (-> element .firstElementChild .id)
               :text nil}
              remaining-elements
              (if (:text doc-segment)
