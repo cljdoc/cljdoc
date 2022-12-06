@@ -11,7 +11,7 @@
     "classnames": "^2.3.2",
     "date-fns": "^2.29.3",
     "elasticlunr": "^0.9.5",
-    "fuzzysort": "^2.0.3",
+    "fuzzysort": "^2.0.4",
     "idb": "^7.1.1",
     "preact": "^10.11.3"
   },
@@ -24,9 +24,9 @@
     "parcel": "^2.8.0",
     "parcel-reporter-static-files-copy": "^1.4.0",
     "parcel-resolver-ignore": "^2.1.3",
-    "prettier": "^2.7.1",
+    "prettier": "^2.8.0",
     "pretty-quick": "^3.1.3",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.3"
   },
   "//": "overcome vulnerability: delete this line and overrides block below after packager-xml bumps xmldom",
   "overrides": {
