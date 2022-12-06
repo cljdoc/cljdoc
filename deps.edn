@@ -13,7 +13,7 @@
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
         ;; delete override when pedestal updates:
-        org.clojure/tools.analyzer.jvm {:mvn/version "1.2.2"}
+        org.clojure/tools.analyzer.jvm {:mvn/version "1.2.3"}
         ;; override pedestal jetty deps for CVEs
         org.eclipse.jetty/jetty-server {:mvn/version "9.4.48.v20220622"}
         org.eclipse.jetty/jetty-servlet {:mvn/version "9.4.48.v20220622"}
@@ -25,7 +25,7 @@
 
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.39.3.0"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.40.0.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.3"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
@@ -66,11 +66,11 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.8.0"}      ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.9.1"}      ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.3.0.202209071007-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.4.0.202211300538-r"} ;; git with jsch
         org.clj-commons/clj-http-lite {:mvn/version "1.0.13"} ;; a lite version of clj-http client
 
         ;; misc utils
@@ -98,7 +98,7 @@
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.71.1119"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
-                         nubank/matcher-combinators {:mvn/version "3.7.0" :exclusions [midje/midje]}}
+                         nubank/matcher-combinators {:mvn/version "3.7.1" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
@@ -120,7 +120,7 @@
 
            :outdated
            {:replace-deps {com.github.liquidz/antq {:mvn/version "2.2.962"}
-                           org.slf4j/slf4j-simple {:mvn/version "2.0.4"}} ;; to rid ourselves of logger warnings
+                           org.slf4j/slf4j-simple {:mvn/version "2.0.5"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
                         "--exclude=com.layerware/hugsql@0.5.3"
