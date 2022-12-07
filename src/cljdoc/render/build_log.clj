@@ -1,11 +1,11 @@
 (ns cljdoc.render.build-log
   (:require [clojure.string :as string]
+            [cljdoc.render.code-fmt :as code-fmt]
             [cljdoc.render.layout :as layout]
             [cljdoc.render.links :as links]
             [cljdoc.util.datetime :as dt]
             [cljdoc.server.routes :as routes]
-            [taoensso.nippy :as nippy]
-            [zprint.core :as zp])
+            [taoensso.nippy :as nippy])
   (:import [java.time Instant Duration]
            [java.time.temporal ChronoUnit]))
 
@@ -200,7 +200,7 @@
              [:p.bg-washed-red.pa3.br2 (:error build-info)]
              (when-some [ex-data (some-> build-info :error_info_map nippy/thaw)]
                [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.nohighlight
-                (zp/zprint-str ex-data)])
+                (code-fmt/snippet (str ex-data))])
              (when (:analysis_job_uri build-info)
                [:p.lh-copy "Please see the "
                 [:a.link.blue {:href (:analysis_job_uri build-info)} "build job"]

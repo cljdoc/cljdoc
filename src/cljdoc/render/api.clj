@@ -1,6 +1,7 @@
 (ns cljdoc.render.api
   "Functions related to rendering API documenation"
   (:require [cljdoc.render.rich-text :as rich-text]
+            [cljdoc.render.code-fmt :as code-fmt]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.util.ns-tree :as ns-tree]
             [cljdoc.bundle :as bundle]
@@ -8,15 +9,14 @@
             [cljdoc.spec]
             [cljdoc.server.routes :as routes]
             [clojure.string :as string]
-            [hiccup2.core :as hiccup]
-            [zprint.core :as zp]))
+            [hiccup2.core :as hiccup]))
 
-(defn def-code-block
+(defn def-fn-call-example
   [args-str]
   {:pre [(string? args-str)]}
   [:pre.ma0.pa0.pb3
    [:code.db {:class "language-clojure"}
-    (zp/zprint-str args-str {:parse-string? true :width 70})]])
+    (code-fmt/snippet args-str)]])
 
 (defn parse-wiki-link [m]
   (if (string/includes? m "/")
@@ -113,7 +113,7 @@
 
 (defn render-arglists [def-name arglists]
   (for [argv (sort-by count arglists)]
-    (def-code-block
+    (def-fn-call-example
       (str "(" def-name (when (seq argv) " ") (string/join " " argv) ")"))))
 
 (defn render-var-args-and-docs
