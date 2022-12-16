@@ -73,6 +73,8 @@
 
      (when (cfg/enable-release-monitor? env-config)
        {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
+                                 :build-tracker (ig/ref :cljdoc/build-tracker)
+                                 :max-retries 10
                                  :dry-run? (not (cfg/autobuild-clojars-releases? env-config))
                                  :searcher (ig/ref :cljdoc/searcher)
                                  :tea-time (ig/ref :cljdoc/tea-time)}}))))

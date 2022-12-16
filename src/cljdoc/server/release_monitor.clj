@@ -1,14 +1,17 @@
 (ns cljdoc.server.release-monitor
-  (:require [cheshire.core :as json]
+  (:require [cljdoc.server.build-log :as build-log]
+            [cljdoc.util.repositories :as repositories]
+            [cheshire.core :as json]
             [clj-http.lite.client :as http]
-            [cljdoc.config]
+            [cljdoc.config :as config]
             [cljdoc.server.search.api :as sc]
             [clojure.edn :as edn]
             [clojure.java.jdbc :as sql]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [tea-time.core :as tt]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [cljdoc-shared.proj :as proj])
   (:import (cljdoc.server.search.api ISearcher)
            (java.time Duration Instant)))
 
@@ -58,9 +61,9 @@
   The 10min delay has been put into place to avoid building projects before people had a chance
   to push the respective commits or tags to their git repositories."
   [db-spec]
-  (first (sql/query db-spec ["SELECT * FROM releases WHERE build_id IS NULL AND datetime(created_ts) < datetime('now', '-10 minutes') ORDER BY datetime(created_ts) DESC LIMIT 1"])))
+  (first (sql/query db-spec ["SELECT * FROM releases WHERE build_id IS NULL AND datetime(created_ts) < datetime('now', '-10 minutes') ORDER BY retry_count ASC, datetime(created_ts) ASC LIMIT 1"])))
 
-(defn- update-build-id
+(defn- update-build-id!
   [db-spec release-id build-id]
   (sql/update! db-spec
                "releases"
@@ -71,18 +74,23 @@
   (log/infof "Queuing %s new releases" (count releases))
   (sql/insert-multi! db-spec "releases" releases))
 
+(defn- inc-retry-count! [db-spec {:keys [id retry_count] :as _release}]
+  (sql/update! db-spec
+               "releases"
+               {:retry_count (inc retry_count)}
+               ["id = ?" id]))
+
 ;;
 ;; Logic and jobs
 ;;
 
 (defn- trigger-build
-  [release]
-  {:pre [(:id release) (:group_id release) (:artifact_id release) (:version release)]}
+  [{:keys [id group_id artifact_id version retry_count] :as _release}]
   ;; I'm really not liking that this makes it all very tied to the HTTP server... - martin
-  (let [req (http/post (str "http://localhost:" (get-in (cljdoc.config/config) [:cljdoc/server :port]) "/api/request-build2")
+  (let [req (http/post (str "http://localhost:" (get-in (config/config) [:cljdoc/server :port]) "/api/request-build2")
                        {:follow-redirects false
-                        :form-params {:project (str (:group_id release) "/" (:artifact_id release))
-                                      :version (:version release)}
+                        :form-params {:project (str group_id "/" artifact_id)
+                                      :version version}
                         :content-type "application/x-www-form-urlencoded"})
         build-id (some->> (get-in req [:headers "location"])
                           (re-find #"/builds/(\d+)")
@@ -109,28 +117,64 @@
       (string/includes? group_id "gradle-clojure")
       (string/includes? group_id "gradle-clj")))
 
-(defn- release-fetch-job-fn [db-spec ^ISearcher searcher]
-  (let [ts (or (some-> (last-release-ts db-spec)
-                       (.plus (Duration/ofSeconds 1)))
-               (.minus (Instant/now) (Duration/ofHours 24)))
-        releases (->> (clojars-releases-since ts)
-                      (remove exclude-new-release?))]
+(defn- release-fetch-job-fn [{:keys [db-spec ^ISearcher searcher]}]
+  (let [ts-last-release (last-release-ts db-spec)
+        releases (if ts-last-release
+                   (-> (clojars-releases-since ts-last-release)
+                       ;; exclude first, it was part of the last fetch
+                       rest)
+                   (clojars-releases-since (.minus (Instant/now) (Duration/ofHours 24))))
+        releases (remove exclude-new-release? releases)]
     (when (seq releases)
       (queue-new-releases db-spec releases)
       (update-artifact-index searcher releases))))
 
-(defn- build-queuer-job-fn [db-spec dry-run?]
-  (when-let [to-build (oldest-not-built db-spec)]
+(defn- pre-check-failed! [db-spec build-tracker {:keys [:id :group_id :artifact_id version] :as _release-to-build} error]
+  (let [build-id (build-log/analysis-requested! build-tracker group_id artifact_id version)]
+    (log/warnf "pre-check-failed for %s/%s %s, failing build with error %s"  group_id artifact_id version error)
+    (build-log/failed! build-tracker build-id error)
+    (update-build-id! db-spec id build-id)))
+
+(defn- resolve-clojars-artifact [{:keys [group_id artifact_id version] :as _release}]
+  (let [clojars-repo (->> (config/maven-repositories)
+                          (filter #(= "clojars" (:id %)))
+                          first
+                          :url)]
+    (try
+      (repositories/resolve-artifact clojars-repo
+                                     (proj/clojars-id {:group-id group_id :artifact-id artifact_id})
+                                     version)
+      (catch Throwable ex
+        {:exception ex :status -1}))))
+
+(defn- build-queuer-job-fn [{:keys [db-spec build-tracker dry-run? max-retries]}]
+  (when-let [{:keys [id group_id artifact_id version retry_count] :as release-to-build} (oldest-not-built db-spec)]
     (if dry-run?
       (log/infof "Dry-run mode: not triggering build for %s/%s %s"
-                 (:group_id to-build) (:artifact_id to-build) (:version to-build))
-      (do (log/infof "Queuing build for %s" to-build)
-          (update-build-id db-spec (:id to-build) (trigger-build to-build))))))
+                 group_id artifact_id version)
+      (let [{:keys [exception status] :as _resolve-result} (resolve-clojars-artifact release-to-build)]
+        (case (long status)
+          200 (do (log/infof "Queuing build for %s" release-to-build)
+                  (update-build-id! db-spec id (trigger-build release-to-build)))
+          404 (pre-check-failed! db-spec build-tracker release-to-build "listed-artifact-not-found")
+          ;; else
+          (let [msg (format "failed to resolve %s/%s %s, resolve status %d, retry count %d"
+                            group_id artifact_id version status retry_count)]
+            (if exception
+              (log/warn exception msg)
+              (log/warn msg))
+            (if (>= retry_count max-retries)
+              (pre-check-failed! db-spec build-tracker release-to-build "listed-artifact-resolve-failed")
+              (inc-retry-count! db-spec release-to-build))))))))
 
-(defmethod ig/init-key :cljdoc/release-monitor [_ {:keys [db-spec dry-run? searcher]}]
-  (log/info "Starting ReleaseMonitor" (if dry-run? "(dry-run mode)" ""))
-  {:release-fetcher (tt/every! 60 #(release-fetch-job-fn db-spec searcher))
-   :build-queuer    (tt/every! (* 10 60) 10 #(build-queuer-job-fn db-spec dry-run?))})
+(defmethod ig/init-key :cljdoc/release-monitor [_ opts]
+  (log/info "Starting ReleaseMonitor" (if (:dry-run? opts) "(dry-run mode)" ""))
+  {:release-fetcher (tt/every! 60
+                               #(release-fetch-job-fn
+                                 (select-keys opts [:db-spec :searcher])))
+   :build-queuer    (tt/every! (* 10 60) 10
+                               #(build-queuer-job-fn
+                                 (select-keys opts [:db-spec :build-tracker :dry-run? :max-retries])))})
 
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
   (log/info "Stopping ReleaseMonitor")
@@ -139,9 +183,17 @@
   (tt/stop!))
 
 (comment
-  (def db-spec (cljdoc.config/db))
+  (def cfg (cljdoc.config/config))
+
+  (def db-spec (cljdoc.config/db cfg))
 
   (build-queuer-job-fn db-spec true)
+
+  (def ts (last-release-ts db-spec))
+  ts
+  ;; => #object[java.time.Instant 0xf4d333 "2022-12-17T13:09:15.977Z"]
+
+  (clojars-releases-since ts)
 
   (def rm
     (ig/init-key :cljdoc/release-monitor db-spec))
