@@ -9,15 +9,15 @@
 
 (set! *warn-on-reflection* true)
 
-(defn group-path [project]
+(defn- group-path [project]
   (string/replace (proj/group-id project) #"\." "/"))
 
-(defn version-directory-uri
+(defn- version-directory-uri
   [repository project version]
   {:pre [(string? repository)]}
   (format "%s%s/%s/%s/" repository (group-path project) (proj/artifact-id project) version))
 
-(defn artifact-uri
+(defn- artifact-uri
   ([suffix repository project version]
    (artifact-uri suffix repository project version version))
   ([suffix repository project version actual-version]
@@ -27,10 +27,10 @@
            actual-version
            suffix)))
 
-(def jar-uri (partial artifact-uri "jar"))
-(def pom-uri (partial artifact-uri "pom"))
+(def ^:private jar-uri (partial artifact-uri "jar"))
+(def ^:private pom-uri (partial artifact-uri "pom"))
 
-(defn metadata-xml-uri
+(defn- metadata-xml-uri
   "Returns a URI to read metadata for the `project`.
 
   For example:
@@ -56,7 +56,7 @@
    (str (version-directory-uri repository project version)
         "maven-metadata.xml")))
 
-(defn resolve-snapshot [repository project version]
+(defn- resolve-snapshot [repository project version]
   (let [{:keys [body status]} (http/get (metadata-xml-uri repository project version)
                                         {:throw-exceptions false})]
     (if (= 200 status)
@@ -68,21 +68,27 @@
         (string/replace version #"-SNAPSHOT$" (str "-" timestamp "-" build-num)))
       version)))
 
-(defn snapshot-version?
+(defn- snapshot-version?
   [version]
   (string/ends-with? version "-SNAPSHOT"))
 
-(defn exists?
+(defn resolve-artifact
   ([repository project]
    (let [uri (metadata-xml-uri repository project)]
-     (= 200 (:status (http/head uri {:throw-exceptions false})))))
+     (http/head uri {:throw-exceptions false})))
   ([repository project version]
    (let [uri (if (snapshot-version? version)
                (metadata-xml-uri repository project version)
                (pom-uri repository project version))]
-     (= 200 (:status (http/head uri {:throw-exceptions false}))))))
+     (http/head uri {:throw-exceptions false}))))
 
-(defn artifact-uris*
+(defn exists?
+  ([repository project]
+   (= 200 (:status (resolve-artifact repository project))))
+  ([repository project version]
+   (= 200 (:status (resolve-artifact repository project version)))))
+
+(defn- artifact-uris*
   [repository project version]
   {:pre [(string? repository) (some? project) (some? version)]}
   (let [version' (if (and (snapshot-version? version)
@@ -94,9 +100,15 @@
 
 (defn find-artifact-repository
   ([project]
-   (reduce #(when (exists? (:url %2) project) (reduced (:url %2))) [] (config/maven-repositories)))
+   (reduce #(when (exists? (:url %2) project)
+              (reduced (:url %2)))
+           []
+           (config/maven-repositories)))
   ([project version]
-   (reduce #(when (exists? (:url %2) project version) (reduced (:url %2))) [] (config/maven-repositories))))
+   (reduce #(when (exists? (:url %2) project version)
+              (reduced (:url %2)))
+           []
+           (config/maven-repositories))))
 
 (defn artifact-uris [project version]
   (if-let [repository (find-artifact-repository project version)]
@@ -138,6 +150,46 @@
     (-> (artifact-uris project version) :pom http/get :body)))
 
 (comment
+  (config/maven-repositories)
+  ;; => [{:id "clojars", :url "https://repo.clojars.org/"}
+  ;;     {:id "central", :url "https://repo.maven.apache.org/maven2/"}]
+
+  (artifact-uris* "https://repo.clojars.org/" "com.mouryaravi/faraday" "1.11.1+protocol")
+  ;; => {:pom
+  ;;     "https://repo.clojars.org/com/mouryaravi/faraday/1.11.1+protocol/faraday-1.11.1+protocol.pom",
+  ;;     :jar
+  ;;     "https://repo.clojars.org/com/mouryaravi/faraday/1.11.1+protocol/faraday-1.11.1+protocol.jar"}
+
+  (exists? "https://repo.clojars.org/" "com.mouryaravi/faraday" "1.11.1+protocol")
+  ;; => false
+  (exists? "https://repo.clojars.org/" "com.mouryaravi/faraday")
+  ;; => true
+
+  (resolve-artifact "https://repo.clojars.org/" "com.mouryaravi/faraday" "1.11.1+protocol")
+  ;; => {:headers
+  ;;     {"x-cache" "HIT",
+  ;;      "x-timer" "S1671236240.675179,VS0,VE1",
+  ;;      "server" "AmazonS3",
+  ;;      "age" "2892",
+  ;;      "via" "1.1 varnish",
+  ;;      "content-type" "application/xml",
+  ;;      "content-length" "337",
+  ;;      "connection" "keep-alive",
+  ;;      "accept-ranges" "bytes",
+  ;;      "x-cache-hits" "1",
+  ;;      "x-amz-request-id" "B4G6E7Z1ZGVH72GM",
+  ;;      "date" "Sat, 17 Dec 2022 00:17:19 GMT",
+  ;;      "x-amz-id-2"
+  ;;      "WWzieBqJ5DHuN0VOrbb8SFsSbOH9igaKrgc3+hOBSro5Nh0JtIjM5Nu24T1jt3hofSAPRelb9+c=",
+  ;;      "x-served-by" "cache-lga21940-LGA"},
+  ;;     :status 404,
+  ;;     :body nil}
+
+  (find-artifact-repository "com.mouryaravi/faraday" "1.11.1+protocol")
+  ;; => nil
+
+  (artifact-uris "com.mouryaravi/faraday" "1.11.1+protocol")
+
   (find-artifact-repository "org.clojure/clojure" "1.9.0")
   (artifact-uris "org.clojure/clojure" "1.9.0")
 

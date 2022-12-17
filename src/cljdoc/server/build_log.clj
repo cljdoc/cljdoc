@@ -71,9 +71,9 @@
     (first (sql/query db-spec ["SELECT * FROM builds WHERE id = ?" build-id])))
   (recent-builds [_ days]
     (sql/query db-spec [(str "SELECT * FROM builds "
-                             "WHERE analysis_triggered_ts "
-                             "BETWEEN DATETIME('now', 'localtime', ?) "
-                             "AND DATETIME('now', 'localtime', '+1 days') "
+                             "WHERE analysis_requested_ts "
+                             "BETWEEN DATETIME('now', ?) "
+                             "AND DATETIME('now', '+1 days') "
                              "ORDER BY id DESC")
                         (str "-" days " days")]))
   (running-build [_ group-id artifact-id version]

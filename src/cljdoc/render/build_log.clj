@@ -244,7 +244,7 @@
                               count)]
     {:date (-> builds
                first
-               :analysis_triggered_ts
+               :analysis_requested_ts
                dt/->analytics-format)
      :total build-cnt
      :failed failed-build-cnt
@@ -330,7 +330,7 @@
        (into [:div.mw8.center.pv3.ph2
               [:h1 "Recent cljdoc builds"]
               (->> builds
-                   (partition-by #(-> % :analysis_triggered_ts Instant/parse
+                   (partition-by #(-> % :analysis_requested_ts Instant/parse
                                       (.truncatedTo  ChronoUnit/DAYS)))
                    (map build-aggregates)
                    (build-analytics))])
