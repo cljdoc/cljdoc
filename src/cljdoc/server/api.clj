@@ -50,7 +50,9 @@
   [{:keys [storage build-tracker analysis-service] :as deps}
    {:keys [project version jar pom scm-url scm-rev] :as coords}]
   (let [a-uris    (when-not (and jar pom)
-                    (repositories/artifact-uris project version))
+                    (or (repositories/artifact-uris project version)
+                        (throw (ex-info (format "Requested version cannot be found in configured repositories: [%s %s]" project version)
+                                        {:project project :version version}))))
         v-entity  (storage/version-entity project version)
         build-id  (build-log/analysis-requested!
                    build-tracker (:group-id v-entity) (:artifact-id v-entity) version)

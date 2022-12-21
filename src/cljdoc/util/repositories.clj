@@ -111,10 +111,8 @@
            (config/maven-repositories))))
 
 (defn artifact-uris [project version]
-  (if-let [repository (find-artifact-repository project version)]
-    (artifact-uris* repository project version)
-    (throw (ex-info (format "Requested version cannot be found in configured repositories: [%s %s]" project version)
-                    {:project project :version version}))))
+  (when-let [repository (find-artifact-repository project version)]
+    (artifact-uris* repository project version)))
 
 (defn assert-first [[x & rest :as xs]]
   (if (empty? rest)
@@ -147,7 +145,7 @@
   [project version]
   (if-let [local-pom (:pom (local-uris project version))]
     (slurp local-pom)
-    (-> (artifact-uris project version) :pom http/get :body)))
+    (some-> (artifact-uris project version) :pom http/get :body)))
 
 (comment
   (config/maven-repositories)

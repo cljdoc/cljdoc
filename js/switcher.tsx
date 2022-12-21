@@ -23,25 +23,36 @@ function parseCljdocURI(uri: string): Library | void {
   }
 }
 
+function isErrorPage() {
+  return Boolean(document.querySelector("head > title[data-error]"));
+}
+
 function trackProjectOpened() {
-  const maxTrackedCount = 15;
-  const project = parseCljdocURI(window.location.pathname) as VisitedLibrary;
-  if (project) {
-    var previouslyOpened: VisitedLibrary[] = JSON.parse(
-      localStorage.getItem("previouslyOpened") || "[]"
-    );
-    // remove identical values
-    previouslyOpened = previouslyOpened.filter(p => !isSameProject(p, project));
-    project.last_viewed = new Date().toUTCString();
-    previouslyOpened.push(project);
-    // truncate from the front to not have localstorage grow too large
-    if (previouslyOpened.length > maxTrackedCount) {
-      previouslyOpened = previouslyOpened.slice(
-        previouslyOpened.length - maxTrackedCount,
-        previouslyOpened.length
+  if (!isErrorPage()) {
+    const maxTrackedCount = 15;
+    const project = parseCljdocURI(window.location.pathname) as VisitedLibrary;
+    if (project) {
+      var previouslyOpened: VisitedLibrary[] = JSON.parse(
+        localStorage.getItem("previouslyOpened") || "[]"
+      );
+      // remove identical values
+      previouslyOpened = previouslyOpened.filter(
+        p => !isSameProject(p, project)
+      );
+      project.last_viewed = new Date().toUTCString();
+      previouslyOpened.push(project);
+      // truncate from the front to not have localstorage grow too large
+      if (previouslyOpened.length > maxTrackedCount) {
+        previouslyOpened = previouslyOpened.slice(
+          previouslyOpened.length - maxTrackedCount,
+          previouslyOpened.length
+        );
+      }
+      localStorage.setItem(
+        "previouslyOpened",
+        JSON.stringify(previouslyOpened)
       );
     }
-    localStorage.setItem("previouslyOpened", JSON.stringify(previouslyOpened));
   }
 }
 

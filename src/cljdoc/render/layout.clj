@@ -89,7 +89,7 @@
                (hiccup.page/doctype :html5)
                [:html {}
                 [:head
-                 [:title (:title opts)]
+                 [:title (:title-attributes opts) (:title opts)]
                  [:meta {:charset "utf-8"}]
                  [:meta {:content (:description opts) :name "description"}]
 
