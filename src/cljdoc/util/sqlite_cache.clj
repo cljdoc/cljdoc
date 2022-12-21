@@ -41,7 +41,7 @@
 
 (defn fetch-item!
   "Performs lookup by querying on the cache table.
-  Retuens deserialized cached item."
+  Returns deserialized cached item."
   [k {:keys [db-spec key-prefix deserialize-fn table key-col value-col]}]
   (let [query (format (:fetch query-templates) table key-col)
         row-fn #(some-> % (get (keyword value-col)) deserialize-fn)]
@@ -89,6 +89,9 @@
   (let [query (format (:clear query-templates) table)]
     (sql/execute! db-spec [query key-prefix])))
 
+(defn- d-ref [v]
+  (if (derefable? v) (deref v) v))
+
 ;; memoize kind of assumes we are carrying around our cache in state.
 ;; this is not the case for us, our state is our config and never changes
 ;; after init.
@@ -96,9 +99,9 @@
   cache/CacheProtocol
   (lookup [_ k]
     (delay (fetch-item! k (:cache-spec state))))
-  (lookup [_this k not-found]
-    (delay (or (fetch-item! k (:cache-spec state))
-               (if (derefable? not-found) (deref not-found) not-found))))
+  (lookup [_this k _not-found]
+    (when-let [item (fetch-item! k (:cache-spec state))]
+      (delay item)))
   (has? [_ k]
     (let [item (fetch! k (:cache-spec state))]
       (and (not (nil? item))
@@ -106,10 +109,12 @@
   (hit [this _k]
     this)
   (miss [this k v]
-    (let [item (fetch! k (:cache-spec state))]
-      (if (and (not (nil? item)) (stale? item))
-        (refresh! k v (:cache-spec state))
-        (cache! k v (:cache-spec state))))
+    ;; never cache nil values
+    (when (not (nil? (d-ref v)))
+      (let [item (fetch! k (:cache-spec state))]
+        (if (and (not (nil? item)) (stale? item))
+          (refresh! k v (:cache-spec state))
+          (cache! k v (:cache-spec state)))))
     this)
   (evict [this k]
     (evict! k (:cache-spec state))

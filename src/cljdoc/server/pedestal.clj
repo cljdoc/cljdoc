@@ -72,23 +72,32 @@
                      ;; fixes https://github.com/cljdoc/cljdoc/issues/373
                      (string? (:namespace pp))
                      (update :namespace normalize/percent-decode))
-                   page-type   (-> ctx :route :route-name)]
-               (if-let [first-article-slug (and (= page-type :artifact/version)
-                                                (-> cache-bundle :version :doc first :attrs :slug))]
+                   page-type   (-> ctx :route :route-name)
+                   first-article-slug (and (= page-type :artifact/version)
+                                           (-> cache-bundle :version :doc first :attrs :slug))]
+               (cond
+                 (not (::pom-info ctx))
+                 (assoc ctx :response {:status 404
+                                       :headers {"Content-Type" "text/html"}
+                                       :body (error/not-found-artifact (:static-resources ctx) pp)})
+
+                 (not cache-bundle)
+                 (let [resp {:status 404
+                             :headers {"Content-Type" "text/html"}
+                             :body (str (render-build-req/request-build-page path-params (:static-resources ctx)))}]
+                   (assoc ctx :response resp))
+
+                 first-article-slug
                  ;; instead of rendering a mostly white page we
                  ;; redirect to the README/first listed article
                  (let [location (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))]
                    (assoc ctx :response {:status 302, :headers {"Location" location}}))
 
-                 (if cache-bundle
-                   (pu/ok-html ctx (html/render page-type path-params {:cache-bundle cache-bundle
-                                                                       :pom (::pom-info ctx)
-                                                                       :last-build (::last-build ctx)
-                                                                       :static-resources (:static-resources ctx)}))
-                   (let [resp {:status 404
-                               :headers {"Content-Type" "text/html"}
-                               :body (str (render-build-req/request-build-page path-params (:static-resources ctx)))}]
-                     (assoc ctx :response resp))))))}))
+                 :else
+                 (pu/ok-html ctx (html/render page-type path-params {:cache-bundle cache-bundle
+                                                                     :pom (::pom-info ctx)
+                                                                     :last-build (::last-build ctx)
+                                                                     :static-resources (:static-resources ctx)})))))}))
 
 (def doc-slug-parser
   "Further process the `article-slug` URL segment by splitting on `/` characters.
@@ -193,11 +202,10 @@
   `version-entity (see `:cljdoc.spec/version-entity` in spec.cljc)`, fetch the pom xml and get the description
   and dependencies."
   [fetch-pom-xml version-entity]
-  (let [parsed-pom (pom/parse
-                    (fetch-pom-xml
-                     (proj/clojars-id version-entity)
-                     (:version version-entity)))
-        {:keys [artifact-info dependencies]} parsed-pom]
+  (when-let [{:keys [artifact-info dependencies]} (some-> (fetch-pom-xml
+                                                           (proj/clojars-id version-entity)
+                                                           (:version version-entity))
+                                                          pom/parse)]
     {:description (:description artifact-info)
      :dependencies dependencies}))
 
@@ -207,8 +215,10 @@
   (interceptor/interceptor
    {:name ::pom-loader
     :enter (fn pom-loader-inner [ctx]
-             (assoc ctx ::pom-info (load-pom (:cljdoc.util.repositories/get-pom-xml cache)
-                                             (get-in ctx [:request :path-params]))))}))
+             (if-let [pom (load-pom (:cljdoc.util.repositories/get-pom-xml cache)
+                                    (get-in ctx [:request :path-params]))]
+               (assoc ctx ::pom-info pom)
+               ctx))}))
 
 (defn- uri-path
   "Return path part of a URL, this is probably part of pedestal in
@@ -406,8 +416,8 @@
                                                              :artifact-id (proj/artifact-id project)
                                                              :version release})}}
                       {:status 404
-                       :headers {}
-                       :body (format "Could not find release for %s" project)})
+                       :headers {"Content-Type" "text/html"}
+                       :body (error/not-found-release (:static-resources ctx) {:project project})})
                     (assoc ctx :response))))}))
 
 (def etag-interceptor
@@ -478,7 +488,7 @@
              (if-not (http/response? (:response context))
                (assoc context :response {:status 404
                                          :headers {"Content-Type" "text/html"}
-                                         :body (error/not-found-404 (:static-resources context))})
+                                         :body (error/not-found-page (:static-resources context))})
                context))}))
 
 (defn build-sitemap
