@@ -11,12 +11,25 @@
             [clojure.string :as string]
             [hiccup2.core :as hiccup]))
 
-(defn def-fn-call-example
-  [args-str]
-  {:pre [(string? args-str)]}
+(defn call-example
+  [def-name argv]
   [:pre.ma0.pa0.pb3
    [:code.db {:class "language-clojure"}
-    (code-fmt/snippet args-str)]])
+    (code-fmt/snippet
+     (str "(" def-name (when (seq argv) " ") (string/join " " argv) ")"))]])
+
+(defn call-example-bad-arglists
+  [def-name bad-arglists]
+  [:div
+   [:pre.ma0.pa0.pb3
+    [:code.db {:class "language-clojure"}
+     (code-fmt/snippet (str "(" def-name " "  "??)"))]]
+   [:div.mb3.pa2.bg-washed-red.br2.f7.red
+    [:span.b "?? invalid arglists:"]
+    [:pre.ma0.pa0
+     [:code (if (nil? bad-arglists)
+              "nil"
+              (code-fmt/snippet (str bad-arglists)))]]]])
 
 (defn parse-wiki-link [m]
   (if (string/includes? m "/")
@@ -111,10 +124,15 @@
         (render-platform-specific p (render-docs doc)))
       (render-docs (platf/get-field n :doc)))))
 
+(defn- looks-like-arglists? [x]
+  (and (sequential? x)
+       (sequential? (first x))))
+
 (defn render-arglists [def-name arglists]
-  (for [argv (sort-by count arglists)]
-    (def-fn-call-example
-      (str "(" def-name (when (seq argv) " ") (string/join " " argv) ")"))))
+  (if (looks-like-arglists? arglists)
+    (for [argv (sort-by count arglists)]
+      (call-example def-name argv))
+    (call-example-bad-arglists def-name arglists)))
 
 (defn render-var-args-and-docs
   "Render arglists and docstring for var `d` distinguishing platform differences, if any."
