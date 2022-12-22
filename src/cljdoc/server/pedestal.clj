@@ -241,25 +241,36 @@
              (let [{:keys [project group-id artifact-id version]} (:path-params request)
                    artifact-id     (or artifact-id (proj/artifact-id project))
                    group-id        (or group-id (proj/group-id project))
-                   current?        (= "CURRENT" version)
+                   proj-search     (str group-id "/" artifact-id)
                    referer-version (some-> request
                                            (get-in [:headers "referer"])
                                            uri-path routes/match-route :path-params :version)
+                   resolved-version (cond
+                                      (nil? version)
+                                      (repos/latest-release-version proj-search)
+
+                                      (= "CURRENT" version)
+                                      (or referer-version
+                                          (repos/latest-release-version proj-search))
+
+                                      :else version)
                    artifact-entity {:artifact-id artifact-id
                                     :group-id group-id
-                                    :version (cond
-                                               (nil? version)
-                                               (repos/latest-release-version (str group-id "/" artifact-id))
+                                    :version resolved-version}]
+               (cond
+                 (nil? resolved-version) ;; not found
+                 (assoc ctx :response
+                        {:status 404
+                         :headers {"Content-Type" "text/html"}
+                         :body (error/not-found-artifact (:static-resources ctx)
+                                                         {:group-id group-id :artifact-id artifact-id})})
 
-                                               current?
-                                               (or referer-version
-                                                   (repos/latest-release-version (str group-id "/" artifact-id)))
-
-                                               :else version)}]
-               (if current?
+                 (= "CURRENT" version) ;; redirect
                  (assoc ctx :response
                         {:status 307
                          :headers {"Location" (routes/url-for (:route-name route) :path-params (merge (:path-params request) artifact-entity))}})
+
+                 :else
                  (update-in ctx [:request :path-params] merge artifact-entity))))}))
 
 (defn view
@@ -405,9 +416,7 @@
                    project (cond project project
                                  artifact-id (proj/clojars-id params)
                                  group-id group-id)
-                   release (try (repos/latest-release-version project)
-                                (catch Exception e
-                                  (log/warnf e "Could not find release for %s" project)))]
+                   release (repos/latest-release-version project)]
                (->> (if release
                       {:status 302
                        :headers {"Location" (routes/url-for :artifact/version
@@ -417,7 +426,9 @@
                                                              :version release})}}
                       {:status 404
                        :headers {"Content-Type" "text/html"}
-                       :body (error/not-found-release (:static-resources ctx) {:project project})})
+                       :body (error/not-found-artifact (:static-resources ctx)
+                                                       {:group-id (proj/group-id project)
+                                                        :artifact-id (proj/artifact-id project)})})
                     (assoc ctx :response))))}))
 
 (def etag-interceptor

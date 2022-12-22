@@ -120,8 +120,11 @@
     (throw (ex-info "Expected collection with one item, got multiple"
                     {:coll xs}))))
 
-(defn latest-release-version [project]
-  (if-let [repository (find-artifact-repository project)]
+(defn latest-release-version
+  "Return latest known release for `project`.
+  When `project` not found return `nil`."
+  [project]
+  (when-let [repository (find-artifact-repository project)]
     (let [{:keys [body status]} (http/get (metadata-xml-uri repository project))]
       (when (= 200 status)
         (let [d (Jsoup/parse ^String body)]
@@ -130,9 +133,7 @@
           (or (some-> (.select d "metadata > version") .first (.ownText))
               (->> (.select d "metadata > versioning > release")
                    (map (fn [^Element e] (.ownText e)))
-                   assert-first)))))
-    (throw (ex-info (format "Requested project cannot be found in configured repositories: %s" project)
-                    {:project project}))))
+                   assert-first)))))))
 
 (defn local-uris [project version]
   (let [repo (str (System/getProperty "user.home") "/.m2/repository/")
