@@ -11,25 +11,23 @@
             [clojure.string :as string]
             [hiccup2.core :as hiccup]))
 
-(defn call-example
-  [def-name argv]
+(defn render-call-example
+  [call]
   [:pre.ma0.pa0.pb3
-   [:code.db {:class "language-clojure"}
-    (code-fmt/snippet
-     (str "(" def-name (when (seq argv) " ") (string/join " " argv) ")"))]])
+   [:code.db {:class "language-clojure"} call]])
 
-(defn call-example-bad-arglists
+(defn render-call-example-bad-arglists
   [def-name bad-arglists]
   [:div
    [:pre.ma0.pa0.pb3
     [:code.db {:class "language-clojure"}
-     (code-fmt/snippet (str "(" def-name " "  "??)"))]]
+     (str "(" def-name " "  "??)")]]
    [:div.mb3.pa2.bg-washed-red.br2.f7.red
     [:span.b "?? invalid arglists:"]
     [:pre.ma0.pa0
      [:code (if (nil? bad-arglists)
               "nil"
-              (code-fmt/snippet (str bad-arglists)))]]]])
+              (str bad-arglists))]]]])
 
 (defn parse-wiki-link [m]
   (if (string/includes? m "/")
@@ -128,11 +126,26 @@
   (and (sequential? x)
        (sequential? (first x))))
 
+(defn- to-call-examples
+  "Returns formatted call examples for `def-name` and `arglists`,
+  or `nil` when arglists fail to format (and therefore likely invalid Clojure)"
+  [def-name arglists]
+  (when (looks-like-arglists? arglists)
+    (try
+      (doall
+       (for [argv (sort-by count arglists)]
+         (-> (str "("
+                  def-name
+                  (when (seq argv) " ") (string/join " " argv)
+                  ")")
+             code-fmt/snippet)))
+      (catch Throwable _ex))))
+
 (defn render-arglists [def-name arglists]
-  (if (looks-like-arglists? arglists)
-    (for [argv (sort-by count arglists)]
-      (call-example def-name argv))
-    (call-example-bad-arglists def-name arglists)))
+  (if-let [calls (to-call-examples def-name arglists)]
+    (for [c calls]
+      (render-call-example c))
+    (render-call-example-bad-arglists def-name arglists)))
 
 (defn render-var-args-and-docs
   "Render arglists and docstring for var `d` distinguishing platform differences, if any."
