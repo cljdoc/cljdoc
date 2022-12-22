@@ -392,21 +392,21 @@
    {:name ::badge
     :leave (fn badge [ctx]
              (log/info "Badge req headers" (-> ctx :request :headers))
-             (let [{:keys [version]} (-> ctx :request :path-params)
-                   last-build (::last-build ctx)
-                   [status color] (cond
-                                    (and last-build (not (build-log/api-import-successful? last-build)))
-                                    ["API import failed" :red]
+             (if-let [last-build (::last-build ctx)]
+               (let [{:keys [version]} (-> ctx :request :path-params)
+                     [status color] (cond
+                                      (not (build-log/api-import-successful? last-build))
+                                      ["API import failed" :red]
 
-                                    (and last-build (not (build-log/git-import-successful? last-build)))
-                                    ["Git import failed" :red]
+                                      (not (build-log/git-import-successful? last-build))
+                                      ["Git import failed" :red]
 
-                                    :else
-                                    [version :blue])]
-               (return-badge ctx status color)))
-    :error (fn [ctx _err]
-             (let [{:keys [project]} (-> ctx :request :path-params)]
-               (return-badge ctx (str "no%20release%20found%20for%20" project) :red)))}))
+                                      :else
+                                      [version :blue])]
+                 (return-badge ctx status color))
+               (let [{:keys [project]} (-> ctx :request :path-params)]
+                 (assoc ctx :response {:status 404
+                                       :body (str "No build found for " project)}))))}))
 
 (defn jump-interceptor []
   (interceptor/interceptor
