@@ -18,16 +18,15 @@
                      :title-attributes {:data-error "404"}})
        (str)))
 
+(defn- inline-code [text]
+  [:code.gray text])
+
 (defn not-found-page [static-resources]
   (not-found-404 static-resources {:title "Page not found"}))
-
-(defn not-found-release [static-resources {:keys [project]}]
-  (not-found-404 static-resources {:title "Library not found"
-                                   :detail [:span "Could not find release " [:code project]]}))
 
 (defn not-found-artifact [static-resources {:keys [group-id artifact-id version]}]
   (not-found-404 static-resources {:title "Library not found"
                                    :detail [:span
-                                            "Could not find " [:code (str group-id "/" artifact-id)]
-                                            " version " [:code version]
+                                            "Could not find " (inline-code (str group-id "/" artifact-id))
+                                            (when version (list " version " (inline-code version)))
                                             " in any maven repository"]}))
