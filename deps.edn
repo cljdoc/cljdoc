@@ -66,7 +66,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.9.1"}      ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.10.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -98,11 +98,11 @@
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.71.1119"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
-                         nubank/matcher-combinators {:mvn/version "3.7.1" :exclusions [midje/midje]}}
+                         nubank/matcher-combinators {:mvn/version "3.7.2" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.12.08"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.12.10"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
@@ -119,8 +119,8 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.2.962"}
-                           org.slf4j/slf4j-simple {:mvn/version "2.0.5"}} ;; to rid ourselves of logger warnings
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.2.970"}
+                           org.slf4j/slf4j-simple {:mvn/version "2.0.6"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
                         "--exclude=com.layerware/hugsql@0.5.3"
