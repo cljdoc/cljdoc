@@ -345,8 +345,9 @@
              (if-let [build-info (->> ctx :request :path-params :id
                                       (build-log/get-build build-tracker))]
                (pu/ok ctx build-info)
-               ;; Not setting :response implies 404 response
-               ctx))}))
+               (assoc ctx :response {:status 404
+                                     :headers {"Content-Type" "text/html"}
+                                     :body (error/not-found-page (:static-resources ctx))})))}))
 
 (defn all-builds
   [build-tracker]
