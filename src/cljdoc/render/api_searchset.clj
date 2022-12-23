@@ -4,6 +4,7 @@
             [cljdoc.render.rich-text :as rt]
             [cljdoc.server.routes :as routes]
             [cljdoc.spec]
+            [clojure.walk :as walk]
             [clojure.string :as str])
   (:import (org.jsoup Jsoup)
            (org.jsoup.nodes Element TextNode)))
@@ -241,17 +242,30 @@
   [members]
   (map #(select-keys % [:type :name :arglists :doc]) members))
 
+(defn- update-if-exists [m k f]
+  (if (contains? m k)
+    (update m k f)
+    m))
+
+(defn- ->deregexify [x]
+  (walk/postwalk #(if (instance? java.util.regex.Pattern %)
+                    (str %)
+                    %)
+                 x))
+
 (defn- ->defs
   "Renders cache-bundle `defs` into a format consumable by the API. This consists of:
 
   1. Paring down the fields in the cache-bundle's `defs`, including in the nested
      `:members` map..
   2. Adding a URL path to the produced map.
-  3. Sorting for a deterministic ordering"
+  3. Converting any regexes in arglists to strings (to be JSON friendly).
+  4. Sorting for a deterministic ordering"
   [cache-bundle-defs version-entity]
   (->> (into []
              (comp
               (map #(select-keys % [:platform :type :namespace :name :arglists :doc :members]))
+              (map #(update-if-exists % :arglists ->deregexify))
               (map #(update % :members ->searchset-members))
               (map #(assoc % :path (path-for-def version-entity (:namespace %) (:name %)))))
              cache-bundle-defs)
