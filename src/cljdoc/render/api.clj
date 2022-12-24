@@ -142,10 +142,11 @@
       (catch Throwable _ex))))
 
 (defn render-arglists [def-name arglists]
-  (if-let [calls (to-call-examples def-name arglists)]
-    (for [c calls]
-      (render-call-example c))
-    (render-call-example-bad-arglists def-name arglists)))
+  (when arglists
+    (if-let [calls (to-call-examples def-name arglists)]
+      (for [c calls]
+        (render-call-example c))
+      (render-call-example-bad-arglists def-name arglists))))
 
 (defn render-var-args-and-docs
   "Render arglists and docstring for var `d` distinguishing platform differences, if any."
