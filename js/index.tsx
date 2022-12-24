@@ -17,6 +17,7 @@ import {
 } from "./cljdoc";
 import { initRecentDocLinks } from "./recent-doc-links";
 import { mountSingleDocsetSearch } from "./single-docset-search";
+import { mergeHTMLPlugin } from "./hljs-merge-plugin";
 
 export type SidebarScrollPos = { page: string; scrollTop: number };
 
@@ -82,3 +83,6 @@ mountSingleDocsetSearch();
 
 // Save the sidebar scroll position when navigating away from the site so we can restore it later.
 window.onbeforeunload = saveSidebarScrollPos;
+
+// make the hljs plugin available to our layout page
+window.mergeHTMLPlugin = mergeHTMLPlugin;

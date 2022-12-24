@@ -13,7 +13,9 @@
 (defn highlight-js-customization []
   [:script
    (hiccup/raw
-    "hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });
+    "hljs.configure({ignoreUnescapedHTML: true});
+     hljs.addPlugin(mergeHTMLPlugin);
+     hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });
      hljs.highlightAll();")])
 
 (defn highlight-js []
