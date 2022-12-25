@@ -111,5 +111,7 @@
 (comment
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
 
+  (match-route "/d/foo/bar/CURRENT")
+
   (clojure.pprint/pprint
    (routes identity {})))
