@@ -228,6 +228,18 @@
       (string/replace #"^https*://" "")
       (string/replace #"^[^/]*" "")))
 
+(defn- matching-referer-version [request target-group-id target-artifact-id]
+  (when-let [{:keys [group-id artifact-id version]}
+             (some-> request
+                     (get-in [:headers "referer"])
+                     uri-path
+                     routes/match-route
+                     :path-params)]
+    (when (and version
+               (= target-group-id group-id)
+               (= target-artifact-id artifact-id))
+      version)))
+
 (def resolve-version-interceptor
   "An interceptor that will look at `:path-params` and try to turn it into an artifact
   entity or redirect of the version is specified in a meta-fasion, i.e. `CURRENT`.
@@ -242,15 +254,12 @@
                    artifact-id     (or artifact-id (proj/artifact-id project))
                    group-id        (or group-id (proj/group-id project))
                    proj-search     (str group-id "/" artifact-id)
-                   referer-version (some-> request
-                                           (get-in [:headers "referer"])
-                                           uri-path routes/match-route :path-params :version)
                    resolved-version (cond
                                       (nil? version)
                                       (repos/latest-release-version proj-search)
 
                                       (= "CURRENT" version)
-                                      (or referer-version
+                                      (or (matching-referer-version request group-id artifact-id)
                                           (repos/latest-release-version proj-search))
 
                                       :else version)
