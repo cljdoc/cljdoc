@@ -228,7 +228,7 @@
       (string/replace #"^https*://" "")
       (string/replace #"^[^/]*" "")))
 
-(defn- matching-referer-version [request target-group-id target-artifact-id ]
+(defn- matching-referer-version [request target-group-id target-artifact-id]
   (when-let [{:keys [group-id artifact-id version]}
              (some-> request
                      (get-in [:headers "referer"])
