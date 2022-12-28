@@ -6,12 +6,7 @@
   (:require [cljdoc.render.layout :as layout]
             [cljdoc.server.routes :as routes]
             [cljdoc-shared.proj :as proj]
-            [clojure.spec.alpha :as spec]
             [version-clj.core :as v]))
-
-(spec/fdef artifact-index
-  :args (spec/cat :artifact-entity :cljdoc.spec/artifact-entity
-                  :versions (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn artifact-index
   [{:keys [group-id artifact-id] :as artifact-entity} versions-tree source static-resources]
@@ -71,10 +66,6 @@
      {:href (routes/url-for :artifact/index :path-params artifact-entity)}
      "more versions"]]])
 
-(spec/fdef group-index
-  :args (spec/cat :group-entity :cljdoc.spec/group-entity
-                  :versions (spec/coll-of :cljdoc.spec/version-entity)))
-
 (defn group-index
   [group-entity versions-tree source static-resources]
   (let [group-id (:group-id group-entity)]
@@ -101,9 +92,6 @@
                                       (format "All known artifacts under group %s" group-id))
                        :static-resources static-resources}))))
 
-(spec/fdef full-index
-  :args (spec/cat :versions (spec/coll-of :cljdoc.spec/version-entity)))
-
 (defn full-index
   [versions-tree source static-resources]
   (->> [:div
@@ -127,9 +115,6 @@
 
 (defn sort-by-version [version-entities]
   (sort-by :version #(- (v/version-compare %1 %2)) version-entities))
-
-(spec/fdef sort-by-version
-  :args (spec/cat :version-entities (spec/coll-of :cljdoc.spec/version-entity)))
 
 (defn versions-tree
   "Make the versions seq into group -> artifact -> list of versions (latest first)"
