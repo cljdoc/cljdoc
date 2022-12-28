@@ -4,7 +4,11 @@
             [io.pedestal.interceptor :as interceptor]
             [io.pedestal.http.content-negotiation :as conneg]))
 
-(def negotiate-content conneg/negotiate-content)
+(defn negotiate-content [accepted-types default-type]
+  (conneg/negotiate-content accepted-types
+                            {:no-match-fn (fn no-match [ctx]
+                                            (assoc-in ctx [:request :accept]
+                                                      (conneg/parse-accept-element default-type)))}))
 
 (defn accepted-type
   [context]
@@ -44,9 +48,6 @@
                  (-> context
                      (assoc-in [:response :body] rendered-body)
                      (update :response coerce-to content-type)))))}))
-
-(def coerce-body
-  (coerce-body-conf nil))
 
 (defn ok
   "Return the context `ctx` with response `body` and status 200"

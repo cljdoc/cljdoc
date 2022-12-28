@@ -20,10 +20,12 @@
             [tea-time.core :as tt]
             [babashka.fs :as fs]))
 
+(def log-file "log/cljdoc.log")
+
 (unilog/start-logging!
  {:level   :info
   :console true
-  :files   ["log/cljdoc.log"]
+  :files   [log-file]
   :appenders (when (cfg/sentry-dsn)
                [{:appender :sentry}])})
 

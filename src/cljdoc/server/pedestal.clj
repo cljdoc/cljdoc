@@ -136,9 +136,9 @@
            (available-docs-denormalized searcher artifact-ent)
            (case route-name
              (:artifact/index :group/index)
-                        ;; NOTE: We do not filter by artifact-id b/c in the UI version we want
-                        ;; to show "Other artifacts under the <XY> group"
-                        ;; This is not appropriate for Dash, so we only do this for :built docs
+             ;; NOTE: We do not filter by artifact-id b/c in the UI version we want
+             ;; to show "Other artifacts under the <XY> group"
+             ;; This is not appropriate for Dash, so we only do this for :built docs
              (storage/list-versions store group-id)
 
              :cljdoc/index
@@ -159,7 +159,8 @@
           :artifact/index (index-pages/artifact-index artifact-ent versions-data source static-resources)
           :group/index (index-pages/group-index artifact-ent versions-data source static-resources)
           :cljdoc/index (index-pages/full-index versions-data source static-resources)))))
-   (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
+   (pu/negotiate-content ["text/html" "application/edn" "application/json"]
+                         "text/html")
    (interceptor/interceptor
     {:name ::releases-loader
      :enter (fn releases-loader-inner [ctx]
@@ -308,34 +309,46 @@
   (interceptor/interceptor
    {:name ::request-build
     :enter (fn request-build-handler [ctx]
-             (if-let [running (build-log/running-build build-tracker
-                                                       (-> ctx :request :form-params :project proj/group-id)
-                                                       (-> ctx :request :form-params :project proj/artifact-id)
-                                                       (-> ctx :request :form-params :version))]
-               (redirect-to-build-page ctx (:id running))
-               (let [build (api/kick-off-build!
-                            deps
-                            {:project (-> ctx :request :form-params :project)
-                             :version (-> ctx :request :form-params :version)})]
-                 (redirect-to-build-page ctx (:build-id build)))))}))
+             (let [{:keys [project version]} (-> ctx :request :form-params)
+                   group-id (proj/group-id project)
+                   artifact-id (proj/artifact-id project)]
+               (if-let [running (build-log/running-build build-tracker group-id artifact-id version)]
+                 (redirect-to-build-page ctx (:id running))
+                 (let [build (api/kick-off-build!
+                              deps {:project project :version version})]
+                   (redirect-to-build-page ctx (:build-id build))))))}))
 
 (def request-build-validate
-  ;; TODO quick and dirty for now
   (interceptor/interceptor
    {:name ::request-build-validate
     :enter (fn request-build-validate [ctx]
-             (if (and (some-> ctx :request :form-params :project string?)
-                      (some-> ctx :request :form-params :version string?))
-               ctx
-               (assoc ctx :response {:status 400 :headers {}})))}))
+             (let [{:keys [project version]} (some-> ctx :request :form-params)]
+               (cond
+                 (not (and (string? project) (string? version)))
+                 (assoc ctx :response {:status 400
+                                       :headers {"Content-Type" "text/html"}
+                                       :body "ERROR: Must specify project and version params"})
+
+                 (not (repos/find-artifact-repository project version))
+                 (assoc ctx :response {:status 404
+                                       :headers {"Content-Type" "text/html"}
+                                       :body (format "ERROR: project %s version %s not found in maven repositories"
+                                                     project version)})
+
+                 :else
+                 ctx)))}))
 
 (defn search-interceptor [searcher]
   (interceptor/interceptor
    {:name  ::search
     :enter (fn search-handler [ctx]
              (if-let [q (-> ctx :request :params :q)]
-               (pu/ok ctx (search-api/search searcher q))
-               (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))}))
+               (assoc ctx :response {:status 200
+                                     :headers {"Content-Type" "application/json"}
+                                     :body (json/generate-string (search-api/search searcher q))})
+               (assoc ctx :response {:status 400
+                                     :headers {"Content-Type" "application/json"}
+                                     :body "ERROR: Missing q query param"})))}))
 
 (defn search-suggest-interceptor [searcher]
   (interceptor/interceptor
@@ -343,8 +356,11 @@
     :enter (fn search-suggest-handler [ctx]
              (if-let [q (-> ctx :request :params :q)]
                (assoc ctx :response {:status  200
-                                     :body    (search-api/suggest searcher q)})
-               (assoc ctx :response {:status 400 :headers {} :body "ERROR: Missing q query param"})))}))
+                                     :headers {"Content-Type" "application/x-suggestions+json"}
+                                     :body    (json/generate-string (search-api/suggest searcher q))})
+               (assoc ctx :response {:status 400
+                                     :headers {"Content-Type" "application/x-suggestions+json"}
+                                     :body "ERROR: Missing q query param"})))}))
 
 (defn show-build
   [build-tracker]
@@ -354,9 +370,13 @@
              (if-let [build-info (->> ctx :request :path-params :id
                                       (build-log/get-build build-tracker))]
                (pu/ok ctx build-info)
-               (assoc ctx :response {:status 404
-                                     :headers {"Content-Type" "text/html"}
-                                     :body (error/not-found-page (:static-resources ctx))})))}))
+               ;; dual purpose endpoint, used for both website page and an api call
+               (if (= "text/html" (some-> ctx :request :accept :field))
+                 (assoc ctx :response {:status 404
+                                       :headers {"Content-Type" "text/html"}
+                                       :body (error/not-found-page (:static-resources ctx))})
+                 (assoc ctx :response {:status 404
+                                       :body "Build not found"}))))}))
 
 (defn all-builds
   [build-tracker]
@@ -557,7 +577,7 @@
                                                                   (-> cache-bundle :version-entity :version) ".zip"))}
                      :body (offline/zip-stream cache-bundle static-resources)}
                     {:status 404
-                     :headers {}
+                     :headers {"Content-Type" "text/html"}
                      :body "Could not find data, please request a build first"})
                   (assoc ctx :response)))}))
 
@@ -593,12 +613,13 @@
          :sitemap    [(sitemap-interceptor storage)]
          :opensearch [(opensearch opensearch-base-url)]
          :show-build [(pu/coerce-body-conf render-build-log/build-page)
-                      (pu/negotiate-content #{"text/html" "application/edn" "application/json"})
+                      (pu/negotiate-content ["text/html" "application/edn" "application/json"]
+                                            "text/html")
                       (show-build build-tracker)]
          :all-builds [(all-builds build-tracker)]
 
-         :api/search [pu/coerce-body (pu/negotiate-content #{"application/json"}) (search-interceptor searcher)]
-         :api/search-suggest [pu/coerce-body (pu/negotiate-content #{"application/x-suggestions+json"}) (search-suggest-interceptor searcher)]
+         :api/search [(search-interceptor searcher)]
+         :api/search-suggest [(search-suggest-interceptor searcher)]
 
          :api/searchset [(pom-loader cache)
                          (artifact-data-loader storage)

@@ -243,7 +243,7 @@
   (log/info "Download & index starting...")
   (let [result (index! clojars-stats index (into (clojars/load-clojars-artifacts force-download?)
                                                  (maven-central/load-maven-central-artifacts force-download?)))]
-    (log/info "Finished downloading & indexing.")
+    (log/info "Finished downloading & indexing artifacts.")
     result))
 
 ;; --- search support -----
