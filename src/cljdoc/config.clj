@@ -1,6 +1,7 @@
 (ns cljdoc.config
   (:refer-clojure :exclude [get-in])
-  (:require [clojure.tools.logging :as log]
+  (:require [babashka.fs :as fs]
+            [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [aero.core :as aero]))
 
@@ -26,7 +27,7 @@
                     {:ks ks, :profile (profile)}))))
 
 (defn config-file []
-  (or (some-> (System/getenv "CLJDOC_CONFIG_EDN") io/file)
+  (or (some-> (System/getenv "CLJDOC_CONFIG_EDN") fs/file)
       (io/resource "config.edn")))
 
 (defn config
@@ -59,9 +60,9 @@
    :subprotocol "sqlite",
    :foreign_keys true
    :cache_size 10000
-   :subname (let [new-path (str (data-dir config) "cljdoc.db.sqlite")
-                  old-path (str (data-dir config) "build-log.db")]
-              (if (.exists (io/file old-path))
+   :subname (let [new-path (str (fs/file (data-dir config) "cljdoc.db.sqlite"))
+                  old-path (str (fs/file (data-dir config) "build-log.db"))]
+              (if (fs/exists? old-path)
                 (do (log/warnf "Database needs to be moved from %s to %s" old-path new-path)
                     old-path)
                 new-path))
@@ -78,7 +79,7 @@
    :db-spec {:dbtype "sqlite"
              :classname "org.sqlite.JDBC"
              :subprotocol "sqlite"
-             :subname (str (data-dir config) "cache.db")}})
+             :subname (str (fs/file (data-dir config) "cache.db"))}})
 
 (defn autobuild-clojars-releases? [config]
   (get-in config [:cljdoc/server :autobuild-clojars-releases?]))
