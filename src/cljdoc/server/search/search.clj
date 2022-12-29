@@ -142,15 +142,6 @@
    (term "id" (artifact->index-id artifact))
    (artifact->doc artifact (calculate-doc-popularity clojars-stats artifact))))
 
-(defn- index-artifacts [clojars-stats ^IndexWriter idx-writer artifacts]
-  (run!
-   (fn [artifact]
-     (.updateDocument
-      idx-writer
-      (term "id" (artifact->index-id artifact))
-      (artifact->doc artifact (calculate-doc-popularity clojars-stats artifact))))
-   artifacts))
-
 (defn- track-indexing-status [{:keys [last-report-time] :as status}]
   (let [status (update status :artifacts-indexed inc)
         indexed (-> status :artifacts-indexed)
@@ -221,27 +212,31 @@
 
 ;; public index fns
 
+(def ^:private index-write-lock (Object.))
+
 (defn index! [clojars-stats ^Directory index artifacts]
-  (let [analyzer (artifact-analyzer :index)
-        iw-cfg   (doto (IndexWriterConfig. analyzer)
-                   (.setOpenMode IndexWriterConfig$OpenMode/CREATE_OR_APPEND)
-                   (.setSimilarity (custom-similarity)))]
-    (with-open [idx-writer (IndexWriter. index iw-cfg)]
-      (let [{:keys [artifacts-indexed start-time]}
-            (reduce (fn [status artifact]
-                      (try
-                        (index-artifact clojars-stats idx-writer artifact)
-                        (catch Exception e
-                          (log/errorf e "Failed to index %s/%s" (:group-id artifact) (:artifact-id artifact))))
-                      (track-indexing-status status))
-                    {:artifacts-indexed 0
-                     :last-report-time (System/currentTimeMillis)
-                     :start-time (System/currentTimeMillis)}
-                    artifacts)
-            seconds-elapsed (float (/ (- (System/currentTimeMillis) start-time) 1000))]
-        (log/infof "Artifact indexing complete. Indexed %d jars in %.2f seconds (%.2f/second)"
-                   artifacts-indexed seconds-elapsed (/ artifacts-indexed seconds-elapsed)))
-      (index-artifacts clojars-stats idx-writer artifacts))))
+  ;; Lucene does not support multiple concurrent writers on a single index
+  ;; for now, we take the simple approach and use a lock to avoid multiple concurrent writers
+  (locking index-write-lock
+    (let [analyzer (artifact-analyzer :index)
+          iw-cfg   (doto (IndexWriterConfig. analyzer)
+                     (.setOpenMode IndexWriterConfig$OpenMode/CREATE_OR_APPEND)
+                     (.setSimilarity (custom-similarity)))]
+      (with-open [idx-writer (IndexWriter. index iw-cfg)]
+        (let [{:keys [artifacts-indexed start-time]}
+              (reduce (fn [status artifact]
+                        (try
+                          (index-artifact clojars-stats idx-writer artifact)
+                          (catch Exception e
+                            (log/errorf e "Failed to index %s/%s" (:group-id artifact) (:artifact-id artifact))))
+                        (track-indexing-status status))
+                      {:artifacts-indexed 0
+                       :last-report-time (System/currentTimeMillis)
+                       :start-time (System/currentTimeMillis)}
+                      artifacts)
+              seconds-elapsed (float (/ (- (System/currentTimeMillis) start-time) 1000))]
+          (log/infof "Artifact indexing complete. Indexed %d jars in %.2f seconds (%.2f/second)"
+                     artifacts-indexed seconds-elapsed (/ artifacts-indexed seconds-elapsed)))))))
 
 (defn download-and-index!
   [clojars-stats ^Directory index & {:keys [force-download?]}]
