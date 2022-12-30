@@ -17,12 +17,15 @@
             [ragtime.core :as ragtime]
             [ragtime.clj.core] ;; allow Clojure-based migrations
             [taoensso.nippy :as nippy]
-            [tea-time.core :as tt]))
+            [tea-time.core :as tt]
+            [babashka.fs :as fs]))
+
+(def log-file "log/cljdoc.log")
 
 (unilog/start-logging!
  {:level   :info
   :console true
-  :files   ["log/cljdoc.log"]
+  :files   [log-file]
   :appenders (when (cfg/sentry-dsn)
                [{:appender :sentry}])})
 
@@ -30,7 +33,7 @@
   ;; change the index name when making incompatible changes, this will
   ;; - create a new index from scratch
   ;; - leave the old index around should we want to revert and
-  (str (cfg/data-dir env-config) "index-lucene942"))
+  (str (fs/file (cfg/data-dir env-config) "index-lucene942")))
 
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)]
