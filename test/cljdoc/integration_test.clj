@@ -272,11 +272,13 @@
 
   (t/testing "search suggest api for available artifacts (optionally used by web browsers)"
     (doseq [accept ["application/json" "foobar"]]
+      ;; kinda brittle, API only returns the top 5 results so if popularity of a lib changes
+      ;; might need to adjust
       (t/is (match? {:status 200
                      :headers {"Content-Type" "application/x-suggestions+json"}
                      :body (m/via json/parse-string ["rewrite-clj" (m/embeds
                                                                     ["rewrite-clj/rewrite-clj "
-                                                                     "pez/rewrite-cljs "])])}
+                                                                     "net.vemv/rewrite-clj "])])}
                     (pdt/response-for *service*
                                       :get "/api/search-suggest?q=rewrite-clj"
                                       :headers {"Accept" accept}))
@@ -431,6 +433,19 @@
   (pdt/response-for *service*
                     :get "/versions/metosin/muuntaja"
                     :headers {"Accept" "application/json"})
+
+  (-> (pdt/response-for *service*
+                        :get "/api/search-suggest?q=rewrite-clj"
+                        :headers {"Accept" "application/json"})
+      :body
+      json/parse-string)
+  ;; => ("rewrite-clj"
+  ;;     ["rewrite-clj/rewrite-clj "
+  ;;      "net.vemv/rewrite-clj "
+  ;;      "rewrite-cljs/rewrite-cljs "
+  ;;      "xerpa/cljsjs-libphonenumber-js "
+  ;;      "lein-set-dep-ver/lein-set-dep-ver "])
+
 
   (-> (pdt/raw-response-for *service*
                             :get "/download/metosin/muuntaja/0.6.4")
