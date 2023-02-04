@@ -14,7 +14,7 @@
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
         ;; delete override when pedestal updates:
         org.clojure/tools.analyzer.jvm {:mvn/version "1.2.3"}
-        ;; override pedestal jetty deps for CVEs
+        ;; override pedestal jetty deps for CVEs (delete all when pedestal addresses)
         org.eclipse.jetty/jetty-server {:mvn/version "9.4.48.v20220622"}
         org.eclipse.jetty/jetty-servlet {:mvn/version "9.4.48.v20220622"}
         org.eclipse.jetty/jetty-alpn-server {:mvn/version "9.4.48.v20220622"}
@@ -25,7 +25,7 @@
 
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.40.0.0"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.40.1.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.3"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
