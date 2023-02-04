@@ -23,7 +23,7 @@
    (org.apache.lucene.search.similarities BM25Similarity)
    (org.apache.lucene.analysis.util CharTokenizer)
    (org.apache.lucene.document Document DoubleDocValuesField Field FieldType Field$Store StringField TextField)
-   (org.apache.lucene.index DirectoryReader IndexOptions IndexReader IndexWriter IndexWriterConfig IndexWriterConfig$OpenMode Term)
+   (org.apache.lucene.index DirectoryReader IndexOptions IndexReader IndexWriter IndexWriterConfig IndexWriterConfig$OpenMode StoredFields Term)
    (org.apache.lucene.queries.function FunctionScoreQuery)
    (org.apache.lucene.search BooleanQuery$Builder BooleanClause$Occur BoostQuery IndexSearcher MatchAllDocsQuery Query ScoreDoc TermQuery)
    (org.apache.lucene.store Directory FSDirectory)))
@@ -327,7 +327,8 @@
   (-> topdocs (.-totalHits) (.value)))
 
 (defn- matched-doc ^Document [^IndexSearcher searcher ^ScoreDoc scoredoc]
-  (.doc searcher (hitdoc-num scoredoc)))
+  (let [^StoredFields stored-fields (.storedFields searcher)]
+    (.document stored-fields (hitdoc-num scoredoc))))
 
 (defn- doc->artifact [^Document doc score]
   {:group-id (.get doc "group-id")
@@ -457,8 +458,9 @@
        (println query)
        (run!
         (fn [^ScoreDoc score-doc]
-          (println (.get (.doc searcher (.-doc score-doc)) "id")
-                   (.explain searcher query (.-doc score-doc))))
+          (let [^StoredFields stored-fields (.storedFields searcher)]
+            (println (.get (.document stored-fields (.-doc score-doc)) "id")
+                     (.explain searcher query (.-doc score-doc)))))
         (take n (.scoreDocs topdocs)))))))
 
 (comment
@@ -479,7 +481,7 @@
 
   (def clojars-stats (:cljdoc/clojars-stats integrant.repl.state/system))
 
-  (def index (disk-index "data/index-lucene93"))
+  (def index (disk-index "data/index-lucene950"))
 
   (download-and-index! clojars-stats
                        index
