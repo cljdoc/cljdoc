@@ -9,6 +9,4 @@
            :aliased-namespace-symbol {:level :warning}
            :warn-on-reflection {:level :off :warn-only-on-interop true}
            :unused-binding {:exclude-destructured-keys-in-fn-args true}
-           :unresolved-var {:exclude [clj-commons.digest/sha-256]}
-           ;; for  nubank/matcher-combinators
-           :unresolved-symbol {:exclude [(clojure.test/is [match?])]}}}
+           :unresolved-var {:exclude [clj-commons.digest/sha-256]}}}
