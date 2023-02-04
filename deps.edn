@@ -66,7 +66,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.10.0"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.13.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -74,7 +74,7 @@
         org.clj-commons/clj-http-lite {:mvn/version "1.0.13"} ;; a lite version of clj-http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.2.12"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.2.15"}                  ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.4.5"}            ;; profile/perf monitoring
@@ -85,9 +85,9 @@
         robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
-        zprint/zprint {:mvn/version "1.2.4"}                 ;; format clojure source/edn
+        zprint/zprint {:mvn/version "1.2.5"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.9.2"}
+        metosin/malli {:mvn/version "0.10.1"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -96,13 +96,13 @@
  :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.71.1119"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.77.1236"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
-                         nubank/matcher-combinators {:mvn/version "3.7.2" :exclusions [midje/midje]}}
+                         nubank/matcher-combinators {:mvn/version "3.8.0" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.12.10"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.01.20"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
@@ -115,11 +115,11 @@
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :code-format
-           {:extra-deps {cljfmt/cljfmt {:mvn/version "0.9.0"}}
+           {:extra-deps {cljfmt/cljfmt {:mvn/version "0.9.2"}}
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.2.970"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.2.983"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.6"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
