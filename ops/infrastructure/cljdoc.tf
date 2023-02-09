@@ -2,7 +2,6 @@
 
 provider "aws" {
   alias = "prod"
-
   region     = "${var.aws_region}"
   access_key = "${var.aws_access_key_id}"
   secret_key = "${var.aws_secret_key}"
@@ -39,7 +38,7 @@ module "main_server" {
 # Route53 ------------------------------------------------------------
 
 resource "aws_route53_zone" "cljdoc_xyz_zone" {
-  provider = "aws.prod"
+  provider = aws
   name     = "${var.xyz_domain}"
 }
 
