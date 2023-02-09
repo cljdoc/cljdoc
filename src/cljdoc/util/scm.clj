@@ -55,7 +55,7 @@
   [scm-url]
   (cond
     (string/starts-with? scm-url "http")
-    scm-url
+    (re-find #"http.*//[^/]*/[^/]*/[^/]*" scm-url)
 
     (or (string/starts-with? scm-url "git@")
         (string/starts-with? scm-url "ssh://"))
