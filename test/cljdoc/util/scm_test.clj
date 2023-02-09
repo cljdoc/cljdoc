@@ -95,6 +95,10 @@
   (t/is (= "http://gitea.heevyis.ninja/josha/formulare" (scm/http-uri "git@gitea.heevyis.ninja:josha/formulare.git")))
   (t/is (= "http://unknown-scm.com/circleci/clj-yaml" (scm/http-uri "git@unknown-scm.com:circleci/clj-yaml"))))
 
+(t/deftest http-uri-remove-extra-segments
+  (t/is (= "http://github.com/circleci/clj-yaml" (scm/http-uri "http://github.com/circleci/clj-yaml/some/extra/stuff")))
+  (t/is (= "https://github.com/circleci/clj-yaml" (scm/http-uri "https://github.com/circleci/clj-yaml/some/extra/stuff"))))
+
 (t/deftest scm-view-uri-test
   (t/is (= "https://github.com/circleci/clj-yaml/blob/master/README.md" (scm/branch-url {:url "https://github.com/circleci/clj-yaml", :branch "master"} "README.md")))
   (t/is (= "https://git.sr.ht/~miikka/clj-branca/tree/master/README.md" (scm/branch-url {:url "https://git.sr.ht/~miikka/clj-branca", :branch "master"} "README.md")))
