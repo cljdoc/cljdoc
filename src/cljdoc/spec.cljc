@@ -126,4 +126,4 @@
 (defn assert [spec v]
   (if (s/get-spec spec)
     (s/assert spec v)
-    (throw (Exception. (str "No spec found for " spec)))))
+    (throw (ex-info (str "No spec found for " spec) {}))))
