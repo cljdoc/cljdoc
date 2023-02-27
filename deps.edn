@@ -22,10 +22,12 @@
         org.eclipse.jetty.websocket/websocket-api {:mvn/version "9.4.48.v20220622"}
         org.eclipse.jetty.websocket/websocket-servlet {:mvn/version "9.4.48.v20220622"}
         org.eclipse.jetty.websocket/websocket-server {:mvn/version "9.4.48.v20220622"}
+        ;; pedestal -> ring dep override to address CVE (delete when pedestals addresses)
+        commons-fileupload/commons-fileupload {:mvn/version "1.5"}
 
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.40.1.0"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.41.0.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.3"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
@@ -41,7 +43,7 @@
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "2.5.7"}  ;; render adoc to html
         ;; temporarily override jruby used by asciidoctorj to overcome CVE
-        org.jruby/jruby {:mvn/version "9.4.0.0"}
+        org.jruby/jruby {:mvn/version "9.4.1.0"}
         com.vladsch.flexmark/flexmark                        ;; render github markdown to html
         {:mvn/version "0.64.0"}
         com.vladsch.flexmark/flexmark-ext-autolink           ;; converts raw links in text to clickable links
@@ -55,7 +57,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-alpha2"}          ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.15.3"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.15.4"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
@@ -66,7 +68,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.13.0"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.14.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -74,7 +76,7 @@
         org.clj-commons/clj-http-lite {:mvn/version "1.0.13"} ;; a lite version of clj-http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.2.15"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.2.16"}                  ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.4.5"}            ;; profile/perf monitoring
@@ -96,13 +98,13 @@
  :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.77.1236"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.78.1249"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
-                         nubank/matcher-combinators {:mvn/version "3.8.0" :exclusions [midje/midje]}}
+                         nubank/matcher-combinators {:mvn/version "3.8.3" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.01.20"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.02.17"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
@@ -119,7 +121,7 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.2.983"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.2.999"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.6"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
