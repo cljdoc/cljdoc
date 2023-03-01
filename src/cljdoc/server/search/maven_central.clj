@@ -54,7 +54,7 @@
 
           {total :numFound, docs :docs}
           (:response (fetch-json
-                      (str "http://search.maven.org/solrsearch/select?q=" query
+                      (str "https://search.maven.org/solrsearch/select?q=" query
                            "&start=" start "&rows=" rows
                            opt-get-all-versions)))
 
@@ -95,7 +95,7 @@
   Maven Central does not support ETAG / If-Modified-Since so we use the artifacts+versions count as an
   indication that there is something new and we need to re-fetch."
   [group-id]
-  (let [versions-cnt (-> (fetch-json (str "http://search.maven.org/solrsearch/select?q=g:" group-id "&core=gav&rows=0"))
+  (let [versions-cnt (-> (fetch-json (str "https://search.maven.org/solrsearch/select?q=g:" group-id "&core=gav&rows=0"))
                          :response :numFound)]
     (> versions-cnt (get @maven-grp-version-counts group-id -1))))
 

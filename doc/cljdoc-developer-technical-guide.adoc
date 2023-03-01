@@ -73,7 +73,7 @@ Cljdoc supports full text querying for libraries with a https://lucene.apache.or
 The Lucene index allows cljdoc users to search all available libraries, not necessarily just the ones cljdoc has already built docs for. Available libraries are automatically sourced from:
 
 * Clojars via `\https://clojars.org/repo/feed.clj.gz` daily, and updates by the minute via the `\https://clojars.org/search` API.
-* Maven Central via `\http://search.maven.org` APIs.
+* Maven Central via `\https://search.maven.org` https://central.sonatype.org/search/rest-api-guide/[API].
 Not many Clojurians host on Maven Central but, quite notably, the Clojure core team does.
 We only fetch for a list of explicit group-ids and are happy to update this list on request.
 
