@@ -169,24 +169,24 @@
 ;; to a file where a `def` is coming from --------------------------
 
 (defn- find-full-filepath
-  "Take a list of filepaths, one subpath and find the best matching full path.
-
-  We use this to find the full path to files in Git for a given file in a jar."
-  [known-files fpath]
-  (let [matches (filter #(string/ends-with? (str "/" %) (str "/" fpath)) known-files)]
+  "Return best match for `jar-file-path` source in `known-git-file-paths`."
+  [known-git-file-paths jar-file-path]
+  (let [matches (filter #(string/ends-with? (str "/" %) (str "/" jar-file-path)) known-git-file-paths)]
     (if (= 1 (count matches))
       (first matches)
       ;; choose shortest path where file sits under what looks like a src dir
       (let [best-guess (->> matches
-                            (filter #(or (string/ends-with? (str "/" %) (str "/src/" fpath))
-                                         (string/ends-with? (str "/" %) (str "/src/main/" fpath))))
+                            (filter (fn [git-file]
+                                      (let [src-path (str "/" (subs git-file 0 (- (count git-file) (count jar-file-path))))]
+                                        (string/includes? src-path "/src/"))))
+                            sort ;; maybe 2 paths are same length, so ensure a consistent result by sorting first
                             (sort-by count)
                             first)]
         (if best-guess
           (log/warnf "Did not find unique file on SCM for jar file %s - chose %s from candidates: %s"
-                     fpath best-guess (pr-str matches))
+                     jar-file-path best-guess (pr-str matches))
           (log/errorf "Did not find unique file on SCM for jar file %s - found no good candidate from candidates: %s"
-                      fpath (pr-str matches)))
+                      jar-file-path (pr-str matches)))
         best-guess))))
 
 (defn match-files
