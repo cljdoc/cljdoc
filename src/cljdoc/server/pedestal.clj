@@ -200,7 +200,7 @@
 
 (defn load-pom
   "Given a `fetch-pom-xml` function, one that takes a clojars-id and a version number as parameters, and a
-  `version-entity (see `:cljdoc.spec/version-entity` in spec.cljc)`, fetch the pom xml and get the description
+  `version-entity` (see `:cljdoc.spec/version-entity` in spec.cljc), fetch the pom xml and get the description
   and dependencies."
   [fetch-pom-xml version-entity]
   (when-let [{:keys [artifact-info dependencies]} (some-> (fetch-pom-xml
