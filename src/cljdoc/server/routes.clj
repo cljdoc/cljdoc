@@ -25,7 +25,7 @@
     ["/api/search" :get nop :route-name :api/search]
     ["/api/search-suggest" :get nop :route-name :api/search-suggest]
     ["/api/searchset/:group-id/:artifact-id/:version" :get nop :route-name :api/searchset]
-    ["/api/docsets/:group-id/:artifact-id/:version" :get nop :route-name :api/docsets]})
+    ["/experiments/cora/api/docsets/:group-id/:artifact-id/:version" :get nop :route-name :api/docsets]})
 
 (defn build-log-routes []
   #{["/builds/:id" :get nop :route-name :show-build]
