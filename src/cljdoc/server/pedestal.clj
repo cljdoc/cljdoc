@@ -595,6 +595,20 @@
                      :body (json/generate-string {:error "Could not find data, please request a build first"})})
                   (assoc ctx :response)))}))
 
+(def api-docsets
+  "Creates an API response with a JSON representation of a cache bundle as a `docset`."
+  (interceptor/interceptor
+   {:name ::api/docsets
+    :enter (fn api-docsets [{:keys [cache-bundle] :as ctx}]
+             (->> (if cache-bundle
+                    {:status 200
+                     :headers {"Content-Type" "application/json"}
+                     :body (json/generate-string cache-bundle)}
+                    {:status 404
+                     :headers {"Content-Type" "application/json"}
+                     :body (json/generate-string {:error "Could not find data, please request a build first"})})
+                  (assoc ctx :response)))}))
+
 (defn route-resolver
   "Given a route name return a list of interceptors to handle requests
   to that route.
@@ -624,6 +638,10 @@
          :api/searchset [(pom-loader cache)
                          (artifact-data-loader storage)
                          api-searchset]
+
+         :api/docsets [(pom-loader cache)
+                       (artifact-data-loader storage)
+                       api-docsets]
 
          :ping          [(interceptor/interceptor {:name ::pong :enter #(pu/ok-html % "pong")})]
          :request-build [(body/body-params) request-build-validate (request-build deps)]
