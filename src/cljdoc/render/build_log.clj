@@ -115,9 +115,7 @@
          (string/replace (:scm_url build-info) #"^https://github\.com/" "")]
         " @ "
         [:a.link.blue {:href (str (:scm_url build-info) "/commit/" (:commit_sha build-info))}
-         (if (< (count (:commit_sha build-info)) 8)
-           (:commit_sha build-info)
-           (subs (:commit_sha build-info) 0 8))]]))
+         (:commit_sha build-info)]]))
 
     (:git_problem build-info)
     (section
