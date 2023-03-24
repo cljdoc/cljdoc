@@ -3,7 +3,7 @@
         lread/status-line {:git/url "https://github.com/lread/status-line.git"
                            :sha "cf44c15f30ea3867227fa61ceb823e5e942c707f"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
-        etaoin/etaoin {:mvn/version "1.0.39"}}
+        etaoin/etaoin {:mvn/version "1.0.40"}}
  :tasks {lint {:task lint/-main :doc "[--rebuild] lint source code using clj-kondo"}
          eastwood {:task (clojure "-M:test:eastwood") :doc "lint source code using eastwood"}
          code-format {:task code-format/-main :doc "(check|fix) check whitespace formatting"}
