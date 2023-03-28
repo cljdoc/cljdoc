@@ -8,20 +8,12 @@
         integrant/repl {:mvn/version "0.3.2"}                ;;  with reload support
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.5.10"}   ;; web site/service with jetty engine
-        io.pedestal/pedestal.service {:mvn/version "0.5.10"} ;; web site/service
+        io.pedestal/pedestal.jetty {:mvn/version "0.5.11-beta-1"}   ;; web site/service with jetty engine
+        io.pedestal/pedestal.service {:mvn/version "0.5.11-beta-1"} ;; web site/service
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
         ;; delete override when pedestal updates:
         org.clojure/tools.analyzer.jvm {:mvn/version "1.2.3"}
-        ;; override pedestal jetty deps for CVEs (delete all when pedestal addresses)
-        org.eclipse.jetty/jetty-server {:mvn/version "9.4.48.v20220622"}
-        org.eclipse.jetty/jetty-servlet {:mvn/version "9.4.48.v20220622"}
-        org.eclipse.jetty/jetty-alpn-server {:mvn/version "9.4.48.v20220622"}
-        org.eclipse.jetty.http2/http2-server {:mvn/version "9.4.48.v20220622"}
-        org.eclipse.jetty.websocket/websocket-api {:mvn/version "9.4.48.v20220622"}
-        org.eclipse.jetty.websocket/websocket-servlet {:mvn/version "9.4.48.v20220622"}
-        org.eclipse.jetty.websocket/websocket-server {:mvn/version "9.4.48.v20220622"}
         ;; pedestal -> ring dep override to address CVE (delete when pedestals addresses)
         commons-fileupload/commons-fileupload {:mvn/version "1.5"}
 
@@ -80,7 +72,7 @@
         cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.4.5"}            ;; profile/perf monitoring
-        lambdaisland/uri {:mvn/version "1.13.95"}            ;; URI/URLs
+        lambdaisland/uri {:mvn/version "1.14.120"}           ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
         org.clojure/core.memoize {:mvn/version "1.0.257"}    ;; function caching library
@@ -100,7 +92,7 @@
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.80.1274"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
-                         nubank/matcher-combinators {:mvn/version "3.8.4" :exclusions [midje/midje]}}
+                         nubank/matcher-combinators {:mvn/version "3.8.5" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo

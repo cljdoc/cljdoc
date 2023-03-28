@@ -54,4 +54,12 @@
    <packageUrl regex="true">^pkg:maven/org\.clojure/data\.priority\-map@.*$</packageUrl>
    <cpe>cpe:/a:priority-software:priority</cpe>
   </suppress>
+  <suppress>
+   <notes><![CDATA[
+   Google has marked the risky Guava function as deprecated and, at the time of this writing, will do no more.
+   https://github.com/google/guava/issues/4011
+   Guava is brought in by by owasp-java-html-sanitizer.
+   ]]></notes>
+   <cve>CVE-2020-8908</cve>
+  </suppress>
 </suppressions>
