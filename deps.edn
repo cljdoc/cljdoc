@@ -9,7 +9,14 @@
 
         ;; web server/services
         io.pedestal/pedestal.jetty {:mvn/version "0.5.11-beta-1"}   ;; web site/service with jetty engine
-        io.pedestal/pedestal.service {:mvn/version "0.5.11-beta-1"} ;; web site/service
+        ;; override pedestal jetty 9.4.48 deps to overcome CVEs (delete/recheck after bumping pedetal.jetty)
+        org.eclipse.jetty/jetty-servlet {:mvn/version "9.4.51.v20230217"}
+        org.eclipse.jetty.http2/http2-server {:mvn/version "9.4.51.v20230217"}
+        org.eclipse.jetty.websocket/websocket-api {:mvn/version "9.4.51.v20230217"}
+        org.eclipse.jetty.websocket/websocket-servlet {:mvn/version "9.4.51.v20230217"}
+        org.eclipse.jetty.websocket/websocket-server {:mvn/version "9.4.51.v20230217"}
+        org.eclipse.jetty/jetty-alpn-server {:mvn/version "9.4.51.v20230217"}
+
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
         ;; delete override when pedestal updates:
@@ -33,8 +40,8 @@
         org.apache.lucene/lucene-queryparser {:mvn/version "9.5.0"}
 
         ;; markdown
-        org.asciidoctor/asciidoctorj {:mvn/version "2.5.7"}  ;; render adoc to html
-        ;; temporarily override jruby used by asciidoctorj to overcome CVE
+        org.asciidoctor/asciidoctorj {:mvn/version "2.5.8"}  ;; render adoc to html
+        ;; temporarily override jruby used by asciidoctorj to overcome CVE (delete/recheck after bumping asciidoctorj)
         org.jruby/jruby {:mvn/version "9.4.2.0"}
         com.vladsch.flexmark/flexmark                        ;; render github markdown to html
         {:mvn/version "0.64.0"}
@@ -60,7 +67,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.16.0"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.17.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -72,7 +79,7 @@
         cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.4.5"}            ;; profile/perf monitoring
-        lambdaisland/uri {:mvn/version "1.14.120"}           ;; URI/URLs
+        lambdaisland/uri {:mvn/version "1.15.125"}           ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
         org.clojure/core.memoize {:mvn/version "1.0.257"}    ;; function caching library
@@ -81,7 +88,7 @@
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
         zprint/zprint {:mvn/version "1.2.5"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.10.4"}
+        metosin/malli {:mvn/version "0.11.0"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -90,17 +97,17 @@
  :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.80.1274"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.82.1306"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
                          nubank/matcher-combinators {:mvn/version "3.8.5" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.03.17"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.04.14"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
-           {:extra-deps {jonase/eastwood {:mvn/version "1.3.0"}}
+           {:extra-deps {jonase/eastwood {:mvn/version "1.4.0"}}
             :main-opts ["-m" "eastwood.lint" {:source-paths ["src"]
                                               :test-paths ["test"]}]}
            :cli
@@ -113,7 +120,7 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.2.1017"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.3.1043"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.7"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138

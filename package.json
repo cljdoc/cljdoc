@@ -24,9 +24,9 @@
     "parcel": "^2.8.2",
     "parcel-reporter-static-files-copy": "^1.5.0",
     "parcel-resolver-ignore": "^2.1.3",
-    "prettier": "^2.8.7",
+    "prettier": "^2.8.8",
     "pretty-quick": "^3.1.3",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.4"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
