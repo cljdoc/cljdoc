@@ -56,7 +56,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-alpha2"}          ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.15.4"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.16.1"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
@@ -67,7 +67,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.17.0"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.18.1"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
