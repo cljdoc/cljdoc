@@ -8,4 +8,5 @@
          eastwood {:task (clojure "-M:test:eastwood") :doc "lint source code using eastwood"}
          code-format {:task code-format/-main :doc "(check|fix) check whitespace formatting"}
          outdated {:task outdated/-main :doc "report on outdated Clojure and JavaScript dependencies"}
-         doc-update-readme {:task doc-update-readme/-main :doc "honour our contributors in README"}}}
+         doc-update-readme {:task doc-update-readme/-main :doc "honour our contributors in README"}
+         check-contributors {:task check-contributors/-main :doc "who'd we miss?"}}}
