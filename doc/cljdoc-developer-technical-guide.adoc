@@ -236,12 +236,33 @@ bb doc-update-readme
 This will generate the images for people and update the README file.
 Sometimes people update their GitHub avatars, so images can change even when the README does not.
 
+Preview the changes, commit and push.
+
 TIP: Image generation depends on `chromedriver`.
 On macOS this can be installed via `brew install chromedriver`.
 
 TIP: Current contribution keywords can be found in `./script/doc_update_readme.clj`.
 
-Preview the changes, commit and push.
+=== Finding Oversights for Contributors
+Sometimes we get lazy or distracted and don't remember to track our valuable contributors in `./doc/people.edn`.
+
+To reconcile `./doc/people.edn` with actual commiters and issue creators known to GitHub for our primary cljdoc repos you can run:
+
+```
+bb check-contributors
+```
+
+This will generate a simple report.
+For uncredited commiters, add `:code` and/or `:doc` to `:contributions` for `:github-id` in `./doc/people.edn`.
+
+For uncredited issue creators add `:issue` to `:contributions` for `:github-id` in `./doc/people.edn`.
+
+Sometimes GitHub records can be off, or maybe you want to credit somebody who is not in GitHub records.
+Just add a `:exclude-from-reconcile "some reason here"` to `./doc/people.edn`.
+
+TIP: GitHub apis limit 60 requests per hour.
+If you find you are hitting this limit, specifying a GitHub token bumps the limit to 1000 requests per hour.
+Specify a valid token via the `GITHUB_TOKEN` environment variable.
 
 === Linting
 

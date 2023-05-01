@@ -71,7 +71,7 @@
         card-border 1
         card-width (- image-width (+ card-margin-right card-padding (* 2 card-shadow-h-offset) card-border))
         avatar-size 110
-        contrib-font-size (if (< (count contributions) 5) "1.2em" "0.8em")]
+        contrib-font-size (if (< (count contributions) 5) "1.2em" "0.77em")]
     (str
      (h/html
       [:head

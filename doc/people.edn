@@ -39,7 +39,7 @@
   {:github-id "bbatsov"
    :contributions [:doc :issue]}
   {:github-id "SevereOverfl0w"
-   :contributions [:doc :code]}
+   :contributions [:doc :code :issue]}
   {:github-id "roman01la"
    :contributions [:design :code]}
   {:github-id "mfikes"
@@ -47,6 +47,7 @@
   {:github-id "anthonygalea"
    :contributions [:code :issue]}
   {:github-id "devurandom"
+   :exclude-from-reconcile "to credit Dennis Schridde, his GitHub id changed?"
    :contributions [:doc]}
   {:github-id "jsimpson-ovo"
    :contributions [:code]}
@@ -93,11 +94,12 @@
   {:github-id "lins05"
    :contributions [:code]}
   {:github-id "jimmyhmiller"
+   :exclude-from-reconcile "for whatever reason Jimmy is not on github contributors page"
    :contributions [:code]}
   {:github-id "awkay"
    :contributions [:issue]}
   {:github-id "tobias"
-   :contributions [:issue :code]}
+   :contributions [:code]}
   {:github-id "frozar"
    :contributions [:doc :issue]}
   {:github-id "moonbrv"
@@ -137,11 +139,11 @@
   {:github-id "cloojure"
    :contributions [:issue]}
   {:github-id "IGJoshua"
-   :contributions [:issue]}
+   :contributions [:issue :code]}
   {:github-id "clyfe"
    :contributions [:issue]}
   {:github-id "sritchie"
-   :contributions [:issue]}
+   :contributions [:issue :code]}
   {:github-id "metasoarous"
    :contributions [:issue]}
   {:github-id "BrunoBonacci"
@@ -153,14 +155,14 @@
   {:github-id "mpenet"
    :contributions [:issue]}
   {:github-id "cldwalker"
-   :contributions [:issue]}
+   :contributions [:issue :code]}
   {:github-id "dAnjou"
    :contributions [:issue]}
   {:github-id "wilkerlucio"
    :contributions [:issue]}
   {:github-id "jpmonettas"
    :contributions [:issue]}
-  {:github-id "heypragyan"
+  {:github-id "pragyanatvade"
    :contributions [:issue]}
   {:github-id "kxygk"
    :contributions [:issue]}
@@ -205,4 +207,70 @@
   {:github-id "kumarshantanu"
    :contributions [:issue]}
   {:github-id "glts"
-   :contributions [:issue]}]}
+   :contributions [:issue]}
+  {:github-id "Shashai"
+   :contributions [:issue]}
+  {:github-id "daveyarwood"
+   :contributions [:issue]}
+  {:github-id "erasmas"
+   :contributions [:issue]}
+  {:github-id "esuomi"
+   :contributions [:issue]}
+  {:github-id "j-cr"
+   :contributions [:issue]}
+  {:github-id "lilactown"
+   :contributions [:issue]}
+  {:github-id "noprompt"
+   :contributions [:issue]}
+  {:github-id "oskarkv"
+   :contributions [:issue]}
+  {:github-id "patrickaroo"
+   :contributions [:issue]}
+  {:github-id "puredanger"
+   :contributions [:issue]}
+  {:github-id "serioga"
+   :contributions [:issue]}
+  {:github-id "somecho"
+   :contributions [:issue]}
+  {:github-id "viebel"
+   :contributions [:issue :code]}
+  {:github-id "vlaaad"
+   :contributions [:issue]}
+  {:github-id "AdamFrey"
+   :contributions [:code]}
+  {:github-id "Raynes"
+   :contributions [:code]}
+  {:github-id "anmonteiro"
+   :contributions [:code]}
+  {:github-id "atroche"
+   :contributions [:code]}
+  {:github-id "ccfontes"
+   :contributions [:code]}
+  {:github-id "davidsantiago"
+   :contributions [:code]}
+  {:github-id "floybix"
+   :contributions [:code]}
+  {:github-id "hugoduncan"
+   :contributions [:code]}
+  {:github-id "ieure"
+   :contributions [:code]}
+  {:github-id "metametadata"
+   :contributions [:code]}
+  {:github-id "moea"
+   :contributions [:code]}
+  {:github-id "moxaj"
+   :contributions [:code]}
+  {:github-id "mtnygard"
+   :contributions [:code]}
+  {:github-id "odyssomay"
+   :contributions [:code]}
+  {:github-id "rm-hull"
+   :contributions [:code :doc]}
+  {:github-id "rwilson"
+   :contributions [:code]}
+  {:github-id "sbauer322"
+   :contributions [:doc]}
+  {:github-id "tsulej"
+   :contributions [:code]}
+  {:github-id "weavejester"
+   :contributions [:code :doc]}]}
