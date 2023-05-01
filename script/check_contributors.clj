@@ -55,8 +55,8 @@
 (defn by-id [vrepo-id]
   (->> vrepo-id
        (reduce (fn [acc [repo id]]
-            (update acc id (fnil conj #{}) repo))
-          {})
+                 (update acc id (fnil conj #{}) repo))
+               {})
        (reduce-kv (fn [m k v]
                     (assoc m k (-> v sort vec)))
                   {})))
