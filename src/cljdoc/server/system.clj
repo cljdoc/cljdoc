@@ -9,6 +9,7 @@
             [cljdoc.util.sentry]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sqlite-cache :as sqlite-cache]
+            [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [integrant.core :as ig]
@@ -30,10 +31,12 @@
                [{:appender :sentry}])})
 
 (defn index-dir [env-config]
-  ;; change the index name when making incompatible changes, this will
-  ;; - create a new index from scratch
-  ;; - leave the old index around should we want to revert and
-  (str (fs/file (cfg/data-dir env-config) "index-lucene950")))
+  (let [lucene-version (-> (org.apache.lucene.util.Version/LATEST)
+                           str
+                           (string/replace "." "_"))
+
+        dir-name (str "index-lucene-" lucene-version)]
+    (str (fs/file (cfg/data-dir env-config) dir-name))))
 
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)]
