@@ -26,7 +26,7 @@
     (try
       (f)
       (finally
-        (ig/halt-key! *searcher* :cljdoc/searcher)))))
+        (ig/halt-key! :cljdoc/searcher *searcher*)))))
 
 (t/use-fixtures :each search-fixture)
 
