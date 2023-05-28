@@ -13,15 +13,15 @@
     "elasticlunr": "^0.9.5",
     "fuzzysort": "^2.0.4",
     "idb": "^7.1.1",
-    "preact": "^10.14.0"
+    "preact": "^10.15.1"
   },
   "devDependencies": {
-    "@parcel/packager-xml": "^2.8.3",
-    "@parcel/transformer-image": "^2.8.3",
-    "@parcel/transformer-xml": "^2.8.3",
+    "@parcel/packager-xml": "^2.9.1",
+    "@parcel/transformer-image": "^2.9.1",
+    "@parcel/transformer-xml": "^2.9.1",
     "@types/elasticlunr": "^0.9.4",
     "@types/lunr": "^2.3.4",
-    "parcel": "^2.8.2",
+    "parcel": "^2.9.1",
     "parcel-reporter-static-files-copy": "^1.5.0",
     "parcel-resolver-ignore": "^2.1.3",
     "prettier": "^2.8.8",

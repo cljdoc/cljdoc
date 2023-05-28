@@ -4,7 +4,7 @@
         aero/aero {:mvn/version "1.1.6"}                     ;; rich configuration support with profiles
 
         ;; app component/service orchestration
-        integrant/integrant {:mvn/version "0.8.0"}           ;; configure systems/services that make up your app
+        integrant/integrant {:mvn/version "0.8.1"}           ;; configure systems/services that make up your app
         integrant/repl {:mvn/version "0.3.2"}                ;;  with reload support
 
         ;; web server/services
@@ -26,7 +26,7 @@
 
         ;; relational database
         org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.41.2.1"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.42.0.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.3"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
@@ -43,15 +43,15 @@
         ;; temporarily override jruby used by asciidoctorj to overcome CVE (delete/recheck after bumping asciidoctorj)
         org.jruby/jruby {:mvn/version "9.4.2.0"}
         com.vladsch.flexmark/flexmark                        ;; render github markdown to html
-        {:mvn/version "0.64.4"}
+        {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-autolink           ;; converts raw links in text to clickable links
-        {:mvn/version "0.64.4"}
+        {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-tables             ;; support for tables
-        {:mvn/version "0.64.4"}
+        {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-anchorlink         ;; adds github id style anchor links to headings
-        {:mvn/version "0.64.4"}
+        {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-wikilink           ;; support for our docstring [[my-ns/var]] link feature
-        {:mvn/version "0.64.4"}
+        {:mvn/version "0.64.8"}
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-alpha2"}          ;; html abstraction
@@ -66,7 +66,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.18.1"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.20.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -74,7 +74,7 @@
         org.clj-commons/clj-http-lite {:mvn/version "1.0.13"} ;; a lite version of clj-http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.4.18"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.4.19"}                  ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.4.5"}            ;; profile/perf monitoring
@@ -85,7 +85,7 @@
         robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
-        zprint/zprint {:mvn/version "1.2.5"}                 ;; format clojure source/edn
+        zprint/zprint {:mvn/version "1.2.6"}                 ;; format clojure source/edn
 
         metosin/malli {:mvn/version "0.11.0"}
 
@@ -96,13 +96,13 @@
  :paths ["src" "resources" "resources-compiled"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.83.1314"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.84.1335"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
                          nubank/matcher-combinators {:mvn/version "3.8.5" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.04.14"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.05.26"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
