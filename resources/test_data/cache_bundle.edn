@@ -3241,7 +3241,7 @@
     :namespace "rewrite-clj.zip",
     :platform "cljs",
     :type :var}},
- :latest "1.0.767-alpha",
+ :latest "1.1.47",
  :namespaces
  #{{:doc
     "APIs to navigate and update Clojure/ClojureScript/EDN source code.\n\nUse [[rewrite-clj.zip]] to ingest your source code into a zipper of nodes and then again to navigate and/or change it.\n\nOptionally use [[rewrite-clj.parser]] to instead work with raw nodes.\n\n[[rewrite-clj.node]] will help you to inspect and create nodes.\n\n[[rewrite-clj.paredit]] first appeared in the ClojureScript only version of rewrite-clj and supports structured editing of the zipper tree.",
