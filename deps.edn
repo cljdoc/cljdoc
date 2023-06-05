@@ -8,14 +8,7 @@
         integrant/repl {:mvn/version "0.3.2"}                ;;  with reload support
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.5.11-beta-1"}   ;; web site/service with jetty engine
-        ;; override pedestal jetty 9.4.48 deps to overcome CVEs (delete/recheck after bumping pedetal.jetty)
-        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["10.x" "11.x"]} {:mvn/version "9.4.51.v20230217"}
-        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["10.x" "11.x"]} {:mvn/version "9.4.51.v20230217"}
-        org.eclipse.jetty.websocket/websocket-api ^{:antq/exclude ["10.x" "11.x"]} {:mvn/version "9.4.51.v20230217"}
-        org.eclipse.jetty.websocket/websocket-servlet ^{:antq/exclude ["10.x" "11.x"]} {:mvn/version "9.4.51.v20230217"}
-        org.eclipse.jetty.websocket/websocket-server ^{:antq/exclude ["10.x" "11.x"]} {:mvn/version "9.4.51.v20230217"}
-        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["10.x" "11.x"]} {:mvn/version "9.4.51.v20230217"}
+        io.pedestal/pedestal.jetty {:mvn/version "0.6.0-beta-2"}   ;; web site/service with jetty engine
 
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
@@ -60,13 +53,15 @@
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20220608.1"}                          ;; sanitize html converted from user markdown
+        ;; to overcome CVE in owasp-java-html-sanitizer deps, delete when addressed in sanitizer lib
+        com.google.guava/guava {:mvn/version "32.0.0-jre"}
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.31"}              ;; easy log setup
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.20.0"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.21.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services

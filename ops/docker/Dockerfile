@@ -1,6 +1,6 @@
 FROM eclipse-temurin:17-alpine
 
-ENV CLOJURE_VERSION=1.11.1.1155
+ENV CLOJURE_VERSION=1.11.1.1347
 
 WORKDIR /tmp
 
