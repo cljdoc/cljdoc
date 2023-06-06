@@ -159,6 +159,14 @@
                                             :headers {"Accept" accept}))
                   (format "build info defaults to html %s" accept)))))))
 
+  (t/testing "Can ask to build a library with a + in its version"
+    ;; we had a problem with +s with clojars
+    ;; and then after an upgrade to pedestal, hence this explicit test
+    (t/is (match? {:status 404
+                   :headers {"Content-Type" "text/html"}
+                   :body #"Want to build some documentation?"}
+                  (pdt/response-for *service* :get "/d/com.github.strojure/parsesso/1.2.2+295"))))
+
   (t/testing "sitemap for built libs (used by search engines)"
     (t/is (match? {:status 200
                    :headers {"Content-Type" "text/xml"}

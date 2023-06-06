@@ -702,7 +702,8 @@
          ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
          ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
          ::http/resource-path "public/out"
-         ::http/not-found-interceptor not-found-interceptor}
+         ::http/not-found-interceptor not-found-interceptor
+         ::http/path-params-decoder nil}
         http/default-interceptors
         (update ::http/interceptors #(into [sentry/interceptor
                                             static-resource-interceptor
