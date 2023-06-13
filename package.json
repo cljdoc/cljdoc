@@ -16,12 +16,12 @@
     "preact": "^10.15.1"
   },
   "devDependencies": {
-    "@parcel/packager-xml": "^2.9.1",
-    "@parcel/transformer-image": "^2.9.1",
-    "@parcel/transformer-xml": "^2.9.1",
+    "@parcel/packager-xml": "^2.9.2",
+    "@parcel/transformer-image": "^2.9.2",
+    "@parcel/transformer-xml": "^2.9.2",
     "@types/elasticlunr": "^0.9.4",
     "@types/lunr": "^2.3.4",
-    "parcel": "^2.9.1",
+    "parcel": "^2.9.2",
     "parcel-reporter-static-files-copy": "^1.5.0",
     "parcel-resolver-ignore": "^2.1.5",
     "prettier": "^2.8.8",
