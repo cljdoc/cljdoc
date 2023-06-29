@@ -26,10 +26,10 @@
         com.taoensso/nippy {:mvn/version "3.2.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "9.6.0"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "9.6.0"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "9.6.0"}
-        org.apache.lucene/lucene-queryparser {:mvn/version "9.6.0"}
+        org.apache.lucene/lucene-core {:mvn/version "9.7.0"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "9.7.0"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "9.7.0"}
+        org.apache.lucene/lucene-queryparser {:mvn/version "9.7.0"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "2.5.10"} ;; render adoc to html
@@ -45,7 +45,7 @@
         {:mvn/version "0.64.8"}
 
         ;; html
-        hiccup/hiccup {:mvn/version "2.0.0-alpha2"}          ;; html abstraction
+        hiccup/hiccup {:mvn/version "2.0.0-RC1"}             ;; html abstraction
         org.jsoup/jsoup {:mvn/version "1.16.1"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
@@ -59,7 +59,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.22.0"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.24.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -112,7 +112,7 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.4.1070"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.5.1095"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.7"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
