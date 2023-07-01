@@ -66,9 +66,10 @@
 
 (defn git-import-explainer [{:keys [git_problem] :as _build-info}]
   [:div.lh-copy
-   [:p "cljdoc allows you to combine API docs with "
-    [:a.link.blue {:href (links/github-url :userguide/articles)} "articles"]
-    " from your Git repository. By default we import just the Readme."
+   [:p "Cljdoc allows you to complement your API docs with articles from your Git repository.  "
+    "By default, we auto-discover your articles. For more control see "
+    [:a.link.blue {:href (links/github-url :userguide/articles)} "the library author's guide"]
+    "."
     (when git_problem
       [:span " In this case there was a problem " (inline-error git_problem)
        " when attempting to import from git, but don't worry — "

@@ -4,10 +4,9 @@ Short answers to common questions.
 
 # Can I update docs after a release to Clojars?
 
-No, not yet, but we will allow for this in the future.
-[#31](https://github.com/martinklepsch/cljdoc/issues/31)
-
-For now, to update docs you'll need to cut a new release to Clojars.
+Yes, you can update articles after a release, see [Overriding Articles Revision](/doc/userguide/for-library-authors.adoc#overriding-articles-revision).
+ 
+For all other updates, you'll need to cut a new release to Clojars.
 
 See also: [Testing & Verifying](/doc/userguide/for-library-authors.adoc#verifying)
 
