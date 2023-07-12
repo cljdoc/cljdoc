@@ -5,7 +5,7 @@
 
         ;; app component/service orchestration
         integrant/integrant {:mvn/version "0.8.1"}           ;; configure systems/services that make up your app
-        integrant/repl {:mvn/version "0.3.2"}                ;;  with reload support
+        integrant/repl {:mvn/version "0.3.3"}                ;;  with reload support
 
         ;; web server/services
         io.pedestal/pedestal.jetty {:mvn/version "0.6.0"}    ;; web site/service with jetty engine
@@ -52,14 +52,14 @@
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20220608.1"}                          ;; sanitize html converted from user markdown
         ;; to overcome CVE in owasp-java-html-sanitizer deps, delete when addressed in sanitizer lib
-        com.google.guava/guava {:mvn/version "32.0.1-jre"}
+        com.google.guava/guava {:mvn/version "32.1.1-jre"}
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.31"}              ;; easy log setup
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.24.0"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.25.1"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
