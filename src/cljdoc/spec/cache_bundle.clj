@@ -52,6 +52,9 @@
                                 [:vector
                                  [:ref ::doc-tree-entry]]]}}
             ::doc-tree-entry]]
+          [:cljdoc/docstring-format
+           {:optional true}
+           [:enum [:markdown :plaintext]]]
           [:cljdoc/include-namespaces-from-dependencies
            {:optional true}
            [:vector symbol?]]]]]]]

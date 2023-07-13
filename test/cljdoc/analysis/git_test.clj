@@ -10,7 +10,7 @@
                       :commit "c210e7f1c2f8a163676c8e3abeab8e50951458bb"}}}
          (git-ana/analyze-git-repo "metosin/reitit" "0.1.1" "https://github.com/metosin/reitit" nil))))
 
-(t/deftest ^:slow without-article-amendment-tag-test
+(t/deftest ^:slow without-cljdoc-tag-test
   (t/is (match?
          {:scm {:tag {:name "v1.0.0"}}
           :scm-articles m/absent
@@ -20,7 +20,7 @@
                      {:title "Inferred Title docb" :attrs {:cljdoc/asciidoc #"version: v1.0.0"}}]}
          (git-ana/analyze-git-repo "org.cljdoc/cljdoc-test-repo" "1.0.0" "https://github.com/cljdoc/cljdoc-test-repo" nil))))
 
-(t/deftest ^:slow with-article-amendment-tag-test
+(t/deftest ^:slow with-cljdoc-v101-tag-test
   (t/is (match?
          {:scm {:tag {:name "v1.0.1"}}
           :scm-articles {:tag {:name "cljdoc-v1.0.1"}}
@@ -32,11 +32,12 @@
                      {:title "explicit docb title" :attrs {:cljdoc/asciidoc #"version: cljdoc-v1.0.1"}}]}
          (git-ana/analyze-git-repo "org.cljdoc/cljdoc-test-repo" "1.0.1" "https://github.com/cljdoc/cljdoc-test-repo" nil))))
 
-(t/deftest ^:slow version-after-article-amendment-tag-test
+(t/deftest ^:slow version-cljdoc-102-tag-test
   (t/is (match?
          {:scm {:tag {:name "v1.0.2"}}
-          :scm-articles m/absent
-          :config (m/equals {})
+          :scm-articles {:tag {:name "cljdoc-v1.0.2"}}
+          :config (m/equals {:cljdoc.doc/tree m/absent
+                             :cljdoc/docstring-format :plaintext})
           :doc-tree [{:title "Readme" :attrs {:cljdoc/markdown #"version: v1.0.2"}}
                      {:title "Inferred Title doca" :attrs {:cljdoc/markdown #"version: v1.0.2"}}
                      {:title "Inferred Title docb" :attrs {:cljdoc/asciidoc #"version: v1.0.2"}}]}

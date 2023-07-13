@@ -61,11 +61,13 @@
       (scm/ssh-uri url)
       (scm/fs-uri url)))
 
-(defn- cljdoc-config-error [config project]
-  ;; TODO: Replace with proper, full and helpful user cljdoc.edn validation,
-  ;; see https://github.com/cljdoc/cljdoc/issues/539
-  ;; For now be strict on the new elements we are validating,
-  ;; it is much easier to later loosen the reins than tighthen them.
+(defn- validate-docstring-format [config project]
+  (when-let [format (user-config/docstring-format config project)]
+    (when-not (some #{format} [:plaintext :markdown])
+      {:error {:type "invalid-cljdoc-edn"
+               :msg "Invalid: :cljdoc/docstring-format"}})))
+
+(defn- validate-languages [config project]
   (when-let [languages (user-config/languages config project)]
     (and languages
          (not (or (= :auto-detect languages)
@@ -75,6 +77,15 @@
                        (every? #(or (= "clj" %) (= "cljs" %)) languages))))
          {:error {:type "invalid-cljdoc-edn"
                   :msg "Invalid :cljdoc/languages"}})))
+
+(defn- cljdoc-config-error [config project]
+  ;; TODO: Replace with proper, full and helpful user cljdoc.edn validation,
+  ;; see https://github.com/cljdoc/cljdoc/issues/539
+  ;; For now be strict on the new elements we are validating,
+  ;; it is much easier to later loosen the reins than tighthen them.
+  ;; Also for now: fail fast on first recognized error.
+  (or (validate-languages config project)
+      (validate-docstring-format config project)))
 
 (defn- scm-config [url repo revision version-tag]
   (when revision
@@ -118,18 +129,18 @@
                    :version-tag version-tag
                    :pom-revision pom-revision}}
           (let [user-config (cljdoc-config repo revision)
-                articles-tag (git-repo/version-tag repo "cljdoc-" version)
-                articles-revision  (:name articles-tag)
-                articles-user-config (cljdoc-config repo articles-revision)]
+                updated-config-tag (git-repo/version-tag repo "cljdoc-" version)
+                updated-config-revision  (:name updated-config-tag)
+                updated-user-config (cljdoc-config repo updated-config-revision)]
             (or (cljdoc-config-error user-config project)
-                (and articles-user-config (cljdoc-config-error articles-user-config project))
+                (and updated-user-config (cljdoc-config-error updated-user-config project))
                 (let [scm (scm-config scm-url repo revision version-tag)
-                      scm-articles  (scm-config scm-url repo articles-revision articles-tag)
-                      merged-config (merge user-config (select-keys articles-user-config [:cljdoc.doc/tree]))
+                      scm-articles  (scm-config scm-url repo updated-config-revision updated-config-tag)
+                      merged-config (merge user-config (select-keys updated-user-config [:cljdoc.doc/tree :cljdoc/docstring-format]))
                       scm-doc-tree (or scm-articles scm)]
                   (log/info "Analyzing git repo at revision:" revision)
-                  (when articles-revision
-                    (log/info "... and articles at revision:" articles-revision))
+                  (when updated-config-revision
+                    (log/info "... and articles at revision:" updated-config-revision))
                   (cond-> {:scm scm
                            :config merged-config
                            :doc-tree (realize-doc-tree repo project scm-doc-tree merged-config)}

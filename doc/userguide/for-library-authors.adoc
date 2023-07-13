@@ -115,7 +115,7 @@ Cljdoc will look at the `<url>` and the `<tag>`:
 * `<tag>` is a valid pointer to the git revision of your release's sources.
 It can be a git tag, or commit sha.
 
-TIP: You can optionally link:#articles-override[override] the revision for articles.
+TIP: You can optionally link:#override-config[override] the revision for articles and docstring format.
 
 NOTE: We strongly recommend you explicitly specify the `<tag>` in your `pom.xml` for cljdoc and other tools. +
 But... If you do not specify a `<tag>`, cljdoc will search for a version tag based on the artifact version.
@@ -139,24 +139,25 @@ For example:
 
 Whatever method you choose, take care to ensure that your jar's pom points back to the exact revision of its sources on git.
 
-[[articles-override]]
-=== Overriding Articles Revision
-Sometimes you'll want cljdoc to present articles from your git repo after your library's release commit.
+[[override-config]]
+=== Overriding Cljdoc Config & Articles
+Sometimes you'll want cljdoc to present minor adjustments after your library's release commit.
 For examples:
 
 * a README that includes the git sha of the release will necessarily appear in a commit after the library release.
 * perhaps you'd like fix or edit an article without cutting a new release
 * you'd like to adjust your link:#cljdoc-config[article table of contents]
+* you might also want to change how link:#docstrings[cljdoc presents docstrings].
 
 To support these scenarios, cljdoc recognizes the `cljdoc-<version>` git tag.
 For library version `1.2.3` cljdoc will look for git tag `cljdoc-1.2.3` (or `cljdoc-v1.2.3`) and import your articles from that commit instead of the link:#git-sources[default commit].
 
 If you add/move a `cljdoc-<version>` tag after the initial cljdoc build is complete, you can request a link:#rebuild[rebuild].
 
-TIP: This affects articles only.
-Any changes to docstrings will require a new library release.
+TIP: This affects all of and only: docstring format, article table of contents, and articles.
+Any changes, for example, to docstring content will require a new library release.
 
-TIP: You'll want to make articles adjustments before you start working on your next release.
+TIP: You'll want to make any adjustments before you start working on your next release.
 All articles are re-imported.
 
 [[cljdoc-config]]
@@ -170,6 +171,8 @@ You can use this configuration file to tell cljdoc more about your documentation
 By default, cljdoc will link:#auto-discovered-articles[automatically discover articles].
 * `:cljdoc/languages` - Tells cljdoc which link:#languages[languages] your API uses. +
 By default, cljdoc will automatically detect languages based on the sources it finds in your jar.
+* `:cljdoc/docstring-format` - Tells cljdoc how you'd like your link:#docstrings[docstrings] displayed. +
+By default, cljdoc will render docstrings from link:#markup[Markdown format].
 * `:cljdoc/include-namespaces-from-dependencies` - Tells cljdoc to amalgamate API docs from multiple link:#modules[modules]. +
 Rarely used, but very useful when your project is made up of modules.
 
@@ -211,7 +214,7 @@ Cljdoc will rewrite built article to article links automatically. Markdown examp
 
 === Link to API docs
 
-* When linking from docstring to API docs, use the link:#wikilink[`+[[wikilink]]+`] 
+* When linking from markdown docstring to API docs, use the link:#wikilink[`+[[wikilink]]+`]
 * When linking from article to API docs, or from outside your git repo:
 ** link to var `malli.core/explain` in current release
 *** `https://cljdoc.org/d/metosin/malli/CURRENT/api/malli.core#explain`
@@ -294,7 +297,15 @@ You can specify maven repositories:
 [[docstrings]]
 === Docstrings
 
-Docstrings are rendered as link:#markup[Markdown]. Consider https://www.martinklepsch.org/posts/writing-awesome-docstrings.html[these recommendations] when writing your docstrings:
+Docstrings are rendered from link:#markup[Markdown] by default.
+
+You can choose to override this behaviour in your `doc/cljdoc.edn` file via the `:cljdoc/docstring-format` option.
+Valid values are:
+
+* `:markdown` - the default, an option to view "raw docstring" as plaintext is available to the user.
+* `:plaintext` - presents only the raw docstring.
+
+Consider https://www.martinklepsch.org/posts/writing-awesome-docstrings.html[these recommendations] when writing your docstrings in markdown format:
 
 1. Backtick-Quote ``` function arguments & special keywords to `make` them `stand` out `more`
 2. Link to other functions using link:#wikilink[`+[[wikilink]]+`] syntax
@@ -309,7 +320,7 @@ Any HTML embedded within docstrings is escaped.
 [[wikilink]]
 ==== Wikilinks
 
-You can link to other namespaces and functions from your docstrings using the `\[[wikilink]]` syntax.
+You can link to other namespaces and functions from your markdown docstrings using the `\[[wikilink]]` syntax.
 
 Note that if you want to link to vars outside the current namespace you need to either fully qualify those vars or specify them relative to the current namespace. An example: if you want to link to `compojure.core/GET` from `compojure.route` you'll need to provide the wiki in one of the two forms below:
 

@@ -108,7 +108,7 @@
                  (some-> doc-page :children seq article-toc)])))
        (into [:ol])))
 
-(defn- index-page [cache-bundle fix-opts]
+(defn- index-page [cache-bundle opts]
   [:div
    (when (-> cache-bundle :version :doc)
      [:div
@@ -120,24 +120,24 @@
          :let [defs (bundle/defs-for-ns
                       (bundle/all-defs cache-bundle)
                       (platf/get-field ns :name))]]
-     (api/namespace-overview ns-url ns defs  (api/valid-ref-pred-fn cache-bundle) fix-opts))])
+     (api/namespace-overview ns-url ns defs  (api/valid-ref-pred-fn cache-bundle) opts))])
 
-(defn- doc-page [doc-tuple fix-opts]
+(defn- doc-page [doc-tuple opts]
   [:div
    [:div.cljdoc-article.cljdoc-markup.lh-copy.pv4
     {:class (name (first doc-tuple))}
     (hiccup/raw
      (fixref/fix (rich-text/render-text doc-tuple)
-                 fix-opts))]])
+                 opts))]])
 
-(defn- ns-page [ns defs valid-ref-pred fix-opts]
+(defn- ns-page [ns defs valid-ref-pred opts]
   (let [ns-name (platf/get-field ns :name)
         render-wiki-link (api/render-wiki-link-fn ns-name valid-ref-pred #(str % ".html"))]
     [:div.ns-offline-page
      [:h1 ns-name]
-     (api/render-ns-docs ns render-wiki-link fix-opts)
+     (api/render-ns-docs ns render-wiki-link opts)
      (for [def defs]
-       (api/def-block def render-wiki-link fix-opts))]))
+       (api/def-block def render-wiki-link opts))]))
 
 (defn- docs-files
   "Return a list of [file-path content] pairs describing a zip archive.
