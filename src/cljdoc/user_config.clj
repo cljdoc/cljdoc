@@ -1,7 +1,13 @@
 (ns cljdoc.user-config
-  "Users can provide configuration via a file `doc/cljdoc.edn` in their Git repository.
+  "Users can provide configuration via a `doc/cljdoc.edn` file in their git
+  repository.
 
-  This namespace defines functions to query the contents of this file."
+  This namespace defines functions to query the contents of this config.
+
+  You'll notice cljdoc looks up sub-projects here.
+  This is in support of a single git repository that generates multiple
+  artifacts. See the 'Distinctly Configuring' under
+  /doc/userguide/for-library-authors.adoc#modules for more details."
   (:require [cljdoc-shared.proj :as proj]))
 
 (defn get-project-specific

@@ -472,12 +472,12 @@ image::cljdoc-rebuild-link.png[]
 [[modules]]
 == Module Support
 
-Some libraries are made up of submodules.
-Cljdoc provides some support amalgamating docs for these types of libraries.
+Some libraries are made up of submodule libraries.
+Cljdoc provides some support for these types of libraries.
 
-=== APIs
+=== Almagamating APIs
 
-To include API documentation for some or all of a projects submodules, specify their *maven coordinates* under `:cljdoc/include-namespaces-from-dependencies`:
+To include API documentation for some or all of an artifact's submodule artifacts, specify their *maven coordinates* under `:cljdoc/include-namespaces-from-dependencies`:
 
 [source,clojure]
 ----
@@ -498,23 +498,40 @@ TIP: https://github.com/metosin/reitit[Reitit] is a great example reference for 
 
 WARNING: If analysis for a specified dependency has failed or hasn't been run, its API documentation will not appear on cljdoc.
 
-=== Articles
+=== Distinctly Configuring
 
-The following example shows how to provide a different doc tree for project `metosin/reitit` via `cljdoc.edn`:
+Sometimes a single git repository will be the source for multiple maven/clojars artifacts.
+Each of these artifacts will point back to the same single git repository and therefore the same `cljdoc.edn`.
+
+Cljdoc allows for a distinct config for each of these artifacts.
+Specify `cljdoc.edn` config as normal for your primary library.
+For each submodule libary, include config under symbol `submodule-group-id/submodule-artifact-id`.
+
+Here's an example from https://github.com/steffan-westcott/clj-otel[clj-otel]:
 
 [source,clojure]
 ----
-{
-  ;; used for metosin/reitit
-  ;; when building docs for metosin/reitit this will be used as if
-  ;; the doc/cljdoc.edn file contained just the value of this key
-  metosin/reitit {:cljdoc.doc/tree [["Introduction" {:file "intro.md"}]]}
-
-  ;; used for any project except metosin/reitit
-  ;; could contain an overview about all modules and a pointer
-  ;; to the overarching documentation for metosin/reitit
-  :cljdoc.doc/tree [["Overview" {:file "modules/README.md"}]]
-}
+{:cljdoc/languages ["clj"]
+ :cljdoc.doc/tree [["Introduction" {:file "README.adoc"}]
+                   ["Tutorial" {:file "doc/tutorial.adoc"}]
+                   ["Guides" {:file "doc/guides.adoc"}]
+                   ["API & Reference" {:file "doc/reference.adoc"}]
+                   ["Concepts" {:file "doc/concepts.adoc"}]
+                   ["Examples" {:file "doc/examples.adoc"}]
+                   ["Changelog" {:file "CHANGELOG.adoc"}]]
+ com.github.steffan-westcott/clj-otel-contrib-aws-resources {:cljdoc.doc/tree [["README" {:file "clj-otel-contrib-aws-resources/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-contrib-aws-xray-propagator {:cljdoc.doc/tree [["README" {:file "clj-otel-contrib-aws-xray-propagator/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-exporter-jaeger-grpc {:cljdoc.doc/tree [["README" {:file "clj-otel-exporter-jaeger-grpc/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-exporter-jaeger-thrift {:cljdoc.doc/tree [["README" {:file "clj-otel-exporter-jaeger-thrift/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-exporter-logging {:cljdoc.doc/tree [["README" {:file "clj-otel-exporter-logging/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-exporter-logging-otlp {:cljdoc.doc/tree [["README" {:file "clj-otel-exporter-logging-otlp/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-exporter-otlp {:cljdoc.doc/tree [["README" {:file "clj-otel-exporter-otlp/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-exporter-prometheus {:cljdoc.doc/tree [["README" {:file "clj-otel-exporter-prometheus/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-exporter-zipkin {:cljdoc.doc/tree [["README" {:file "clj-otel-exporter-zipkin/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-extension-trace-propagators {:cljdoc.doc/tree [["README" {:file "clj-otel-extension-trace-propagators/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-instrumentation-resources {:cljdoc.doc/tree [["README" {:file "clj-otel-instrumentation-resources/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-instrumentation-runtime-telemetry-java8 {:cljdoc.doc/tree [["README" {:file "clj-otel-instrumentation-runtime-telemetry-java8/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-instrumentation-runtime-telemetry-java17 {:cljdoc.doc/tree [["README" {:file "clj-otel-instrumentation-runtime-telemetry-java17/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-sdk {:cljdoc.doc/tree [["README" {:file "clj-otel-sdk/README.adoc"}]]}
+ com.github.steffan-westcott/clj-otel-sdk-extension-jaeger-remote-sampler {:cljdoc.doc/tree [["README" {:file "clj-otel-sdk-extension-jaeger-remote-sampler/README.adoc"}]]}}
 ----
-
-NOTE: We haven't found an example usage of this in the wild yet.
