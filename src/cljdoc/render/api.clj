@@ -40,19 +40,28 @@
       [m nil]
       [nil m])))
 
-(defn docstring->html [doc-str render-wiki-link fix-opts]
-  [:div
-   [:div.lh-copy.markdown.cljdoc-markup
-    ;; If someone sets `{:doc false}`, there will be no docstring
-    (when doc-str
-      (-> doc-str
-          (rich-text/markdown-to-html
-           {:escape-html? true
-            :render-wiki-link (comp render-wiki-link parse-wiki-link)})
-          (fixref/fix fix-opts)
-          hiccup/raw))]
-   [:pre.lh-copy.bg-near-white.code.pa3.br2.f6.overflow-x-scroll.dn.raw
-    doc-str]])
+(defn- markdown-docstring->html [doc-str render-wiki-link opts]
+  [:div.lh-copy.markdown.cljdoc-markup
+   (-> doc-str
+       (rich-text/markdown-to-html
+        {:escape-html? true
+         :render-wiki-link (comp render-wiki-link parse-wiki-link)})
+       (fixref/fix opts)
+       hiccup/raw)])
+
+(defn- plaintext-docstring->html [doc-str display]
+  [:pre.lh-copy.pa0.ma0.mb3.code.br2.f6.overflow-x-scroll.raw
+   {:class (when (= :hidden display) "dn")}
+   doc-str])
+
+(defn docstring->html [doc-str render-wiki-link {:keys [docstring-format] :as opts}]
+  (when doc-str
+    (if (= :plaintext docstring-format)
+      [:div
+       (plaintext-docstring->html doc-str :shown)]
+      [:div
+       (markdown-docstring->html doc-str render-wiki-link opts)
+       (plaintext-docstring->html doc-str :hidden)])))
 
 (defn valid-ref-pred-fn [{:keys [defs] :as _cache-bundle}]
   (fn [current-ns target-ns target-var]
@@ -113,8 +122,8 @@
 
 (defn render-ns-docs
   "Render docstring for ns `n` distinguishing platform differences, if any."
-  [n render-wiki-link fix-opts]
-  (let [render-docs #(docstring->html % render-wiki-link fix-opts)]
+  [n render-wiki-link opts]
+  (let [render-docs #(docstring->html % render-wiki-link opts)]
     (if (platf/varies? n :doc)
       (for [p (sort (platf/platforms n))
             :let [doc (platf/get-field n :doc p)]
@@ -150,14 +159,14 @@
 
 (defn render-var-args-and-docs
   "Render arglists and docstring for var `d` distinguishing platform differences, if any."
-  [d render-wiki-link fix-opts]
+  [d render-wiki-link opts]
   (let [def-name (platf/get-field d :name)
         fpdoc #(platf/get-field d :doc %)
         fpargs #(platf/get-field d :arglists %)
         fdoc #(platf/get-field d :doc)
         fargs #(platf/get-field d :arglists)
         render-args #(render-arglists def-name %)
-        render-docs #(docstring->html % render-wiki-link fix-opts)
+        render-docs #(docstring->html % render-wiki-link opts)
         platforms (sort (platf/platforms d))]
     (cond
       (and (platf/varies? d :arglists) (platf/varies? d :doc))
@@ -185,7 +194,7 @@
        (render-args (fargs))
        (render-docs (fdoc))])))
 
-(defn- render-protocol-members [def render-wiki-link fix-opts]
+(defn- render-protocol-members [def render-wiki-link opts]
   (let [members (platf/get-field def :members)]
     (when (seq members)
       [:div.pl3.bl.b--black-10
@@ -194,10 +203,10 @@
           [:h4.def-block-title.mv0.pt2.pb3
            (platf/get-field m :name)
            (render-var-annotation (platforms->var-annotation m))]
-          (render-var-args-and-docs m render-wiki-link fix-opts)])])))
+          (render-var-args-and-docs m render-wiki-link opts)])])))
 
 (defn def-block
-  [def render-wiki-link fix-opts]
+  [def render-wiki-link opts]
   {:pre [(platf/multiplatform? def)]}
   (let [def-name (platf/get-field def :name)]
     [:div.def-block
@@ -209,8 +218,8 @@
         [:span.f7.ttu.normal.gray.ml2 (platf/get-field def :type)])
       (when (platf/get-field def :deprecated)
         [:span.fw3.f6.light-red.ml2 "deprecated"])]
-     (render-var-args-and-docs def render-wiki-link fix-opts)
-     (render-protocol-members def render-wiki-link fix-opts)
+     (render-var-args-and-docs def render-wiki-link opts)
+     (render-protocol-members def render-wiki-link opts)
      (when (seq (platf/get-field def :members))
        [:div.lh-copy.pl3.bl.b--black-10
         (for [m (platf/get-field def :members)]
@@ -218,7 +227,7 @@
            [:h5 (:name m)]
            (render-arglists (:name m) (:arglists m))
            (when (:doc m)
-             [:p (docstring->html (:doc m) render-wiki-link fix-opts)])])])
+             [:p (docstring->html (:doc m) render-wiki-link opts)])])])
      (when (or (platf/varies? def :src-uri) ; if it varies they can't be both nil
                (platf/get-field def :src-uri)) ; if it doesn't vary, ensure non-nil
        (if (platf/varies? def :src-uri)
@@ -228,7 +237,8 @@
             {:href (platf/get-field def :src-uri p)}
             (format "source (%s)" p)])
          [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"]))
-     (when (seq (platf/all-vals def :doc))
+     (when (and (seq (platf/all-vals def :doc))
+                (not= :plaintext (:docstring-format opts)))
        [:a.link.f7.gray.hover-dark-gray.js--toggle-raw {:href "#"} "raw docstring"])]))
 
 (defn namespace-list [{:keys [current version-entity]} namespaces]
@@ -292,7 +302,7 @@
         (render-var-annotation (var-index-platform-annotation indicate-platforms-other-than def))]])]])
 
 (defn namespace-overview
-  [ns-url-fn mp-ns defs valid-ref-pred fix-opts]
+  [ns-url-fn mp-ns defs valid-ref-pred opts]
   {:pre [(platf/multiplatform? mp-ns) (fn? ns-url-fn)]}
   (let [ns-name (platf/get-field mp-ns :name)]
     [:div
@@ -304,7 +314,7 @@
        [:img.ml2 {:src "https://microicon-clone.vercel.app/chevron/12/357edd"}]]]
      (render-ns-docs mp-ns
                      (render-wiki-link-fn ns-name valid-ref-pred ns-url-fn)
-                     fix-opts)
+                     opts)
      (if-not (seq defs)
        [:p.i.blue "No vars found in this namespace."]
        [:ul.list.pl0
@@ -320,16 +330,16 @@
             def-name]])])]))
 
 (defn sub-namespace-overview-page
-  [{:keys [ns-entity namespaces defs valid-ref-pred fix-opts]}]
+  [{:keys [ns-entity namespaces defs valid-ref-pred opts]}]
   [:div.mw7.center.pv4
    (for [mp-ns (->> namespaces
                     (filter #(string/starts-with? (platf/get-field % :name) (:namespace ns-entity))))
          :let [ns (platf/get-field mp-ns :name)
                ns-url-fn #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %))
                defs (bundle/defs-for-ns defs ns)]]
-     (namespace-overview ns-url-fn mp-ns defs valid-ref-pred fix-opts))])
+     (namespace-overview ns-url-fn mp-ns defs valid-ref-pred opts))])
 
-(defn namespace-page [{:keys [ns-entity ns-data defs valid-ref-pred fix-opts]}]
+(defn namespace-page [{:keys [ns-entity ns-data defs valid-ref-pred opts]}]
   (cljdoc.spec/assert :cljdoc.spec/namespace-entity ns-entity)
   (assert (platf/multiplatform? ns-data))
   (let [render-wiki-link (render-wiki-link-fn
@@ -339,10 +349,10 @@
     [:div.ns-page
      [:div.w-80-ns.pv4
       [:h2 (:namespace ns-entity)]
-      (render-ns-docs ns-data render-wiki-link fix-opts)
+      (render-ns-docs ns-data render-wiki-link opts)
       (if (seq defs)
         (for [adef defs]
-          (def-block adef render-wiki-link fix-opts))
+          (def-block adef render-wiki-link opts))
         [:p.i.blue "No vars found in this namespace."])]]))
 
 (comment

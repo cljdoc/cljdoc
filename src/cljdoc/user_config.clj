@@ -10,22 +10,22 @@
   /doc/userguide/for-library-authors.adoc#modules for more details."
   (:require [cljdoc-shared.proj :as proj]))
 
-(defn get-project-specific
-  [config-edn project]
-  (some->> config-edn
-           (filter (fn [[k _]]
-                     (and
-                      (symbol? k)
-                      (or (= k (symbol (proj/group-id project)))
-                          (= k (symbol (proj/group-id project) (proj/artifact-id project)))))))
-           (first)
-           (val)))
+(defn- project-map-entry? [[k _v]]
+  (symbol? k))
 
-(defn get-project
+(defn- get-project-specific
+  [config-edn project]
+  (when config-edn
+    (or (get config-edn (symbol (proj/group-id project) (proj/artifact-id project)))
+        (get config-edn (symbol (proj/group-id project))))))
+
+(defn- get-project
+  "Return config for `project`, if `project` key not found, assumes `project`
+  is root project and returns that."
   [config-edn project]
   (or (get-project-specific config-edn project)
       (->> config-edn
-           (remove (fn [[k _v]] (symbol? k)))
+           (remove project-map-entry?)
            (into {}))))
 
 (defn doc-tree [config-edn project]
@@ -37,9 +37,17 @@
 (defn languages [config-edn project]
   (:cljdoc/languages (get-project config-edn project)))
 
+(defn docstring-format [config-edn project]
+  (:cljdoc/docstring-format (get-project config-edn project)))
+
 (comment
   (def d
     '{metosin/reitit {:cljdoc.doc/tree [["Introduction" {:file "intro.md"}]]}
       :cljdoc.doc/tree [["Overview" {:file "modules/README.md"}]]})
 
-  (get-project d "metosin/reitit"))
+  (get-project d "metosin/reitit")
+  ;; => #:cljdoc.doc{:tree [["Introduction" {:file "intro.md"}]]}
+
+  (get-project d "foo/bar")
+  ;; => #:cljdoc.doc{:tree [["Overview" {:file "modules/README.md"}]]}
+  )

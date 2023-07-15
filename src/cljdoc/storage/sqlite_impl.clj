@@ -90,7 +90,7 @@
 
 (defnp ^:private get-version
   "Returns metadata for specific `version-id` a map:
-   - `:config` - a copy of the actual (TODO: or sometimes generated?), cljdoc.edn in the library  git repo for example:
+   - `:config` - a copy of the actual cljdoc.edn in the library git repo for example:
        ```
        {:cljdoc.doc/tree [[\"Readme\" {:file \"README.md\"}]
                           [\"Document tests\" {:file \"doc/overview.adoc\"}
@@ -242,6 +242,7 @@
     (if-not primary-resolved
       (throw (Exception. (format "Could not find version %s" v)))
       (let [version-data (or (get-version db-spec (:id primary-resolved)) {})
+            ;; TODO: is this misleading? I don't know that version data config retrieved from db will ever have sub-project configs merged
             include-cfg  (user-config/include-namespaces-from-deps (:config version-data) (proj/clojars-id v))
             wanted?      (set (map proj/normalize include-cfg))
             extra-deps   (filter #(wanted? (str (:group-id %) "/" (:artifact-id %))) resolved-versions)
@@ -291,6 +292,8 @@
 (comment
   ;; Note to reader: if this link still worked, it would reference new naming convention: .../cljdoc-analysis-edn/.../cljdoc-analysis.edn
   (def data (clojure.edn/read-string (slurp "https://2941-119377591-gh.circle-artifacts.com/0/cljdoc-edn/stavka/stavka/0.4.1/cljdoc.edn")))
+
+  (require '[cljdoc.config])
 
   (def db-spec
     (cljdoc.config/db (cljdoc.config/config)))

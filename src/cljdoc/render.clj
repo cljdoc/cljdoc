@@ -5,6 +5,7 @@
             [cljdoc.render.articles :as articles]
             [cljdoc.render.sidebar :as sidebar]
             [cljdoc.render.api :as api]
+            [cljdoc.user-config :as user-config]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.util.scm :as scm]
             [cljdoc.bundle :as bundle]
@@ -93,13 +94,16 @@
         [[dominant-platf] :as platf-stats] (api/platform-stats ns-defs)
         ns-data (bundle/get-namespace cache-bundle (:namespace ns-emap))
         top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))
-        fix-opts {:scm (bundle/scm-info cache-bundle)
-                  :uri-map (fixref/uri-mapping version-entity
-                                               (-> cache-bundle
-                                                   :version
-                                                   :doc
-                                                   doctree/add-slug-path
-                                                   doctree/flatten*))}]
+        opts {:docstring-format (user-config/docstring-format
+                                 (-> cache-bundle :version :config)
+                                 (proj/clojars-id version-entity))
+              :scm (bundle/scm-info cache-bundle)
+              :uri-map (fixref/uri-mapping version-entity
+                                           (-> cache-bundle
+                                               :version
+                                               :doc
+                                               doctree/add-slug-path
+                                               doctree/flatten*))}]
     (->> (if ns-data
            (layout/layout
             {:top-bar top-bar-component
@@ -111,7 +115,7 @@
                                            :ns-data ns-data
                                            :defs ns-defs
                                            :valid-ref-pred valid-ref-pred
-                                           :fix-opts fix-opts})})
+                                           :opts opts})})
            (layout/layout
             {:top-bar top-bar-component
              :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
@@ -119,7 +123,7 @@
                                                         :namespaces (bundle/namespaces cache-bundle)
                                                         :defs (bundle/all-defs cache-bundle)
                                                         :valid-ref-pred valid-ref-pred
-                                                        :fix-opts fix-opts})}))
+                                                        :opts opts})}))
          (layout/page {:title (str (:namespace ns-emap) " — " (proj/clojars-id version-entity) " " (:version version-entity))
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
