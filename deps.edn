@@ -59,7 +59,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.25.1"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.25.2"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -70,7 +70,7 @@
         babashka/fs {:mvn/version "0.4.19"}                  ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
-        com.taoensso/tufte {:mvn/version "2.4.5"}            ;; profile/perf monitoring
+        com.taoensso/tufte {:mvn/version "2.5.0"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.15.125"}           ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
@@ -95,7 +95,7 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.05.26"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.07.13"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
