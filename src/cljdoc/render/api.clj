@@ -120,16 +120,25 @@
    [:div.f7.gray.dib.w2.v-top.mt1 platform]
    [:div.dib content]])
 
+(defn- docstring-format-toggle-control
+  "Render initial doctring format toggle control, toggging is handled client side."
+  [elem opts]
+  (when (and (seq (platf/all-vals elem :doc))
+             (not= :plaintext (:docstring-format opts)))
+    [:a.link.f7.gray.hover-dark-gray.js--toggle-raw {:href "#"} "raw docstring"]))
+
 (defn render-ns-docs
   "Render docstring for ns `n` distinguishing platform differences, if any."
   [n render-wiki-link opts]
-  (let [render-docs #(docstring->html % render-wiki-link opts)]
-    (if (platf/varies? n :doc)
-      (for [p (sort (platf/platforms n))
-            :let [doc (platf/get-field n :doc p)]
-            :when doc]
-        (render-platform-specific p (render-docs doc)))
-      (render-docs (platf/get-field n :doc)))))
+  [:div
+   (let [render-docs #(docstring->html % render-wiki-link opts)]
+     (if (platf/varies? n :doc)
+       (for [p (sort (platf/platforms n))
+             :let [doc (platf/get-field n :doc p)]
+             :when doc]
+         (render-platform-specific p (render-docs doc)))
+       (render-docs (platf/get-field n :doc))))
+   (docstring-format-toggle-control n opts)])
 
 (defn- looks-like-arglists? [x]
   (and (sequential? x)
@@ -237,9 +246,7 @@
             {:href (platf/get-field def :src-uri p)}
             (format "source (%s)" p)])
          [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"]))
-     (when (and (seq (platf/all-vals def :doc))
-                (not= :plaintext (:docstring-format opts)))
-       [:a.link.f7.gray.hover-dark-gray.js--toggle-raw {:href "#"} "raw docstring"])]))
+     (docstring-format-toggle-control def opts)]))
 
 (defn namespace-list [{:keys [current version-entity]} namespaces]
   (let [keyed-namespaces (ns-tree/index-by :namespace namespaces)
@@ -305,7 +312,7 @@
   [ns-url-fn mp-ns defs valid-ref-pred opts]
   {:pre [(platf/multiplatform? mp-ns) (fn? ns-url-fn)]}
   (let [ns-name (platf/get-field mp-ns :name)]
-    [:div
+    [:div.ns-overview-page
      [:a.link.black
       {:href (ns-url-fn ns-name)}
       [:h2

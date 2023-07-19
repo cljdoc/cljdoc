@@ -1,11 +1,15 @@
 import { SidebarScrollPos } from "./index";
 
+function isNSOverviewPage(): boolean {
+  return !!document.querySelector(".ns-overview-page")
+}
+
 function isNSPage(): boolean {
   return !!document.querySelector(".ns-page");
 }
 
 function isNSOfflinePage(): boolean {
-  return !!document.querySelector("ns-offline-page");
+  return !!document.querySelector(".ns-offline-page");
 }
 
 function isProjectDocumentationPage(): boolean {
@@ -171,6 +175,7 @@ export {
   toggleMetaDialog,
   toggleArticlesTip,
   isNSPage,
+  isNSOverviewPage,
   isNSOfflinePage,
   isProjectDocumentationPage,
   addPrevNextPageKeyHandlers

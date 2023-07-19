@@ -5,6 +5,7 @@ import { MobileNav } from "./mobile";
 import { Navigator } from "./navigator";
 import {
   isNSPage,
+  isNSOverviewPage,
   isNSOfflinePage,
   isProjectDocumentationPage,
   initSrollIndicator,
@@ -50,6 +51,10 @@ if (searchNode && searchNode.dataset) {
 // Used for navigating on the /versions page.
 const navigatorNode = document.querySelector("#js--cljdoc-navigator");
 navigatorNode && render(<Navigator />, navigatorNode);
+
+if (isNSOverviewPage()) {
+  initToggleRaw();
+}
 
 // Namespace page for online docs.
 if (isNSPage()) {
