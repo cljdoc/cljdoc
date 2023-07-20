@@ -1,7 +1,7 @@
 import { SidebarScrollPos } from "./index";
 
 function isNSOverviewPage(): boolean {
-  return !!document.querySelector(".ns-overview-page")
+  return !!document.querySelector(".ns-overview-page");
 }
 
 function isNSPage(): boolean {
