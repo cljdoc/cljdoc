@@ -15,6 +15,7 @@
             [cljdoc.util.fixref :as fixref]
             [cljdoc.render.assets :as assets]
             [cljdoc.render.rich-text :as rich-text]
+            [cljdoc.user-config :as user-config]
             [cljdoc-shared.proj :as proj]
             [clojure.string :as string]
             [clojure.java.io :as io]
@@ -169,7 +170,10 @@
                                     (rich-text/determine-features (:doc-tuple %)))))
         ;; naive for now, assume a feature's value is always simply `true`
         lib-page-features (->> doc-attrs (map :page-features) (apply merge))
-        source-map (str (get static-resources "/cljdoc.js") ".map")]
+        source-map (str (get static-resources "/cljdoc.js") ".map")
+        docstring-format (user-config/docstring-format
+                          (-> cache-bundle :version :config)
+                          (proj/clojars-id version-entity))]
     (reduce
      into
      [[["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
@@ -180,7 +184,9 @@
       [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
       (assets/offline-assets :tachyons)
       (assets/offline-assets :highlightjs)
-      [["index.html" (->> (index-page cache-bundle {:scm scm-info :uri-map uri-map})
+      [["index.html" (->> (index-page cache-bundle {:docstring-format docstring-format
+                                                    :scm scm-info
+                                                    :uri-map uri-map})
                           (page' {}))]]
 
       ;; Optional assets
@@ -204,9 +210,11 @@
                   target-file (ns-url (platf/get-field ns-data :name))]]
         [target-file
          (->> (ns-page ns-data defs (api/valid-ref-pred-fn cache-bundle)
-                       (assoc {:scm scm-info :uri-map uri-map}
-                              ;; :scm-file-path - we don't currently have scm file for namespaces
-                              :target-path (.getParent (io/file target-file))))
+                       {:docstring-format docstring-format
+                        :scm scm-info
+                        :uri-map uri-map
+                        ;; :scm-file-path - we don't currently have scm file for namespaces
+                        :target-path (.getParent (io/file target-file))})
               (page' {:namespace (platf/get-field ns-data :name)}))])])))
 
 (defn zip-stream [{:keys [version-entity] :as cache-bundle} static-resources]
