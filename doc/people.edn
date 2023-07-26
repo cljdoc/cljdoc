@@ -198,7 +198,7 @@
    :contributions [:issue]}
   {:github-id "jmlsf"
    :contributions [:issue]}
-  {:github-id "JoelSanchez"
+  {:github-id "gacelita"
    :contributions [:issue]}
   {:github-id "l3nz"
    :contributions [:issue]}
@@ -273,4 +273,8 @@
   {:github-id "tsulej"
    :contributions [:code]}
   {:github-id "weavejester"
-   :contributions [:code :doc]}]}
+   :contributions [:code :doc]}
+  {:github-id "ptaoussanis"
+   :contributions [:issue]}
+  {:github-id "tengstrand"
+   :contributions [:issue]} ]}
