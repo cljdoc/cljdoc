@@ -901,3 +901,46 @@ table.frame-sides > colgroup + * > :first-child > * {
 .hljs-link {
   text-decoration: underline;
 }
+
+/*
+ * Highlight js copyButtonPlugin support
+ */
+
+.hljs-copy-wrapper {
+  position: relative;
+}
+
+.hljs-copy-wrapper:hover .hljs-copy-button {
+  visibility: visible;
+}
+
+.hljs-copy-button {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  width: 2rem;
+  height: 2rem;
+  color: #999;
+  border-radius: 0.25rem;
+  border: 1px solid #999;
+  background-color: #f6f8fa;
+  background-image: url(https://microicon-clone.vercel.app/content_paste/999);
+  background-repeat: no-repeat;
+  background-position: center;
+  visibility: hidden;
+}
+
+.hljs-copy-button:hover, hljs-copy-button:focus {
+  border-color: #357edd;
+  background-image: url(https://microicon-clone.vercel.app/content_paste/357edd);
+}
+
+.hljs-copy-button[data-copied="false"] {
+  text-indent: -9999px; /* Hide the inner text */
+}
+
+.hljs-copy-button[data-copied="true"] {
+  text-indent: 0px; /* Show the inner text */
+  width: auto;
+  background-image: none;
+}
