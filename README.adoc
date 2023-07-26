@@ -1,6 +1,6 @@
 :notitle:
 // num-contributors is updated automatically by doc-readme-update bb task
-:num-contributors: 136
+:num-contributors: 138
 
 image:resources/public/cljdoc-logo-beta-square.png[cljdoc,100,100]
 
@@ -158,7 +158,7 @@ image:bhb.png[bhb,width=273,link="https://github.com/bhb"]
 image:aviflax.png[aviflax,width=273,link="https://github.com/aviflax"]
 image:gnl.png[gnl,width=273,link="https://github.com/gnl"]
 image:jmlsf.png[jmlsf,width=273,link="https://github.com/jmlsf"]
-image:JoelSanchez.png[JoelSanchez,width=273,link="https://github.com/JoelSanchez"]
+image:gacelita.png[gacelita,width=273,link="https://github.com/gacelita"]
 image:l3nz.png[l3nz,width=273,link="https://github.com/l3nz"]
 image:bfontaine.png[bfontaine,width=273,link="https://github.com/bfontaine"]
 image:kumarshantanu.png[kumarshantanu,width=273,link="https://github.com/kumarshantanu"]
@@ -196,6 +196,8 @@ image:rwilson.png[rwilson,width=273,link="https://github.com/rwilson"]
 image:sbauer322.png[sbauer322,width=273,link="https://github.com/sbauer322"]
 image:tsulej.png[tsulej,width=273,link="https://github.com/tsulej"]
 image:weavejester.png[weavejester,width=273,link="https://github.com/weavejester"]
+image:ptaoussanis.png[ptaoussanis,width=273,link="https://github.com/ptaoussanis"]
+image:tengstrand.png[tengstrand,width=273,link="https://github.com/tengstrand"]
 --
 // AUTO-GENERATED:CONTRIBUTORS-END
 Did we leave someone out? That certainly was not our intention, please do let us know!
