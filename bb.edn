@@ -1,12 +1,112 @@
-{:paths ["script"]
+{:paths ["." "script"]
  :deps {doric/doric {:mvn/version "0.9.0"}
         lread/status-line {:git/url "https://github.com/lread/status-line.git"
                            :sha "cf44c15f30ea3867227fa61ceb823e5e942c707f"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
         etaoin/etaoin {:mvn/version "1.0.40"}}
- :tasks {lint {:task lint/-main :doc "[--rebuild] lint source code using clj-kondo"}
-         eastwood {:task (clojure "-M:test:eastwood") :doc "lint source code using eastwood"}
-         code-format {:task code-format/-main :doc "(check|fix) check whitespace formatting"}
-         outdated {:task outdated/-main :doc "report on outdated Clojure and JavaScript dependencies"}
-         doc-update-readme {:task doc-update-readme/-main :doc "honour our contributors in README"}
-         check-contributors {:task check-contributors/-main :doc "who'd we miss?"}}}
+ :tasks
+ {;; setup
+  :requires ([babashka.fs :as fs]
+             [lread.status-line :as status]
+             [version])
+  :enter (let [{:keys [name task-decoration] :as f} (current-task)]
+           (when-not (= :none task-decoration)
+             (status/line :head "TASK %s" name)))
+  :leave (let [{:keys [name task-decoration] :as f} (current-task)]
+           (when-not (= :none task-decoration)
+             (status/line :detail "\nTASK %s done." name)))
+
+  ;; commands
+  clean
+  {:doc "delete all build work"
+   :task (do
+           (println "Deleting (d=deleted -=did not exist)")
+           (run! (fn [d]
+                   (println (format "[%s] %s"
+                                    (if (fs/exists? d) "d" "-")
+                                    d))
+                   (fs/delete-tree d))
+                   ["target"
+                    "resources-compiled"
+                    ".cpcache"
+                    ".parcel-cache"
+                    "modules/deploy/.cpcache"]))}
+  deps-js
+  {:doc "bring down js deps"
+   :task (if (seq (fs/modified-since "node_modules" ["package-lock.json"]))
+           (shell "npm ci")
+           (println "Skipped npm ci: package-lock.json older than node_modules"))}
+  compile-js
+  {:doc "compile front end sources"
+   :depends [deps-js]
+   :task (let [out-dir "resources-compiled/public/out"]
+           (if (seq (fs/modified-since out-dir ["resources/public" "js"]))
+             (shell "npm run build")
+             (println "Skipped: JS assets already compiled to" out-dir)))}
+  compile-js-watch
+  {:doc "compile front end sources and watch for changes"
+   :depends [deps-js]
+   :task (shell "npm run dev")}
+  code-format-js
+  {:doc "(check|fix) JS code format"
+   :depends [deps-js]
+   :task (let [cmd (first *command-line-args*)]
+           (if (= cmd "fix" )
+             (do (println "fixing")
+                 (shell "npm run format"))
+             (do (println "checking")
+                 (shell "npm run lint"))))}
+  lint-js
+  {:doc "lint typescript"
+   :depends [deps-js]
+   :task (let [exit (-> (shell {:continue true} "npx tsc") :exit)]
+           (if (zero? exit)
+             (println "Exited with 0, so all seems good.")
+             (System/exit exit)))}
+  run
+  {:doc "Launch cljdoc server"
+   :depends [deps-js compile-js]
+   :task (apply clojure "-M:cli run" *command-line-args*)}
+  ingest
+  {:doc "Ingest docs locally for testing"
+   :task (apply clojure "-M:cli ingest" *command-line-args*)}
+  test
+  {:doc "Run tests"
+   :depends [deps-js compile-js]
+   :task (apply clojure "-M:test" *command-line-args*)}
+  lint
+  {:doc "[--rebuild] lint source code using clj-kondo"
+   :task lint/-main}
+  eastwood
+  {:doc "lint source code using eastwood"
+   :task (clojure "-M:test:eastwood")}
+  code-format
+  {:doc "(check|fix) check whitespace formatting"
+   :task code-format/-main}
+  version
+  {:doc "print current version"
+   :task-decoration :none ;; some users might want us raw output
+   :task version/-main}
+  package
+  {:doc "Zip up cljdoc for docker"
+   :requires [package]
+   :depends [compile-js]
+   ;; this check supports current CI job pipeline which relies on not having to recreate cljdoc.zip
+   :task (if (fs/exists? "target/cljdoc.zip")
+           (println "Skipped: target/cljdoc.zip exists")
+           (apply package/-main *command-line-args*))}
+  docker-image
+  {:doc "Create docker image"
+   :depends [package]
+   :task (shell {:dir "ops/docker"}
+                "bb image.clj" (fs/absolutize "target/cljdoc.zip") (version/version))}
+  outdated
+  {:doc "report on outdated Clojure and JavaScript dependencies"
+   :depends [deps-js]
+   :task outdated/-main}
+  doc-update-readme
+  {:doc "honour our contributors in README"
+   :task doc-update-readme/-main}
+  check-contributors
+  {:doc "who'd we miss?"
+   :task check-contributors/-main}}}
