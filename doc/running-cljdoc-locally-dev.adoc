@@ -49,39 +49,27 @@ git clone https://github.com/cljdoc/cljdoc.git
 cd cljdoc
 ----
 
-. Build the JavaScript files used by the cljdoc pages:
-
-** If you want to replicate production:
+. (Optional) Setup JavaScript sources to auto-recompile.
+If you are planning to work on JavaScript files:
 +
 [source,shell]
 ----
-npm ci                 # reproducibly install packages into node_modules
-npm run format         # format JS code with Prettier
-npm run build          # production build
+bb compile-js-watch
 ----
 +
-Check that `resources-compiled` folder was generated.
-
-** If you are a developer planning to work on JavaScript files (instead of `npm run build` we have `npm run dev`):
-+
-[source,shell]
-----
-npm ci                 # reproducibly install packages into node_modules
-npm run format         # format JS code with Prettier
-npm run dev            # watch mode for automatic rebuilding of JavaScript files
-----
-+
-NOTE: Leave watch mode session open. Continue any work in a separate terminal shell.
+NOTE: Leave the watch session open. Continue any work in a separate terminal shell.
 . Start the cljdoc web server
 +
 [source,shell]
 ----
-./script/cljdoc run
+bb run
 ----
 +
 IMPORTANT: Leave this web server session open. Continue any work in a separate terminal shell.
 +
-Alternatively you can start a REPL with `clj` (or your favorite editor integration), then load the system, move into its namespace and start the server:
+Alternatively you work from a REPL.
+First run `bb compile-js` (or `bb compile-js-watch` if you are working on front end sources).
+The launch your REPL with `clj` (or your favorite editor integration), then navigate to `cljdoc.server.system` namespace, load it, then start the server:
 +
 [source,clojure]
 ----
@@ -99,7 +87,7 @@ From the cljdoc directory:
 +
 [source,clojure]
 ----
-clojure -M:test
+bb test
 ----
 
 == Import a Library's Docs
