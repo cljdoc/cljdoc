@@ -12,7 +12,7 @@
         branch (-> (t/shell {:out :string} "git rev-parse --abbrev-ref HEAD") :out str/trim)]
     (if (= "master" branch)
       (format "%s.%s-%s" base-version commit-count commit-sha)
-      (format "%s.%s-%s-%s" base-version commit-count branch commit-sha))) )
+      (format "%s.%s-%s-%s" base-version commit-count branch commit-sha))))
 
 (defn -main [& _args]
   (println (version)))
