@@ -177,16 +177,15 @@ jobs:
 
     steps:
       - checkout
-
       - *restore_npm_cache
+      - *bb_install
+      - *npm_deps_install
 
       - run:
           name: Report Tools Versions
           command: |
+            bb --version
             node --version
-
-      - *bb_install
-      - *npm_deps_install
 
       - run:
           name: Package cljdoc
@@ -261,6 +260,7 @@ jobs:
       - run:
           name: Tools Versions
           command: |
+            java --version
             bb --version
             docker --version
 
@@ -282,8 +282,17 @@ jobs:
           fingerprints:
             - "75:fb:98:1f:f6:21:7f:bf:cc:c9:0e:b2:9e:be:5c:e8"
       - checkout
+
       - *clojure_install
       - *bb_install
+
+      - run:
+          name: Tools Versions
+          command: |
+            java --version
+            clojure --version
+            bb --version
+
       - run: |
           CLJDOC_VERSION=$(bb version)
           cd modules/deploy
