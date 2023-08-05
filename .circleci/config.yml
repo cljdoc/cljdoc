@@ -101,8 +101,7 @@ jobs:
   # build: front-end-checks
   #
   front-end-checks:
-    docker:
-      - image: cimg/node:16.4.2
+    docker: *clojure_image
 
     steps:
       - checkout
@@ -174,8 +173,7 @@ jobs:
   # - publish-docker
   #
   package:
-    docker:
-      - image: cimg/node:16.4.2
+    docker: *clojure_image
 
     steps:
       - checkout
