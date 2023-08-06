@@ -222,33 +222,6 @@ To make things easy to find, images should sit in the same directory as the doc.
 We make use of babashka tasks.
 Run `bb tasks` to see what is available.
 
-=== Run Tests
-
-```
-bb test
-```
-
-Also supports kaocha args, ex:
-
-```
-bb test --focus cljdoc.util.fixref-test/fix-test
-```
-
-=== Launch a server
-
-As a developer you'll typically want to use the REPL, but you can also launch the server like so:
-```
-bb run
-```
-
-=== Ingest some docs
-
-It can be convenient to ingest a library's docs from the command line:
-
-```
-bb ingest --project bidi --version 2.1.3
-```
-
 === Honoring People who Contribute
 
 We honor the many good folks who contribute to cljdoc in our link:/README.adoc[README] file.
@@ -308,7 +281,10 @@ Run it via `bb eastwood`.
 Note that we are currently having eastwood check reflection warnings.
 This seems to be working out nicely, but if you strongly disagree, let us know.
 
-==== Coding style
+==== other linting
+CI also lints JavaScript source via `npm run lint` and TypeScript via `npx tsc`.
+
+=== Coding style
 
 We try to follow https://guide.clojure.style[The Clojure Style Guide].
 
@@ -318,21 +294,8 @@ To check for issues it runs `bb code-format check` and so can you!
 
 You can also run `bb code-format fix` to have cljfmt fix any code formatting issues it has detected.
 
-==== Other linting
-
-Lint client-side sources via `bb code-format-js` and `bb lint-js`. 
-
 === Outdated dependencies
 
 Carefully applying available updates keeps up with security patches and reduces the overall maintenance burden.
 
 To check for outdated Clojure and JavaScript dependencies run `bb outdated`.
-
-=== Create a docker image
-I can be convenient to create a docker image for local testing.
-
-```
-bb docker-image
-```
-
-Run `bb clean` first to ensure no cached resources are being used.

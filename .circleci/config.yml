@@ -101,13 +101,13 @@ jobs:
   # build: front-end-checks
   #
   front-end-checks:
-    docker: *clojure_image
+    docker:
+      - image: cimg/node:16.4.2
 
     steps:
       - checkout
 
       - *restore_npm_cache
-      - *bb_install
       - *npm_deps_install
 
       - run:
@@ -115,15 +115,14 @@ jobs:
           command: |
             node --version
             npx tsc --version
-            bb --version
 
       - run:
           name: Lint Front End Source Format
-          command: bb code-format-js
+          command: npm run lint
 
       - run:
           name: Compile TypeScript to Check for Issues
-          command: bb lint-js
+          command: npx tsc
 
       - *save_npm_cache
 
@@ -138,7 +137,6 @@ jobs:
       - *restore_clojure_cache
       - *restore_npm_cache
       - *clojure_install
-      - *bb_install
 
       - run:
           name: Report Tools Versions
@@ -146,23 +144,22 @@ jobs:
            node --version
            java --version
            clojure --version
-           bb --version
 
       - *npm_deps_install
 
       - run:
           name: Build Front End
-          command: bb compile-js
+          command: npm run build
 
       - *clojure_deps_download
 
       - run:
           name: Build Docs for Sample Library
-          command: bb ingest --project bidi --version 2.1.3
+          command: ./script/cljdoc ingest --project bidi --version 2.1.3
 
       - run:
           name: Run Tests
-          command: bb test
+          command: clojure -M:test --reporter documentation
 
       - *save_clojure_cache
       - *save_npm_cache
@@ -173,23 +170,24 @@ jobs:
   # - publish-docker
   #
   package:
-    docker: *clojure_image
+    docker:
+      - image: cimg/node:16.4.2
 
     steps:
       - checkout
+
       - *restore_npm_cache
-      - *bb_install
-      - *npm_deps_install
 
       - run:
           name: Report Tools Versions
           command: |
-            bb --version
             node --version
+
+      - *npm_deps_install
 
       - run:
           name: Package cljdoc
-          command: bb package
+          command: ./script/package
 
       # for publish-zip-build job
       - persist_to_workspace:
@@ -248,26 +246,16 @@ jobs:
   #
   publish-docker:
     machine:
-      image: ubuntu-2204:2023.07.2
+      image: ubuntu-2004:202201-02
     steps:
       - checkout
       # from package job
       - attach_workspace:
           at: .
-
-      - *bb_install
-
-      - run:
-          name: Tools Versions
-          command: |
-            java --version
-            bb --version
-            docker --version
-
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       # because target/ has been put into place `make image` can be
       # run without running ./script/package (which would require npm)
-      - run: bb docker-image
+      - run: cd ops/docker && make image
       - run: docker push --all-tags cljdoc/cljdoc
 
   # This assumes that an SSH key has been added to the CircleCI build
@@ -282,21 +270,10 @@ jobs:
           fingerprints:
             - "75:fb:98:1f:f6:21:7f:bf:cc:c9:0e:b2:9e:be:5c:e8"
       - checkout
-
       - *clojure_install
-      - *bb_install
-
-      - run:
-          name: Tools Versions
-          command: |
-            java --version
-            clojure --version
-            bb --version
-
-      - run: |
-          CLJDOC_VERSION=$(bb version)
-          cd modules/deploy
-          clojure -M -m cljdoc.deploy deploy -t ${CLJDOC_VERSION} --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
+      - run: >
+          cd modules/deploy &&
+          clojure -M -m cljdoc.deploy deploy -t $(./../../script/version.sh) --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
 
 workflows:
   build-and-deploy:
