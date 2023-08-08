@@ -549,11 +549,11 @@ table.frame-sides > colgroup + * > :first-child > * {
 }
 
 .asciidoc .admonitionblock.important .icon i:after {
-  color: #7d0047;
+  color: #762a55;
 }
 .asciidoc .admonitionblock.important {
-  background-color: #ffa3d7;
-  border-color: #ff4136;
+  background-color: #f8cfe8;
+  border-color: #c783aa;
 }
 
 .asciidoc .admonitionblock.warning .icon i:after {
