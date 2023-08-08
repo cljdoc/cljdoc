@@ -34,7 +34,7 @@ On top of the base OS the following things are added:
 For details see configuration and Systemd service files in link:image/conf[`conf/`]. All
 code that is ran to prepare the image can be found in link:image/nomad.packer.json[`nomad.packer.json`].
 
-=== Creating an Image
+=== Creating a Nomad Image
 
 This requires `TF_VAR_do_token` to contain a valid DigitalOcean token.
 
@@ -88,17 +88,16 @@ terraform output main_ip
 
 [source,sh]
 ----
-cd ops/docker
-make image
+bb docker-image
 ----
 
 This will package the cljdoc application in a Docker container. A tag will be determined
-based on number of commits, branch and commit SHA. Images are published to Docker Hub during
+based on number of commits, branch and commit SHA. Docker images are published to Docker Hub during
 CI. See link:/.circleci/config.yml[`.circleci/config.yml`].
 
 [TIP]
 ====
-Run `make clean image` when testing your image locally.
+Run `bb clean` first when testing your image locally.
 This will ensure you are not working with stale inputs.
 ====
 
@@ -120,8 +119,8 @@ To run it the following commands can be used:
 
 [source,sh]
 ----
+docker_tag=$(bb version)
 cd modules/deploy/
-docker_tag=$(../../script/version.sh)
 clojure -M -m cljdoc.deploy deploy --docker-tag $docker_tag
 ----
 
