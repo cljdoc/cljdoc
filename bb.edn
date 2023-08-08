@@ -90,11 +90,12 @@
   package
   {:doc "Zip up cljdoc for docker"
    :requires [package]
-   :depends [compile-js]
    ;; this check supports current CI job pipeline which relies on not having to recreate cljdoc.zip
    :task (if (fs/exists? "target/cljdoc.zip")
            (println "Skipped: target/cljdoc.zip exists")
-           (apply package/-main *command-line-args*))}
+           (do
+             (run 'compile-js)
+             (apply package/-main *command-line-args*)))}
   docker-image
   {:doc "Create docker image"
    :depends [package]
