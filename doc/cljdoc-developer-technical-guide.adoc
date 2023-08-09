@@ -217,6 +217,20 @@ alongside, in the same directory, the draw.io source `system-overview.drawio`.
 
 To make things easy to find, images should sit in the same directory as the doc.
 
+== Java Source
+
+We have a wee bit of Java source to work-around a flexmark bug.
+
+We probably could have incorporated this fix in Clojure using `gen-class`, but a little Java code is often simpler than puzzling out how to get `gen-class` working.
+
+Before you start a REPL you'll need to:
+
+```
+bb compile-java
+```
+
+And if you make any changes to Java source, you'll need restart your REPL after a `bb compile-java`.
+
 == Tasks
 
 We make use of babashka tasks.

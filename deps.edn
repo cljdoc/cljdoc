@@ -86,13 +86,17 @@
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
                               :git/sha "53c113e375df94d50cf96c6f2c1b3842dc0e9b35"}}
 
- :paths ["src" "resources" "resources-compiled"]
+ :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:test
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.85.1342"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
                          nubank/matcher-combinators {:mvn/version "3.8.5" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
+
+           :build
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
+            :ns-default build}
 
            :clj-kondo
            {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2023.07.13"}}

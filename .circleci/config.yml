@@ -184,6 +184,7 @@ jobs:
       - run:
           name: Report Tools Versions
           command: |
+            java --version
             bb --version
             node --version
 

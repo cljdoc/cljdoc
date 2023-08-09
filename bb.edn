@@ -7,6 +7,7 @@
  :tasks
  {;; setup
   :requires ([babashka.fs :as fs]
+             [build-shared :as bs]
              [lread.status-line :as status]
              [version])
   :enter (let [{:keys [name task-decoration] :as f} (current-task)]
@@ -56,6 +57,11 @@
                  (shell "npm run format"))
              (do (println "checking")
                  (shell "npm run lint"))))}
+  compile-java
+  {:doc "Compile java sources"
+   :task (if (seq (fs/modified-since bs/class-dir (fs/glob "." "src/**.java")))
+           (clojure "-T:build" "compile-java")
+           (println "Java sources already compiled to" bs/class-dir))}
   lint-js
   {:doc "lint typescript"
    :depends [deps-js]
@@ -65,20 +71,22 @@
              (System/exit exit)))}
   run
   {:doc "Launch cljdoc server"
-   :depends [deps-js compile-js]
+   :depends [deps-js compile-js compile-java]
    :task (apply clojure "-M:cli run" *command-line-args*)}
   ingest
   {:doc "Ingest docs locally for testing"
+   :depends [compile-java]
    :task (apply clojure "-M:cli ingest" *command-line-args*)}
   test
   {:doc "Run tests"
-   :depends [deps-js compile-js]
+   :depends [deps-js compile-js compile-java]
    :task (apply clojure "-M:test" *command-line-args*)}
   lint
   {:doc "[--rebuild] lint source code using clj-kondo"
    :task lint/-main}
   eastwood
   {:doc "lint source code using eastwood"
+   :depends [compile-java]
    :task (clojure "-M:test:eastwood")}
   code-format
   {:doc "(check|fix) check whitespace formatting"
@@ -95,6 +103,7 @@
            (println "Skipped: target/cljdoc.zip exists")
            (do
              (run 'compile-js)
+             (run 'compile-java)
              (apply package/-main *command-line-args*)))}
   docker-image
   {:doc "Create docker image"
