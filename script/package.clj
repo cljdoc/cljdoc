@@ -18,7 +18,7 @@
     (fs/create-dirs target)
     (fs/delete-if-exists zipfile)
     ;; fs/zip does not preserve executable status, but InfoZip does so shell out.
-    (t/shell "zip -q -r" zipfile "src" "modules" "script" "resources" "resources-compiled" "deps.edn")))
+    (t/shell "zip -q -r" zipfile "src" "modules" "script" "resources" "resources-compiled" "deps.edn" "target/classes")))
 
 (defn -main [& _args]
   (package))

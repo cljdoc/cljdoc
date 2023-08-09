@@ -1,6 +1,7 @@
 (ns cljdoc.render.rich-text
   (:require [cljdoc.render.sanitize :as sanitize])
   (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory Options Attributes)
+           (cljdoc.render FixupImgRefLinksExtension)
            (com.vladsch.flexmark.parser Parser LinkRefProcessorFactory LinkRefProcessor)
            (com.vladsch.flexmark.html HtmlRenderer LinkResolverFactory LinkResolver)
            (com.vladsch.flexmark.html.renderer ResolvedLink LinkType LinkStatus LinkResolverBasicContext DelegatingNodeRendererFactory NodeRenderer NodeRenderingHandler NodeRenderingHandler$CustomNodeRenderer)
@@ -35,7 +36,8 @@
         sanitize/clean)))
 
 (def md-extensions
-  [(TablesExtension/create)
+  [(FixupImgRefLinksExtension/create)
+   (TablesExtension/create)
    (AutolinkExtension/create)
    (AnchorLinkExtension/create)])
 
