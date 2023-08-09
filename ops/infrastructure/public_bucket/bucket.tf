@@ -1,7 +1,7 @@
 variable "bucket_name" {}
 
 data "aws_iam_policy_document" "public_read_bucket_policy" {
-  provider = "aws.prod"
+  provider = aws.prod
 
   statement {
     sid    = "PublicReadForGetBucketObjects"
@@ -20,52 +20,52 @@ data "aws_iam_policy_document" "public_read_bucket_policy" {
 }
 
 resource "aws_s3_bucket" "public_bucket" {
-  provider = "aws.prod"
-  bucket   = "${var.bucket_name}"
-  policy   = "${data.aws_iam_policy_document.public_read_bucket_policy.json}"
+  provider = aws.prod
+  bucket   = var.bucket_name
+  policy   = data.aws_iam_policy_document.public_read_bucket_policy.json
 }
 
 data "aws_iam_policy_document" "bucket_write_user_policy" {
-  provider = "aws.prod"
+  provider = aws.prod
 
   statement {
     effect  = "Allow"
     actions = ["s3:*"]
 
     resources = [
-      "${aws_s3_bucket.public_bucket.arn}",
-      "${aws_s3_bucket.public_bucket.arn}/*",
+      aws_s3_bucket.public_bucket.arn,
+      "${aws_s3_bucket.public_bucket.arn}/*"
     ]
   }
 }
 
 resource "aws_iam_user_policy" "bucket_write_user_policy" {
-  provider = "aws.prod"
+  provider = aws.prod
   name     = "write_bucket_policy"
-  user     = "${aws_iam_user.bucket_write_user.name}"
+  user     = aws_iam_user.bucket_write_user.name
 
-  policy = "${data.aws_iam_policy_document.bucket_write_user_policy.json}"
+  policy = data.aws_iam_policy_document.bucket_write_user_policy.json
 }
 
 resource "aws_iam_user" "bucket_write_user" {
-  provider = "aws.prod"
+  provider = aws.prod
   name     = "${var.bucket_name}-user"
   path     = "/cljdoc/"
 }
 
 resource "aws_iam_access_key" "bucket_write_user_key" {
-  provider = "aws.prod"
-  user     = "${aws_iam_user.bucket_write_user.name}"
+  provider = aws.prod
+  user     = aws_iam_user.bucket_write_user.name
 }
 
 output "bucket_name" {
-  value = "${var.bucket_name}"
+  value = var.bucket_name
 }
 
 output "write_user_access_key" {
-  value = "${aws_iam_access_key.bucket_write_user_key.id}"
+  value = aws_iam_access_key.bucket_write_user_key.id
 }
 
 output "write_user_secret" {
-  value = "${aws_iam_access_key.bucket_write_user_key.secret}"
+  value = aws_iam_access_key.bucket_write_user_key.secret
 }

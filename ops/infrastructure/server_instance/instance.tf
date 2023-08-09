@@ -5,12 +5,12 @@ variable "xyz_domain" {}
 variable "org_domain" {}
 
 output "ip" {
-  value = "${digitalocean_droplet.cljdoc_01.ipv4_address}"
+  value = digitalocean_droplet.cljdoc_01.ipv4_address
 }
 
 resource "digitalocean_droplet" "cljdoc_01" {
-  image      = "${var.image_id}"
-  name       = "${var.org_domain}"
+  image      = var.image_id
+  name       = var.org_domain
   region     = "ams3"
   size       = "s-1vcpu-2gb"
   monitoring = true
@@ -22,19 +22,19 @@ resource "digitalocean_droplet" "cljdoc_01" {
 }
 
 resource "aws_route53_record" "org_record" {
-  provider = "aws.prod"
-  zone_id  = "${var.org_zone}"
-  name     = "${var.org_domain}"
+  provider = aws.prod
+  zone_id  = var.org_zone
+  name     = var.org_domain
   type     = "A"
   ttl      = "300"
-  records  = ["${digitalocean_droplet.cljdoc_01.ipv4_address}"]
+  records  = [digitalocean_droplet.cljdoc_01.ipv4_address]
 }
 
 resource "aws_route53_record" "xyz_record" {
-  provider = "aws.prod"
-  zone_id  = "${var.xyz_zone}"
-  name     = "${var.xyz_domain}"
+  provider = aws.prod
+  zone_id  = var.xyz_zone
+  name     = var.xyz_domain
   type     = "A"
   ttl      = "300"
-  records  = ["${digitalocean_droplet.cljdoc_01.ipv4_address}"]
+  records  = [digitalocean_droplet.cljdoc_01.ipv4_address]
 }
