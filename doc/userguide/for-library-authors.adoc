@@ -1,5 +1,6 @@
 = Cljdoc for Library Authors
 :toc:
+:toclevels: 3
 
 == Why Cljdoc?
 
@@ -195,6 +196,9 @@ As an example, a version of https://github.com/seancorfield/honeysql[honeysql]'s
 == Linking to docs on cljdoc
 See also: link:#badges[badges].
 
+TIP: If you are link:/doc/running-cljdoc-locally.adoc[locally previewing your docs], there's no need to replace `\https://cljdoc.org` with some `localhost` version.
+Cljdoc will automatically make these URLs work locally.
+
 [[link-articles]]
 === Link to articles
 
@@ -213,13 +217,38 @@ Cljdoc will rewrite built article to article links automatically. Markdown examp
 *** `https://cljdoc.org/d/metosin/malli/0.7.5/doc/readme`
 
 === Link to API docs
+Sometimes you'll want to link to a var or a namespace in your library's API docs on cljdoc.
 
-* When linking from markdown docstring to API docs, use the link:#wikilink[`+[[wikilink]]+`]
-* When linking from article to API docs, or from outside your git repo:
-** link to var `malli.core/explain` in current release
-*** `https://cljdoc.org/d/metosin/malli/CURRENT/api/malli.core#explain`
-** link to namespace `malli.core` in release 0.7.5
-*** `https://cljdoc.org/d/metosin/malli/0.7.5/api/malli.core`
+[[wikilink]]
+==== Use API Wikilinks from docstrings
+
+You can link to other namespaces and functions within your libary from your markdown docstrings using the `\[[wikilink]]` syntax.
+
+Note that if you want to link to vars outside the current namespace you need to either fully qualify those vars or specify them relative to the current namespace.
+An example: if you want to link to `compojure.core/GET` from `compojure.route` you'll need to provide the wiki in one of the two forms below:
+
+```
+[[compojure.core/GET]]
+[[core/GET]]
+```
+
+NOTE: Wikilinks only work from docstrings.
+
+==== Use full API URLS from articles
+
+Use the full cljdoc API URL when linking to from an article or from outside your git repo.
+
+For example to link to namespace `malli.core` in version 0.7.5 use: +
+`https://cljdoc.org/d/metosin/malli/0.7.5/api/malli.core`
+
+You can replace the explicit version with `CURRENT`.
+For example, to link to `malli.core/explain` in the current version use: +
+`https://cljdoc.org/d/metosin/malli/CURRENT/api/malli.core#explain`
+
+`CURRENT` will be replaced with:
+
+* the current version the user is already viewing on cljdoc
+* the latest available version of the library when the user is navigating to cljdoc from some outside source
 
 [[api]]
 == API Documentation
@@ -316,18 +345,6 @@ Consider https://www.martinklepsch.org/posts/writing-awesome-docstrings.html[the
   * `[my article](/dir1/dir2/article.adoc)`
 
 Any HTML embedded within docstrings is escaped.
-
-[[wikilink]]
-==== Wikilinks
-
-You can link to other namespaces and functions from your markdown docstrings using the `\[[wikilink]]` syntax.
-
-Note that if you want to link to vars outside the current namespace you need to either fully qualify those vars or specify them relative to the current namespace. An example: if you want to link to `compojure.core/GET` from `compojure.route` you'll need to provide the wiki in one of the two forms below:
-
-----
-[[compojure.core/GET]]
-[[core/GET]]
-----
 
 [[articles]]
 == Article Documentation
