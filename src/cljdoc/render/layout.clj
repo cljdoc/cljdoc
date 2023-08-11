@@ -150,9 +150,11 @@
 
 (defn meta-info-dialog []
   [:div
-   [:img#js--meta-icon.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
-    {:src "https://microicon-clone.vercel.app/explore/48/357edd"}]
-   [:div#js--meta-dialog.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
+   [:img.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
+    {:data-id "cljdoc-js--meta-icon"
+     :src "https://microicon-clone.vercel.app/explore/48/357edd"}]
+   [:div.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
+    {:data-id "cljdoc-js--meta-dialog"}
     [:p.ma0
      [:b "cljdoc"]
      " is a website building & hosting documentation for Clojure/Script libraries"]
@@ -165,7 +167,7 @@
                 ["Report a problem"    (links/github-url :issues)]
                 ;; ["Recent improvements" "#"] TODO add link once it exists
                 ["cljdoc on GitHub"    (links/github-url :home)]]))
-    [:a#js--meta-close.link.black.fr.pointer
+    [:a.link.black.fr.pointer {:data-id "cljdoc-js--meta-close"}
      "× close"]]])
 
 (def home-link
@@ -264,7 +266,7 @@
   [r-main-container
    [r-top-bar-container
     top-bar
-    [:div#js--mobile-nav.db.dn-ns]]
+    [:div#db.dn-ns {:data-id "cljdoc-js--mobile-nav"}]]
    mobile-nav-spacer
    [:div.flex.flex-row
     ;; Without min-height: 0 the sidebar and main content area won't

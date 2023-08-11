@@ -118,9 +118,9 @@ function saveSidebarScrollPos() {
 
 function toggleMetaDialog() {
   if (document.querySelector(".js--main-scroll-view")) {
-    const metaIcon = document.getElementById("js--meta-icon");
-    const metaDialog = document.getElementById("js--meta-dialog");
-    const metaClose = document.getElementById("js--meta-close");
+    const metaIcon = document.querySelector("[data-id='cljdoc-js--meta-icon']");
+    const metaDialog = document.querySelector("[data-id='cljdoc-js--meta-dialog']");
+    const metaClose = document.querySelector("[data-id='cljdoc-js--meta-close']");
 
     if (metaIcon) {
       metaIcon.onclick = () => {
@@ -139,8 +139,8 @@ function toggleMetaDialog() {
 }
 
 function toggleArticlesTip() {
-  const tipToggler = document.getElementById("js--articles-tip-toggler");
-  const tip = document.getElementById("js--articles-tip");
+  const tipToggler = document.querySelector("[data-id='cljdoc-js--articles-tip-toggler']");
+  const tip = document.querySelector("[data-id='cljdoc-js--articles-tip']");
   if (tipToggler && tip) {
     tipToggler.onclick = () => {
       tip.classList.toggle("dn");

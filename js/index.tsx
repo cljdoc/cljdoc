@@ -50,7 +50,7 @@ if (searchNode && searchNode.dataset) {
 }
 
 // Used for navigating on the /versions page.
-const navigatorNode = document.querySelector("#js--cljdoc-navigator");
+const navigatorNode = document.querySelector("[data-id='cljdoc-js--cljdoc-navigator']");
 navigatorNode && render(<Navigator />, navigatorNode);
 
 if (isNSOverviewPage()) {
@@ -71,7 +71,7 @@ if (isNSOfflinePage()) {
 // For just general documentation pages, specifically routes that begin with /d/.
 if (isProjectDocumentationPage()) {
   // Special handling for mobile nav. It makes the sidebar from desktop toggleable.
-  const mobileNav = document.querySelector("#js--mobile-nav");
+  const mobileNav = document.querySelector("[data-id='cljdoc-js--mobile-nav']");
   mobileNav && render(<MobileNav />, mobileNav);
   toggleMetaDialog();
   toggleArticlesTip();

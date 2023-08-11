@@ -67,10 +67,10 @@
       (layout/sidebar-title [:span "Articles"
                              (when articles-tip?
                                [:sup.ttl
-                                [:a#js--articles-tip-toggler {:href "#"}
+                                [:a {:href "#" :data-id "cljdoc-js--articles-tip-toggler"}
                                  [:span.link.dib.ml1.v-mid.hover-blue.ttl.silver "tip"]]])])
       (when articles-tip?
-        [:div#js--articles-tip.dn
+        [:div.dn {:data-id "cljdoc-js--articles-tip"}
          [:div.mb1.ba.br3.silver.b--blue.bw1.db.f6.w-100.pt1.pa1
           (cond
             no-scm?
