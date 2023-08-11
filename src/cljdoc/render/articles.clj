@@ -16,13 +16,13 @@
    (if prev-page
      [:a.link.blue
       {:href (doc-link version-entity (-> prev-page :attrs :slug-path))
-       :id "prev-article-page-link"}
+       :data-id "cljdoc-prev-article-page-link"}
       [:span [:span.mr1 "❮"] (-> prev-page :title)]]
      [:div])
    (when next-page
      [:a.link.blue
       {:href (doc-link version-entity (-> next-page :attrs :slug-path))
-       :id "next-article-page-link"}
+       :data-id "cljdoc-next-article-page-link"}
       [:span (-> next-page :title) [:span.ml1 "❯"]]])])
 
 (defn doc-tree-view

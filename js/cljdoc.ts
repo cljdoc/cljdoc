@@ -150,10 +150,10 @@ function toggleArticlesTip() {
 
 function addPrevNextPageKeyHandlers() {
   const prevLink: HTMLAnchorElement | null = document.querySelector(
-    "a#prev-article-page-link"
+    "a[data-id='cljdoc-prev-article-page-link']"
   );
   const nextLink: HTMLAnchorElement | null = document.querySelector(
-    "a#next-article-page-link"
+    "a[data-id='cljdoc-next-article-page-link']"
   );
   if (prevLink || nextLink) {
     document.addEventListener("keydown", function (e) {
