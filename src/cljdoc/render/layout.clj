@@ -188,8 +188,8 @@
    [:div.tr
     {:style {:flex-grow 1}}
     [:form.dn.dib-ns.mr3 {:action "/api/request-build2" :method "POST"}
-     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id version-entity) "/" (:artifact-id version-entity))}]
-     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version version-entity)}]
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :name "project" :value (str (:group-id version-entity) "/" (:artifact-id version-entity))}]
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :name "version" :value (:version version-entity)}]
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
     (cond
       (and scm-url (scm/http-uri scm-url))
