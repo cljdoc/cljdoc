@@ -132,7 +132,7 @@
                   contents]
                  (when (not= :prod (config/profile))
                    (no-js-warning opts))
-                 [:div#cljdoc-switcher]
+                 [:div {:data-id "cljdoc-switcher"}]
                  [:script {:src (get (:static-resources opts) "/cljdoc.js")}]
                  (highlight-js)
                  (add-requested-features (:page-features opts))]]))

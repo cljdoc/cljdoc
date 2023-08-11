@@ -32,7 +32,7 @@ restoreSidebarScrollPos();
 
 // Enable the switcher, which lets you rapidly switch between recently opened
 // projects. The switcher is not included in offline docs.
-const switcher = document.querySelector("#cljdoc-switcher");
+const switcher = document.querySelector("[data-id='cljdoc-switcher']");
 switcher && render(<Switcher />, switcher);
 
 // Libraries search, found on cljdoc homepage and the 404 page.
