@@ -36,7 +36,9 @@ const switcher = document.querySelector("[data-id='cljdoc-switcher']");
 switcher && render(<Switcher />, switcher);
 
 // Libraries search, found on cljdoc homepage and the 404 page.
-const searchNode: HTMLElement | null = document.querySelector("[data-id='cljdoc-search']");
+const searchNode: HTMLElement | null = document.querySelector(
+  "[data-id='cljdoc-search']"
+);
 if (searchNode && searchNode.dataset) {
   render(
     <App
@@ -50,7 +52,9 @@ if (searchNode && searchNode.dataset) {
 }
 
 // Used for navigating on the /versions page.
-const navigatorNode = document.querySelector("[data-id='cljdoc-js--cljdoc-navigator']");
+const navigatorNode = document.querySelector(
+  "[data-id='cljdoc-js--cljdoc-navigator']"
+);
 navigatorNode && render(<Navigator />, navigatorNode);
 
 if (isNSOverviewPage()) {

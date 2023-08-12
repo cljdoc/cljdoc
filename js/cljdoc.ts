@@ -118,9 +118,15 @@ function saveSidebarScrollPos() {
 
 function toggleMetaDialog() {
   if (document.querySelector(".js--main-scroll-view")) {
-    const metaIcon = document.querySelector("[data-id='cljdoc-js--meta-icon']") as HTMLElement;
-    const metaDialog = document.querySelector("[data-id='cljdoc-js--meta-dialog']") as HTMLElement;
-    const metaClose = document.querySelector("[data-id='cljdoc-js--meta-close']") as HTMLElement;
+    const metaIcon = document.querySelector(
+      "[data-id='cljdoc-js--meta-icon']"
+    ) as HTMLElement;
+    const metaDialog = document.querySelector(
+      "[data-id='cljdoc-js--meta-dialog']"
+    ) as HTMLElement;
+    const metaClose = document.querySelector(
+      "[data-id='cljdoc-js--meta-close']"
+    ) as HTMLElement;
 
     if (metaIcon) {
       metaIcon.onclick = () => {
@@ -139,8 +145,12 @@ function toggleMetaDialog() {
 }
 
 function toggleArticlesTip() {
-  const tipToggler = document.querySelector("[data-id='cljdoc-js--articles-tip-toggler']") as HTMLElement;
-  const tip = document.querySelector("[data-id='cljdoc-js--articles-tip']") as HTMLElement;
+  const tipToggler = document.querySelector(
+    "[data-id='cljdoc-js--articles-tip-toggler']"
+  ) as HTMLElement;
+  const tip = document.querySelector(
+    "[data-id='cljdoc-js--articles-tip']"
+  ) as HTMLElement;
   if (tipToggler && tip) {
     tipToggler.onclick = () => {
       tip.classList.toggle("dn");
