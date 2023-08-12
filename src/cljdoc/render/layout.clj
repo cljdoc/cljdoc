@@ -82,9 +82,9 @@
   the browser can't retrieve the application's JS sources."
   [opts]
   [:div.fixed.left-0.right-0.bottom-0.bg-washed-red.code.b--light-red.bw3.ba.dn
-   {:id "no-js-warning"}
+   {:data-id "no-js-warning"}
    [:script
-    (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/cljdoc.js")) "\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
+    (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/cljdoc.js")) "\").then(e => e.status === 200 ? null : document.querySelector('[data-id=\"no-js-warning\"]').classList.remove('dn'))")]
    [:p.ph4 "Could not find JavaScript assets, please refer to " [:a.fw7.link {:href (links/github-url :running-locally)} "the documentation"] " for how to build JS assets."]])
 
 (defn page [opts contents]
