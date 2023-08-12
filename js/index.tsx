@@ -79,7 +79,7 @@ if (isProjectDocumentationPage()) {
 }
 
 // Links to recent docsets on the homepage.
-const docLinks = document.querySelector("#doc-links");
+const docLinks = document.querySelector("[data-id='cljdoc-doc-links']");
 if (docLinks) {
   initRecentDocLinks(docLinks);
 }

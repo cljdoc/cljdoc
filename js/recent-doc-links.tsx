@@ -30,7 +30,7 @@ export const initRecentDocLinks = (docLinks: Element) => {
   );
   if (previouslyOpened.length > 0) {
     if (previouslyOpened.length >= 3) {
-      const examples = document.querySelector("#examples");
+      const examples = document.querySelector("[data-id='cljdoc-examples']");
       if (examples) examples.remove();
     }
     render(
