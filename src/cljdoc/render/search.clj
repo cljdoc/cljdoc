@@ -5,7 +5,7 @@
   ([] (search-form ""))
   ([search-terms]
    [:div.w-90.mb4
-    [:div#cljdoc-search {:data-initial-value search-terms}]]))
+    [:div {:data-id "cljdoc-search" :data-initial-value search-terms}]]))
 
 (defn search-page [context]
   (->> [:div

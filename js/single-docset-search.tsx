@@ -76,7 +76,7 @@ const clamp = (value: number, min: number, max: number) =>
 
 const mountSingleDocsetSearch = async () => {
   const singleDocsetSearchNode: HTMLElement | null = document.querySelector(
-    "#js--single-docset-search"
+    "[data-id='cljdoc-js--single-docset-search']"
   );
 
   const url = singleDocsetSearchNode?.dataset?.searchsetUrl;

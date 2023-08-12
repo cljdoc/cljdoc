@@ -97,7 +97,7 @@
   (->> [:div
         (layout/top-bar-generic)
         [:div.pa4-ns.pa2
-         [:div#js--cljdoc-navigator]
+         [:div {:data-id "cljdoc-js--cljdoc-navigator"}]
          [:h1.mt5 (if (= :built source)
                     "All built artifacts on cljdoc:"
                     "All known available artifacts:")]

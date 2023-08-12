@@ -82,9 +82,9 @@
   the browser can't retrieve the application's JS sources."
   [opts]
   [:div.fixed.left-0.right-0.bottom-0.bg-washed-red.code.b--light-red.bw3.ba.dn
-   {:id "no-js-warning"}
+   {:data-id "no-js-warning"}
    [:script
-    (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/cljdoc.js")) "\").then(e => e.status === 200 ? null : document.getElementById('no-js-warning').classList.remove('dn'))")]
+    (hiccup/raw (str "fetch(\"" (get (:static-resources opts) "/cljdoc.js")) "\").then(e => e.status === 200 ? null : document.querySelector('[data-id=\"no-js-warning\"]').classList.remove('dn'))")]
    [:p.ph4 "Could not find JavaScript assets, please refer to " [:a.fw7.link {:href (links/github-url :running-locally)} "the documentation"] " for how to build JS assets."]])
 
 (defn page [opts contents]
@@ -132,7 +132,7 @@
                   contents]
                  (when (not= :prod (config/profile))
                    (no-js-warning opts))
-                 [:div#cljdoc-switcher]
+                 [:div {:data-id "cljdoc-switcher"}]
                  [:script {:src (get (:static-resources opts) "/cljdoc.js")}]
                  (highlight-js)
                  (add-requested-features (:page-features opts))]]))
@@ -150,9 +150,11 @@
 
 (defn meta-info-dialog []
   [:div
-   [:img#js--meta-icon.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
-    {:src "https://microicon-clone.vercel.app/explore/48/357edd"}]
-   [:div#js--meta-dialog.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
+   [:img.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
+    {:data-id "cljdoc-js--meta-icon"
+     :src "https://microicon-clone.vercel.app/explore/48/357edd"}]
+   [:div.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
+    {:data-id "cljdoc-js--meta-dialog"}
     [:p.ma0
      [:b "cljdoc"]
      " is a website building & hosting documentation for Clojure/Script libraries"]
@@ -165,7 +167,7 @@
                 ["Report a problem"    (links/github-url :issues)]
                 ;; ["Recent improvements" "#"] TODO add link once it exists
                 ["cljdoc on GitHub"    (links/github-url :home)]]))
-    [:a#js--meta-close.link.black.fr.pointer
+    [:a.link.black.fr.pointer {:data-id "cljdoc-js--meta-close"}
      "× close"]]])
 
 (def home-link
@@ -188,8 +190,8 @@
    [:div.tr
     {:style {:flex-grow 1}}
     [:form.dn.dib-ns.mr3 {:action "/api/request-build2" :method "POST"}
-     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "project" :name "project" :value (str (:group-id version-entity) "/" (:artifact-id version-entity))}]
-     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :id "version" :name "version" :value (:version version-entity)}]
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :name "project" :value (str (:group-id version-entity) "/" (:artifact-id version-entity))}]
+     [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :name "version" :value (:version version-entity)}]
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
     (cond
       (and scm-url (scm/http-uri scm-url))
@@ -264,7 +266,7 @@
   [r-main-container
    [r-top-bar-container
     top-bar
-    [:div#js--mobile-nav.db.dn-ns]]
+    [:div#db.dn-ns {:data-id "cljdoc-js--mobile-nav"}]]
    mobile-nav-spacer
    [:div.flex.flex-row
     ;; Without min-height: 0 the sidebar and main content area won't

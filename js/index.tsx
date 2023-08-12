@@ -32,11 +32,13 @@ restoreSidebarScrollPos();
 
 // Enable the switcher, which lets you rapidly switch between recently opened
 // projects. The switcher is not included in offline docs.
-const switcher = document.querySelector("#cljdoc-switcher");
+const switcher = document.querySelector("[data-id='cljdoc-switcher']");
 switcher && render(<Switcher />, switcher);
 
 // Libraries search, found on cljdoc homepage and the 404 page.
-const searchNode: HTMLElement | null = document.querySelector("#cljdoc-search");
+const searchNode: HTMLElement | null = document.querySelector(
+  "[data-id='cljdoc-search']"
+);
 if (searchNode && searchNode.dataset) {
   render(
     <App
@@ -50,7 +52,9 @@ if (searchNode && searchNode.dataset) {
 }
 
 // Used for navigating on the /versions page.
-const navigatorNode = document.querySelector("#js--cljdoc-navigator");
+const navigatorNode = document.querySelector(
+  "[data-id='cljdoc-js--cljdoc-navigator']"
+);
 navigatorNode && render(<Navigator />, navigatorNode);
 
 if (isNSOverviewPage()) {
@@ -71,7 +75,7 @@ if (isNSOfflinePage()) {
 // For just general documentation pages, specifically routes that begin with /d/.
 if (isProjectDocumentationPage()) {
   // Special handling for mobile nav. It makes the sidebar from desktop toggleable.
-  const mobileNav = document.querySelector("#js--mobile-nav");
+  const mobileNav = document.querySelector("[data-id='cljdoc-js--mobile-nav']");
   mobileNav && render(<MobileNav />, mobileNav);
   toggleMetaDialog();
   toggleArticlesTip();
@@ -79,7 +83,7 @@ if (isProjectDocumentationPage()) {
 }
 
 // Links to recent docsets on the homepage.
-const docLinks = document.querySelector("#doc-links");
+const docLinks = document.querySelector("[data-id='cljdoc-doc-links']");
 if (docLinks) {
   initRecentDocLinks(docLinks);
 }
