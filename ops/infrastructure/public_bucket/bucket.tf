@@ -1,5 +1,9 @@
 variable "bucket_name" {}
 
+provider "aws" {
+  alias = "prod"
+}
+
 data "aws_iam_policy_document" "public_read_bucket_policy" {
   provider = aws.prod
 
@@ -7,12 +11,10 @@ data "aws_iam_policy_document" "public_read_bucket_policy" {
     sid    = "PublicReadForGetBucketObjects"
     effect = "Allow"
 
-    principals = [
-      {
+    principals {
         type        = "AWS"
         identifiers = ["*"]
-      },
-    ]
+      }
 
     actions   = ["s3:GetObject"]
     resources = ["arn:aws:s3:::${var.bucket_name}/*"]

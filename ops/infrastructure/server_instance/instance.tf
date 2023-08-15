@@ -8,6 +8,10 @@ output "ip" {
   value = digitalocean_droplet.cljdoc_01.ipv4_address
 }
 
+provider "aws" {
+  alias = "prod"
+}
+
 resource "digitalocean_droplet" "cljdoc_01" {
   image      = var.image_id
   name       = var.org_domain

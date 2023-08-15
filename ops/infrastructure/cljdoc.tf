@@ -18,11 +18,17 @@ provider "digitalocean" {
 module "releases_bucket" {
   source      = "./public_bucket"
   bucket_name = var.releases_bucket_name
+  providers = {
+    aws.prod = aws.new
+  }
 }
 
 module "backups_bucket" {
   source      = "./public_bucket"
   bucket_name = var.backups_bucket_name
+  providers = {
+    aws.prod = aws.new
+  }
 }
 
 # DigitalOcean Server 2.0 --------------------------------------------
