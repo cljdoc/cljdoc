@@ -16,7 +16,7 @@ resource "digitalocean_droplet" "cljdoc_01" {
   image      = var.image_id
   name       = var.org_domain
   region     = "ams3"
-  size       = "s-1vcpu-2gb"
+  size       = "s-2vcpu-4gb"
   monitoring = true
 
   # supplying a key here seems to be the only way to
