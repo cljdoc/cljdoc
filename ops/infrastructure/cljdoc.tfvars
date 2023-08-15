@@ -4,5 +4,5 @@
 org_domain = "cljdoc.org"
 xyz_domain = "cljdoc.xyz"
 
-backups_bucket_name = "cljdoc-backups"
+backups_bucket_name  = "cljdoc-backups"
 releases_bucket_name = "cljdoc-releases-hot-weevil"
