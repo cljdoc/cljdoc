@@ -8,10 +8,6 @@ output "ip" {
   value = digitalocean_droplet.cljdoc_01.ipv4_address
 }
 
-provider "aws" {
-  alias = "prod"
-}
-
 resource "digitalocean_droplet" "cljdoc_01" {
   image      = var.image_id
   name       = var.org_domain
@@ -26,7 +22,7 @@ resource "digitalocean_droplet" "cljdoc_01" {
 }
 
 resource "aws_route53_record" "org_record" {
-  provider = aws.prod
+  provider = aws
   zone_id  = var.org_zone
   name     = var.org_domain
   type     = "A"
@@ -35,7 +31,7 @@ resource "aws_route53_record" "org_record" {
 }
 
 resource "aws_route53_record" "xyz_record" {
-  provider = aws.prod
+  provider = aws
   zone_id  = var.xyz_zone
   name     = var.xyz_domain
   type     = "A"

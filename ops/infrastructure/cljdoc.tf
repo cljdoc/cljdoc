@@ -1,8 +1,6 @@
 # Providers ----------------------------------------------------------
 
 provider "aws" {
-  alias = "prod"
-
   region     = var.aws_region
   access_key = var.aws_access_key_id
   secret_key = var.aws_secret_key
@@ -18,17 +16,11 @@ provider "digitalocean" {
 module "releases_bucket" {
   source      = "./public_bucket"
   bucket_name = var.releases_bucket_name
-  providers = {
-    aws.prod = aws.new
-  }
 }
 
 module "backups_bucket" {
   source      = "./public_bucket"
   bucket_name = var.backups_bucket_name
-  providers = {
-    aws.prod = aws.new
-  }
 }
 
 # DigitalOcean Server 2.0 --------------------------------------------
@@ -45,12 +37,10 @@ module "main_server" {
 # Route53 ------------------------------------------------------------
 
 resource "aws_route53_zone" "cljdoc_xyz_zone" {
-  provider = aws.prod
   name     = var.xyz_domain
 }
 
 resource "aws_route53_zone" "cljdoc_org_zone" {
-  provider = aws.prod
   name     = var.org_domain
 }
 
