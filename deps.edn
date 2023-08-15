@@ -52,14 +52,14 @@
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20220608.1"}                          ;; sanitize html converted from user markdown
         ;; to overcome CVE in owasp-java-html-sanitizer deps, delete when addressed in sanitizer lib
-        com.google.guava/guava {:mvn/version "32.1.1-jre"}
+        com.google.guava/guava {:mvn/version "32.1.2-jre"}
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.31"}              ;; easy log setup
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.25.2"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.28.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -70,7 +70,7 @@
         babashka/fs {:mvn/version "0.4.19"}                  ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
-        com.taoensso/tufte {:mvn/version "2.5.0"}            ;; profile/perf monitoring
+        com.taoensso/tufte {:mvn/version "2.6.0"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.15.125"}           ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
@@ -91,11 +91,11 @@
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.85.1342"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
-                         nubank/matcher-combinators {:mvn/version "3.8.5" :exclusions [midje/midje]}}
+                         nubank/matcher-combinators {:mvn/version "3.8.6" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.9.5"}}
             :ns-default build}
 
            :clj-kondo
@@ -116,7 +116,7 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.5.1095"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.5.1109"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.7"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
