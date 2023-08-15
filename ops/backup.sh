@@ -9,7 +9,7 @@ tf_out () {
   terraform output --raw -state="$git_root/ops/infrastructure/terraform.tfstate" $1
 }
 
-ip=$(tf_out main_ip)
+ip=cljdoc.org
 date=$(date "+%Y-%m-%d")
 tar_file="backup-$date.tar.gz"
 
