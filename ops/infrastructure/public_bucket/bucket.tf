@@ -24,6 +24,11 @@ data "aws_iam_policy_document" "public_read_bucket_policy" {
 resource "aws_s3_bucket" "public_bucket" {
   provider = aws.prod
   bucket   = var.bucket_name
+}
+
+resource "aws_s3_bucket_policy" "public_read_policy" {
+  provider = aws.prod
+  bucket   = aws_s3_bucket.public_bucket.id
   policy   = data.aws_iam_policy_document.public_read_bucket_policy.json
 }
 
