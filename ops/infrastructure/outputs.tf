@@ -11,6 +11,7 @@ output "releases_bucket_user_access_key" {
 
 output "releases_bucket_user_secret_key" {
   value = module.releases_bucket.write_user_secret
+  sensitive = true
 }
 
 # Backups Bucket
@@ -24,6 +25,7 @@ output "backups_bucket_user_access_key" {
 
 output "backups_bucket_user_secret_key" {
   value = module.backups_bucket.write_user_secret
+  sensitive = true
 }
 
 # Hosted Zone / IP
