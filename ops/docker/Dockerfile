@@ -1,14 +1,12 @@
 FROM eclipse-temurin:17-alpine
 
-ENV CLOJURE_VERSION=1.11.1.1347
-
 WORKDIR /tmp
 
 RUN apk add --update --no-cache bash curl git
 
-RUN curl -O https://download.clojure.org/install/linux-install-$CLOJURE_VERSION.sh \
-    && chmod +x linux-install-$CLOJURE_VERSION.sh \
-    && ./linux-install-$CLOJURE_VERSION.sh
+RUN curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh \
+    && chmod +x linux-install.sh \
+    && ./linux-install.sh
 
 RUN clojure -Sdescribe
 
