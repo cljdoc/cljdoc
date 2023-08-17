@@ -4,12 +4,12 @@
 
 == Why Cljdoc?
 
-Cljdoc offers a centralized hosted library of docs which are:
+Cljdoc offers a centralized hosted library of docs which:
 
-* Easy to publish
+* Are easy to publish
 * Automatically stay up to date
-* Discoverable by users
-* Look good
+* Are discoverable by users
+* And look good!
 
 [[basic-setup]]
 == The Bare Minimum
@@ -224,15 +224,28 @@ Sometimes you'll want to link to a var or a namespace in your library's API docs
 
 You can link to other namespaces and functions within your libary from your markdown docstrings using the `\[[wikilink]]` syntax.
 
-Note that if you want to link to vars outside the current namespace you need to either fully qualify those vars or specify them relative to the current namespace.
-An example: if you want to link to `compojure.core/GET` from `compojure.route` you'll need to provide the wiki in one of the two forms below:
+Examples:
 
-```
-[[compojure.core/GET]]
-[[core/GET]]
-```
+[%autowidth]
+|===
+|Wikilink | Links to API docs for
 
-NOTE: Wikilinks only work from docstrings.
+a|`\[[some-fn]]` a| `some-fn` var in the current namespace
+a|`[[my-lib.ns1/some-other-fn]]` a| `some-other-fn` var in the `my-lib.ns1` namespace
+a| `\[[my-lib.ns1]]` a| `my-lib.ns1` namespace
+
+|===
+
+
+[NOTE]
+====
+* Wikilinks only work from docstrings.
+* Namespace aliases are not considered.
+We don't want to burden the reader to have to understand what namespace an alias maps to.
+* There is some support for relative linking to vars in other namespaces
+For example you can link to `compojure.core/GET` from `compojure.route` via `[[core/GET]]`.
+Frankly I feel this is more confusing than helpful for both authors and readers and recommend the fully qualified `[[compujure.core/GET]]`
+====
 
 ==== Use full API URLS from articles
 
