@@ -446,6 +446,11 @@ table.frame-sides > colgroup + * > :first-child > * {
   font-weight: bold;
 }
 
+.asciidoc p.tableblock > code:only-child {
+  background: none;
+  padding: 0;
+}
+
 .asciidoc p.tableblock {
   font-size: 1em;
 }
