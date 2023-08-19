@@ -21,14 +21,10 @@ import { mountSingleDocsetSearch } from "./single-docset-search";
 import { mergeHTMLPlugin } from "./hljs-merge-plugin";
 import { copyButtonPlugin } from "./hljs-copybutton-plugin";
 
-export type SidebarScrollPos = { page: string; scrollTop: number };
+export type SidebarScrollState = { libVersionPath: string; scrollTop: number };
 
 // Tracks recently opened projects in localStorage.
 trackProjectOpened();
-
-// Sidebar scroll position is saved when navigating away from the site.
-// Here we restore that position when the site loads.
-restoreSidebarScrollPos();
 
 // Enable the switcher, which lets you rapidly switch between recently opened
 // projects. The switcher is not included in offline docs.
@@ -91,8 +87,11 @@ if (docLinks) {
 // Mount the single docset search if the search element is present.
 mountSingleDocsetSearch();
 
-// Save the sidebar scroll position when navigating away from the site so we can restore it later.
-window.onbeforeunload = saveSidebarScrollPos;
+document.addEventListener("DOMContentLoaded", () => {
+  // Save the sidebar scroll position when clicking on an elem so we can restore after page loads
+  saveSidebarScrollPos();
+  restoreSidebarScrollPos();
+});
 
 // make the hljs plugins available to our layout page
 window.mergeHTMLPlugin = mergeHTMLPlugin;

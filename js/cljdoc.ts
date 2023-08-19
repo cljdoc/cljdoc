@@ -1,4 +1,4 @@
-import { SidebarScrollPos } from "./index";
+import { SidebarScrollState } from "./index";
 
 function isNSOverviewPage(): boolean {
   return !!document.querySelector(".ns-overview-page");
@@ -90,29 +90,80 @@ function initToggleRaw() {
   addToggleHandlers();
 }
 
-function restoreSidebarScrollPos() {
-  var scrollPosData = JSON.parse(
-    localStorage.getItem("sidebarScrollPos") || "null"
-  );
-  var page = window.location.pathname.split("/").slice(0, 5).join("/");
-
-  if (scrollPosData && page == scrollPosData.page) {
-    var mainSidebar = document.querySelector(".js--main-sidebar");
-    if (mainSidebar) {
-      mainSidebar.scrollTop = scrollPosData.scrollTop;
-    }
-  }
-
-  localStorage.removeItem("sidebarScrollPos");
+/**
+ * Returns lib and version portion of current location.
+ * Example: /d/clj-commons/clj-yaml/1.0.27
+ */
+function libVersionPath() {
+  return window.location.pathname.split("/").slice(0, 5).join("/");
 }
 
+/**
+ * Returns true if element is out of view but can, in theory, be scrolled down to.
+ */
+function isElementOutOfView(elem: HTMLElement) {
+  const rect = elem.getBoundingClientRect();
+  const isOutOfView =
+    rect.top > window.innerHeight || // Below the view
+    rect.bottom < 0; // Above the view
+  return isOutOfView;
+}
+
+/**
+ * Cljdoc always loads a full page.
+ * This means the sidebar nav scoll position needs to be restored/set.
+ */
+function restoreSidebarScrollPos() {
+  const mainSidebar = document.querySelector(".js--main-sidebar");
+  if (!mainSidebar) return;
+
+  // Load any state saved by saveSidebarScrollPos
+  const sidebarScrollState = JSON.parse(
+    sessionStorage.getItem("sidebarScroll") || "null"
+  );
+  // and always wipe it, we don't want to remember it
+  sessionStorage.removeItem("sidebarScroll");
+
+  if (window.location.search) {
+    // assume docset search
+    return;
+  }
+
+  if (
+    sidebarScrollState &&
+    libVersionPath() == sidebarScrollState.libVersionPath
+  ) {
+    mainSidebar.scrollTop = sidebarScrollState.scrollTop;
+  } else {
+    const selectedElem: HTMLElement | null = mainSidebar.querySelector("a.b");
+    if (selectedElem && isElementOutOfView(selectedElem)) {
+      selectedElem.scrollIntoView({
+        behavior: "instant",
+        block: "start"
+      });
+    }
+  }
+}
+
+/**
+ * Support for restoreSidebarScrollPos
+ *
+ * When item in sidebar is clicked saves scroll pos and lib/version to session.
+ */
 function saveSidebarScrollPos() {
-  var sidebar = Array.from(document.querySelectorAll(".js--main-sidebar"))[0];
-  if (sidebar) {
-    var scrollTop = sidebar.scrollTop;
-    var page = window.location.pathname.split("/").slice(0, 5).join("/");
-    var data: SidebarScrollPos = { page: page, scrollTop: scrollTop };
-    localStorage.setItem("sidebarScrollPos", JSON.stringify(data));
+  const mainSidebar = document.querySelector(".js--main-sidebar");
+  if (mainSidebar) {
+    const anchorElems = mainSidebar.querySelectorAll("a");
+    anchorElems.forEach(anchor => {
+      anchor.addEventListener("click", function () {
+        var scrollTop = mainSidebar.scrollTop;
+        var data: SidebarScrollState = {
+          libVersionPath: libVersionPath(),
+          scrollTop: scrollTop
+        };
+        sessionStorage.setItem("sidebarScroll", JSON.stringify(data));
+      });
+    });
   }
 }
 
