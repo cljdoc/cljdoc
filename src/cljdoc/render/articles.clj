@@ -39,7 +39,7 @@
                     [:a.link.blue.hover-dark-blue.dib.pv1
                      {:style {:word-wrap "break-word"}
                       :href  (doc-link version-entity slug-path)
-                      :class (when (= current-page slug-path) "fw7")}
+                      :class (when (= current-page slug-path) "b")}
                      (:title doc-page)]
                     (doc-tree-view version-entity (:children doc-page) current-page (inc level))])))
           (into [:ul.list.ma0 {:class (if (pos? level) "f6-ns pl2" "pl0")}])))))
