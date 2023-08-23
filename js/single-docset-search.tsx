@@ -12,44 +12,49 @@ const tokenize = (str?: string): string[] => {
   if (str === null || str === undefined) {
     return [];
   }
-  // split on conventional whitespace
+  // normalize and split on conventional whitespace
   const candidateTokens = str.toString().trim().toLowerCase().split(/\s+/);
-  const resultingTokens: string[] = [];
-  candidateTokens.forEach(function (candidate: string) {
-    // ignore if all non-alphanumeric and greater >= 7 characters
-    // this keeps things like *, <, >, +, ->> but turfs things like ===============
+
+  const longAllPunctuationRegex = /^[^a-z0-9]{7,}$/;
+  const standaloneCommentRegex = /^;+$/;
+  const superfluousPunctuationRegex = /^[.,]+|[.,]+$/g;
+  // strip leading and trailing periods and commas
+  // this gets rid of normal punctuation
+  // we leave in ! and ? because they can be interesting in var names
+  const trimSuperfluousPunctuation = (candidate: string) =>
+    candidate.replaceAll(superfluousPunctuationRegex, "");
+
+  return candidateTokens.reduce((tokens, candidate) => {
     if (
-      !/^[^a-z0-9]{7,}$/.test(candidate) &&
-      // ignore stand-alone comment characters
-      !/^;+$/.test(candidate)
+      // keep tokens like *, <, >, +, ->> but skip tokens like ===============
+      !longAllPunctuationRegex.test(candidate) &&
+      !standaloneCommentRegex.test(candidate)
     ) {
-      // strip leading and trailing periods and commas
-      // this gets rid of normal punctuation
-      // we leave in ! and ? because they can be interesting in var names
-      const token = candidate.replace(/^[.,]+|[.,]+$/g, "");
+      const token = trimSuperfluousPunctuation(candidate);
       if (token.length > 0) {
-        resultingTokens.push(token);
+        tokens.push(token);
       }
     }
-  });
-  return resultingTokens;
+    return tokens;
+  }, [] as string[]);
 };
 
 const subTokenize = (tokens: string[]): string[] => {
-  const resultingSubTokens: string[] = [];
-  tokens.forEach(function (token: string) {
+  const nonAlphaNumRegex = /[^a-z0-9]/;
+  const nonAlphaNumsRegex = /[^a-z0-9]+/;
+  return tokens.reduce((subTokens, token) => {
     // break down into subTokens, if appropriate, for example
     // clojure.core.test would break down to clojure core test
-    if (/[^a-z0-9]/.test(token)) {
-      const subTokens = token.split(/[^a-z0-9]+/);
+    if (nonAlphaNumRegex.test(token)) {
+      const subTokens = token.split(nonAlphaNumsRegex);
       subTokens.forEach(function (subToken: string) {
         if (subToken.length > 0) {
-          resultingSubTokens.push(subToken);
+          subTokens.push(subToken);
         }
       });
     }
-  });
-  return resultingSubTokens;
+    return subTokens;
+  }, [] as string[]);
 };
 
 const origTokenizer = elasticlunr.tokenizer;
