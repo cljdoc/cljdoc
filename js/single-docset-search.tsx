@@ -357,7 +357,6 @@ const search = (
   if (!searchIndex) {
     return;
   }
-
   // we'd like to favour exact matches, ex: clojure.tools.test
   const exactTokens = tokenize(query);
   // but also entertain sub tokens, ex: clojure tools test
@@ -385,26 +384,24 @@ const search = (
       );
 
     for (const docRef in fieldSearchResults) {
-      fieldSearchResults[docRef] =
-        fieldSearchResults[docRef] * fieldQuery.boost;
+      fieldSearchResults[docRef] *= fieldQuery.boost;
     }
 
     for (const docRef in fieldSearchResults) {
-      if (docRef in queryResults) {
-        queryResults[docRef] += fieldSearchResults[docRef];
-      } else {
-        queryResults[docRef] = fieldSearchResults[docRef];
-      }
+      queryResults[docRef] ||= 0;
+      queryResults[docRef] += fieldSearchResults[docRef];
     }
   }
+
   const results = [];
   for (const docRef in queryResults) {
     results.push({ ref: docRef, score: queryResults[docRef] });
   }
 
-  results.sort(function (a, b) {
-    return b.score - a.score;
-  });
+  results.sort(
+    (a: elasticlunr.SearchResults, b: elasticlunr.SearchResults) =>
+      b.score - a.score
+  );
 
   const resultsWithDocs = results?.map(r => ({
     result: r,
