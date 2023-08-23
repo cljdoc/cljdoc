@@ -6,9 +6,57 @@ import cx from "classnames";
 
 import elasticlunr from "elasticlunr";
 
-elasticlunr.tokenizer.setSeperator(/[\s-.>=+\/]+/);
+const SEARCHSET_VERSION = 3;
 
-const SEARCHSET_VERSION = 2;
+function tokenize(str?: string): string[] {
+  if (!arguments.length || str === null || str === undefined) return [];
+  // split on conventional whitespace
+  const candidateTokens = str.toString().trim().toLowerCase().split(/\s+/);
+  const resultingTokens: string[] = [];
+  candidateTokens.forEach(function (candidate: string) {
+    // ignore if all non-alphanumeric and greater >= 7 characters
+    // this keeps things like *, <, >, +, ->> but turfs things like ===============
+    if (
+      !/^[^a-z0-9]{7,}$/.test(candidate) &&
+      // ignore stand-alone comment characters
+      !/^;+$/.test(candidate)
+    ) {
+      // strip leading and trailing periods and commas
+      // this gets rid of normal punctuation
+      // we leave in ! and ? because they can be interesting in var names
+      const token = candidate.replace(/^[.,]+|[.,]+$/g, "");
+      if (token.length > 0) {
+        resultingTokens.push(token);
+      }
+    }
+  });
+  return resultingTokens;
+}
+
+function subTokenize(tokens: string[]): string[] {
+  const resultingSubTokens: string[] = [];
+  tokens.forEach(function (token: string) {
+    // break down into subTokens, if appropriate, for example
+    // clojure.core.test would break down to clojure core test
+    if (/[^a-z0-9]/.test(token)) {
+      const subTokens = token.split(/[^a-z0-9]+/);
+      subTokens.forEach(function (subToken: string) {
+        if (subToken.length > 0) {
+          resultingSubTokens.push(subToken);
+        }
+      });
+    }
+  });
+  return resultingSubTokens;
+}
+
+const origTokenizer = elasticlunr.tokenizer;
+
+elasticlunr.tokenizer = Object.assign(function (str?: string): string[] {
+  const tokens = tokenize(str);
+  const subTokens = subTokenize(tokens);
+  return tokens.concat(subTokens);
+}, origTokenizer);
 
 type Namespace = {
   name: string;
@@ -175,19 +223,12 @@ const fetchIndexItems = async (url: string, db: IDBPDatabase<SearchsetsDB>) => {
 };
 
 const buildSearchIndex = (indexItems: IndexItem[]): Index => {
-  const newStopWords = { ...elasticlunr.defaultStopWords };
-
-  indexItems
-    .flatMap(ii => elasticlunr.tokenizer(ii.name))
-    .forEach(word => delete newStopWords[word]);
-
-  elasticlunr.clearStopWords();
-  elasticlunr.addStopWords(Object.keys(newStopWords));
-
   const searchIndex = elasticlunr<IndexItem>(index => {
     index.setRef("id");
     index.addField("name");
     index.addField("doc");
+    // remove all default pipeline functions: trimmer, stop word filter & stemmer
+    index.pipeline.reset();
     index.saveDocument(true);
   });
 
@@ -308,16 +349,57 @@ const search = (
   searchIndex: Index | undefined,
   query: string
 ): SearchResult[] | undefined => {
-  const results =
-    searchIndex &&
-    searchIndex.search(query, {
-      bool: "OR",
-      expand: true,
-      fields: {
-        name: { boost: 5 },
-        doc: { boost: 2 }
+  if (!searchIndex) {
+    return;
+  }
+
+  // we'd like to favour exact matches, ex: clojure.tools.test
+  const exactTokens = tokenize(query);
+  // but also entertain sub tokens, ex: clojure tools test
+  const subTokens = subTokenize(exactTokens);
+
+  const fieldQueries = [
+    { field: "name", boost: 10, tokens: exactTokens },
+    { field: "name", boost: 5, tokens: subTokens },
+    { field: "doc", boost: 4, tokens: exactTokens },
+    { field: "doc", boost: 2, tokens: subTokens }
+  ];
+
+  const queryResults: elasticlunr.SearchScores = {};
+
+  for (const fieldQuery of fieldQueries) {
+    const searchConfig = {
+      [fieldQuery.field]: { boost: fieldQuery.boost, bool: "OR", expand: true }
+    };
+
+    const fieldSearchResults: elasticlunr.SearchScores =
+      searchIndex.fieldSearch(
+        fieldQuery.tokens,
+        fieldQuery.field as keyof IndexItem,
+        searchConfig
+      );
+
+    for (const docRef in fieldSearchResults) {
+      fieldSearchResults[docRef] =
+        fieldSearchResults[docRef] * fieldQuery.boost;
+    }
+
+    for (const docRef in fieldSearchResults) {
+      if (docRef in queryResults) {
+        queryResults[docRef] += fieldSearchResults[docRef];
+      } else {
+        queryResults[docRef] = fieldSearchResults[docRef];
       }
-    });
+    }
+  }
+  const results = [];
+  for (const docRef in queryResults) {
+    results.push({ ref: docRef, score: queryResults[docRef] });
+  }
+
+  results.sort(function (a, b) {
+    return b.score - a.score;
+  });
 
   const resultsWithDocs = results?.map(r => ({
     result: r,
