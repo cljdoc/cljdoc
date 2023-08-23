@@ -9,7 +9,9 @@ import elasticlunr from "elasticlunr";
 const SEARCHSET_VERSION = 3;
 
 const tokenize = (str?: string): string[] => {
-  if (str === null || str === undefined) return [];
+  if (str === null || str === undefined) {
+    return [];
+  }
   // split on conventional whitespace
   const candidateTokens = str.toString().trim().toLowerCase().split(/\s+/);
   const resultingTokens: string[] = [];
