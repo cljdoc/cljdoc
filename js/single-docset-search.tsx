@@ -8,8 +8,8 @@ import elasticlunr from "elasticlunr";
 
 const SEARCHSET_VERSION = 3;
 
-function tokenize(str?: string): string[] {
-  if (!arguments.length || str === null || str === undefined) return [];
+const tokenize = (str?: string): string[] => {
+  if (str === null || str === undefined) return [];
   // split on conventional whitespace
   const candidateTokens = str.toString().trim().toLowerCase().split(/\s+/);
   const resultingTokens: string[] = [];
@@ -31,9 +31,9 @@ function tokenize(str?: string): string[] {
     }
   });
   return resultingTokens;
-}
+};
 
-function subTokenize(tokens: string[]): string[] {
+const subTokenize = (tokens: string[]): string[] => {
   const resultingSubTokens: string[] = [];
   tokens.forEach(function (token: string) {
     // break down into subTokens, if appropriate, for example
@@ -48,7 +48,7 @@ function subTokenize(tokens: string[]): string[] {
     }
   });
   return resultingSubTokens;
-}
+};
 
 const origTokenizer = elasticlunr.tokenizer;
 
