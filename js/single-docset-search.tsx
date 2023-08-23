@@ -57,13 +57,11 @@ const subTokenize = (tokens: string[]): string[] => {
   }, [] as string[]);
 };
 
-const origTokenizer = elasticlunr.tokenizer;
-
-elasticlunr.tokenizer = Object.assign(function (str?: string): string[] {
+elasticlunr.tokenizer = Object.assign((str?: string): string[] => {
   const tokens = tokenize(str);
   const subTokens = subTokenize(tokens);
   return tokens.concat(subTokens);
-}, origTokenizer);
+}, elasticlunr.tokenizer);
 
 type Namespace = {
   name: string;
