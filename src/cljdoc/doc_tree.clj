@@ -80,6 +80,7 @@
 (defmethod filepath->type "markdown" [_] :cljdoc/markdown)
 (defmethod filepath->type "md" [_] :cljdoc/markdown)
 (defmethod filepath->type "adoc" [_] :cljdoc/asciidoc)
+(defmethod filepath->type "txt" [_] :cljdoc/plaintext)
 
 (defn- uslug
   "Unicode friendly version of `slug` function.

@@ -1,5 +1,7 @@
 (ns cljdoc.render.rich-text
-  (:require [cljdoc.render.sanitize :as sanitize])
+  (:require [cljdoc.render.sanitize :as sanitize]
+            [clojure.string :as str]
+            [hiccup2.core :as hiccup])
   (:import (org.asciidoctor Asciidoctor Asciidoctor$Factory Options Attributes)
            (cljdoc.render FixupImgRefLinksExtension)
            (com.vladsch.flexmark.parser Parser LinkRefProcessorFactory LinkRefProcessor)
@@ -167,6 +169,15 @@
         (.render (md-renderer opts))
         sanitize/clean)))
 
+(defn plaintext-to-html
+  ([^String input-str]
+   (-> input-str
+       hiccup/html
+       str
+       (str/replace #"(?:https?|ftps?|mailto)://[^\s]+(?<![.,)])"
+                    #(str "<a href=\"" % "\">" % "</a>"))
+       sanitize/clean)))
+
 (defmulti render-text
   "An extension point for the rendering of different article types.
 
@@ -180,6 +191,9 @@
 (defmethod render-text :cljdoc/asciidoc [[_ content]]
   (asciidoc-to-html content))
 
+(defmethod render-text :cljdoc/plaintext [[_ content]]
+  (plaintext-to-html content))
+
 (defmulti determine-features
   "Rich text documents sometimes optionally need HTML/JavaScript features.
    For example an AsciiDoc article that uses STEM will require mathjax support."
@@ -187,6 +201,9 @@
     type))
 
 (defmethod determine-features :cljdoc/markdown [[_ _content]]
+  nil)
+
+(defmethod determine-features :cljdoc/plaintext [[_ _content]]
   nil)
 
 (defmethod determine-features :cljdoc/asciidoc [[_ content]]
