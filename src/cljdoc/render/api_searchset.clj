@@ -177,6 +177,15 @@
              remaining-elements
              doc-segments))))
 
+(defn- plaintext-soup->doc-segments
+  "Returns document segments for a JSoup parsed `body-elem` plaintext doc with `doc-title`.
+
+  Plain text is not sectioned or segmented, we just have one big blob."
+  [^Element body-elem doc-title]
+  [{:title doc-title
+    :anchor nil
+    :text (.text body-elem)}])
+
 (defn doc->doc-segments [doc]
   (let [doc-tuple (doctree/entry->type-and-content doc)
         [doc-type contents] doc-tuple]
@@ -187,7 +196,8 @@
             doc-title (:title doc)]
         (case doc-type
           :cljdoc/markdown (md-soup->doc-segments body-elements doc-title)
-          :cljdoc/asciidoc (adoc-soup->doc-segments body-elements doc-title))))))
+          :cljdoc/asciidoc (adoc-soup->doc-segments body-elements doc-title)
+          :cljdoc/plaintext (plaintext-soup->doc-segments body-elements doc-title))))))
 
 (defn- doc->docs
   "Returns `doc` broken down into headings with any text belong to those headings.
