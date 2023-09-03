@@ -16,6 +16,15 @@ pre {
   font-size: 12px;
 }
 
+/* plaintext for .txt articles */
+
+.plaintext
+{
+  white-space: pre;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
+    monospace;
+}
+
 /* Markdown / AsciiDoc
  *
  * Class legend
