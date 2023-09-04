@@ -21,6 +21,9 @@ Default handling:
 * link:#api[API] automatically documented
 * link:#articles[Articles] include `README`, `CHANGELOG` and articles under `doc/` (else `docs/`), see link:#auto-discovered-articles[auto-discovered articles]
 
+NOTE: Cljdoc currently only processes libraries that have been deployed to clojars. 
+We do have https://github.com/cljdoc/cljdoc/issues/459[ideas for processing source-based libraries], but have not implemented yet.
+
 == Mechanics
 
 When cljdoc is link:#triggers[triggered] to build your library's documentation, it:
