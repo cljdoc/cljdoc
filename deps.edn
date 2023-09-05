@@ -18,11 +18,12 @@
         commons-fileupload/commons-fileupload {:mvn/version "1.5"}
 
         ;; relational database
-        org.clojure/java.jdbc {:mvn/version "0.7.12"}        ;; jdbc abstraction
+        com.github.seancorfield/next.jdbc {:mvn/version "1.3.883"} ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.42.0.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.3"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
-        com.layerware/hugsql {:mvn/version "0.5.1"}          ;; SQL abstraction
+        com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
+        com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.3"}
         com.taoensso/nippy {:mvn/version "3.2.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
@@ -119,6 +120,4 @@
            {:replace-deps {com.github.liquidz/antq {:mvn/version "2.5.1109"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.9"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
-                        "--exclude=com.layerware/hugsql@0.5.2" ;; Not sure of effect of https://github.com/layerware/hugsql/issues/138
-                        "--exclude=com.layerware/hugsql@0.5.3"
                         "--ignore-locals"]}}}

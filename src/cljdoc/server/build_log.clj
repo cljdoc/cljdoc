@@ -1,5 +1,7 @@
 (ns cljdoc.server.build-log
-  (:require [clojure.java.jdbc :as sql]
+  (:require [next.jdbc :as jdbc]
+            [next.jdbc.sql :as sql]
+            [next.jdbc.result-set :as rs]
             [taoensso.nippy :as nippy])
   (:import (java.time Instant Duration)))
 
@@ -24,61 +26,61 @@
 (defrecord SQLBuildTracker [db-spec]
   IBuildTracker
   (analysis-requested! [_ group-id artifact-id version]
-    (->> (sql/insert! db-spec
-                      "builds"
-                      {:group_id group-id
-                       :artifact_id artifact-id
-                       :version version
-                       :analysis_requested_ts (now)})
-         (first)
-         ((keyword "last_insert_rowid()"))))
+    (->> (jdbc/execute-one! db-spec
+                            ;; SQLite uses RETURNING syntax to return the generated id
+                            ["INSERT INTO builds (group_id, artifact_id, version, analysis_requested_ts) VALUES (?,?,?,?) RETURNING id"
+                             group-id artifact-id version (now)]
+                            {:builder-fn rs/as-unqualified-maps})
+         :id))
   (analysis-kicked-off! [_ build-id analysis-job-uri analyzer-version]
     (sql/update! db-spec
-                 "builds"
+                 :builds
                  {:analysis_job_uri analysis-job-uri
                   :analysis_triggered_ts (now)
                   :analyzer_version analyzer-version}
-                 ["id = ?" build-id]))
+                 {:id build-id}))
   (analysis-received! [_ build-id cljdoc-analysis-edn-uri]
     (sql/update! db-spec
-                 "builds"
+                 :builds
                  {:analysis_result_uri cljdoc-analysis-edn-uri
                   :analysis_received_ts (now)}
-                 ["id = ?" build-id]))
+                 {:id build-id}))
   (failed! [this build-id error]
     (failed! this build-id error nil))
   (failed! [_ build-id error e]
-    (sql/update! db-spec "builds" (cond-> {:error error}
+    (sql/update! db-spec :builds (cond-> {:error error}
                                     e (assoc :error_info_map (nippy/freeze (Throwable->map e))))
-                 ["id = ?" build-id]))
+                 {:id build-id}))
   (api-imported! [_this build-id namespaces-count]
     (sql/update! db-spec
-                 "builds"
+                 :builds
                  {:api_imported_ts (now)
                   :namespaces_count namespaces-count}
-                 ["id = ?" build-id]))
+                 {:id build-id}))
   (git-completed! [_this build-id {:keys [scm-url error commit] :as git-result}]
     (sql/update! db-spec
-                 "builds"
+                 :builds
                  {:scm_url scm-url
                   :commit_sha commit
                   :git_imported_ts (when (and git-result (nil? error)) (now))
                   :git_problem (if git-result error "repo-not-provided")}
-                 ["id = ?" build-id]))
+                 {:id build-id}))
   (completed! [_this build-id]
-    (sql/update! db-spec "builds" {:import_completed_ts (now)} ["id = ?" build-id]))
+    (sql/update! db-spec :builds {:import_completed_ts (now)} {:id build-id}))
   (get-build [_ build-id]
-    (first (sql/query db-spec ["SELECT * FROM builds WHERE id = ?" build-id])))
+    (-> (sql/query db-spec ["SELECT * FROM builds WHERE id = ?" build-id]
+                        {:builder-fn rs/as-unqualified-maps})
+        first))
   (recent-builds [_ days]
     (sql/query db-spec [(str "SELECT * FROM builds "
                              "WHERE analysis_requested_ts "
                              "BETWEEN DATETIME('now', ?) "
                              "AND DATETIME('now', '+1 days') "
                              "ORDER BY id DESC")
-                        (str "-" days " days")]))
+                        (str "-" days " days")]
+               {:builder-fn rs/as-unqualified-maps}))
   (running-build [_ group-id artifact-id version]
-    (first
-     (sql/query db-spec [(str "select * from builds where error is null "
+    (-> (sql/query db-spec [(str "select * from builds where error is null "
                               "and import_completed_ts is null "
                               "and group_id = ? and artifact_id = ? and version = ? "
                               ;; HACK; this datetime scoping shouldn't be required but
@@ -89,10 +91,11 @@
                               "order by id desc "
                               "limit 1")
                          group-id artifact-id version
-                         (str (.minus (Instant/now) (Duration/ofMinutes 10)))])))
+                         (str (.minus (Instant/now) (Duration/ofMinutes 10)))]
+               {:builder-fn rs/as-unqualified-maps} )
+        first))
   (last-build [_ group-id artifact-id version]
-    (first
-     (sql/query db-spec [(str "select * from builds where "
+    (-> (sql/query db-spec [(str "select * from builds where "
                               "(group_id = ? "
                               "and artifact_id = ? "
                               "and version = ?) "
@@ -100,7 +103,9 @@
                               "or error is not null) "
                               "order by id desc "
                               "limit 1")
-                         group-id artifact-id version]))))
+                         group-id artifact-id version]
+                {:builder-fn rs/as-unqualified-maps} )
+        first)))
 
 (defn api-import-successful? [build]
   (and (:api_imported_ts build)
@@ -112,17 +117,14 @@
        (nil? (:git_problem build))))
 
 (comment
-  (require 'ragtime.repl 'ragtime.jdbc)
-  (def config {:datastore  (ragtime.jdbc/sql-database (cljdoc.config/db))
-               :migrations (ragtime.jdbc/load-resources "migrations")})
+  (require '[cljdoc.config :as cfg])
+  (def db-spec (-> (cfg/config) (cfg/db)))
 
-  (ragtime.repl/rollback config)
-
-  (ragtime.repl/migrate config)
-
-  (def bt (->SQLBuildTracker (cljdoc.config/db)))
+  (def bt (->SQLBuildTracker db-spec))
 
   (running-build bt "amazonica" "amazonica" "0.3.132")
+
+  (analysis-requested! bt "leefoo" "leebar" "0.8.0")
 
   (doseq [v [:success :success-no-git :git-problem :fail :kicked-off :analysis-received :api-imported]]
     (let [id (analysis-requested! bt (name v) (name v) "0.8.0")]
@@ -140,12 +142,16 @@
         :fail (do (failed! bt id "exception"))
         nil)))
 
-  (sql/update! db "builds" {:analysis_job_uri "hello world"} ["id = ?" 9])
+  (sql/update! db :builds {:analysis_job_uri "hello world"} {:id 9})
 
-  (sql/query db ["UPDATE builds SET analysis_job_uri = ? WHERE id = ?" "hello world" 9])
+  (jdbc/execute-one! db-spec
+                     ["INSERT INTO builds (group_id, artifact_id, version, analysis_requested_ts) VALUES (?,?,?,?) RETURNING id"
+                      "leeg" "leea" "1.2.3" (now)]
+                     {:builder-fn rs/as-unqualified-maps})
+  ;; => {:id 68832}
+
 
   (analysis-requested! bt "bidi" "bidi" "2.1.3")
 
   (track-analysis-kick-off! db 2 "xxx"))
 
-;; insert into builds (group_id, artifact_id, version, analysis_triggered_ts) values ('xxx', 'aaa', '1.0.0', datetime('now'));

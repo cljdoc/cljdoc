@@ -4,7 +4,8 @@
   Includes background jobs to download stats and prune stats that are
   no longer needed. Need is defined via a configurable retention timeframe
   specified in days."
-  (:require [clojure.java.jdbc :as sql]
+  (:require [next.jdbc.sql :as sql]
+            [next.jdbc.result-set :as rs]
             [clojure.tools.logging :as log]
             [clojure.edn :as edn]
             [clojure.core.memoize :as memoize]
@@ -46,7 +47,8 @@
       (LocalDate/parse DateTimeFormatter/BASIC_ISO_DATE)))
 
 (defn- to-import [db-spec ^LocalDate retention-date]
-  (let [existing (set (map :date (sql/query db-spec ["select distinct date from clojars_stats"])))]
+  (let [existing (set (map :date (sql/query db-spec ["select distinct date from clojars_stats"]
+                                            {:builder-fn rs/as-unqualified-maps} )))]
     (->> (stats-files retention-date)
          (map (fn [f] {:file f :date (uri->date f)}))
          (remove #(.isBefore ^LocalDate (:date %) retention-date))
@@ -70,7 +72,7 @@
 (defn clean!
   [{:keys [db-spec retention-date]}]
   (log/info "pruning any old stats before" (str retention-date))
-  (sql/execute! db-spec ["DELETE FROM clojars_stats WHERE date(date) < ?" retention-date]))
+  (sql/delete! db-spec :clojars_stats ["date(date) < ?" retention-date]))
 
 (defn update!
   "Download and store download statistics from clojars, returns count of daily stats successfully processed."
@@ -83,7 +85,7 @@
               (try
                 (let [parsed-stats (parse-file f)]
                   (log/infof "%s has %s artifacts" f (count parsed-stats))
-                  (sql/insert-multi! db-spec "clojars_stats" parsed-stats))
+                  (sql/insert-multi! db-spec :clojars_stats parsed-stats))
                 (inc processed-cnt)
                 (catch Exception e
                   (log/errorf e "Failed to process %s" f)
@@ -106,7 +108,8 @@
 (defn ^{:clojure.core.memoize/args-fn rest} download-counts [db-spec]
   (let [cnts (->> (sql/query db-spec [(str "select group_id, artifact_id, sum(downloads) as downloads "
                                            "from clojars_stats "
-                                           "group by group_id, artifact_id")])
+                                           "group by group_id, artifact_id")]
+                            {:builder-fn rs/as-unqualified-maps} )
                   (reduce (fn [acc {:keys [group_id artifact_id downloads]}]
                             (assoc acc [group_id artifact_id] downloads))
                           {}))]
@@ -154,7 +157,8 @@
   (require '[cljdoc.config :as cfg])
   (def db-spec (-> (cfg/config) (cfg/db)))
 
-  (set (map :date (sql/query db-spec ["select distinct date from clojars_stats"])))
+  (set (map :date (sql/query db-spec ["select distinct date from clojars_stats"]
+                             {:builder-fn rs/as-unqualified-maps} )))
 
   (::max (memoized-download-counts db-spec))
 
