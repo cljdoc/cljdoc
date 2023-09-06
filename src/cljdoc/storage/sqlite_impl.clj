@@ -331,7 +331,7 @@
   ;;      :artifact-id "rewrite-clj",
   ;;      :version "1.1.47"})
 
-  (sql-get-vars db-spec {:ns-idents [[2838 "rewrite-clj.zip"]]} )
+  (sql-get-vars db-spec {:ns-idents [[2838 "rewrite-clj.zip"]]})
 
   (get-vars db-spec [{:name "rewrite-clj.zip" :version-entity {:id 2838}}])
 

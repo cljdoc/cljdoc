@@ -48,7 +48,7 @@
 
 (defn- to-import [db-spec ^LocalDate retention-date]
   (let [existing (set (map :date (sql/query db-spec ["select distinct date from clojars_stats"]
-                                            {:builder-fn rs/as-unqualified-maps} )))]
+                                            {:builder-fn rs/as-unqualified-maps})))]
     (->> (stats-files retention-date)
          (map (fn [f] {:file f :date (uri->date f)}))
          (remove #(.isBefore ^LocalDate (:date %) retention-date))
@@ -109,7 +109,7 @@
   (let [cnts (->> (sql/query db-spec [(str "select group_id, artifact_id, sum(downloads) as downloads "
                                            "from clojars_stats "
                                            "group by group_id, artifact_id")]
-                            {:builder-fn rs/as-unqualified-maps} )
+                             {:builder-fn rs/as-unqualified-maps})
                   (reduce (fn [acc {:keys [group_id artifact_id downloads]}]
                             (assoc acc [group_id artifact_id] downloads))
                           {}))]
@@ -158,7 +158,7 @@
   (def db-spec (-> (cfg/config) (cfg/db)))
 
   (set (map :date (sql/query db-spec ["select distinct date from clojars_stats"]
-                             {:builder-fn rs/as-unqualified-maps} )))
+                             {:builder-fn rs/as-unqualified-maps})))
 
   (::max (memoized-download-counts db-spec))
 

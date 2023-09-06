@@ -52,7 +52,7 @@
 
 (defn- last-release-ts ^Instant [db-spec]
   (some-> (sql/query db-spec ["SELECT * FROM releases ORDER BY datetime(created_ts) DESC LIMIT 1"]
-                     {:builder-fn rs/as-unqualified-maps} )
+                     {:builder-fn rs/as-unqualified-maps})
           first
           :created_ts
           Instant/parse))
@@ -216,6 +216,4 @@
    (->> (clojars-releases-since (last-release-ts db-spec))
         (map #(select-keys % [:created_ts]))))
 
-  (oldest-not-built db-spec)
-
-  )
+  (oldest-not-built db-spec))

@@ -49,7 +49,7 @@
     (failed! this build-id error nil))
   (failed! [_ build-id error e]
     (sql/update! db-spec :builds (cond-> {:error error}
-                                    e (assoc :error_info_map (nippy/freeze (Throwable->map e))))
+                                   e (assoc :error_info_map (nippy/freeze (Throwable->map e))))
                  {:id build-id}))
   (api-imported! [_this build-id namespaces-count]
     (sql/update! db-spec
@@ -69,7 +69,7 @@
     (sql/update! db-spec :builds {:import_completed_ts (now)} {:id build-id}))
   (get-build [_ build-id]
     (-> (sql/query db-spec ["SELECT * FROM builds WHERE id = ?" build-id]
-                        {:builder-fn rs/as-unqualified-maps})
+                   {:builder-fn rs/as-unqualified-maps})
         first))
   (recent-builds [_ days]
     (sql/query db-spec [(str "SELECT * FROM builds "
@@ -81,30 +81,30 @@
                {:builder-fn rs/as-unqualified-maps}))
   (running-build [_ group-id artifact-id version]
     (-> (sql/query db-spec [(str "select * from builds where error is null "
-                              "and import_completed_ts is null "
-                              "and group_id = ? and artifact_id = ? and version = ? "
+                                 "and import_completed_ts is null "
+                                 "and group_id = ? and artifact_id = ? and version = ? "
                               ;; HACK; this datetime scoping shouldn't be required but
                               ;; in practice it happens that some webhooks don't reach
                               ;; the cljdoc api and builds end up in some sort of limbo
                               ;; where neither an error nor completion has occurred
-                              "and datetime(analysis_requested_ts) > datetime(?) "
-                              "order by id desc "
-                              "limit 1")
-                         group-id artifact-id version
-                         (str (.minus (Instant/now) (Duration/ofMinutes 10)))]
-               {:builder-fn rs/as-unqualified-maps} )
+                                 "and datetime(analysis_requested_ts) > datetime(?) "
+                                 "order by id desc "
+                                 "limit 1")
+                            group-id artifact-id version
+                            (str (.minus (Instant/now) (Duration/ofMinutes 10)))]
+                   {:builder-fn rs/as-unqualified-maps})
         first))
   (last-build [_ group-id artifact-id version]
     (-> (sql/query db-spec [(str "select * from builds where "
-                              "(group_id = ? "
-                              "and artifact_id = ? "
-                              "and version = ?) "
-                              "and (import_completed_ts is not null "
-                              "or error is not null) "
-                              "order by id desc "
-                              "limit 1")
-                         group-id artifact-id version]
-                {:builder-fn rs/as-unqualified-maps} )
+                                 "(group_id = ? "
+                                 "and artifact_id = ? "
+                                 "and version = ?) "
+                                 "and (import_completed_ts is not null "
+                                 "or error is not null) "
+                                 "order by id desc "
+                                 "limit 1")
+                            group-id artifact-id version]
+                   {:builder-fn rs/as-unqualified-maps})
         first)))
 
 (defn api-import-successful? [build]
@@ -149,7 +149,6 @@
                       "leeg" "leea" "1.2.3" (now)]
                      {:builder-fn rs/as-unqualified-maps})
   ;; => {:id 68832}
-
 
   (analysis-requested! bt "bidi" "bidi" "2.1.3")
 
