@@ -9,7 +9,9 @@
   "
   (:require [clojure.core.cache :as cache]
             [clojure.core.memoize :as memo]
-            [clojure.java.jdbc :as sql])
+            [clojure.string :as string]
+            [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs])
   (:import (java.time Instant)))
 
 (defn instant-now
@@ -43,51 +45,54 @@
   "Performs lookup by querying on the cache table.
   Returns deserialized cached item."
   [k {:keys [db-spec key-prefix deserialize-fn table key-col value-col]}]
-  (let [query (format (:fetch query-templates) table key-col)
-        row-fn #(some-> % (get (keyword value-col)) deserialize-fn)]
-    (sql/query db-spec
-               [query key-prefix (pr-str k)]
-               {:row-fn row-fn :result-set-fn first})))
+  (let [query (format (:fetch query-templates) table key-col)]
+    (some-> (jdbc/execute-one! db-spec
+                               [query key-prefix (pr-str k)]
+                               {:builder-fn rs/as-unqualified-maps})
+            (get (keyword value-col))
+            deserialize-fn)))
 
 (defn fetch!
   [k {:keys [db-spec key-prefix table key-col]}]
   (let [query (format (:fetch query-templates) table key-col)]
-    (sql/query db-spec [query key-prefix (pr-str k)] {:result-set-fn first})))
+    (jdbc/execute-one! db-spec [query key-prefix (pr-str k)]
+                       {:builder-fn rs/as-unqualified-maps})))
 
 (defn refresh!
   [k v {:keys [db-spec key-prefix table key-col value-col serialize-fn ttl]}]
   (let [query (format (:refresh query-templates) table value-col key-col)
         value (serialize-fn @v)]
-    (sql/execute! db-spec [query (instant-now) ttl value key-prefix (pr-str k)])))
+    (jdbc/execute-one! db-spec [query (instant-now) ttl value key-prefix (pr-str k)])))
 
 (defn cache!
   [k v {:keys [db-spec key-prefix serialize-fn table key-col value-col ttl]}]
   (let [query (format (:cache query-templates) table key-col value-col)
         value (serialize-fn @v)]
-    (sql/execute! db-spec [query key-prefix (instant-now) ttl (pr-str k) value])))
+    (jdbc/execute-one! db-spec [query key-prefix (instant-now) ttl (pr-str k) value])))
 
 (defn evict!
   [k {:keys [db-spec key-prefix table key-col]}]
   (let [query (format (:evict query-templates) table key-col)]
-    (sql/execute! db-spec [query key-prefix (pr-str k)])))
+    (jdbc/execute-one! db-spec [query key-prefix (pr-str k)])))
 
 (defn seed!
   [{:keys [db-spec key-prefix table key-col value-col]}]
-  (let [column-specs [[:ttl "INTEGER"]
-                      [:prefix "TEXT" "NOT NULL"]
-                      [:cached_ts "TEXT" "NOT NULL"]
-                      [(keyword key-col) "TEXT" "NOT NULL"]
-                      [(keyword value-col) "TEXT"]
-                      [(format "CONSTRAINT unique_prefix_and_key UNIQUE (prefix, %s)" key-col)]]
-        query (sql/create-table-ddl table
-                                    column-specs
-                                    {:conditional? true})]
-    (sql/execute! db-spec [query])))
+  ;; this might seem a bit odd, ya'd think this table would be created by db migrations,
+  ;; but it is useful for REPL testing
+  (let [create-cmd (string/join " " [(format "create table if not exists %s (" table)
+                                     "ttl INTEGER,"
+                                     "prefix TEXT NOT NULL,"
+                                     "cached_ts TEXT NOT NULL,"
+                                     (format "%s TEXT NOT NULL," key-col)
+                                     (format "%s TEXT NOT NULL," value-col)
+                                     (format "CONSTRAINT unique_prefix_and_key UNIQUE (prefix, %s)" key-col)
+                                     ")"])]
+    (jdbc/execute! db-spec [create-cmd])))
 
 (defn clear-all!
   [{:keys [db-spec key-prefix table]}]
   (let [query (format (:clear query-templates) table)]
-    (sql/execute! db-spec [query key-prefix])))
+    (jdbc/execute! db-spec [query key-prefix])))
 
 (defn- d-ref [v]
   (if (derefable? v) (deref v) v))
@@ -147,10 +152,9 @@
                   :table              \"cache\"
                   :serialize-fn       identity
                   :deserialize-fn     read-string
-                  :db-spec   {:dbtype      \"sqlite\"
-                         :classname   \"org.sqlite.JDBC\"
-                         :subprotocol \"sqlite\"
-                         :subname     \"data/my-cache.db\"}}))
+                  :db-spec   {:dbtype \"sqlite\"
+                              :host   :none
+                              :dbname \"data/my-cache.db\"}}))
 
   (memo-f 1) ;; takes more than 5 seconds to return.
   (memo-f 1) ;; return immediately from cache.
@@ -172,10 +176,11 @@
      :ttl                2000
      :serialize-fn       taoensso.nippy/freeze
      :deserialize-fn     taoensso.nippy/thaw
-     :db-spec            {:dbtype      "sqlite"
-                          :classname   "org.sqlite.JDBC"
-                          :subprotocol "sqlite"
-                          :subname     "data/cache.db"}})
+     :db-spec            {:dbtype   "sqlite"
+                          :host     :none
+                          :dbname   "data/cache.db"}})
+
+  (require '[cljdoc.util.repositories])
 
   (time (cljdoc.util.repositories/find-artifact-repository 'bidi "2.1.3"))
 
@@ -206,13 +211,14 @@
      :serialize-fn       identity
      :deserialize-fn     read-string
      :db-spec            {:dbtype      "sqlite"
-                          :classname   "org.sqlite.JDBC"
-                          :subprotocol "sqlite"
-                          :subname     "data/cache.db"}})
+                          :host        :none
+                          :dbname     "data/cache.db"}})
 
   (def memoized-artifact-uris
     (memo-sqlite cljdoc.util.repositories/artifact-uris
                  db-artifact-uris))
 
   (time (memoized-artifact-uris 'bidi "2.0.9-SNAPSHOT"))
-  (time (memoized-artifact-uris 'com.bhauman/spell-spec "0.1.0")))
+  (time (memoized-artifact-uris 'com.bhauman/spell-spec "0.1.0"))
+
+  nil)

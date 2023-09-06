@@ -17,9 +17,7 @@
    :serialize-fn       identity
    :deserialize-fn     read-string
    :db-spec            {:dbtype      "sqlite"
-                        :classname   "org.sqlite.JDBC"
-                        :subprotocol "sqlite"
-                        :subname database-filename}})
+                        :dbname database-filename}})
 
 (defn get-memoed-for-test
   "returns memoized fn and

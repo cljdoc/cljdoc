@@ -6,7 +6,8 @@
             [cljdoc.config :as config]
             [cljdoc.server.search.api :as sc]
             [clojure.edn :as edn]
-            [clojure.java.jdbc :as sql]
+            [next.jdbc.sql :as sql]
+            [next.jdbc.result-set :as rs]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [tea-time.core :as tt]
@@ -50,7 +51,8 @@
 ;;
 
 (defn- last-release-ts ^Instant [db-spec]
-  (some-> (sql/query db-spec ["SELECT * FROM releases ORDER BY datetime(created_ts) DESC LIMIT 1"])
+  (some-> (sql/query db-spec ["SELECT * FROM releases ORDER BY datetime(created_ts) DESC LIMIT 1"]
+                     {:builder-fn rs/as-unqualified-maps})
           first
           :created_ts
           Instant/parse))
@@ -61,7 +63,8 @@
   The 10min delay has been put into place to avoid building projects before people had a chance
   to push the respective commits or tags to their git repositories."
   [db-spec]
-  (first (sql/query db-spec ["SELECT * FROM releases WHERE build_id IS NULL AND datetime(created_ts) < datetime('now', '-10 minutes') ORDER BY retry_count ASC, datetime(created_ts) ASC LIMIT 1"])))
+  (first (sql/query db-spec ["SELECT * FROM releases WHERE build_id IS NULL AND datetime(created_ts) < datetime('now', '-10 minutes') ORDER BY retry_count ASC, datetime(created_ts) ASC LIMIT 1"]
+                    {:builder-fn rs/as-unqualified-maps})))
 
 (defn- update-build-id!
   [db-spec release-id build-id]
@@ -72,13 +75,13 @@
 
 (defn- queue-new-releases [db-spec releases]
   (log/infof "Queuing %s new releases" (count releases))
-  (sql/insert-multi! db-spec "releases" releases))
+  (sql/insert-multi! db-spec :releases releases))
 
 (defn- inc-retry-count! [db-spec {:keys [id retry_count] :as _release}]
   (sql/update! db-spec
-               "releases"
+               :releases
                {:retry_count (inc retry_count)}
-               ["id = ?" id]))
+               {:id id}))
 
 ;;
 ;; Logic and jobs
@@ -200,15 +203,17 @@
 
   (ig/halt-key! :cljdoc/release-monitor rm)
 
-  (doseq [r (repositories/releases-since (.minus (Instant/now) (Duration/ofDays 2)))]
+  (doseq [r (clojars-releases-since (.minus (Instant/now) (Duration/ofDays 2)))]
     (insert db-spec r))
 
-  (last (sql/query db-spec ["SELECT * FROM releases"]))
+  (last (sql/query db-spec ["SELECT * FROM releases"]
+                   {:builder-fn rs/as-unqualified-maps}))
 
-  (trigger-build db-spec (first (sql/query db-spec ["SELECT * FROM releases"])))
+  (trigger-build db-spec (first (sql/query db-spec ["SELECT * FROM releases"]
+                                           {:builder-fn rs/as-unqualified-maps})))
 
   (clojure.pprint/pprint
-   (->> (repositories/releases-since (last-release-ts db-spec))
+   (->> (clojars-releases-since (last-release-ts db-spec))
         (map #(select-keys % [:created_ts]))))
 
   (oldest-not-built db-spec))

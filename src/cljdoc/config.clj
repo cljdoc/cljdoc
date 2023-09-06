@@ -56,16 +56,16 @@
 
 (defn db
   [config]
-  {:classname "org.sqlite.JDBC",
-   :subprotocol "sqlite",
+  {:dbtype "sqlite",
+   :host :none
    :foreign_keys true
    :cache_size 10000
-   :subname (let [new-path (str (fs/file (data-dir config) "cljdoc.db.sqlite"))
-                  old-path (str (fs/file (data-dir config) "build-log.db"))]
-              (if (fs/exists? old-path)
-                (do (log/warnf "Database needs to be moved from %s to %s" old-path new-path)
-                    old-path)
-                new-path))
+   :dbname (let [new-path (str (fs/file (data-dir config) "cljdoc.db.sqlite"))
+                 old-path (str (fs/file (data-dir config) "build-log.db"))]
+             (if (fs/exists? old-path)
+               (do (log/warnf "Database needs to be moved from %s to %s" old-path new-path)
+                   old-path)
+               new-path))
    ;; These settings are permanent but it seems like
    ;; this is the easiest way to set them. In a migration
    ;; they fail because they return results.
@@ -77,9 +77,8 @@
    :key-col "key"
    :value-col "value"
    :db-spec {:dbtype "sqlite"
-             :classname "org.sqlite.JDBC"
-             :subprotocol "sqlite"
-             :subname (str (fs/file (data-dir config) "cache.db"))}})
+             :host :none
+             :dbname (str (fs/file (data-dir config) "cache.db"))}})
 
 (defn autobuild-clojars-releases? [config]
   (get-in config [:cljdoc/server :autobuild-clojars-releases?]))

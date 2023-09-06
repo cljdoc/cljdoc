@@ -18,18 +18,21 @@
 
   #### JDBC, HUGSQL, SQLite
 
-  For most of the time this namespace only used raw `clojure.java.jdbc` functions since queries
+  For most of the time this namespace only used raw jdbc functions since queries
   were basic. At some point the need for more complex queries arose [1] and HUGSQL was added
   to the mix."
   (:require [cljdoc.user-config :as user-config]
             [cljdoc-shared.proj :as proj]
             [clojure.set :as cset]
-            [clojure.java.jdbc :as sql]
+            [next.jdbc :as jdbc]
+            [next.jdbc.sql :as sql]
+            [next.jdbc.result-set :as rs]
             [clojure.tools.logging :as log]
             [taoensso.nippy :as nippy]
             [taoensso.tufte :as tufte :refer [defnp]]
             [version-clj.core :as version-clj]
             [hugsql.core :as hugsql]
+            [hugsql.adapter.next-jdbc :as adapter]
             [clojure.string :as string])
   (:import (org.sqlite SQLiteException)))
 
@@ -38,25 +41,28 @@
 (declare sql-get-namespaces)
 (declare sql-get-vars)
 
-(hugsql/def-db-fns "sql/sqlite_impl.sql")
-;; (hugsql/def-sqlvec-fns "sql/sqlite_impl.sql")
+(hugsql/def-db-fns "sql/sqlite_impl.sql"
+  {:adapter (adapter/hugsql-adapter-next-jdbc)})
 
 ;; Writing ----------------------------------------------------------------------
 
 (defn store-artifact! [db-spec group-id artifact-id versions]
   (assert (coll? versions))
   (doseq [v versions]
-    (sql/execute! db-spec ["INSERT OR IGNORE INTO versions (group_id, artifact_id, name) VALUES (?, ?, ?)" group-id artifact-id v])))
+    (jdbc/execute-one! db-spec ["INSERT OR IGNORE INTO versions (group_id, artifact_id, name) VALUES (?, ?, ?)" group-id artifact-id v])))
 
 (defn- update-version-meta! [db-spec version-id data]
-  (sql/execute! db-spec ["UPDATE versions SET meta = ? WHERE id = ?" (nippy/freeze data) version-id]))
+  (sql/update! db-spec :versions {:meta (nippy/freeze data)} {:id version-id}))
 
 (defn- write-ns!
   [db-spec version-id {:keys [platform name] :as data}]
   {:pre [(string? name) (string? platform)]}
   (try
-    (sql/execute! db-spec ["INSERT INTO namespaces (version_id, platform, name, meta) VALUES (?, ?, ?, ?)"
-                           version-id platform name (nippy/freeze data)])
+    (sql/insert! db-spec :namespaces {:version_id version-id
+                                      :platform platform
+                                      :name name
+                                      :meta (nippy/freeze data)})
+
     (catch SQLiteException e
       (throw (ex-info (format "Failed to insert namespace %s" data)
                       {:var data}
@@ -66,27 +72,31 @@
   [db-spec version-id {:keys [platform namespace name] :as data}]
   {:pre [(string? name) (string? namespace) (string? platform)]}
   (try
-    (sql/execute! db-spec ["INSERT INTO vars (version_id, platform, namespace, name, meta) VALUES (?, ?, ?, ?, ?)"
-                           version-id platform namespace name (nippy/freeze data)])
+    (sql/insert! db-spec :vars {:version_id version-id
+                                :platform platform
+                                :namespace namespace
+                                :name name
+                                :meta (nippy/freeze data)})
     (catch SQLiteException e
       (throw (ex-info (format "Failed to insert var %s" data)
                       {:var data}
                       e)))))
 
 (defn clear-vars-and-nss! [db-spec version-id]
-  (sql/execute! db-spec ["DELETE FROM vars WHERE version_id = ?" version-id])
-  (sql/execute! db-spec ["DELETE FROM namespaces WHERE version_id = ?" version-id]))
+  (sql/delete! db-spec :vars {:version_id version-id})
+  (sql/delete! db-spec :namespaces {:version_id version-id}))
 
 ;; Reading ----------------------------------------------------------------------
 
 (defnp ^:private get-version-id
   [db-spec group-id artifact-id version-name]
   {:pre [(and group-id artifact-id version-name)]}
-  (first
-   (sql/query db-spec
-              ["select id from versions where group_id = ? and artifact_id = ? and name = ?"
-               group-id artifact-id version-name]
-              {:row-fn :id})))
+  (-> (sql/query db-spec
+                 ["select id from versions where group_id = ? and artifact_id = ? and name = ?"
+                  group-id artifact-id version-name]
+                 {:builder-fn rs/as-unqualified-maps})
+      first
+      :id))
 
 (defnp ^:private get-version
   "Returns metadata for specific `version-id` a map:
@@ -120,15 +130,19 @@
        - `:commit` - when would this be different from :sha?
      - `:commit` - sha specified in pom.xml scm->tag"
   [db-spec version-id]
-  (first (sql/query db-spec ["select meta from versions where id = ?" version-id]
-                    {:row-fn (fn [r] (some-> r :meta nippy/thaw))})))
+  (some-> (sql/query db-spec ["select meta from versions where id = ?" version-id]
+                     {:builder-fn rs/as-unqualified-maps})
+          first
+          :meta
+          nippy/thaw))
 
 (defn- version-row-fn [r]
   (cset/rename-keys r {:group_id :group-id, :artifact_id :artifact-id, :name :version}))
 
 (defnp ^:private resolve-version-ids [db-spec version-entities]
   (let [v-tuples (map (fn [v] [(:group-id v) (:artifact-id v) (:version v)]) version-entities)]
-    (sql-resolve-version-ids db-spec {:version-entities v-tuples} {} {:row-fn version-row-fn})))
+    (->> (sql-resolve-version-ids db-spec {:version-entities v-tuples})
+         (map version-row-fn))))
 
 ;; TODO We currently store various fields in metadata and the database table
 ;; this is probably a bad idea as it might lead to inconsistencies and because
@@ -183,9 +197,8 @@
   (let [ns-idents (->> namespaces-with-resolved-version-entities
                        (map (fn [ns] [(-> ns :version-entity :id) (:name ns)])))]
     (assert (seq ns-idents))
-    (sql-get-vars db-spec {:ns-idents ns-idents}
-                  {}
-                  {:row-fn vars-row-fn})))
+    (->> (sql-get-vars db-spec {:ns-idents ns-idents})
+         (map vars-row-fn))))
 
 (defn- sql-exists?
   "A small helper to deal with the complex keys that sqlite returns for exists queries."
@@ -201,10 +214,14 @@
   ;; TODO use build_id / merge with releases table?
   ([db-spec group-id]
    {:pre [(string? group-id)]}
-   (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and meta not null" group-id] {:row-fn version-row-fn}))
+   (->> (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and meta not null" group-id]
+                   {:builder-fn rs/as-unqualified-maps})
+        (map version-row-fn)))
   ([db-spec group-id artifact-id]
    {:pre [(string? group-id) (string? artifact-id)]}
-   (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and artifact_id = ? and meta not null" group-id artifact-id] {:row-fn version-row-fn})))
+   (->> (sql/query db-spec ["select group_id, artifact_id, name from versions where group_id = ? and artifact_id = ? and meta not null" group-id artifact-id]
+                   {:builder-fn rs/as-unqualified-maps})
+        (map version-row-fn))))
 
 (defnp latest-release-version [db-spec {:keys [group-id artifact-id]}]
   (->> (get-documented-versions db-spec group-id artifact-id)
@@ -214,7 +231,9 @@
        (last)))
 
 (defn all-distinct-docs [db-spec]
-  (sql/query db-spec ["select group_id, artifact_id, name from versions"] {:row-fn version-row-fn}))
+  (->> (sql/query db-spec ["select group_id, artifact_id, name from versions"]
+                  {:builder-fn rs/as-unqualified-maps})
+       (map version-row-fn)))
 
 (defn docs-available? [db-spec group-id artifact-id version-name]
   (or (sql-exists? db-spec ["select exists(select id from versions where group_id = ? and artifact_id = ? and name = ? and meta not null)"
@@ -264,7 +283,7 @@
   (let [version-id (get-version-id db-spec group-id artifact-id version)]
     (log/info "version-id" version-id)
     (clear-vars-and-nss! db-spec version-id)
-    (sql/with-db-transaction [tx db-spec]
+    (jdbc/with-transaction [tx db-spec]
       (doseq [ns (for [[platf namespaces] codox
                        ns namespaces]
                    (-> (dissoc ns :publics)
@@ -297,6 +316,24 @@
 
   (def db-spec
     (cljdoc.config/db (cljdoc.config/config)))
+
+  (get-version db-spec 55630)
+
+  (sql-resolve-version-ids db-spec {:version-entities [["rewrite-clj" "rewrite-clj" "1.1.47"]]})
+  ;; => [{:id 55630,
+  ;;      :group_id "rewrite-clj",
+  ;;      :artifact_id "rewrite-clj",
+  ;;      :name "1.1.47"}]
+
+  (resolve-version-ids db-spec [{:group-id "rewrite-clj" :artifact-id "rewrite-clj" :version "1.1.47"}])
+  ;; => ({:id 55630,
+  ;;      :group-id "rewrite-clj",
+  ;;      :artifact-id "rewrite-clj",
+  ;;      :version "1.1.47"})
+
+  (sql-get-vars db-spec {:ns-idents [[2838 "rewrite-clj.zip"]]})
+
+  (get-vars db-spec [{:name "rewrite-clj.zip" :version-entity {:id 2838}}])
 
   (all-distinct-docs db-spec)
 
