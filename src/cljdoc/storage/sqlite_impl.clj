@@ -112,9 +112,10 @@
       - `:title` document title from above, example: `\"Document tests\"`
       - `:attrs` - a map of
          - `:cljdoc.doc/source-file` - scm root relative source-file, ex: `\"doc/doverview.adoc\"`
-         - `:cldoc.doc/type` - either `:cljdoc/markdown` or `:cljdoc/asciidoc`, also acts as key for content
+         - `:cldoc.doc/type` - `:cljdoc/markdown`, `:cljdoc/asciidoc`, or `:cljdoc/plaintext` also acts as key for content
          - `:cljdoc/markdown` - actual file contents when in markdown format
          - `:cljdoc/asciidoc` - actual file contents when in asciidoc format
+         - `:cljdoc/plaintext` - actual file contents when in plaintext format
          - `:slug` - url slug for article
          - `:cljdoc.doc/contributors`  - list of scm users who made changes to file
    - `:jar` - TODO: for local ingest testing?

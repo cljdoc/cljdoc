@@ -225,13 +225,17 @@
        (try (filepath->type path) (catch Exception _ false))))
 
 (defn- infer-title [path file-contents]
-  (or (case (filepath->type path)
-        ;; NOTE infer-title will fail with non adoc/md files
-        :cljdoc/markdown (second (re-find #"(?m)^\s*#+\s*(.*?)\s*$" file-contents))
-        :cljdoc/asciidoc (second (re-find #"(?m)^\s*=+\s*(.*?)\s*$" file-contents)))
-      (first (butlast (take-last 2 (string/split path #"[/\.]"))))
-      (throw (ex-info (format "No title found for %s" path)
-                      {:path path :contents file-contents}))))
+  (or
+    ;; use title from doc content
+   (case (filepath->type path)
+     :cljdoc/markdown (second (re-find #"(?m)^\s*#+\s*(.*?)\s*$" file-contents))
+     :cljdoc/asciidoc (second (re-find #"(?m)^\s*=+\s*(.*?)\s*$" file-contents))
+        ;; we cannot reliably determine a title from plaintext content
+     :cljdoc/plaintext nil)
+    ;; else use filename without extension as title
+   (first (butlast (take-last 2 (string/split path #"[/\.]"))))
+   (throw (ex-info (format "No title found for %s" path)
+                   {:path path :contents file-contents}))))
 
 (defn derive-toc
   "Given a list of `files` (as strings) return a doctree that can be
@@ -239,7 +243,7 @@
   doctree consisting of the project's Readme and Changelog and
   other articles in `doc/` or `docs/`.
 
-  Only files written in supported formats (Markdown or Asciidoc) will
+  Only files written in supported formats (Markdown, Asciidoc or Plaintext) will
   be taken into account during this process.
 
   `slurp-fn` is used in support of inferring the doc title."

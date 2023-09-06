@@ -45,6 +45,8 @@ Cljdoc supports two markup formats:
 ** We use https://github.com/vsch/flexmark-java[flexmark-java] to render a https://github.github.com/gfm/[GitHub flavored CommonMark dialect].
 * *AsciiDoc* for `.adoc` link:#articles[articles]
 ** We use https://github.com/asciidoctor/asciidoctorj[AsciidoctorJ] to render https://docs.asciidoctor.org/asciidoc/latest/[AsciiDoc].
+* *Plaintext* for `.txt` link:#articles[articles] and optionally link:#docstrings[docstrings]
+** Plaintext support was added for older projects, we recommend using minimal Markdown for docstrings and either Markdown or Asciidoc for your articles.
 
 [[badges]]
 == Cljdoc Badge
@@ -390,7 +392,8 @@ If your git repository does not contain a link:#article-config[doc tree configur
 * `CHANGELOG.md` else `CHANGELOG.adoc`- filename search is case insensitive
 ** Title is `Changelog`
 * link:#markup[Markup] articles from your `doc/` else `docs/` folder
-** The title is read from the file's first heading. There will be no nesting and articles will be ordered alphabetically by filename.
+** The title is read from the file's first heading, and failing that, be based on the article filename.
+There will be no nesting and articles will be ordered alphabetically by filename.
 
 TIP: Use filenames prefixed with digits like `01-intro.md` to define the order of articles.
 

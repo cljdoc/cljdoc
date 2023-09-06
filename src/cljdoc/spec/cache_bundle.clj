@@ -13,7 +13,8 @@
          [:cljdoc.doc/type {:optional true} qualified-keyword?]
          [:slug string?]
          [:cljdoc.doc/contributors {:optional true} [:sequential string?]]
-         [:cljdoc/asciidoc {:optional true} string?]]
+         [:cljdoc/asciidoc {:optional true} string?]
+         [:cljdoc/plaintext {:optional true} string?]]
         arglists [:sequential [:vector any?]]]
     [:map
      [:version
