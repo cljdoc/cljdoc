@@ -295,7 +295,7 @@ jobs:
             bb --version
 
       - run: |
-          CLJDOC_VERSION=$(bb version)
+          CLJDOC_VERSION=$(bb current-version)
           cd modules/deploy
           clojure -M -m cljdoc.deploy deploy -t ${CLJDOC_VERSION} --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
 
