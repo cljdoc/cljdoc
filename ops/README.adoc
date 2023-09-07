@@ -119,7 +119,7 @@ To run it the following commands can be used:
 
 [source,sh]
 ----
-docker_tag=$(bb version)
+docker_tag=$(bb current-version)
 cd modules/deploy/
 clojure -M -m cljdoc.deploy deploy --docker-tag $docker_tag
 ----
