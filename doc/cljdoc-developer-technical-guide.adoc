@@ -252,7 +252,7 @@ bb test --focus cljdoc.util.fixref-test/fix-test
 
 As a developer you'll typically want to use the REPL, but you can also launch the server like so:
 ```
-bb run
+bb server
 ```
 
 === Ingest some docs

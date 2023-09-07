@@ -62,7 +62,7 @@ NOTE: Leave the watch session open. Continue any work in a separate terminal she
 +
 [source,shell]
 ----
-bb run
+bb server
 ----
 +
 IMPORTANT: Leave this web server session open. Continue any work in a separate terminal shell.
