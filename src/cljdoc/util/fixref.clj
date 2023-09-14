@@ -182,9 +182,7 @@
                             sort ;; maybe 2 paths are same length, so ensure a consistent result by sorting first
                             (sort-by count)
                             first)]
-        (if best-guess
-          (log/warnf "Did not find unique file on SCM for jar file %s - chose %s from candidates: %s"
-                     jar-file-path best-guess (pr-str matches))
+        (when-not best-guess
           (log/errorf "Did not find unique file on SCM for jar file %s - found no good candidate from candidates: %s"
                       jar-file-path (pr-str matches)))
         best-guess))))

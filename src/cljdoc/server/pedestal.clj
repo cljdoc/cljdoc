@@ -172,7 +172,6 @@
   load a `cache-bundle` from storage."
   [store pom-info version-entity]
   (let [params (assoc version-entity :dependency-version-entities (:dependencies pom-info))]
-    (log/info "Loading artifact cache bundle for" params)
     (when (storage/exists? store params)
       (storage/bundle-docs store params))))
 
@@ -421,7 +420,6 @@
   (interceptor/interceptor
    {:name ::badge
     :leave (fn badge [ctx]
-             (log/info "Badge req headers" (-> ctx :request :headers))
              (if-let [last-build (::last-build ctx)]
                (let [{:keys [version]} (-> ctx :request :path-params)
                      [status color] (cond
