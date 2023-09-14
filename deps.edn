@@ -96,7 +96,10 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.9.5"}}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.9.5"}
+                   clj-kondo/clj-kondo {:mvn/version "2023.09.07"}
+                   babashka/fs {:mvn/version "0.4.19"}
+                   babashka/process {:mvn/version "0.5.21"}}
             :ns-default build}
 
            :clj-kondo
