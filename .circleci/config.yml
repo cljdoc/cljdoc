@@ -265,11 +265,17 @@ jobs:
             bb --version
             docker --version
 
-      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Docker Login
+          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
       # because target/ has been put into place `make image` can be
       # run without running ./script/package (which would require npm)
-      - run: bb docker-image
-      - run: docker push --all-tags cljdoc/cljdoc
+      - run:
+          name: Docker Create Image
+          command: bb docker-image
+      - run:
+          name: Docker Push Image
+          command: docker push --all-tags cljdoc/cljdoc
 
   # This assumes that an SSH key has been added to the CircleCI build
   # and it's public key has been copied to ~/.ssh/authorized_keys on
@@ -294,10 +300,12 @@ jobs:
             clojure --version
             bb --version
 
-      - run: |
-          CLJDOC_VERSION=$(bb current-version)
-          cd modules/deploy
-          clojure -M -m cljdoc.deploy deploy -t ${CLJDOC_VERSION} --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
+      - run:
+          name: Deploy to Production
+          command: |
+            CLJDOC_VERSION=$(bb current-version)
+            cd modules/deploy
+            clojure -M -m cljdoc.deploy deploy -t ${CLJDOC_VERSION} --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
 
 workflows:
   build-and-deploy:
