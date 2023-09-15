@@ -46,7 +46,6 @@
     (preserve-heap-dump heap-dump-file heap-dump-dir)
     (turf-old-heap-dumps heap-dump-dir)
     (println "Launching cljdoc server")
-    #_:clj-kondo/ignore ;; bb.edn requires etaoin wich requires an older version of process that has a more limited signature
     (process/exec "clojure"
                   "-J-Dcljdoc.host=0.0.0.0"
                   "-J-XX:+HeapDumpOnOutOfMemoryError"
