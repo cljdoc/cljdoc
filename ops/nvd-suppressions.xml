@@ -68,4 +68,10 @@
    ]]></notes>
    <cve>CVE-2023-35116</cve>
   </suppress>
+  <suppress>
+   <notes><![CDATA[
+   CVE-2023-4759 was addressed in jgit 6.7.0 and should not be triggered (but still is)
+   ]]></notes>
+   <cpe>cpe:/a:eclipse:jgit:6.7.0:202309050840</cpe>
+  </suppress>
 </suppressions>
