@@ -9,6 +9,13 @@
 
         ;; web server/services
         io.pedestal/pedestal.jetty {:mvn/version "0.6.0"}    ;; web site/service with jetty engine
+        ;; CVE jetty override: (remove all when pedestal bumps)
+        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
+        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
+        org.eclipse.jetty.websocket/websocket-api ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
+        org.eclipse.jetty.websocket/websocket-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
+        org.eclipse.jetty.websocket/websocket-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
+        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823" }
 
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
@@ -34,6 +41,8 @@
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "2.5.10"} ;; render adoc to html
+        ;; CVE override: (remove when asciidoctorj bumps)
+        org.jruby/jruby {:mvn/version "9.4.3.0"}
         com.vladsch.flexmark/flexmark                        ;; render github markdown to html
         {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-autolink           ;; converts raw links in text to clickable links
@@ -64,12 +73,12 @@
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.6.1.202309021850-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.7.0.202309050840-r"} ;; git with jsch
         org.clj-commons/clj-http-lite {:mvn/version "1.0.13"} ;; a lite version of clj-http client
 
         ;; misc utils
         babashka/fs {:mvn/version "0.4.19"}                  ;; file system utilities (a modern version of clj-commons/fs)
-        cheshire/cheshire {:mvn/version "5.11.0"}            ;; json
+        cheshire/cheshire {:mvn/version "5.12.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.6.1"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.15.125"}           ;; URI/URLs
@@ -79,7 +88,7 @@
         robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
-        zprint/zprint {:mvn/version "1.2.7"}                 ;; format clojure source/edn
+        zprint/zprint {:mvn/version "1.2.8"}                 ;; format clojure source/edn
 
         metosin/malli {:mvn/version "0.12.0"}
 
@@ -120,7 +129,7 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.5.1109"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.6.1121"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.9"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--ignore-locals"]}}}
