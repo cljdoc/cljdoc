@@ -205,6 +205,15 @@ pre {
   margin-bottom: 0.25em;
 }
 
+.asciidoc .audioblock,
+.asciidoc .imageblock,
+.asciidoc .literalblock,
+.asciidoc .listingblock,
+.asciidoc .stemblock,
+.asciidoc .videoblock {
+  margin-bottom: 1.25em;
+}
+
 /*
    AsciiDoctor renders lists like so:
 
