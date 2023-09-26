@@ -3,14 +3,8 @@
 // unresolved issues. There is not much code to this, so let's just do a bare bones ourselves.
 
 const copyButtonPlugin = {
-  "after:highlightElement": ({
-    el,
-    text
-  }: {
-    el: HTMLElement;
-    text: string;
-  }) => {
-    let button: HTMLButtonElement = Object.assign(
+  "before:highlightElement": ({ el }: { el: HTMLElement }) => {
+    const button: HTMLButtonElement = Object.assign(
       document.createElement("button"),
       {
         innerHTML: "copy",
@@ -22,7 +16,7 @@ const copyButtonPlugin = {
     el.parentElement?.appendChild(button);
     button.onclick = () => {
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
+        navigator.clipboard.writeText(el.innerText).then(() => {
           button.innerHTML = "copied";
           button.dataset.copied = "true";
         });
