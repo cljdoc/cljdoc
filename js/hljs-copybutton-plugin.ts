@@ -3,11 +3,7 @@
 // unresolved issues. There is not much code to this, so let's just do a bare bones ourselves.
 
 const copyButtonPlugin = {
-  "before:highlightElement": ({
-    el
-  }: {
-    el: HTMLElement;
-  }) => {
+  "before:highlightElement": ({ el }: { el: HTMLElement }) => {
     const button: HTMLButtonElement = Object.assign(
       document.createElement("button"),
       {
