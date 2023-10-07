@@ -8,14 +8,7 @@
         integrant/repl {:mvn/version "0.3.3"}                ;;  with reload support
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.6.0"}    ;; web site/service with jetty engine
-        ;; CVE jetty override: (remove all when pedestal bumps)
-        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
-        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
-        org.eclipse.jetty.websocket/websocket-api ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
-        org.eclipse.jetty.websocket/websocket-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
-        org.eclipse.jetty.websocket/websocket-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823"}
-        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.52.v20230823" }
+        io.pedestal/pedestal.jetty {:mvn/version "0.6.1"}    ;; web site/service with jetty engine
 
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
@@ -25,7 +18,7 @@
         commons-fileupload/commons-fileupload {:mvn/version "1.5"}
 
         ;; relational database
-        com.github.seancorfield/next.jdbc {:mvn/version "1.3.883"} ;; jdbc abstraction
+        com.github.seancorfield/next.jdbc {:mvn/version "1.3.894"} ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.43.0.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.3"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
@@ -34,10 +27,10 @@
         com.taoensso/nippy {:mvn/version "3.2.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "9.7.0"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "9.7.0"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "9.7.0"}
-        org.apache.lucene/lucene-queryparser {:mvn/version "9.7.0"}
+        org.apache.lucene/lucene-core {:mvn/version "9.8.0"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "9.8.0"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "9.8.0"}
+        org.apache.lucene/lucene-queryparser {:mvn/version "9.8.0"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "2.5.10"} ;; render adoc to html
@@ -55,7 +48,7 @@
         {:mvn/version "0.64.8"}
 
         ;; html
-        hiccup/hiccup {:mvn/version "2.0.0-RC1"}             ;; html abstraction
+        hiccup/hiccup {:mvn/version "2.0.0-RC2"}             ;; html abstraction
         org.jsoup/jsoup {:mvn/version "1.16.1"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
@@ -69,7 +62,7 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.29.0"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.30.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -80,7 +73,7 @@
         babashka/fs {:mvn/version "0.4.19"}                  ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.12.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
-        com.taoensso/tufte {:mvn/version "2.6.1"}            ;; profile/perf monitoring
+        com.taoensso/tufte {:mvn/version "2.6.3"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.15.125"}           ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
@@ -90,7 +83,7 @@
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
         zprint/zprint {:mvn/version "1.2.8"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.12.0"}
+        metosin/malli {:mvn/version "0.13.0"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -99,13 +92,13 @@
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.86.1355"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.87.1366"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
                          nubank/matcher-combinators {:mvn/version "3.8.8" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.9.5"}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.9.6"}
                    clj-kondo/clj-kondo {:mvn/version "2023.09.07"}
                    babashka/fs {:mvn/version "0.4.19"}
                    babashka/process {:mvn/version "0.5.21"}}
@@ -129,7 +122,7 @@
             :main-opts [ "-m" "cljfmt.main"  "--indents" "./.cljfmt/indentation.edn"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.6.1121"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.7.1133"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.9"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--ignore-locals"]}}}
