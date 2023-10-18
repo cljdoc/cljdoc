@@ -9,6 +9,13 @@
 
         ;; web server/services
         io.pedestal/pedestal.jetty {:mvn/version "0.6.1"}    ;; web site/service with jetty engine
+        ;; CVE jetty override: (remove all when pedestal bumps)
+        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
+        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
+        org.eclipse.jetty.websocket/websocket-api ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
+        org.eclipse.jetty.websocket/websocket-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
+        org.eclipse.jetty.websocket/websocket-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
+        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
 
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
@@ -19,12 +26,12 @@
 
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.894"} ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.43.0.0"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.43.2.1"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.3"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
         com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.3"}
-        com.taoensso/nippy {:mvn/version "3.2.0"}            ;; fast compact serializer that we use for blobs
+        com.taoensso/nippy {:mvn/version "3.3.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
         org.apache.lucene/lucene-core {:mvn/version "9.8.0"} ;; search engine
@@ -35,7 +42,7 @@
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "2.5.10"} ;; render adoc to html
         ;; CVE override: (remove when asciidoctorj bumps)
-        org.jruby/jruby {:mvn/version "9.4.3.0"}
+        org.jruby/jruby {:mvn/version "9.4.4.0"}
         com.vladsch.flexmark/flexmark                        ;; render github markdown to html
         {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-autolink           ;; converts raw links in text to clickable links
@@ -55,14 +62,14 @@
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20220608.1"}                          ;; sanitize html converted from user markdown
         ;; to overcome CVE in owasp-java-html-sanitizer deps, delete when addressed in sanitizer lib
-        com.google.guava/guava {:mvn/version "32.1.2-jre"}
+        com.google.guava/guava {:mvn/version "32.1.3-jre"}
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.31"}              ;; easy log setup
         org.clojure/tools.logging {:mvn/version "1.2.4"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "6.30.0"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "6.32.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -74,7 +81,7 @@
         cheshire/cheshire {:mvn/version "5.12.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.6.3"}            ;; profile/perf monitoring
-        lambdaisland/uri {:mvn/version "1.15.125"}           ;; URI/URLs
+        lambdaisland/uri {:mvn/version "1.16.134"}           ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.0.225"}      ;; general caching library
         org.clojure/core.memoize {:mvn/version "1.0.257"}    ;; function caching library
