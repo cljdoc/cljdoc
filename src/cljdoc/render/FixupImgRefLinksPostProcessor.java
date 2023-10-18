@@ -46,6 +46,7 @@ public class FixupImgRefLinksPostProcessor extends NodePostProcessor {
     }
 
     public static class Factory extends NodePostProcessorFactory {
+        @SuppressWarnings("this-escape") // jdk21 has new linter, I *think* we are ok here?
         public Factory() {
             super(false);
             addNodes(ImageRef.class);
