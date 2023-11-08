@@ -1,0 +1,4 @@
+;; for defaults see: https://github.com/weavejester/cljfmt/blob/master/cljfmt/resources/cljfmt/indents/clojure.clj
+{:extra-indents {defcache  [[:block 2] [:inner 1]]
+                 for-all   [[:block 1]]
+                 defspec   [[:inner 0]]}}
