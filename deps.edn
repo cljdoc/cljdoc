@@ -8,25 +8,16 @@
         integrant/repl {:mvn/version "0.3.3"}                ;;  with reload support
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.6.1"}    ;; web site/service with jetty engine
-        ;; CVE jetty override: (remove all when pedestal bumps)
-        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
-        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
-        org.eclipse.jetty.websocket/websocket-api ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
-        org.eclipse.jetty.websocket/websocket-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
-        org.eclipse.jetty.websocket/websocket-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
-        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.53.v20231009"}
+        io.pedestal/pedestal.jetty {:mvn/version "0.6.2"}    ;; web site/service with jetty engine
 
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
         ;; delete override when pedestal updates:
         org.clojure/tools.analyzer.jvm {:mvn/version "1.2.3"}
-        ;; pedestal -> ring dep override to address CVE (delete when pedestals addresses)
-        commons-fileupload/commons-fileupload {:mvn/version "1.5"}
 
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.894"} ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.43.2.2"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.44.0.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.3"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
