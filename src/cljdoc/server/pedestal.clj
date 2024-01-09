@@ -701,6 +701,7 @@
          ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
          ::http/resource-path "public/out"
          ::http/not-found-interceptor not-found-interceptor
+         ::http/request-logger nil
          ::http/path-params-decoder nil}
         http/default-interceptors
         (update ::http/interceptors #(into [sentry/interceptor
