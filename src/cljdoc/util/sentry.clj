@@ -1,5 +1,6 @@
 (ns cljdoc.util.sentry
   (:require [cljdoc.config :as cfg]
+            [clojure.stacktrace :as stacktrace]
             [unilog.config :as unilog]
             [raven-clj.core :as raven]
             [raven-clj.interfaces :as interfaces]
@@ -47,11 +48,14 @@
 (def interceptor
   (interceptor/interceptor
    {:name ::interceptor
-    :error (fn sentry-intercept [ctx ex-info]
+    :error (fn sentry-intercept [ctx exception]
              (log/error ex-info
                         "Exception when processing request"
-                        (merge (dissoc (ex-data ex-info) :exception)
+                        (merge (dissoc (ex-data exception) :exception)
                                {:path-params (-> ctx :request :path-params)
                                 :route-name  (-> ctx :route :route-name)}))
-             (capture {:ex ex-info :req (:request ctx)})
+             (capture {:ex exception :req (:request ctx)})
+             (when (instance? OutOfMemoryError (stacktrace/root-cause exception))
+               (raven/capture (cfg/sentry-dsn) {:message "Restarting due to OutOfMemoryError" :release (cfg/version)})
+               (System/exit 1))
              (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))}))
