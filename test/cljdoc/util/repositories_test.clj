@@ -20,7 +20,7 @@
             :jar "https://repo.clojars.org/bidi/bidi/2.0.9-SNAPSHOT/bidi-2.0.9-20160426.224252-1.jar"})))
 
 (t/deftest latest-release-test
-  (t/is (= "0.0.5" (repositories/latest-release-version "org/clojure/math.numeric-tower"))))
+  (t/is (= "0.1.0" (repositories/latest-release-version "org/clojure/math.numeric-tower"))))
 
 (comment
   (t/run-tests))
