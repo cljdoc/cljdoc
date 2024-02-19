@@ -185,7 +185,16 @@ It is inevitable.
 
 We use https://github.com/rm-hull/nvd-clojure[nvd-clojure] to scan cljdoc dependencies for known security issues.
 Run `nvd-check.sh` to launch a scan.
-It generates reports to `target/nvd/` off the cljdoc project root dir.
+You must specify a NVD database token, get yours here: https://nvd.nist.gov/developers/request-an-api-key
+
+Example usage from cljdoc root:
+[source,shell]
+----
+NVD_API_TOKEN=your-token-here ops/nvd-check.sh
+----
+Replace `your-token-here` with your actual token.
+
+You'll find reports under `target/nvd/` off the cljdoc project root dir.
 The html report is probably the most useful.
 Be aware that the scan sometimes reports false positives.
 After some careful verification, you can quiet false positives via `nvd-suppresions.xml`.

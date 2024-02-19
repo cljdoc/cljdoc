@@ -74,4 +74,12 @@
    ]]></notes>
    <cpe>cpe:/a:eclipse:jgit:6.7.0:202309050840</cpe>
   </suppress>
+  <suppress>
+   <notes><![CDATA[
+   Description: In Clojure before 1.9.0, classes can be used to construct a serialized object that executes arbitrary code upon deserialization. This is relevant if a server deserializes untrusted objects.
+   Is falsely matching on various clojure libs, not clojure itself.
+   We are using current vesion of clojure. So suppress.
+   ]]></notes>
+   <cve>CVE-2017-20189</cve>
+  </suppress>
 </suppressions>
