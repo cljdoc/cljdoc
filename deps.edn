@@ -54,9 +54,7 @@
         com.google.guava/guava {:mvn/version "33.0.0-jre"}
 
         ;; logging
-        spootnik/unilog {:mvn/version "0.7.31"}              ;; easy log setup
-        ;; remove next line when spootnik/unilog bumps to address CVE
-        ch.qos.logback/logback-classic {:mvn/version "1.5.0"}
+        spootnik/unilog {:mvn/version "0.7.32"}              ;; easy log setup
         org.clojure/tools.logging {:mvn/version "1.3.0"}     ;; logging facade
 
         ;; sentry service support
@@ -70,9 +68,7 @@
         ;; misc utils
         babashka/fs {:mvn/version "0.5.20"}                  ;; file system utilities (a modern version of clj-commons/fs)
         cheshire/cheshire {:mvn/version "5.12.0"}            ;; json
-        clj-commons/fs {:mvn/version "1.6.310"}              ;; file system utilities
-        ;; remove next line when clj-commons/fs bumps to address CVE
-        org.apache.commons/commons-compress {:mvn/version "1.26.0"}
+        clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.6.3"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
