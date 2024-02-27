@@ -51,6 +51,9 @@
   (let [index (if index-factory ;; to support unit testing
                 (index-factory)
                 (search/disk-index index-dir))]
+    ;; Force creation of initial index. It might not exist yet, for example, when upgrading to a new version of lucene.
+    ;; This avoids exceptions on searching a non-existing index.
+    (search/index! clojars-stats index [])
     (map->Searcher {:index index
                     :clojars-stats clojars-stats
                     :artifact-indexer (when enable-indexer?
