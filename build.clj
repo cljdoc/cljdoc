@@ -3,7 +3,6 @@
    [build-shared :as bs]
    [babashka.fs :as fs]
    [babashka.process :as process]
-   [clojure.string :as str]
    [clojure.edn :as edn]
    [clojure.tools.build.api :as b]
    [clj-kondo.core :as kondo]))

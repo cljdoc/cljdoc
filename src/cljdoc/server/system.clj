@@ -31,7 +31,7 @@
                [{:appender :sentry}])})
 
 (defn index-dir [env-config]
-  (let [lucene-version (-> (org.apache.lucene.util.Version/LATEST)
+  (let [lucene-version (-> org.apache.lucene.util.Version/LATEST
                            str
                            (string/replace "." "_"))
 

@@ -10,27 +10,27 @@
   },
   "dependencies": {
     "classnames": "^2.5.1",
-    "date-fns": "^3.3.1",
+    "date-fns": "^3.4.0",
     "elasticlunr": "^0.9.5",
     "fuzzysort": "^2.0.4",
     "idb": "^8.0.0",
     "preact": "^10.19.6"
   },
   "devDependencies": {
-    "@parcel/packager-xml": "^2.11.0",
-    "@parcel/transformer-image": "^2.11.0",
-    "@parcel/transformer-xml": "^2.11.0",
+    "@parcel/packager-xml": "^2.12.0",
+    "@parcel/transformer-image": "^2.12.0",
+    "@parcel/transformer-xml": "^2.12.0",
     "@types/elasticlunr": "^0.9.9",
     "@types/lunr": "^2.3.7",
-    "@typescript-eslint/eslint-plugin": "^7.1.0",
-    "@typescript-eslint/parser": "^7.1.0",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
     "eslint": "^8.57.0",
-    "parcel": "^2.11.0",
+    "parcel": "^2.12.0",
     "parcel-reporter-static-files-copy": "^1.5.3",
     "parcel-resolver-ignore": "^2.1.5",
     "prettier": "^3.2.5",
     "pretty-quick": "^4.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.2"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
