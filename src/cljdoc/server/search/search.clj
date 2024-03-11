@@ -36,7 +36,7 @@
 (defn- unsearchable-stored-field ^Field [^String name ^String value]
   (let [type (doto (FieldType.)
                (.setOmitNorms true)
-               (.setIndexOptions (IndexOptions/NONE))
+               (.setIndexOptions IndexOptions/NONE)
                (.setTokenized false)
                (.setStored true)
                (.freeze))]
