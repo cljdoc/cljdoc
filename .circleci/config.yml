@@ -36,7 +36,12 @@ aliases:
     run:
       name: Install bb
       command: |
-        bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
+        if [ ! -w "/usr/local/bin" ]; then
+          SUDO='sudo'
+        else
+          SUDO=''
+        fi
+        $SUDO bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
 
   - &npm_deps_install
     run:
