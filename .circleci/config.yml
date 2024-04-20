@@ -2,7 +2,7 @@ version: 2.1
 
 aliases:
   - &clojure_image
-    - image: cimg/clojure:1.11.1-node
+    - image: clojure:temurin-21-tools-deps-jammy
 
   - &restore_clojure_cache
     restore_cache:
@@ -32,21 +32,11 @@ aliases:
         - ./node_modules
       key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
 
-  # The circle image does have a recent version of Clojure but we'd rather use the current one
-  - &clojure_install
-    run:
-      name: Install Clojure
-      command: |
-        curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
-        chmod +x linux-install.sh
-        sudo ./linux-install.sh
-
-   # The circle image does have a recent version of babashka, but we'd rather use the latest
   - &bb_install
     run:
       name: Install bb
       command: |
-        sudo bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
+        bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
 
   - &npm_deps_install
     run:
@@ -57,6 +47,9 @@ aliases:
     run:
       name: Bring Down Clojure deps
       command: clojure -P -X:cli:test
+
+orbs:
+  node: circleci/node@5.2.0
 
 jobs:
   #
@@ -71,7 +64,6 @@ jobs:
       - run:
           name: Validate our own cljdoc.edn
           command: curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
-      - *clojure_install
       - *bb_install
 
       - run:
@@ -106,6 +98,7 @@ jobs:
     steps:
       - checkout
 
+      - node/install
       - *restore_npm_cache
       - *bb_install
       - *npm_deps_install
@@ -135,9 +128,10 @@ jobs:
 
     steps:
       - checkout
+
+      - node/install
       - *restore_clojure_cache
       - *restore_npm_cache
-      - *clojure_install
       - *bb_install
 
       - run:
@@ -177,6 +171,11 @@ jobs:
 
     steps:
       - checkout
+      - node/install
+      - run:
+          name: Install extra tools
+          command: apt update && apt install -y zip
+
       - *restore_npm_cache
       - *bb_install
       - *npm_deps_install
@@ -290,7 +289,6 @@ jobs:
             - "75:fb:98:1f:f6:21:7f:bf:cc:c9:0e:b2:9e:be:5c:e8"
       - checkout
 
-      - *clojure_install
       - *bb_install
 
       - run:
