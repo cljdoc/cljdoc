@@ -172,6 +172,9 @@ jobs:
     steps:
       - checkout
       - node/install
+      - run:
+          name: Install extra tools
+          command: apt update && apt install -y zip
 
       - *restore_npm_cache
       - *bb_install
