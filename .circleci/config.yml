@@ -48,6 +48,9 @@ aliases:
       name: Bring Down Clojure deps
       command: clojure -P -X:cli:test
 
+orbs:
+  node: circleci/node@5.2.0
+
 jobs:
   #
   # build: back-end-checks
@@ -95,6 +98,7 @@ jobs:
     steps:
       - checkout
 
+      - node/install
       - *restore_npm_cache
       - *bb_install
       - *npm_deps_install
@@ -124,6 +128,8 @@ jobs:
 
     steps:
       - checkout
+
+      - node/install
       - *restore_clojure_cache
       - *restore_npm_cache
       - *bb_install
@@ -165,6 +171,8 @@ jobs:
 
     steps:
       - checkout
+      - node/install
+
       - *restore_npm_cache
       - *bb_install
       - *npm_deps_install
