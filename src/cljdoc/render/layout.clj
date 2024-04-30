@@ -16,7 +16,7 @@
     "hljs.configure({ignoreUnescapedHTML: true});
      hljs.addPlugin(copyButtonPlugin);
      hljs.addPlugin(mergeHTMLPlugin);
-     hljs.registerLanguage('cljs', function (hljs) { return hljs.getLanguage('clj') });
+     hljs.registerAliases(['cljs','cljc','bb'], { languageName: 'clojure' });
      hljs.highlightAll();")])
 
 (defn highlight-js []
