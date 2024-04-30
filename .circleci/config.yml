@@ -253,7 +253,7 @@ jobs:
   #
   publish-docker:
     machine:
-      image: ubuntu-2204:2023.07.2
+      image: default
     steps:
       - checkout
       # from package job
@@ -269,14 +269,14 @@ jobs:
             bb --version
             docker --version
 
-      - run:
-          name: Docker Login
-          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
       # because target/ has been put into place `make image` can be
       # run without running ./script/package (which would require npm)
       - run:
           name: Docker Create Image
           command: bb docker-image
+      - run:
+          name: Docker Login
+          command: echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
       - run:
           name: Docker Push Image
           command: docker push --all-tags cljdoc/cljdoc
