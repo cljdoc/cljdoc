@@ -1,10 +1,10 @@
-{:deps {org.clojure/clojure {:mvn/version "1.11.2"}
+{:deps {org.clojure/clojure {:mvn/version "1.11.3"}
 
         ;; configuration
         aero/aero {:mvn/version "1.1.6"}                     ;; rich configuration support with profiles
 
         ;; app component/service orchestration
-        integrant/integrant {:mvn/version "0.8.1"}           ;; configure systems/services that make up your app
+        integrant/integrant {:mvn/version "0.9.0"}           ;; configure systems/services that make up your app
         integrant/repl {:mvn/version "0.3.3"}                ;;  with reload support
 
         ;; web server/services
@@ -29,7 +29,7 @@
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
         com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.3"}
-        com.taoensso/nippy {:mvn/version "3.3.0"}            ;; fast compact serializer that we use for blobs
+        com.taoensso/nippy {:mvn/version "3.4.1"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
         org.apache.lucene/lucene-core {:mvn/version "9.10.0"} ;; search engine
@@ -56,9 +56,7 @@
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
-        {:mvn/version "20220608.1"}                          ;; sanitize html converted from user markdown
-        ;; to overcome CVE in owasp-java-html-sanitizer deps, delete when addressed in sanitizer lib
-        com.google.guava/guava {:mvn/version "33.0.0-jre"}
+        {:mvn/version "20240325.1"}                          ;; sanitize html converted from user markdown
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.32"}              ;; easy log setup
@@ -86,7 +84,7 @@
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
         zprint/zprint {:mvn/version "1.2.9"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.16.0"}
+        metosin/malli {:mvn/version "0.16.1"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -95,13 +93,13 @@
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps {lambdaisland/kaocha {:mvn/version "1.88.1376"}
+            :extra-deps {lambdaisland/kaocha {:mvn/version "1.89.1380"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
                          nubank/matcher-combinators {:mvn/version "3.9.1" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.0"}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.3"}
                    clj-kondo/clj-kondo {:mvn/version "2024.03.13"}
                    babashka/fs {:mvn/version "0.5.20"}
                    babashka/process {:mvn/version "0.5.22"}}
@@ -125,7 +123,7 @@
             :main-opts [ "-m" "cljfmt.main"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.8.1194"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.8.1201"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.13"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--ignore-locals"]}}}
