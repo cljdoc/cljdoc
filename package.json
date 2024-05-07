@@ -14,7 +14,7 @@
     "elasticlunr": "^0.9.5",
     "fuzzysort": "^2.0.4",
     "idb": "^8.0.0",
-    "preact": "^10.20.2"
+    "preact": "^10.21.0"
   },
   "devDependencies": {
     "@parcel/packager-xml": "^2.12.0",
@@ -22,8 +22,8 @@
     "@parcel/transformer-xml": "^2.12.0",
     "@types/elasticlunr": "^0.9.9",
     "@types/lunr": "^2.3.7",
-    "@typescript-eslint/eslint-plugin": "^7.7.0",
-    "@typescript-eslint/parser": "^7.7.0",
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
     "eslint": "^8.57.0",
     "parcel": "^2.12.0",
     "parcel-reporter-static-files-copy": "^1.5.3",
