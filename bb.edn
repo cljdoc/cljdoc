@@ -8,6 +8,7 @@
  :tasks
  {;; setup
   :requires ([babashka.fs :as fs]
+             [babashka.process :as p]
              [build-shared :as bs]
              [lread.status-line :as status]
              [version])
@@ -48,7 +49,7 @@
   compile-js-watch
   {:doc "compile front end sources and watch for changes"
    :depends [deps-js]
-   :task (shell "npm run dev")}
+   :task (p/exec "npm run dev")}
   code-format-js
   {:doc "(check|fix) JS code format"
    :depends [deps-js]
