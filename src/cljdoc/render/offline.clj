@@ -176,7 +176,7 @@
                           (proj/clojars-id version-entity))]
     (reduce
      into
-     [[["assets/tachyons.css"] (io/resource (str "public/out" (get static-resources "/tachyons.css")))]
+     [[["assets/tachyons.css" (io/resource (str "public/out" (get static-resources "/tachyons.css")))]]
       [["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
       [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
       [["assets/static/codeberg.svg" (io/resource (str "public/out/codeberg.svg"))]]
