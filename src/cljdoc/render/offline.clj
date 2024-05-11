@@ -77,7 +77,7 @@
                      (proj/clojars-id version-entity) " v"
                      (:version version-entity))]
                    [:meta {:charset "utf-8"}]
-                   (->> (concat ["assets/cljdoc.css"] (assets/offline-css :tachyons))
+                   (->> ["assets/cljdoc.css" "assets/tachyons.css"]
                         (adjust-refs sub-page?)
                         (apply hiccup.page/include-css))]
                   [:div.sans-serif
@@ -176,13 +176,13 @@
                           (proj/clojars-id version-entity))]
     (reduce
      into
-     [[["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
+     [[["assets/tachyons.css"] (io/resource (str "public/out" (get static-resources "/tachyons.css")))]
+      [["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
       [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
       [["assets/static/codeberg.svg" (io/resource (str "public/out/codeberg.svg"))]]
       [["assets/static/sourcehut.svg" (io/resource (str "public/out/sourcehut.svg"))]]
       ;; use content-hashed name for source map to preserve link to index.js
       [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
-      (assets/offline-assets :tachyons)
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page cache-bundle {:docstring-format docstring-format
                                                     :scm scm-info

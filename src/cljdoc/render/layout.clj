@@ -125,7 +125,7 @@
                          :href "/opensearch.xml" :title "cljdoc"}]
 
                  [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-                 (apply hiccup.page/include-css (assets/css :tachyons))
+                 (hiccup.page/include-css (get (:static-resources opts) "/tachyons.css"))
                  (hiccup.page/include-css (get (:static-resources opts) "/cljdoc.css"))]
                 [:body
                  [:div.sans-serif
