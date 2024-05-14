@@ -8,14 +8,7 @@
         integrant/repl {:mvn/version "0.3.3"}                ;;  with reload support
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.6.3"}    ;; web site/service with jetty engine
-        ;; CVE jetty override: (remove all when pedestal bumps)
-        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.54.v20240208"}
-        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.54.v20240208"}
-        org.eclipse.jetty.websocket/websocket-api ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.54.v20240208"}
-        org.eclipse.jetty.websocket/websocket-servlet ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.54.v20240208"}
-        org.eclipse.jetty.websocket/websocket-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.54.v20240208"}
-        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["10.x" "11.x" "12.x"]} {:mvn/version "9.4.54.v20240208"}
+        io.pedestal/pedestal.jetty {:mvn/version "0.6.4"}    ;; web site/service with jetty engine
 
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
@@ -63,7 +56,7 @@
         org.clojure/tools.logging {:mvn/version "1.3.0"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "7.8.0"}      ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "7.9.0"}      ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
