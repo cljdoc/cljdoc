@@ -4,7 +4,7 @@
 // See https://github.com/highlightjs/highlight.js/issues/2889
 
 // Naively transcribed to TypeScript
-var originalStream: Event[];
+let originalStream: Event[];
 
 /**
  * @param value

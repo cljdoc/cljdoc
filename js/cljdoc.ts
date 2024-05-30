@@ -13,20 +13,20 @@ function isNSOfflinePage(): boolean {
 }
 
 function isProjectDocumentationPage(): boolean {
-  let pathSegs = window.location.pathname.split("/");
+  const pathSegs = window.location.pathname.split("/");
   return pathSegs.length >= 5 && pathSegs[1] == "d";
 }
 
 function initSrollIndicator(): void {
-  var mainScrollView = document.querySelector(".js--main-scroll-view");
-  var sidebarScrollView = document.querySelector(
+  const mainScrollView = document.querySelector(".js--main-scroll-view");
+  const sidebarScrollView = document.querySelector(
     ".js--namespace-contents-scroll-view"
   );
-  var defBlocks = Array.from(document.querySelectorAll(".def-block"));
-  var defItems = Array.from(document.querySelectorAll(".def-item"));
+  const defBlocks = Array.from(document.querySelectorAll(".def-block"));
+  const defItems = Array.from(document.querySelectorAll(".def-item"));
 
   function isElementVisible(container: Element, el: Element) {
-    var { y: etop, height } = el.getBoundingClientRect(),
+    const { y: etop, height } = el.getBoundingClientRect(),
       ebottom = etop + height,
       cbottom = window.innerHeight,
       ctop = cbottom - container.clientHeight;
@@ -35,7 +35,7 @@ function initSrollIndicator(): void {
 
   function drawScrollIndicator() {
     defBlocks.forEach((el: Element, idx) => {
-      var defItem = defItems[idx];
+      const defItem = defItems[idx];
       if (
         mainScrollView &&
         sidebarScrollView &&
@@ -60,19 +60,19 @@ function initSrollIndicator(): void {
 }
 
 function initToggleRaw() {
-  let toggles: HTMLElement[] = Array.from(
+  const toggles: HTMLElement[] = Array.from(
     document.querySelectorAll(".js--toggle-raw")
   );
 
   function addToggleHandlers() {
     toggles.forEach(el => {
       el.addEventListener("click", function () {
-        let parent = el.parentElement;
-        let markdowns = parent && parent.querySelectorAll(".markdown");
-        let raws = parent && parent.querySelectorAll(".raw");
+        const parent = el.parentElement;
+        const markdowns = parent && parent.querySelectorAll(".markdown");
+        const raws = parent && parent.querySelectorAll(".raw");
         markdowns &&
           markdowns.forEach((markdown, idx) => {
-            let raw = raws && raws[idx];
+            const raw = raws && raws[idx];
             if (markdown.classList.contains("dn")) {
               markdown.classList.remove("dn");
               raw && raw.classList.add("dn");
@@ -156,8 +156,8 @@ function saveSidebarScrollPos() {
     const anchorElems = mainSidebar.querySelectorAll("a");
     anchorElems.forEach(anchor => {
       anchor.addEventListener("click", function () {
-        var scrollTop = mainSidebar.scrollTop;
-        var data: SidebarScrollState = {
+        const scrollTop = mainSidebar.scrollTop;
+        const data: SidebarScrollState = {
           libVersionPath: libVersionPath(),
           scrollTop: scrollTop
         };

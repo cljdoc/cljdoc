@@ -3,8 +3,8 @@ function isDocLink(linkEl: HTMLAnchorElement) {
 }
 
 export function hideNestedArticles() {
-  let currentPath = location.pathname;
-  let articleLinks: HTMLAnchorElement[] = Array.from(
+  const currentPath = location.pathname;
+  const articleLinks: HTMLAnchorElement[] = Array.from(
     document.querySelectorAll(".js--articles a")
   );
 
@@ -18,7 +18,7 @@ export function hideNestedArticles() {
 }
 
 export function showNestedArticles() {
-  let hiddenLinks = Array.from(
+  const hiddenLinks = Array.from(
     document.querySelectorAll(".js--articles ul.dn")
   );
   hiddenLinks.map(n => n.classList.remove("dn"));

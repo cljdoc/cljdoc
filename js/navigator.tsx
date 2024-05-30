@@ -12,8 +12,8 @@ class Navigator extends Component {
   }
 
   navigate() {
-    let clojarsId = this.clojarsIdInput && this.clojarsIdInput.value;
-    let version = this.versionInput && this.versionInput.value;
+    const clojarsId = this.clojarsIdInput && this.clojarsIdInput.value;
+    const version = this.versionInput && this.versionInput.value;
 
     if (clojarsId && 0 != clojarsId.length) {
       if (clojarsId.includes("/")) {

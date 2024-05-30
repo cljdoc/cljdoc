@@ -8,10 +8,10 @@ import { h, Component, FunctionComponent } from "preact";
 // is the currently selected one.
 
 function restrictToViewport(container: Element, selectedIndex: number) {
-  let containerRect = container.getBoundingClientRect();
-  let selectedRect = container.children[selectedIndex].getBoundingClientRect();
-  let deltaTop = selectedRect.top - containerRect.top;
-  let deltaBottom = selectedRect.bottom - containerRect.bottom;
+  const containerRect = container.getBoundingClientRect();
+  const selectedRect = container.children[selectedIndex].getBoundingClientRect();
+  const deltaTop = selectedRect.top - containerRect.top;
+  const deltaBottom = selectedRect.bottom - containerRect.bottom;
   if (deltaTop < 0) {
     container.scrollBy(0, deltaTop);
   } else if (deltaBottom > 0) {

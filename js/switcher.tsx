@@ -32,7 +32,7 @@ function trackProjectOpened() {
     const maxTrackedCount = 15;
     const project = parseCljdocURI(window.location.pathname) as VisitedLibrary;
     if (project) {
-      var previouslyOpened: VisitedLibrary[] = JSON.parse(
+      let previouslyOpened: VisitedLibrary[] = JSON.parse(
         localStorage.getItem("previouslyOpened") || "[]"
       );
       // remove identical values
@@ -112,7 +112,7 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
     }
 
     // If target is document body, trigger  on key `cmd+k` for MacOs `ctrl+k` otherwise
-    let isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
     let switcherShortcut = false;
 
     if (e.key === "k") {
@@ -141,10 +141,10 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
     if (searchStr === "") {
       this.initializeState();
     } else {
-      let fuzzysortOptions = {
+      const fuzzysortOptions = {
         key: "project_id"
       };
-      let results = fuzzysort.go(
+      const results = fuzzysort.go(
         searchStr,
         this.state.previouslyOpened,
         fuzzysortOptions
@@ -164,7 +164,7 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
   }
 
   initializeState() {
-    let previouslyOpened: VisitedLibrary[] = JSON.parse(
+    const previouslyOpened: VisitedLibrary[] = JSON.parse(
       localStorage.getItem("previouslyOpened") || "[]"
     );
 
