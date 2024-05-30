@@ -27,7 +27,7 @@ function debounced<T extends (...args: any[]) => any>(
 function cleanSearchStr(str: string) {
   // replace square and curly brackets in case people copy from
   // Leiningen/Boot files or deps.edn
-  return str.replace(/[\{\}\[\]\"]+/g, "");
+  return str.replace(/[{}[]"]+/g, "");
 }
 
 // Raw JSON response from cljdoc server
