@@ -1,4 +1,4 @@
-import { h, Component } from "preact";
+import { Component } from "preact";
 import fuzzysort from "fuzzysort";
 import { Library, docsUri, project } from "./library";
 import { ResultsView, ResultViewComponent } from "./listselect";

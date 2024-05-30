@@ -1,4 +1,4 @@
-import { h, Component } from "preact";
+import { Component } from "preact";
 import { useState } from "preact/hooks";
 import { ResultsView, ResultViewComponent } from "./listselect";
 import { Library, docsUri, project } from "./library";

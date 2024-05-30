@@ -1,4 +1,4 @@
-import { h, render } from "preact";
+import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { debounced } from "./search";
 import { DBSchema, IDBPDatabase, openDB } from "idb";

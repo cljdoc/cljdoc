@@ -1,4 +1,4 @@
-import { h, render } from "preact";
+import { render } from "preact";
 import { trackProjectOpened, Switcher } from "./switcher";
 import { App } from "./search";
 import { MobileNav } from "./mobile";

@@ -1,4 +1,4 @@
-import { h, Component, FunctionComponent } from "preact";
+import { Component, FunctionComponent } from "preact";
 
 // Various functions and components used to show lists of results
 

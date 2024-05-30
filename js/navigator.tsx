@@ -1,6 +1,6 @@
 // A small component to navigate users to documentation pages based on clojars ID and version inputs
 
-import { h, Component } from "preact";
+import { Component } from "preact";
 
 class Navigator extends Component {
   clojarsIdInput?: HTMLInputElement | null;

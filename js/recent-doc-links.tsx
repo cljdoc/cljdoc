@@ -1,4 +1,4 @@
-import { h, render } from "preact";
+import { render } from "preact";
 import { VisitedLibrary } from "./switcher";
 import { docsUri, project } from "./library";
 import { formatDistanceToNowStrict } from "date-fns";
