@@ -1,6 +1,6 @@
 import { Component } from "preact";
 
-type MobileNavProps = any;
+type MobileNavProps = Record<string,never>;
 
 type MobileNavState = {
   mainViewScrollPos: number;
