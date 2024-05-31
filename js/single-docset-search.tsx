@@ -407,6 +407,8 @@ const search = (
 
   const resultsWithDocs = results?.map(r => ({
     result: r,
+    // I assume that Cora wanted this for a reason
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     doc: searchIndex?.documentStore.getDoc(r.ref)!
   }));
 
