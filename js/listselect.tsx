@@ -33,17 +33,17 @@ function restrictToViewport(container: Element, selectedIndex: number) {
 export type ResultViewComponent<ResultType> = FunctionComponent<{
   result: ResultType;
   isSelected: boolean;
-  selectResult: () => any;
+  selectResult: () => void;
 }>;
 
-type ResultsViewProps<Type> = {
-  resultView: ResultViewComponent<Type>;
-  results: Type[];
+type ResultsViewProps<ResultType> = {
+  resultView: ResultViewComponent<ResultType>;
+  results: ResultType[];
   selectedIndex: number;
-  onMouseOver: (index: number) => any;
+  onMouseOver: (index: number) => void;
 };
 
-type ResultsViewState = any;
+type ResultsViewState = Record<string, never>;
 
 export class ResultsView<ResultType> extends Component<
   ResultsViewProps<ResultType>,
@@ -63,7 +63,7 @@ export class ResultsView<ResultType> extends Component<
     }
   }
 
-  render(props: ResultsViewProps<ResultType>, _state: any) {
+  render(props: ResultsViewProps<ResultType>, _state: ResultsViewState) {
     return (
       <div
         className="bg-white br1 br--bottom bb bl br b--blue w-100 overflow-y-scroll"
