@@ -9,7 +9,8 @@ import { Component, FunctionComponent } from "preact";
 
 function restrictToViewport(container: Element, selectedIndex: number) {
   const containerRect = container.getBoundingClientRect();
-  const selectedRect = container.children[selectedIndex].getBoundingClientRect();
+  const selectedRect =
+    container.children[selectedIndex].getBoundingClientRect();
   const deltaTop = selectedRect.top - containerRect.top;
   const deltaBottom = selectedRect.bottom - containerRect.bottom;
   if (deltaTop < 0) {

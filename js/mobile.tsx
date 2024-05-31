@@ -1,6 +1,6 @@
 import { Component } from "preact";
 
-type MobileNavProps = Record<string,never>;
+type MobileNavProps = Record<string, never>;
 
 type MobileNavState = {
   mainViewScrollPos: number;
@@ -17,7 +17,8 @@ export class MobileNav extends Component<MobileNavProps, MobileNavState> {
   toggleNav() {
     const mainScrollView = document.querySelector(".js--main-scroll-view");
     const mainSidebar = document.querySelector(".js--main-sidebar");
-    const isNavShown = mainScrollView && mainScrollView.classList.contains("dn");
+    const isNavShown =
+      mainScrollView && mainScrollView.classList.contains("dn");
     if (isNavShown) {
       const scrollPos = window.scrollY;
       mainScrollView!.classList.remove("dn"); // show main scroll view / content area

@@ -80,7 +80,7 @@ const SwitcherSingleResultView: ResultViewComponent<VisitedLibrary> = props => {
   );
 };
 
-type SwitcherProps = Record<string,never>;
+type SwitcherProps = Record<string, never>;
 
 type SwitcherState = {
   results: VisitedLibrary[];

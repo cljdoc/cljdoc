@@ -48,7 +48,7 @@ type RawSearchResults = {
   results: RawSearchResult[];
 };
 
-interface SearchResult extends Record<string,unknown>, Library {
+interface SearchResult extends Record<string, unknown>, Library {
   blurb: string;
   origin: string;
   score: number;
@@ -61,7 +61,10 @@ type SearchResults = {
 
 type LoadCallback = (sr: SearchResult[]) => void;
 
-const renameKeys = <T extends Record<string, unknown>, U extends Record<string, unknown>>(
+const renameKeys = <
+  T extends Record<string, unknown>,
+  U extends Record<string, unknown>
+>(
   obj: T,
   keys: { [key: string]: string }
 ): U => {

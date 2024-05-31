@@ -103,7 +103,11 @@ function nodeStream(node: HTMLElement): Event[] {
  * @param highlighted - stream of the highlighted source
  * @param value - the original source itself
  */
-function mergeStreams(original: Event[], highlighted: Event[], value: string): string {
+function mergeStreams(
+  original: Event[],
+  highlighted: Event[],
+  value: string
+): string {
   let processed = 0;
   let result = "";
   const nodeStack: HTMLElement[] = [];
