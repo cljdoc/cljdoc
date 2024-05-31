@@ -334,7 +334,7 @@ You can also run `bb code-format fix` to have cljfmt fix any code formatting iss
 
 ==== Other linting
 
-Lint client-side sources via `bb code-format-js` and `bb lint-js`. 
+Lint client-side sources via `bb code-format-js`, `bb lint-js` and `bb eslint`
 
 === Outdated dependencies
 
