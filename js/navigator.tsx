@@ -2,7 +2,10 @@
 
 import { Component } from "preact";
 
-class Navigator extends Component {
+type NavigatorProps = Record<string, never>;
+type NavigatorState = Record<string, never>;
+
+class Navigator extends Component<NavigatorProps, NavigatorState> {
   clojarsIdInput?: HTMLInputElement | null;
   versionInput?: HTMLInputElement | null;
 
@@ -25,7 +28,7 @@ class Navigator extends Component {
     }
   }
 
-  render(_props: any, _state: any) {
+  render(_props: NavigatorProps, _state: NavigatorState) {
     return (
       <div>
         <div class="cf nl2 nr2">
