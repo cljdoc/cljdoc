@@ -34,7 +34,7 @@ function cleanSearchStr(str: string) {
 }
 
 // Raw JSON response from cljdoc server
-type RawSearchResult = {
+type RawSearchResult = Record<string, unknown> & {
   ["artifact-id"]: string;
   ["group-id"]: string;
   description: string;
@@ -48,7 +48,7 @@ type RawSearchResults = {
   results: RawSearchResult[];
 };
 
-interface SearchResult extends Library {
+interface SearchResult extends Record<string,unknown>, Library {
   blurb: string;
   origin: string;
   score: number;
