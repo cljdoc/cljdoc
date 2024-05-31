@@ -80,7 +80,7 @@ const SwitcherSingleResultView: ResultViewComponent<VisitedLibrary> = props => {
   );
 };
 
-type SwitcherProps = any;
+type SwitcherProps = Record<string,never>;
 
 type SwitcherState = {
   results: VisitedLibrary[];
@@ -193,8 +193,7 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
 
   componentDidUpdate(
     _previousProps: SwitcherProps,
-    previousState: SwitcherState,
-    _previousContext: any
+    previousState: SwitcherState
   ) {
     if (!previousState.show && this.state.show && this.inputNode) {
       this.inputNode.focus();
