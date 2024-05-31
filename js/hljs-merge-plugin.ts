@@ -10,7 +10,7 @@ let originalStream: Event[];
  * @param value
  * @returns escaped html
  */
-function escapeHTML(value: string) {
+function escapeHTML(value: string): string {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -52,13 +52,13 @@ type Result = {
 type Event = {
   event: "start" | "stop";
   offset: number;
-  node: Node;
+  node: HTMLElement;
 };
 
 /**
- * @param {Node} node
+ * @param {HTMLElement} node
  */
-function tag(node: Node) {
+function tag(node: HTMLElement): string {
   return node.nodeName.toLowerCase();
 }
 
@@ -66,9 +66,9 @@ function tag(node: Node) {
  * @param node
  * returns events
  */
-function nodeStream(node: Node) {
+function nodeStream(node: HTMLElement): Event[] {
   const result: Event[] = [];
-  (function _nodeStream(node, offset) {
+  (function _nodeStream(node: HTMLElement, offset: number): number {
     for (let child = node.firstChild; child; child = child.nextSibling) {
       if (child.nodeType === Node.TEXT_NODE) {
         if (child.nodeValue) {
@@ -78,17 +78,17 @@ function nodeStream(node: Node) {
         result.push({
           event: "start",
           offset: offset,
-          node: child
+          node: child as HTMLElement
         });
-        offset = _nodeStream(child, offset);
+        offset = _nodeStream(child as HTMLElement, offset);
         // Prevent void elements from having an end tag that would actually
         // double them in the output. There are more void elements in HTML
         // but we list only those realistically expected in code display.
-        if (!tag(child).match(/br|hr|img|input/)) {
+        if (!tag(child as HTMLElement).match(/br|hr|img|input/)) {
           result.push({
             event: "stop",
             offset: offset,
-            node: child
+            node: child as HTMLElement
           });
         }
       }
@@ -103,12 +103,12 @@ function nodeStream(node: Node) {
  * @param highlighted - stream of the highlighted source
  * @param value - the original source itself
  */
-function mergeStreams(original: any, highlighted: any, value: string) {
+function mergeStreams(original: Event[], highlighted: Event[], value: string): string {
   let processed = 0;
   let result = "";
-  const nodeStack = [];
+  const nodeStack: HTMLElement[] = [];
 
-  function selectStream() {
+  function selectStream(): Event[] {
     if (!original.length || !highlighted.length) {
       return original.length ? original : highlighted;
     }
@@ -137,12 +137,11 @@ function mergeStreams(original: any, highlighted: any, value: string) {
   /**
    * @param node
    */
-  function open(node: HTMLElement) {
+  function open(node: HTMLElement): void {
     /** @param attr */
-    function attributeString(attr: Attr) {
+    function attributeString(attr: Attr): string {
       return " " + attr.nodeName + '="' + escapeHTML(attr.value) + '"';
     }
-    // @ts-ignore
     result +=
       "<" +
       tag(node) +
@@ -153,15 +152,15 @@ function mergeStreams(original: any, highlighted: any, value: string) {
   /**
    * @param node
    */
-  function close(node: HTMLElement) {
+  function close(node: HTMLElement): void {
     result += "</" + tag(node) + ">";
   }
 
   /**
    * @param event
    */
-  function render(event: Event) {
-    (event.event === "start" ? open : close)(event.node as HTMLElement);
+  function render(event: Event): void {
+    (event.event === "start" ? open : close)(event.node);
   }
 
   while (original.length || highlighted.length) {
