@@ -18,14 +18,14 @@
     "preact": "^10.22.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.3.0",
+    "@eslint/js": "^9.4.0",
     "@parcel/packager-xml": "^2.12.0",
     "@parcel/transformer-image": "^2.12.0",
     "@parcel/transformer-xml": "^2.12.0",
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
-    "eslint": "^9.3.0",
+    "eslint": "^9.4.0",
     "parcel": "^2.12.0",
     "parcel-namer-custom": "^0.2.0",
     "parcel-reporter-static-files-copy": "^1.5.3",
@@ -33,7 +33,7 @@
     "prettier": "^3.2.5",
     "pretty-quick": "^4.0.0",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^8.0.0-alpha.20"
+    "typescript-eslint": "^8.0.0-alpha.24"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
