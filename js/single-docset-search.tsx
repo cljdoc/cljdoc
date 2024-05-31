@@ -79,10 +79,12 @@ type Def = {
   path: string;
   platform: string;
   doc?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   arglists?: any[][];
   members: {
     type: string;
     name: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     arglists: any[][];
     doc?: string;
   };
