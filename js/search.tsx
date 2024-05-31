@@ -1,10 +1,13 @@
-import { h, Component } from "preact";
+import { Component } from "preact";
 import { useState } from "preact/hooks";
 import { ResultsView, ResultViewComponent } from "./listselect";
 import { Library, docsUri, project } from "./library";
 
 // Doing types for debouncing functions is really hard.
 // https://gist.github.com/ca0v/73a31f57b397606c9813472f7493a940
+
+// usage of any seems appropriate here, so have eslint ignore it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function debounced<T extends (...args: any[]) => any>(
   delayInMs: number,
   callbackFn: T
@@ -27,11 +30,11 @@ function debounced<T extends (...args: any[]) => any>(
 function cleanSearchStr(str: string) {
   // replace square and curly brackets in case people copy from
   // Leiningen/Boot files or deps.edn
-  return str.replace(/[\{\}\[\]\"]+/g, "");
+  return str.replace(/[{}[]"]+/g, "");
 }
 
 // Raw JSON response from cljdoc server
-type RawSearchResult = {
+type RawSearchResult = Record<string, unknown> & {
   ["artifact-id"]: string;
   ["group-id"]: string;
   description: string;
@@ -45,7 +48,7 @@ type RawSearchResults = {
   results: RawSearchResult[];
 };
 
-interface SearchResult extends Library {
+interface SearchResult extends Record<string, unknown>, Library {
   blurb: string;
   origin: string;
   score: number;
@@ -56,20 +59,23 @@ type SearchResults = {
   results: SearchResult[];
 };
 
-type LoadCallback = (sr: SearchResult[]) => any;
+type LoadCallback = (sr: SearchResult[]) => void;
 
-const renameKeys = <T extends {}, U>(
+const renameKeys = <
+  T extends Record<string, unknown>,
+  U extends Record<string, unknown>
+>(
   obj: T,
   keys: { [key: string]: string }
 ): U => {
-  const newObj: { [key: string]: any } = {};
+  const newObj = {} as U;
 
   for (const [k, v] of Object.entries(obj)) {
     const key = keys[k] || k;
-    newObj[key] = v;
+    (newObj as Record<string, unknown>)[key] = v;
   }
 
-  return newObj as U;
+  return newObj;
 };
 
 const refineSearchResults = (raw: RawSearchResults): SearchResults => ({
@@ -96,11 +102,11 @@ const loadResults = (str: string, cb: LoadCallback) => {
 };
 
 type SearchInputProps = {
-  onEnter: () => any;
-  focus: () => any;
-  unfocus: () => any;
-  onArrowUp: () => any;
-  onArrowDown: () => any;
+  onEnter: () => void;
+  focus: () => void;
+  unfocus: () => void;
+  onArrowUp: () => void;
+  onArrowDown: () => void;
   initialValue: string | null | undefined;
   newResultsCallback: LoadCallback;
 };
@@ -145,7 +151,7 @@ class SearchInput extends Component<SearchInputProps> {
         onBlur={(_e: Event) => setTimeout(() => props.unfocus(), 200)}
         onKeyDown={(e: KeyboardEvent) => this.onKeyDown(e)}
         onInput={(e: Event) => {
-          const target = e.target as HTMLFormElement;
+          const target = e.target as HTMLInputElement;
           setInputValue(target.value);
           debouncedLoader(
             cleanSearchStr(target.value),
@@ -197,21 +203,19 @@ class App extends Component<AppProps, AppState> {
   }
 
   render(_props: AppProps, state: AppState) {
-    function resultsView(selectResult: (index: number) => any) {
-      return (
-        <div
-          class="bg-white br1 br--bottom bb bl br b--blue w-100 absolute"
-          style="top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"
-        >
-          <ResultsView
-            resultView={SingleResultView}
-            results={state.results}
-            selectedIndex={state.selectedIndex}
-            onMouseOver={selectResult}
-          />{" "}
-        </div>
-      );
-    }
+    const resultsView = (selectResult: (index: number) => void) => (
+      <div
+        class="bg-white br1 br--bottom bb bl br b--blue w-100 absolute"
+        style="top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"
+      >
+        <ResultsView
+          resultView={SingleResultView}
+          results={state.results}
+          selectedIndex={state.selectedIndex}
+          onMouseOver={selectResult}
+        />{" "}
+      </div>
+    );
 
     return (
       <div className="relative system-sans-serif">

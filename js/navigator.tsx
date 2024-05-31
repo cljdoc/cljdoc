@@ -1,8 +1,11 @@
 // A small component to navigate users to documentation pages based on clojars ID and version inputs
 
-import { h, Component } from "preact";
+import { Component } from "preact";
 
-class Navigator extends Component {
+type NavigatorProps = Record<string, never>;
+type NavigatorState = Record<string, never>;
+
+class Navigator extends Component<NavigatorProps, NavigatorState> {
   clojarsIdInput?: HTMLInputElement | null;
   versionInput?: HTMLInputElement | null;
 
@@ -12,8 +15,8 @@ class Navigator extends Component {
   }
 
   navigate() {
-    let clojarsId = this.clojarsIdInput && this.clojarsIdInput.value;
-    let version = this.versionInput && this.versionInput.value;
+    const clojarsId = this.clojarsIdInput && this.clojarsIdInput.value;
+    const version = this.versionInput && this.versionInput.value;
 
     if (clojarsId && 0 != clojarsId.length) {
       if (clojarsId.includes("/")) {
@@ -25,7 +28,7 @@ class Navigator extends Component {
     }
   }
 
-  render(_props: any, _state: any) {
+  render(_props: NavigatorProps, _state: NavigatorState) {
     return (
       <div>
         <div class="cf nl2 nr2">

@@ -71,6 +71,13 @@
            (if (zero? exit)
              (println "Exited with 0, so all seems good.")
              (System/exit exit)))}
+  eslint
+  {:doc "eslint typescript"
+   :depends [deps-js]
+   :task (let [exit (-> (apply shell {:continue true} "npx eslint" *command-line-args*) :exit)]
+           (if (zero? exit)
+             (println "No eslint errors detected")
+             (System/exit exit)))}
   server
   {:doc "Launch cljdoc server"
    :depends [deps-js compile-js compile-java]

@@ -123,6 +123,10 @@ jobs:
           name: Compile TypeScript to Check for Issues
           command: bb lint-js
 
+      - run:
+          name: Run eslint
+          command: bb eslint
+
       - *save_npm_cache
 
   #

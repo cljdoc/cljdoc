@@ -1,4 +1,4 @@
-import { h, render } from "preact";
+import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { debounced } from "./search";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
@@ -79,10 +79,12 @@ type Def = {
   path: string;
   platform: string;
   doc?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   arglists?: any[][];
   members: {
     type: string;
     name: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     arglists: any[][];
     doc?: string;
   };
@@ -247,7 +249,7 @@ const ResultIcon = (props: { item: IndexItem }) => {
   let label: string = item.kind;
   let text: string;
 
-  const colors = {
+  const colors: Record<string, string> = {
     NS: "bg-light-purple",
     DOC: "bg-green",
     VAR: "bg-dark-blue",
@@ -271,8 +273,8 @@ const ResultIcon = (props: { item: IndexItem }) => {
       throw new Error(`Unknown item kind: ${item}`);
   }
 
-  // @ts-ignore
-  const color = colors[text] || defaultColor;
+  // Check if `text` is a valid key in `colors`
+  const color = colors[text] ?? defaultColor;
 
   return (
     <div
@@ -405,6 +407,8 @@ const search = (
 
   const resultsWithDocs = results?.map(r => ({
     result: r,
+    // I assume that Cora wanted this for a reason, so ignoring eslint
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     doc: searchIndex?.documentStore.getDoc(r.ref)!
   }));
 

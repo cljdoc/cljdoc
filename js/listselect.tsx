@@ -1,4 +1,4 @@
-import { h, Component, FunctionComponent } from "preact";
+import { Component, FunctionComponent } from "preact";
 
 // Various functions and components used to show lists of results
 
@@ -8,10 +8,11 @@ import { h, Component, FunctionComponent } from "preact";
 // is the currently selected one.
 
 function restrictToViewport(container: Element, selectedIndex: number) {
-  let containerRect = container.getBoundingClientRect();
-  let selectedRect = container.children[selectedIndex].getBoundingClientRect();
-  let deltaTop = selectedRect.top - containerRect.top;
-  let deltaBottom = selectedRect.bottom - containerRect.bottom;
+  const containerRect = container.getBoundingClientRect();
+  const selectedRect =
+    container.children[selectedIndex].getBoundingClientRect();
+  const deltaTop = selectedRect.top - containerRect.top;
+  const deltaBottom = selectedRect.bottom - containerRect.bottom;
   if (deltaTop < 0) {
     container.scrollBy(0, deltaTop);
   } else if (deltaBottom > 0) {
@@ -33,17 +34,17 @@ function restrictToViewport(container: Element, selectedIndex: number) {
 export type ResultViewComponent<ResultType> = FunctionComponent<{
   result: ResultType;
   isSelected: boolean;
-  selectResult: () => any;
+  selectResult: () => void;
 }>;
 
-type ResultsViewProps<Type> = {
-  resultView: ResultViewComponent<Type>;
-  results: Type[];
+type ResultsViewProps<ResultType> = {
+  resultView: ResultViewComponent<ResultType>;
+  results: ResultType[];
   selectedIndex: number;
-  onMouseOver: (index: number) => any;
+  onMouseOver: (index: number) => void;
 };
 
-type ResultsViewState = any;
+type ResultsViewState = Record<string, never>;
 
 export class ResultsView<ResultType> extends Component<
   ResultsViewProps<ResultType>,
@@ -63,7 +64,7 @@ export class ResultsView<ResultType> extends Component<
     }
   }
 
-  render(props: ResultsViewProps<ResultType>, _state: any) {
+  render(props: ResultsViewProps<ResultType>, _state: ResultsViewState) {
     return (
       <div
         className="bg-white br1 br--bottom bb bl br b--blue w-100 overflow-y-scroll"
