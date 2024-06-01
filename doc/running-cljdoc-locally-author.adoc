@@ -13,7 +13,7 @@
 :example-project-import-url: https://github.com/cljdoc/cljdoc-exerciser
 :example-project-coords: org.cljdoc/cljdoc-exerciser
 :example-project-maven-path: org/cljdoc/cljdoc-exerciser
-:example-project-version: 1.0.80
+:example-project-version: 1.0.100
 
 [[introduction]]
 == Audience
@@ -43,8 +43,12 @@ TIP: Your installation might require you to prefix docker commands with `sudo`, 
 +
 [source,shell]
 ----
-mkdir -p /tmp/cljdoc
+mkdir -p .cljdoc-preview
 ----
+
+****
+We previously encouraged `/tmp/cljdoc` but current versions of docker need special config to use non-user dirs.
+****
 
 . Start the cljdoc docker web server:
 +
@@ -52,7 +56,8 @@ mkdir -p /tmp/cljdoc
 ----
 docker run --rm \
   --publish 8000:8000 \
-  --volume /tmp/cljdoc:/app/data \
+  --volume ./.cljdoc-preview:/app/data \
+  --platform linux/amd64 \
   {docker-image}
 ----
 +
@@ -92,7 +97,8 @@ To import {example-project-name} {example-project-version}:
 ----
 docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
-  --volume /tmp/cljdoc:/app/data \
+  --volume ./.cljdoc-preview:/app/data \
+  --platform linux/amd64 \
   --entrypoint clojure \
   {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
@@ -165,7 +171,8 @@ From {example-project-name}'s root dir:
 docker run --rm \
   --volume $(pwd):/repo-to-import \
   --volume "$HOME/.m2:/root/.m2" \
-  --volume /tmp/cljdoc:/app/data \
+  --volume ./.cljdoc-preview:/app/data \
+  --platform linux/amd64 \
   --entrypoint clojure \
   {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
@@ -186,7 +193,8 @@ From {example-project-name}'s root dir:
 ----
 docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
-  --volume /tmp/cljdoc:/app/data \
+  --volume ./cljdoc-preview:/app/data \
+  --platform linux/amd64 \
   --entrypoint clojure \
   {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
