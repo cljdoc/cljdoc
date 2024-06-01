@@ -45,10 +45,8 @@ TIP: Your installation might require you to prefix docker commands with `sudo`, 
 ----
 mkdir -p .cljdoc-preview
 ----
-
-****
-We previously encouraged `/tmp/cljdoc` but current versions of docker need special config to use non-user dirs.
-****
++
+NOTE: We previously encouraged `/tmp/cljdoc` but current versions of docker need special config to use non-user dirs.
 
 . Start the cljdoc docker web server:
 +
