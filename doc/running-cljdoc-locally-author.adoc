@@ -57,6 +57,7 @@ We previously encouraged `/tmp/cljdoc` but current versions of docker need speci
 docker run --rm \
   --publish 8000:8000 \
   --volume ./.cljdoc-preview:/app/data \
+  --platform linux/amd64 \
   {docker-image}
 ----
 +
@@ -97,6 +98,7 @@ To import {example-project-name} {example-project-version}:
 docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume ./.cljdoc-preview:/app/data \
+  --platform linux/amd64 \
   --entrypoint clojure \
   {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
@@ -170,6 +172,7 @@ docker run --rm \
   --volume $(pwd):/repo-to-import \
   --volume "$HOME/.m2:/root/.m2" \
   --volume ./.cljdoc-preview:/app/data \
+  --platform linux/amd64 \
   --entrypoint clojure \
   {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
@@ -191,6 +194,7 @@ From {example-project-name}'s root dir:
 docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
   --volume ./cljdoc-preview:/app/data \
+  --platform linux/amd64 \
   --entrypoint clojure \
   {docker-image} -Sforce -M:cli ingest \
     --project {example-project-coords} \
