@@ -30,10 +30,10 @@
     "parcel-namer-custom": "^0.2.0",
     "parcel-reporter-static-files-copy": "^1.5.3",
     "parcel-resolver-ignore": "^2.1.5",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.2",
     "pretty-quick": "^4.0.0",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^8.0.0-alpha.24"
+    "typescript-eslint": "^8.0.0-alpha.30"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
