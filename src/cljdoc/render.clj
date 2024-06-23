@@ -28,7 +28,8 @@
           {:top-bar (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
            :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)})
          (layout/page {:title (str (proj/clojars-id version-entity) " " (:version version-entity))
-                       :og-img-data {:page-title (:description pom)
+                       :og-img-data {:id "4j9ovv5ojagy8ik"
+                                     :page-title (:description pom)
                                      :project-version (:version version-entity)
                                      :project-name (proj/clojars-id version-entity)}
                        :description (layout/artifact-description version-entity (:description pom))
@@ -86,7 +87,8 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
-                       :og-img-data {:page-title (if default-doc?
+                       :og-img-data {:id "4j9ovv5ojagy8ik"
+                                     :page-title (if default-doc?
                                                    (:description pom)
                                                    (:title doc-p))
                                      :project-version (:version version-entity)
@@ -136,7 +138,8 @@
                                                         :valid-ref-pred valid-ref-pred
                                                         :opts opts})}))
          (layout/page {:title (str (:namespace ns-emap) " — " (proj/clojars-id version-entity) " " (:version version-entity))
-                       :og-img-data {:page-title (str "(ns " (:namespace ns-emap) ")")
+                       :og-img-data {:id "4j9ovv5ojagy8ik"
+                                     :page-title (str "(ns " (:namespace ns-emap) ")")
                                      :subtitle (platf/get-field ns-data :doc)
                                      :project-version (:version version-entity)
                                      :project-name (proj/clojars-id version-entity)}
