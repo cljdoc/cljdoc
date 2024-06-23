@@ -1,16 +1,17 @@
 (ns cljdoc.render
-  (:require [cljdoc.doc-tree :as doctree]
-            [cljdoc.render.rich-text :as rich-text]
-            [cljdoc.render.layout :as layout]
-            [cljdoc.render.articles :as articles]
-            [cljdoc.render.sidebar :as sidebar]
+  (:require [cljdoc-shared.proj :as proj]
+            [cljdoc.bundle :as bundle]
+            [cljdoc.doc-tree :as doctree]
+            [cljdoc.platforms :as platf]
             [cljdoc.render.api :as api]
+            [cljdoc.render.articles :as articles]
+            [cljdoc.render.layout :as layout]
+            [cljdoc.render.rich-text :as rich-text]
+            [cljdoc.render.sidebar :as sidebar]
+            [cljdoc.server.routes :as routes]
             [cljdoc.user-config :as user-config]
             [cljdoc.util.fixref :as fixref]
-            [cljdoc.util.scm :as scm]
-            [cljdoc.bundle :as bundle]
-            [cljdoc.server.routes :as routes]
-            [cljdoc-shared.proj :as proj]))
+            [cljdoc.util.scm :as scm]))
 
 (defmulti render (fn [page-type _route-params _cache-bundle] page-type))
 
@@ -27,6 +28,9 @@
           {:top-bar (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
            :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)})
          (layout/page {:title (str (proj/clojars-id version-entity) " " (:version version-entity))
+                       :og-img-data {:page-title (:description pom)
+                                     :project-version (:version version-entity)
+                                     :project-name (proj/clojars-id version-entity)}
                        :description (layout/artifact-description version-entity (:description pom))
                        :static-resources static-resources}))))
 
@@ -47,6 +51,8 @@
                                                                           (:title %))
                                                               doc-tree)
                                                       doc-slug-path)
+        default-doc? (= (first (:doc-slug-path route-params))
+                        (-> cache-bundle :version :doc first :attrs :slug))
         prev-page (first articles-block)
         next-page (last articles-block)]
     ;; If we can find an article for the provided `doc-slug-path` render that article,
@@ -80,6 +86,11 @@
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/doc :path-params))
+                       :og-img-data {:page-title (if default-doc?
+                                                   (:description pom)
+                                                   (:title doc-p))
+                                     :project-version (:version version-entity)
+                                     :project-name (proj/clojars-id version-entity)}
                        :description (layout/artifact-description version-entity (:description pom))
                        :page-features (when doc-type (rich-text/determine-features [doc-type contents]))
                        :static-resources static-resources}))))
@@ -125,6 +136,11 @@
                                                         :valid-ref-pred valid-ref-pred
                                                         :opts opts})}))
          (layout/page {:title (str (:namespace ns-emap) " — " (proj/clojars-id version-entity) " " (:version version-entity))
+                       :og-img-data {:page-title (str "(ns " (:namespace ns-emap) ")")
+                                     :subtitle (platf/get-field ns-data :doc)
+                                     :project-version (:version version-entity)
+                                     :project-name (proj/clojars-id version-entity)}
+
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
                                                (merge route-params)
                                                (routes/url-for :artifact/namespace :path-params))
@@ -146,5 +162,4 @@
 
   (-> (doctree/add-slug-path (-> (:cache-bundle cljdoc.bundle/cache) :version :doc))
       first))
-
 
