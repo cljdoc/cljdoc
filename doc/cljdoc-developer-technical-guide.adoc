@@ -350,3 +350,13 @@ bb docker-image
 ```
 
 Run `bb clean` first to ensure no cached resources are being used.
+
+=== Link Previews for Slack/Socials
+
+cljdoc uses https://dynogee.com[Dynogee] to create content-based OpenGraph
+images (https://github.com/cljdoc/cljdoc/pull/884[original PR]).
+https://ogp.me/[OpenGraph] is a simple protocol based on HTML `<meta>` tags to
+provide additional information to be displayed alongside links when they are
+shared.
+If you want to update the OpenGraph image templates, you can create a new
+template on Dynogee and replace the `id` that's specified in the code.

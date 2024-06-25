@@ -105,6 +105,8 @@
 
         (footer)]
        (layout/page {:title "cljdoc — documentation for Clojure/Script libraries"
+                     :og-img-data {:id "wut3pyewypqpsvo"
+                                   :page-title "Documentation Hosting for the Clojure/Script ecosystem"}
                      :responsive? true
                      :static-resources (:static-resources context)})
        (str)))

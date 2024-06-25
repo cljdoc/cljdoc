@@ -7,6 +7,7 @@
             [cljdoc.util.scm :as scm]
             [cljdoc-shared.proj :as proj]
             [clojure.string :as string]
+            [ring.util.codec :as ring-codec]
             [hiccup2.core :as hiccup]
             [hiccup.page]))
 
@@ -108,6 +109,15 @@
                  [:meta {:content "website" :property "og:type"}]
                  [:meta {:content (:title opts) :property "og:title"}]
                  [:meta {:content (:description opts) :property "og:description"}]
+                 (when (:id (:og-img-data opts))
+                   [:meta {:content (str "https://dynogee.com/gen?"
+                                         (->> (:og-img-data opts)
+                                              (keep (fn [[k v]]
+                                                      (when (string? v)
+                                                        (str (name k) "=" (ring-codec/url-encode v)))))
+                                              (string/join "&")))
+                           :property "og:image"}])
+                 [:meta {:name "twitter:card" :content "summary_large_image"}]
                  ;; Disable image for now; doesn't add much and occupies a lot of space in Slack and similar
                  ;; [:meta {:content (str "https://cljdoc.org"
                  ;;                   (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
