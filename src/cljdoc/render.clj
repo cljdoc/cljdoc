@@ -140,7 +140,7 @@
          (layout/page {:title (str (:namespace ns-emap) " — " (proj/clojars-id version-entity) " " (:version version-entity))
                        :og-img-data {:id "4j9ovv5ojagy8ik"
                                      :page-title (str "(ns " (:namespace ns-emap) ")")
-                                     :subtitle (platf/get-field ns-data :doc)
+                                     :subtitle (when ns-data (platf/get-field ns-data :doc))
                                      :project-version (:version version-entity)
                                      :project-name (proj/clojars-id version-entity)}
 
