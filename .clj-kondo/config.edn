@@ -5,6 +5,7 @@
            clojure.test.check.clojure-test/defspec clojure.core/def
            clojure.test.check.properties/for-all clojure.core/let}
  :linters {:redundant-fn-wrapper {:level :warning}
+           :redundant-str-call {:level :warning}
            :unused-value {:level :warning}
            :aliased-namespace-symbol {:level :warning}
            :warn-on-reflection {:level :off :warn-only-on-interop true}
