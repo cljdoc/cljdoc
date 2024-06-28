@@ -179,8 +179,8 @@
      [[["assets/tachyons.css" (io/resource (str "public/out" (get static-resources "/tachyons.css")))]]
       [["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
       [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
-      [["assets/static/codeberg.svg" (io/resource (str "public/out/codeberg.svg"))]]
-      [["assets/static/sourcehut.svg" (io/resource (str "public/out/sourcehut.svg"))]]
+      [["assets/static/codeberg.svg" (io/resource "public/out/codeberg.svg")]]
+      [["assets/static/sourcehut.svg" (io/resource "public/out/sourcehut.svg")]]
       ;; use content-hashed name for source map to preserve link to index.js
       [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
       (assets/offline-assets :highlightjs)
