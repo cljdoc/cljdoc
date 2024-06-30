@@ -50,7 +50,6 @@
                   "-J-XshowSettings:vm" ;; prints heap usage to to stderr
                   "-J-XX:MaxRAMPercentage=75" ;; increase from default of 25% to 75%
                   "-J-Dcljdoc.host=0.0.0.0"
-                  "-J-XX:+ExitOnOutOfMemoryError"
                   "-J-XX:+HeapDumpOnOutOfMemoryError"
                   (format "-J-XX:HeapDumpPath=%s" (str heap-dump-file))
                   "-M" "-m" "cljdoc.server.system")))
