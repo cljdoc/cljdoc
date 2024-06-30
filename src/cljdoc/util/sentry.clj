@@ -1,15 +1,15 @@
 (ns cljdoc.util.sentry
   (:require [cljdoc.config :as cfg]
-            [unilog.config :as unilog]
+            [clojure.tools.logging :as log]
+            [io.pedestal.interceptor :as interceptor]
             [raven-clj.core :as raven]
             [raven-clj.interfaces :as interfaces]
-            [clojure.tools.logging :as log]
-            [io.pedestal.interceptor :as interceptor])
-  (:import (io.sentry Sentry)
-           (io.sentry.logback SentryAppender)
-           (ch.qos.logback.core.spi FilterReply)
+            [unilog.config :as unilog])
+  (:import (ch.qos.logback.classic Level)
            (ch.qos.logback.classic.filter LevelFilter)
-           (ch.qos.logback.classic Level)))
+           (ch.qos.logback.core.spi FilterReply)
+           (io.sentry Sentry)
+           (io.sentry.logback SentryAppender)))
 
 (def app-namespaces
   ["cljdoc"])

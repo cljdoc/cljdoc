@@ -42,13 +42,13 @@
                            ElementPolicy
                            FilterUrlByProtocolAttributePolicy
                            Handler
+                           HtmlPolicyBuilder
+                           HtmlPolicyBuilder$AttributeBuilder
                            HtmlSanitizer
                            HtmlSanitizer$Policy
                            HtmlStreamEventProcessor$Processors
                            HtmlStreamEventReceiver
                            HtmlStreamRenderer
-                           HtmlPolicyBuilder
-                           HtmlPolicyBuilder$AttributeBuilder
                            PolicyFactory))
   (:require [clojure.string :as string]))
 

@@ -6,9 +6,9 @@
    [cheshire.core :as json]
    [clojure.edn :as edn]
    [clojure.set :as cset]
+   [clojure.string :as string]
    [helper.main :as main]
-   [lread.status-line :as status]
-   [clojure.string :as string]))
+   [lread.status-line :as status]))
 
 (defn next-url [response]
   (some-> response

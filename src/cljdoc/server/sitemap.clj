@@ -1,10 +1,10 @@
 (ns cljdoc.server.sitemap
-  (:require [clojure.spec.alpha :as spec]
-            [sitemap.core :as sitemap]
+  (:require [cljdoc.server.routes :as routes]
             [cljdoc.storage.api :as storage]
-            [cljdoc.server.routes :as routes]
-            [version-clj.core :as version-clj]
-            [clojure.string :as string]))
+            [clojure.spec.alpha :as spec]
+            [clojure.string :as string]
+            [sitemap.core :as sitemap]
+            [version-clj.core :as version-clj]))
 
 (spec/fdef query->url-entries
   :args (spec/cat :version :cljdoc.spec/version-entity)

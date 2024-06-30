@@ -1,9 +1,9 @@
 (ns cljdoc.render.build-req
   "HTML pages/fragments related to requesting a documentation build"
-  (:require [cljdoc.render.layout :as layout]
+  (:require [cljdoc-shared.proj :as proj]
+            [cljdoc.render.layout :as layout]
             [cljdoc.render.links :as links]
-            [cljdoc.util.repositories :as repositories]
-            [cljdoc-shared.proj :as proj]))
+            [cljdoc.util.repositories :as repositories]))
 
 (defn request-build-page [route-params static-resources]
   (->> [:div

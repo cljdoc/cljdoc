@@ -19,9 +19,9 @@
    nervous ->io.nervous:* artifacts"
   (:require
    [cljdoc.server.search.search :as search]
-   [tea-time.core :as tt]
    [clojure.tools.logging :as log]
-   [integrant.core :as ig])
+   [integrant.core :as ig]
+   [tea-time.core :as tt])
   (:import (java.util.concurrent TimeUnit)
            (org.apache.lucene.store Directory)))
 

@@ -3,9 +3,9 @@
 
   These pages are used when switching between versions or
   browsing all artifacts under a specific group-id."
-  (:require [cljdoc.render.layout :as layout]
+  (:require [cljdoc-shared.proj :as proj]
+            [cljdoc.render.layout :as layout]
             [cljdoc.server.routes :as routes]
-            [cljdoc-shared.proj :as proj]
             [version-clj.core :as v]))
 
 (defn artifact-index

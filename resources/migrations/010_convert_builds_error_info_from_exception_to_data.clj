@@ -1,10 +1,10 @@
 (ns migrations.010-convert-builds-error-info-from-exception-to-data
   "Adds new error_info_map column to builds table leaving existing error_info column to support
    reversion to old code if necessary."
-  (:require [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql]
+  (:require [clojure.tools.logging :as log]
+            [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
-            [clojure.tools.logging :as log]
+            [next.jdbc.sql :as sql]
             [taoensso.nippy :as nippy]))
 
 (defn up [db-spec]

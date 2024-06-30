@@ -1,0 +1,3 @@
+{:clean {:ns-inner-blocks-indentation :keep
+         :ns-import-classes-indentation :keep
+         :sort {:import-classes {:classes-per-line 8}}}}

@@ -1,9 +1,9 @@
 (ns cljdoc.util.repositories
-  (:require [cljdoc.config :as config]
+  (:require [clj-http.lite.client :as http]
             [cljdoc-shared.proj :as proj]
-            [clojure.string :as string]
-            [clj-http.lite.client :as http]
-            [clojure.java.io :as io])
+            [cljdoc.config :as config]
+            [clojure.java.io :as io]
+            [clojure.string :as string])
   (:import (org.jsoup Jsoup)
            (org.jsoup.nodes Element)))
 

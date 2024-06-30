@@ -1,9 +1,9 @@
 (ns cljdoc.config
   (:refer-clojure :exclude [get-in])
-  (:require [babashka.fs :as fs]
-            [clojure.tools.logging :as log]
+  (:require [aero.core :as aero]
+            [babashka.fs :as fs]
             [clojure.java.io :as io]
-            [aero.core :as aero]))
+            [clojure.tools.logging :as log]))
 
 (defmethod aero/reader 'slurp
   [_ _tag value]

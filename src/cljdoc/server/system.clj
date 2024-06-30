@@ -1,25 +1,25 @@
 (ns cljdoc.server.system
-  (:require [cljdoc.analysis.service :as analysis-service]
+  (:require [babashka.fs :as fs]
+            [cljdoc.analysis.service :as analysis-service]
             [cljdoc.config :as cfg]
-            [cljdoc.server.release-monitor]
+            [cljdoc.server.build-log :as build-log]
             [cljdoc.server.clojars-stats]
             [cljdoc.server.pedestal]
-            [cljdoc.server.build-log :as build-log]
+            [cljdoc.server.release-monitor]
             [cljdoc.storage.api :as storage]
-            [cljdoc.util.sentry]
             [cljdoc.util.repositories :as repos]
+            [cljdoc.util.sentry]
             [cljdoc.util.sqlite-cache :as sqlite-cache]
+            [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
-            [clojure.java.io :as io]
             [integrant.core :as ig]
-            [unilog.config :as unilog]
-            [ragtime.jdbc :as jdbc]
-            [ragtime.core :as ragtime]
             [ragtime.clj.core] ;; allow Clojure-based migrations
+            [ragtime.core :as ragtime]
+            [ragtime.jdbc :as jdbc]
             [taoensso.nippy :as nippy]
             [tea-time.core :as tt]
-            [babashka.fs :as fs]))
+            [unilog.config :as unilog]))
 
 (def log-file "log/cljdoc.log")
 

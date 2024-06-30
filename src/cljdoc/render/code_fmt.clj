@@ -3,8 +3,8 @@
   We are using zprint for its widths support.
   It has many dials and knobs, so it is worthy of its own namespace to support testing."
   (:require [clojure.string :as string]
-            [zprint.core :as zp]
-            [zprint.config :as zpc]))
+            [zprint.config :as zpc]
+            [zprint.core :as zp]))
 
 ;; tell zprint not to look for external default configs
 (zp/set-options! {:configured? true})

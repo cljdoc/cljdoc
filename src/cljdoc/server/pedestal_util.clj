@@ -1,8 +1,8 @@
 (ns cljdoc.server.pedestal-util
   "Based on this excellent guide: http://pedestal.io/guides/hello-world-content-types"
   (:require [cheshire.core :as json]
-            [io.pedestal.interceptor :as interceptor]
-            [io.pedestal.http.content-negotiation :as conneg]))
+            [io.pedestal.http.content-negotiation :as conneg]
+            [io.pedestal.interceptor :as interceptor]))
 
 (defn negotiate-content [accepted-types default-type]
   (conneg/negotiate-content accepted-types

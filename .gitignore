@@ -22,7 +22,7 @@ resources-compiled
 pom.xml
 test-data/
 /.parcel-cache
-/.lsp
 /.eastwood
 /fiddle
 /.vscode
+/.lsp/.cache

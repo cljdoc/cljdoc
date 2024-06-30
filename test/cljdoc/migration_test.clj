@@ -1,9 +1,9 @@
 (ns cljdoc.migration-test
   "A lint, of sorts, for ragtime database migration filenames"
-  (:require [clojure.java.io :as io]
+  (:require [babashka.fs :as fs]
+            [clojure.java.io :as io]
             [clojure.string :as str]
-            [clojure.test :as t]
-            [babashka.fs :as fs]))
+            [clojure.test :as t]))
 
 (defn- migration-files []
   (->> (fs/list-dir (io/resource "migrations"))

@@ -1,15 +1,15 @@
 (ns cljdoc.server.ingest
   "A collection of small helpers to ingest data provided via API analysis
   or Git repositories into the database (see [[cljdoc.storage.api]])"
-  (:require [cljdoc.analysis.git :as ana-git]
-            [cljdoc-shared.pom :as pom]
+  (:require [cljdoc-shared.pom :as pom]
             [cljdoc-shared.proj :as proj]
+            [cljdoc-shared.spec.analyzer :as analyzer-spec]
+            [cljdoc.analysis.git :as ana-git]
+            [cljdoc.storage.api :as storage]
             [cljdoc.util.codox :as codox]
             [cljdoc.util.scm :as scm]
-            [clojure.tools.logging :as log]
-            [cljdoc.storage.api :as storage]
-            [cljdoc-shared.spec.analyzer :as analyzer-spec]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [clojure.tools.logging :as log]))
 
 (defn ingest-cljdoc-analysis-edn
   "Store all the API-related information in the passed `cljdoc-analysis-edn` data"

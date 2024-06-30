@@ -3,8 +3,8 @@
   (:require
    [cheshire.core :as json]
    [clj-http.lite.client :as http]
-   [cljdoc.spec :as cljdoc-spec]
    [cljdoc-shared.pom :as pom]
+   [cljdoc.spec :as cljdoc-spec]
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
    [clojure.string :as str]

@@ -1,6 +1,6 @@
 (ns cljdoc.util.scm-test
-  (:require [clojure.test :as t]
-            [cljdoc.util.scm :as scm]))
+  (:require [cljdoc.util.scm :as scm]
+            [clojure.test :as t]))
 
 (t/deftest scm-coordinate-test
   (t/is (= "circleci" (scm/owner "https://github.com/circleci/clj-yaml")))

@@ -5,23 +5,23 @@
   kept somewhat separately as DOM stability is more important
   for tools like Dash etc."
   (:require [babashka.fs :as fs]
-            [cljdoc.render.layout :as layout]
-            [cljdoc.render.api :as api]
-            [cljdoc.doc-tree :as doctree]
-            [cljdoc.spec :as cljdoc-spec]
-            [cljdoc.bundle :as bundle]
-            [cljdoc.util.scm :as scm]
-            [cljdoc.platforms :as platf]
-            [cljdoc.util.fixref :as fixref]
-            [cljdoc.render.assets :as assets]
-            [cljdoc.render.rich-text :as rich-text]
-            [cljdoc.user-config :as user-config]
             [cljdoc-shared.proj :as proj]
-            [clojure.string :as string]
+            [cljdoc.bundle :as bundle]
+            [cljdoc.doc-tree :as doctree]
+            [cljdoc.platforms :as platf]
+            [cljdoc.render.api :as api]
+            [cljdoc.render.assets :as assets]
+            [cljdoc.render.layout :as layout]
+            [cljdoc.render.rich-text :as rich-text]
+            [cljdoc.spec :as cljdoc-spec]
+            [cljdoc.user-config :as user-config]
+            [cljdoc.util.fixref :as fixref]
+            [cljdoc.util.scm :as scm]
             [clojure.java.io :as io]
-            [me.raynes.fs.compression :as fs-compression]
+            [clojure.string :as string]
+            [hiccup.page]
             [hiccup2.core :as hiccup]
-            [hiccup.page])
+            [me.raynes.fs.compression :as fs-compression])
   (:import (java.net URL)))
 
 (defn- ns-url

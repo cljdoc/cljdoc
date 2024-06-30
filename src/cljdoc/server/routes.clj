@@ -11,8 +11,8 @@
   For use with http handlers a `route-resolver` can be passed when
   generating all routes. See docstring of `routes` for details."
   (:require
-   [io.pedestal.interceptor :as interceptor]
-   [io.pedestal.http.route :as route]))
+   [io.pedestal.http.route :as route]
+   [io.pedestal.interceptor :as interceptor]))
 
 (def ^:private nop
   (interceptor/interceptor

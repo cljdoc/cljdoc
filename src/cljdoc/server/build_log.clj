@@ -1,9 +1,9 @@
 (ns cljdoc.server.build-log
   (:require [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql]
             [next.jdbc.result-set :as rs]
+            [next.jdbc.sql :as sql]
             [taoensso.nippy :as nippy])
-  (:import (java.time Instant Duration)))
+  (:import (java.time Duration Instant)))
 
 (defn- now []
   (str (Instant/now)))

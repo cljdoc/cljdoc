@@ -1,12 +1,12 @@
 (ns cljdoc.render.build-log
-  (:require [clojure.string :as string]
-            [cljdoc.render.code-fmt :as code-fmt]
+  (:require [cljdoc.render.code-fmt :as code-fmt]
             [cljdoc.render.layout :as layout]
             [cljdoc.render.links :as links]
-            [cljdoc.util.datetime :as dt]
             [cljdoc.server.routes :as routes]
+            [cljdoc.util.datetime :as dt]
+            [clojure.string :as string]
             [taoensso.nippy :as nippy])
-  (:import [java.time Instant Duration]
+  (:import [java.time Duration Instant]
            [java.time.temporal ChronoUnit]))
 
 (defn succeeded?

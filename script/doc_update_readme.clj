@@ -9,8 +9,8 @@
             [etaoin.api :as etaoin]
             [hiccup.util :as hu]
             [hiccup2.core :as h]
-            [taoensso.timbre :as timbre]
-            [lread.status-line :as status]))
+            [lread.status-line :as status]
+            [taoensso.timbre :as timbre]))
 
 ;; default log level for bb is debug, change it to info
 (alter-var-root #'timbre/*config* #(assoc % :min-level :info))

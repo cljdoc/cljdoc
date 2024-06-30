@@ -4,16 +4,16 @@
   Cljdoc operates on source files as well as a project's Git repository
   to build API documentation and articles. "
   (:require [babashka.fs :as fs]
-            [cljdoc.util.scm :as scm]
-            [cljdoc.git-repo :as git-repo]
-            [cljdoc.doc-tree :as doc-tree]
-            [cljdoc.user-config :as user-config]
             [cljdoc-shared.proj :as proj]
+            [cljdoc.doc-tree :as doc-tree]
+            [cljdoc.git-repo :as git-repo]
+            [cljdoc.user-config :as user-config]
+            [cljdoc.util.scm :as scm]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]
-            [clojure.tools.logging :as log]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [clojure.tools.logging :as log]))
 
 (spec/def ::files (spec/map-of string? string?))
 (spec/def ::name string?)

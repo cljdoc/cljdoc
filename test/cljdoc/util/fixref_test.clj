@@ -1,7 +1,7 @@
 (ns cljdoc.util.fixref-test
-  (:require [clojure.string :as string]
-            [clojure.test :as t]
-            [cljdoc.util.fixref :as fixref]))
+  (:require [cljdoc.util.fixref :as fixref]
+            [clojure.string :as string]
+            [clojure.test :as t]))
 
 (defn- fix-result
   "splitting result into a vector of lines makes for much better failure diffs"

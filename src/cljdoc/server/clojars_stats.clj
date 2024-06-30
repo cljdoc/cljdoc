@@ -4,13 +4,13 @@
   Includes background jobs to download stats and prune stats that are
   no longer needed. Need is defined via a configurable retention timeframe
   specified in days."
-  (:require [next.jdbc.sql :as sql]
-            [next.jdbc.result-set :as rs]
-            [clojure.tools.logging :as log]
-            [clojure.edn :as edn]
+  (:require [cljdoc.util.sentry :as sentry]
             [clojure.core.memoize :as memoize]
-            [cljdoc.util.sentry :as sentry]
+            [clojure.edn :as edn]
+            [clojure.tools.logging :as log]
             [integrant.core :as ig]
+            [next.jdbc.result-set :as rs]
+            [next.jdbc.sql :as sql]
             [tea-time.core :as tt])
   (:import (java.time LocalDate)
            (java.time.format DateTimeFormatter)

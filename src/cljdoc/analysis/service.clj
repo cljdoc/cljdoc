@@ -1,11 +1,11 @@
 (ns cljdoc.analysis.service
-  (:require [clj-http.lite.client :as http]
-            [clojure.tools.logging :as log]
+  (:require [cheshire.core :as json]
+            [clj-http.lite.client :as http]
+            [cljdoc-shared.analysis :as analysis]
+            [cljdoc.git-repo :as git-repo]
             [clojure.java.io :as io]
             [clojure.java.shell :as sh]
-            [cheshire.core :as json]
-            [cljdoc.git-repo :as git-repo]
-            [cljdoc-shared.analysis :as analysis]))
+            [clojure.tools.logging :as log]))
 
 (defprotocol IAnalysisService
   "Services that can run analysis of Clojure code for us
