@@ -7,9 +7,9 @@
   This namespace provides a `MultiPlatform` record that aims to expose
   a thing (namespace, var)'s properties while also retaining and exposing
   information about platform differences."
-  (:require [clojure.tools.logging :as log]
-            [cljdoc.spec]
-            [clojure.string :as string]))
+  (:require [cljdoc.spec]
+            [clojure.string :as string]
+            [clojure.tools.logging :as log]))
 
 (defprotocol IMultiPlatform
   (get-field [this k] [this k platf]

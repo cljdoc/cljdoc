@@ -1,12 +1,12 @@
 (ns cljdoc.server.api
-  (:require [cljdoc.analysis.service :as analysis-service]
+  (:require [cljdoc-shared.analysis-edn :as analysis-edn]
+            [cljdoc.analysis.service :as analysis-service]
+            [cljdoc.server.build-log :as build-log]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
-            [cljdoc.server.build-log :as build-log]
+            [cljdoc.user-config :as user-config]
             [cljdoc.util.repositories :as repositories]
-            [cljdoc-shared.analysis-edn :as analysis-edn]
-            [clojure.tools.logging :as log]
-            [cljdoc.user-config :as user-config]))
+            [clojure.tools.logging :as log]))
 
 (defn- analyze-and-import-api!
   [{:keys [analysis-service storage build-tracker]}

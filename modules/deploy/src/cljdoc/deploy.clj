@@ -10,14 +10,14 @@
   1. Create a new Nomad deployment with the new version running as a canary.
   2. Promote the Nomad deployment, resulting in a shut down of previous deployments."
   (:require [aero.core :as aero]
-            [clojure.java.io :as io]
-            [clojure.pprint :as pp]
-            [clojure.java.shell :as sh]
-            [clojure.string :as string]
-            [clj-http.lite.client :as http]
             [cheshire.core :as json]
-            [clojure.tools.logging :as log]
             [cli-matic.core :as cli-matic]
+            [clj-http.lite.client :as http]
+            [clojure.java.io :as io]
+            [clojure.java.shell :as sh]
+            [clojure.pprint :as pp]
+            [clojure.string :as string]
+            [clojure.tools.logging :as log]
             [unilog.config :as unilog])
   (:import (com.jcraft.jsch JSch)))
 

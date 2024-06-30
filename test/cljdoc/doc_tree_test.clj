@@ -1,14 +1,14 @@
 (ns cljdoc.doc-tree-test
   (:require [babashka.fs :as fs]
             [cljdoc.doc-tree :as doctree]
+            [clojure.spec.alpha :as spec]
+            [clojure.spec.test.alpha :as st]
             [clojure.test :as t]
             [clojure.test.check.clojure-test :as tc]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [clojure.spec.test.alpha :as st]
-            [clojure.spec.alpha :as spec]
-            [matcher-combinators.test]
-            [matcher-combinators.matchers :as m]))
+            [matcher-combinators.matchers :as m]
+            [matcher-combinators.test]))
 
 (t/use-fixtures :once (fn [f] (st/instrument) (f)))
 

@@ -1,18 +1,18 @@
 (ns cljdoc.server.release-monitor
-  (:require [cljdoc.server.build-log :as build-log]
-            [cljdoc.util.repositories :as repositories]
-            [cheshire.core :as json]
+  (:require [cheshire.core :as json]
             [clj-http.lite.client :as http]
+            [cljdoc-shared.proj :as proj]
             [cljdoc.config :as config]
+            [cljdoc.server.build-log :as build-log]
             [cljdoc.server.search.api :as sc]
+            [cljdoc.util.repositories :as repositories]
             [clojure.edn :as edn]
-            [next.jdbc.sql :as sql]
-            [next.jdbc.result-set :as rs]
+            [clojure.string :as string]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
-            [tea-time.core :as tt]
-            [clojure.string :as string]
-            [cljdoc-shared.proj :as proj])
+            [next.jdbc.result-set :as rs]
+            [next.jdbc.sql :as sql]
+            [tea-time.core :as tt])
   (:import (cljdoc.server.search.api ISearcher)
            (java.time Duration Instant)))
 

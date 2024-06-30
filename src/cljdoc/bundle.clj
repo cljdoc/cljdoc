@@ -1,9 +1,9 @@
 (ns cljdoc.bundle
   "Functions to operate on cache bundles"
-  (:require [cljdoc.spec]
+  (:require [cljdoc.platforms :as platf]
+            [cljdoc.spec]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.util.scm :as scm]
-            [cljdoc.platforms :as platf]
             [clojure.string :as string]))
 
 (defn ns-entities

@@ -1,7 +1,7 @@
 (ns cljdoc.render.articles
   "HTML fragments related to rendering articles and article-trees"
-  (:require [cljdoc.util.scm :as scm]
-            [cljdoc.server.routes :as routes]
+  (:require [cljdoc.server.routes :as routes]
+            [cljdoc.util.scm :as scm]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]))
 

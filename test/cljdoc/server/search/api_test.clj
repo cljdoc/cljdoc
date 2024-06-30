@@ -1,11 +1,11 @@
 (ns cljdoc.server.search.api-test
-  (:require [cljdoc.server.search.api :as api]
-            [cljdoc.server.clojars-stats :as clojars-stats]
+  (:require [cljdoc.server.clojars-stats :as clojars-stats]
+            [cljdoc.server.search.api :as api]
             [clojure.string :as string]
             [clojure.test :as t]
+            [integrant.core :as ig]
             [matcher-combinators.matchers :as m]
-            [matcher-combinators.test]
-            [integrant.core :as ig])
+            [matcher-combinators.test])
   (:import (org.apache.lucene.store ByteBuffersDirectory)))
 
 (def ^:dynamic *searcher* nil)

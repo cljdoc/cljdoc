@@ -15,17 +15,25 @@
    [clojure.tools.logging :as log])
   (:import
    (java.nio.file Paths)
-   (org.apache.lucene.analysis Analyzer Analyzer$TokenStreamComponents Tokenizer TokenStream)
+   (org.apache.lucene.analysis Analyzer Analyzer$TokenStreamComponents TokenStream Tokenizer)
    (org.apache.lucene.analysis.icu ICUFoldingFilter)
    (org.apache.lucene.analysis.ngram NGramTokenizer)
    (org.apache.lucene.analysis.tokenattributes CharTermAttribute)
-   (org.apache.lucene.search DoubleValuesSource ScoreDoc TopDocs)
-   (org.apache.lucene.search.similarities BM25Similarity)
    (org.apache.lucene.analysis.util CharTokenizer)
-   (org.apache.lucene.document Document DoubleDocValuesField Field FieldType Field$Store StringField TextField)
+   (org.apache.lucene.document Document DoubleDocValuesField Field Field$Store FieldType StringField TextField)
    (org.apache.lucene.index DirectoryReader IndexOptions IndexReader IndexWriter IndexWriterConfig IndexWriterConfig$OpenMode StoredFields Term)
    (org.apache.lucene.queries.function FunctionScoreQuery)
-   (org.apache.lucene.search BooleanQuery$Builder BooleanClause$Occur BoostQuery IndexSearcher MatchAllDocsQuery Query ScoreDoc TermQuery)
+   (org.apache.lucene.search BooleanClause$Occur
+                             BooleanQuery$Builder
+                             BoostQuery
+                             DoubleValuesSource
+                             IndexSearcher
+                             MatchAllDocsQuery
+                             Query
+                             ScoreDoc
+                             TermQuery
+                             TopDocs)
+   (org.apache.lucene.search.similarities BM25Similarity)
    (org.apache.lucene.store Directory FSDirectory)))
 
 (set! *warn-on-reflection* true)

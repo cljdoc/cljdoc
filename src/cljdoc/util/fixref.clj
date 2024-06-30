@@ -2,13 +2,13 @@
   "Utilities to rewrite, or support the rewrite of, references in markdown rendered to HTML.
   For example, external links are rewritten to include nofollow, links to ingested SCM
   articles are rewritten to their slugs, and scm relative references are rewritten to point to SCM."
-  (:require [clojure.tools.logging :as log]
+  (:require [cljdoc.server.routes :as routes]
+            [cljdoc.util.scm :as scm]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [cljdoc.util.scm :as scm]
-            [cljdoc.server.routes :as routes])
+            [clojure.tools.logging :as log])
   (:import (org.jsoup Jsoup)
-           (org.jsoup.nodes Document Element Attributes)))
+           (org.jsoup.nodes Attributes Document Element)))
 
 (set! *warn-on-reflection* true)
 

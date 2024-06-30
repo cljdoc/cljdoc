@@ -1,15 +1,15 @@
 (ns cljdoc.render.layout
   "Components to layout cljdoc pages"
-  (:require [cljdoc.server.routes :as routes]
+  (:require [cljdoc-shared.proj :as proj]
             [cljdoc.config :as config]
             [cljdoc.render.assets :as assets]
             [cljdoc.render.links :as links]
+            [cljdoc.server.routes :as routes]
             [cljdoc.util.scm :as scm]
-            [cljdoc-shared.proj :as proj]
             [clojure.string :as string]
-            [ring.util.codec :as ring-codec]
+            [hiccup.page]
             [hiccup2.core :as hiccup]
-            [hiccup.page]))
+            [ring.util.codec :as ring-codec]))
 
 (defn highlight-js-customization []
   [:script

@@ -1,12 +1,12 @@
 #!/usr/bin/env bb
 
 (ns docker-entrypoint
-  (:require [babashka.tasks :as t]
-            [babashka.fs :as fs]
+  (:require [babashka.fs :as fs]
             [babashka.process :as process]
+            [babashka.tasks :as t]
             [clojure.string :as str])
-  (:import (java.time.format DateTimeFormatter)
-           (java.time ZoneOffset)))
+  (:import (java.time ZoneOffset)
+           (java.time.format DateTimeFormatter)))
 
 (defn preserve-heap-dump [heap-dump-file heap-dump-dir]
   (when (fs/exists? heap-dump-file)

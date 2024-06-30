@@ -21,19 +21,19 @@
   For most of the time this namespace only used raw jdbc functions since queries
   were basic. At some point the need for more complex queries arose [1] and HUGSQL was added
   to the mix."
-  (:require [cljdoc.user-config :as user-config]
-            [cljdoc-shared.proj :as proj]
+  (:require [cljdoc-shared.proj :as proj]
+            [cljdoc.user-config :as user-config]
             [clojure.set :as cset]
-            [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql]
-            [next.jdbc.result-set :as rs]
+            [clojure.string :as string]
             [clojure.tools.logging :as log]
+            [hugsql.adapter.next-jdbc :as adapter]
+            [hugsql.core :as hugsql]
+            [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs]
+            [next.jdbc.sql :as sql]
             [taoensso.nippy :as nippy]
             [taoensso.tufte :as tufte :refer [defnp]]
-            [version-clj.core :as version-clj]
-            [hugsql.core :as hugsql]
-            [hugsql.adapter.next-jdbc :as adapter]
-            [clojure.string :as string])
+            [version-clj.core :as version-clj])
   (:import (org.sqlite SQLiteException)))
 
 ;; keep our linter happy by declaring hugsql imported functions

@@ -1,20 +1,20 @@
 (ns ^:slow cljdoc.integration-test
   (:require [babashka.fs :as fs]
             [cheshire.core :as json]
-            [cljdoc.server.system :as sys]
             [cljdoc.server.search.clojars :as clojars]
-            [io.pedestal.test :as pdt]
-            [integrant.core :as ig]
-            [ring.util.codec :as codec]
+            [cljdoc.server.system :as sys]
             [clojure.edn :as edn]
             [clojure.spec.test.alpha :as st]
-            [clojure.test :as t]
             [clojure.string :as string]
+            [clojure.test :as t]
+            [integrant.core :as ig]
+            [io.pedestal.test :as pdt]
+            [matcher-combinators.matchers :as m]
             [matcher-combinators.test]
-            [matcher-combinators.matchers :as m])
-  (:import [org.jsoup Jsoup]
-           [java.io RandomAccessFile ByteArrayOutputStream ByteArrayInputStream]
-           [java.util.zip ZipInputStream]))
+            [ring.util.codec :as codec])
+  (:import [java.io ByteArrayInputStream ByteArrayOutputStream RandomAccessFile]
+           [java.util.zip ZipInputStream]
+           [org.jsoup Jsoup]))
 
 (def ^:dynamic *service* nil)
 

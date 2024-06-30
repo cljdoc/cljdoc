@@ -1,8 +1,8 @@
 (ns cljdoc.render.code-fmt-test
   (:require
-   [clojure.test :refer [deftest is]]
    [cljdoc.render.code-fmt :as subject]
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [clojure.test :refer [deftest is]]))
 
 (deftest snippet-blanks
   (is (= "" (subject/snippet nil)))

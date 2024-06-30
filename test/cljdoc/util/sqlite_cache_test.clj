@@ -1,8 +1,8 @@
 (ns cljdoc.util.sqlite-cache-test
-  (:require [clojure.test :as t]
-            [clojure.java.io :as io]
+  (:require [cljdoc.util.sqlite-cache :as c]
             [clojure.core.memoize :as memo]
-            [cljdoc.util.sqlite-cache :as c])
+            [clojure.java.io :as io]
+            [clojure.test :as t])
   (:import [clojure.lang ExceptionInfo]
            [java.time Instant]))
 

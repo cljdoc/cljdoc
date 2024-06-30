@@ -1,16 +1,16 @@
 (ns cljdoc.cli
   (:require [cli-matic.core :as cli-matic]
+            [cljdoc.config :as config]
+            [cljdoc.render.offline :as offline]
+            [cljdoc.server.api :as api]
+            [cljdoc.server.pedestal :as pedestal]
+            [cljdoc.server.system :as system]
+            [cljdoc.storage.api :as storage]
+            [cljdoc.util.repositories :as repositories]
             [clojure.java.io :as io]
             [clojure.set :as cset]
             [clojure.tools.logging :as log]
-            [integrant.core :as ig]
-            [cljdoc.config :as config]
-            [cljdoc.render.offline :as offline]
-            [cljdoc.server.system :as system]
-            [cljdoc.server.pedestal :as pedestal]
-            [cljdoc.server.api :as api]
-            [cljdoc.storage.api :as storage]
-            [cljdoc.util.repositories :as repositories]))
+            [integrant.core :as ig]))
 
 (defn build [{:keys [project version jar pom git rev] :as args}]
   (let [sys        (select-keys (system/system-config (config/config))

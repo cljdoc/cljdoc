@@ -1,7 +1,7 @@
 (ns cljdoc.util.scm
   "Utilities to extract information from SCM urls (GitHub et al)"
-  (:require [clojure.string :as string]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
+            [clojure.string :as string]
             [lambdaisland.uri :as uri]))
 
 (defn owner [scm-url]

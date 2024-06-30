@@ -1,11 +1,11 @@
 (ns build
   (:require
-   [build-shared :as bs]
    [babashka.fs :as fs]
    [babashka.process :as process]
+   [build-shared :as bs]
+   [clj-kondo.core :as kondo]
    [clojure.edn :as edn]
-   [clojure.tools.build.api :as b]
-   [clj-kondo.core :as kondo]))
+   [clojure.tools.build.api :as b]))
 
 (def basis (b/create-basis {:project "deps.edn"}))
 

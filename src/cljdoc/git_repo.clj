@@ -1,26 +1,17 @@
 (ns cljdoc.git-repo
-  (:require [clojure.java.io :as io]
-            [clojure.tools.logging :as log]
-            [clojure.string :as string]
+  (:require [clj-commons.digest :as digest]
+            [clojure.java.io :as io]
             [clojure.spec.alpha :as s]
-            [clj-commons.digest :as digest])
+            [clojure.string :as string]
+            [clojure.tools.logging :as log])
   (:import  (com.jcraft.jsch Session)
-            (org.eclipse.jgit.lib RepositoryBuilder
-                                  ObjectId
-                                  ObjectIdRef$PeeledNonTag
-                                  ObjectIdRef$PeeledTag
-                                  ObjectLoader
-                                  FileMode
-                                  Repository
-                                  Ref)
-            (org.eclipse.jgit.revwalk RevWalk RevTree RevCommit)
+            (org.eclipse.jgit.api Git LsRemoteCommand TransportConfigCallback)
+            (org.eclipse.jgit.lib FileMode ObjectId ObjectIdRef$PeeledNonTag ObjectIdRef$PeeledTag ObjectLoader Ref Repository RepositoryBuilder)
+            (org.eclipse.jgit.revwalk RevCommit RevTree RevWalk)
+            (org.eclipse.jgit.transport RemoteConfig SshTransport URIish)
+            (org.eclipse.jgit.transport.ssh.jsch JschConfigSessionFactory)
             (org.eclipse.jgit.treewalk TreeWalk)
-            (org.eclipse.jgit.treewalk.filter PathFilter
-                                              AndTreeFilter
-                                              TreeFilter)
-            (org.eclipse.jgit.api Git TransportConfigCallback LsRemoteCommand)
-            (org.eclipse.jgit.transport SshTransport RemoteConfig URIish)
-            (org.eclipse.jgit.transport.ssh.jsch JschConfigSessionFactory)))
+            (org.eclipse.jgit.treewalk.filter AndTreeFilter PathFilter TreeFilter)))
 
 (set! *warn-on-reflection* true)
 

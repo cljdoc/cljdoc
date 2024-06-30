@@ -4,8 +4,8 @@
             [cljdoc.render.rich-text :as rt]
             [cljdoc.server.routes :as routes]
             [cljdoc.spec]
-            [clojure.walk :as walk]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.walk :as walk])
   (:import (org.jsoup Jsoup)
            (org.jsoup.nodes Element TextNode)))
 

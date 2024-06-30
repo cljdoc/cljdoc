@@ -1,7 +1,7 @@
 (ns cljdoc.server.routes-test
-  (:require [io.pedestal.http.route :refer [expand-routes try-routing-for]]
-            [cljdoc.server.routes :as routes]
-            [clojure.test :as t]))
+  (:require [cljdoc.server.routes :as routes]
+            [clojure.test :as t]
+            [io.pedestal.http.route :refer [expand-routes try-routing-for]]))
 
 (t/deftest badge-for-project-test
   (let [table (-> (routes/utility-routes)

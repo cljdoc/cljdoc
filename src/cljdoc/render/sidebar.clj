@@ -1,13 +1,13 @@
 (ns cljdoc.render.sidebar
-  (:require [cljdoc.doc-tree :as doctree]
-            [cljdoc.server.routes :as routes]
-            [cljdoc.server.build-log :as build-log]
+  (:require [cljdoc.bundle :as bundle]
+            [cljdoc.doc-tree :as doctree]
+            [cljdoc.render.api :as api]
+            [cljdoc.render.articles :as articles]
             [cljdoc.render.layout :as layout]
             [cljdoc.render.links :as links]
-            [cljdoc.render.articles :as articles]
             [cljdoc.render.searchset-search :as searchset-search]
-            [cljdoc.render.api :as api]
-            [cljdoc.bundle :as bundle]))
+            [cljdoc.server.build-log :as build-log]
+            [cljdoc.server.routes :as routes]))
 
 (defn current-release-notice [{:keys [version] :as version-map}]
   [:a.db.link.bg-washed-yellow.pa2.f7.mb3.dark-gray.lh-title

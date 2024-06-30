@@ -1,13 +1,13 @@
 (ns cljdoc.render.api
   "Functions related to rendering API documenation"
-  (:require [cljdoc.render.rich-text :as rich-text]
+  (:require [cljdoc.bundle :as bundle]
+            [cljdoc.platforms :as platf]
             [cljdoc.render.code-fmt :as code-fmt]
+            [cljdoc.render.rich-text :as rich-text]
+            [cljdoc.server.routes :as routes]
+            [cljdoc.spec]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.util.ns-tree :as ns-tree]
-            [cljdoc.bundle :as bundle]
-            [cljdoc.platforms :as platf]
-            [cljdoc.spec]
-            [cljdoc.server.routes :as routes]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]))
 

@@ -1,8 +1,8 @@
 (ns cljdoc.analysis.git-test
   (:require [cljdoc.analysis.git :as git-ana]
             [clojure.test :as t]
-            [matcher-combinators.test]
-            [matcher-combinators.matchers :as m]))
+            [matcher-combinators.matchers :as m]
+            [matcher-combinators.test]))
 
 (t/deftest ^:slow version-tag-test
   (t/is (match?
