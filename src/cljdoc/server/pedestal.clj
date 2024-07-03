@@ -37,22 +37,18 @@
             [cljdoc.util.sentry :as sentry]
             [clojure.core.memoize :as memoize]
             [clojure.java.io :as io]
-            [clojure.stacktrace :as stacktrace]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]
-            [io.pedestal.http.impl.servlet-interceptor :as servlet-interceptor]
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
             [io.pedestal.interceptor :as interceptor]
-            [io.pedestal.log :as plog]
             [lambdaisland.uri.normalize :as normalize]
             [net.cgrand.enlive-html :as en]
             [ring.util.codec :as ring-codec])
-  (:import (java.io IOException)
-           (java.net URLDecoder)
+  (:import (java.net URLDecoder)
            (java.util Date)))
 
 (def render-interceptor
@@ -664,54 +660,29 @@
                               (last-build-loader build-tracker)])
        (assoc route :interceptors)))
 
-;; Hack for filtering out verbose broken pipe error logging.
-;; This is just someone clicking x and then y before x is fully deliverd.
-;; Credits to tonksy: https://tonsky.me/blog/pedestal/#running-the-app
-;; Replace with something more proper when the following is addressed:
-;; https://github.com/pedestal/pedestal/issues/623
-(defn quieter-error-stylobate [{:keys [servlet-response] :as context} exception]
-  (let [cause (stacktrace/root-cause exception)]
-    (if (and (instance? IOException cause)
-             (= "Broken pipe" (ex-message cause)))
-      (log/info "broken pipe")
-      (plog/error
-       :msg "error-stylobate triggered"
-       :exception exception
-       :context context))
-    (@#'servlet-interceptor/leave-stylobate context)))
-
-; io.pedestal.http.impl.servlet-interceptor/stylobate
-(def quieter-stylobate
-  (interceptor/interceptor
-   {:name ::stylobate
-    :enter @#'servlet-interceptor/enter-stylobate
-    :leave @#'servlet-interceptor/leave-stylobate
-    :error quieter-error-stylobate}))
-
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
   (log/infof "Starting pedestal on %s:%s" (:host opts) (:port opts))
-  (with-redefs [servlet-interceptor/stylobate quieter-stylobate]
-    (-> {::http/routes (routes/routes (partial route-resolver opts) {})
-         ::http/type   :jetty
-         ::http/join?  false
-         ::http/port   (:port opts)
-         ::http/host   (:host opts)
-         ;; TODO look into this some more:
-         ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
-         ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-         ::http/resource-path "public/out"
-         ::http/not-found-interceptor not-found-interceptor
-         ::http/path-params-decoder nil}
-        http/default-interceptors
-        (update ::http/interceptors #(into [sentry/interceptor
-                                            static-resource-interceptor
-                                            redirect-trailing-slash-interceptor
-                                            (ring-middlewares/not-modified)
-                                            etag-interceptor
-                                            cache-control-interceptor]
-                                           %))
-        (http/create-server)
-        (http/start))))
+  (-> {::http/routes (routes/routes (partial route-resolver opts) {})
+       ::http/type   :jetty
+       ::http/join?  false
+       ::http/port   (:port opts)
+       ::http/host   (:host opts)
+       ;; TODO look into this some more:
+       ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
+       ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
+       ::http/resource-path "public/out"
+       ::http/not-found-interceptor not-found-interceptor
+       ::http/path-params-decoder nil}
+      http/default-interceptors
+      (update ::http/interceptors #(into [sentry/interceptor
+                                          static-resource-interceptor
+                                          redirect-trailing-slash-interceptor
+                                          (ring-middlewares/not-modified)
+                                          etag-interceptor
+                                          cache-control-interceptor]
+                                         %))
+      (http/create-server)
+      (http/start)))
 
 (defmethod ig/halt-key! :cljdoc/pedestal [_ server]
   (clear-static-resource-map-cache!)
