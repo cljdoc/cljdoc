@@ -664,9 +664,9 @@
        (assoc route :interceptors)))
 
 (defn- is-broken-pipe? [exception]
-   (let [cause (stacktrace/root-cause exception)]
-     (and (instance? IOException cause)
-          (= "Broken pipe" (ex-message cause)))))
+  (let [cause (stacktrace/root-cause exception)]
+    (and (instance? IOException cause)
+         (= "Broken pipe" (ex-message cause)))))
 
 (defn exception-analyzer [_ctx exception]
   (when-not (is-broken-pipe? exception)
