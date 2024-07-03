@@ -458,9 +458,10 @@
 (def etag-interceptor
   (interceptor/interceptor
    {:name ::etag
-    :leave (ring-middlewares/response-fn-adapter
-            (fn [request _opts]
-              (etag/add-file-etag request false)))}))
+    :leave (fn [{:keys [response] :as ctx}]
+             (if-not response
+               ctx
+               (assoc ctx :response (etag/add-file-etag response false))))}))
 
 (def cache-control-interceptor
   (interceptor/interceptor
