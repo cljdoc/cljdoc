@@ -128,4 +128,12 @@
    :task doc-update-readme/-main}
   check-contributors
   {:doc "who'd we miss?"
-   :task check-contributors/-main}}}
+   :task check-contributors/-main}
+  nvd-scan
+  {:doc "Scan Clojure deps for vulnerabilities"
+   :task (let [cp (with-out-str (clojure "-Spath -M:cli"))]
+           ;; nvd-clojure docs have a strong opinion that nvd-scan should be run from it own dir
+           (clojure {:dir "./modules/nvd-scan"}
+                    "-J-Dclojure.main.report=stderr -M -m nvd.task.check"
+                    "./nvd-config.edn"
+                    cp))}}}

@@ -190,7 +190,7 @@ You must specify a NVD database token, get yours here: https://nvd.nist.gov/deve
 Example usage from cljdoc root:
 [source,shell]
 ----
-NVD_API_TOKEN=your-token-here ops/nvd-check.sh
+NVD_API_TOKEN=your-token-here bb nvd-scan
 ----
 Replace `your-token-here` with your actual token.
 

@@ -1,0 +1,7 @@
+{:deps {nvd-clojure/nvd-clojure
+        ;; it is generally considered bad practice to use RELEASE, but we always want the latest
+        ;; security tooling
+        #_:clj-kondo/ignore
+        {:mvn/version "RELEASE"}
+        ;; temporarily try bumping transitive dep to current release
+        org.owasp/dependency-check-core {:mvn/version "10.0.1"}}}
