@@ -30,7 +30,6 @@
          (layout/page {:title (str (proj/clojars-id version-entity) " " (:version version-entity))
                        :og-img-data {:id "4j9ovv5ojagy8ik"
                                      :page-title (:description pom)
-                                     :project-version (:version version-entity)
                                      :project-name (proj/clojars-id version-entity)}
                        :description (layout/artifact-description version-entity (:description pom))
                        :static-resources static-resources}))))
@@ -91,7 +90,6 @@
                                      :page-title (if default-doc?
                                                    (:description pom)
                                                    (:title doc-p))
-                                     :project-version (:version version-entity)
                                      :project-name (proj/clojars-id version-entity)}
                        :description (layout/artifact-description version-entity (:description pom))
                        :page-features (when doc-type (rich-text/determine-features [doc-type contents]))
@@ -141,7 +139,6 @@
                        :og-img-data {:id "4j9ovv5ojagy8ik"
                                      :page-title (str "(ns " (:namespace ns-emap) ")")
                                      :subtitle (when ns-data (platf/get-field ns-data :doc))
-                                     :project-version (:version version-entity)
                                      :project-name (proj/clojars-id version-entity)}
 
                        :canonical-url (some->> (bundle/more-recent-version cache-bundle)
