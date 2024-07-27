@@ -46,7 +46,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-RC3"}             ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.17.2"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.18.1"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
@@ -57,7 +57,7 @@
         org.clojure/tools.logging {:mvn/version "1.3.0"}     ;; logging facade
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "7.10.0"}      ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "7.12.1"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; reaching out to other services
@@ -78,7 +78,7 @@
         version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
         zprint/zprint {:mvn/version "1.2.9"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.16.1"}
+        metosin/malli {:mvn/version "0.16.2"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -93,7 +93,7 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.4"}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.5"}
                    clj-kondo/clj-kondo {:mvn/version "2024.05.24"}
                    babashka/fs {:mvn/version "0.5.21"}
                    babashka/process {:mvn/version "0.5.22"}}
@@ -104,7 +104,7 @@
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
-           {:extra-deps {jonase/eastwood {:mvn/version "1.4.2"}}
+           {:extra-deps {jonase/eastwood {:mvn/version "1.4.3"}}
             :main-opts ["-m" "eastwood.lint" {:source-paths ["src"]
                                               :test-paths ["test"]}]}
            :cli
@@ -117,7 +117,7 @@
             :main-opts [ "-m" "cljfmt.main"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.8.1201"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.8.1206"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.13"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--ignore-locals"]}}}

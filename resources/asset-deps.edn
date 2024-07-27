@@ -78,7 +78,7 @@
                  "jax/output/PreviewHTML/jax.js"]}}
  :highlightjs
  {:npm-name "highlight.js"
-  :version "11.9.0"
+  :version "11.10.0"
   :js {:root "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@{{:version}}/build/"
        :assets ["highlight.min.js"
                 "languages/clojure.min.js"
