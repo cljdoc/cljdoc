@@ -6,13 +6,16 @@
 (def tagline
   "is a website building & hosting documentation for Clojure/Script libraries")
 
-(defn footer []
+(defn footer [context]
   [:div.b--light-gray.pa4.tc.f4.fw3
    [:p "cljdoc is created and maintained by its " [:a.link.blue {:href (links/github-url :contributors)} "contributors"] "."]
    [:p "Say hi in " [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "#cljdoc"] " on " [:a.link.blue {:href "http://clojurians.net/"} "Slack"]
     ". Report issues on " [:a.link.blue {:href (links/github-url :home)} "GitHub"]
     ". Check out " [:a.link.blue {:href "https://clojure.org/community/resources"} "other Clojure resources"] "."]
-   [:p "Support cljdoc on " [:a.link.blue {:href "https://opencollective.com/cljdoc"} "OpenCollective"] "."]])
+   [:p "Support cljdoc on " [:a.link.blue {:href "https://opencollective.com/cljdoc"} "OpenCollective"] "."]
+   [:p "Generously powered by " [:a.link.blue {:href "https://exoscale.com"}
+                                 [:img.v-mid.w4.mb1 {:src (get (:static-resources context) "/exoscale.svg")
+                                                     :alt "Exoscale"}]]]])
 
 (defn feature-block [{:keys [title text link link-text]}]
   [:div.dtc-l.br.b--light-gray.pa4
@@ -103,7 +106,7 @@
            [:img.dtc.v-mid.mr3 {:src "https://microicon-clone.vercel.app/github/38"}]
            [:span.dtc.v-mid.f3 "cljdoc/cljdoc"]]]]
 
-        (footer)]
+        (footer context)]
        (layout/page {:title "cljdoc — documentation for Clojure/Script libraries"
                      :og-img-data {:id "wut3pyewypqpsvo"
                                    :page-title "Documentation Hosting for the Clojure/Script ecosystem"}
