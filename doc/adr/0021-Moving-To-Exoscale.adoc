@@ -1,0 +1,159 @@
+= Moving to Exocale
+
+Date: 2024-08-28
+
+== Status
+
+Exploring & Learning
+
+== Context
+
+=== Background
+Cljdoc has been using a DigitalOcean droplet, AWS Route 53, AWS S3 for some time.
+
+This comes with the following characteristics:
+
+1. Only Martin can carry out host-level ops, these are all personal accounts
+2. There is reasonable costs associated with these services
+3. While we are good with keeping up with docker level updates, our host-level ops is in neglect
+
+A while back, Exoscale generously offered to cover hosting of cljdoc.
+We recently asked them if they were still willing and they answered in the affirmative.
+
+Moving to Exoscale will:
+
+1. Allow Lee to become more familiar with and help out with host-level ops
+2. Move hosting costs to Exoscale, which one less thing for us to worry about.
+3. As a team of 2, we have more of a fighting chance to keep our host-level ops in order.
+
+== Exoscale Services
+Exoscale has a rich set of services.
+Our current architecture maps like so:
+
+* DigitalOcean Droplet -> Exoscale Compute Standard Medium (with 50gb storage)
+* AWS Route 53 -> Exoscale DNS
+* AWS S3 -> Exoscale Object Store
+
+Exoscale also has other services, like SKS (Kubernetes) DBAAS (PostgreSQL, MySQL, etc), Block Storage, Elastic IPs, and so on.
+
+== Cljdoc Architecture at Exoscale
+Cljdoc's current architecture is optimized to minimize financial cost.
+It runs on a single DigitalOcean Droplet and uses a local SQLite database.
+This has some cons:
+
+1. Updating the host server is difficult.
+We have automatic blue/green deployment but at the docker level.
+If blue/green were at the host level, we'd have a much easier time keeping our host up to date.
+2. The SQLite database is awesome in that it is local and fast.
+But it being local, means upgrading the host requires some careful thought.
+3. We use tools like traefik, nomad and consul to manage blue/green deployments.
+Keeping these tools up to date has a maintenance cost.
+
+It is tempting to chuck our current architecture when moving to Exoscale, but that requires more thought and more time, and delays us moving to Exoscale.
+So we'll, withing reason keep our current archecture to start with.
+
+== Progress
+
+- [done] Fire up a Compute instance manually at Exoscale, ssh in and poke around.
+- [done] Setup 2fa at Exoscale
+- [done] Install, and try out, `exo` command line tool
+
+== Finer Questions
+
+=== Terraform
+We'll continue to use terraform to declare and provision cloud services.
+Exoscale has support for terraform: https://registry.terraform.io/providers/exoscale/exoscale/latest/docs
+
+TODO: Because we want to be an ops team I'd like to somehow share terraform state.
+Terraform state is sensitive, so we'd need to share it securely.
+I'll have to look into this.
+
+=== Access
+Exoscale supports ssh access to the host.
+Although we don't want to make changes to the host directly, it can be convenient to poke around.
+
+TODO: Ensure both Martin and I have access.
+TODO: Once I get something basic going invite Martin to the cljdoc org at  Exoscale.
+
+=== Database Backups
+I don't remember a time when the cljdoc DigitalOcean droplet has failed us.
+It just keeps chugging along.
+
+But hardware does fail and instances do go poof.
+This might be more of a normal occurence at Exoscale, we don't know yet.
+
+To compensate we should do what we should have been doing all along over at Digital Ocean.
+We should be automatically periodically backing up our SQLite database.
+
+In theory, the SQLite database can be wholly reconstituted by rebuilding docs.
+But this represents a lot of compute time over at CircleCI so we'd rather save the hard work CircleCI has done for cljoc.
+
+Our db backup is about 1gb and we want to be respectful of Exoscale resources, we don't need to keep all backups.
+A daily backup should be sufficient with backup strategy of:
+* 7 daily
+* 4 weekly
+* 12 monthly
+* 2 annually
+
+Our Lucene full-text database is quickly reconstituted from clojars at startup time, so no need to save a backup of it.
+
+=== Packer or Cloud Init?
+We currently use packer to build our host image.
+
+Exoscale offers a nice selection pre-built image templates.
+I've explored using a Debian pre-built template, then adding what docker, nomad and consul, etc via cloud init.
+
+I've successfuly done this, but given the cloud init docs are on the less coherent side, it took me quite a while to figure out.
+And while cloud init works, the updates are applied after the image boots.
+So there will be some necessary waiting until cloud init completes.
+
+My feeling is that cloud init might have its place for light config, but packer is the better choice for installing requisite packages.
+
+TODO: Exoscale's builtin image templates seem to provision very quickly and complety up to date.
+How does Packer compare here?
+
+== Thoughts & Notes from Experiments
+
+=== Cloud Init is Tough to Test
+I started off testing by launching Compute instances at Exoscale, but that was becoming painful.
+
+I landed on testing with lxd.
+
+Installation: https://support.system76.com/articles/containers/
+(missing cmd: newgrp lxd).
+
+Initial setup (rerun after delete):
+[source,shell]
+----
+lxc launch images:debian/12 debian12
+----
+
+Other useful commands
+[source,shell]
+----
+lxc stop debian12
+lxc delete debian12
+lxc restart debian12
+----
+
+The base debian is missing cloud init so we have to install it first
+[source,shell]
+----
+lxc exec debian12 -- apt update
+lxc exec debian12 -- apt install cloud-init
+----
+
+And then feed our cloud init config, then restart for it to take effect:
+[source,shell]
+----
+lxc config set debian12 user.user-data - < cloud-config.yaml
+lxc restart debian12
+----
+
+Useful cmds to snoop around:
+[source,shell]
+----
+lxc exec debian12 -- cat /var/log/cloud-init.log
+lxc exec debian12 -- cat /var/log/cloud-init-output.log
+lxc exec debian12 -- /bin/bash
+----
