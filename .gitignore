@@ -3,8 +3,8 @@ target/
 docker/docker-target
 log/
 data/
-ops/infrastructure/.terraform
-ops/infrastructure/terraform.tfstate*
+.terraform
+terraform.tfstate*
 ops/image/image-id
 ops/image/nomad-image-id
 ops/prod-backup/
