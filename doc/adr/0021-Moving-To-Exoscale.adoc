@@ -54,9 +54,14 @@ So we'll, withing reason keep our current archecture to start with.
 
 == Progress
 
-- [done] Fire up a Compute instance manually at Exoscale, ssh in and poke around.
+- [done] Fire up a Compute instance (debian 12) manually at Exoscale, ssh in and poke around.
 - [done] Setup 2fa at Exoscale
 - [done] Install, and try out, `exo` command line tool
+- Explore terraform
+  - [done] Bring up Compute instance
+  - [done] Try defining ssh keys
+  - Bring up Object Store
+  - Bring up DNS (how can I experiment here? cljdoc.xyz?)
 
 == Finer Questions
 
@@ -109,6 +114,8 @@ So there will be some necessary waiting until cloud init completes.
 
 My feeling is that cloud init might have its place for light config, but packer is the better choice for installing requisite packages.
 
+TODO: Verify Exoscale makes image available before cloud-init complete.
+
 TODO: Exoscale's builtin image templates seem to provision very quickly and complety up to date.
 How does Packer compare here?
 
@@ -117,7 +124,7 @@ How does Packer compare here?
 === Cloud Init is Tough to Test
 I started off testing by launching Compute instances at Exoscale, but that was becoming painful.
 
-I landed on testing with lxd.
+I landed on testing locally with lxd.
 
 Installation: https://support.system76.com/articles/containers/
 (missing cmd: newgrp lxd).
@@ -157,3 +164,8 @@ lxc exec debian12 -- cat /var/log/cloud-init.log
 lxc exec debian12 -- cat /var/log/cloud-init-output.log
 lxc exec debian12 -- /bin/bash
 ----
+
+Useful cloud-init cmds:
+
+* `cloud-init status` - Reports `status: done` when complete
+* `cloud-init status --wait` - Waits for cloud-init to complete all tasks then reports status
