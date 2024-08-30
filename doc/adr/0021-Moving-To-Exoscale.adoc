@@ -69,9 +69,29 @@ So we'll, withing reason keep our current archecture to start with.
 We'll continue to use terraform to declare and provision cloud services.
 Exoscale has support for terraform: https://registry.terraform.io/providers/exoscale/exoscale/latest/docs
 
-TODO: Because we want to be an ops team I'd like to somehow share terraform state.
+Because we want to be an ops team I'd like to somehow share terraform state.
 Terraform state is sensitive, so we'd need to share it securely.
-I'll have to look into this.
+And we'd like to avoid the possibility of concurrent updates.
+
+Terraform supports saving state to s3 via `backend` config.
+https://developer.hashicorp.com/terraform/language/settings/backends/s3
+Clojars makes use of this feature:
+https://github.com/clojars/infrastructure/blob/6cf9c100e38408016cd979f1611602523766200e/terraform/main.tf#L6-L11
+
+Exoscale includes an example of doing this.
+https://github.com/exoscale/terraform-provider-exoscale/blob/aef50d3f097648d405bcca1a46c8a99959f94706/examples/sos-backend/providers.tf
+
+When using s3, locking is currently optionally supported via dynamoDB,
+We don't have dynamoDB at Exoscale, so that's a nogo.
+But there is some recent investigation into supporting locking via new s3 conditional writes.
+See: https://github.com/hashicorp/terraform/issues/35625
+
+Terraform s3 backend also optionally supports encryption for data at rest.
+https://developer.hashicorp.com/terraform/language/settings/backends/s3#encrypt
+But.. I think this might be via s3 encryption.
+https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.html
+Which might not be currenty available for Exoscale Oject Store.
+https://community.exoscale.com/documentation/storage/encryption/#encryption-at-rest
 
 === Access
 Exoscale supports ssh access to the host.
@@ -94,7 +114,7 @@ In theory, the SQLite database can be wholly reconstituted by rebuilding docs.
 But this represents a lot of compute time over at CircleCI so we'd rather save the hard work CircleCI has done for cljoc.
 
 Our db backup is about 1gb and we want to be respectful of Exoscale resources, we don't need to keep all backups.
-A daily backup should be sufficient with backup strategy of:
+A daily backup should be sufficient with backup retention strategy of:
 * 7 daily
 * 4 weekly
 * 12 monthly
@@ -118,6 +138,38 @@ TODO: Verify Exoscale makes image available before cloud-init complete.
 
 TODO: Exoscale's builtin image templates seem to provision very quickly and complety up to date.
 How does Packer compare here?
+
+=== Nomad & Consul Initial Config
+Cljdoc's DigitalOcean Packer config installed
+
+- `/ect/nomad/server.hcl`
+- `/etc/systemd/system/nomad.service`
+- `/etc/systemd/system/consul.service`
+
+I don't know if these were overriding existing default configs or providing a config where non existed.
+There were changes some of these files, so I assume those changes will need to be included/replicated.
+Will have to review against current versions of nomad and consul.
+
+=== Pinning Packages
+Historically hashicorp seems to have had no qualms about introducing breaking changes.
+
+So rather than installing the latest, we probably want to install and pin `nomad` and `consul` versions.
+
+For docker, maybe just pin to current major.
+
+=== Deploying from CircleCI
+I see that we deploy to `NOMAD_IP`, is this different from cljdoc.org?
+This implies we have a static IP setup at DigitalOcean?
+
+=== Critical Updates
+Sometimes vulnerabilities are discovered.
+How to address?
+
+=== Firewall
+Exoscale has firewall support via security groups.
+
+I see that our DigitalOcean droplet also setup firewalld.
+I'll look into both of these.
 
 == Thoughts & Notes from Experiments
 
