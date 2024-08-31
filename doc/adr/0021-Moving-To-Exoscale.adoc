@@ -139,6 +139,36 @@ TODO: Verify Exoscale makes image available before cloud-init complete.
 TODO: Exoscale's builtin image templates seem to provision very quickly and complety up to date.
 How does Packer compare here?
 
+=== Deployment
+See `modules/deploy` for the details.
+
+On deploy:
+- ensure docker hub has cljdoc docker image for this release
+- use ssh port forwarding to cljdoc host server
+- sync config via consul API
+  - traefik config `config/traefik-toml`
+  - cljdoc secrets `config/cljdoc/secrets-edn`
+- post our jobspec to nomad API
+  - lb (gets is config from consul)
+  - cljdoc (with docker tag of release) (gets secrets from consul)
+- wait until new cljdoc deployment is healthy (via nomad)
+- promote new deployment via nomad
+  - canary becomes cljdoc
+  - and old cljdoc retired
+
+=== Traefik
+We'll continue to use traefik as our internal load balancer to support blue/green deployments.
+Traefik is currently at v3.1.2, we are bit behind.
+
+Traefik is run from a docker image (known to nomad as `lb`).
+
+What is traefik's role?:
+- redirects cljdoc.xyz to cljdoc.org
+- SSL certs via Let's Encrypt? (configured under `acme`)
+- directs traffic to consul discovered cljdoc
+
+Reminder: traefik logs exhausted all disk space over at DigitalOcean and caused nomad corruption; we probably want to implement traefik log rotation and deletion. Maybe save 2 weeks of logs?
+
 === Nomad & Consul Initial Config
 Cljdoc's DigitalOcean Packer config installed
 
@@ -150,6 +180,40 @@ I don't know if these were overriding existing default configs or providing a co
 There were changes some of these files, so I assume those changes will need to be included/replicated.
 Will have to review against current versions of nomad and consul.
 
+I'm noticing that config on the actual server has somehow drifted from what we have in terraform.
+Actual config `etc/nomad/server/hcl`:
+
+[source,hcl]
+---
+data_dir = "/etc/nomad.d"
+
+server {
+  enabled          = true
+  bootstrap_expect = 1
+}
+
+client {
+  enabled = true
+}
+
+plugin "docker" {
+  config {
+    volumes {
+      enabled      = true
+      selinuxlabel = "z"
+    }
+  }
+}
+----
+
+=== Zip Release Artifacts
+The release workflow creates a zip file from which it then creates a docker image which it then uploads to docker hub.
+
+Each release uploads the zip file to s3.
+I'm not entirely sure of the value of this.
+I does keep a record of what actually built the cljdoc docker image with.
+I suppose we could carry on with this.
+
 === Pinning Packages
 Historically hashicorp seems to have had no qualms about introducing breaking changes.
 
@@ -157,9 +221,17 @@ So rather than installing the latest, we probably want to install and pin `nomad
 
 For docker, maybe just pin to current major.
 
+It might be interesting at some future date to look into NixOS.
+
 === Deploying from CircleCI
-I see that we deploy to `NOMAD_IP`, is this different from cljdoc.org?
-This implies we have a static IP setup at DigitalOcean?
+I see that we deploy to `NOMAD_IP`, I don't think this would resolve to something different than cljdoc.org.
+This implies we have a static IP setup at DigitalOcean.
+
+We can setup a static IP on Exoscale via Elastic IPs.
+https://community.exoscale.com/documentation/compute/eip/
+
+If we define our static IP via terraform, we'll have to remember that if we `destroy` this aspect of our setup, we'll also be destroying static IP.
+I'm not sure how this is expressed in the current terraform config; if it is.
 
 === Critical Updates
 Sometimes vulnerabilities are discovered.
