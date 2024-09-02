@@ -13,18 +13,18 @@ Cljdoc has been using a DigitalOcean droplet, AWS Route 53, AWS S3 for some time
 
 This comes with the following characteristics:
 
-1. Only Martin can carry out host-level ops, these are all personal accounts
+1. Only Martin can carry out host-level ops, these are all on personal accounts
 2. There is reasonable costs associated with these services
 3. While we are good with keeping up with docker level updates, our host-level ops is in neglect
 
 A while back, Exoscale generously offered to cover hosting of cljdoc.
-We recently asked them if they were still willing and they answered in the affirmative.
+I recently asked them if they were still willing and, good news for us, they answered in the affirmative.
 
 Moving to Exoscale will:
 
 1. Allow Lee to become more familiar with and help out with host-level ops
-2. Move hosting costs to Exoscale, which one less thing for us to worry about.
-3. As a team of 2, we have more of a fighting chance to keep our host-level ops in order.
+2. Move hosting costs to Exoscale, which means one less thing for us to worry about.
+3. As a team of 2, we have more of a fighting chance to keep our host-level ops in order
 
 == Exoscale Services
 Exoscale has a rich set of services.
@@ -50,7 +50,7 @@ But it being local, means upgrading the host requires some careful thought.
 Keeping these tools up to date has a maintenance cost.
 
 It is tempting to chuck our current architecture when moving to Exoscale, but that requires more thought and more time, and delays us moving to Exoscale.
-So we'll, withing reason keep our current archecture to start with.
+So we'll, within reason, keep our current archecture to start with.
 
 == Progress
 
@@ -61,7 +61,8 @@ So we'll, withing reason keep our current archecture to start with.
   - [done] Bring up Compute instance
   - [done] Try defining ssh keys
   - Bring up Object Store
-  - Bring up DNS (how can I experiment here? cljdoc.xyz?)
+  - Bring up DNS (how can I experiment here? cljdoc.xyz? buy a cheap domain?)
+  - Figure out how to setup a static IP
 
 == Finer Questions
 
