@@ -24,7 +24,7 @@ Moving to Exoscale will:
 
 1. Allow Lee to become more familiar with and help out with host-level ops
 2. Move hosting costs to Exoscale, which means one less thing for us to worry about.
-3. As a team of 2, we have more of a fighting chance to keep our host-level ops in order
+3. As a team of two, we have more of a fighting chance to keep our host-level ops in order
 
 == Exoscale Services
 Exoscale has a rich set of services.
@@ -54,16 +54,17 @@ So we'll, within reason, keep our current archecture to start with.
 
 == Progress
 
-- [done] Fire up a Compute instance (debian 12) manually at Exoscale, ssh in and poke around.
-- [done] Setup 2fa at Exoscale
-- [done] Install, and try out, `exo` command line tool
-- [done] Explore Packer vs Cloud Init (currently like Packer for big setup)
-- Explore terraform
-  - [done] Bring up Compute instance
-  - [done] Try defining ssh keys
-  - Bring up Object Store
-  - Bring up DNS (how can I experiment here? cljdoc.xyz? buy a cheap domain?)
-  - Figure out how to setup a static IP
+* [done] Fire up a Compute instance (debian 12) manually at Exoscale, ssh in and poke around.
+* [done] Setup 2fa at Exoscale
+* [done] Install, and try out, `exo` command line tool
+* [done] Explore Packer vs Cloud Init (currently like Packer)
+* Explore terraform
+** [done] Bring up Compute instance
+** [done] Try defining ssh keys
+** Bring up Object Store
+** Firewall setup
+** Bring up DNS (how can I experiment here? cljdoc.xyz? buy a cheap domain?)
+** Figure out how to setup a static IP
 
 == Finer Questions
 
@@ -99,8 +100,8 @@ https://community.exoscale.com/documentation/storage/encryption/#encryption-at-r
 Exoscale supports ssh access to the host.
 Although we don't want to make changes to the host directly, it can be convenient to poke around.
 
-TODO: Ensure both Martin and I have access.
-TODO: Once I get something basic going invite Martin to the cljdoc org at  Exoscale.
+* TODO: Ensure both Martin and I have access.
+* TODO: Once I get something basic going invite Martin to the cljdoc org at  Exoscale.
 
 === Database Backups
 I don't remember a time when the cljdoc DigitalOcean droplet has failed us.
@@ -117,6 +118,7 @@ But this represents a lot of compute time over at CircleCI so we'd rather save t
 
 Our db backup is about 1gb and we want to be respectful of Exoscale resources, we don't need to keep all backups.
 A daily backup should be sufficient with backup retention strategy of:
+
 * 7 daily
 * 4 weekly
 * 12 monthly
@@ -128,7 +130,7 @@ Our Lucene full-text database is quickly reconstituted from clojars at startup t
 We currently use packer to build our host image.
 
 Exoscale offers a nice selection pre-built image templates.
-I've explored using a Debian pre-built template, then adding what docker, nomad and consul, etc via cloud init.
+I've explored using a Debian pre-built template, then adding docker, nomad and consul, etc via cloud init.
 
 I've successfuly done this, but given the cloud init docs are on the less coherent side, it took me quite a while to figure out.
 And while cloud init works, the updates are applied after the image boots.
@@ -154,18 +156,19 @@ This is perhaps a bit less human-friendly and concrete but avoids having to disc
 See `modules/deploy` for the details.
 
 On deploy:
-- ensure docker hub has cljdoc docker image for this release
-- use ssh port forwarding to cljdoc host server
-- sync config via consul API
-  - traefik config `config/traefik-toml`
-  - cljdoc secrets `config/cljdoc/secrets-edn`
-- post our jobspec to nomad API
-  - lb (gets is config from consul)
-  - cljdoc (with docker tag of release) (gets secrets from consul)
-- wait until new cljdoc deployment is healthy (via nomad)
-- promote new deployment via nomad
-  - canary becomes cljdoc
-  - and old cljdoc retired
+
+* ensure docker hub has cljdoc docker image for this release
+* use ssh port forwarding to cljdoc host server
+* sync config via consul API
+** traefik config `config/traefik-toml`
+** cljdoc secrets `config/cljdoc/secrets-edn`
+* post our jobspec to nomad API
+** lb (gets is config from consul)
+** cljdoc (with docker tag of release) (gets secrets from consul)
+* wait until new cljdoc deployment is healthy (via nomad)
+* promote new deployment via nomad
+** canary becomes cljdoc
+** and old cljdoc retired
 
 I think I might be able to mostly just reuse this.
 The consul and nomad REST APIs, I think, are still supported and valid.
@@ -177,9 +180,10 @@ Traefik is currently at v3.1.2, we are bit behind.
 Traefik is run from a docker image (known to nomad as `lb`).
 
 What is traefik's role?:
-- redirects cljdoc.xyz to cljdoc.org
-- SSL certs via Let's Encrypt? (configured under `acme`)
-- directs traffic to consul discovered cljdoc
+
+* redirects cljdoc.xyz to cljdoc.org
+* SSL certs via Let's Encrypt? (configured under `acme`)
+* directs traffic to consul discovered cljdoc
 
 Reminder: traefik logs exhausted all disk space over at DigitalOcean and caused nomad corruption; we probably want to implement traefik log rotation and deletion.
 Maybe save 2 weeks of logs?
@@ -187,19 +191,18 @@ Maybe save 2 weeks of logs?
 === Nomad & Consul Initial Config
 Cljdoc's DigitalOcean Packer config installed
 
-- `/ect/nomad/server.hcl`
-- `/etc/systemd/system/nomad.service`
-- `/etc/systemd/system/consul.service`
+* `/ect/nomad/server.hcl`
+* `/etc/systemd/system/nomad.service`
+* `/etc/systemd/system/consul.service`
 
 I don't know if these were overriding existing default configs or providing a config where non existed.
 There were changes some of these files, so I assume those changes will need to be included/replicated.
-Will have to review against current versions of nomad and consul.
 
 I'm noticing that config on the actual server has somehow drifted from what we have in terraform.
 Actual config `etc/nomad/server/hcl`:
 
 [source,hcl]
----
+----
 data_dir = "/etc/nomad.d"
 
 server {
@@ -221,30 +224,35 @@ plugin "docker" {
 }
 ----
 
-Some changes I'll make:
-- create `consul` user for consul service
-- nomad docs say it should be run as root https://developer.hashicorp.com/nomad/docs/operations/nomad-agent
+Some changes I've while moving to Exoscale:
+
+* create `consul` user for consul service
+* nomad docs say it should be run as root https://developer.hashicorp.com/nomad/docs/operations/nomad-agent
 so continue to do so
-- use `/etc/nomad.d` for config dir, and `/etc/consul.d` as home and config dir
-- use `/var/lib/nomad` and `/var/lib/consul` for data dirs
+* use `/etc/nomad.d` for config dir, and `/etc/consul.d` as home and config dir
+* use `/var/lib/nomad` and `/var/lib/consul` for data dirs
 
 Some notes:
-- nomad complains about Serf comms, but I think this is ignorable for a single-node installation?
+
+* nomad complains about Serf comms, but I think this is ignorable for a single-node installation?
 
 === Zip Release Artifacts
 The release workflow creates a zip file from which it then creates a docker image which it then uploads to docker hub.
 
 Each release uploads the zip file to s3.
 I'm not entirely sure of the value of this.
-I does keep a record of what actually built the cljdoc docker image with.
+It does keep a record of what actually built the cljdoc docker image with.
 I suppose we could carry on with this.
 
-=== Pinning Packages
-Historically hashicorp seems to have had no qualms about introducing breaking changes.
+=== Pinning Software at Specific Versions
+Historically, hashicorp seems to have had no qualms about introducing breaking changes.
 
 So rather than installing the latest, we probably want to install and pin `nomad` and `consul` versions.
 
-For docker, maybe just pin to current major.
+I've opted to continue to install `nomad` and `consul` from their zip files but have added:
+
+* checking sha256sum of downloaded zips
+* creating a consul user underwhich to run consul (nomad docs recommend it be run from root)
 
 It might be interesting at some future date to look into NixOS.
 
