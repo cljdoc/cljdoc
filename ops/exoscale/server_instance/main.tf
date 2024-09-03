@@ -6,15 +6,15 @@ terraform {
   }
 }
 
-variable "org_zone" {}
 variable "org_domain" {}
+variable "exoscale_zone" {}
 
 output "ip" {
   value = exoscale_compute_instance.cljdoc_01.public_ip_address
 }
 
 data "exoscale_template" "debian" {
-  zone = var.org_zone
+  zone = var.exoscale_zone # see providers.tf
   name = "debian-cljdoc"
   visibility = "private"
 }
@@ -27,6 +27,7 @@ data "exoscale_security_group" "default" {
 resource "exoscale_ssh_key" "cljdoc_ssh_key" {
   name       = "cljdoc-ssh"
   # TODO: precreated maybe not the best idea? Alternative?
+  # TODO: yeah, I'll need to allow both martin and myself so need something different
   public_key = file("~/.ssh/id_ed25519_exoscale.pub")
 }
 
@@ -34,23 +35,12 @@ resource "exoscale_compute_instance" "cljdoc_01" {
   name               = var.org_domain
   template_id        = data.exoscale_template.debian.id
   type               = "standard.medium"
-  zone               = var.org_zone
+  zone               = var.exoscale_zone
   disk_size          = 50
   security_group_ids = [
     data.exoscale_security_group.default.id
   ]
   ssh_key            = exoscale_ssh_key.cljdoc_ssh_key.id
-  # old droplet config
-  #image      = var.image_id
-  #name       = var.org_domain
-  #region     = "ams3"
-  #size       = "s-2vcpu-4gb"
-  #monitoring = true
-
-  # supplying a key here seems to be the only way to
-  # not get a root password via email, despite having
-  # added SSH keys to the snapshot/image before
-  #ssh_keys = ["18144068"]
 }
 
 # TODO: Update for exoscale
