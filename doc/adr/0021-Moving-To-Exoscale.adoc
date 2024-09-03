@@ -65,8 +65,8 @@ So we'll, within reason, keep our current archecture to start with.
 ** Firewall setup
 ** Bring up DNS (how can I experiment here? cljdoc.xyz? buy a cheap domain?)
 ** Figure out how to setup a static IP
-** Try/adapt deploy script
-** Try/adapt full CI deploy
+* Try/adapt deploy script
+* Try/adapt full CI deploy
 
 == Finer Questions
 
