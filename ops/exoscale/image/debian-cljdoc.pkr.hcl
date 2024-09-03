@@ -17,7 +17,7 @@ source "exoscale" "debian-cljdoc" {
   api_secret               = var.exoscale_api_secret
   instance_template        = "Linux Debian 12 (Bookworm) 64-bit"
   template_zones           = ["ch-gva-2"]
-  template-name            = "debian-cljdoc"
+  template_name            = "debian-cljdoc"
   template_username        = "debian"
   ssh_username             = "debian"
 }
