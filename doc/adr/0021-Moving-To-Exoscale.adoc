@@ -96,6 +96,12 @@ https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.
 Which might not be currenty available for Exoscale Oject Store.
 https://community.exoscale.com/documentation/storage/encryption/#encryption-at-rest
 
+Notes:
+
+* For Exoscale we need to `skip_requesting_account_id` when using the aws provider to talk to the Exoscale Object Store.
+A seemingly unnecessary warning is emitted: AWS account ID not found for provider.
+It's a known issue: https://github.com/hashicorp/terraform-provider-aws/issues/37062
+
 === Access
 Exoscale supports ssh access to the host.
 Although we don't want to make changes to the host directly, it can be convenient to poke around.
