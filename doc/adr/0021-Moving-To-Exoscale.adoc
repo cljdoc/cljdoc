@@ -215,12 +215,11 @@ plugin "docker" {
 ----
 
 Some changes I'll make:
-- create `nomad` user for nomad service and and `consul` user for consul service
-- use `/etc/nomad.d` and `/etc/consul.d` as home and config dirs
-- use `/var/lib/nomad` and `/var/lib/consul` as data dirs
-
-TODO: Oops: From https://developer.hashicorp.com/nomad/docs/operations/nomad-agent:
-> Nomad clients should be run as root due to the OS isolation mechanisms that require root privileges. While it is possible to run Nomad as an unprivileged user, careful testing must be done to ensure the task drivers and features you use function as expected. The Nomad client's data directory should be owned by root with filesystem permissions set to 0700.
+- create `consul` user for consul service
+- nomad docs say it should be run as root https://developer.hashicorp.com/nomad/docs/operations/nomad-agent
+so continue to do so
+- use `/etc/nomad.d` for config dir, and `/etc/consul.d` as home and config dir
+- use `/var/lib/nomad` and `/var/lib/consul` for data dirs
 
 Some notes:
 - nomad complains about Serf comms, but I think this is ignorable for a single-node installation?

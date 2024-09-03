@@ -81,13 +81,9 @@ build {
       "sudo install -Dm644 /tmp/conf/consul.service /etc/systemd/system/consul.service",
       "rm -rf /tmp/conf",
 
-      # setup for nomad
-      "sudo useradd --system --home /etc/nomad.d --shell /bin/false nomad",
+      # setup for nomad (nomad docs say it should be run as root)
       "sudo mkdir -p /var/lib/nomad",
       "sudo mkdir -p /var/lib/alloc_mounts",
-      "sudo chown -R nomad:nomad /etc/nomad.d",
-      "sudo chown -R nomad:nomad /var/lib/nomad",
-      "sudo chown -R nomad:nomad /var/lib/alloc_mounts",
 
       # setup for consul
       "sudo useradd --system --home /etc/consul.d --shell /bin/false consul",
