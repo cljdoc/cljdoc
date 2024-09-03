@@ -16,3 +16,10 @@ packages:
   - docker-ce
   - nomad
   - consul
+runcmd:
+  - systemctl enable docker
+  - systemctl enable nomad
+  - systemctl enable consul
+  - systemctl start docker
+  - systemctl start nomad
+  - systemctl start consul

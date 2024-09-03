@@ -57,6 +57,7 @@ So we'll, within reason, keep our current archecture to start with.
 - [done] Fire up a Compute instance (debian 12) manually at Exoscale, ssh in and poke around.
 - [done] Setup 2fa at Exoscale
 - [done] Install, and try out, `exo` command line tool
+- [done] Explore Packer vs Cloud Init (currently like Packer for big setup)
 - Explore terraform
   - [done] Bring up Compute instance
   - [done] Try defining ssh keys
@@ -135,10 +136,12 @@ So there will be some necessary waiting until cloud init completes.
 
 My feeling is that cloud init might have its place for light config, but packer is the better choice for installing requisite packages.
 
-TODO: Verify Exoscale makes image available before cloud-init complete.
+Although Exoscale documents using Packer, its not listed as a Packer integrations
+https://developer.hashicorp.com/packer/integrations/digitalocean/digitalocean - here's digitalocean
+https://github.com/exoscale/packer-plugin-exoscale - aha! here it is.
 
-TODO: Exoscale's builtin image templates seem to provision very quickly and complety up to date.
-How does Packer compare here?
+After some experimentation, my feeling is that for initial software setup, packer is easier to verify and work with.
+We can work an existing Exoscale template as a base (we'll use Debian 12 to start with) and build upon it.
 
 === Deployment
 See `modules/deploy` for the details.
@@ -157,6 +160,9 @@ On deploy:
   - canary becomes cljdoc
   - and old cljdoc retired
 
+I think I might be able to mostly just reuse this.
+The consul and nomad REST APIs, I think, are still supported and valid.
+
 === Traefik
 We'll continue to use traefik as our internal load balancer to support blue/green deployments.
 Traefik is currently at v3.1.2, we are bit behind.
@@ -168,7 +174,8 @@ What is traefik's role?:
 - SSL certs via Let's Encrypt? (configured under `acme`)
 - directs traffic to consul discovered cljdoc
 
-Reminder: traefik logs exhausted all disk space over at DigitalOcean and caused nomad corruption; we probably want to implement traefik log rotation and deletion. Maybe save 2 weeks of logs?
+Reminder: traefik logs exhausted all disk space over at DigitalOcean and caused nomad corruption; we probably want to implement traefik log rotation and deletion.
+Maybe save 2 weeks of logs?
 
 === Nomad & Consul Initial Config
 Cljdoc's DigitalOcean Packer config installed
@@ -207,6 +214,17 @@ plugin "docker" {
 }
 ----
 
+Some changes I'll make:
+- create `nomad` user for nomad service and and `consul` user for consul service
+- use `/etc/nomad.d` and `/etc/consul.d` as home and config dirs
+- use `/var/lib/nomad` and `/var/lib/consul` as data dirs
+
+TODO: Oops: From https://developer.hashicorp.com/nomad/docs/operations/nomad-agent:
+> Nomad clients should be run as root due to the OS isolation mechanisms that require root privileges. While it is possible to run Nomad as an unprivileged user, careful testing must be done to ensure the task drivers and features you use function as expected. The Nomad client's data directory should be owned by root with filesystem permissions set to 0700.
+
+Some notes:
+- nomad complains about Serf comms, but I think this is ignorable for a single-node installation?
+
 === Zip Release Artifacts
 The release workflow creates a zip file from which it then creates a docker image which it then uploads to docker hub.
 
@@ -237,6 +255,16 @@ I'm not sure how this is expressed in the current terraform config; if it is.
 === Critical Updates
 Sometimes vulnerabilities are discovered.
 How to address?
+
+=== Logs
+When currently send error level log events to Sentry.io.
+We make no effort to save any other logs.
+Which could be OK for cljdoc.
+
+I've sometimes taken a peek a cljdoc logs via nomad.
+But otherwise, I've been uninterested.
+
+Other than addressing traefik's log rotation, I'll likely not make any changes, at least initially, when moving to Exoscale.
 
 === Firewall
 Exoscale has firewall support via security groups.

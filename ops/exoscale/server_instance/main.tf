@@ -15,7 +15,8 @@ output "ip" {
 
 data "exoscale_template" "debian" {
   zone = var.org_zone
-  name = "Linux Debian 12 (Bookworm) 64-bit"
+  name = "debian-cljdoc"
+  visibility = "private"
 }
 
 # TODO: Probably should create this rather than rely on existing configured default
@@ -38,7 +39,6 @@ resource "exoscale_compute_instance" "cljdoc_01" {
   security_group_ids = [
     data.exoscale_security_group.default.id
   ]
-  user_data          = file("cloud-config.yaml")
   ssh_key            = exoscale_ssh_key.cljdoc_ssh_key.id
   # old droplet config
   #image      = var.image_id
