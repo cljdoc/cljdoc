@@ -61,7 +61,7 @@ So we'll, within reason, keep our current archecture to start with.
 * Explore terraform
 ** [done] Bring up Compute instance
 ** [done] Try defining ssh keys
-** Bring up Object Store
+** [done] Bring up Object Store
 ** Firewall setup
 ** Bring up DNS (how can I experiment here? cljdoc.xyz? buy a cheap domain?)
 ** Figure out how to setup a static IP
