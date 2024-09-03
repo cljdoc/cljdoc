@@ -143,6 +143,12 @@ https://github.com/exoscale/packer-plugin-exoscale - aha! here it is.
 After some experimentation, my feeling is that for initial software setup, packer is easier to verify and work with.
 We can work an existing Exoscale template as a base (we'll use Debian 12 to start with) and build upon it.
 
+Packer notes:
+- For DigitalOcean we embedded the date in the DigitalOcean image identifier.
+For Exoscale we won't do this.
+Exoscale allows for multiple private templates with the same name and will automatically pick the most recent one.
+This is perhaps a bit less human-friendly and concrete but avoids having to discover/store the current template which would add complexity when there is more than 1 ops person on the ops team.
+
 === Deployment
 See `modules/deploy` for the details.
 
