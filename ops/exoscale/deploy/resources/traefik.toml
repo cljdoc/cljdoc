@@ -22,7 +22,7 @@
 # Let's encrypt is an Automatic Certificate Management Environment (ACME) provider
 [certificatesResolvers]
   [certificatesResolvers.lets-encrypt.acme]
-    email = "lee@dlread.com" # TODO: change back to martin's email
+    email = "${LETSENCRYPT_EMAIL}"
     storage = "/data/acme.json" # certs are written/tracked here
     keyType = "RSA2048"
     # Use this while testing, uncomment or delete after done
