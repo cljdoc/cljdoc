@@ -70,10 +70,60 @@ So we'll, within reason, keep our current archecture to start with.
 
 == Finer Questions
 
+=== Data Migration from DigitalOcean to Exoscale
+
+*DNS* - Can take 24-48h for to update worldwide
+
+*SQLite database* - Use backup from DigitalOcean
+
+*Let's encrypt certificates* - do we need to bring `acme.json` over?
+
+*Secrets* are held by CircleCI and conveyed to consul over ssh during deploy.
+
+CircleCI specific secrets
+
+* `DOCKER_USER` - can remain unchanged
+* `DOCKER_PASS` - can remain unchanged
+
+Current consul delivered secrets that can stay the same:
+
+* `SENTRY_DSN` - not sure why CircleCI needs this?
+* `CIRCLE_API_TOKEN` - to intitiate analysis jobs on circleci
+* `CIRCLE_BUILDER_PROJECT` - more of a variable than a secret, imo
+
+Consul secrets that will change:
+
+* `NOMAD_IP` - used to talk to nomad and consul over their APIs
+* `RELEASES_BUCKET_NAME` - more of a variable than a secret, might change with Exoscale
+* `RELEASES_BUCKET_ACCESS_KEY` - this will need to change to Exoscale Object Storage key
+* `RELEASES_BUCKET_SECRET_KEY` - this will need to change to Exoscacle Object Storage secret
+
+New consul secrets:
+
+* `LETSENCRYPT_EMAIL` - I thought this was better moved to a secret
+* `BACKUPS_BUCKET_NAME` - For SQLite backups
+* `BACKUPS_BUCKET_ACCESS_KEY`
+* `BACKUPS_BUCKET_SECRETE_KEY`
+
+*ssh keys* We need to grant permission for CircleCI to ssh in to interact with nomad and consul.
+We configure an additional key on CircleCI to do this and add authorize it on our server instance.
+TODO: I'm not exactly sure how this was carried out for DigitalOcean droplet. Maybe manually?
+
 === Terraform
 We'll continue to use terraform to declare and provision cloud services.
 Exoscale has support for terraform: https://registry.terraform.io/providers/exoscale/exoscale/latest/docs
 
+==== Lifecycles
+TODO: understand how to support different lifecycles, and if we actually need to.
+
+For example if we declare an Elastic IP which outputs a static IP... we probably want to preserve that static IP, if reasonable.
+Is this an issue?
+Maybe not?
+If we destroy an entire infrastructure, I suppose.
+But we shouldn't be doing that normally?
+So maybe not an issue?
+
+==== Sharing Terraform State
 Because we want to be an ops team I'd like to somehow share terraform state.
 Terraform state is sensitive, so we'd need to share it securely.
 And we'd like to avoid the possibility of concurrent updates.
@@ -90,24 +140,34 @@ When using s3, locking is currently optionally supported via dynamoDB,
 We don't have dynamoDB at Exoscale, so that's a nogo.
 But there is some recent investigation into supporting locking via new s3 conditional writes.
 See: https://github.com/hashicorp/terraform/issues/35625
+Conditionals writes are on the Exoscale todo list, but will not be implemented soon.
 
 Terraform s3 backend also optionally supports encryption for data at rest.
 https://developer.hashicorp.com/terraform/language/settings/backends/s3#encrypt
 But.. I think this might be via s3 encryption.
 https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.html
-Which might not be currenty available for Exoscale Oject Store.
+Which is planned for implementation at Exoscale, bu not yet available for Exoscale Oject Store.
 https://community.exoscale.com/documentation/storage/encryption/#encryption-at-rest
 
-Notes:
+==== Notes
 
 * For Exoscale we need to `skip_requesting_account_id` when using the aws provider to talk to the Exoscale Object Store.
 A seemingly unnecessary warning is emitted: AWS account ID not found for provider.
 It's a known issue: https://github.com/hashicorp/terraform-provider-aws/issues/37062
+I've pinged Exoscale about this and even though it is not an Exocale issue, they might go ahead and fix it.
+
+==== Plan
+
+* Because Exoscale doesn't support encryption (and perhaps less importantly locking) initially, we won't be sharing Terraform state.
+* In the future: Consider using Amazon S3 for sharing state.
+Monitor progress on a S3-only solution https://github.com/hashicorp/terraform/issues/35625
+* There is also Terraform HCP, which has a limited free tier, but I don't at-a-glance understand it, so don't want to spend time learning another complex thing.
 
 === Access
 Exoscale supports ssh access to the host.
 Although we don't want to make changes to the host directly, it can be convenient to poke around.
 
+* TODO: Need to setup access for deployment from CircleCI
 * TODO: Ensure both Martin and I have access.
 * TODO: Once I get something basic going invite Martin to the cljdoc org at  Exoscale.
 
@@ -140,7 +200,7 @@ We currently use packer to build our host image.
 Exoscale offers a nice selection pre-built image templates.
 I've explored using a Debian pre-built template, then adding docker, nomad and consul, etc via cloud init.
 
-I've successfuly done this, but given the cloud init docs are on the less coherent side, it took me quite a while to figure out.
+I've successfuly experimented with this, but given the cloud init docs are on the less coherent side, it took me quite a while to figure out.
 And while cloud init works, the updates are applied after the image boots.
 So there will be some necessary waiting until cloud init completes.
 
@@ -183,18 +243,20 @@ The consul and nomad REST APIs, I think, are still supported and valid.
 
 === Traefik
 We'll continue to use traefik as our internal load balancer to support blue/green deployments.
-Traefik is currently at v3.1.2, we are bit behind.
+Traefik is currently at v3.1.2, we are quite behind at v1.7.
 
 Traefik is run from a docker image (known to nomad as `lb`).
 
 What is traefik's role?:
 
 * redirects cljdoc.xyz to cljdoc.org
-* SSL certs via Let's Encrypt? (configured under `acme`)
+* SSL certs via Let's Encrypt (configured under `acme`)
 * directs traffic to consul discovered cljdoc
 
 Reminder: traefik logs exhausted all disk space over at DigitalOcean and caused nomad corruption; we probably want to implement traefik log rotation and deletion.
 Maybe save 2 weeks of logs?
+
+TODO: We allocated 128mb to traefik v1.7 container, will this be enough for traefik v3.1?
 
 === Nomad & Consul Initial Config
 Cljdoc's DigitalOcean Packer config installed
@@ -236,7 +298,8 @@ Some changes I've while moving to Exoscale:
 
 * create `consul` user for consul service
 * nomad docs say it should be run as root https://developer.hashicorp.com/nomad/docs/operations/nomad-agent
-so continue to do so
+so continue to do so +
+TODO: Actually... I think the service should probably be run under nomad:nomad user but its the agent that should be run under root?
 * use `/etc/nomad.d` for config dir, and `/etc/consul.d` as home and config dir
 * use `/var/lib/nomad` and `/var/lib/consul` for data dirs
 
