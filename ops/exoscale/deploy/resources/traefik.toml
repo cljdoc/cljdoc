@@ -1,38 +1,52 @@
+[global]
+  checkNewVersion = false
+  sendAnonymousUsage = false
+
+# Log rotations is not a traefik feature, but traefik will close and reopen
+# log files on USR1 signal which allows for rotation via logrotate
 [accessLog]
   filePath = "/data/access.log"
 
-[entryPoints]
-  [entryPoints.http]
+[entryPoints.web]
   address = ":80"
-    [entryPoints.http.redirect]
-    entryPoint = "https"
-  [entryPoints.https]
-  compress = true
+
+  [entryPoints.web.http]
+    [entryPoints.web.http.redirections]
+      [entryPoints.web.http.redirections.entryPoint]
+        to = "websecure"
+        scheme = "https"
+
+[entryPoints.websecure]
   address = ":443"
-    [entryPoints.https.tls]
-    [entryPoints.https.redirect]
-      regex = "^https://.*cljdoc.xyz/(.*)"
-      replacement = "https://cljdoc.org/$1"
-      permanent = true
 
-[acme]
-email = "martinklepsch@googlemail.com"
-storage = "/data/acme.json"
-entryPoint = "https"
-KeyType = "RSA2048"
-onHostRule = true
-[acme.httpChallenge]
-  entryPoint = "http"
+# Let's encrypt is an Automatic Certificate Management Environment (ACME) provider
+[certificatesResolvers]
+  [certificatesResolvers.lets-encrypt.acme]
+    email = "lee@dlread.com" # TODO: change back to martin's email
+    storage = "/data/acme.json" # certs are written/tracked here
+    keyType = "RSA2048"
+    # Use this while testing, uncomment or delete after done
+    caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
 
-[[acme.domains]]
-main = "cljdoc.org"
-[[acme.domains]]
-main = "cljdoc.xyz"
+    [certificatesResolvers.lets-encrypt.acme.httpChallenge]
+      entryPoint = "web"
+
+[http.middlewares]
+  [http.middlewares.compress.compress]
+
+[http.routers]
+  [http.routers.cljdoc]
+    entryPoints = ["websecure"]
+    rule = "Host(`cljdoc.org`, `cljdoc.xyz`)"
+    service = "cljdoc-service"
+    middlewares = ["compress"]
+    [http.routers.cljdoc.tls]
+      certResolver = "lets-encrypt"
 
 [api]
 [ping]
 
-[consulCatalog]
-prefix = "traefik"
-constraints = ["tag==cljdoc"]
-watch = true
+[providers.consulCatalog]
+  prefix = "traefik"
+  watch = true
+  constraints = ["tag==cljdoc"]
