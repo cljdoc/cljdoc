@@ -48,3 +48,11 @@ output "cljdoc_backups_bucket_secret" {
   sensitive = true
   value = module.backups_bucket.write_secret
 }
+
+output "cljdoc_instance_ip" {
+  value = module.main_server.instance_ip
+}
+
+output "cljdoc_static_ip" {
+  value = module.main_server.elastic_ip
+}

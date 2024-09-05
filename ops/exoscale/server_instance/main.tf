@@ -9,8 +9,8 @@ terraform {
 variable "org_domain" {}
 variable "exoscale_zone" {}
 
-output "ip" {
-  value = exoscale_compute_instance.cljdoc_01.public_ip_address
+resource "exoscale_elastic_ip" "cljdoc_elastic_ip" {
+  zone = var.exoscale_zone
 }
 
 data "exoscale_template" "debian" {
@@ -36,12 +36,22 @@ resource "exoscale_compute_instance" "cljdoc_01" {
   template_id        = data.exoscale_template.debian.id
   type               = "standard.medium"
   zone               = var.exoscale_zone
+  elastic_ip_ids     = [exoscale_compute_instance.cljdoc_elastic_ip.id]
   disk_size          = 50
   security_group_ids = [
     data.exoscale_security_group.default.id
   ]
   ssh_key            = exoscale_ssh_key.cljdoc_ssh_key.id
 }
+
+output "instance_ip" {
+  value = exoscale_compute_instance.cljdoc_01.public_ip_address
+}
+
+output "elastic_ip" {
+  value = exoscale_compute_instance.cljdoc_elastic_ip.ip_address
+}
+
 
 # TODO: Update for exoscale
 #resource "aws_route53_record" "org_record" {
