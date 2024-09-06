@@ -76,38 +76,50 @@ So we'll, within reason, keep our current archecture to start with.
 
 *SQLite database* - Use backup from DigitalOcean
 
-*Let's encrypt certificates* - do we need to bring `acme.json` over?
+*Let's encrypt certificates* - I think we should bring `acme.json` over
 
 *Secrets* are held by CircleCI and conveyed to consul over ssh during deploy.
 
-CircleCI specific secrets
+CircleCI specific secrets - used by `publish-docker` circleci job
 
 * `DOCKER_USER` - can remain unchanged
 * `DOCKER_PASS` - can remain unchanged
 
+CircleCI specific secrets that will change (so add new vars prefixed with `EXO_` to allow for old and new to coexist for a bit):
+
+* Used by `deploy` circleci job
+** `EXO_NOMAD_IP` - used to talk to nomad and consul over their APIs
+* Used by `publish-zip-build` circleci job
+** `EXO_RELEASES_BUCKET_NAME` - more of a variable than a secret, might change with Exoscale
+** `EXO_RELEASES_BUCKET_ACCESS_KEY` - this will need to change to Exoscale Object Storage key
+** `EXO_RELEASES_BUCKET_SECRET_KEY` - this will need to change to Exoscacle Object Storage secret
+
 Current consul delivered secrets that can stay the same:
 
-* `SENTRY_DSN` - not sure why CircleCI needs this?
-* `CIRCLE_API_TOKEN` - to intitiate analysis jobs on circleci
-* `CIRCLE_BUILDER_PROJECT` - more of a variable than a secret, imo
-
-Consul secrets that will change:
-
-* `NOMAD_IP` - used to talk to nomad and consul over their APIs
-* `RELEASES_BUCKET_NAME` - more of a variable than a secret, might change with Exoscale
-* `RELEASES_BUCKET_ACCESS_KEY` - this will need to change to Exoscale Object Storage key
-* `RELEASES_BUCKET_SECRET_KEY` - this will need to change to Exoscacle Object Storage secret
+* Used by `deploy` circleci job (and then ultimately cljdoc container)
+** `SENTRY_DSN` - not sure why CircleCI needs this?
+** `CIRCLE_API_TOKEN` - to intitiate analysis jobs on circleci
+** `CIRCLE_BUILDER_PROJECT` - more of a variable than a secret, imo
 
 New consul secrets:
 
-* `LETSENCRYPT_EMAIL` - I thought this was better moved to a secret
-* `BACKUPS_BUCKET_NAME` - For SQLite backups
-* `BACKUPS_BUCKET_ACCESS_KEY`
-* `BACKUPS_BUCKET_SECRETE_KEY`
+* Used by `deploy` circleci job (and then ultimately traefik container)
+** `LETS_ENCRYPT_EMAIL` - I thought this was better moved to a secret
+* Used by `deploy` circleci job (and then ultimately cljdoc container)
+* `EXO_BACKUPS_BUCKET_NAME` - For SQLite backups
+* `EXO_BACKUPS_BUCKET_ACCESS_KEY`
+* `EXO_BACKUPS_BUCKET_SECRET_KEY`
 
 *ssh keys* We need to grant permission for CircleCI to ssh in to interact with nomad and consul.
 We configure an additional key on CircleCI to do this and add authorize it on our server instance.
 TODO: I'm not exactly sure how this was carried out for DigitalOcean droplet. Maybe manually?
+
+To think about:
+
+* To reign in scope of secrets consider using CircleCI contexts.
+This are defined at the organization level, but can be applied at the job level.
+* Also Exoscale has implemented Vaults in IAM.
+Could check that out.
 
 === Terraform
 We'll continue to use terraform to declare and provision cloud services.
@@ -191,6 +203,8 @@ A daily backup should be sufficient with backup retention strategy of:
 * 4 weekly
 * 12 monthly
 * 2 annually
+
+We have all sorts of scheduled tasks running in cljdoc, we can run one more to handle backups.
 
 Our Lucene full-text database is quickly reconstituted from clojars at startup time, so no need to save a backup of it.
 
