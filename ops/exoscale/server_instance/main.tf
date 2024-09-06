@@ -9,7 +9,7 @@ terraform {
 variable "org_domain" {}
 variable "exoscale_zone" {}
 
-resource "exoscale_elastic_ip" "cljdoc_elastic_ip" {
+resource "exoscale_elastic_ip" "cljdoc" {
   zone = var.exoscale_zone
 }
 
@@ -36,7 +36,7 @@ resource "exoscale_compute_instance" "cljdoc_01" {
   template_id        = data.exoscale_template.debian.id
   type               = "standard.medium"
   zone               = var.exoscale_zone
-  elastic_ip_ids     = [exoscale_compute_instance.cljdoc_elastic_ip.id]
+  elastic_ip_ids     = [exoscale_elastic_ip.cljdoc.id]
   disk_size          = 50
   security_group_ids = [
     data.exoscale_security_group.default.id
@@ -49,9 +49,8 @@ output "instance_ip" {
 }
 
 output "elastic_ip" {
-  value = exoscale_compute_instance.cljdoc_elastic_ip.ip_address
+  value = exoscale_elastic_ip.cljdoc.ip_address
 }
-
 
 # TODO: Update for exoscale
 #resource "aws_route53_record" "org_record" {
