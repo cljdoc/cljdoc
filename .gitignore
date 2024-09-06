@@ -26,3 +26,4 @@ test-data/
 /fiddle
 /.vscode
 /.lsp/.cache
+secrets.tfvars
