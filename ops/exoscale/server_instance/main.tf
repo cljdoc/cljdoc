@@ -42,6 +42,11 @@ resource "exoscale_compute_instance" "cljdoc_01" {
     data.exoscale_security_group.default.id
   ]
   ssh_key            = exoscale_ssh_key.cljdoc_ssh_key.id
+  user_data          = <<EOF
+#cloud-config
+runcmd:
+  - ip addr add ${exoscale_elastic_ip.cljdoc.ip_address}/32 dev lo
+EOF
 }
 
 output "instance_ip" {
