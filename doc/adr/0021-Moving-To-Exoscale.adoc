@@ -1,14 +1,14 @@
-= Moving to Exocale
+= Moving to Exoscale
+:toc:
+:toclevels: 5
 
-Date: 2024-08-28
+Create Date: 2024-08-28
 
 == Status
 
 Exploring & Learning
 
-== Context
-
-=== Background
+== Background
 Cljdoc has been using a DigitalOcean droplet, AWS Route 53, AWS S3 for some time.
 
 This comes with the following characteristics:
@@ -72,13 +72,28 @@ So we'll, within reason, keep our current archecture to start with.
 
 === Data Migration from DigitalOcean to Exoscale
 
-*DNS* - Can take 24-48h for to update worldwide
+==== DNS
+Can take 24-48h for to update worldwide.
 
-*SQLite database* - Use backup from DigitalOcean
+TODO: How does this work again?
 
-*Let's encrypt certificates* - I think we should bring `acme.json` over
+==== SQLite database
+Use backup from DigitalOcean.
 
-*Secrets* are held by CircleCI and conveyed to consul over ssh during deploy.
+Either put in expected spot on filesystem or new restore strategy will pick up from backup placed in Exoscale Simple Object Store.
+
+==== SSL Certs
+Let's encrypt certificates - I think we need to bring `acme.json` over.
+
+==== Secrets
+To think about:
+
+* To rein in scope of secrets consider using CircleCI contexts.
+These are defined at the CircleCI organization level, but can be applied at the job level.
+* Also Exoscale has implemented Vaults in IAM.
+Could check that out.
+
+Are held by CircleCI and conveyed to consul over ssh during deploy.
 
 CircleCI specific secrets - used by `publish-docker` circleci job
 
@@ -110,16 +125,11 @@ New consul secrets:
 * `EXO_BACKUPS_BUCKET_ACCESS_KEY`
 * `EXO_BACKUPS_BUCKET_SECRET_KEY`
 
-*ssh keys* We need to grant permission for CircleCI to ssh in to interact with nomad and consul.
+==== SSH Keys
+We need to grant permission for CircleCI to ssh in to interact with nomad and consul.
 We configure an additional key on CircleCI to do this and add authorize it on our server instance.
-TODO: I'm not exactly sure how this was carried out for DigitalOcean droplet. Maybe manually?
-
-To think about:
-
-* To reign in scope of secrets consider using CircleCI contexts.
-This are defined at the organization level, but can be applied at the job level.
-* Also Exoscale has implemented Vaults in IAM.
-Could check that out.
+TODO: I'm not exactly sure how this was carried out for DigitalOcean droplet.
+Probably manually?
 
 === Terraform
 We'll continue to use terraform to declare and provision cloud services.
