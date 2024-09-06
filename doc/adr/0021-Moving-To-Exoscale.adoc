@@ -384,6 +384,8 @@ Exoscale has firewall support via security groups.
 I see that our DigitalOcean droplet also setup firewalld.
 I'll look into both of these.
 
+I've setup an Exoscale security group to allow incoming ssh, http and https.
+
 == Thoughts & Notes from Experiments
 
 === Cloud Init is Tough to Test
