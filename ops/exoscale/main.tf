@@ -14,7 +14,6 @@ module "backups_bucket" {
 
 module "main_server" {
   source     = "./server_instance"
-  org_domain = "cljdoc.org"
   exoscale_zone = var.exoscale_zone
 }
 

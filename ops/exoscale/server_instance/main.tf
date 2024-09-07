@@ -6,7 +6,6 @@ terraform {
   }
 }
 
-variable "org_domain" {}
 variable "exoscale_zone" {}
 
 # Static IP via Elastic IP
@@ -69,7 +68,7 @@ resource "exoscale_ssh_key" "cljdoc_ssh_key" {
 # Server Instance
 
 resource "exoscale_compute_instance" "cljdoc_01" {
-  name               = var.org_domain
+  name               = "cljdoc.org"
   template_id        = data.exoscale_template.debian.id
   type               = "standard.medium"
   zone               = var.exoscale_zone
@@ -84,6 +83,32 @@ runcmd:
 EOF
 }
 
+# DNS - only becomes active when configured at registrar
+
+resource "exoscale_domain" "cljdoc_org" {
+  name = "cljdoc.org"
+}
+
+resource "exoscale_domain_record" "cljdoc_org_record" {
+  domain      = exoscale_domain.cljdoc_org.id
+  name        = ""
+  record_type = "A"
+  ttl         = 300
+  content     = exoscale_elastic_ip.cljdoc.ip_address
+}
+
+resource "exoscale_domain" "cljdoc_xyz" {
+  name = "cljdoc.xyz"
+}
+
+resource "exoscale_domain_record" "xyz_record" {
+  domain      = exoscale_domain.cljdoc_xyz.id
+  name        = ""
+  record_type = "A"
+  ttl         = 300
+  content     = exoscale_elastic_ip.cljdoc.ip_address
+}
+
 # Outputs
 
 output "instance_ip" {
@@ -93,13 +118,3 @@ output "instance_ip" {
 output "elastic_ip" {
   value = exoscale_elastic_ip.cljdoc.ip_address
 }
-
-# TODO: Update for exoscale
-#resource "aws_route53_record" "org_record" {
-#  provider = aws
-#  zone_id  = var.org_zone
-#  name     = var.org_domain
-#  type     = "A"
-#  ttl      = "300"
-#  records  = [exoscale_compute_instance.cljdoc_01.pubic_ip_address]
-#}

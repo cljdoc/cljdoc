@@ -62,11 +62,12 @@ So we'll, within reason, keep our current archecture to start with.
 ** [done] Bring up Compute instance
 ** [done] Try defining ssh keys
 ** [done] Bring up Object Store
-** Firewall setup
-** Bring up DNS (how can I experiment here? cljdoc.xyz? buy a cheap domain?)
-** Figure out how to setup a static IP
+** [done] Basic firewall setup
+** [done] Figure out how to setup a static IP
+** [done] Configure DNS at Exoscale
 * Try/adapt deploy script
 * Try/adapt full CI deploy
+* Configure DNS at registrar (Martin)
 
 == Finer Questions
 
@@ -74,8 +75,12 @@ So we'll, within reason, keep our current archecture to start with.
 
 ==== DNS
 Can take 24-48h for to update worldwide.
+Becomes active after setup at registrar, so can pre-configure at Exoscale.
 
-TODO: How does this work again?
+Notes:
+
+* Exoscale requires you "subscribe" to DNS via their GUI before setup via Exoscale.
+* We have cljdoc.org and cljdoc.xyz, so I chose a "Medium" subscription which handles up to 10 hosts.
 
 ==== SQLite database
 Use backup from DigitalOcean.
