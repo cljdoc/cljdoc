@@ -80,12 +80,19 @@ Becomes active after setup at registrar, so can pre-configure at Exoscale.
 Notes:
 
 * Exoscale requires you "subscribe" to DNS via their GUI before setup via Exoscale.
-* We have cljdoc.org and cljdoc.xyz, so I chose a "Medium" subscription which handles up to 10 hosts.
+* We 2 hosts, cljdoc.org and cljdoc.xyz, so I chose a "Medium" subscription which handles up to 10 hosts.
 
 ==== SQLite database
 Use backup from DigitalOcean.
 
 Either put in expected spot on filesystem or new restore strategy will pick up from backup placed in Exoscale Simple Object Store.
+
+Current location on host file system is `/data/cljdoc`, consider a more conventional `/var/lib/cljdoc`.
+
+==== Lucene database
+No need to backup and restore, it is reconstituted if missing at startup.
+
+Current location on host file system is `/data/cljdoc/<lucene dir>`, consider more conventional `/var/lib/cljdoc/<lucene dir>`.
 
 ==== SSL Certs
 Let's encrypt certificates - I think we need to bring `acme.json` over.
@@ -108,7 +115,7 @@ CircleCI specific secrets - used by `publish-docker` circleci job
 CircleCI specific secrets that will change (so add new vars prefixed with `EXO_` to allow for old and new to coexist for a bit):
 
 * Used by `deploy` circleci job
-** `EXO_NOMAD_IP` - used to talk to nomad and consul over their APIs
+** `EXO_NOMAD_IP` - used to talk to nomad and consul over their APIs via ssh
 * Used by `publish-zip-build` circleci job
 ** `EXO_RELEASES_BUCKET_NAME` - more of a variable than a secret, might change with Exoscale
 ** `EXO_RELEASES_BUCKET_ACCESS_KEY` - this will need to change to Exoscale Object Storage key
