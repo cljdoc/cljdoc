@@ -124,7 +124,7 @@ CircleCI specific secrets that will change (so add new vars prefixed with `EXO_`
 Current consul delivered secrets that can stay the same:
 
 * Used by `deploy` circleci job (and then ultimately cljdoc container)
-** `SENTRY_DSN` - not sure why CircleCI needs this?
+** `SENTRY_DSN` -  sentry.io data source name
 ** `CIRCLE_API_TOKEN` - to intitiate analysis jobs on circleci
 ** `CIRCLE_BUILDER_PROJECT` - more of a variable than a secret, imo
 
@@ -227,6 +227,9 @@ A daily backup should be sufficient with backup retention strategy of:
 * 2 annually
 
 We have all sorts of scheduled tasks running in cljdoc, we can run one more to handle backups.
+
+Since we'll be backing up (and potentially restoring (TBD)) from the cljdoc docker container, we should probably choose an efficient compression format.
+I experimented with `.tar.zst` and found it better for compression speed (3m vs 26s), decompression speed (49s vs 20s) and file size than `.tar.gz` (1.3gb vs 932mb).
 
 Our Lucene full-text database is quickly reconstituted from clojars at startup time, so no need to save a backup of it.
 
