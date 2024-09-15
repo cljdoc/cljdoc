@@ -27,3 +27,4 @@ test-data/
 /.vscode
 /.lsp/.cache
 secrets.tfvars
+secrets.pkrvars.hcl

@@ -9,7 +9,7 @@ Create Date: 2024-08-28
 Exploring & Learning
 
 == Background
-Cljdoc has been using a DigitalOcean droplet, AWS Route 53, AWS S3 for some time.
+Cljdoc has been using a DigitalOcean droplet, AWS Route 53, and AWS S3 for some time.
 
 This comes with the following characteristics:
 
@@ -65,6 +65,7 @@ So we'll, within reason, keep our current archecture to start with.
 ** [done] Basic firewall setup
 ** [done] Figure out how to setup a static IP
 ** [done] Configure DNS at Exoscale
+* [done] Add backup job to cljdoc
 * Try/adapt deploy script
 * Try/adapt full CI deploy
 * Configure DNS at registrar (Martin)
@@ -97,6 +98,8 @@ Current location on host file system is `/data/cljdoc/<lucene dir>`, consider mo
 ==== SSL Certs
 Let's encrypt certificates - I think we need to bring `acme.json` over.
 
+Current cert is valid until Fri, 18-Oct-2024.
+
 ==== Secrets
 To think about:
 
@@ -120,6 +123,7 @@ CircleCI specific secrets that will change (so add new vars prefixed with `EXO_`
 ** `EXO_RELEASES_BUCKET_NAME` - more of a variable than a secret, might change with Exoscale
 ** `EXO_RELEASES_BUCKET_ACCESS_KEY` - this will need to change to Exoscale Object Storage key
 ** `EXO_RELEASES_BUCKET_SECRET_KEY` - this will need to change to Exoscacle Object Storage secret
+** `EXO_RELEASES_BUCKET_REGION` - new
 
 Current consul delivered secrets that can stay the same:
 
@@ -136,10 +140,12 @@ New consul secrets:
 * `EXO_BACKUPS_BUCKET_NAME` - For SQLite backups
 * `EXO_BACKUPS_BUCKET_ACCESS_KEY`
 * `EXO_BACKUPS_BUCKET_SECRET_KEY`
+* `EXO_BACKUPS_BUCKET_REGION`
 
 ==== SSH Keys
 We need to grant permission for CircleCI to ssh in to interact with nomad and consul.
 We configure an additional key on CircleCI to do this and add authorize it on our server instance.
+
 TODO: I'm not exactly sure how this was carried out for DigitalOcean droplet.
 Probably manually?
 
@@ -190,6 +196,19 @@ A seemingly unnecessary warning is emitted: AWS account ID not found for provide
 It's a known issue: https://github.com/hashicorp/terraform-provider-aws/issues/37062
 I've pinged Exoscale about this and even though it is not an Exocale issue, they might go ahead and fix it.
 
+Some reminders:
+
+* `secrets.tfvars` will be picked up automatically (and is not under version control) +
+[source,hcl]
+----
+exoscale_api_key = <your key here>
+exoscale_api_secret = <your value here>
+----
+
+* `terraform apply -var-file=secrets.tfvars` to apply any and all changes to infrastructure
+* `terraform destroy -var-file=secrets.tfvars` to entirely teardown infrastructure
+* `terraform taint module.main_server.exoscale_compute_instance.cljdoc_01` to mark compute instance in need of recreation followed by `terraform apply -var-file=secrets.tfvars`
+
 ==== Plan
 
 * Because Exoscale doesn't support encryption (and perhaps less importantly locking) initially, we won't be sharing Terraform state.
@@ -203,7 +222,7 @@ Although we don't want to make changes to the host directly, it can be convenien
 
 * TODO: Need to setup access for deployment from CircleCI
 * TODO: Ensure both Martin and I have access.
-* TODO: Once I get something basic going invite Martin to the cljdoc org at  Exoscale.
+* TODO: Once I get something basic going invite Martin to the cljdoc org at Exoscale.
 
 === Database Backups
 I don't remember a time when the cljdoc DigitalOcean droplet has failed us.
@@ -261,6 +280,17 @@ After some experimentation, my feeling is that for initial software setup, packe
 * Packer for required software setup with an Exoscale Debian 12 template base
 * Cloud init for light config like:
 ** Adding the elastic ip (static ip) to the cloud instance
+
+==== Packer Notes
+
+Packer can reuse terraform `secrets.tfvars`, but needs to be named with an appropriate extension.
+
+From the `image` dir:
+[source,shell]
+----
+ln -s ../secrets.tfvars ./secrets.pkrvars.hcl
+packer build -var-file=secrets.pkrvars.hcl debian-cljdoc.pkr.hcl
+----
 
 === Deployment
 See `modules/deploy` for the details.
