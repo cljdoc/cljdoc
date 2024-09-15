@@ -1,6 +1,7 @@
 (ns ^:slow cljdoc.integration-test
   (:require [babashka.fs :as fs]
             [cheshire.core :as json]
+            [cljdoc.server.log-init :as log-init]
             [cljdoc.server.search.clojars :as clojars]
             [cljdoc.server.system :as sys]
             [clojure.edn :as edn]
@@ -46,7 +47,7 @@
 (defn start! []
   (assert (not (fs/exists? test-data-dir))
           (format "test data directory exists, remove before running tests: %s" (fs/absolutize test-data-dir)))
-  (reset! log-size-at-start (if (fs/exists? sys/log-file) (fs/size sys/log-file) 0))
+  (reset! log-size-at-start (if (fs/exists? log-init/log-file) (fs/size log-init/log-file) 0))
   (reset! clojars/clojars-last-modified nil) ;; REPL friendly, forces re-download
   (st/instrument)
   (let [port (+ 8000 (rand-int 1000))
@@ -255,7 +256,7 @@
     (loop []
       (if (> (System/currentTimeMillis) deadline)
         (throw (Exception. "Waiting for search index to complete took too long"))
-        (if-let [done-line (log-line-match sys/log-file
+        (if-let [done-line (log-line-match log-init/log-file
                                            @log-size-at-start
                                            #"Finished downloading & indexing artifacts")]
           (println (format "<< search index job completed: <<%s>>" done-line))

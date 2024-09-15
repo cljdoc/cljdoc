@@ -5,6 +5,7 @@
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.clojars-stats]
             [cljdoc.server.db-backup]
+            [cljdoc.server.log-init]
             [cljdoc.server.pedestal]
             [cljdoc.server.release-monitor]
             [cljdoc.storage.api :as storage]
@@ -19,17 +20,7 @@
             [ragtime.core :as ragtime]
             [ragtime.jdbc :as jdbc]
             [taoensso.nippy :as nippy]
-            [tea-time.core :as tt]
-            [unilog.config :as unilog]))
-
-(def log-file "log/cljdoc.log")
-
-(unilog/start-logging!
- {:level   :info
-  :console true
-  :files   [log-file]
-  :appenders (when (cfg/sentry-dsn)
-               [{:appender :sentry}])})
+            [tea-time.core :as tt]))
 
 (defn index-dir [env-config]
   (let [lucene-version (-> org.apache.lucene.util.Version/LATEST

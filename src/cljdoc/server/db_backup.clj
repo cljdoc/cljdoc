@@ -23,6 +23,7 @@
   In this case, the available daily backup from Sept 15th 2024 was our best fit."
   (:require [babashka.fs :as fs]
             [babashka.process :as process]
+            [cljdoc.server.log-init] ;; to quiet odd jetty DEBUG logging
             [cljdoc.util.sentry :as sentry]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
