@@ -33,7 +33,7 @@ build {
 
       # Update and install prerequisites
       "sudo DEBIAN_FRONTEND=noninteractive apt-get update",
-      "sudo DEBIAN_FRONTEND=noninteractive apt-get install -y wget curl gnupg lsb-release unzip",
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get install -y wget curl gnupg lsb-release unzip logrotate",
 
       # Add Docker's official GPG key
       "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
