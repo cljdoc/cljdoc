@@ -151,7 +151,7 @@
     (.markStart revwalk (.parseCommit revwalk (.resolve repo rev)))
     (.setTreeFilter revwalk
                     (AndTreeFilter/create (PathFilter/create f)
-                                          (TreeFilter/ANY_DIFF)))
+                                          TreeFilter/ANY_DIFF))
     (->> (map (fn [^RevCommit rev-commit] (-> rev-commit .getAuthorIdent .getName))
               (iterator-seq (.iterator revwalk)))
          frequencies
