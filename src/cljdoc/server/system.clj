@@ -4,6 +4,7 @@
             [cljdoc.config :as cfg]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.clojars-stats]
+            [cljdoc.server.db-backup]
             [cljdoc.server.pedestal]
             [cljdoc.server.release-monitor]
             [cljdoc.storage.api :as storage]
@@ -65,6 +66,10 @@
                         :cache               (ig/ref :cljdoc/cache)
                         :searcher            (ig/ref :cljdoc/searcher)}
       :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
+      :cljdoc/db-backup (cond-> {:enable-db-backup? (cfg/enable-db-backup? env-config)}
+                          (cfg/enable-db-backup? env-config) (merge {:db-spec (ig/ref :cljdoc/sqlite)
+                                                                     :cache-db-spec (-> env-config cfg/cache :db-spec)}
+                                                                    (cfg/backup env-config)))
       :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/analysis-service {:service-type ana-service
                                 :opts (merge

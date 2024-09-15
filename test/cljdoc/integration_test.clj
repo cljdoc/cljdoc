@@ -55,6 +55,7 @@
                              :opensearch-base-url opensearch-base-url
                              :analysis-service :local
                              :autobuild-clojars-releases? false
+                             :enable-db-backup? false
                              :clojars-stats-retention-days 5
                              :dir test-data-dir}}]
     (ig/init (sys/system-config cfg))))

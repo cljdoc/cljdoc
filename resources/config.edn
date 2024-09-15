@@ -16,6 +16,8 @@
                                                          :prod 380}
                  :enable-sentry? #profile {:default false
                                            :prod true}
+                 :enable-db-backup? #profile {:default false
+                                              :prod true}
                  :dir #profile {:default "data/"
                                 :test "test-data/"
                                 :prod "/var/cljdoc/"}

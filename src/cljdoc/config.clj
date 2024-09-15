@@ -86,6 +86,20 @@
 (defn enable-release-monitor? [config]
   (not (clojure.core/get-in config [:cljdoc/server :disable-release-monitor?])))
 
+(defn enable-db-backup? [config]
+  (get-in config [:cljdoc/server :enable-db-backup?]))
+
+(defn backup [config]
+  (cond-> {:enable-db-backup? (enable-db-backup? config)}
+    (enable-db-backup? config)
+    (merge (-> config
+               :secrets
+               :s3
+               (select-keys [:backups-bucket-region
+                             :backups-bucket-name
+                             :backups-bucket-key
+                             :backups-bucket-secret])))))
+
 (defn sentry-dsn
   ([] (sentry-dsn (config)))
   ([config] (when (get-in config [:cljdoc/server :enable-sentry?])
