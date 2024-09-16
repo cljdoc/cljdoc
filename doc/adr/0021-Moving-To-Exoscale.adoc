@@ -69,6 +69,7 @@ So we'll, within reason, keep our current archecture to start with.
 ** [TODO] Reconsider : in filenames, they can be problematic
 * [done] Get traefik/nomad/consul/docker up and running
 * [done] Try/adapt deploy script from my dev box
+* Verify blue/green deploy
 * Try/adapt full CI deploy
 * Maybe automaticaly restore dbs if missing on startup (for prod only).
 * Probably traefik access log rotation.
