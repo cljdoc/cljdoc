@@ -69,8 +69,11 @@ So we'll, within reason, keep our current archecture to start with.
 * [done] Get traefik/nomad/consul/docker up and running
 * [done] Try/adapt deploy script from my dev box
 * Try/adapt full CI deploy
+* Maybe automaticaly restore dbs if missing on startup (for prod only).
+* Update ops README
 * Maybe create a bb.edn for ops work.
 * Configure DNS at registrar (Martin)
+* Review TODOs
 
 == Finer Questions
 
