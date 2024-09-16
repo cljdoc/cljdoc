@@ -69,7 +69,13 @@ So we'll, within reason, keep our current archecture to start with.
 ** [TODO] Reconsider : in filenames, they can be problematic
 * [done] Get traefik/nomad/consul/docker up and running
 * [done] Try/adapt deploy script from my dev box
-* Verify blue/green deploy
+* [done] Verify blue/green deploy
+* Verify with prod profile `CLJDOC_PROFILE=prod` in nomad job spec
+** blue/green again
+** db volume mapping
+** sentry?
+** backups
+** circle ci builds
 * Try/adapt full CI deploy
 * Maybe automaticaly restore dbs if missing on startup (for prod only).
 * Probably traefik access log rotation.
