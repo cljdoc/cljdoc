@@ -7,7 +7,7 @@
   - `<backup period>` are `daily`, `weekly`, `monthly`, `yearly`
   - `<prefix>` currently `cljdoc-db-`
   - `<target-date>` is `yyyy-MM-dd` for logical backup date
-  - `<timestamp>` is `yyyy-MM-ddTHH:mm:ss` for actual date of backup
+  - `<timestamp>` is `yyyy-MM-ddTHH-mm-ss` for actual date of backup
   - `<ext>` currently `.tar.zst`
 
   We chose zstd as our compression format. In testing performed much better than gz in
@@ -68,7 +68,7 @@
                               (.*)                             # group 2: prefix
                               (\d{4}-\d{2}-\d{2})              # group 3: target-date
                               @
-                              (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d) # group 4: timestamp
+                              (\d{4}-\d\d-\d\dT\d\d-\d\d-\d\d) # group 4: timestamp
                               (.*)                             # group 5: extension"
                           %))
        (mapv #(zipmap [:key :period :prefix :target-date :timestamp :extension] %))
@@ -87,7 +87,7 @@
 (defn- db-backup-filename [^LocalDateTime datetime]
   (format "cljdoc-db-%s@%s.tar.zst"
           (.format (DateTimeFormatter/ofPattern "yyyy-MM-dd") datetime)
-          (.format (DateTimeFormatter/ofPattern "yyyy-MM-dd'T'HH:mm:ss") datetime)))
+          (.format (DateTimeFormatter/ofPattern "yyyy-MM-dd'T'HH-mm-ss") datetime)))
 
 (defn create-backup-tracker []
   (let [last-report-time (atom (System/currentTimeMillis))]
