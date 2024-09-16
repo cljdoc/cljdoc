@@ -65,15 +65,12 @@ So we'll, within reason, keep our current archecture to start with.
 ** [done] Basic firewall setup
 ** [done] Figure out how to setup a static IP
 ** [done] Configure DNS at Exoscale
-* [done] Add backup job to cljdoc
-* Try/adapt deploy script
+* [done] Add db backup job to cljdoc
+* [done] Get traefik/nomad/consul/docker up and running
+* [done] Try/adapt deploy script from my dev box
 * Try/adapt full CI deploy
+* Maybe create a bb.edn for ops work.
 * Configure DNS at registrar (Martin)
-
-In progress:
-* traefik is 404ing all requests
-** run consul as root (not transcribed to source yet)
-** bind consul to 0.0.0.0 in consul config (not transcribed to source yet)
 
 == Finer Questions
 
