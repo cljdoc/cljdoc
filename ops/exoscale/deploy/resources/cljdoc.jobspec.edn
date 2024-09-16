@@ -34,8 +34,7 @@
                                   :Type "tcp"}]
                         ; traefik is now configured through service tags
                         :Tags
-                        [
-                         "traefik.enable=true"
+                        ["traefik.enable=true"
                          ;; http
                          "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
                          "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
