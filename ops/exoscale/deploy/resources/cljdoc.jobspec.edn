@@ -32,10 +32,24 @@
                                   :Interval #nomad/seconds 10
                                   :Timeout #nomad/seconds 2
                                   :Type "tcp"}]
+                        ; traefik is now configured through service tags
                         :Tags
-                          ["traefik.tags=cljdoc"
-                           "traefik.frontends.blue.rule=PathPrefix:/"
-                           "traefik.frontends.blue.entryPoints=http,https"]}],
+                        [
+                         "traefik.enable=true"
+                         ;; http
+                         "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+                         "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+                         "traefik.http.routers.cljdoc-http.entrypoints=web"
+                         "traefik.http.routers.cljdoc-http.middlewares=redirect-to-https"
+                         "traefik.http.routers.cljdoc-http.rule=PathPrefix(`/`)"
+                         ;; https
+                         "traefik.http.middlewares.compress-response.compress=true"
+                         "traefik.http.routers.cljdoc-https.entrypoints=websecure"
+                         "traefik.http.routers.cljdoc-https.middlewares=compress-response"
+                         "traefik.http.routers.cljdoc-https.tls=true"
+                         "traefik.http.routers.cljdoc-https.tls.certresolver=lets-encrypt"
+                         "traefik.http.routers.cljdoc-https.rule=PathPrefix(`/`)"
+                         ]}],
             :Templates [{:DestPath "secrets/secrets.edn",
                          :EmbeddedTmpl "{{key \"config/cljdoc/secrets-edn\"}}"}]}],
         :Update {:Canary 1

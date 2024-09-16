@@ -70,6 +70,11 @@ So we'll, within reason, keep our current archecture to start with.
 * Try/adapt full CI deploy
 * Configure DNS at registrar (Martin)
 
+In progress:
+* traefik is 404ing all requests
+** run consul as root (not transcribed to source yet)
+** bind consul to 0.0.0.0 in consul config (not transcribed to source yet)
+
 == Finer Questions
 
 === Data Migration from DigitalOcean to Exoscale
@@ -328,6 +333,8 @@ What is traefik's role?:
 Reminder: traefik logs exhausted all disk space over at DigitalOcean and caused nomad corruption; we probably want to implement traefik log rotation and deletion.
 Maybe save 2 weeks of logs?
 
+I was confused with 404s for a day until I finally realized traefik config for consul is now delivered by service tags specified in our nomad jobspec.
+
 TODO: We allocated 128mb to traefik v1.7 container, will this be enough for traefik v3.1?
 
 === Nomad & Consul Initial Config
@@ -378,6 +385,13 @@ TODO: Actually... I think the service should probably be run under nomad:nomad u
 Some notes:
 
 * nomad complains about Serf comms, but I think this is ignorable for a single-node installation?
+
+Common nomad commands:
+
+* `nomad status`
+* `nomad status cljdoc`
+* `nomad stop -purge cljdoc`
+* `nomad alloc logs <alloc id>`
 
 === Zip Release Artifacts
 The release workflow creates a zip file from which it then creates a docker image which it then uploads to docker hub.
@@ -432,6 +446,11 @@ I'll look into both of these.
 I've setup an Exoscale security group to allow incoming ssh, http and https.
 
 == Thoughts & Notes from Experiments
+
+=== Useful docker commands
+
+* `docker ps` - to get container id
+* `sudo docker exec -it <container id> /bin/sh` - to shell into a running docker container
 
 === Cloud Init is Tough to Test
 I started off testing by launching Compute instances at Exoscale, but that was becoming painful.

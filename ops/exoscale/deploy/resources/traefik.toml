@@ -4,49 +4,51 @@
 
 # Log rotations is not a traefik feature, but traefik will close and reopen
 # log files on USR1 signal which allows for rotation via logrotate
+
 [accessLog]
   filePath = "/data/access.log"
 
-[entryPoints.web]
-  address = ":80"
+[log]
+  level = "DEBUG"
+  filePath = "/data/traefik.log"
 
-  [entryPoints.web.http]
-    [entryPoints.web.http.redirections]
-      [entryPoints.web.http.redirections.entryPoint]
-        to = "websecure"
-        scheme = "https"
-
-[entryPoints.websecure]
-  address = ":443"
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+  [entryPoints.websecure]
+    address = ":443"
 
 # Let's encrypt is an Automatic Certificate Management Environment (ACME) provider
 [certificatesResolvers]
   [certificatesResolvers.lets-encrypt.acme]
-    email = "${LETSENCRYPT_EMAIL}"
+    email = "martinklepsch@googlemail.com"
     storage = "/data/acme.json" # certs are written/tracked here
     keyType = "RSA2048"
     # Use this while testing, uncomment or delete after done
     caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
-
     [certificatesResolvers.lets-encrypt.acme.httpChallenge]
       entryPoint = "web"
 
-[http.middlewares]
-  [http.middlewares.compress.compress]
+#[http.middlewares]
+#  [http.middlewares.compress.compress]
 
-[http.routers]
-  [http.routers.cljdoc]
-    entryPoints = ["websecure"]
-    rule = "Host(`cljdoc.org`, `cljdoc.xyz`)"
-    service = "cljdoc-service"
-    middlewares = ["compress"]
-    [http.routers.cljdoc.tls]
-      certResolver = "lets-encrypt"
+#[http.routers]
+#  [http.routers.cljdoc]
+#    entryPoints = ["websecure"]
+#    entryPoints = ["web"]
+#    rule = "HostRegexp(`.*`)"
+#    rule = "PathPrefix(`/`)"
+#    rule = "Host(`cljdoc.org`, `cljdoc.xyz`)"
+#    service = "cljdoc"
+#    middlewares = ["compress"]
+#    [http.routers.cljdoc.tls]
+#      certResolver = "lets-encrypt"
 
 [api]
 [ping]
 
 [providers.consulCatalog]
   prefix = "traefik"
+  exposedByDefault = false
   watch = true
-  constraints = ["tag==cljdoc"]
+#  constraints = "Tag(`cljdoc`)"

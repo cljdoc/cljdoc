@@ -78,6 +78,7 @@ build {
       # install config files
       "sudo install -Dm644 /tmp/conf/nomad.server.hcl /etc/nomad.d/server.hcl",
       "sudo install -Dm644 /tmp/conf/nomad.service /etc/systemd/system/nomad.service",
+      "sudo install -Dm644 /tmp/conf/consul.server.hcl /etc/consul.d/server.hcl",
       "sudo install -Dm644 /tmp/conf/consul.service /etc/systemd/system/consul.service",
       "rm -rf /tmp/conf",
 
@@ -86,6 +87,7 @@ build {
       "sudo mkdir -p /var/lib/alloc_mounts",
 
       # setup for consul
+      # TODO: Currently running as root, might turf this if I need to run as root
       "sudo useradd --system --home /etc/consul.d --shell /bin/false consul",
       "sudo mkdir -p /etc/consul.d",
       "sudo mkdir -p /var/lib/consul",
