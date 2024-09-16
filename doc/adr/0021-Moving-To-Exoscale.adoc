@@ -66,10 +66,12 @@ So we'll, within reason, keep our current archecture to start with.
 ** [done] Figure out how to setup a static IP
 ** [done] Configure DNS at Exoscale
 * [done] Add db backup job to cljdoc
+** [TODO] Reconsider : in filenames, they can be problematic
 * [done] Get traefik/nomad/consul/docker up and running
 * [done] Try/adapt deploy script from my dev box
 * Try/adapt full CI deploy
 * Maybe automaticaly restore dbs if missing on startup (for prod only).
+* Probably traefik access log rotation.
 * Update ops README
 * Maybe create a bb.edn for ops work.
 * Configure DNS at registrar (Martin)
@@ -254,6 +256,12 @@ We have all sorts of scheduled tasks running in cljdoc, we can run one more to h
 
 Since we'll be backing up (and potentially restoring (TBD)) from the cljdoc docker container, we should probably choose an efficient compression format.
 I experimented with `.tar.zst` and found it better for compression speed (3m vs 26s), decompression speed (49s vs 20s) and file size than `.tar.gz` (1.3gb vs 932mb).
+
+[source,shell]
+----
+tar --use-compress-program=zstd -cf dest.tar.zst .
+tar --use-compress-program=zstd -xf dest.tar.zst
+----
 
 Our Lucene full-text database is quickly reconstituted from clojars at startup time, so no need to save a backup of it.
 
