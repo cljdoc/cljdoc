@@ -92,17 +92,24 @@
 (defn enable-db-backup? [config]
   (get-in config [:cljdoc/server :enable-db-backup?]))
 
-(defn backup [config]
-  ;; TODO I think I'm doin this cond in 2 spots? Maybe also in system
-  (cond-> {:enable-db-backup? (enable-db-backup? config)}
-    (enable-db-backup? config)
-    (merge (-> config
-               :secrets
-               :s3
-               (select-keys [:backups-bucket-region
-                             :backups-bucket-name
-                             :backups-bucket-key
-                             :backups-bucket-secret])))))
+(defn- backup-restore-secrets [config]
+  (-> config
+      :secrets
+      :s3
+      (select-keys [:backups-bucket-region
+                    :backups-bucket-name
+                    :backups-bucket-key
+                    :backups-bucket-secret])))
+
+(defn db-backup [config]
+  (let [enabled? (enable-db-backup? config) ]
+    (cond-> {:enable-db-backup? enabled?}
+      enabled? (merge (backup-restore-secrets config)))))
+
+(defn db-restore [config]
+  (let [enabled? (enable-db-restore? config)]
+    (cond-> {:enable-db-restore? enabled?}
+      enabled? (merge (backup-restore-secrets config)))))
 
 (defn sentry-dsn
   ([] (sentry-dsn (config)))

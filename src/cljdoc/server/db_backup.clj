@@ -308,7 +308,7 @@
                                    :request {:Bucket backups-bucket-name
                                              :Key existing-backup}})
                 :Body
-                (io/copy dest-file))
+                (io/copy dest-file :buffer-size 65536))
             (log/infof "Decompressing %s to %s for restore" dest-file target-dir)
             (process/shell {:dir target-dir} "tar --use-compress-program=zstd -xf" dest-file)
             (log/info "Database restore complete")))))))

@@ -188,10 +188,21 @@
           (spit (fs/file "target" backed-up-db-file) "dummy db")
           (p/shell {:dir "target"} "tar --use-compress-program=zstd -cf" backup-file backed-up-db-file)
           (reset! store {{:Bucket "cljdoc-backups"
+                          :Key "daily/cljdoc-db-2024-09-13_2024-09-14T00-45-22.tar.zst"}
+                         {:Bucket "cljdoc-backups"
+                          :Key "daily/cljdoc-db-2024-09-13_2024-09-14T00-45-22.tar.zst"}
+
+                         ;; this is latest daily, it should be picked
+                         {:Bucket "cljdoc-backups"
                           :Key "daily/cljdoc-db-2024-09-14_2024-09-14T00-45-22.tar.zst"}
                          {:Bucket "cljdoc-backups"
                           :Key "daily/cljdoc-db-2024-09-14_2024-09-14T00-45-22.tar.zst"
-                          :Body (io/input-stream backup-file)}})
+                          :Body (io/input-stream backup-file)}
+
+                         {:Bucket "cljdoc-backups"
+                          :Key "daily/cljdoc-db-2024-09-12_2024-09-14T00-45-22.tar.zst"}
+                         {:Bucket "cljdoc-backups"
+                          :Key "daily/cljdoc-db-2024-09-12_2024-09-14T00-45-22.tar.zst"}})
           (let [missing-db-file (str (fs/file db-dir "cljdoc.db.sqlite"))
                 logged (atom [])]
             (with-redefs [log/log* (fn [_logger level _throwable message]

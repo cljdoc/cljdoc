@@ -37,10 +37,9 @@
       (require ns))
     (merge
      {:cljdoc/tea-time        {}
-      :cljdoc/sqlite          (cond-> {:db-spec (cfg/db env-config)
-                                       :dir     (cfg/data-dir env-config)
-                                       :enable-db-restore? (cfg/enable-db-restore? env-config)}
-                                (cfg/enable-db-restore? env-config) (merge (cfg/backup env-config)))
+      :cljdoc/sqlite          (merge {:db-spec (cfg/db env-config)
+                                      :dir     (cfg/data-dir env-config)}
+                                     (cfg/db-restore env-config))
       :cljdoc/cache           (merge (cfg/cache env-config)
                                      {:cache-dir      (cfg/data-dir env-config)
                                       :key-prefix     "get-pom-xml"
@@ -59,10 +58,9 @@
                         :cache               (ig/ref :cljdoc/cache)
                         :searcher            (ig/ref :cljdoc/searcher)}
       :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
-      :cljdoc/db-backup (cond-> {:enable-db-backup? (cfg/enable-db-backup? env-config)}
-                          (cfg/enable-db-backup? env-config) (merge {:db-spec (ig/ref :cljdoc/sqlite)
-                                                                     :cache-db-spec (-> env-config cfg/cache :db-spec)}
-                                                                    (cfg/backup env-config)))
+      :cljdoc/db-backup (merge {:db-spec (ig/ref :cljdoc/sqlite)
+                                :cache-db-spec (-> env-config cfg/cache :db-spec)}
+                               (cfg/db-backup env-config))
       :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/analysis-service {:service-type ana-service
                                 :opts (merge
@@ -105,9 +103,9 @@
   (log/info "Starting" k)
   (build-log/->SQLBuildTracker db-spec))
 
-(defmethod ig/init-key :cljdoc/sqlite [_ {:keys [enable-restore-db? db-spec dir] :as opts}]
+(defmethod ig/init-key :cljdoc/sqlite [_ {:keys [enable-db-restore? db-spec dir] :as opts}]
   (.mkdirs (io/file dir))
-  (when enable-restore-db?
+  (when enable-db-restore?
     (db-backup/restore-db! opts))
 
   (ragtime/migrate-all (jdbc/sql-database db-spec)
