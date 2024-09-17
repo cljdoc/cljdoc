@@ -1,6 +1,11 @@
 (ns cljdoc.server.db-backup-test
-  (:require [cljdoc.server.db-backup :as db-backup]
-            [clojure.test :as t])
+  (:require [babashka.fs :as fs]
+            [babashka.process :as p]
+            [cljdoc.server.db-backup :as db-backup]
+            [clojure.java.io :as io]
+            [clojure.test :as t]
+            [clojure.tools.logging :as log]
+            [matcher-combinators.test])
   (:import (java.time LocalDateTime)))
 
 (set! *warn-on-reflection* true)
@@ -35,7 +40,10 @@
          (let [[_ source-bucket source-key] (re-matches #"(.*?)/(.*)" (:CopySource request))
                source (get @fake-store (select-keys request {:Bucket source-bucket :Key source-key}))]
            (fake-invoke client {:op :PutObject :request
-                                (merge source (select-keys request [:Bucket :Key]))}))))}))
+                                (merge source (select-keys request [:Bucket :Key]))}))
+
+         :GetObject
+         (get @fake-store (select-keys request [:Bucket :Key]))))}))
 
 (defn- parse-datetime [s]
   (LocalDateTime/parse s))
@@ -137,3 +145,63 @@
                   ["yearly/cljdoc-db-2025-01-01_2025-01-01T00-11-12.tar.zst"
                    "yearly/cljdoc-db-2026-01-01_2026-01-01T00-11-12.tar.zst"]}
                  (list-backups)))))))
+
+(t/deftest db-restore-test
+  (let [{:keys [invoke store]} (fake-aws)
+        opts {:aws-invoke-fn invoke
+              :backups-bucket-name "cljdoc-backups"
+              :backups-bucket-key "dummy"
+              :backups-bucket-secret "dummy"
+              :backups-bucker-region "dummy"
+              :db-spec {:dbtype "sqlite"
+                        :host :none
+                        :dbname "target/cljdoc.db.sqlite"
+                        :synchronous "NORMAL"
+                        :journal_mode "WAL"}}]
+    (t/testing "when db exists we don't restore"
+      (fs/with-temp-dir [db-dir {:prefix "cljdoc-db-restore"}]
+
+        (let [db-file (str (fs/file db-dir "cljdoc.db.sqlite"))
+              logged (atom [])]
+          (with-redefs [log/log* (fn [_logger level _throwable message]
+                                   (swap! logged conj [level message]))]
+
+            (spit db-file "I'm here")
+            (db-backup/restore-db! (assoc-in opts [:db-spec :dbname] db-file))
+            (t/is (match? [[:info #"Database .*/cljdoc.db.sqlite found, no need to restore"]]
+                          @logged))))))
+    (t/testing "when db does not exist, we can't restore if no backup available"
+      (fs/with-temp-dir [db-dir {:prefix "cljdoc-db-restore"}]
+        (let [db-file (str (fs/file db-dir "cljdoc.db.sqlite"))
+              logged (atom [])]
+          (with-redefs [log/log* (fn [_logger level _throwable message]
+                                   (swap! logged conj [level message]))]
+            (db-backup/restore-db! (assoc-in opts [:db-spec :dbname] db-file))
+            (t/is (match? [[:warn #"Database .*/cljdoc.db.sqlite not found, but no backup available"]]
+                          @logged))))))
+    (t/testing "when db does not exit, we restore from available backup"
+      (fs/with-temp-dir [db-dir {:prefix "cljdoc-db-restore"}]
+        (let [backup-file (-> (fs/file "target" "dummy-backup.tar.zst")
+                              fs/absolutize
+                              str)
+              backed-up-db-file "cljdoc.db.sqlite"]
+          (spit (fs/file "target" backed-up-db-file) "dummy db")
+          (p/shell {:dir "target"} "tar --use-compress-program=zstd -cf" backup-file backed-up-db-file)
+          (reset! store {{:Bucket "cljdoc-backups"
+                          :Key "daily/cljdoc-db-2024-09-14_2024-09-14T00-45-22.tar.zst"}
+                         {:Bucket "cljdoc-backups"
+                          :Key "daily/cljdoc-db-2024-09-14_2024-09-14T00-45-22.tar.zst"
+                          :Body (io/input-stream backup-file)}})
+          (let [missing-db-file (str (fs/file db-dir "cljdoc.db.sqlite"))
+                logged (atom [])]
+            (with-redefs [log/log* (fn [_logger level _throwable message]
+                                     (swap! logged conj [level message]))]
+              (t/is (not (fs/exists? missing-db-file))
+                    "db file is missing")
+              (db-backup/restore-db! (assoc-in opts [:db-spec :dbname] missing-db-file))
+              (t/is (match? [[:info #"Downloading .* for restore"]
+                             [:info #"Decompressing.* for restore"]
+                             [:info "Database restore complete"]]
+                            @logged))
+              (t/is (fs/exists? missing-db-file)
+                    "db file is restored"))))))))

@@ -293,7 +293,7 @@
         s3 (s3-client opts)
         existing-backup (->> (existing-backups s3 opts)
                              (filterv #(= :daily (:period %)))
-                             (sort :target-date)
+                             (sort-by :target-date)
                              last
                              :key)]
     (if (fs/exists? dbname)
@@ -301,16 +301,16 @@
       (if-not existing-backup
         (log/warnf "Database %s not found, but no backup available" dbname)
         (fs/with-temp-dir [download-dir {:prefix "cljdoc-db-restore-work"}]
-          (let [dest-file (fs/file download-dir (fs/file-name key))
-                target-dir (fs/path dbname)]
+          (let [dest-file (fs/file download-dir (fs/file-name existing-backup))
+                target-dir (str (fs/parent dbname))]
             (log/infof "Downloading %s for restore" dest-file)
             (-> (aws-invoke-fn s3 {:op :GetObject
                                    :request {:Bucket backups-bucket-name
-                                             :Key key}})
+                                             :Key existing-backup}})
                 :Body
                 (io/copy dest-file))
             (log/infof "Decompressing %s to %s for restore" dest-file target-dir)
-            (process/shell {:dir target-dir} "tar --user-compress-program=zstd -xf" dest-file)
+            (process/shell {:dir target-dir} "tar --use-compress-program=zstd -xf" dest-file)
             (log/info "Database restore complete")))))))
 
 (defmethod ig/init-key :cljdoc/db-backup
