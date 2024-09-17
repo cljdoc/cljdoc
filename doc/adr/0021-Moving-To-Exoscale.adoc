@@ -77,8 +77,8 @@ So we'll, within reason, keep our current archecture to start with.
 ** backups
 ** circle ci builds
 * Try/adapt full CI deploy
-* Maybe automaticaly restore dbs if missing on startup (for prod only).
-* Probably traefik access log rotation.
+* [done] Maybe automaticaly restore dbs if missing on startup (for prod only).
+* [done] Probably traefik access log rotation.
 * Update ops README
 * Maybe create a bb.edn for ops work.
 * Configure DNS at registrar (Martin)
@@ -101,6 +101,10 @@ Notes:
 Use backup from DigitalOcean.
 
 Either put in expected spot on filesystem or new restore strategy will pick up from backup placed in Exoscale Simple Object Store.
+
+Downloading backup for restore took about 3.5 minutes on my dev box.
+TODO: I expect this will be very much speedier in production.
+TODO: Consider bumping deploy timeout if this is not the case.
 
 Current location on host file system is `/data/cljdoc`, consider a more conventional `/var/lib/cljdoc`.
 
@@ -403,10 +407,14 @@ Some notes:
 
 Common nomad commands:
 
-* `nomad status`
-* `nomad status cljdoc`
-* `nomad stop -purge cljdoc`
-* `nomad alloc logs <alloc id>`
+* `nomad status` - overall status
+* `nomad status cljdoc` - to learn alloc ids and overall status
+* `nomad alloc logs <alloc id>` - to view logs for an alloc id
+* `nomad stop -purge cljdoc` - wipe out all jobs
+
+Useful consul commands:
+
+* `consul catalog services -tags` - list all services and their tags
 
 === Zip Release Artifacts
 The release workflow creates a zip file from which it then creates a docker image which it then uploads to docker hub.
