@@ -107,16 +107,17 @@
   (let [target (str (fs/file dest-dir (fs/file-name dbname)))]
     (log/infof "Backing up %s db to %s" dbname target)
     (with-open  [^SQLiteConnection conn (jdbc/get-connection db-spec)]
-      (let [backup-tracker-fn (create-backup-tracker)]
-        ;; TODO: check return, should be 0 for OK
-        ;; https://www.sqlite.org/c3ref/c_abort.html
-        (.backup (.getDatabase conn) "main" target
-                 (reify DB$ProgressObserver
-                   (progress [_ remaining-pages total-pages]
-                     (backup-tracker-fn {:dbname dbname
-                                         :total-pages total-pages
-                                         :remaining-pages remaining-pages}))))
-        (log/infof "%s backup complete" dbname)))))
+      (let [backup-tracker-fn (create-backup-tracker)
+            backup-result
+            ;; TODO: check return, should be 0 for OK
+            ;; https://www.sqlite.org/c3ref/c_abort.html
+            (.backup (.getDatabase conn) "main" target
+                     (reify DB$ProgressObserver
+                       (progress [_ remaining-pages total-pages]
+                         (backup-tracker-fn {:dbname dbname
+                                             :total-pages total-pages
+                                             :remaining-pages remaining-pages}))))]
+        (log/infof "%s backup complete, result-code %d" dbname backup-result)))))
 
 (defn- backup-db!
   "Create compressed backup for `db-spec` and `cache-db-spec` to `dest-file`"
@@ -276,6 +277,38 @@
       (catch Exception e
         (log/error e)
         (sentry/capture {:ex e})))))
+
+(defn restore-db!
+  "If `db-spec` `dbname` does not exist, attempt automatic restore from latest available daily backup.
+
+  There is also `cache-db-spec`, but we solely use `db-spec` to determine if we should restore both dbs.
+  Call before any db interaction, else empty db will automatically be created."
+  [{:keys [aws-invoke-fn db-spec backups-bucket-name] :as opts}]
+  (let [aws-invoke-fn (or aws-invoke-fn aws/invoke)
+        opts (assoc opts :aws-invoke-fn aws-invoke-fn)
+        dbname (:dbname db-spec)
+        s3 (s3-client opts)
+        existing-backup (->> (existing-backups s3 opts)
+                             (filterv #(= :daily (:period %)))
+                             (sort :target-date)
+                             last
+                             :key)]
+    (if (fs/exists? dbname)
+      (log/infof "Database %s found, no need to restore" dbname)
+      (if-not existing-backup
+        (log/warnf "Database %s not found, but no backup available" dbname)
+        (fs/with-temp-dir [download-dir {:prefix "cljdoc-db-restore-work"}]
+          (let [dest-file (fs/file download-dir (fs/file-name key))
+                target-dir (fs/path dbname)]
+            (log/infof "Downloading %s for restore" dest-file)
+            (-> (aws-invoke-fn s3 {:op :GetObject
+                                   :request {:Bucket backups-bucket-name
+                                             :Key key}})
+                :Body
+                (io/copy dest-file))
+            (log/infof "Decompressing %s to %s for restore" dest-file target-dir)
+            (process/shell {:dir target-dir} "tar --user-compress-program=zstd -xf" dest-file)
+            (log/info "Database restore complete")))))))
 
 (defmethod ig/init-key :cljdoc/db-backup
   [k {:keys [enable-db-backup?] :as opts}]

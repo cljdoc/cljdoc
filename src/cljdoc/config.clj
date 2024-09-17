@@ -86,10 +86,14 @@
 (defn enable-release-monitor? [config]
   (not (clojure.core/get-in config [:cljdoc/server :disable-release-monitor?])))
 
+(defn enable-db-restore? [config]
+  (get-in config [:cljdoc/server :enable-db-restore?]))
+
 (defn enable-db-backup? [config]
   (get-in config [:cljdoc/server :enable-db-backup?]))
 
 (defn backup [config]
+  ;; TODO I think I'm doin this cond in 2 spots? Maybe also in system
   (cond-> {:enable-db-backup? (enable-db-backup? config)}
     (enable-db-backup? config)
     (merge (-> config

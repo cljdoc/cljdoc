@@ -74,7 +74,7 @@
     (t/testing "2 more backups brings us to Monday and our next weekly backup"
       (doseq [day [15 16]]
         (db-backup/backup-job! (assoc job-opts :now-fn #(parse-datetime (format "2024-09-%dT00:45:%d"
-                                                                     day day)))))
+                                                                                day day)))))
       (t/is (= (-> initial-expected-backups
                    (update :daily conj
                            "daily/cljdoc-db-2024-09-14@2024-09-14T00-45-22.tar.zst"
@@ -87,7 +87,7 @@
     (t/testing "After 8 daily backups we prune daily backups to a count of 7"
       (doseq [day [17 18 19 20]]
         (db-backup/backup-job! (assoc job-opts :now-fn #(parse-datetime (format "2024-09-%dT00:45:%d"
-                                                                     day day)))))
+                                                                                day day)))))
       (t/is (= (-> initial-expected-backups
                    (assoc :daily
                           ["daily/cljdoc-db-2024-09-14@2024-09-14T00-45-22.tar.zst"

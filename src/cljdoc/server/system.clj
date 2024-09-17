@@ -4,7 +4,7 @@
             [cljdoc.config :as cfg]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.clojars-stats]
-            [cljdoc.server.db-backup]
+            [cljdoc.server.db-backup :as db-backup]
             [cljdoc.server.log-init]
             [cljdoc.server.pedestal]
             [cljdoc.server.release-monitor]
@@ -37,8 +37,10 @@
       (require ns))
     (merge
      {:cljdoc/tea-time        {}
-      :cljdoc/sqlite          {:db-spec (cfg/db env-config)
-                               :dir     (cfg/data-dir env-config)}
+      :cljdoc/sqlite          (cond-> {:db-spec (cfg/db env-config)
+                                       :dir     (cfg/data-dir env-config)
+                                       :enable-db-restore? (cfg/enable-db-restore? env-config)}
+                                (cfg/enable-db-restore? env-config) (merge (cfg/backup env-config)))
       :cljdoc/cache           (merge (cfg/cache env-config)
                                      {:cache-dir      (cfg/data-dir env-config)
                                       :key-prefix     "get-pom-xml"
@@ -103,8 +105,11 @@
   (log/info "Starting" k)
   (build-log/->SQLBuildTracker db-spec))
 
-(defmethod ig/init-key :cljdoc/sqlite [_ {:keys [db-spec dir]}]
+(defmethod ig/init-key :cljdoc/sqlite [_ {:keys [enable-restore-db? db-spec dir] :as opts}]
   (.mkdirs (io/file dir))
+  (when enable-restore-db?
+    (db-backup/restore-db! opts))
+
   (ragtime/migrate-all (jdbc/sql-database db-spec)
                        {}
                        (jdbc/load-resources "migrations")
