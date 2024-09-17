@@ -3,7 +3,7 @@
 
   See `backup-retention` for how many backups we keep for each backup period.
 
-  Naming scheme is: `<backup period>/<prefix><target-date>@<timestamp><ext>` where:
+  Naming scheme is: `<backup period>/<prefix><target-date>_<timestamp><ext>` where:
   - `<backup period>` are `daily`, `weekly`, `monthly`, `yearly`
   - `<prefix>` currently `cljdoc-db-`
   - `<target-date>` is `yyyy-MM-dd` for logical backup date
@@ -18,7 +18,7 @@
   we'll fill it with the best candidate from our `daily` backups. This is why you might see
   something like:
 
-  `yearly/cljdoc-db-2024-01-01@2024-09-15T13:14:52.tar.zst`.
+  `yearly/cljdoc-db-2024-01-01_2024-09-15T13:14:52.tar.zst`.
 
   In this case, the available daily backup from Sept 15th 2024 was our best fit."
   (:require [babashka.fs :as fs]
@@ -67,7 +67,7 @@
                               /
                               (.*)                             # group 2: prefix
                               (\d{4}-\d{2}-\d{2})              # group 3: target-date
-                              @
+                              _
                               (\d{4}-\d\d-\d\dT\d\d-\d\d-\d\d) # group 4: timestamp
                               (.*)                             # group 5: extension"
                           %))
@@ -85,7 +85,7 @@
         backup-list))
 
 (defn- db-backup-filename [^LocalDateTime datetime]
-  (format "cljdoc-db-%s@%s.tar.zst"
+  (format "cljdoc-db-%s_%s.tar.zst"
           (.format (DateTimeFormatter/ofPattern "yyyy-MM-dd") datetime)
           (.format (DateTimeFormatter/ofPattern "yyyy-MM-dd'T'HH-mm-ss") datetime)))
 
@@ -220,7 +220,7 @@
 (defn- fill-copy-list [fillable-backups]
   (into [] (for [{:keys [period target-date daily-match]} fillable-backups
                  :let [source (:key daily-match)
-                       dest (format "%s/%s%s@%s%s"
+                       dest (format "%s/%s%s_%s%s"
                                     (name period)
                                     (:prefix daily-match)
                                     target-date
@@ -344,7 +344,7 @@
   (def s3 (s3-client opts))
 
   (db-backup-filename (LocalDateTime/now))
-  ;; => "cljdoc-db-2024-09-14@2024-09-14T20:36:55.tar.zst"
+  ;; => "cljdoc-db-2024-09-17_2024-09-17T08-54-20.tar.zst"
 
   (aws/invoke s3 {:op :PutObject :request {:Bucket "cljdoc-backups"
                                            :Key "daily/hello.txt"
