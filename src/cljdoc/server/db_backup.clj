@@ -18,7 +18,7 @@
   we'll fill it with the best candidate from our `daily` backups. This is why you might see
   something like:
 
-  `yearly/cljdoc-db/2024-01-01@2024-09-15T13:14:52.tar.zst`.
+  `yearly/cljdoc-db-2024-01-01@2024-09-15T13:14:52.tar.zst`.
 
   In this case, the available daily backup from Sept 15th 2024 was our best fit."
   (:require [babashka.fs :as fs]
@@ -125,8 +125,11 @@
   (fs/with-temp-dir [backup-work-dir {:prefix "cljdoc-db-backup-work"}]
     (backup-sqlite-db! db-spec backup-work-dir)
     (backup-sqlite-db! cache-db-spec backup-work-dir)
-    (log/infof "Compressing backup to %s" dest-file)
-    (process/shell {:dir backup-work-dir} "tar --use-compress-program=zstd -cf" dest-file ".")))
+    (let [db-files (->> (fs/list-dir backup-work-dir)
+                        (mapv fs/file-name))]
+      (log/infof "Compressing backup to %s" dest-file)
+      ;; specifying db-files instead of simply . avoids including . in tar
+      (apply process/shell {:dir backup-work-dir} "tar --use-compress-program=zstd -cf" dest-file db-files))))
 
 (comment
   (def db-spec {:dbtype "sqlite"
