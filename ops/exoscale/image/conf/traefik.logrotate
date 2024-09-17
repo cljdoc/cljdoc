@@ -1,0 +1,14 @@
+/data/traefik/access.log /data/traefik/traefik.log {
+    daily
+    rotate 7
+    missingok
+    notifempty
+    dateext
+    dateformat .%Y-%m-%d
+    postrotate
+        CONTAINER_ID=$(docker ps -aqf "name=^traefik")
+        if [ -n "$CONTAINER_ID" ]; then
+            docker kill --signal="USR1" $CONTAINER_ID
+        fi
+    endscript
+}

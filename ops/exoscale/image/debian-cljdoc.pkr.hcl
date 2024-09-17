@@ -80,6 +80,7 @@ build {
       "sudo install -Dm644 /tmp/conf/nomad.service /etc/systemd/system/nomad.service",
       "sudo install -Dm644 /tmp/conf/consul.server.hcl /etc/consul.d/server.hcl",
       "sudo install -Dm644 /tmp/conf/consul.service /etc/systemd/system/consul.service",
+      "sudo install -Dm644 /tmp/conf/traefik.logrotate /etc/logrotate.d/traefik",
       "rm -rf /tmp/conf",
 
       # setup for nomad (nomad docs say it should be run as root)
