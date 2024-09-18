@@ -77,7 +77,7 @@ So we'll, within reason, keep our current archecture to start with.
 ** db backup
 ** circle ci builds
 ** blue/green again
-* Try/adapt full CI deploy
+* [WIP] Try/adapt full CI deploy
 * [done] Maybe automaticaly restore dbs if missing on startup (for prod only).
 * [done] Probably traefik access log rotation.
 * Maybe experiment with Vault?
