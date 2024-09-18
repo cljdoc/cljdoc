@@ -243,13 +243,15 @@ jobs:
           name: Set AWS env vars
           # vars are coming from terraform setup
           command: |
-            echo 'export AWS_ACCESS_KEY_ID=$RELEASES_BUCKET_ACCESS_KEY' >> $BASH_ENV
-            echo 'export AWS_SECRET_ACCESS_KEY=$RELEASES_BUCKET_SECRET_KEY' >> $BASH_ENV
+            echo 'export AWS_ACCESS_KEY_ID=$EXO_RELEASES_BUCKET_KEY' >> $BASH_ENV
+            echo 'export AWS_SECRET_ACCESS_KEY=$EXO_RELEASES_BUCKET_SECRET' >> $BASH_ENV
+            echo 'export AWS_DEFAULT_REGION=$EXO_RELEASES_BUCKET_REGION' >> $BASH_ENV
+            echo 'export AWS_ENDPOINT_URL=https://sos-${EXO_RELEASES_BUCKET_REGION}.exo.io'
             source $BASH_ENV
 
       - run:
           name: Deploy to S3
-          command: aws s3 sync workspace/target s3://$RELEASES_BUCKET_NAME/build-$CIRCLE_SHA1/ --delete
+          command: aws s3 sync workspace/target s3://$EXO_RELEASES_BUCKET_NAME/build-$CIRCLE_SHA1/ --delete
 
   #
   # deploy: make and image and publish to docker
@@ -312,7 +314,7 @@ jobs:
           command: |
             CLJDOC_VERSION=$(bb current-version)
             cd modules/deploy
-            clojure -M -m cljdoc.deploy deploy -t ${CLJDOC_VERSION} --nomad-ip $NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
+            clojure -M -m cljdoc.deploy deploy -t ${CLJDOC_VERSION} --nomad-ip $EXO_NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
 
 workflows:
   build-and-deploy:
@@ -334,6 +336,7 @@ workflows:
             branches:
               only:
                 - master
+                - lread-exoscale
       - publish-zip-build:
           requires:
             - build
@@ -341,6 +344,7 @@ workflows:
             branches:
               only:
                 - master
+                - lread-exoscale
       - deploy-to-nomad:
           requires:
             - build
@@ -349,3 +353,4 @@ workflows:
             branches:
               only:
                 - master
+                - lread-exoscale

@@ -71,18 +71,24 @@ So we'll, within reason, keep our current archecture to start with.
 * [done] Try/adapt deploy script from my dev box
 * [done] Verify blue/green deploy
 * Verify with prod profile `CLJDOC_PROFILE=prod` in nomad job spec
-** blue/green again
 ** db volume mapping
-** sentry?
-** backups
+** db restore
+** sentry
+** db backup
 ** circle ci builds
+** blue/green again
 * Try/adapt full CI deploy
 * [done] Maybe automaticaly restore dbs if missing on startup (for prod only).
 * [done] Probably traefik access log rotation.
+* Maybe experiment with Vault?
 * Update ops README
 * Maybe create a bb.edn for ops work.
 * Configure DNS at registrar (Martin)
 * Review TODOs
+
+Open questions:
+* Currently adding ssh keys via terraform but also manually for circle, (and eventually martin)
+
 
 == Finer Questions
 
@@ -139,8 +145,8 @@ CircleCI specific secrets that will change (so add new vars prefixed with `EXO_`
 ** `EXO_NOMAD_IP` - used to talk to nomad and consul over their APIs via ssh
 * Used by `publish-zip-build` circleci job
 ** `EXO_RELEASES_BUCKET_NAME` - more of a variable than a secret, might change with Exoscale
-** `EXO_RELEASES_BUCKET_ACCESS_KEY` - this will need to change to Exoscale Object Storage key
-** `EXO_RELEASES_BUCKET_SECRET_KEY` - this will need to change to Exoscacle Object Storage secret
+** `EXO_RELEASES_BUCKET_KEY` - this will need to change to Exoscale Object Storage key
+** `EXO_RELEASES_BUCKET_SECRET` - this will need to change to Exoscacle Object Storage secret
 ** `EXO_RELEASES_BUCKET_REGION` - new
 
 Current consul delivered secrets that can stay the same:
@@ -155,9 +161,9 @@ New consul secrets:
 * Used by `deploy` circleci job (and then ultimately traefik container)
 ** `LETS_ENCRYPT_EMAIL` - I thought this was better moved to a secret
 * Used by `deploy` circleci job (and then ultimately cljdoc container)
-* `EXO_BACKUPS_BUCKET_NAME` - For SQLite backups
-* `EXO_BACKUPS_BUCKET_ACCESS_KEY`
-* `EXO_BACKUPS_BUCKET_SECRET_KEY`
+* `EXO_BACKUPS_BUCKET_NAME` - For SQLite backups/restores
+* `EXO_BACKUPS_BUCKET_KEY`
+* `EXO_BACKUPS_BUCKET_SECRET
 * `EXO_BACKUPS_BUCKET_REGION`
 
 ==== SSH Keys
@@ -270,7 +276,7 @@ I experimented with `.tar.zst` and found it better for compression speed (3m vs 
 
 [source,shell]
 ----
-tar --use-compress-program=zstd -cf dest.tar.zst .
+tar --use-compress-program=zstd -cf dest.tar.zst *
 tar --use-compress-program=zstd -xf dest.tar.zst
 ----
 
