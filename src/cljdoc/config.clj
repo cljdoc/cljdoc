@@ -102,7 +102,7 @@
                     :backups-bucket-secret])))
 
 (defn db-backup [config]
-  (let [enabled? (enable-db-backup? config) ]
+  (let [enabled? (enable-db-backup? config)]
     (cond-> {:enable-db-backup? enabled?}
       enabled? (merge (backup-restore-secrets config)))))
 
