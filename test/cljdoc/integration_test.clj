@@ -57,6 +57,7 @@
                              :analysis-service :local
                              :autobuild-clojars-releases? false
                              :enable-db-backup? false
+                             :enable-db-restore? false
                              :clojars-stats-retention-days 5
                              :dir test-data-dir}}]
     (ig/init (sys/system-config cfg))))
