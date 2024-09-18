@@ -139,6 +139,10 @@ jobs:
       - checkout
 
       - node/install
+      - run:
+          name: Install extra tools
+          command: apt update && apt install -y zstd
+
       - *restore_clojure_cache
       - *restore_npm_cache
       - *bb_install
