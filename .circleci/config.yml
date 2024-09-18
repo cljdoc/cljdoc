@@ -137,8 +137,11 @@ jobs:
 
     steps:
       - checkout
-
       - node/install
+      - run:
+          name: What is my IP
+          command: curl https://checkip.amazonaws.com
+
       - run:
           name: Install extra tools
           command: apt update && apt install -y zstd
