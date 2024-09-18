@@ -248,12 +248,12 @@ jobs:
 
       - run:
           name: Set AWS env vars
-          # vars are coming from terraform setup
+          # vars are from terraform setup
           command: |
             echo 'export AWS_ACCESS_KEY_ID=$EXO_RELEASES_BUCKET_KEY' >> $BASH_ENV
             echo 'export AWS_SECRET_ACCESS_KEY=$EXO_RELEASES_BUCKET_SECRET' >> $BASH_ENV
             echo 'export AWS_DEFAULT_REGION=$EXO_RELEASES_BUCKET_REGION' >> $BASH_ENV
-            echo 'export AWS_ENDPOINT_URL=https://sos-${EXO_RELEASES_BUCKET_REGION}.exo.io'
+            echo "export AWS_ENDPOINT_URL=https://sos-${EXO_RELEASES_BUCKET_REGION}.exo.io" >> $BASH_ENV
             source $BASH_ENV
 
       - run:
@@ -321,7 +321,7 @@ jobs:
           command: |
             CLJDOC_VERSION=$(bb current-version)
             cd modules/deploy
-            clojure -M -m cljdoc.deploy deploy -t ${CLJDOC_VERSION} --nomad-ip $EXO_NOMAD_IP -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
+            clojure -M -m cljdoc.deploy deploy -t ${CLJDOC_VERSION} --nomad-ip $EXO_NOMAD_IP -u $SSH_USER -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
 
 workflows:
   build-and-deploy:

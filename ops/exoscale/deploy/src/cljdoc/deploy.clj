@@ -142,9 +142,9 @@
           (promote-deployment! deployment-id))
         (log/info "Nothing to do for deployment status" (pr-str (get deployment "Status")))))))
 
-(defmacro with-nomad [{:keys [ip ssh-key]} & body]
+(defmacro with-nomad [{:keys [ip ssh-key ssh-user]} & body]
   `(let [jsch#    (JSch.)
-         session# (.getSession jsch# "root" ~ip)]
+         session# (.getSession jsch# ~ssh-user ~ip)]
      (.addIdentity jsch# ~ssh-key)
      (JSch/setConfig "StrictHostKeyChecking" "no")
      (.connect session# 5000)
@@ -155,11 +155,11 @@
        (finally
          (.disconnect session#)))))
 
-(defn cli-deploy! [{:keys [ssh-key docker-tag nomad-ip]}]
+(defn cli-deploy! [{:keys [ssh-key ssh-user docker-tag nomad-ip]}]
   (wait-until (format "docker tag %s exists" docker-tag) #(tag-exists? docker-tag) 2000 90)
   (let [ip (or nomad-ip (main-ip))]
     (log/infof "Deploying to Nomad server at %s:4646" ip)
-    (with-nomad {:ip ip, :ssh-key ssh-key}
+    (with-nomad {:ip ip, :ssh-key ssh-key :ssh-user ssh-user}
       (deploy! docker-tag))))
 
 (def CONFIGURATION
@@ -169,6 +169,7 @@
    :commands    [{:command     "deploy"
                   :description ["Deploy cljdoc to production"]
                   :opts        [{:option "ssh-key" :short "k" :as "SSH private key to use for accessing host" :type :string :default "~/.ssh/id_rsa"}
+                                {:option "ssh-user" :short "u" :as "SSH user" :type :string :default :present}
                                 {:option "nomad-ip" :as "IP of Nomad cluster to deploy to" :type :string}
                                 {:option "docker-tag" :short "t" :as "Tag of cljdoc/cljdoc image to deploy" :type :string :default :present}]
                   :runs        cli-deploy!}]})
