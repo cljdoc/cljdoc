@@ -89,7 +89,6 @@ So we'll, within reason, keep our current archecture to start with.
 Open questions:
 * Currently adding ssh keys via terraform but also manually for circle, (and eventually martin)
 
-
 == Finer Questions
 
 === Data Migration from DigitalOcean to Exoscale
@@ -112,12 +111,12 @@ Downloading backup for restore took about 3.5 minutes on my dev box.
 TODO: I expect this will be very much speedier in production.
 TODO: Consider bumping deploy timeout if this is not the case.
 
-Current location on host file system is `/data/cljdoc`, consider a more conventional `/var/lib/cljdoc`.
+Current location on host file system is `/data/cljdoc`, considered a more conventional `/var/lib/cljdoc`, but then... meh.
 
 ==== Lucene database
 No need to backup and restore, it is reconstituted if missing at startup.
 
-Current location on host file system is `/data/cljdoc/<lucene dir>`, consider more conventional `/var/lib/cljdoc/<lucene dir>`.
+Current location on host file system is `/data/cljdoc/<lucene dir>`, considered more conventional `/var/lib/cljdoc/<lucene dir>`, but then... meh.
 
 ==== SSL Certs
 Let's encrypt certificates - I think we need to bring `acme.json` over.
@@ -400,15 +399,17 @@ plugin "docker" {
 
 Some changes I've while moving to Exoscale:
 
-* create `consul` user for consul service
-* nomad docs say it should be run as root https://developer.hashicorp.com/nomad/docs/operations/nomad-agent
-so continue to do so +
-TODO: Actually... I think the service should probably be run under nomad:nomad user but its the agent that should be run under root?
 * use `/etc/nomad.d` for config dir, and `/etc/consul.d` as home and config dir
 * use `/var/lib/nomad` and `/var/lib/consul` for data dirs
+* moved consul config from the cmd line to a config file (to be consistent with nomad and allow for comments)
 
 Some notes:
 
+* I explored running nomad and consul under their own non-root users, but currently they continue to run under root
+** nomad docs say it should be run as root https://developer.hashicorp.com/nomad/docs/operations/nomad-agent
+so continue to do so +
+TODO: Actually... I think the service should probably be run under nomad:nomad user but its the agent that should be run under root?
+** I started by creating a `consul` user for consul service, but during troubleshooting switched back to running under root.
 * nomad complains about Serf comms, but I think this is ignorable for a single-node installation?
 
 Common nomad commands:
