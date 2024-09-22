@@ -281,6 +281,18 @@ tar --use-compress-program=zstd -xf dest.tar.zst
 
 Our Lucene full-text database is quickly reconstituted from clojars at startup time, so no need to save a backup of it.
 
+Our backup files are close to 1gb, and because we need to be cheap we have a small heap.
+The cognitect aws api, unfortunately, loads an entire file into memory.
+This gives us OutOfMemory exceptions.
+What to do?
+* I had a peek at https://github.com/grzm/awyeah-api and I think it uses byte buffers too.
+* Could try amazonica.
+* Could try AWS SDK through java interop.
+* Could spawn out to upload and download files.
+* Could handle this with raw HTTP requests
+
+* I think I might try the AWS SDK next.
+
 === Packer or Cloud Init?
 We currently use packer to build our host image.
 

@@ -23,16 +23,15 @@
   In this case, the available daily backup from Sept 15th 2024 was our best fit."
   (:require [babashka.fs :as fs]
             [babashka.process :as process]
+            [cljdoc.s3 :as s3]
             [cljdoc.server.log-init] ;; to quiet odd jetty DEBUG logging
             [cljdoc.util.sentry :as sentry]
-            [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [cognitect.aws.client.api :as aws]
-            [cognitect.aws.credentials :as awscreds]
             [integrant.core :as ig]
             [next.jdbc :as jdbc]
             [tea-time.core :as tt])
-  (:import (java.time DayOfWeek LocalDate LocalDateTime Period)
+  (:import (java.lang AutoCloseable)
+           (java.time DayOfWeek LocalDate LocalDateTime Period)
            (java.time.format DateTimeFormatter)
            (java.time.temporal TemporalAdjusters)
            (java.util.concurrent TimeUnit)
@@ -46,21 +45,9 @@
                                  :monthly 12
                                  :yearly 2})
 
-(defn- s3-client [{:keys [backups-bucket-region backups-bucket-key backups-bucket-secret]}]
-  (aws/client {:api :s3
-               ;; need a valid aws region (even though we are using Exoscale) to overcome bug
-               ;; https://github.com/cognitect-labs/aws-api/issues/150
-               :region "us-east-2"
-               :credentials-provider (awscreds/basic-credentials-provider
-                                      {:access-key-id backups-bucket-key
-                                       :secret-access-key backups-bucket-secret})
-               :endpoint-override {:protocol :https
-                                   :hostname (format "sos-%s.exo.io" backups-bucket-region)
-                                   :region backups-bucket-region}}))
-
-(defn- s3-list->backups [{:keys [Contents]}]
-  (->> Contents
-       (mapv :Key)
+(defn- s3-list->backups [backups]
+  (->> backups
+       (mapv :key)
        ;; TODO: consider warning on non-matches
        (keep #(re-matches #"(?x)                               # group 0: key
                               (daily|weekly|monthly|yearly)    # group 1: period
@@ -75,8 +62,8 @@
        (mapv #(update % :period keyword))
        (mapv #(update % :target-date (fn [s] (LocalDate/parse s))))))
 
-(defn- existing-backups [s3 {:keys [backups-bucket-name aws-invoke-fn]}]
-  (-> (aws-invoke-fn s3 {:op :ListObjectsV2 :request {:Bucket backups-bucket-name}})
+(defn- existing-backups [object-store]
+  (-> (s3/list-objects object-store)
       s3-list->backups))
 
 (defn- get-backup-for [backup-list period ^LocalDate target-date]
@@ -121,7 +108,7 @@
 
 (defn- backup-db!
   "Create compressed backup for `db-spec` and `cache-db-spec` to `dest-file`"
-  [{:keys [db-spec cache-db-spec] :as _opts} dest-file]
+  [dest-file {:keys [db-spec cache-db-spec] :as _opts}]
   (fs/with-temp-dir [backup-work-dir {:prefix "cljdoc-db-backup-work"}]
     (backup-sqlite-db! db-spec backup-work-dir)
     (backup-sqlite-db! cache-db-spec backup-work-dir)
@@ -157,15 +144,10 @@
       (.backup conn "target/foo.db" nil nil))))
 
 (defn- store-daily-backup!
-  [s3 {:keys [backups-bucket-name aws-invoke-fn]} backup-file]
+  [object-store backup-file]
   (let [target-key (str "daily/" (fs/file-name backup-file))]
     (log/infof "Storing %s" target-key)
-    (with-open [input-stream (io/input-stream backup-file)]
-      (aws-invoke-fn s3 {:op :PutObject
-                         :request {:Bucket backups-bucket-name
-                                   :Key target-key
-                                   :Body input-stream
-                                   :ACL "public-read"}}))
+    (s3/put-object object-store target-key backup-file)
     (log/infof "Storing complete for %s" target-key)))
 
 (defn- ideal-backups [^LocalDateTime datetime]
@@ -210,12 +192,9 @@
             []
             missing-backups)))
 
-(defn- fill-backup [s3 {:keys [backups-bucket-name aws-invoke-fn]} source dest]
+(defn- fill-backup [object-store source dest]
   (log/infof "Filling %s from %s" dest source)
-  (aws-invoke-fn s3 {:op :CopyObject
-                     :request {:Bucket backups-bucket-name
-                               :CopySource (str backups-bucket-name "/" source)
-                               :Key dest}}))
+  (s3/copy-object object-store source dest))
 
 (defn- fill-copy-list [fillable-backups]
   (into [] (for [{:keys [period target-date daily-match]} fillable-backups
@@ -238,39 +217,37 @@
                    (drop keep-count backups))))
        (into [])))
 
-(defn- prune-backup! [s3 {:keys [backups-bucket-name aws-invoke-fn]} {:keys [key]}]
+(defn- prune-backup! [object-store {:keys [key]}]
   (log/infof "Pruning %s" key)
-  (aws-invoke-fn s3 {:op :DeleteObject
-                     :request {:Bucket backups-bucket-name
-                               :Key key}}))
+  (s3/delete-object object-store key))
 
-(defn- daily-backup! [s3 opts ^LocalDateTime datetime]
-  (let [existing (existing-backups s3 opts)]
+(defn- daily-backup! [object-store ^LocalDateTime datetime opts]
+  (let [existing (existing-backups object-store)]
     (when-not (get-backup-for existing :daily (.toLocalDate datetime))
       (fs/with-temp-dir [backup-file-dir {:prefix "cljdoc-db-backup"}]
         (let [backup-file (str (fs/file backup-file-dir (db-backup-filename datetime)))]
-          (backup-db! opts backup-file)
-          (store-daily-backup! s3 opts backup-file))))))
+          (backup-db! backup-file opts)
+          (store-daily-backup! object-store backup-file))))))
 
-(defn- fill-missing-backups! [s3 opts ^LocalDateTime datetime]
-  (let [existing (existing-backups s3 opts)
+(defn- fill-missing-backups! [object-store ^LocalDateTime datetime]
+  (let [existing (existing-backups object-store)
         ideal (ideal-backups datetime)
         fillable (fillable-backups existing ideal)]
     (doseq [[source dest] (fill-copy-list fillable)]
-      (fill-backup s3 opts source dest))))
+      (fill-backup object-store source dest))))
 
-(defn- prune-old-backups! [s3 opts]
-  (let [existing (existing-backups s3 opts)]
+(defn- prune-old-backups! [object-store]
+  (let [existing (existing-backups object-store)]
     (doseq [backup (prunable-backups existing)]
-      (prune-backup! s3 opts backup))))
+      (prune-backup! object-store backup))))
 
-(defn backup-job! [{:keys [now-fn] :as opts}]
+(defn backup-job! [{:keys [now-fn object-store-fn] :as opts}]
   (log/info "Backup job started")
-  (let [s3 (s3-client opts)
-        now (now-fn)]
-    (daily-backup! s3 opts now)
-    (fill-missing-backups! s3 opts now)
-    (prune-old-backups! s3 opts))
+  (let [now (now-fn)]
+    (with-open [^AutoCloseable object-store (object-store-fn opts)]
+      (daily-backup! object-store now opts)
+      (fill-missing-backups! object-store now)
+      (prune-old-backups! object-store)))
   (log/info "Backup job complete"))
 
 (defn- wrap-error [wrapped-fn]
@@ -286,32 +263,28 @@
 
   There is also `cache-db-spec`, but we solely use `db-spec` to determine if we should restore both dbs.
   Call before any db interaction, else empty db will automatically be created."
-  [{:keys [aws-invoke-fn db-spec backups-bucket-name] :as opts}]
-  (let [aws-invoke-fn (or aws-invoke-fn aws/invoke)
-        opts (assoc opts :aws-invoke-fn aws-invoke-fn)
-        dbname (:dbname db-spec)
-        s3 (s3-client opts)
-        existing-backup (->> (existing-backups s3 opts)
-                             (filterv #(= :daily (:period %)))
-                             (sort-by :target-date)
-                             last
-                             :key)]
-    (if (fs/exists? dbname)
-      (log/infof "Database %s found, no need to restore" dbname)
-      (if-not existing-backup
-        (log/warnf "Database %s not found, but no backup available" dbname)
-        (fs/with-temp-dir [download-dir {:prefix "cljdoc-db-restore-work"}]
-          (let [dest-file (fs/file download-dir (fs/file-name existing-backup))
-                target-dir (str (fs/parent dbname))]
-            (log/infof "Downloading %s for restore" dest-file)
-            (-> (aws-invoke-fn s3 {:op :GetObject
-                                   :request {:Bucket backups-bucket-name
-                                             :Key existing-backup}})
-                :Body
-                (io/copy dest-file :buffer-size 65536))
-            (log/infof "Decompressing %s to %s for restore" dest-file target-dir)
-            (process/shell {:dir target-dir} "tar --use-compress-program=zstd -xf" dest-file)
-            (log/info "Database restore complete")))))))
+  [{:keys [object-store-fn db-spec bucket-name bucket-region] :as opts}]
+  (let [object-store-fn (or object-store-fn s3/make-exo-object-store)]
+    (with-open [^AutoCloseable object-store (object-store-fn opts)]
+      (let [dbname (:dbname db-spec)
+            existing-backup-key (->> (existing-backups object-store)
+                                     (filterv #(= :daily (:period %)))
+                                     (sort-by :target-date)
+                                     last
+                                     :key)]
+        (if (fs/exists? dbname)
+          (log/infof "Database %s found, no need to restore" dbname)
+          (if-not existing-backup-key
+            (log/warnf "Database %s not found, but no backup available" dbname)
+            (fs/with-temp-dir [download-dir {:prefix "cljdoc-db-restore-work"}]
+              (let [fname (fs/file-name existing-backup-key)
+                    dest-file (fs/file download-dir fname)
+                    target-dir (str (fs/parent dbname))]
+                (log/infof "Downloading %s to %s for restore" fname download-dir)
+                (s3/get-object object-store existing-backup-key dest-file)
+                (log/infof "Decompressing %s to %s for restore" fname target-dir)
+                (process/shell {:dir target-dir} "tar --use-compress-program=zstd -xf" dest-file)
+                (log/info "Database restore complete")))))))))
 
 (defmethod ig/init-key :cljdoc/db-backup
   [k {:keys [enable-db-backup?] :as opts}]
@@ -321,11 +294,11 @@
         {::db-backup-job (tt/every!
                            ;; we backup daily but check more often to cover failure cases
                           (.toSeconds TimeUnit/HOURS 2)
-                           ;; wait 30 minutes to avoid overlap with blue/green deploy and other jobs
+                           ;; wait 30 minutes to avoid overlap with blue/green deploy and any db restore work
                           (.toSeconds TimeUnit/MINUTES 30)
                           (wrap-error #(backup-job! (assoc opts
-                                                           :now-fn (fn [] (LocalDateTime/now))
-                                                           :aws-invoke-fn aws/invoke))))})))
+                                                           :object-store-fn s3/make-exo-object-store
+                                                           :now-fn (fn [] (LocalDateTime/now))))))})))
 
 (defmethod ig/halt-key! :cljdoc/db-backup
   [k db-backup]
@@ -336,20 +309,9 @@
 (comment
   (require '[cljdoc.config :as cfg])
 
-  (def opts (assoc (cfg/backup (cfg/config)) :aws-invoke-fn aws/invoke))
-
-  (:backups-bucket-region opts)
-  ;; => "ch-gva-2"
-
-  (def s3 (s3-client opts))
+  (def opts (assoc (cfg/db-backup (cfg/config)) :object-store-fn s3/make-exo-object-store))
 
   (db-backup-filename (LocalDateTime/now))
-  ;; => "cljdoc-db-2024-09-17_2024-09-17T08-54-20.tar.zst"
-
-  (aws/invoke s3 {:op :PutObject :request {:Bucket "cljdoc-backups"
-                                           :Key "daily/hello.txt"
-                                           :Body (io/input-stream (.getBytes "Oh hai!"))}})
-
-  (store-daily-backup! s3 opts "/home/lee/Downloads/graal-build-time-1.0.5.jar")
+  ;; => "cljdoc-db-2024-09-22_2024-09-22T15-38-27.tar.zst"
 
   :eoc)

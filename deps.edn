@@ -62,11 +62,8 @@
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; s3 for database backups at Exoscale Simple Object Store
-        org.tcrawley/cognitect-http-client {:mvn/version "1.11.129"} ;; fix for jetty client version conflict
-        com.cognitect.aws/api       {:mvn/version "0.8.692"
-                                     :exclusions [com.cognitect/http-client]}
-        com.cognitect.aws/endpoints {:mvn/version "1.1.12.770"}
-        com.cognitect.aws/s3        {:mvn/version "869.2.1687.0"}
+        ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
+        software.amazon.awssdk/s3 {:mvn/version "2.28.5"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.10.0.202406032230-r"} ;; git with jsch

@@ -96,10 +96,7 @@
   (-> config
       :secrets
       :s3
-      (select-keys [:backups-bucket-region
-                    :backups-bucket-name
-                    :backups-bucket-key
-                    :backups-bucket-secret])))
+      :backups))
 
 (defn db-backup [config]
   (let [enabled? (enable-db-backup? config)]
