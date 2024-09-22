@@ -89,6 +89,9 @@ So we'll, within reason, keep our current archecture to start with.
 Open questions:
 * Currently adding ssh keys via terraform but also manually for circle, (and eventually martin)
 
+Reminders:
+* 2024-09-03 & 2023-09-17 db backups on Exoscale sos are manually uploaded backups from DigitalOcean production (so probably don't delete those)
+
 == Finer Questions
 
 === Data Migration from DigitalOcean to Exoscale
@@ -429,6 +432,7 @@ Common nomad commands:
 * `nomad status` - overall status
 * `nomad status cljdoc` - to learn alloc ids and overall status
 * `nomad alloc logs <alloc id>` - to view logs for an alloc id
+* `nomad alloc logs -f <alloc id>` - to tail logs for an alloc id
 * `nomad stop -purge cljdoc` - wipe out all jobs
 
 Useful consul commands:
