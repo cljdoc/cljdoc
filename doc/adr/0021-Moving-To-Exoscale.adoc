@@ -80,7 +80,7 @@ So we'll, within reason, keep our current archecture to start with.
 * [done] Try/adapt full CI deploy
 * [done] Maybe automaticaly restore dbs if missing on startup (for prod only).
 * [done] Probably traefik access log rotation.
-* re-bump traefik, nomad, consul
+* [done] re-bump traefik, nomad, consul
 * strategy for discovering vulnerabilities on host?
 * Maybe experiment with Vault?
 * Maybe report on outdated ops software? traefik, nomad, consul, docker...
@@ -91,14 +91,17 @@ So we'll, within reason, keep our current archecture to start with.
 * Review TODOs
 
 Open questions:
+
 * Currently adding ssh keys via terraform but completely manually for circle, (and eventually martin).
 This is an awkward thing to remember to do after a terraform re-create of the compute instance.
 But for now, I think we'll just document the awkwardness.
 
 Reminders:
-* 2024-09-03 & 2023-09-17 db backups on Exoscale sos are manually uploaded backups from DigitalOcean production (so probably don't delete those)
+
+* 2024-09-03 & 2023-09-17 db backups on Exoscale SOS are manually uploaded backups from DigitalOcean production (so probably don't delete those)
 
 Closed questions
+
 * Why are clojars-stats downloading after a db restore?
 Aren't they stored in cljdoc db?
 ** Yup, but I was working from a backup from prod which was then uploade from  dev box test.
@@ -109,6 +112,7 @@ Dev has a much shorter retention period than prod, so it pruned, and prod then h
 == Summary of Changes from DigitalOcean
 
 * Added "Generously power by Exoscale" to footer of cljdoc home page
+* Added /api/server-info route to return cljdoc version (to more easily verify blue/green deploy workflow)
 * Prod: host: now based on Debian
 * Prod: host: Updated all software to current
 * Prod: cljdoc: added daily db backup
