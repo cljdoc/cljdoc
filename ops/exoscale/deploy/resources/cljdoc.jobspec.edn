@@ -57,7 +57,7 @@
                  :MinHealthyTime #nomad/seconds 10}}
        {:Name "lb",
         :Tasks
-          [{:Config {:image "traefik:3.1.2"
+          [{:Config {:image "traefik:3.1.4"
                      :network_mode "host"
                      :port_map [{:api 8080, :http 80, :https 443}]
                      :volumes ["local:/etc/traefik"

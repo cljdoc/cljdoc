@@ -9,7 +9,7 @@ packer {
 
 variable "exoscale_api_key" { type = string }
 variable "exoscale_api_secret" { type = string }
-variable "nomad_version" { default = "1.8.3" }
+variable "nomad_version" { default = "1.8.4" }
 variable "consul_version" { default = "1.19.2" }
 
 source "exoscale" "debian-cljdoc" {
