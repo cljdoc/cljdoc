@@ -56,7 +56,8 @@
                         :analysis-service    (ig/ref :cljdoc/analysis-service)
                         :storage             (ig/ref :cljdoc/storage)
                         :cache               (ig/ref :cljdoc/cache)
-                        :searcher            (ig/ref :cljdoc/searcher)}
+                        :searcher            (ig/ref :cljdoc/searcher)
+                        :cljdoc-version      (cfg/version env-config)}
       :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/db-backup (merge {:db-spec (ig/ref :cljdoc/sqlite)
                                 :cache-db-spec (-> env-config cfg/cache :db-spec)}

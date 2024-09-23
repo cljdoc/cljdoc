@@ -593,6 +593,18 @@
                      :body (json/generate-string {:error "Could not find data, please request a build first"})})
                   (assoc ctx :response)))}))
 
+(defn api-server-info
+  "Returns server info, be careful not to add anything security sensitive here.
+   Initial use case is ops-related to check deployed version."
+  [cljdoc-version]
+  (interceptor/interceptor
+    {:name ::api-server-info
+     :enter (fn api-serverinfo [ctx]
+              (assoc ctx :response
+                     {:status 200
+                      :headers {"Content-Type" "application/json"}
+                      :body (json/generate-string {:version cljdoc-version})}))}))
+
 (def api-docsets
   "Creates an API response with a JSON representation of a cache bundle as a `docset`."
   (interceptor/interceptor
@@ -616,7 +628,7 @@
   interesting for ClojureScript where Pededestal can't go.
 
   For more details see `cljdoc.server.routes`."
-  [{:keys [opensearch-base-url build-tracker storage cache searcher] :as deps}
+  [{:keys [cljdoc-version opensearch-base-url build-tracker storage cache searcher] :as deps}
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home %))})]
@@ -636,6 +648,8 @@
          :api/searchset [(pom-loader cache)
                          (artifact-data-loader storage)
                          api-searchset]
+
+         :api/server-info [(api-server-info cljdoc-version)]
 
          :api/docsets [(pom-loader cache)
                        (artifact-data-loader storage)
