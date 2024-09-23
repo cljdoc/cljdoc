@@ -71,15 +71,17 @@ So we'll, within reason, keep our current archecture to start with.
 * [done] Try/adapt deploy script from my dev box
 * [done] Verify blue/green deploy
 * Verify with prod profile `CLJDOC_PROFILE=prod` in nomad job spec
-** db volume mapping
-** db restore
-** sentry
-** db backup
-** circle ci builds
+** [done] db volume mapping
+** [done] db restore
+** [done] sentry
+** [done] db backup
+** [done] circle ci builds
 ** blue/green again
-* [WIP] Try/adapt full CI deploy
+* [done] Try/adapt full CI deploy
 * [done] Maybe automaticaly restore dbs if missing on startup (for prod only).
 * [done] Probably traefik access log rotation.
+* re-bump traefik, nomad, consul
+* strategy for discovering vulnerabilities on host?
 * Maybe experiment with Vault?
 * Maybe report on outdated ops software? traefik, nomad, consul, docker...
 ** We don't have blue/green at the host level so might punt for now
@@ -91,6 +93,7 @@ So we'll, within reason, keep our current archecture to start with.
 Open questions:
 * Currently adding ssh keys via terraform but also manually for circle, (and eventually martin)
 * Offline doc zip file size is 0 bytes, tried: /download/rewrite-clj/rewrite-clj/1.1.48
+** Could be newer traefik is pickier about valid `Content-Type`
 
 Reminders:
 * 2024-09-03 & 2023-09-17 db backups on Exoscale sos are manually uploaded backups from DigitalOcean production (so probably don't delete those)
