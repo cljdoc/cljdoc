@@ -19,7 +19,8 @@
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [unilog.config :as unilog])
-  (:import (com.jcraft.jsch JSch)))
+  (:import (com.jcraft.jsch JSch)
+           (java.util.concurrent TimeUnit)))
 
 (unilog/start-logging! {:level :info :console true})
 
@@ -71,15 +72,24 @@
       (throw (ex-info (str "Could not find deploy opt for " value)
                       {:opts opts}))))
 
-(defn- wait-until [desc pred test-interval max-tries]
-  (loop [try-num 1]
-    (or (pred)
-        (let [msg (format "%s: failed on try %d of %d" desc try-num max-tries)]
-          (when (>= try-num max-tries)
-            (throw (Exception. msg)))
-          (log/info msg)
-          (Thread/sleep test-interval)
-          (recur (inc try-num))))))
+(defn- wait-until [desc pred test-interval-ms max-time-secs]
+  (let [deadline (+ (System/currentTimeMillis) (* max-time-secs 1000))]
+    (log/infof "%s: will retry every %dms for max of %dm%ds"
+               desc
+               test-interval-ms
+               (int (/ max-time-secs 60))
+               (mod max-time-secs 60))
+    (loop [try-num 1]
+      (if-let [res (pred)]
+        (do
+          (log/infof "%s: success on try %d" desc try-num)
+          res)
+        (do
+          (when (> (System/currentTimeMillis) deadline)
+            (throw (Exception. (format "%s: timed out after failed try %d" desc try-num))))
+          (log/infof "%s: failed on try %d" desc try-num)
+          (Thread/sleep test-interval-ms)
+          (recur (inc try-num)))))))
 
 (defn promote-deployment! [deployment-id]
   (nomad-post! (str "/v1/deployment/promote/" deployment-id)
@@ -113,8 +123,8 @@
   (doseq [[k v] {"config/traefik-toml" (slurp (io/resource "traefik.toml"))
                  "config/cljdoc/secrets-edn" (with-out-str
                                                (pp/pprint
-                                                 (aero/read-config
-                                                   (io/resource "secrets.edn"))))}]
+                                                (aero/read-config
+                                                 (io/resource "secrets.edn"))))}]
 
     (log/info "Syncing configuration:" k)
     (consul-put! k v)))
@@ -134,7 +144,8 @@
     (assert deployment-id "Deployment ID missing")
     (log/info "Evaluation ID:" eval-id)
     (log/info "Deployment ID:" deployment-id)
-    (wait-until "deployment healthy" #(deployment-healthy? deployment-id) 5000 40)
+    (wait-until "deployment healthy" #(deployment-healthy? deployment-id)
+                5000 (.toSeconds TimeUnit/MINUTES 5))
     (let [deployment (nomad-get (str "/v1/deployment/" deployment-id))]
       (if (= "running" (get deployment "Status"))
         (do
@@ -156,7 +167,8 @@
          (.disconnect session#)))))
 
 (defn cli-deploy! [{:keys [ssh-key ssh-user docker-tag nomad-ip]}]
-  (wait-until (format "docker tag %s exists" docker-tag) #(tag-exists? docker-tag) 2000 90)
+  (wait-until (format "docker tag %s exists" docker-tag) #(tag-exists? docker-tag)
+              2000 (.toSeconds TimeUnit/MINUTES 3))
   (let [ip (or nomad-ip (main-ip))]
     (log/infof "Deploying to Nomad server at %s:4646" ip)
     (with-nomad {:ip ip, :ssh-key ssh-key :ssh-user ssh-user}
@@ -179,12 +191,14 @@
   (cli-matic/run-cmd args CONFIGURATION))
 
 (comment
-  (with-nomad ip
-    (nomad-get "/v1/deployments")
-    (deploy!
-     (or "0.0.1160-blue-green-8b4cdad" "0.0.1151-blue-green-c329ed1")))
+  (defn my-pred [succeed-after]
+    (let [tries-left (atom succeed-after)]
+      (fn []
+        (zero? (swap! tries-left dec)))))
 
-  ;; exists
-  (wait-until "docker tag foo exists" #(tag-exists? "0.0.2101-05f1c28") 1000 3)
-  ;; does not exist
-  (wait-until "docker tag foo exists" #(tag-exists? "0.0.2101-05f1c27") 1000 3))
+  ;; good after 3 tries
+  (wait-until "foobar" (my-pred 3) 500 5)
+
+  (wait-until "foobar" (my-pred 4) 500 763)
+
+  :eoc)
