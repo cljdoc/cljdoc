@@ -237,7 +237,7 @@
   (t/testing "offline download (used by Dash)"
     (t/is (match? {:status 200
                    :headers {"Content-Disposition" "attachment; filename=\"muuntaja-0.6.4.zip\""
-                             "Content-Type" "application/zip, application/octet-stream"}
+                             "Content-Type" "application/zip"}
                    :zip-entries (m/embeds ["muuntaja-0.6.4/assets/js/index.js"
                                            "muuntaja-0.6.4/index.html"
                                            "muuntaja-0.6.4/doc/configuration.html"
