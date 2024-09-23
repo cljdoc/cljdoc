@@ -81,6 +81,8 @@ So we'll, within reason, keep our current archecture to start with.
 * [done] Maybe automaticaly restore dbs if missing on startup (for prod only).
 * [done] Probably traefik access log rotation.
 * Maybe experiment with Vault?
+* Maybe report on outdated ops software? traefik, nomad, consul, docker...
+** We don't have blue/green at the host level so might punt for now
 * Update ops README
 * Maybe create a bb.edn for ops work.
 * Configure DNS at registrar (Martin)
@@ -88,9 +90,25 @@ So we'll, within reason, keep our current archecture to start with.
 
 Open questions:
 * Currently adding ssh keys via terraform but also manually for circle, (and eventually martin)
+* Offline doc zip file size is 0 bytes, tried: /download/rewrite-clj/rewrite-clj/1.1.48
 
 Reminders:
 * 2024-09-03 & 2023-09-17 db backups on Exoscale sos are manually uploaded backups from DigitalOcean production (so probably don't delete those)
+
+Closed questions
+* Why are clojars-stats downloading after a db restore?
+Aren't they stored in cljdoc db?
+** Yup, but I was working from a backup from prod which was then uploade from  dev box test.
+Dev has a much shorter retention period than prod, so it pruned, and prod then had to fill in the gaps.
+
+== Summary of Changes from DigitalOcean
+
+* Added "Generously power by Exoscale" to footer of cljdoc home page
+* Prod: host: now based on Debian
+* Prod: host: Updated all software to current
+* Prod: cljdoc: added daily db backup
+* Prod: cljdoc: added db restore when no db exists
+* Prod: host: added traefik log rotation
 
 == Finer Questions
 
