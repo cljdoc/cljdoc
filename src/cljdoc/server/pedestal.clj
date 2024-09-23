@@ -569,7 +569,7 @@
                                        (-> cache-bundle :version-entity :version) ".zip"))
              (->> (if cache-bundle
                     {:status 200
-                     :headers {"Content-Type" "application/zip, application/octet-stream"
+                     :headers {"Content-Type" "application/zip"
                                "Content-Disposition" (format "attachment; filename=\"%s\""
                                                              (str (-> cache-bundle :version-entity :artifact-id) "-"
                                                                   (-> cache-bundle :version-entity :version) ".zip"))}
