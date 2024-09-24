@@ -598,12 +598,12 @@
    Initial use case is ops-related to check deployed version."
   [cljdoc-version]
   (interceptor/interceptor
-    {:name ::api-server-info
-     :enter (fn api-serverinfo [ctx]
-              (assoc ctx :response
-                     {:status 200
-                      :headers {"Content-Type" "application/json"}
-                      :body (json/generate-string {:version cljdoc-version})}))}))
+   {:name ::api-server-info
+    :enter (fn api-serverinfo [ctx]
+             (assoc ctx :response
+                    {:status 200
+                     :headers {"Content-Type" "application/json"}
+                     :body (json/generate-string {:version cljdoc-version})}))}))
 
 (def api-docsets
   "Creates an API response with a JSON representation of a cache bundle as a `docset`."
