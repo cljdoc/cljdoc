@@ -118,7 +118,7 @@
   {:doc "Create docker image"
    :depends [package]
    :task (shell {:dir "ops/docker"}
-                "bb image.clj" (fs/absolutize "target/cljdoc.zip") (version/version))}
+                "bb image.clj" (fs/absolutize "target/build/cljdoc.zip") (version/version))}
   outdated
   {:doc "report on outdated Clojure and JavaScript dependencies"
    :depends [deps-js]

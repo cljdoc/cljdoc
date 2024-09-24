@@ -258,7 +258,7 @@ jobs:
 
       - run:
           name: Deploy to S3
-          command: aws s3 sync workspace/target s3://$EXO_RELEASES_BUCKET_NAME/build-$CIRCLE_SHA1/ --delete
+          command: aws s3 sync workspace/target/build s3://$EXO_RELEASES_BUCKET_NAME/build-$CIRCLE_SHA1/ --delete
 
   #
   # deploy: make and image and publish to docker
