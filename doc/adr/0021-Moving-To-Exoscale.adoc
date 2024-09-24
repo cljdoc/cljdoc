@@ -81,7 +81,7 @@ So we'll, within reason, keep our current archecture to start with.
 * [x] Traefik access log rotation.
 * [x] re-bump traefik, nomad, consul
 * [ ] Update ops README
-* [ ] Maybe auotmatically install critical updates
+* [ ] Maybe automatically install critical updates
 * [ ] Maybe create a bb.edn for ops work.
 * [ ] Invite Martin as admin to cljdoc.org at Exoscale
 * [ ] Configure DNS at registrar (Martin)
