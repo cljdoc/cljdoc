@@ -92,7 +92,8 @@ So we'll, within reason, keep our current archecture to start with.
 
 Open questions:
 
-* Ssh key config is awkward
+* Release on Exoscale SOS is including classes folder, that's probably a booboo.
+* Ssh key config is quite awkward
 ** Currently adding mine via terraform via my pub key on my dev box, tying terraform config to my dev box
 ** Currently manually adding for circle, (and eventually martin). This is an awkward thing to remember to do after a terraform re-create of the compute instance.
 * What do we really need to do for acme.json?
