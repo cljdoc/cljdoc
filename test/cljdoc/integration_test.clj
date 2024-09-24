@@ -59,7 +59,8 @@
                              :enable-db-backup? false
                              :enable-db-restore? false
                              :clojars-stats-retention-days 5
-                             :dir test-data-dir}}]
+                             :dir test-data-dir}
+             :cljdoc/version "some-version"}]
     (ig/init (sys/system-config cfg))))
 
 (defn halt! [system]
