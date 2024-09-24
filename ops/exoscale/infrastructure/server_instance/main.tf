@@ -61,7 +61,7 @@ resource "exoscale_security_group_rule" "https" {
 resource "exoscale_ssh_key" "cljdoc_ssh_key" {
   name       = "cljdoc-ssh"
   # TODO: precreated maybe not the best idea? Alternative?
-  # TODO: yeah, I'll need to allow both martin and myself so need something different
+  # TODO: yeah, I'll need to allow martin, myself and circleci, so need something different
   public_key = file("~/.ssh/id_ed25519_exoscale.pub")
 }
 

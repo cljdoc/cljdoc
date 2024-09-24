@@ -2,9 +2,6 @@
   checkNewVersion = false
   sendAnonymousUsage = false
 
-# Log rotations is not a traefik feature, but traefik will close and reopen
-# log files on USR1 signal which allows for rotation via logrotate
-
 [accessLog]
   filePath = "/data/access.log"
 
@@ -29,21 +26,6 @@
     [certificatesResolvers.lets-encrypt.acme.httpChallenge]
       entryPoint = "web"
 
-#[http.middlewares]
-#  [http.middlewares.compress.compress]
-
-#[http.routers]
-#  [http.routers.cljdoc]
-#    entryPoints = ["websecure"]
-#    entryPoints = ["web"]
-#    rule = "HostRegexp(`.*`)"
-#    rule = "PathPrefix(`/`)"
-#    rule = "Host(`cljdoc.org`, `cljdoc.xyz`)"
-#    service = "cljdoc"
-#    middlewares = ["compress"]
-#    [http.routers.cljdoc.tls]
-#      certResolver = "lets-encrypt"
-
 [api]
 [ping]
 
@@ -51,4 +33,3 @@
   prefix = "traefik"
   exposedByDefault = false
   watch = true
-#  constraints = "Tag(`cljdoc`)"

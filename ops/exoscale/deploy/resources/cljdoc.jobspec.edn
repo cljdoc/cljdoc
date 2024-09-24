@@ -62,9 +62,6 @@
                      :port_map [{:api 8080, :http 80, :https 443}]
                      :volumes ["local:/etc/traefik"
                                "/data/traefik:/data"]}
-            ;; TODO: Deliver more securely?
-            ;; TODO: Maybe don't bother?
-            :Env {:LETS_ENCRYPT_EMAIL #env "LETS_ENCRYPT_EMAIL"}
             :Driver "docker"
             :Name "traefik"
             :Resources

@@ -92,9 +92,10 @@ So we'll, within reason, keep our current archecture to start with.
 
 Open questions:
 
-* Currently adding ssh keys via terraform but completely manually for circle, (and eventually martin).
-This is an awkward thing to remember to do after a terraform re-create of the compute instance.
-But for now, I think we'll just document the awkwardness.
+* Ssh key config is awkward
+** Currently adding mine via terraform via my pub key on my dev box, tying terraform config to my dev box
+** Currently manually adding for circle, (and eventually martin). This is an awkward thing to remember to do after a terraform re-create of the compute instance.
+* What do we really need to do for acme.json?
 
 Reminders:
 
@@ -109,6 +110,16 @@ Dev has a much shorter retention period than prod, so it pruned, and prod then h
 * Offline doc zip file size is 0 bytes, tried: /download/rewrite-clj/rewrite-clj/1.1.48
 ** Newer traefik is pickier about valid `Content-Type`, ours was invalid, fixed
 
+== Checklist for Migration
+
+1. [lee] Cleans up any test backups at Exoscale
+2. [lee] Recreates Exoscale compute instance for fresh start
+3. [lee] Grabs a fresh db backup from DigitalOcean and uploads to Exoscale for auto-restore
+4. [lee] Merges git exoscale branch to master
+5. [martin] Points cljdoc.org and cljdoc.xyz to Exoscale.
+6. [lee] Migrates acme.json from DigitalOcean to Exoscale for ssl certs.
+7. [lee] Deletes staging endpoint for acme in traefik.toml via commit and deploy
+
 == Summary of Changes from DigitalOcean
 
 * Added "Generously power by Exoscale" to footer of cljdoc home page
@@ -118,6 +129,7 @@ Dev has a much shorter retention period than prod, so it pruned, and prod then h
 * Prod: cljdoc: added daily db backup
 * Prod: cljdoc: added db restore when no db exists
 * Prod: host: added traefik log rotation
+* Prod: host: firewall: Handled by Exoscale infrastructure
 
 == Finer Questions
 
@@ -187,12 +199,10 @@ Current consul delivered secrets that can stay the same:
 
 New consul secrets:
 
-* Used by `deploy` circleci job (and then ultimately traefik container)
-** `LETS_ENCRYPT_EMAIL` - I thought this was better moved to a secret
 * Used by `deploy` circleci job (and then ultimately cljdoc container)
 * `EXO_BACKUPS_BUCKET_NAME` - For SQLite backups/restores
 * `EXO_BACKUPS_BUCKET_KEY`
-* `EXO_BACKUPS_BUCKET_SECRET
+* `EXO_BACKUPS_BUCKET_SECRET`
 * `EXO_BACKUPS_BUCKET_REGION`
 
 ==== SSH Keys
