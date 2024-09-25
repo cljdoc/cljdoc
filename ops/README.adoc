@@ -35,6 +35,10 @@ You'll need the following software installed:
 * https://www.packer.io[Packer] to create our server host image
 * https://www.terraform.io[Terraform] to create and manage our infrastructure
 
+Optionally install:
+
+* https://www.nomadproject.io/[Nomad] if you want to run it locally against production, see <<accessing nomad>>.
+
 == Overview
 Here's what cljdoc looks like from an ops perspective.
 
@@ -173,11 +177,11 @@ The tag names are determined based on Git commit count, branch and HEAD and imag
 
 [source,sh]
 ----
-./ops/nomad.sh
+./ops/nomad.sh username@ip
 ----
+Where `username` is your ssh login and `ip` is nomad's IP address.
 
-The script above will launch an SSH process forwarding port 4646 and 8500 from the host
-specified by `cljdoc_static_ip` in the Terraform outputs.
+The script launches an SSH process forwarding port 4646 and 8500.
 
 If you have Nomad installed locally, you can now run `nomad` comands like the following:
 
@@ -187,6 +191,8 @@ nomad status cljdoc
 nomad alloc logs -f 683ade58
 nomad deployment list
 ----
+
+Hit ^D to to close the session and forwarded ports.
 
 == Backing Up Data
 
