@@ -38,7 +38,7 @@ You'll need the following software installed:
 
 Optionally install:
 
-* https://www.nomadproject.io/[Nomad] if you want to run it locally against production, see <<accessing nomad>>.
+* https://www.nomadproject.io/[Nomad] if you want to run it locally against production, see <<accessing-nomad>>.
 
 == Overview
 Here's what cljdoc looks like from an ops perspective.
