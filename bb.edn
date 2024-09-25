@@ -9,6 +9,7 @@
  {;; setup
   :requires ([babashka.fs :as fs]
              [babashka.process :as p]
+             [clojure.string :as str]
              [build-shared :as bs]
              [lread.status-line :as status]
              [version])
@@ -140,7 +141,7 @@
 
   deploy
   {:doc "ops: Deploy to Production (run by CircleCI)"
-   :task (let [cljdoc-version (-> (shell {:out :string} "bb version") str/trim)]
+   :task (let [cljdoc-version (-> (shell {:out :string} "bb version") :out str/trim)]
            (status/line :detail "Deploying cljdoc version %s" cljdoc-version)
            (apply shell {:dir "ops/exoscale/deploy"}
                   "clojure -M -m cljdoc.deploy deploy -t" cljdoc-version

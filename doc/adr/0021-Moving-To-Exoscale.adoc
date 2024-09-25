@@ -80,9 +80,9 @@ So we'll, within reason, keep our current archecture to start with.
 * [x] Try/adapt full CI deploy
 * [x] Traefik access log rotation.
 * [x] re-bump traefik, nomad, consul
-* [ ] Update ops README
+* [x] Update ops README
+* [ ] allow port-forward access to traefik web ui
 * [ ] Maybe automatically install critical updates
-* [ ] Maybe create a bb.edn for ops work.
 * [ ] Invite Martin as admin to cljdoc.org at Exoscale
 * [ ] Configure DNS at registrar (Martin)
 * [ ] Review TODOs

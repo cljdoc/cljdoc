@@ -29,7 +29,5 @@
         ;; for any libs that overlap, but this should be good enough for now
         basis (b/create-basis {:aliases [:test :cli] :extra bb-deps})
         cp-roots (:classpath-roots basis)]
-    (println "- copying configs")
-    (kondo/run! {:skip-lint true :copy-configs true :lint cp-roots})
-    (println "\n- creating cache")
-    (kondo/run! {:dependencies true :parallel true :lint cp-roots})))
+    (println "- copying lib configs and creating cache")
+    (kondo/run! {:skip-lint true :copy-configs true :dependencies true :parallel true :lint cp-roots})))
