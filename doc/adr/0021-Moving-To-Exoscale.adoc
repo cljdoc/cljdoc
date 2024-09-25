@@ -82,7 +82,7 @@ So we'll, within reason, keep our current archecture to start with.
 * [x] re-bump traefik, nomad, consul
 * [x] Update ops README
 * [x] Turf cljdoc-releases bucket (Martin-approved^TM^)
-* [ ] allow port-forward access to traefik web ui
+* [x] allow port-forward access to traefik web ui
 * [ ] Maybe automatically install critical updates
 * [ ] Invite Martin as admin to cljdoc.org at Exoscale
 * [ ] Configure DNS at registrar (Martin)
