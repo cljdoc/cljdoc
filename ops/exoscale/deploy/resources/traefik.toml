@@ -26,10 +26,13 @@
     [certificatesResolvers.lets-encrypt.acme.httpChallenge]
       entryPoint = "web"
 
-[api]
+[api] # exposed on port 8080
+  dashboard = true
+  insecure = true
 [ping]
 
 [providers.consulCatalog]
+  # see nomad cljdoc.jobspec.edn cljdoc service tags for cljdoc container specific config
   prefix = "traefik"
   exposedByDefault = false
   watch = true
