@@ -9,6 +9,7 @@ If you want to bring up your own cljdoc-like service, you can use our config as 
 
 == Prerequsites
 
+[#secrets]
 === Secrets
 Terraform access to Exoscale is configured in `ops/exoscale/infrastructure/secrets.tfvars`:
 
@@ -122,7 +123,7 @@ terraform apply -var-file=secrets.tfvars
 
 To sync the server state back to terraform:
 [source,sh]
----
+----
 terraform refresh -var-file=secrets.tfvars
 ----
 
@@ -173,6 +174,7 @@ Deployment is carried out by CircleCI, see `deploy-to-nomad` job in link:[/.circ
 This will fail unless the https://hub.docker.com/r/cljdoc/cljdoc/[Docker Hub] has a cljdoc image with the provided tag.
 The tag names are determined based on Git commit count, branch and HEAD and images are pushed to Docker Hub as part of CI.
 
+[#accessing-nomad]
 === Accessing Nomad
 
 [source,sh]
