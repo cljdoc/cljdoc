@@ -136,4 +136,12 @@
            (clojure {:dir "./modules/nvd-scan"}
                     "-J-Dclojure.main.report=stderr -M -m nvd.task.check"
                     "./nvd-config.edn"
-                    cp))}}}
+                    cp))}
+
+  deploy
+  {:doc "ops: Deploy to Production (run by CircleCI)"
+   :task (let [cljdoc-version (-> (shell {:out :string} "bb version") str/trim)]
+           (status/line :detail "Deploying cljdoc version %s" cljdoc-version)
+           (apply shell {:dir "ops/exoscale/deploy"}
+                  "clojure -M -m cljdoc.deploy deploy -t" cljdoc-version
+                  *command-line-args*))}}}

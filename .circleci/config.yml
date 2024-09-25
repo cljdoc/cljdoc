@@ -319,9 +319,7 @@ jobs:
       - run:
           name: Deploy to Production
           command: |
-            CLJDOC_VERSION=$(bb current-version)
-            cd ops/exoscale/deploy
-            clojure -M -m cljdoc.deploy deploy -t ${CLJDOC_VERSION} --nomad-ip $EXO_NOMAD_IP -u $SSH_USER -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
+            bb deploy --nomad-ip $EXO_NOMAD_IP -u $SSH_USER -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
 
 workflows:
   build-and-deploy:
