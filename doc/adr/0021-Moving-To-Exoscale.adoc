@@ -81,6 +81,7 @@ So we'll, within reason, keep our current archecture to start with.
 * [x] Traefik access log rotation.
 * [x] re-bump traefik, nomad, consul
 * [x] Update ops README
+* [x] Turf cljdoc-releases bucket (Martin-approved^TM^)
 * [ ] allow port-forward access to traefik web ui
 * [ ] Maybe automatically install critical updates
 * [ ] Invite Martin as admin to cljdoc.org at Exoscale
@@ -196,11 +197,6 @@ CircleCI specific secrets that will change (so add new vars prefixed with `EXO_`
 
 * Used by `deploy` circleci job
 ** `EXO_NOMAD_IP` - used to talk to nomad and consul over their APIs via ssh
-* Used by `publish-zip-build` circleci job
-** `EXO_RELEASES_BUCKET_NAME` - more of a variable than a secret, might change with Exoscale
-** `EXO_RELEASES_BUCKET_KEY` - this will need to change to Exoscale Object Storage key
-** `EXO_RELEASES_BUCKET_SECRET` - this will need to change to Exoscacle Object Storage secret
-** `EXO_RELEASES_BUCKET_REGION` - new
 
 Current consul delivered secrets that can stay the same:
 
@@ -494,8 +490,8 @@ The release workflow creates a zip file from which it then creates a docker imag
 
 Each release uploads the zip file to s3.
 I'm not entirely sure of the value of this.
-It does keep a record of what actually built the cljdoc docker image with.
-We'll carry on with this for now.
+
+Martin agreed that this is no longer of value, we will not carry it forward to Exoscale.
 
 == Pinning Software at Specific Versions
 Historically, hashicorp seems to have had no qualms about introducing breaking changes.

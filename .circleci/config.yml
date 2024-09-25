@@ -179,7 +179,6 @@ jobs:
 
   #
   # build: package, output used by:
-  # - publish-zip-build
   # - publish-docker
   #
   package:
@@ -207,7 +206,7 @@ jobs:
           name: Package cljdoc
           command: bb package
 
-      # for publish-zip-build job
+      # used by publish-docker
       - persist_to_workspace:
           root: .
           paths:
@@ -222,43 +221,6 @@ jobs:
       - image: alpine
     steps:
       - run: echo build done
-
-  #
-  # deploy: publish-zip-build
-  # (relies on output saved by package)
-  #
-  publish-zip-build:
-    docker:
-      - image: cimg/python:3.10
-    steps:
-      # from package job
-      - attach_workspace:
-          at: workspace
-      - run: ls workspace
-
-      - run:
-          name: Install awscli
-          command: pip3 install awscli
-
-      - run:
-          name: Tools Versions
-          command: |
-            pip3 --version
-            aws --version
-
-      - run:
-          name: Set AWS env vars
-          # vars are from terraform setup
-          command: |
-            echo 'export AWS_ACCESS_KEY_ID=$EXO_RELEASES_BUCKET_KEY' >> $BASH_ENV
-            echo 'export AWS_SECRET_ACCESS_KEY=$EXO_RELEASES_BUCKET_SECRET' >> $BASH_ENV
-            echo 'export AWS_DEFAULT_REGION=$EXO_RELEASES_BUCKET_REGION' >> $BASH_ENV
-            echo "export AWS_ENDPOINT_URL=https://sos-${EXO_RELEASES_BUCKET_REGION}.exo.io" >> $BASH_ENV
-            source $BASH_ENV
-
-      - run:
-          name: Deploy to S3
-          command: aws s3 sync workspace/target/build s3://$EXO_RELEASES_BUCKET_NAME/build-$CIRCLE_SHA1/ --delete
 
   #
   # deploy: make and image and publish to docker
@@ -335,14 +297,6 @@ workflows:
             - test
             - package
       - publish-docker:
-          requires:
-            - build
-          filters:
-            branches:
-              only:
-                - master
-                - lread-exoscale
-      - publish-zip-build:
           requires:
             - build
           filters:
