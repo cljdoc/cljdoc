@@ -260,7 +260,7 @@ jobs:
   # and it's public key has been copied to ~/.ssh/authorized_keys on
   # the production machine:
   # cat ~/.ssh/cljdoc_deploy.pub | ssh root@cljdoc.org 'cat >> .ssh/authorized_keys'
-  deploy-to-nomad:
+  deploy-prod:
     docker: *clojure_image
 
     steps:
@@ -304,7 +304,7 @@ workflows:
               only:
                 - master
                 - lread-exoscale
-      - deploy-to-nomad:
+      - deploy-prod:
           requires:
             - build
             - publish-docker
