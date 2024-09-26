@@ -79,7 +79,6 @@ jobs:
             clojure --version
             bb --version
 
-
       - run:
           name: Lint with clj-kondo
           command: bb lint
@@ -187,14 +186,11 @@ jobs:
            clojure --version
            bb --version
 
-      - *npm_deps_install
-
       - run:
           name: Build Docs for Sample Library
           command: bb ingest --project bidi --version 2.1.3
 
       - *save_clojure_cache
-      - *save_npm_cache
 
   #
   # build: package, output used by:
