@@ -88,12 +88,7 @@ build {
       "sudo mkdir -p /var/lib/alloc_mounts",
 
       # setup for consul
-      # TODO: Currently running as root, might turf this if I need to run as root
-      "sudo useradd --system --home /etc/consul.d --shell /bin/false consul",
-      "sudo mkdir -p /etc/consul.d",
       "sudo mkdir -p /var/lib/consul",
-      "sudo chown -R consul:consul /etc/consul.d",
-      "sudo chown -R consul:consul /var/lib/consul",
 
       # Reload systemd to pick up new service files
       "sudo systemctl daemon-reload",
