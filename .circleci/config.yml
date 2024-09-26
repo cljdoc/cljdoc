@@ -8,7 +8,7 @@ aliases:
     restore_cache:
       name: Restore clojure cache
       keys:
-        - v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "bb.edn" }}
+        - v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "modules/nvd-scan/deps.edn" }}-{{ checksum "ops/exoscale/deploy/deps.edn" }}-{{ checksum "bb.edn" }}
         - v1-dependencies-
 
   - &save_clojure_cache
@@ -17,7 +17,7 @@ aliases:
       paths:
         - ~/.m2
         - ~/.gitlibs
-      key: v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "bb.edn" }}
+      key: v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "modules/nvd-scan/deps.edn" }}-{{ checksum "ops/exoscale/deploy/deps.edn" }}-{{ checksum "bb.edn" }}
 
   - &restore_npm_cache
     restore_cache:
@@ -51,7 +51,7 @@ aliases:
   - &clojure_deps_download
     run:
       name: Bring Down Clojure deps
-      command: clojure -P -X:cli:test
+      command: bb download-deps
 
 orbs:
   node: circleci/node@5.2.0
@@ -70,6 +70,7 @@ jobs:
           name: Validate our own cljdoc.edn
           command: curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
       - *bb_install
+      - *clojure_deps_download
 
       - run:
           name: Report Tools Versions
@@ -78,7 +79,6 @@ jobs:
             clojure --version
             bb --version
 
-      - *clojure_deps_download
 
       - run:
           name: Lint with clj-kondo
@@ -102,11 +102,13 @@ jobs:
 
     steps:
       - checkout
+      - *restore_clojure_cache
 
       - node/install
       - *restore_npm_cache
       - *bb_install
       - *npm_deps_install
+      - *clojure_deps_download
 
       - run:
           name: Report Tools Versions
@@ -128,6 +130,7 @@ jobs:
           command: bb eslint
 
       - *save_npm_cache
+      - *save_clojure_cache
 
   #
   # build: test
@@ -149,6 +152,7 @@ jobs:
       - *restore_clojure_cache
       - *restore_npm_cache
       - *bb_install
+      - *clojure_deps_download
 
       - run:
           name: Report Tools Versions
@@ -164,7 +168,6 @@ jobs:
           name: Build Front End
           command: bb compile-js
 
-      - *clojure_deps_download
 
       - run:
           name: Build Docs for Sample Library
@@ -191,9 +194,11 @@ jobs:
           name: Install extra tools
           command: apt update && apt install -y zip
 
+      - *restore_clojure_cache
       - *restore_npm_cache
       - *bb_install
       - *npm_deps_install
+      - *clojure_deps_download
 
       - run:
           name: Report Tools Versions
@@ -212,6 +217,7 @@ jobs:
           paths:
             - target
 
+      - *save_clojure_cache
       - *save_npm_cache
   #
   # build - used later in workflow to group all build jobs
@@ -235,7 +241,9 @@ jobs:
       - attach_workspace:
           at: .
 
+      - *restore_clojure_cache
       - *bb_install
+      - *clojure_deps_download
 
       - run:
           name: Tools Versions
@@ -256,6 +264,8 @@ jobs:
           name: Docker Push Image
           command: docker push --all-tags cljdoc/cljdoc
 
+      - *save_clojure_cache
+
   # This assumes that an SSH key has been added to the CircleCI build
   # and it's public key has been copied to ~/.ssh/authorized_keys on
   # the production machine:
@@ -270,7 +280,9 @@ jobs:
 
       - checkout
 
+      - *restore_clojure_cache
       - *bb_install
+      - *clojure_deps_download
 
       - run:
           name: Tools Versions
@@ -283,6 +295,8 @@ jobs:
           name: Deploy to Production
           command: |
             bb deploy --nomad-ip $EXO_NOMAD_IP -u $SSH_USER -k ~/.ssh/id_rsa_21c6607b93f2246b1f761d9847af05cb
+
+      - *save_clojure_cache
 
 workflows:
   build-and-deploy:

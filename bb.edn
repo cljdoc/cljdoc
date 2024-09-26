@@ -35,6 +35,9 @@
                     ".cpcache"
                     ".parcel-cache"
                     "modules/deploy/.cpcache"]))}
+  download-deps
+  {:doc "download clojure deps"
+   :task (clojure "-T:build download-deps")}
   deps-js
   {:doc "bring down js deps"
    :task (if (seq (fs/modified-since "node_modules" ["package-lock.json"]))

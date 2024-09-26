@@ -31,3 +31,22 @@
         cp-roots (:classpath-roots basis)]
     (println "- copying lib configs and creating cache")
     (kondo/run! {:skip-lint true :copy-configs true :dependencies true :parallel true :lint cp-roots})))
+
+
+(defn download-deps
+  "Download all deps for all aliases"
+  [_]
+  (doseq [deps-edn ["deps.edn" "modules/nvd-scan/deps.edn" "ops/exoscale/deploy/deps.edn"]]
+    (let [aliases (->> deps-edn
+                       slurp
+                       edn/read-string
+                       :aliases
+                       keys)
+          deps-dir (str (fs/parent deps-edn))]
+      (println "-" deps-edn)
+       ;; one at a time because aliases with :replace-deps will... well... you know.
+      (println "Bring down default deps")
+      (b/create-basis {:dir deps-dir})
+      (doseq [a (sort aliases)]
+        (println "Bring down deps for alias" a)
+        (b/create-basis {:dir deps-dir :aliases [a]})))))
