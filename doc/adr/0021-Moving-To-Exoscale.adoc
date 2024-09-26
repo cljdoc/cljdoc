@@ -117,6 +117,7 @@ Dev has a much shorter retention period than prod, so it pruned, and prod then h
 Deferred to some later date:
 
 * Maybe automatically install critical updates
+* Explore running consul/nomad under their own users
 * Strategy for discovering vulnerabilities on host?
 * Maybe experiment with Hashicorp Vault?
 * Maybe report on outdated ops software? traefik, nomad, consul, docker...
@@ -146,6 +147,10 @@ Highlights:
 * Prod: cljdoc: added db restore when no db exists
 * Prod: host: added traefik log rotation
 * Prod: host: firewall: Handled by Exoscale infrastructure
+* Moved: digitalocean specific work under `ops/digitalocean` (including `modules/deploy`)
+* New: exoscale specific work is under `ops/exoscale`
+* Deploy: bumped jsch to a modern drop in replacement to support modern encryptions
+* Deploy: turfed `cljdoc-releases` bucket, we decided we don't need it anymore
 
 == Data Migration from DigitalOcean to Exoscale
 
