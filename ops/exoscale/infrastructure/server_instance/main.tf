@@ -7,6 +7,8 @@ terraform {
 }
 
 variable "exoscale_zone" {}
+variable "base_authorized_key" {}
+variable "additional_authorized_keys" {}
 
 # Static IP via Elastic IP
 
@@ -58,11 +60,11 @@ resource "exoscale_security_group_rule" "https" {
 
 # SSH Keys
 
-resource "exoscale_ssh_key" "cljdoc_ssh_key" {
-  name       = "cljdoc-ssh"
-  # TODO: precreated maybe not the best idea? Alternative?
-  # TODO: yeah, I'll need to allow martin, myself and circleci, so need something different
-  public_key = file("~/.ssh/id_ed25519_exoscale.pub")
+# the compute instance only allows a single ssh key to be specified
+# additional_authorized_keys are setup via cloud init
+resource "exoscale_ssh_key" "cljdoc_base_ssh_key" {
+  name = "cljdoc-base-ssh"
+  public_key = var.base_authorized_key
 }
 
 # Server Instance
@@ -75,11 +77,20 @@ resource "exoscale_compute_instance" "cljdoc_01" {
   elastic_ip_ids     = [exoscale_elastic_ip.cljdoc.id]
   disk_size          = 50
   security_group_ids = [ exoscale_security_group.cljdoc.id ]
-  ssh_key            = exoscale_ssh_key.cljdoc_ssh_key.id
+  ssh_key            = exoscale_ssh_key.cljdoc_base_ssh_key.id
   user_data          = <<EOF
 #cloud-config
 runcmd:
   - ip addr add ${exoscale_elastic_ip.cljdoc.ip_address}/32 dev lo
+write_files:
+  - path: /home/debian/.ssh/authorized_keys
+    owner: debian:debian
+    permissions: '0600'
+    append: true
+    content: |
+      %{ for key in var.additional_authorized_keys ~}
+      ${key}
+      %{ endfor ~}
 EOF
 }
 

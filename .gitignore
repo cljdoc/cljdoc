@@ -26,5 +26,5 @@ test-data/
 /fiddle
 /.vscode
 /.lsp/.cache
-secrets.tfvars
-secrets.pkrvars.hcl
+*secret*.tfvars
+*secret*.pkrvars.hcl

@@ -10,6 +10,8 @@ module "backups_bucket" {
 module "main_server" {
   source     = "./server_instance"
   exoscale_zone = var.exoscale_zone
+  base_authorized_key = var.base_authorized_key
+  additional_authorized_keys = var.additional_authorized_keys
 }
 
 # Outputs

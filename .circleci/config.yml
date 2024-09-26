@@ -266,7 +266,8 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "75:fb:98:1f:f6:21:7f:bf:cc:c9:0e:b2:9e:be:5c:e8"
+            - "21:c6:60:7b:93:f2:24:6b:1f:76:1d:98:47:af:05:cb"
+
       - checkout
 
       - *bb_install
@@ -281,7 +282,7 @@ jobs:
       - run:
           name: Deploy to Production
           command: |
-            bb deploy --nomad-ip $EXO_NOMAD_IP -u $SSH_USER -k ~/.ssh/id_rsa_75fb981ff6217fbfccc90eb29ebe5ce8
+            bb deploy --nomad-ip $EXO_NOMAD_IP -u $SSH_USER -k ~/.ssh/id_rsa_21c6607b93f2246b1f761d9847af05cb
 
 workflows:
   build-and-deploy:

@@ -28,6 +28,16 @@ variable "exoscale_zone" {
   default = "ch-gva-2"
 }
 
+variable "base_authorized_key" {
+  description = "The base SSH public keys to be authorized"
+  type        = string
+}
+
+variable "additional_authorized_keys" {
+  description = "A list of additional SSH public keys to be authorized"
+  type        = list(string)
+}
+
 provider "exoscale" {
   key    = var.exoscale_api_key
   secret = var.exoscale_api_secret
