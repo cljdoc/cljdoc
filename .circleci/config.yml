@@ -241,9 +241,7 @@ jobs:
       - attach_workspace:
           at: .
 
-      - *restore_clojure_cache
       - *bb_install
-      - *clojure_deps_download
 
       - run:
           name: Tools Versions
@@ -263,8 +261,6 @@ jobs:
       - run:
           name: Docker Push Image
           command: docker push --all-tags cljdoc/cljdoc
-
-      - *save_clojure_cache
 
   # This assumes that an SSH key has been added to the CircleCI build
   # and it's public key has been copied to ~/.ssh/authorized_keys on
