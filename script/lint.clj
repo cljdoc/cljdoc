@@ -32,7 +32,7 @@
   (status/line :head "clj-kondo: linting")
   (let [{:keys [exit]}
         (shell/command {:continue true}
-                       "clojure -M:clj-kondo -m clj-kond.main --lint src test script deps.edn bb.edn modules ops/exoscale/deploy")]
+                       "clojure -M:clj-kondo --lint src test script deps.edn bb.edn modules ops/exoscale/deploy")]
     (cond
       (= 2 exit) (status/die exit "clj-kondo found one or more lint errors")
       (= 3 exit) (status/die exit "clj-kondo found one or more lint warnings")
