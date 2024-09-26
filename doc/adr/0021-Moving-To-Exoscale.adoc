@@ -83,7 +83,6 @@ So we'll, within reason, keep our current archecture to start with.
 * [x] Update ops README
 * [x] Turf cljdoc-releases bucket (Martin-approved^TM^)
 * [x] allow port-forward access to traefik web ui
-* [ ] Maybe automatically install critical updates
 * [ ] Invite Martin as admin to cljdoc.org at Exoscale
 * [ ] Configure DNS at registrar (Martin)
 * [ ] Review TODOs
@@ -117,6 +116,7 @@ Dev has a much shorter retention period than prod, so it pruned, and prod then h
 
 Deferred to some later date:
 
+* Maybe automatically install critical updates
 * Strategy for discovering vulnerabilities on host?
 * Maybe experiment with Hashicorp Vault?
 * Maybe report on outdated ops software? traefik, nomad, consul, docker...
