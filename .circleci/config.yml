@@ -58,6 +58,19 @@ orbs:
 
 jobs:
   #
+  # build: cache-deps
+  #
+  cache-deps:
+    docker: *clojure_image
+
+    steps:
+      - checkout
+      - *restore_clojure_cache
+      - *bb_install
+      - *clojure_deps_download
+      - *save_clojure_cache
+
+  #
   # build: back-end-checks
   #
   back-end-checks:
@@ -70,7 +83,6 @@ jobs:
           name: Validate our own cljdoc.edn
           command: curl -fsSL https://raw.githubusercontent.com/cljdoc/cljdoc/master/script/verify-cljdoc-edn | bash -s doc/cljdoc.edn
       - *bb_install
-      - *clojure_deps_download
 
       - run:
           name: Report Tools Versions
@@ -91,8 +103,6 @@ jobs:
           name: Code Style Check
           command: bb code-format check
 
-      - *save_clojure_cache
-
   #
   # build: front-end-checks
   #
@@ -107,7 +117,6 @@ jobs:
       - *restore_npm_cache
       - *bb_install
       - *npm_deps_install
-      - *clojure_deps_download
 
       - run:
           name: Report Tools Versions
@@ -129,7 +138,6 @@ jobs:
           command: bb eslint
 
       - *save_npm_cache
-      - *save_clojure_cache
 
   #
   # build: test
@@ -147,7 +155,6 @@ jobs:
       - *restore_clojure_cache
       - *restore_npm_cache
       - *bb_install
-      - *clojure_deps_download
 
       - run:
           name: Report Tools Versions
@@ -163,7 +170,6 @@ jobs:
           name: Run Tests
           command: bb test
 
-      - *save_clojure_cache
       - *save_npm_cache
 
   #
@@ -177,7 +183,6 @@ jobs:
 
       - *restore_clojure_cache
       - *bb_install
-      - *clojure_deps_download
 
       - run:
           name: Report Tools Versions
@@ -189,8 +194,6 @@ jobs:
       - run:
           name: Build Docs for Sample Library
           command: bb ingest --project bidi --version 2.1.3
-
-      - *save_clojure_cache
 
   #
   # build: package, output used by:
@@ -210,7 +213,6 @@ jobs:
       - *restore_npm_cache
       - *bb_install
       - *npm_deps_install
-      - *clojure_deps_download
 
       - run:
           name: Report Tools Versions
@@ -229,7 +231,6 @@ jobs:
           paths:
             - target
 
-      - *save_clojure_cache
       - *save_npm_cache
   #
   # build - used later in workflow to group all build jobs
@@ -290,7 +291,6 @@ jobs:
 
       - *restore_clojure_cache
       - *bb_install
-      - *clojure_deps_download
 
       - run:
           name: Tools Versions
@@ -304,15 +304,22 @@ jobs:
           command: |
             bb deploy --nomad-ip $EXO_NOMAD_IP -u $SSH_USER -k ~/.ssh/id_rsa_21c6607b93f2246b1f761d9847af05cb
 
-      - *save_clojure_cache
-
 workflows:
   build-and-deploy:
     jobs:
-      - front-end-checks
-      - back-end-checks
-      - test
-      - test-ingest
+      - cache-deps
+      - front-end-checks:
+          requires:
+            - cache-deps
+      - back-end-checks:
+          requires:
+            - cache-deps
+      - test:
+          requires:
+            - cache-deps
+      - test-ingest:
+          requires:
+            - cache-deps
       - package
       - build:
           requires:
