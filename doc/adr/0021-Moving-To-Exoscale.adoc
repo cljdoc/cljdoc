@@ -139,6 +139,7 @@ These are defined at the CircleCI organization level, but can be applied at the 
 5. [lee] Deletes staging endpoint for acme in traefik.toml via commit and deploy
 6. [lee] Merges cljdoc git exoscale branch to master
 7. [lee] Deletes old DigitalOcean CircleCI env vars and ssh keys after migration complete
+8. [lee] Configures CI to only deploy from master (remove deploying from lread-exoscale branch)
 
 == Summary of Changes from DigitalOcean
 
