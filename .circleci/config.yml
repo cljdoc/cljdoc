@@ -8,7 +8,7 @@ aliases:
     restore_cache:
       name: Restore clojure cache
       keys:
-        - v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "modules/nvd-scan/deps.edn" }}-{{ checksum "ops/exoscale/deploy/deps.edn" }}-{{ checksum "bb.edn" }}
+        - v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "ops/exoscale/deploy/deps.edn" }}-{{ checksum "bb.edn" }}
         - v1-dependencies-
 
   - &save_clojure_cache
@@ -17,7 +17,7 @@ aliases:
       paths:
         - ~/.m2
         - ~/.gitlibs
-      key: v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "modules/nvd-scan/deps.edn" }}-{{ checksum "ops/exoscale/deploy/deps.edn" }}-{{ checksum "bb.edn" }}
+      key: v1-dependencies-{{ checksum "deps.edn" }}-{{ checksum "ops/exoscale/deploy/deps.edn" }}-{{ checksum "bb.edn" }}
 
   - &restore_npm_cache
     restore_cache:

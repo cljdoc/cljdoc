@@ -36,7 +36,7 @@
 (defn download-deps
   "Download all deps for all aliases"
   [_]
-  (doseq [deps-edn ["deps.edn" "modules/nvd-scan/deps.edn" "ops/exoscale/deploy/deps.edn"]]
+  (doseq [deps-edn ["deps.edn" "ops/exoscale/deploy/deps.edn"]]
     (let [aliases (->> deps-edn
                        slurp
                        edn/read-string
