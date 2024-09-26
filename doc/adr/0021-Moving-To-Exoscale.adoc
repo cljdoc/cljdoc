@@ -83,15 +83,11 @@ So we'll, within reason, keep our current archecture to start with.
 * [x] Update ops README
 * [x] Turf cljdoc-releases bucket (Martin-approved^TM^)
 * [x] allow port-forward access to traefik web ui
+* [x] Review TODOs
 * [ ] Invite Martin as admin to cljdoc.org at Exoscale
 * [ ] Configure DNS at registrar (Martin)
-* [ ] Review TODOs
 
 Open questions:
-
-* Ssh key config is quite awkward
-** Currently adding mine via terraform via my pub key on my dev box, tying terraform config to my dev box
-** Currently manually adding for circle, (and eventually martin). This is an awkward thing to remember to do after a terraform re-create of the compute instance.
 
 Reminders:
 
@@ -99,6 +95,14 @@ Reminders:
 
 Closed questions
 
+* [x] Ssh key config is quite awkward
+** Issues:
+*** Currently adding mine via terraform via my pub key on my dev box, tying terraform config to my dev box
+*** Currently manually adding for circle, (and eventually martin). This is an awkward thing to remember to do after a terraform re-create of the compute instance.
+** Compromise:
+*** ssh keys to authorize will be loaded from a separate non-version-controlled tfvars file.
+*** For now, the ops team will need to share this securely amongst the team.
+*** The compute instance currently needs to be recreated to add/remove keys
 * [x] Why are clojars-stats downloading after a db restore?
 Aren't they stored in cljdoc db?
 ** Yup, but I was working from a backup from prod which was then uploade from  dev box test.
@@ -134,6 +138,7 @@ These are defined at the CircleCI organization level, but can be applied at the 
 4. [martin] Points cljdoc.org and cljdoc.xyz to Exoscale.
 5. [lee] Deletes staging endpoint for acme in traefik.toml via commit and deploy
 6. [lee] Merges cljdoc git exoscale branch to master
+7. [lee] Deletes old DigitalOcean CircleCI env vars and ssh keys after migration complete
 
 == Summary of Changes from DigitalOcean
 
