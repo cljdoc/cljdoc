@@ -142,10 +142,6 @@ jobs:
       - checkout
       - node/install
       - run:
-          name: What is my IP
-          command: curl https://checkip.amazonaws.com
-
-      - run:
           name: Install extra tools
           command: apt update && apt install -y zstd
 
@@ -165,17 +161,37 @@ jobs:
       - *npm_deps_install
 
       - run:
-          name: Build Front End
-          command: bb compile-js
+          name: Run Tests
+          command: bb test
 
+      - *save_clojure_cache
+      - *save_npm_cache
+
+  #
+  # build: test-ingest
+  #
+  test-ingest:
+    docker: *clojure_image
+
+    steps:
+      - checkout
+
+      - *restore_clojure_cache
+      - *bb_install
+      - *clojure_deps_download
+
+      - run:
+          name: Report Tools Versions
+          command: |
+           java --version
+           clojure --version
+           bb --version
+
+      - *npm_deps_install
 
       - run:
           name: Build Docs for Sample Library
           command: bb ingest --project bidi --version 2.1.3
-
-      - run:
-          name: Run Tests
-          command: bb test
 
       - *save_clojure_cache
       - *save_npm_cache
@@ -300,12 +316,14 @@ workflows:
       - front-end-checks
       - back-end-checks
       - test
+      - test-ingest
       - package
       - build:
           requires:
             - front-end-checks
             - back-end-checks
             - test
+            - test-ingest
             - package
       - publish-docker:
           requires:
