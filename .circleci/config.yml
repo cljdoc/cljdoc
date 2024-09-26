@@ -104,6 +104,28 @@ jobs:
           command: bb code-format check
 
   #
+  # build: back-end-eastwood
+  #
+  back-end-eastwood:
+    docker: *clojure_image
+
+    steps:
+      - checkout
+      - *restore_clojure_cache
+      - *bb_install
+
+      - run:
+          name: Report Tools Versions
+          command: |
+            java --version
+            clojure --version
+            bb --version
+
+      - run:
+          name: Lint with eastwood
+          command: bb eastwood
+
+  #
   # build: front-end-checks
   #
   front-end-checks:
@@ -142,7 +164,7 @@ jobs:
   #
   # build: test
   #
-  test:
+  test-unit:
     docker: *clojure_image
 
     steps:
@@ -151,6 +173,30 @@ jobs:
       - run:
           name: Install extra tools
           command: apt update && apt install -y zstd
+
+      - *restore_clojure_cache
+      - *bb_install
+
+      - run:
+          name: Report Tools Versions
+          command: |
+           java --version
+           clojure --version
+           bb --version
+
+      - run:
+          name: Run Tests
+          command: bb test --skip cljdoc.integration-test
+
+  #
+  # build: test-integration
+  #
+  test-integration:
+    docker: *clojure_image
+
+    steps:
+      - checkout
+      - node/install
 
       - *restore_clojure_cache
       - *restore_npm_cache
@@ -168,7 +214,7 @@ jobs:
 
       - run:
           name: Run Tests
-          command: bb test
+          command: bb test --focus cljdoc.integration-test
 
       - *save_npm_cache
 
@@ -314,7 +360,13 @@ workflows:
       - back-end-checks:
           requires:
             - cache-deps
-      - test:
+      - back-end-eastwood:
+          requires:
+            - cache-deps
+      - test-unit:
+          requires:
+            - cache-deps
+      - test-integration:
           requires:
             - cache-deps
       - test-ingest:
@@ -325,7 +377,9 @@ workflows:
           requires:
             - front-end-checks
             - back-end-checks
-            - test
+            - back-end-eastwood
+            - test-unit
+            - test-integration
             - test-ingest
             - package
       - publish-docker:
