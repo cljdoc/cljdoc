@@ -96,10 +96,6 @@ jobs:
           command: bb lint
 
       - run:
-          name: Lint with eastwood
-          command: bb eastwood
-
-      - run:
           name: Code Style Check
           command: bb code-format check
 
@@ -175,14 +171,18 @@ jobs:
           command: apt update && apt install -y zstd
 
       - *restore_clojure_cache
+      - *restore_npm_cache
       - *bb_install
 
       - run:
           name: Report Tools Versions
           command: |
+           node --version
            java --version
            clojure --version
            bb --version
+
+      - *npm_deps_install
 
       - run:
           name: Run Tests
