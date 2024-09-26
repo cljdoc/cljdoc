@@ -1,4 +1,5 @@
 = cljdoc Operations
+:toclevels: 5
 :toc:
 
 == Audience
@@ -11,6 +12,9 @@ If you want to bring up your own cljdoc-like service, you can use our config as 
 
 [#secrets]
 === Secrets
+
+==== Exoscale Creds
+
 Terraform access to Exoscale is configured in `ops/exoscale/infrastructure/secrets.tfvars`:
 
 [source,hcl]
@@ -29,6 +33,27 @@ cd ops/exoscale/image
 ln -s ../infrastructure/secrets.tfvars ./secrets.pkrvars.hcl
 ----
 
+==== Authorized SSH Keys
+
+Authorized keys are stored in a non-version controlled tfvars file.
+
+The structure is:
+
+[shource,sh]
+----
+base_authorized_key = "<base pub key here>"
+
+additional_authorized_keys = [
+  "<additional pub key 1 here>",
+  "<additional pub key 2 here>"
+]
+----
+
+Terraform might suggest that changes can be applied in place, but you'll need to `taint` the compute instance, and `apply` it for changes to be applied correctly.
+Yup, this means we can't currently change authorized ssh keys without recreating the cljdoc compute instance.
+
+This file will be shared securely, as needed, with cljdoc ops team members.
+
 === Software
 
 You'll need the following software installed:
@@ -44,6 +69,11 @@ Optionally install:
 Here's what cljdoc looks like from an ops perspective.
 
 image::ops-overview.drawio.svg[]
+
+== Philosophy for Changes
+
+To stay sane, we want to avoid making any infrastructure changes directly to prod.
+All changes should be carried out with Packer, Terraform, and automatic deployments carried out by our CircleCI job.
 
 == Cljdoc Host Image (Packer)
 The cljdoc host image is our single node image that will host all of our compute infrastructure.
