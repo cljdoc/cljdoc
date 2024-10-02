@@ -17,7 +17,7 @@
 
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.939"} ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.46.0.0"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.46.1.3"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.9.4"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
