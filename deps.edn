@@ -4,7 +4,7 @@
         aero/aero {:mvn/version "1.1.6"}                     ;; rich configuration support with profiles
 
         ;; app component/service orchestration
-        integrant/integrant {:mvn/version "0.10.0"}          ;; configure systems/services that make up your app
+        integrant/integrant {:mvn/version "0.12.0"}          ;; configure systems/services that make up your app
         integrant/repl {:mvn/version "0.3.3"}                ;;  with reload support
 
         ;; web server/services
