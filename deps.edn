@@ -70,7 +70,7 @@
         org.clj-commons/clj-http-lite {:mvn/version "1.0.13"} ;; a lite version of clj-http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.5.21"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.5.22"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.5.22"}             ;; launch processes
         cheshire/cheshire {:mvn/version "5.13.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
