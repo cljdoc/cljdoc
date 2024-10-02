@@ -81,7 +81,7 @@
         org.clojure/core.memoize {:mvn/version "1.1.266"}    ;; function caching library
         robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
-        version-clj/version-clj {:mvn/version "2.0.2"}       ;; compare versions
+        version-clj/version-clj {:mvn/version "2.0.3"}       ;; compare versions
         zprint/zprint {:mvn/version "1.2.9"}                 ;; format clojure source/edn
 
         metosin/malli {:mvn/version "0.16.4"}
