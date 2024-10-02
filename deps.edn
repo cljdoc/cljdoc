@@ -31,8 +31,7 @@
         org.apache.lucene/lucene-queryparser {:mvn/version "9.12.0"}
 
         ;; markdown
-        org.asciidoctor/asciidoctorj {:mvn/version "2.5.13"} ;; render adoc to html
-        #_:for-cve-only org.jruby/jruby {:mvn/version "9.4.8.0"}  ;; delete when asciidoctorj bumps
+        org.asciidoctor/asciidoctorj {:mvn/version "3.0.0"} ;; render adoc to html
         com.vladsch.flexmark/flexmark                        ;; render github markdown to html
         {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-autolink           ;; converts raw links in text to clickable links
