@@ -58,7 +58,7 @@
 
 
         ;; sentry service support
-        io.sentry/sentry-logback {:mvn/version "7.12.1"}     ;; logback appendery to Sentry service
+        io.sentry/sentry-logback {:mvn/version "7.14.0"}     ;; logback appendery to Sentry service
         raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
 
         ;; s3 for database backups at Exoscale Simple Object Store
