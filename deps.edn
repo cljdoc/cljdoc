@@ -101,7 +101,7 @@
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.5"}
                    clj-kondo/clj-kondo {:mvn/version "2024.09.27"}
-                   babashka/fs {:mvn/version "0.5.21"}
+                   babashka/fs {:mvn/version "0.5.22"}
                    babashka/process {:mvn/version "0.5.22"}}
             :ns-default build}
 
