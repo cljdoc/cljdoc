@@ -66,7 +66,7 @@
         software.amazon.awssdk/s3 {:mvn/version "2.28.5"}
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "6.10.0.202406032230-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.0.0.202409031743-r"} ;; git with jsch
         org.clj-commons/clj-http-lite {:mvn/version "1.0.13"} ;; a lite version of clj-http client
 
         ;; misc utils
