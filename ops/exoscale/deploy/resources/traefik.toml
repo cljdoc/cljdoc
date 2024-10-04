@@ -21,8 +21,8 @@
     email = "martinklepsch@googlemail.com"
     storage = "/data/acme.json" # certs are written/tracked here
     keyType = "RSA2048"
-    # Use this while testing, uncomment or delete after done
-    caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+    # Uncomment next line if in staging/testing phase
+    # caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
     [certificatesResolvers.lets-encrypt.acme.httpChallenge]
       entryPoint = "web"
 
