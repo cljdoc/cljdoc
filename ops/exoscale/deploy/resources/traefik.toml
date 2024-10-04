@@ -6,7 +6,6 @@
   filePath = "/data/access.log"
 
 [log]
-  level = "DEBUG"
   filePath = "/data/traefik.log"
 
 [entryPoints]
