@@ -1,0 +1,14 @@
+[Unit]
+Description=consul agent
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+User=root
+Group=root
+Restart=on-failure
+ExecStart=/usr/local/bin/consul agent -data-dir=/var/lib/consul -config-dir=/etc/consul.d
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

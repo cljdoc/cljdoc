@@ -29,7 +29,24 @@
         ;; for any libs that overlap, but this should be good enough for now
         basis (b/create-basis {:aliases [:test :cli] :extra bb-deps})
         cp-roots (:classpath-roots basis)]
-    (println "- copying configs")
-    (kondo/run! {:skip-lint true :copy-configs true :lint cp-roots})
-    (println "\n- creating cache")
-    (kondo/run! {:dependencies true :parallel true :lint cp-roots})))
+    (println "- copying lib configs and creating cache")
+    (kondo/run! {:skip-lint true :copy-configs true :dependencies true :parallel true :lint cp-roots})))
+
+
+(defn download-deps
+  "Download all deps for all aliases"
+  [_]
+  (doseq [deps-edn ["deps.edn" "ops/exoscale/deploy/deps.edn"]]
+    (let [aliases (->> deps-edn
+                       slurp
+                       edn/read-string
+                       :aliases
+                       keys)
+          deps-dir (str (fs/parent deps-edn))]
+      (println "-" deps-edn)
+       ;; one at a time because aliases with :replace-deps will... well... you know.
+      (println "Bring down default deps")
+      (b/create-basis {:dir deps-dir})
+      (doseq [a (sort aliases)]
+        (println "Bring down deps for alias" a)
+        (b/create-basis {:dir deps-dir :aliases [a]})))))

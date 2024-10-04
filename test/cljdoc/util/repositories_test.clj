@@ -12,7 +12,7 @@
     (t/is (true? (repositories/exists? clojars 'bidi "2.0.0")))
     (t/is (true? (repositories/exists? central 'org.clojure/clojure "1.9.0")))
     (t/is (true? (repositories/exists? clojars 'bidi)))
-    (t/is (true? (repositories/exists? clojars 'org.clojure/clojure)))
+    (t/is (false? (repositories/exists? clojars 'org.clojure/clojure)))
     (t/is (true? (repositories/exists? central 'org.clojure/clojure))))
   (t/is (= nil (repositories/artifact-uris 'bidi "2.1.3-SNAPSHOT")))
   (t/is (= (repositories/artifact-uris 'bidi "2.0.9-SNAPSHOT")
@@ -21,6 +21,3 @@
 
 (t/deftest latest-release-test
   (t/is (= "0.1.0" (repositories/latest-release-version "org/clojure/math.numeric-tower"))))
-
-(comment
-  (t/run-tests))

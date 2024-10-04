@@ -1,0 +1,603 @@
+= Moving to Exoscale
+:toc:
+:toclevels: 5
+
+Create Date: 2024-08-28
+
+== Status
+
+Exploring & Learning
+
+== Background
+Cljdoc has been using a DigitalOcean droplet, AWS Route 53, and AWS S3 for some time.
+
+This comes with the following characteristics:
+
+1. Only Martin can carry out host-level ops, these are all on personal accounts
+2. There is reasonable costs associated with these services
+3. While we are good with keeping up with docker level updates, our host-level ops is in neglect
+
+A while back, Exoscale generously offered to cover hosting of cljdoc.
+I recently asked them if they were still willing and, good news for us, they answered in the affirmative.
+
+Moving to Exoscale will:
+
+1. Allow Lee to become more familiar with and help out with host-level ops
+2. Move hosting costs to Exoscale, which means one less thing for us to worry about.
+3. As a team of two, we have more of a fighting chance to keep our host-level ops in order
+
+== Exoscale Services
+Exoscale has a rich set of services.
+Our current architecture maps like so:
+
+* DigitalOcean Droplet -> Exoscale Compute Standard Medium (with 50gb storage)
+* AWS Route 53 -> Exoscale DNS
+* AWS S3 -> Exoscale Object Store
+
+Exoscale also has other services, like SKS (Kubernetes) DBAAS (PostgreSQL, MySQL, etc), Block Storage, Elastic IPs, and so on.
+
+== Cljdoc Architecture at Exoscale
+Cljdoc's current architecture is optimized to minimize financial cost.
+It runs on a single DigitalOcean Droplet and uses a local SQLite database.
+This has some cons:
+
+1. Updating the host server is difficult.
+We have automatic blue/green deployment but at the docker level.
+If blue/green were at the host level, we'd have a much easier time keeping our host up to date.
+2. The SQLite database is awesome in that it is local and fast.
+But it being local, means upgrading the host requires some careful thought.
+3. We use tools like traefik, nomad and consul to manage blue/green deployments.
+Keeping these tools up to date has a maintenance cost.
+
+It is tempting to chuck our current architecture when moving to Exoscale, but that requires more thought and more time, and delays us moving to Exoscale.
+So we'll, within reason, keep our current archecture to start with.
+
+== Progress
+
+* [x] Fire up a Compute instance (debian 12) manually at Exoscale, ssh in and poke around.
+* [x] Setup 2fa at Exoscale
+* [x] Install, and try out, `exo` command line tool
+* [x] Explore Packer vs Cloud Init (currently like Packer)
+* [x] Explore terraform
+** [x] Bring up Compute instance
+** [x] Try defining ssh keys
+** [x] Bring up Object Store
+** [x] Basic firewall setup
+** [x] Figure out how to setup a static IP
+** [x] Configure DNS at Exoscale
+* [x] Add db backup job to cljdoc
+** [x] Reconsider : in filenames, they can be problematic
+* [x] Get traefik/nomad/consul/docker up and running
+* [x] Try/adapt deploy script from my dev box
+* [x] Verify blue/green deploy
+* Verify with prod profile `CLJDOC_PROFILE=prod` in nomad job spec
+** [x] db volume mapping from docker
+** [x] db restore
+** [x] sentry
+** [x] db backup
+** [x] circle ci builds
+** [x] blue/green again
+* [x] Try/adapt full CI deploy
+* [x] Traefik access log rotation.
+* [x] re-bump traefik, nomad, consul
+* [x] Update ops README
+* [x] Turf cljdoc-releases bucket (Martin-approved^TM^)
+* [x] allow port-forward access to traefik web ui
+* [x] Review TODOs
+* [ ] Invite Martin as admin to cljdoc.org at Exoscale
+* [ ] Configure DNS at registrar (Martin)
+
+Open questions:
+
+Reminders:
+
+* 2024-09-03 & 2023-09-17 db backups on Exoscale SOS are manually uploaded backups from DigitalOcean production (so probably don't delete those)
+
+Closed questions
+
+* [x] Ssh key config is quite awkward
+** Issues:
+*** Currently adding mine via terraform via my pub key on my dev box, tying terraform config to my dev box
+*** Currently manually adding for circle, (and eventually martin). This is an awkward thing to remember to do after a terraform re-create of the compute instance.
+** Compromise:
+*** ssh keys to authorize will be loaded from a separate non-version-controlled tfvars file.
+*** For now, the ops team will need to share this securely amongst the team.
+*** The compute instance currently needs to be recreated to add/remove keys
+* [x] Why are clojars-stats downloading after a db restore?
+Aren't they stored in cljdoc db?
+** Yup, but I was working from a backup from prod which was then uploade from  dev box test.
+Dev has a much shorter retention period than prod, so it pruned, and prod then had to fill in the gaps.
+* [x] Offline doc zip file size is 0 bytes, tried: /download/rewrite-clj/rewrite-clj/1.1.48
+** Newer traefik is pickier about valid `Content-Type`, ours was invalid, fixed
+* [x] Release on Exoscale SOS is including classes folder, that's probably a booboo.
+** Fixed.
+* [x] What do we really need to do for traefik's Let's Encrypt `acme.json`?
+** Do we need to copy existing from DigitalOcean to Exoscale?
+** Has the format changed from traefik v1 to v3?
+** Have required file permissions changed from v1 to v3?
+** I think our only risk is rate limiting https://letsencrypt.org/docs/rate-limits/, which we won't hit.
+** So, plan is: keep a copy of acme.json from DigitalOcean (just in case), but expect `acme.json to regenerate after updating toml config to not use lets encrypt staging url.
+
+Deferred to some later date:
+
+* Maybe automatically install critical updates
+* Explore running consul/nomad under their own users
+* Strategy for discovering vulnerabilities on host?
+* Maybe experiment with Hashicorp Vault?
+* Maybe report on outdated ops software? traefik, nomad, consul, docker...
+** We don't have blue/green at the host level so might punt for now
+* Rein in scope of secrets via CircleCI contexts.
+These are defined at the CircleCI organization level, but can be applied at the job level.
+* Sharing Terraform state via some hosted service
+
+== Checklist for Migration from DigitalOcean to Exoscale
+
+1. [lee] Cleans up any test db backups at Exoscale
+2. [lee] Recreates Exoscale compute instance for fresh start
+3. [lee] Grabs a fresh db backup from DigitalOcean and uploads to Exoscale for auto-restore
+4. [martin] Points cljdoc.org and cljdoc.xyz to Exoscale.
+5. [lee] Deletes staging endpoint for acme in traefik.toml via commit and deploy
+6. [lee] Merges cljdoc git exoscale branch to master
+7. [lee] Deletes old DigitalOcean CircleCI env vars and ssh keys after migration complete
+8. [lee] Configures CI to only deploy from master (remove deploying from lread-exoscale branch)
+
+== Summary of Changes from DigitalOcean
+
+Highlights:
+
+* Added "Generously power by Exoscale" to footer of cljdoc home page
+* Added /api/server-info route to return cljdoc version (to more easily verify blue/green deploy workflow)
+* Prod: host: now based on Debian
+* Prod: host: Updated all software to current
+* Prod: cljdoc: added daily db backup
+* Prod: cljdoc: added db restore when no db exists
+* Prod: host: added traefik log rotation
+* Prod: host: firewall: Handled by Exoscale infrastructure
+* Moved: digitalocean specific work under `ops/digitalocean` (including `modules/deploy`)
+* New: exoscale specific work is under `ops/exoscale`
+* Deploy: bumped jsch to a modern drop in replacement to support modern encryptions
+* Deploy: turfed `cljdoc-releases` bucket, we decided we don't need it anymore
+
+== Data Migration from DigitalOcean to Exoscale
+
+=== DNS
+Can take 24-48h for to update worldwide.
+Becomes active after setup at registrar, so can pre-configure DNS at Exoscale without issue.
+
+Notes:
+
+* Exoscale requires you "subscribe" to DNS via their GUI before setup via Exoscale.
+* We 2 hosts, cljdoc.org and cljdoc.xyz, so I chose a "Medium" subscription which handles up to 10 hosts.
+
+=== SQLite database
+Use backup from DigitalOcean.
+
+Either put in expected spot on filesystem or new restore strategy will pick up from backup placed in Exoscale Simple Object Store.
+
+Downloading backup for restore took about 3.5 minutes on my dev box.
+In production this takes about 20s.
+I've bumped up deploy timeout to 5m, just to give more elbow room.
+
+Decisions:
+
+* Leave db host location at `/data/cljdoc` (considered a more conventional `/var/lib/cljdoc`, but then... meh).
+
+=== Lucene database
+No need to backup and restore, it is reconstituted if missing at startup.
+
+Decisions:
+
+* Leave db host location at `/data/cljdoc/<lucene dir>` (considered a more conventional `/var/lib/cljdoc/<lucene dir>`, but then... meh).
+
+=== SSL Certs
+I think `acme.json` will be regnerated by traefik.
+We'll keep a backup from DigitalOcean, just in case (but I expect format might have chagned from traefik v1 to v3).
+
+Current cert is valid until Fri, 18-Oct-2024.
+
+=== Secrets
+
+Are held by CircleCI and conveyed to consul over ssh port forwarding during deploy.
+
+CircleCI specific secrets - used by `publish-docker` circleci job
+
+* `DOCKER_USER` - can remain unchanged
+* `DOCKER_PASS` - can remain unchanged
+
+CircleCI specific secrets that will change (so add new vars prefixed with `EXO_` to allow for old and new to coexist for a bit):
+
+* Used by `deploy` circleci job
+** `EXO_NOMAD_IP` - used to talk to nomad and consul over their APIs via ssh
+
+Current consul delivered secrets that can stay the same:
+
+* Used by `deploy` circleci job (to be sent ultimately to cljdoc container)
+** `SENTRY_DSN` -  sentry.io data source name
+** `CIRCLE_API_TOKEN` - to intitiate analysis jobs on circleci
+** `CIRCLE_BUILDER_PROJECT` - more of a variable than a secret, imo
+
+New consul secrets:
+
+* Used by `deploy` circleci job (to be sennt ultimately to cljdoc container)
+* `EXO_BACKUPS_BUCKET_NAME` - For SQLite backups/restores
+* `EXO_BACKUPS_BUCKET_KEY`
+* `EXO_BACKUPS_BUCKET_SECRET`
+* `EXO_BACKUPS_BUCKET_REGION`
+
+=== SSH Keys
+We need to grant permission for CircleCI to ssh in to interact with nomad and consul.
+We configure an additional key on CircleCI to do this and add authorize it on our server instance.
+
+I'm not exactly sure how this was carried out for DigitalOcean droplet.
+Probably manually?
+
+== Terraform
+We'll continue to use terraform to declare and provision cloud services.
+Exoscale has support for terraform: https://registry.terraform.io/providers/exoscale/exoscale/latest/docs
+
+=== Lifecycles
+For our purposes, bringing up our entire infra with `apply`, and then perhaps `taint` on the compute instance when we need to update our server should work.
+Note that we don't have a zero downtime strategy yet for updating the host.
+
+=== Sharing Terraform State
+Because we want to be an ops team I'd like to somehow share terraform state.
+Terraform state is sensitive, so we'd need to share it securely.
+And we'd like to avoid the possibility of concurrent updates.
+
+Terraform supports saving state to s3 via `backend` config.
+https://developer.hashicorp.com/terraform/language/settings/backends/s3
+Clojars makes use of this feature:
+https://github.com/clojars/infrastructure/blob/6cf9c100e38408016cd979f1611602523766200e/terraform/main.tf#L6-L11
+
+Exoscale includes an example of doing this.
+https://github.com/exoscale/terraform-provider-exoscale/blob/aef50d3f097648d405bcca1a46c8a99959f94706/examples/sos-backend/providers.tf
+
+When using s3, locking is currently optionally supported via dynamoDB,
+We don't have dynamoDB at Exoscale, so that's a nogo.
+But there is some recent investigation into supporting locking via new s3 conditional writes.
+See: https://github.com/hashicorp/terraform/issues/35625
+Conditionals writes are on the Exoscale todo list, but will not be implemented soon.
+
+Terraform s3 backend also optionally supports encryption for data at rest.
+https://developer.hashicorp.com/terraform/language/settings/backends/s3#encrypt
+But.. I think this might be via s3 encryption.
+https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.html
+Which is planned for implementation at Exoscale, bu not yet available for Exoscale Oject Store.
+https://community.exoscale.com/documentation/storage/encryption/#encryption-at-rest
+
+=== Notes
+
+* For Exoscale we need to `skip_requesting_account_id` when using the aws provider to talk to the Exoscale Object Store.
+A seemingly unnecessary warning is emitted: AWS account ID not found for provider.
+It's a known issue: https://github.com/hashicorp/terraform-provider-aws/issues/37062
+I've pinged Exoscale about this and even though it is not an Exocale issue, they might go ahead and fix it.
+
+Some reminders:
+
+* `secrets.tfvars` must be specified (ex. `terraform apply -var-file=secrets.tfvars`) and is not under version control +
+[source,hcl]
+----
+exoscale_api_key = <your key here>
+exoscale_api_secret = <your value here>
+----
+
+* `terraform apply -var-file=secrets.tfvars` to apply any and all changes to infrastructure
+* `terraform destroy -var-file=secrets.tfvars` to entirely teardown infrastructure
+* `terraform taint module.main_server.exoscale_compute_instance.cljdoc_01` to mark compute instance in need of recreation followed by `terraform apply -var-file=secrets.tfvars`
+
+=== Plan
+
+* Because Exoscale doesn't support encryption (and perhaps less importantly locking) initially, we won't be sharing Terraform state.
+* In the future: Consider using Amazon S3 for sharing state.
+Monitor progress on a S3-only solution https://github.com/hashicorp/terraform/issues/35625
+* There is also Terraform HCP, which has a limited free tier, but I don't at-a-glance understand it, so don't want to spend time learning another complex thing.
+
+== Access
+Exoscale supports ssh access to the host.
+Although we don't want to make changes to the host directly, it can be convenient to poke around.
+
+* Need to setup access for deployment from CircleCI
+* Ensure both Martin and I have access.
+* Once I get something basic going invite Martin to the cljdoc org at Exoscale.
+
+== Database Backups
+
+=== SQLite
+I don't remember a time when the cljdoc DigitalOcean droplet has failed us.
+It just keeps chugging along.
+
+But hardware does fail and instances do go poof.
+This might be more of a normal occurence at Exoscale, we don't know yet.
+
+To compensate we should do what we should have been doing all along over at Digital Ocean.
+We should be automatically periodically backing up our SQLite database.
+
+In theory, the SQLite database can be wholly reconstituted by rebuilding docs.
+But this represents a lot of compute time over at CircleCI so we'd rather save the hard work CircleCI has done for cljoc.
+
+Our compressed db backup is about 1gb and we want to be respectful of Exoscale resources; we don't need to keep all backups.
+A daily backup should be sufficient with backup retention strategy of:
+
+* 7 daily
+* 4 weekly
+* 12 monthly
+* 2 annually
+
+We have all sorts of scheduled tasks running in cljdoc, we can run one more to handle backups.
+
+Since we'll be backing up and restoring from the cljdoc docker container, we should probably choose an efficient compression format.
+I experimented with `.tar.zst` and found it better for compression speed (3m vs 26s), decompression speed (49s vs 20s) and file size than `.tar.gz` (1.3gb vs 932mb).
+
+[source,shell]
+----
+tar --use-compress-program=zstd -cf dest.tar.zst *
+tar --use-compress-program=zstd -xf dest.tar.zst
+----
+
+==== How to Interact with Exoscale Simple Object Store
+
+Our compressed backup files are close to 1gb, and because we need to be cheap, we have a small heap.
+The cognitect aws-api, unfortunately, loads an entire s3 (Exoscale SOS) object into memory.
+This gives us OutOfMemory exceptions.
+What to do?
+
+* I had a peek at https://github.com/grzm/awyeah-api and I think it uses byte buffers too.
+* Could try amazonica.
+* Could try AWS SDK through java interop.
+* Could spawn out to upload and download files.
+* Could handle this with raw HTTP requests
+
+I settled on using AWS SDK v2 via Java interop.
+It brings in a bunch of deps and is not as nice an API as aws-api, but it also doesn't blow our heap.
+
+=== Lucene
+Our Lucene full-text database is quickly reconstituted from clojars at startup time, so no need to save a backup of it.
+
+== Packer and/or Cloud Init?
+We currently use Packer https://www.packer.io/ to build our host image.
+
+Exoscale offers a nice selection pre-built image templates.
+I've explored using a Debian pre-built template, then adding docker, nomad and consul, etc via cloud init.
+
+I've successfuly experimented with this, but given the cloud init docs are on the less coherent side, it took me quite a while to figure out.
+And while cloud init works, the updates are applied after the image boots.
+So there will be some necessary waiting until cloud init completes.
+
+My feeling is that Cloud Init might have its place for light config, but Packer is the better choice for installing requisite packages.
+
+Although Exoscale documents using Packer, its not listed as a Packer integrations
+https://developer.hashicorp.com/packer/integrations/digitalocean/digitalocean - here's digitalocean
+https://github.com/exoscale/packer-plugin-exoscale - aha! here it is.
+
+For DigitalOcean we embedded the date in the DigitalOcean image identifier.
+For Exoscale we won't do this.
+Exoscale allows for multiple private templates with the same name and will automatically pick the most recent one.
+This is perhaps a bit less human-friendly and less concrete but avoids having to discover/store the current template which would add complexity when there is more than 1 ops person on the ops team.
+
+=== Plan
+
+* Packer for required software setup with an Exoscale Debian 12 template base
+* Cloud init for light config like:
+** Adding the elastic ip (static ip) to the cloud instance
+
+=== Packer Notes
+
+Packer can reuse terraform `secrets.tfvars`, but needs to be named with an appropriate extension.
+
+From the `image` dir:
+[source,shell]
+----
+ln -s ../infrastructure/secrets.tfvars ./secrets.pkrvars.hcl
+packer build -var-file=secrets.pkrvars.hcl debian-cljdoc.pkr.hcl
+----
+
+== Deployment
+See `modules/deploy` for the actual scripts.
+
+After studying existing scripts I have the following understanding:
+
+* ensure docker hub has cljdoc docker image for this release
+* use ssh port forwarding to cljdoc host server
+* sync config via consul API
+** traefik config `config/traefik-toml`
+** cljdoc secrets `config/cljdoc/secrets-edn`
+* post our jobspec to nomad API
+** lb (gets is config from consul)
+** cljdoc (with docker tag of release) (gets secrets from consul)
+* wait until new cljdoc deployment is healthy (via nomad)
+* promote new deployment via nomad
+** canary becomes cljdoc
+** and old cljdoc retired
+
+I think I might be able to mostly just reuse this.
+The consul and nomad REST APIs, I think, are still supported and valid.
+Traefik config will need to be updated.
+
+== Traefik
+We'll continue to use traefik as our internal load balancer to support blue/green deployments.
+Traefik is currently at v3.1.2, we are quite behind at v1.7.
+
+Traefik is run from a docker image (known to nomad as `lb`).
+
+What is traefik's role?:
+
+* redirects cljdoc.xyz to cljdoc.org
+* SSL certs via Let's Encrypt (configured under `acme`)
+* directs traffic to consul discovered cljdoc
+
+Reminder: traefik logs exhausted all disk space over at DigitalOcean and caused nomad corruption; we probably want to implement traefik log rotation and deletion.
+Maybe save 2 weeks of logs?
+
+I was confused with 404s for a day until I finally realized traefik config for consul is now delivered by service tags specified in our nomad jobspec.
+
+Decisions:
+
+* We allocated 128mb to traefik v1.7 container, we'll not bump this for traefik v3.x, but may need to adapt.
+
+== Nomad & Consul Initial Config
+Cljdoc's DigitalOcean Packer config installed
+
+* `/ect/nomad/server.hcl`
+* `/etc/systemd/system/nomad.service`
+* `/etc/systemd/system/consul.service`
+
+I don't know if these were overriding existing default configs or providing a config where non existed.
+There were changes some of these files, so I assume those changes will need to be included/replicated.
+
+I'm noticing that config on the actual server has somehow drifted from what we have in terraform.
+Actual config `etc/nomad/server/hcl`:
+
+[source,hcl]
+----
+data_dir = "/etc/nomad.d"
+
+server {
+  enabled          = true
+  bootstrap_expect = 1
+}
+
+client {
+  enabled = true
+}
+
+plugin "docker" {
+  config {
+    volumes {
+      enabled      = true
+      selinuxlabel = "z"
+    }
+  }
+}
+----
+
+Some changes I've while moving to Exoscale:
+
+* use `/etc/nomad.d` for config dir, and `/etc/consul.d` as home and config dir
+* use `/var/lib/nomad` and `/var/lib/consul` for data dirs
+* moved consul config from the cmd line to a config file (to be consistent with nomad and allow for comments)
+
+Some notes:
+
+* I explored running nomad and consul under their own non-root users, but currently they continue to run under root
+** nomad docs say it should be run as root https://developer.hashicorp.com/nomad/docs/operations/nomad-agent
+so continue to do so +
+** I started by creating a `consul` user for consul service, but during troubleshooting switched back to running under root.
+* nomad complains about Serf comms, but I think this is ignorable for a single-node installation
+
+Useful nomad commands:
+
+* `nomad status` - overall status
+* `nomad status cljdoc` - to learn alloc ids and overall status
+* `nomad alloc logs <alloc id>` - to view logs for an alloc id
+* `nomad alloc logs -f <alloc id>` - to tail logs for an alloc id
+* `nomad stop -purge cljdoc` - wipe out all jobs
+
+Useful consul commands:
+
+* `consul catalog services -tags` - list all services and their tags
+
+== Zip Release Artifacts
+The release workflow creates a zip file from which it then creates a docker image which it then uploads to docker hub.
+
+Each release uploads the zip file to s3.
+I'm not entirely sure of the value of this.
+
+Martin agreed that this is no longer of value, we will not carry it forward to Exoscale.
+
+== Pinning Software at Specific Versions
+Historically, hashicorp seems to have had no qualms about introducing breaking changes.
+
+So rather than installing the latest, we probably want to install and pin `nomad` and `consul` versions.
+
+I've opted to continue to install `nomad` and `consul` from their zip files but have added:
+
+* checking sha256sum of downloaded zips
+* creating a consul user underwhich to run consul (nomad docs recommend it be run from root)
+
+== Deploying from CircleCI
+I see that we deploy to `NOMAD_IP`, I don't think this would resolve to something different than cljdoc.org.
+This means we have a very static IP setup at DigitalOcean.
+
+We can setup a static IP on Exoscale via Elastic IPs.
+https://community.exoscale.com/documentation/compute/eip/
+
+If we define our static IP via terraform, we'll have to remember that if we `destroy` this aspect of our setup, we'll also be destroying static IP.
+
+== Critical Updates
+Sometimes vulnerabilities are discovered.
+How to address?
+
+== Logs
+When currently send error level log events to Sentry.io.
+We make no effort to save any other logs.
+Which could be OK for cljdoc.
+
+I've sometimes taken a peek a cljdoc logs via nomad.
+But otherwise, I've been uninterested.
+
+Other than addressing traefik's log rotation, I'll likely not make any changes, at least initially, when moving to Exoscale.
+
+== Firewall
+Exoscale has firewall support via security groups.
+
+I see that our DigitalOcean droplet also setup firewalld.
+I'll look into both of these.
+
+I've setup an Exoscale security group to allow incoming ssh, http and https.
+I've not seen the need to setup firewalld.
+
+== Thoughts & Notes from Experiments
+
+=== Useful docker commands
+
+* `docker ps` - to get container id
+* `sudo docker exec -it <container id> /bin/sh` - to shell into a running docker container
+
+=== Cloud Init is Tough to Test
+I started off testing by launching Compute instances at Exoscale, but that was becoming painful.
+
+I landed on testing locally with lxd.
+
+Installation: https://support.system76.com/articles/containers/
+(missing cmd: newgrp lxd).
+
+Initial setup (rerun after delete):
+[source,shell]
+----
+lxc launch images:debian/12 debian12
+----
+
+Other useful commands
+[source,shell]
+----
+lxc stop debian12
+lxc delete debian12
+lxc restart debian12
+----
+
+The base debian is missing cloud init so we have to install it first
+[source,shell]
+----
+lxc exec debian12 -- apt update
+lxc exec debian12 -- apt install cloud-init
+----
+
+And then feed our cloud init config, then restart for it to take effect:
+[source,shell]
+----
+lxc config set debian12 user.user-data - < cloud-config.yaml
+lxc restart debian12
+----
+
+Useful cmds to snoop around:
+[source,shell]
+----
+lxc exec debian12 -- cat /var/log/cloud-init.log
+lxc exec debian12 -- cat /var/log/cloud-init-output.log
+lxc exec debian12 -- /bin/bash
+----
+
+Useful cloud-init cmds:
+
+* `cloud-init status` - Reports `status: done` when complete
+* `cloud-init status --wait` - Waits for cloud-init to complete all tasks then reports status

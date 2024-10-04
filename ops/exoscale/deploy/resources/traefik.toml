@@ -1,0 +1,38 @@
+[global]
+  checkNewVersion = false
+  sendAnonymousUsage = false
+
+[accessLog]
+  filePath = "/data/access.log"
+
+[log]
+  level = "DEBUG"
+  filePath = "/data/traefik.log"
+
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+  [entryPoints.websecure]
+    address = ":443"
+
+# Let's encrypt is an Automatic Certificate Management Environment (ACME) provider
+[certificatesResolvers]
+  [certificatesResolvers.lets-encrypt.acme]
+    email = "martinklepsch@googlemail.com"
+    storage = "/data/acme.json" # certs are written/tracked here
+    keyType = "RSA2048"
+    # Use this while testing, uncomment or delete after done
+    caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+    [certificatesResolvers.lets-encrypt.acme.httpChallenge]
+      entryPoint = "web"
+
+[api] # exposed on port 8080
+  dashboard = true
+  insecure = true
+[ping]
+
+[providers.consulCatalog]
+  # see nomad cljdoc.jobspec.edn cljdoc service tags for cljdoc container specific config
+  prefix = "traefik"
+  exposedByDefault = false
+  watch = true

@@ -4,6 +4,8 @@
             [cljdoc.config :as cfg]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.clojars-stats]
+            [cljdoc.server.db-backup :as db-backup]
+            [cljdoc.server.log-init]
             [cljdoc.server.pedestal]
             [cljdoc.server.release-monitor]
             [cljdoc.storage.api :as storage]
@@ -18,17 +20,7 @@
             [ragtime.core :as ragtime]
             [ragtime.jdbc :as jdbc]
             [taoensso.nippy :as nippy]
-            [tea-time.core :as tt]
-            [unilog.config :as unilog]))
-
-(def log-file "log/cljdoc.log")
-
-(unilog/start-logging!
- {:level   :info
-  :console true
-  :files   [log-file]
-  :appenders (when (cfg/sentry-dsn)
-               [{:appender :sentry}])})
+            [tea-time.core :as tt]))
 
 (defn index-dir [env-config]
   (let [lucene-version (-> org.apache.lucene.util.Version/LATEST
@@ -45,8 +37,9 @@
       (require ns))
     (merge
      {:cljdoc/tea-time        {}
-      :cljdoc/sqlite          {:db-spec (cfg/db env-config)
-                               :dir     (cfg/data-dir env-config)}
+      :cljdoc/sqlite          (merge {:db-spec (cfg/db env-config)
+                                      :dir     (cfg/data-dir env-config)}
+                                     (cfg/db-restore env-config))
       :cljdoc/cache           (merge (cfg/cache env-config)
                                      {:cache-dir      (cfg/data-dir env-config)
                                       :key-prefix     "get-pom-xml"
@@ -63,8 +56,12 @@
                         :analysis-service    (ig/ref :cljdoc/analysis-service)
                         :storage             (ig/ref :cljdoc/storage)
                         :cache               (ig/ref :cljdoc/cache)
-                        :searcher            (ig/ref :cljdoc/searcher)}
+                        :searcher            (ig/ref :cljdoc/searcher)
+                        :cljdoc-version      (cfg/version env-config)}
       :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
+      :cljdoc/db-backup (merge {:db-spec (ig/ref :cljdoc/sqlite)
+                                :cache-db-spec (-> env-config cfg/cache :db-spec)}
+                               (cfg/db-backup env-config))
       :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/analysis-service {:service-type ana-service
                                 :opts (merge
@@ -107,8 +104,11 @@
   (log/info "Starting" k)
   (build-log/->SQLBuildTracker db-spec))
 
-(defmethod ig/init-key :cljdoc/sqlite [_ {:keys [db-spec dir]}]
+(defmethod ig/init-key :cljdoc/sqlite [_ {:keys [enable-db-restore? db-spec dir] :as opts}]
   (.mkdirs (io/file dir))
+  (when enable-db-restore?
+    (db-backup/restore-db! opts))
+
   (ragtime/migrate-all (jdbc/sql-database db-spec)
                        {}
                        (jdbc/load-resources "migrations")

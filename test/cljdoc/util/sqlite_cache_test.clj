@@ -40,6 +40,7 @@
     [(c/memo-sqlite raw-fn cache-config) v c]))
 
 (defn wrap-delete-db-before [f]
+  (io/make-parents database-filename)
   (when (.exists (io/file database-filename))
     (io/delete-file database-filename))
   (f))

@@ -1,78 +1,160 @@
 = cljdoc Operations
+:toclevels: 5
 :toc:
 
-________________________________________________________________________
-The intention here is not just to make it easy to spin up an environment
-but also to document what is needed.
-________________________________________________________________________
+== Audience
+You are on the cljdoc ops team or want to learn about cljdoc infracstructure.
+
+This config is specific to cljdoc production.
+If you want to bring up your own cljdoc-like service, you can use our config as a basis, but you'll need to make changes.
 
 == Prerequsites
 
-AWS and DigitalOcean access tokens:
+[#secrets]
+=== Secrets
 
-[source,bash]
+==== Exoscale Creds
+
+Terraform access to Exoscale is configured in `ops/exoscale/infrastructure/secrets.tfvars`:
+
+[source,hcl]
 ----
-export TF_VAR_aws_access_key_id=foo
-export TF_VAR_aws_secret_key=foo
-export TF_VAR_do_token=digital-ocean-api-token
+exoscale_api_key = <your key here>
+exoscale_api_secret = <your value here>
 ----
+IMPORTANT: Protect this file, it contains secrets.
+Good idea to `chmod 600 secrets.tfvars`.
 
-https://www.terraform.io[Terraform] and https://www.packer.io[Packer] should be installed on
-your system. https://www.nomadproject.io[Nomad] and https://consul.io[Consul] are optional
-and only needed if you want to interact with those systems through the CLI.
-
-== Server Images (Packer)
-
-We use Packer to create machine images for the cljdoc server. All
-required files can be found in `./image/`. The images are based on CentOS 7.
-On top of the base OS the following things are added:
-
-- Docker
-- Nomad
-- Consul
-
-For details see configuration and Systemd service files in link:image/conf[`conf/`]. All
-code that is ran to prepare the image can be found in link:image/nomad.packer.json[`nomad.packer.json`].
-
-=== Creating a Nomad Image
-
-This requires `TF_VAR_do_token` to contain a valid DigitalOcean token.
+Packer can read this file format but is picky about the filename, so we'll create a soft link to satisfy it:
 
 [source,sh]
 ----
-cd ops/image
-make nomad-image-id
+cd ops/exoscale/image
+ln -s ../infrastructure/secrets.tfvars ./secrets.pkrvars.hcl
 ----
 
-This will create an image and the image-id will be saved to `nomad-image-id`. This file is
-required to proceed with the Terraform steps below.
+==== Authorized SSH Keys
+
+Authorized keys are stored in a non-version controlled tfvars file.
+
+The structure is:
+
+[shource,sh]
+----
+base_authorized_key = "<base pub key here>"
+
+additional_authorized_keys = [
+  "<additional pub key 1 here>",
+  "<additional pub key 2 here>"
+]
+----
+
+Terraform might suggest that changes can be applied in place, but you'll need to `taint` the compute instance, and `apply` it for changes to be applied correctly.
+Yup, this means we can't currently change authorized ssh keys without recreating the cljdoc compute instance.
+
+This file will be shared securely, as needed, with cljdoc ops team members.
+
+=== Software
+
+You'll need the following software installed:
+
+* https://www.packer.io[Packer] to create our server host image
+* https://www.terraform.io[Terraform] to create and manage our infrastructure
+
+Optionally install:
+
+* https://www.nomadproject.io/[Nomad] if you want to run it locally against production, see <<accessing-nomad>>.
+
+== Overview
+Here's what cljdoc looks like from an ops perspective.
+
+image::ops-overview.drawio.svg[]
+
+== Philosophy for Changes
+
+To stay sane, we want to avoid making any infrastructure changes directly to prod.
+All changes should be carried out with Packer, Terraform, and automatic deployments carried out by our CircleCI job.
+
+== Cljdoc Host Image (Packer)
+The cljdoc host image is our single node image that will host all of our compute infrastructure.
+
+We use Packer to create machine images for the cljdoc host compute image.
+Sources are under link:./exoscale/image/[]
+The images are based on an Exoscale Debian template.
+The following software is installed:
+
+* https://www.docker.com/[Docker] - hosts our traefik load balancer and cljdoc server
+* https://github.com/hashicorp/nomad[Nomad] - orchestrates deployment of cljdoc and traefik
+* https://www.consul.io/[Consul] - used by traefik and nomad for config and discovery
+
+Of interest:
+
+* link:./exoscale/image/debian-cljdoc.pkr.hcl[] - tells Packer how to build our image
+* link:./exoscale/image/conf[] - some service config files installed by our Packer config
+
+=== Creating a Cljdoc Host Image (Packer)
+
+TIP: Packer refers to secrets you setup in <<secrets>>.
+
+Change to the appropriate dir:
+[source,sh]
+----
+cd ops/exoscale/image
+----
+
+Optionally validate:
+[source,sh]
+----
+packer validate -var-file=secrets.pkrvars.hcl debian-cljdoc.pkr.hcl
+----
+
+And finally build on Exoscale
+[source,sh]
+----
+packer build -var-file=secrets.pkrvars.hcl debian-cljdoc.pkr.hcl
+----
+
+This will create a new `debian-cljdoc` image template on Exoscale.
+Exoscale will automatically pick the latest `debian-cljdoc` template.
+
+TIP: It's a good idea to occassionally log into the https://portal.exoscale.com[Exoscale Portal] and under Compute->Templates, delete old unused `debian-cljdoc` templates.
 
 == Infrastructure (Terraform)
 
-We use Terraform to create various resources on AWS and DigitalOcean:
+We use Terraform to create resources on Exoscale, including:
 
-* an S3 bucket for cljdoc releases (+ user & key)
-* an S3 bucket for cljdoc backups (+ user & key)
-* a DigitalOcean droplet to run cljdoc
-* a Route53 HostedZone for domain supplied in the configuration
-* a HostedZone RecordSet to point the domain to the droplet
+* Simple Object Store bucket for cljdoc backups
+* Compute instance for the cljdoc server host
+* DNS config
 
-NOTE: The used domain can be customized in `cljdoc.tfvars`. The domain will
-not be bought and it is expected that the domain’s nameserver are set to
-the nameservers of the Route53 HostedZone, which are part of the
-outputs.
+NOTE: `cljdoc.org` and `cljdoc.xyz` domain’s should be configured to point to Exoscale.
 
 === Common Commands
 
-NOTE: These commands require the environment variables mentioned in
-link:#prerequisites[Prerequisites] to be set.
+TIP: These commands require secrets to be configured as described in <<secrets>>.
 
+First, change to the appropriate dir:
 [source,sh]
 ----
-cd ops/infrastructure
-terraform plan -var-file cljdoc.tfvars
-terraform apply -var-file cljdoc.tfvars
-terraform refresh -var-file cljdoc.tfvars
+cd ops/exoscale/infrastructure
+----
+
+To view the plan terraform would carry out:
+[source,sh]
+----
+terraform plan -var-file=secrets.tfvars
+----
+
+To carry out the plan:
+[source,sh]
+----
+terraform apply -var-file=secrets.tfvars
+----
+
+To sync the server state back to terraform:
+[source,sh]
+----
+terraform refresh -var-file=secrets.tfvars
 ----
 
 Retrieving outputs:
@@ -81,19 +163,28 @@ Retrieving outputs:
 ----
 terraform output
 terraform output -json
-terraform output main_ip
+terraform output cljdoc_static_ip
 ----
 
-== Packaging (Docker)
+To taint the compute instance for recreation on next `apply`:
+
+[source,sh]
+----
+terraform taint module.main_server.exoscale_compute_instance.cljdoc_01
+----
+
+== Creating a Cljdoc Docker Image
+The cljdoc docker image runs on the cljdoc host.
 
 [source,sh]
 ----
 bb docker-image
 ----
 
-This will package the cljdoc application in a Docker container. A tag will be determined
-based on number of commits, branch and commit SHA. Docker images are published to Docker Hub during
-CI. See link:/.circleci/config.yml[`.circleci/config.yml`].
+This will package the cljdoc application in a Docker container.
+A tag will be determined based on number of commits, branch and commit SHA.
+Docker images are published to Docker Hub during CI.
+See link:/.circleci/config.yml[`.circleci/config.yml`].
 
 [TIP]
 ====
@@ -101,44 +192,30 @@ Run `bb clean` first when testing your image locally.
 This will ensure you are not working with stale inputs.
 ====
 
-== Packaging (Uberjar)
-
-TBD.
-
 == Orchestration (Nomad)
 
-To deploy the cljdoc service to the provisioned infrastructure we use
-https://www.nomadproject.io[Nomad]. While Nomad also provides a convenient
-CLI interface it has proven easier to generate Nomad
-https://www.nomadproject.io/docs/job-specification/index.html[job specs]
-using Clojure and submit them to the Nomad server via HTTP.
+To deploy the cljdoc service to the provisioned infrastructure we use https://www.nomadproject.io[Nomad].
+While Nomad provides a convenient CLI interface, it has proven easier to generate Nomad https://www.nomadproject.io/docs/job-specification/index.html[job specs] using Clojure and submit them to the Nomad server via the Nomad REST API.
 
-The code to do this can be found in link:/modules/deploy/[`modules/deploy`].
+The relevant code is under link:/ops/exoscale/deploy/[].
 
-To run it the following commands can be used:
+Deployment is carried out by CircleCI, see `deploy-to-nomad` job in link:[/.circleci/config.yml]
 
-[source,sh]
-----
-docker_tag=$(bb current-version)
-cd modules/deploy/
-clojure -M -m cljdoc.deploy deploy --docker-tag $docker_tag
-----
+This will fail unless the https://hub.docker.com/r/cljdoc/cljdoc/[Docker Hub] has a cljdoc image with the provided tag.
+The tag names are determined based on Git commit count, branch and HEAD and images are pushed to Docker Hub as part of CI.
 
-This will fail unless the https://hub.docker.com/r/cljdoc/cljdoc/[cljdoc Docker repository]
-has an image with the provided tag. The tag names are determined based on Git commit count,
-branch and HEAD and images are pushed to Docker Hub as part of CI.
-
+[#accessing-nomad]
 === Accessing Nomad
 
 [source,sh]
 ----
-./ops/nomad.sh
+./ops/nomad.sh username@ip
 ----
+Where `username` is your ssh login and `ip` is nomad's IP address.
 
-The script above will launch an SSH process forwarding port 4646 and 8500 from the host
-specified by `main_ip` in the Terraform outputs.
+The script launches an SSH process forwarding port 4646 and 8500.
 
-With Nomad installed you can now run `nomad` comands like the following:
+If you have Nomad installed locally, you can now run `nomad` comands like the following:
 
 [source,sh]
 ----
@@ -147,19 +224,20 @@ nomad alloc logs -f 683ade58
 nomad deployment list
 ----
 
+Hit ^D to to close the session and forwarded ports.
+
 == Backing Up Data
 
-See `backup.sh` and `restore.sh`.
+The SQLite database is automatically backed up daily by cljdoc to Exoscale `cljdoc-backups` bucket.
 
-Restoring from backups stored on S3:
+Our current backup retention strategy is:
 
-[source,sh]
-----
-data_dir="/data/cljdoc/"
-curl https://s3.amazonaws.com/cljdoc-backups/backup-2018-12-12.tar.gz -o backup.tar.gz
-tar -xf backup.tar.gz -C "${data_dir}"
-rm backup.tar.gz
-----
+* 7 daily
+* 4 weekly
+* 12 monthly
+* 2 yearly
+
+If cljdoc does not find a database on startup, it will automatically restore the most recent one from the `cljdoc-backups` bucket.
 
 == Host
 
@@ -171,19 +249,14 @@ The production docker container launches the cljdoc web server with the `cljdoc.
 
 == SSL Certificates
 
-https://traefik.io[Traefik] generates SSL certificates on demand but seems to have minor
-bugs here and there. If we need to drop Traefik for some reason we could look into acme.sh:
-
-* https://github.com/Neilpang/acme.sh
-* https://github.com/Neilpang/acme.sh/wiki/How-to-issue-a-cert
-* https://github.com/Neilpang/acme.sh/wiki/Run-acme.sh-in-docker
+https://traefik.io[Traefik] generates SSL certificates automatically through Let's Encrypt.
 
 == Checking for Vulnerabilities
 
 Experts will uncover vulnerabilities in some of the technologies we use.
 It is inevitable.
 
-We use https://github.com/rm-hull/nvd-clojure[nvd-clojure] to scan cljdoc dependencies for known security issues.
+We use https://github.com/rm-hull/nvd-clojure[nvd-clojure] to scan cljdoc dependencies for known security issues in our cljdoc docker image.
 Run `nvd-check.sh` to launch a scan.
 You must specify a NVD database token, get yours here: https://nvd.nist.gov/developers/request-an-api-key
 

@@ -4,11 +4,12 @@
         lread/status-line {:git/url "https://github.com/lread/status-line.git"
                            :sha "cf44c15f30ea3867227fa61ceb823e5e942c707f"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
-        etaoin/etaoin {:mvn/version "1.0.40"}}
+        etaoin/etaoin {:mvn/version "1.1.42"}}
  :tasks
  {;; setup
   :requires ([babashka.fs :as fs]
              [babashka.process :as p]
+             [clojure.string :as str]
              [build-shared :as bs]
              [lread.status-line :as status]
              [version])
@@ -34,6 +35,9 @@
                     ".cpcache"
                     ".parcel-cache"
                     "modules/deploy/.cpcache"]))}
+  download-deps
+  {:doc "download clojure deps"
+   :task (clojure "-T:build download-deps")}
   deps-js
   {:doc "bring down js deps"
    :task (if (seq (fs/modified-since "node_modules" ["package-lock.json"]))
@@ -118,7 +122,7 @@
   {:doc "Create docker image"
    :depends [package]
    :task (shell {:dir "ops/docker"}
-                "bb image.clj" (fs/absolutize "target/cljdoc.zip") (version/version))}
+                "bb image.clj" (fs/absolutize "target/build/cljdoc.zip") (version/version))}
   outdated
   {:doc "report on outdated Clojure and JavaScript dependencies"
    :depends [deps-js]
@@ -136,4 +140,12 @@
            (clojure {:dir "./modules/nvd-scan"}
                     "-J-Dclojure.main.report=stderr -M -m nvd.task.check"
                     "./nvd-config.edn"
-                    cp))}}}
+                    cp))}
+
+  deploy
+  {:doc "ops: Deploy to Production (run by CircleCI)"
+   :task (let [cljdoc-version (-> (shell {:out :string} "bb current-version") :out str/trim)]
+           (status/line :detail "Deploying cljdoc version %s" cljdoc-version)
+           (apply shell {:dir "ops/exoscale/deploy"}
+                  "clojure -M -m cljdoc.deploy deploy -t" cljdoc-version
+                  *command-line-args*))}}}

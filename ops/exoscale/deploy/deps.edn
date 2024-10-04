@@ -1,0 +1,10 @@
+{:paths ["src" "resources"]
+ :deps {org.clj-commons/clj-http-lite {:mvn/version "1.0.13"}
+        cli-matic/cli-matic {:mvn/version "0.5.4"}
+        aero/aero {:mvn/version "1.1.6"}
+        cheshire/cheshire {:mvn/version "5.13.0"}
+        org.clojure/tools.logging {:mvn/version "1.3.0"}
+        spootnik/unilog {:mvn/version "0.7.32"}
+        ;; drop in replacement for com.jcraft/jsch:
+        ;; See: https://www.matez.de/index.php/2020/06/22/the-future-of-jsch-without-ssh-rsa/
+        com.github.mwiede/jsch {:mvn/version "0.2.19"}}}

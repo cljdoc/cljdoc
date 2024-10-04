@@ -9,7 +9,7 @@
   ;; TODO: do we need the project-root stuff?
   ;; it was in bash script because package script was called from other dirs
   (let [project-root (-> (t/shell {:out :string} "git rev-parse --show-toplevel") :out str/trim)
-        target (fs/file project-root "target")
+        target (fs/file project-root "target" "build")
         zipfile (fs/file target "cljdoc.zip")
         long-sha (-> (t/shell {:out :string} "git rev-parse HEAD") :out str/trim)]
     (println "Packaging" (version/version))
