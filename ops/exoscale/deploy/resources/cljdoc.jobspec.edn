@@ -44,7 +44,6 @@
                          ;; https
                          "traefik.http.middlewares.compress-response.compress=true"
                          "traefik.http.routers.cljdoc-https.entrypoints=websecure"
-                         "traefik.http.routers.cljdoc-https.middlewares=compress-response"
                          "traefik.http.routers.cljdoc-https.tls=true"
                          "traefik.http.routers.cljdoc-https.tls.certresolver=lets-encrypt"
                          "traefik.http.routers.cljdoc-https.rule=PathPrefix(`/`)"
@@ -53,6 +52,7 @@
                          "traefik.http.middlewares.xyz-redirect.redirectregex.permanent=true"
                          "traefik.http.middlewares.xyz-redirect.redirectregex.regex=^https://.*cljdoc\\.xyz/(.*)"
                          "traefik.http.middlewares.xyz-redirect.redirectregex.replacement=https://cljdoc.org/$${1}"
+                         "traefik.http.routers.cljdoc-https.middlewares=xyz-redirect,compress-response"
                          ]}],
             :Templates [{:DestPath "secrets/secrets.edn",
                          :EmbeddedTmpl "{{key \"config/cljdoc/secrets-edn\"}}"}]}],
