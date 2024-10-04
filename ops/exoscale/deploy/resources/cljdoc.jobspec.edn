@@ -48,6 +48,8 @@
                          "traefik.http.routers.cljdoc-https.tls=true"
                          "traefik.http.routers.cljdoc-https.tls.certresolver=lets-encrypt"
                          "traefik.http.routers.cljdoc-https.rule=PathPrefix(`/`)"
+                         "traefik.http.routers.cljdoc-https.tls.domains[0].main=cljdoc.org"
+                         "traefik.http.routers.cljdoc-https.tls.domains[1].main=cljdoc.xyz"
                          ]}],
             :Templates [{:DestPath "secrets/secrets.edn",
                          :EmbeddedTmpl "{{key \"config/cljdoc/secrets-edn\"}}"}]}],
