@@ -389,7 +389,6 @@ workflows:
             branches:
               only:
                 - master
-                - lread-exoscale
       - deploy-prod:
           requires:
             - build
@@ -398,4 +397,3 @@ workflows:
             branches:
               only:
                 - master
-                - lread-exoscale
