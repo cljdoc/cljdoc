@@ -10,7 +10,7 @@ terraform {
       version = "~> 5.65"
     }
   }
-  required_version = ">= 1.9.5"
+  required_version = ">= 1.9.7"
 }
 
 variable "exoscale_api_key" {
