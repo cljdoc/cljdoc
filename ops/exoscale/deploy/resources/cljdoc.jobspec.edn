@@ -21,7 +21,7 @@
             :KillSignal "",
             :Name "backend",
             :Resources
-              {:CPU 800,
+              {:CPU 1000,
                :MemoryMB 1600,
                :Networks [{:DynamicPorts [{:Label "http", :Value 0}],
                            :MBits 10}]},
@@ -70,8 +70,8 @@
             :Driver "docker"
             :Name "traefik"
             :Resources
-              {:CPU 100
-               :MemoryMB 128
+              {:CPU 200
+               :MemoryMB 256
                :Networks [{:MBits 10
                            :ReservedPorts [{:Label "api", :Value 8080}
                                            {:Label "http", :Value 80}
