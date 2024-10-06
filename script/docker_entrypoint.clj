@@ -48,7 +48,7 @@
     (println "Launching cljdoc server")
     (process/exec "clojure"
                   "-J-XshowSettings:vm" ;; prints heap usage to to stderr
-                  "-J-XX:MaxRAMPercentage=75" ;; increase from default of 25% to 75%
+                  "-J-XX:MaxRAMPercentage=70" ;; increase from default of 25% to 70%
                   "-J-Dcljdoc.host=0.0.0.0"
                   "-J-XX:+ExitOnOutOfMemoryError"
                   "-J-XX:+HeapDumpOnOutOfMemoryError"
