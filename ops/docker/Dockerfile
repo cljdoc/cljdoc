@@ -2,7 +2,7 @@ FROM eclipse-temurin:23-alpine
 
 WORKDIR /tmp
 
-RUN apk add --update --no-cache bash curl git tar zstd
+RUN apk add --update --no-cache bash curl git tar zstd procps
 
 RUN curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh \
     && chmod +x linux-install.sh \
