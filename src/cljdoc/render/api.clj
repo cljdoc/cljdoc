@@ -371,4 +371,17 @@
     (< 1 (count (set (map :doc platforms)))))
 
   (platf/varies? --d :doc)
-  (platf/get-field --d :name))
+  (platf/get-field --d :name)
+
+  ;; to recompile java
+  (require 'virgil)
+
+
+  ;; To recompile once, manually:
+  (virgil/compile-java ["src"])
+
+  ;; To recompile automatically when files change:
+  (virgil/watch-and-recompile ["src"])
+
+
+  :eoc)
