@@ -47,11 +47,12 @@
     (turf-old-heap-dumps heap-dump-dir)
     (println "Launching cljdoc server")
     (process/exec "clojure"
-                  "-J-XshowSettings:vm" ;; prints heap usage to to stderr
+                  "-J-XshowSettings:vm" ;; prints heap usage to to stderr at startup
                   "-J-Xmx1024m"
                   "-J-Dcljdoc.host=0.0.0.0"
                   "-J-XX:+ExitOnOutOfMemoryError"
                   "-J-XX:+HeapDumpOnOutOfMemoryError"
+                  "-J-XX:NativeMemoryTracking=summary" ;; temporary for diagnosis of memory usage
                   (format "-J-XX:HeapDumpPath=%s" (str heap-dump-file))
                   "-M" "-m" "cljdoc.server.system")))
 
