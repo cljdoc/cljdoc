@@ -313,6 +313,7 @@
        ["listingblock"]
        ["literal"]
        ["literalblock"]
+       ["markdown-alert" #"markdown-alert-(note|tip|caution|important|warning)"]
        ["olist" #"(arabic|decimal|lower(alpha|greek|roman)|upper(alpha|roman))"]
        ["openblock" "partintro"]
        ["paragraph" "lead"]
@@ -372,7 +373,8 @@
 
       (sanitize-classes
        ["tableblock"]
-       ["quoteblock"])
+       ["quoteblock"]
+       ["markdown-alert-title"])
       (on-tags "p")
 
       (sanitize-classes

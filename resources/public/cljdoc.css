@@ -528,13 +528,36 @@ table.frame-sides > colgroup + * > :first-child > * {
       </tbody>
     </table>
    </div>
+
+  Mardown alerts are rendered much more simply (by us) like so:
+
+  <div class="markdown-alert markdown-alert-tip">
+    <p class="markdown-alert-title">tip</p>
+    content
+  </div>
+
 */
 
+/* asciidoc markdown admonition/alert styling */
+.markdown .markdown-alert,
 .asciidoc .admonitionblock {
   padding: 1rem;
   border-radius: 3px;
   border-left: 3px solid;
   margin-bottom: 1.25em;
+}
+
+/* to match asciidoc styling */
+.markdown .markdown-alert {
+  color: rgb(0 0 0 / 0.8);
+}
+
+.markdown .markdown-alert > :nth-child(2) {
+  margin-top: 0;
+}
+
+.markdown .markdown-alert > :last-child {
+  margin-bottom: 0;
 }
 
 .asciidoc .admonitionblock table {
@@ -566,45 +589,70 @@ table.frame-sides > colgroup + * > :first-child > * {
   display: block;
 }
 
-.asciidoc .admonitionblock.important .icon i:after {
+/* similar to adoc styling but let's keep it separate */
+.markdown .markdown-alert-title {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.asciidoc .admonitionblock.important .icon i:after,
+.markdown .markdown-alert-important .markdown-alert-title {
   color: #762a55;
 }
-.asciidoc .admonitionblock.important {
+
+.asciidoc .admonitionblock.important,
+.markdown .markdown-alert-important {
   background-color: #f8cfe8;
   border-color: #c783aa;
 }
 
-.asciidoc .admonitionblock.warning .icon i:after {
+.asciidoc .admonitionblock.warning .icon i:after,
+.markdown .markdown-alert-warning .markdown-alert-title {
   color: #8f0000;
 }
-.asciidoc .admonitionblock.warning {
+
+.asciidoc .admonitionblock.warning,
+.markdown .markdown-alert-warning {
   background-color: #ffdfdf;
   border-color: #ff725c;
 }
 
-.asciidoc .admonitionblock.caution .icon i:after {
+.asciidoc .admonitionblock.caution .icon i:after,
+.markdown .markdown-alert-caution .markdown-alert-title {
   color: #937d00;
 }
-.asciidoc .admonitionblock.caution {
+
+.asciidoc .admonitionblock.caution,
+.markdown .markdown-alert-caution {
   background-color: #fffceb;
   border-color: #ffd700;
 }
 
-.asciidoc .admonitionblock.note .icon i:after {
+.asciidoc .admonitionblock.note .icon i:after,
+.markdown .markdown-alert-note .markdown-alert-title {
   color: #00568a;
 }
-.asciidoc .admonitionblock.note {
+
+.asciidoc .admonitionblock.note,
+.markdown .markdown-alert-note {
   background-color: #cdecff;
   border-color: #357edd;
 }
 
-.asciidoc .admonitionblock.tip .icon i:after {
+
+.asciidoc .admonitionblock.tip .icon i:after,
+.markdown .markdown-alert-tip .markdown-alert-title {
   color: #0c8657;
 }
-.asciidoc .admonitionblock.tip {
+
+.asciidoc .admonitionblock.tip,
+.markdown .markdown-alert-tip {
   background-color: #e8fdf5;
   border-color: #19a974;
 }
+
 /*
  * Callout numbers and lists
  */

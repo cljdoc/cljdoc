@@ -1,6 +1,9 @@
 (ns cljdoc.render.rich-text-test
   (:require [cljdoc.render.rich-text :as rich-text]
-            [clojure.test :as t]))
+            [clojure.string :as str]
+            [clojure.test :as t]
+            [matcher-combinators.matchers :as m]
+            [matcher-combinators.test]))
 
 (t/deftest markdown-wikilink
   (t/testing "renders as link when ref resolves"
@@ -24,6 +27,164 @@
       (t/is (= "<p>[[]]</p>\n"
                (rich-text/markdown-to-html "[[]]"
                                            {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))}))))))
+
+(defn- expected-alert-html [alert-type body-lines]
+  (-> [(format "<div class=\"markdown-alert markdown-alert-%s\">" alert-type)
+       (format "<p class=\"markdown-alert-title\">%s</p>" alert-type)]
+      (into body-lines)
+      (into ["</div>"])))
+
+(comment
+  (-> [1 2 3]
+      (into [5 6])
+      (into [7]))
+  ;; => [1 2 3 5 6 7]
+  )
+(t/deftest github-alert-test
+  ;; we implemented support for github alerts
+  ;; alerts are a syntactic superset of block quote, so should render as blockquote if not an alert
+  (doseq [alert-type ["important" "warning" "caution" "note" "tip"]]
+    (t/testing alert-type
+      (t/is (match? (m/via str/split-lines
+                           (expected-alert-html
+                            alert-type
+                            [(format "<p>My %s text</p>" alert-type)]))
+                    (rich-text/markdown-to-html
+                     (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
+                                     (format "> My %s text" alert-type)])))
+            "single line in first paragraph")
+      (t/is (match? (m/via str/split-lines
+                           (expected-alert-html
+                            alert-type
+                            ["<p>para1line1"
+                             "para1line2</p>"]))
+                    (rich-text/markdown-to-html
+                     (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
+                                     "> para1line1"
+                                     "> para1line2"])))
+            "multi line in first paragraph")
+      (t/is (match? (m/via str/split-lines
+                           (expected-alert-html
+                            alert-type
+                            ["<p>para1line1</p>"]))
+                    (rich-text/markdown-to-html
+                     (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
+                                     ">"
+                                     "> para1line1"])))
+            "single line in subsequent node")
+      (t/is (match? (m/via str/split-lines
+                           (expected-alert-html
+                            alert-type
+                            ["<p>para1line1"
+                             "para1line2</p>"]))
+                    (rich-text/markdown-to-html
+                     (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
+                                     ">"
+                                     "> para1line1"
+                                     "> para1line2"])))
+            "multi line in subsequent node")
+      (t/is (match? (m/via str/split-lines
+                           (expected-alert-html
+                            alert-type
+                            ["<p>para1line1"
+                             "para1line2</p>"
+                             "<p>para2line1"
+                             "para2line2</p>"]))
+                    (rich-text/markdown-to-html
+                     (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
+                                     ">"
+                                     "> para1line1"
+                                     "> para1line2"
+                                     ">"
+                                     "> para2line1"
+                                     "> para2line2"])))
+            "multiple subsequent paragraphs")
+      (t/is (match? (m/via str/split-lines
+                           (expected-alert-html
+                            alert-type
+                            ["<p>para1line1"
+                             "para1line2</p>"
+                             "<p>para2line1</p>"
+                             "<p>para3line1"
+                             "para3line2"
+                             "para3extra</p>"]))
+                    (rich-text/markdown-to-html
+                     (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
+                                     "> para1line1"
+                                     "> para1line2"
+                                     ">"
+                                     "> para2line1"
+                                     ">"
+                                     "> para3line1"
+                                     "> para3line2"
+                                     "para3extra"])))
+            "first paragraph and subsequent nodes")
+      (t/is (match? (m/via str/split-lines
+                           (expected-alert-html
+                            alert-type
+                            ["<p>para1line1"
+                             "para1line2</p>"
+                             "<p>para2line1</p>"
+                             "<p>para3line1"
+                             "para3line2"
+                             "para3extra</p>"]))
+                    (rich-text/markdown-to-html
+                     (str/join "\n" [">"
+                                     ">"
+                                     ">"
+                                     (format ">    [!%s]" (str/upper-case alert-type))
+                                     "> para1line1"
+                                     "> para1line2"
+                                     ">"
+                                     ">"
+                                     ">"
+                                     ">"
+                                     ">"
+                                     ">"
+                                     "> para2line1"
+                                     ">"
+                                     ">"
+                                     ">"
+                                     ">"
+                                     "> para3line1"
+                                     "> para3line2"
+                                     "> para3extra"
+                                     ">"
+                                     ">"])))
+            "empty > lines do not affect result")))
+  #_(t/testing "not an alert if no content"
+      (t/is (= "foo" (rich-text/markdown-to-html "> [!TIP]")))))
+
+(t/deftest not-an-alert-test
+  (t/is (match? (m/via str/split-lines ["<blockquote>"
+                                        ;; indented md code is code block...
+                                        "<pre><code class=\"language-clojure\">[!TIP]"
+                                        "</code></pre>"
+                                        "<p>Not an alert</p>"
+                                        "</blockquote>"])
+                (rich-text/markdown-to-html
+                                  ; 12345
+                 (str/join "\n" [">     [!TIP]"
+                                 "> Not an alert"])))
+        "alert type indented more than 4 spaces")
+  (t/is (match? (m/via str/split-lines [;; outer is an alert
+                                        "<div class=\"markdown-alert markdown-alert-tip\">"
+                                        "<p class=\"markdown-alert-title\">tip</p>"
+                                        "<p>A tip</p>"
+                                        ;; inner is a blockquote
+                                        "<blockquote>"
+                                        "<p>[!NOTE]"
+                                        "not a nested alert</p>"
+                                        "</blockquote>"
+                                        "</div>"])
+                (rich-text/markdown-to-html
+                                  ; 12345
+                 (str/join "\n" ["> [!TIP]"
+                                 "> A tip"
+                                 ">"
+                                 "> > [!NOTE]"
+                                 "> > not a nested alert"])))
+        "nested alerts are not a thing"))
 
 (t/deftest markdown-imgref-linkref-test
   ;; we have hacked around a flexmark bug, here we test that hack.
