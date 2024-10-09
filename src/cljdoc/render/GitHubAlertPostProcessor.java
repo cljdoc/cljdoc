@@ -34,11 +34,14 @@ import java.util.regex.Pattern;
  * But this is not an alert:
  * > [!CAUTION]
  *
+ * As of this writing (Oct 2024), I've not found a spec for GitHub alerts.
+ * I learned how they behave by experimenting editing md on GitHub.
+ *
  * Like block quotes, alerts can contain other types of content, but
- * some experimentation led me to believe that cannot be nested.
+ * some experimentation led me to believe that they cannot be nested.
  *
  * We chose a post processor to let Flexmark do the parsing of block quotes;
- * we just convert what looks like an alert to an alert.
+ * we then just convert what looks like an alert to an alert.
  */
 
 public class GitHubAlertPostProcessor extends NodePostProcessor {
