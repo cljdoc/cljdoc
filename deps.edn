@@ -95,7 +95,9 @@
                          cider/cider-nrepl {:mvn/version "0.50.2"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.10.0"}
                          ;; to support recompiling java code from repl
-                         virgil/virgil {:mvn/version "0.3.0"}}
+                         virgil/virgil {:mvn/version "0.3.0"}
+                         ;; for ns reload support
+                         io.github.tonsky/clj-reload {:mvn/version "0.7.0"}}
             :jvm-opts ["-XX:-OmitStackTraceInFastThrow"
                        ;; allow interrupts in cider
                        "-Djdk.attach.allowAttachSelf"]
