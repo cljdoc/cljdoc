@@ -2,7 +2,7 @@
   (:require [cljdoc.render.sanitize :as sanitize]
             [clojure.string :as str]
             [hiccup2.core :as hiccup])
-  (:import (cljdoc.render FixupImgRefLinksExtension)
+  (:import (cljdoc.render FixupImgRefLinksExtension GitHubAlertExtension)
            (com.vladsch.flexmark.ext.anchorlink AnchorLinkExtension)
            (com.vladsch.flexmark.ext.autolink AutolinkExtension)
            (com.vladsch.flexmark.ext.tables TablesExtension)
@@ -41,7 +41,8 @@
   [(FixupImgRefLinksExtension/create)
    (TablesExtension/create)
    (AutolinkExtension/create)
-   (AnchorLinkExtension/create)])
+   (AnchorLinkExtension/create)
+   (GitHubAlertExtension/create)])
 
 (def md-parser-opts (doto (MutableDataSet.)
                       ;; Conform to GitHub tables
@@ -232,4 +233,48 @@
 
   (markdown-to-html "*hello world* [[**some text**]]" {:escape-html? true})
 
-  (asciidoc-to-html "ifdef::env-cljdoc[]\nCLJDOC\nendif::[]\nifndef::env-cljdoc[]\nNOT_CLJDOC\nendif::[]"))
+  (asciidoc-to-html "ifdef::env-cljdoc[]\nCLJDOC\nendif::[]\nifndef::env-cljdoc[]\nNOT_CLJDOC\nendif::[]")
+
+  ;; to recompile java
+  (require 'virgil)
+
+  ;; to reload nses
+  (require '[clj-reload.core :as reload])
+  (reload/init {:dirs ["src" "test"]})
+
+  ;; To recompile once, manually:
+  (virgil/compile-java ["src"])
+
+  ;; To recompile automatically when files change:
+  (virgil/watch-and-recompile ["src"])
+
+  (reload/reload)
+
+  (markdown-to-html "> one\n> two\n> three\n>\n> four")
+  ;; => "<blockquote>\n<p>one\ntwo\nthree</p>\n<p>four</p>\n</blockquote>\n"
+
+  (markdown-to-html ">\n>\n>\n> one\n>\n>\n>\n> four")
+  ;; => "<blockquote>\n<p>one</p>\n<p>four</p>\n</blockquote>\n"
+
+  (markdown-to-html "> [!TIP]\n> foo\n")
+  ;; => "<blockquote>\n<p>[!TIP]\nfoo</p>\n</blockquote>\n"
+  (markdown-to-html "> [!TIP]\n>\n>\n>\n")
+
+                    ;0123
+  (markdown-to-html ">   [!TIP]    \n> foo\n> bar\n>\n> para2")
+
+  (markdown-to-html ">\n>\n>\n>   [!TIP]\n>\n>\n>\n> four")
+
+  (markdown-to-html (str/join "\n" ["> [!TIP]"
+                                    "> A tip"
+                                    ">"
+                                    "> > [!NOTE]"
+                                    "> > not a nested alert"]))
+
+  (markdown-to-html ">\n>\n>\n> [!TIP]\n> p1.1\n>p1.2\n>\n> p2.1\n> p2.2")
+  ;; => "<div class=\"markdown-alert markdown-alert-tip\">\n<p class=\"markdown-alert-title\">tip\n</p><p>p1.1\np1.2</p>\n<p>p2.1\np2.2</p>\n</div>\n"
+  ;; => "<div class=\"markdown-alert markdown-alert-tip\">\n<p class=\"markdown-alert-title\">tip\n</p><p>p1.1\np1.2</p>\n<p>p2.1\np2.2</p>\n</div>\n"
+
+;; ^(?:>\\s*\\n)*> {0,3}\\[\\!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\\]\\s*\\n(?:>\\s*\\n)*>\\s*\\S.*
+
+  :eoc)

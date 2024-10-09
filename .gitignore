@@ -28,3 +28,4 @@ test-data/
 /.lsp/.cache
 *secret*.tfvars
 *secret*.pkrvars.hcl
+/.cljdoc-preview

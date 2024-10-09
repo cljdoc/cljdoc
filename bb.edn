@@ -38,6 +38,10 @@
   download-deps
   {:doc "download clojure deps"
    :task (clojure "-T:build download-deps")}
+  dev
+  {:doc "fire up a REPL for dev"
+   :depends [compile-java]
+   :task (shell "clj -M:cli:test:nrepl")}
   deps-js
   {:doc "bring down js deps"
    :task (if (seq (fs/modified-since "node_modules" ["package-lock.json"]))

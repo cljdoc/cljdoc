@@ -4,7 +4,7 @@
   "scripts": {
     "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
     "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
-    "dev": "parcel watch resources/public/cljdoc.html --dist-dir resources-compiled/public/out --log-level info",
+    "dev": "parcel watch resources/public/cljdoc.html --dist-dir resources-compiled/public/out --log-level verbose",
     "build": "parcel build resources/public/cljdoc.html --dist-dir resources-compiled/public/out --log-level info",
     "typecheck": "npx tsc --watch",
     "eslint": "eslint ."
