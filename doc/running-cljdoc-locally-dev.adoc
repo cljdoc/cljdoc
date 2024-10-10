@@ -25,15 +25,15 @@ Library authors should instead read link:running-cljdoc-locally-author.adoc[runn
 To run cljdoc from source, you must first install these dependencies:
 
 * https://nodejs.org/en/[Node.js]
-* https://adoptium.net/en-GB/temurin/releases/?version=21&package=jdk[Java Development Kit 21] - the cljdoc web server currently runs on JDK21 in production, so ideally, you'll want to be developing with JDK21 too.
+* https://adoptium.net/en-GB/temurin/releases/?version=23&package=jdk[Java Development Kit 23] - the cljdoc web server currently runs on JDK23 in production, so ideally, you'll want to be developing with JDK23 too.
 Example of a valid JDK:
 +
 [source,sh]
 ----
 $ java -version
-openjdk version "21" 2023-09-19 LTS
-OpenJDK Runtime Environment Temurin-21+35 (build 21+35-LTS)
-OpenJDK 64-Bit Server VM Temurin-21+35 (build 21+35-LTS, mixed mode, sharing)
+openjdk 23 2024-09-17
+OpenJDK Runtime Environment Temurin-23+37 (build 23+37)
+OpenJDK 64-Bit Server VM Temurin-23+37 (build 23+37, mixed mode, sharing)
 ----
 * https://clojure.org/guides/getting_started[Clojure CLI tools] - make sure you have upgraded to the current version
 * https://github.com/babashka/babashka[Babashka] - some of our scripts are written in babashka
