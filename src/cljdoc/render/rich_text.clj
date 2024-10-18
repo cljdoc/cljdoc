@@ -6,6 +6,7 @@
            (com.vladsch.flexmark.ext.anchorlink AnchorLinkExtension)
            (com.vladsch.flexmark.ext.autolink AutolinkExtension)
            (com.vladsch.flexmark.ext.tables TablesExtension)
+           (com.vladsch.flexmark.ext.toc TocExtension)
            (com.vladsch.flexmark.ext.wikilink WikiLink WikiLinkExtension)
            (com.vladsch.flexmark.ext.wikilink.internal WikiLinkNodeRenderer$Factory)
            (com.vladsch.flexmark.html HtmlRenderer LinkResolver LinkResolverFactory)
@@ -42,6 +43,7 @@
    (TablesExtension/create)
    (AutolinkExtension/create)
    (AnchorLinkExtension/create)
+   (TocExtension/create)
    (GitHubAlertExtension/create)])
 
 (def md-parser-opts (doto (MutableDataSet.)
@@ -56,6 +58,7 @@
                       (.set TablesExtension/WITH_CAPTION false)
                       (.set TablesExtension/MIN_HEADER_ROWS ^Integer (int 1))
                       (.set TablesExtension/MAX_HEADER_ROWS ^Integer (int 1))
+                      (.set TocExtension/TITLE "Table of Contents")
                       (.toImmutable)))
 
 (defn- md-parser

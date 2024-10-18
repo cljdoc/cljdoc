@@ -38,6 +38,8 @@
         {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-tables             ;; support for tables
         {:mvn/version "0.64.8"}
+        com.vladsch.flexmark/flexmark-ext-toc                ;; support for table of contents
+        {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-anchorlink         ;; adds github id style anchor links to headings
         {:mvn/version "0.64.8"}
         com.vladsch.flexmark/flexmark-ext-wikilink           ;; support for our docstring [[my-ns/var]] link feature
