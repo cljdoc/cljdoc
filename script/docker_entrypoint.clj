@@ -59,7 +59,7 @@
                   "-J-Dcom.sun.management.jmxremote.rmi.port=9010"
                   "-J-Dcom.sun.management.jmxremote.authenticate=false"
                   "-J-Dcom.sun.management.jmxremote.ssl=false"
-                  "-J-Djava.rmi.server.hostname=0.0.0.0"
+                  "-J-Djava.rmi.server.hostname=localhost"
                   (format "-J-XX:HeapDumpPath=%s" (str heap-dump-file))
                   "-M" "-m" "cljdoc.server.system")))
 
