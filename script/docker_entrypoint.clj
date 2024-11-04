@@ -56,7 +56,7 @@
                   ;; perhaps temporary... allow connection via jvisualvm
                   "-J-Dcom.sun.management.jmxremote"
                   "-J-Dcom.sun.management.jmxremote.port=9010"
-                  "-J-Dcom.sun.management.jmxremote.rmi.port=9010"
+                  "-J-Dcom.sun.management.jmxremote.rmi.port=9011"
                   "-J-Dcom.sun.management.jmxremote.authenticate=false"
                   "-J-Dcom.sun.management.jmxremote.ssl=false"
                   "-J-Djava.rmi.server.hostname=localhost"
