@@ -13,19 +13,19 @@
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
     "elasticlunr": "^0.9.5",
-    "fuzzysort": "^3.0.2",
+    "fuzzysort": "^3.1.0",
     "idb": "^8.0.0",
-    "preact": "^10.24.2"
+    "preact": "^10.24.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.12.0",
+    "@eslint/js": "^9.14.0",
     "@parcel/packager-xml": "^2.12.0",
     "@parcel/transformer-image": "^2.12.0",
     "@parcel/transformer-xml": "^2.12.0",
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
-    "eslint": "^9.12.0",
+    "eslint": "^9.14.0",
     "parcel": "^2.12.0",
     "parcel-namer-custom": "^0.2.0",
     "parcel-reporter-static-files-copy": "^1.5.3",
@@ -33,7 +33,7 @@
     "prettier": "^3.3.3",
     "pretty-quick": "^4.0.0",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.8.1"
+    "typescript-eslint": "^8.12.2"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
