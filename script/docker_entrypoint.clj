@@ -53,6 +53,13 @@
                   "-J-XX:+ExitOnOutOfMemoryError"
                   "-J-XX:+HeapDumpOnOutOfMemoryError"
                   "-J-XX:NativeMemoryTracking=summary" ;; temporary for diagnosis of memory usage
+                  ;; perhaps temporary... allow connection via jvisualvm
+                  "-J-Dcom.sun.management.jmxremote"
+                  "-J-Dcom.sun.management.jmxremote.port=9010"
+                  "-J-Dcom.sun.management.jmxremote.rmi.port=9010"
+                  "-J-Dcom.sun.management.jmxremote.authenticate=false"
+                  "-J-Dcom.sun.management.jmxremote.ssl=false"
+                  "-J-Djava.rmi.server.hostname=0.0.0.0"
                   (format "-J-XX:HeapDumpPath=%s" (str heap-dump-file))
                   "-M" "-m" "cljdoc.server.system")))
 
