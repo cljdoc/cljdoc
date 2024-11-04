@@ -38,7 +38,6 @@
             [cljdoc.util.sentry :as sentry]
             [clojure.core.memoize :as memoize]
             [clojure.java.io :as io]
-            [clojure.stacktrace :as stacktrace]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [co.deps.ring-etag-middleware :as etag]
@@ -50,8 +49,7 @@
             [lambdaisland.uri.normalize :as normalize]
             [net.cgrand.enlive-html :as en]
             [ring.util.codec :as ring-codec])
-  (:import (java.io IOException)
-           (java.net URLDecoder)
+  (:import (java.net URLDecoder)
            (java.util Date)))
 
 (def render-interceptor
@@ -678,15 +676,6 @@
                               (last-build-loader build-tracker)])
        (assoc route :interceptors)))
 
-(defn- is-broken-pipe? [exception]
-  (let [cause (stacktrace/root-cause exception)]
-    (and (instance? IOException cause)
-         (= "Broken pipe" (ex-message cause)))))
-
-(defn exception-analyzer [_ctx exception]
-  (when-not (is-broken-pipe? exception)
-    exception))
-
 (defmethod ig/init-key :cljdoc/pedestal [_ opts]
   (log/infof "Starting pedestal on %s:%s" (:host opts) (:port opts))
   (-> {::http/routes (routes/routes (partial route-resolver opts) {})
@@ -699,7 +688,6 @@
        ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
        ::http/resource-path "public/out"
        ::http/not-found-interceptor not-found-interceptor
-       ::http/service-fn-options {:exception-analyzer exception-analyzer}
        ::http/path-params-decoder nil}
       http/default-interceptors
       (update ::http/interceptors #(into [sentry/interceptor

@@ -3,30 +3,13 @@
             [clojure.tools.logging :as log]
             [io.pedestal.interceptor :as interceptor]
             [raven-clj.core :as raven]
-            [raven-clj.interfaces :as interfaces]
-            [unilog.config :as unilog])
-  (:import (ch.qos.logback.classic Level)
-           (ch.qos.logback.classic.filter LevelFilter)
-           (ch.qos.logback.core.spi FilterReply)
-           (io.sentry Sentry)
-           (io.sentry.logback SentryAppender)))
+            [raven-clj.interfaces :as interfaces]))
 
 (def app-namespaces
   ["cljdoc"])
 
-(defmethod unilog/build-appender :sentry
-  [config]
-  (let [f (doto (LevelFilter.)
-            (.setLevel Level/WARN)
-            (.setOnMatch FilterReply/ACCEPT)
-            (.setOnMismatch FilterReply/DENY)
-            (.start))]
-    (assoc config :appender (doto (SentryAppender.)
-                              (.addFilter f)))))
-
 (when (cfg/sentry-dsn)
   (log/info "Sentry DSN found, installing uncaught exception handler")
-  (Sentry/init (str (cfg/sentry-dsn) "?" "stacktrace.app.packages=" (first app-namespaces)))
   (raven/install-uncaught-exception-handler!
    (cfg/sentry-dsn)
    {:packet-transform (fn [packet] (assoc packet :release (cfg/version)))
@@ -55,3 +38,8 @@
                                 :route-name  (-> ctx :route :route-name)}))
              (capture {:ex ex-info :req (:request ctx)})
              (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))}))
+
+(comment
+  (capture {:ex (ex-info "lee testing 1234" {:moo :dog})})
+
+  :eoc)
