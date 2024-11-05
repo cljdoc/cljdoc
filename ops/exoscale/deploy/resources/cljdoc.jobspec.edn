@@ -24,7 +24,7 @@
               {:CPU 1000,
                :MemoryMB 1600,
                :Networks [{:DynamicPorts [{:Label "http", :Value 0}
-                                          {:Label "jmx", :Value 0}]
+                                          {:Label "jmx", :Value 0 :HostNetwork "0.0.0.0"}]
                            :MBits 10}]},
             :Services [{:Name "cljdoc",
                         :PortLabel "http",
