@@ -12,7 +12,7 @@
         :Tasks
           [{:Artifacts nil,
             :Config {:image #join ["cljdoc/cljdoc:" #cljdoc.deploy/opt :docker-tag]
-                     :port_map [{:http 8000 :jmx 9010 :rmi 9011}],
+                     :port_map [{:http 8000 :jmx 9010}],
                      :volumes ["secrets:/etc/cljdoc"
                                "/data/cljdoc:/var/cljdoc"]},
             :Driver "docker",
@@ -24,8 +24,7 @@
               {:CPU 1000,
                :MemoryMB 1600,
                :Networks [{:DynamicPorts [{:Label "http", :Value 0}]
-                           :ReservedPorts [{:Label "jmx", :Value 9010}
-                                           {:Label "rmi", :Value 9011 }]
+                           :ReservedPorts [{:Label "jmx", :Value 9010}]
                            :MBits 10}]},
             :Services [{:Name "cljdoc",
                         :PortLabel "http",
