@@ -11,7 +11,6 @@
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [next.jdbc :as jdbc]
-            [next.jdbc.result-set :as rs]
             [next.jdbc.sql :as sql]
             [tea-time.core :as tt])
   (:import (cljdoc.server.search.api ISearcher)
@@ -99,10 +98,10 @@
                        release
                        jdbc/unqualified-snake-kebab-opts))))))
 
-(defn- inc-retry-count! [db-spec {:keys [id retry_count] :as _release}]
+(defn- inc-retry-count! [db-spec {:keys [id retry-count] :as _release}]
   (sql/update! db-spec
                :releases
-               {:retry_count (inc retry_count)}
+               {:retry-count (inc retry-count)}
                {:id id}
                jdbc/unqualified-snake-kebab-opts))
 
