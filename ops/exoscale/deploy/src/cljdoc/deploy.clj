@@ -139,7 +139,13 @@
   (sync-config!)
   (let [run-result (nomad-post! "/v1/jobs" (jobspec docker-tag))
         eval-id (get run-result "EvalID")
-        eval (nomad-get (str "/v1/evaluation/" eval-id))
+        eval (wait-until "evaluation is complete"
+                         (fn get-eval []
+                           (let [eval (nomad-get (str "/v1/evaluation/" eval-id))
+                                 status (get eval "Status")]
+                             (when (= "complete" status) eval)))
+                         250
+                         (.toSeconds TimeUnit/MINUTES 1))
         deployment-id (get eval "DeploymentID")]
     (assert deployment-id "Deployment ID missing")
     (log/info "Evaluation ID:" eval-id)
