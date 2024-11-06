@@ -70,15 +70,15 @@
   [db-spec release-id build-id]
   (sql/update! db-spec
                "releases"
-               {:build_id build-id}
+               {:build-id build-id}
                ["id = ?" release-id]
                jdbc/unqualified-snake-kebab-opts))
 
 (defn- queue-new-releases [db-spec releases]
   (log/infof "Queuing %s new releases" (count releases))
-    (doseq [release (sort-by :created_ts releases)]
+    (doseq [release (sort-by :created-ts releases)]
       (jdbc/with-transaction [tx db-spec]
-      (let [{:keys [group_id artifact_id version]} release
+      (let [{:keys [group-id artifact-id version]} release
             duplicate? (-> (jdbc/execute-one! tx
                                               [(str "SELECT EXISTS ("
                                                     " SELECT 1 "
@@ -87,13 +87,13 @@
                                                     " AND artifact_id = ? "
                                                     " AND version = ? "
                                                     "AND build_id IS NULL) AS duplicate")
-                                               group_id artifact_id version])
+                                               group-id artifact-id version])
                            :duplicate
                            zero?
                            not)]
         (if duplicate?
           (log/warnf "Skipping %s:%s:%s, library already queued for build."
-                     group_id artifact_id version)
+                     group-id artifact-id version)
           (sql/insert! tx :releases
                        release
                        jdbc/unqualified-snake-kebab-opts))))))
@@ -110,11 +110,11 @@
 ;;
 
 (defn- trigger-build
-  [{:keys [id group_id artifact_id version retry_count] :as _release}]
+  [{:keys [id group-id artifact-id version retry-count] :as _release}]
   ;; I'm really not liking that this makes it all very tied to the HTTP server... - martin
   (let [req (http/post (str "http://localhost:" (get-in (config/config) [:cljdoc/server :port]) "/api/request-build2")
                        {:follow-redirects false
-                        :form-params {:project (str group_id "/" artifact_id)
+                        :form-params {:project (str group-id "/" artifact-id)
                                       :version version}
                         :content-type "application/x-www-form-urlencoded"})
         build-id (some->> (get-in req [:headers "location"])
@@ -124,8 +124,8 @@
     build-id))
 
 (defn- update-artifact-index [searcher releases]
-  (run! #(let [a {:artifact-id (:artifact_id %)
-                  :group-id (:group_id %)
+  (run! #(let [a {:artifact-id (:artifact-id %)
+                  :group-id (:group-id %)
                   :origin :clojars}]
            (sc/index-artifact
             searcher
@@ -133,14 +133,14 @@
         releases))
 
 (defn- exclude-new-release?
-  [{:keys [group_id artifact_id version] :as _build}]
-  (or (= "cljsjs" group_id)
+  [{:keys [group-id artifact-id version] :as _build}]
+  (or (= "cljsjs" group-id)
       (string/ends-with? version "-SNAPSHOT")
-      (and (= "org.akvo.flow" group_id)
-           (= "akvo-flow" artifact_id))
-      (= "lein-template" artifact_id)
-      (string/includes? group_id "gradle-clojure")
-      (string/includes? group_id "gradle-clj")))
+      (and (= "org.akvo.flow" group-id)
+           (= "akvo-flow" artifact-id))
+      (= "lein-template" artifact-id)
+      (string/includes? group-id "gradle-clojure")
+      (string/includes? group-id "gradle-clj")))
 
 (defn- release-fetch-job-fn [{:keys [db-spec ^ISearcher searcher]}]
   (let [ts-last-release (last-release-ts db-spec)
@@ -152,29 +152,29 @@
       (queue-new-releases db-spec releases)
       (update-artifact-index searcher releases))))
 
-(defn- pre-check-failed! [db-spec build-tracker {:keys [:id :group_id :artifact_id version] :as _release-to-build} error]
-  (let [build-id (build-log/analysis-requested! build-tracker group_id artifact_id version)]
-    (log/warnf "pre-check-failed for %s/%s %s, failing build with error %s"  group_id artifact_id version error)
+(defn- pre-check-failed! [db-spec build-tracker {:keys [:id :group-id :artifact-id version] :as _release-to-build} error]
+  (let [build-id (build-log/analysis-requested! build-tracker group-id artifact-id version)]
+    (log/warnf "pre-check-failed for %s/%s %s, failing build with error %s"  group-id artifact-id version error)
     (build-log/failed! build-tracker build-id error)
     (update-build-id! db-spec id build-id)))
 
-(defn- resolve-clojars-artifact [{:keys [group_id artifact_id version] :as _release}]
+(defn- resolve-clojars-artifact [{:keys [group-id artifact-id version] :as _release}]
   (let [clojars-repo (->> (config/maven-repositories)
                           (filter #(= "clojars" (:id %)))
                           first
                           :url)]
     (try
       (repositories/resolve-artifact clojars-repo
-                                     (proj/clojars-id {:group-id group_id :artifact-id artifact_id})
+                                     (proj/clojars-id {:group-id group-id :artifact-id artifact-id})
                                      version)
       (catch Throwable ex
         {:exception ex :status -1}))))
 
 (defn- build-queuer-job-fn [{:keys [db-spec build-tracker dry-run? max-retries]}]
-  (when-let [{:keys [id group_id artifact_id version retry_count] :as release-to-build} (oldest-not-built db-spec)]
+  (when-let [{:keys [id group-id artifact-id version retry-count] :as release-to-build} (oldest-not-built db-spec)]
     (if dry-run?
       (log/infof "Dry-run mode: not triggering build for %s/%s %s"
-                 group_id artifact_id version)
+                 group-id artifact-id version)
       (let [{:keys [exception status] :as _resolve-result} (resolve-clojars-artifact release-to-build)]
         (case (long status)
           200 (do (log/infof "Queuing build for %s" release-to-build)
@@ -182,11 +182,11 @@
           404 (pre-check-failed! db-spec build-tracker release-to-build "listed-artifact-not-found")
           ;; else
           (let [msg (format "failed to resolve %s/%s %s, resolve status %d, retry count %d"
-                            group_id artifact_id version status retry_count)]
+                            group-id artifact-id version status retry-count)]
             (if exception
               (log/warn exception msg)
               (log/warn msg))
-            (if (>= retry_count max-retries)
+            (if (>= retry-count max-retries)
               (pre-check-failed! db-spec build-tracker release-to-build "listed-artifact-resolve-failed")
               (inc-retry-count! db-spec release-to-build))))))))
 
