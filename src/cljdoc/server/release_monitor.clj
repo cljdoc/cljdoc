@@ -74,29 +74,45 @@
                ["id = ?" release-id]
                jdbc/unqualified-snake-kebab-opts))
 
-(defn- queue-new-releases [db-spec releases]
-  (log/infof "Queuing %s new releases" (count releases))
-    (doseq [release (sort-by :created-ts releases)]
-      (jdbc/with-transaction [tx db-spec]
-      (let [{:keys [group-id artifact-id version]} release
-            duplicate? (-> (jdbc/execute-one! tx
-                                              [(str "SELECT EXISTS ("
-                                                    " SELECT 1 "
-                                                    " FROM releases "
-                                                    " WHERE group_id = ? "
-                                                    " AND artifact_id = ? "
-                                                    " AND version = ? "
-                                                    "AND build_id IS NULL) AS duplicate")
-                                               group-id artifact-id version])
-                           :duplicate
-                           zero?
-                           not)]
-        (if duplicate?
-          (log/warnf "Skipping %s:%s:%s, library already queued for build."
-                     group-id artifact-id version)
-          (sql/insert! tx :releases
-                       release
-                       jdbc/unqualified-snake-kebab-opts))))))
+(defn- is-known-release? [connectable {:keys [group-id artifact-id version]}]
+  (-> (jdbc/execute-one! connectable
+                         [(str "SELECT EXISTS ("
+                               " SELECT 1 "
+                               " FROM releases "
+                               " WHERE group_id = ? "
+                               " AND artifact_id = ? "
+                               " AND version = ? "
+                               ") AS duplicate")
+                          group-id artifact-id version])
+      :duplicate
+      zero?
+      not))
+
+(defn- queue-new-releases
+  "Queues `releases` skipping any already queued, returns releases that were queued."
+  [db-spec releases]
+  (let [releases (sort-by :created-ts releases)
+        ;; quietly skip last release if already known, we don't have the facility
+        ;; to query clojars on exclusive ranges so we get overlaps
+        releases (if (is-known-release? db-spec (last releases))
+                   (butlast releases)
+                   releases)]
+    (log/infof "Queuing %s new releases" (count releases))
+
+    (reduce (fn [acc {:keys [group-id artifact-id version] :as release}]
+              (jdbc/with-transaction [tx db-spec]
+                (if (is-known-release? tx release)
+                  (log/warnf "Skipping %s:%s:%s, is aleady known to cljdoc."
+                             group-id artifact-id version)
+                  (do
+                    (log/infof "Queueing %s:%s:%s for build."
+                               group-id artifact-id version)
+                    (sql/insert! tx :releases
+                                 release
+                                 jdbc/unqualified-snake-kebab-opts)
+                    (conj acc release)))))
+            []
+            releases)))
 
 (defn- inc-retry-count! [db-spec {:keys [id retry-count] :as _release}]
   (sql/update! db-spec
@@ -149,8 +165,8 @@
                    (clojars-releases-since (.minus (Instant/now) (Duration/ofHours 24))))
         releases (remove exclude-new-release? releases)]
     (when (seq releases)
-      (queue-new-releases db-spec releases)
-      (update-artifact-index searcher releases))))
+      (let [queued (queue-new-releases db-spec releases)]
+        (update-artifact-index searcher queued)))))
 
 (defn- pre-check-failed! [db-spec build-tracker {:keys [:id :group-id :artifact-id version] :as _release-to-build} error]
   (let [build-id (build-log/analysis-requested! build-tracker group-id artifact-id version)]
@@ -243,5 +259,18 @@
   (sort-by :created-ts (shuffle foo))
 
   (queue-new-releases db-spec foo)
+
+  (Instant/ofEpochSecond (parse-long "1515274516"))
+  ;; => #object[java.time.Instant 0x4c0c3eed "2018-01-06T21:35:16Z"]
+
+  (first foor)
+  ;; => {"jar_name" "confick",
+  ;;     "group_name" "de.dixieflatline",
+  ;;     "version" "0.1.4",
+  ;;     "description" "Simple, stupid configuration management.",
+  ;;     "created" "1730927007884"}
+
+  (Instant/ofEpochMilli (parse-long "1730927007884"))
+  ;; => #object[java.time.Instant 0x283dc39f "2024-11-06T21:03:27.884Z"]
 
   :eoc)
