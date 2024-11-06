@@ -42,9 +42,9 @@
     (->> results
          (sort-by #(get % "created"))
          (map (fn [r]
-                {:created_ts  (Instant/ofEpochMilli (parse-long (get r "created")))
-                 :group_id    (get r "group_name")
-                 :artifact_id (get r "jar_name")
+                {:created-ts  (Instant/ofEpochMilli (parse-long (get r "created")))
+                 :group-id    (get r "group_name")
+                 :artifact-id (get r "jar_name")
                  :version     (get r "version")})))))
 
 ;;
@@ -53,9 +53,9 @@
 
 (defn- last-release-ts ^Instant [db-spec]
   (some-> (sql/query db-spec ["SELECT * FROM releases ORDER BY datetime(created_ts) DESC LIMIT 1"]
-                     {:builder-fn rs/as-unqualified-maps})
+                     jdbc/unqualified-snake-kebab-opts)
           first
-          :created_ts
+          :created-ts
           Instant/parse))
 
 (defn- oldest-not-built
@@ -65,14 +65,15 @@
   to push the respective commits or tags to their git repositories."
   [db-spec]
   (first (sql/query db-spec ["SELECT * FROM releases WHERE build_id IS NULL AND datetime(created_ts) < datetime('now', '-10 minutes') ORDER BY retry_count ASC, datetime(created_ts) ASC LIMIT 1"]
-                    {:builder-fn rs/as-unqualified-maps})))
+                    jdbc/unqualified-snake-kebab-opts)))
 
 (defn- update-build-id!
   [db-spec release-id build-id]
   (sql/update! db-spec
                "releases"
                {:build_id build-id}
-               ["id = ?" release-id]))
+               ["id = ?" release-id]
+               jdbc/unqualified-snake-kebab-opts))
 
 (defn- queue-new-releases [db-spec releases]
   (log/infof "Queuing %s new releases" (count releases))
@@ -95,16 +96,15 @@
           (log/warnf "Skipping %s:%s:%s, library already queued for build."
                      group_id artifact_id version)
           (sql/insert! tx :releases
-                       release)))))
-
-  (sql/insert-multi! db-spec :releases releases))
-
+                       release
+                       jdbc/unqualified-snake-kebab-opts))))))
 
 (defn- inc-retry-count! [db-spec {:keys [id retry_count] :as _release}]
   (sql/update! db-spec
                :releases
                {:retry_count (inc retry_count)}
-               {:id id}))
+               {:id id}
+               jdbc/unqualified-snake-kebab-opts))
 
 ;;
 ;; Logic and jobs
@@ -229,14 +229,11 @@
     (insert db-spec r))
 
   (last (sql/query db-spec ["SELECT * FROM releases"]
-                   {:builder-fn rs/as-unqualified-maps}))
-
-  (trigger-build db-spec (first (sql/query db-spec ["SELECT * FROM releases"]
-                                           {:builder-fn rs/as-unqualified-maps})))
+                   jdbc/unqualified-snake-kebab-opts))
 
   (clojure.pprint/pprint
    (->> (clojars-releases-since (last-release-ts db-spec))
-        (map #(select-keys % [:created_ts]))))
+        (map #(select-keys % [:created-ts]))))
 
   (oldest-not-built db-spec)
 
@@ -244,7 +241,7 @@
   (def foo (clojars-releases-since "2024-11-05T21:54:01.606Z"))
   (count foo)
 
-  (sort-by :created_ts (shuffle foo))
+  (sort-by :created-ts (shuffle foo))
 
   (queue-new-releases db-spec foo)
 
