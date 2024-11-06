@@ -146,9 +146,7 @@
 (defn- release-fetch-job-fn [{:keys [db-spec ^ISearcher searcher]}]
   (let [ts-last-release (last-release-ts db-spec)
         releases (if ts-last-release
-                   (-> (clojars-releases-since ts-last-release)
-                       ;; exclude first, it was part of the last fetch
-                       rest)
+                   (clojars-releases-since ts-last-release)
                    (clojars-releases-since (.minus (Instant/now) (Duration/ofHours 24))))
         releases (remove exclude-new-release? releases)]
     (when (seq releases)
