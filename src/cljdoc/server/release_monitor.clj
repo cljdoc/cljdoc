@@ -76,7 +76,7 @@
 
 (defn- queue-new-releases [db-spec releases]
   (log/infof "Queuing %s new releases" (count releases))
-    (doseq [release releases]
+    (doseq [release (sort-by :created_ts releases)]
       (jdbc/with-transaction [tx db-spec]
       (let [{:keys [group_id artifact_id version]} release
             duplicate? (-> (jdbc/execute-one! tx
@@ -243,6 +243,8 @@
   (clojars-releases-since "2024-11-05T21:53:58.628Z")
   (def foo (clojars-releases-since "2024-11-05T21:54:01.606Z"))
   (count foo)
+
+  (sort-by :created_ts (shuffle foo))
 
   (queue-new-releases db-spec foo)
 
