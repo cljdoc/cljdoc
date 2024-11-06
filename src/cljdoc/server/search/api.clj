@@ -31,7 +31,7 @@
   ;; to each of the functions that need it.
   "Index and search artifacts."
   (artifact-versions [_ refined-by] "Return all artifact versions, optionally refined-by a group-id or a group-id and artifact-id.")
-  (index-artifact [_ artifact])
+  (index-artifacts [_ artifacts])
   (search [_ query] "Supports web app libraries search")
   (suggest [_ query] "Supports OpenSearch libraries suggest search."))
 
@@ -39,8 +39,8 @@
   ISearcher
   (artifact-versions [_ refined-by]
     (search/versions index refined-by))
-  (index-artifact [_ artifact]
-    (search/index! clojars-stats index [artifact]))
+  (index-artifacts [_ artifacts]
+    (search/index! clojars-stats index artifacts))
   (search [_ query]
     (search/search index query))
   (suggest [_ query]

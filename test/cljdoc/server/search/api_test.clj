@@ -57,11 +57,11 @@
    :results (mapv r ins)})
 
 (t/deftest emptiness
-  (run! #(api/index-artifact *searcher* %) [next-jdbc byte-transforms])
+  (api/index-artifacts *searcher* [next-jdbc byte-transforms])
   (t/is (match? (rs) (api/search *searcher* "   "))))
 
 (t/deftest single-terms
-  (run! #(api/index-artifact *searcher* %) [next-jdbc byte-transforms])
+  (api/index-artifacts *searcher* [next-jdbc byte-transforms])
   (t/testing "group-id"
     (t/testing "matches prefix"
       (t/is (match? (rs byte-transforms) (api/search *searcher* "clj"))))
@@ -95,7 +95,7 @@
     (t/is (match? (rs byte-transforms next-jdbc) (api/search *searcher* "com")))))
 
 (t/deftest multiple-terms
-  (run! #(api/index-artifact *searcher* %) [next-jdbc byte-transforms])
+  (api/index-artifacts *searcher* [next-jdbc byte-transforms])
   (t/testing "no match - terms must be in same doc"
     (t/is (match? (rs) (api/search *searcher* "gener encoding"))))
   (t/testing "match - terms all occur in single doc in description only"
@@ -114,7 +114,7 @@
            :description "facade"
            :origin :clojars
            :versions ["1.2.3"]}]
-    (run! #(api/index-artifact *searcher* %) [a b])
+    (api/index-artifacts *searcher* [a b])
     ;; all things being equal, these should come back in index order?
     ;; if that's not the case, we'll adapt the test not care about result order.
     (t/is (match? (rs a b) (api/search *searcher* "facade")))
@@ -135,7 +135,7 @@
     ;; first item gets download count of 1, 2nd 2, and so on.
     (binding [*download-count-max* #(count artifacts)
               *download-count-artifact* (fn [g _a] (parse-long (string/replace g #"^\D*" "")))]
-      (run! #(api/index-artifact *searcher* %) artifacts)
+      (api/index-artifacts *searcher* artifacts)
       (t/is (match? {:count (count artifacts) ;; total count, not number returned
                      :results (->> artifacts reverse (take 30) (mapv r))}
                     (api/search *searcher* "d"))))))
@@ -151,7 +151,7 @@
     ;; match on least popular doc, it should appear first
     (binding [*download-count-max* #(count artifacts)
               *download-count-artifact* (fn [g _a] (or (parse-long (string/replace g #"^\D*" "")) 0))]
-      (run! #(api/index-artifact *searcher* %) artifacts)
+      (api/index-artifacts *searcher* artifacts)
       (t/is (match? {:count (count artifacts)
                      :results (->> artifacts
                                    reverse
@@ -167,7 +167,7 @@
     ;; least popular doc should appear first
     (binding [*download-count-max* #(count artifacts)
               *download-count-artifact* (fn [g _a] (or (parse-long (string/replace g #"^\D*" "")) 0))]
-      (run! #(api/index-artifact *searcher* %) artifacts)
+      (api/index-artifacts *searcher* artifacts)
       (t/is (match? {:count (count artifacts)
                      :results (->> artifacts
                                    reverse
@@ -185,7 +185,7 @@
     ;; least popular doc should appear first
     (binding [*download-count-max* #(count artifacts)
               *download-count-artifact* (fn [g _a] (or (parse-long (string/replace g #"^\D*" "")) 0))]
-      (run! #(api/index-artifact *searcher* %) artifacts)
+      (api/index-artifacts *searcher* artifacts)
       (t/is (match? {:count (count artifacts)
                      :results (->> artifacts
                                    reverse
@@ -200,7 +200,7 @@
                                               :group-id "a1.d"
                                               :description "x"})]
     ;; matches on description should appear after even partial matches group-id, artifact-id
-    (run! #(api/index-artifact *searcher* %) artifacts)
+    (api/index-artifacts *searcher* artifacts)
     (let [result (api/search *searcher* "d")]
       (t/is (= (count artifacts) (:count result)))
       (t/is (= 30 (-> result :results count)))
@@ -209,7 +209,7 @@
       (t/is (match? (r (nth artifacts 51)) (-> result :results first))))))
 
 (t/deftest suggest
-  (run! #(api/index-artifact *searcher* %) [next-jdbc byte-transforms])
+  (api/index-artifacts *searcher* [next-jdbc byte-transforms])
   (t/testing "no match"
     (t/is (= ["nomatch" []] (api/suggest *searcher* "nomatch"))))
   (t/testing "empty"
@@ -247,7 +247,7 @@
                :origin :clojars
                :versions ["2.2.0-SNAPSHOT" "2.2.1-SNAPSHOT"]}
         indexed [g1-a1 g1-a2 g2-a1 g2-a2]]
-    (run! #(api/index-artifact *searcher* %) indexed)
+    (api/index-artifacts *searcher* indexed)
     (t/testing "no refinements - return all"
       (t/is (match? (m/in-any-order (expected-versions-result indexed))
                     (api/artifact-versions *searcher* {}))))
@@ -267,10 +267,10 @@
                                                          (download-count-artifact [_ g a] 1))
                                         :index-factory memory-index :enable-indexer? false}))
 
-  (run! #(api/index-artifact s %) [next-jdbc byte-transforms])
+  (api/index-artifacts s [next-jdbc byte-transforms])
 
   (api/search s "com")
   (api/search s "next.jdbc")
   (api/search s "hashing")
 
-  nil)
+  :eoc)

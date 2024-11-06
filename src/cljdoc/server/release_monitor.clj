@@ -89,30 +89,30 @@
       not))
 
 (defn- queue-new-releases
-  "Queues `releases` skipping any already queued, returns releases that were queued."
+  "Queues `releases` skipping any already known releases, returns releases that were queued."
   [db-spec releases]
   (let [releases (sort-by :created-ts releases)
         ;; quietly skip last release if already known, we don't have the facility
-        ;; to query clojars on exclusive ranges so we get overlaps
+        ;; to query clojars on exclusive ranges so we get an overlap
         releases (if (is-known-release? db-spec (last releases))
                    (butlast releases)
                    releases)]
-    (log/infof "Queuing %s new releases" (count releases))
-
-    (reduce (fn [acc {:keys [group-id artifact-id version] :as release}]
-              (jdbc/with-transaction [tx db-spec]
-                (if (is-known-release? tx release)
-                  (log/warnf "Skipping %s:%s:%s, is aleady known to cljdoc."
-                             group-id artifact-id version)
-                  (do
-                    (log/infof "Queueing %s:%s:%s for build."
+    (when (seq releases)
+      (log/infof "Queuing %s new releases" (count releases))
+      (reduce (fn [acc {:keys [group-id artifact-id version] :as release}]
+                (jdbc/with-transaction [tx db-spec]
+                  (if (is-known-release? tx release)
+                    (log/warnf "Skipping %s/%s %s, is aleady known to cljdoc."
                                group-id artifact-id version)
-                    (sql/insert! tx :releases
-                                 release
-                                 jdbc/unqualified-snake-kebab-opts)
-                    (conj acc release)))))
-            []
-            releases)))
+                    (do
+                      (log/infof "Queueing %s/%s %s for build."
+                                 group-id artifact-id version)
+                      (sql/insert! tx :releases
+                                   release
+                                   jdbc/unqualified-snake-kebab-opts)
+                      (conj acc release)))))
+              []
+              releases))))
 
 (defn- inc-retry-count! [db-spec {:keys [id retry-count] :as _release}]
   (sql/update! db-spec
@@ -140,13 +140,16 @@
     build-id))
 
 (defn- update-artifact-index [searcher releases]
-  (run! #(let [a {:artifact-id (:artifact-id %)
-                  :group-id (:group-id %)
-                  :origin :clojars}]
-           (sc/index-artifact
-            searcher
-            (merge a (clojars-artifact-info a))))
-        releases))
+  (when (seq releases)
+    (log/infof "Writing %d artifacts to search index" (count releases))
+    (->> releases
+         (mapv (fn [{:keys [group-id artifact-id]}]
+                 (log/infof "Fetching info for %s/%s" group-id artifact-id)
+                 (let [a {:artifact-id artifact-id
+                          :group-id group-id
+                          :origin :clojars}]
+                   (merge a (clojars-artifact-info a)))))
+         (sc/index-artifacts searcher))))
 
 (defn- exclude-new-release?
   [{:keys [group-id artifact-id version] :as _build}]
@@ -193,7 +196,7 @@
                  group-id artifact-id version)
       (let [{:keys [exception status] :as _resolve-result} (resolve-clojars-artifact release-to-build)]
         (case (long status)
-          200 (do (log/infof "Queuing build for %s" release-to-build)
+          200 (do (log/infof "Triggering build for %s/%s %s" group-id artifact-id version)
                   (update-build-id! db-spec id (trigger-build release-to-build)))
           404 (pre-check-failed! db-spec build-tracker release-to-build "listed-artifact-not-found")
           ;; else
@@ -272,5 +275,7 @@
 
   (Instant/ofEpochMilli (parse-long "1730927007884"))
   ;; => #object[java.time.Instant 0x283dc39f "2024-11-06T21:03:27.884Z"]
+
+  (time (clojars-artifact-info {:group-id "rewrite-clj" :artifact-id "rewrite-clj"} ))
 
   :eoc)
