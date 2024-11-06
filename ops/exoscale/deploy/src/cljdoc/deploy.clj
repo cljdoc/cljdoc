@@ -129,6 +129,13 @@
     (log/info "Syncing configuration:" k)
     (consul-put! k v)))
 
+(defn run-nomad-job! [job-spec]
+  (let [run-result (nomad-post! "/v1/jobs" job-spec)
+        warnings (get run-result "Warnings")]
+    (when warnings
+      (log/warnf "Create job returned warnings:\n%s" warnings))
+    run-result))
+
 (defn deploy!
   "Deploy the specified docker tag to the Nomad instance listening on
   localhost:4646.
@@ -137,7 +144,7 @@
   host or that Nomad is running on localhost."
   [docker-tag]
   (sync-config!)
-  (let [run-result (nomad-post! "/v1/jobs" (jobspec docker-tag))
+  (let [run-result (run-nomad-job! (jobspec docker-tag))
         eval-id (get run-result "EvalID")
         eval (wait-until "evaluation is complete"
                          (fn get-eval []
