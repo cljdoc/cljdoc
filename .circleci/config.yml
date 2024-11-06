@@ -54,7 +54,7 @@ aliases:
       command: bb download-deps
 
 orbs:
-  node: circleci/node@5.2.0
+  node: circleci/node@6.3.0
 
 jobs:
   #
