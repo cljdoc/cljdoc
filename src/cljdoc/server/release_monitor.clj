@@ -10,6 +10,7 @@
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
+            [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
             [next.jdbc.sql :as sql]
             [tea-time.core :as tt])
@@ -75,7 +76,29 @@
 
 (defn- queue-new-releases [db-spec releases]
   (log/infof "Queuing %s new releases" (count releases))
+    (doseq [release releases]
+      (jdbc/with-transaction [tx db-spec]
+      (let [{:keys [group_id artifact_id version]} release
+            duplicate? (-> (jdbc/execute-one! tx
+                                              [(str "SELECT EXISTS ("
+                                                    " SELECT 1 "
+                                                    " FROM releases "
+                                                    " WHERE group_id = ? "
+                                                    " AND artifact_id = ? "
+                                                    " AND version = ? "
+                                                    "AND build_id IS NULL) AS duplicate")
+                                               group_id artifact_id version])
+                           :duplicate
+                           zero?
+                           not)]
+        (if duplicate?
+          (log/warnf "Skipping %s:%s:%s, library already queued for build."
+                     group_id artifact_id version)
+          (sql/insert! tx :releases
+                       release)))))
+
   (sql/insert-multi! db-spec :releases releases))
+
 
 (defn- inc-retry-count! [db-spec {:keys [id retry_count] :as _release}]
   (sql/update! db-spec
@@ -188,6 +211,7 @@
 (comment
   (def cfg (cljdoc.config/config))
 
+
   (def db-spec (cljdoc.config/db cfg))
 
   (build-queuer-job-fn db-spec true)
@@ -216,4 +240,12 @@
    (->> (clojars-releases-since (last-release-ts db-spec))
         (map #(select-keys % [:created_ts]))))
 
-  (oldest-not-built db-spec))
+  (oldest-not-built db-spec)
+
+  (clojars-releases-since "2024-11-05T21:53:58.628Z")
+  (def foo (clojars-releases-since "2024-11-05T21:54:01.606Z"))
+  (count foo)
+
+  (queue-new-releases db-spec foo)
+
+  :eoc)
