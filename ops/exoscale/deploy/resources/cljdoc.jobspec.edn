@@ -9,10 +9,12 @@
                     :Delay #nomad/seconds 15
                     :Interval #nomad/seconds 1800
                     :Mode "fail"}
+    :Networks [{:DynamicPorts [{:Label "http" :To 8000}
+                               {:Label "jmx" :To 9010}]}]
     :Tasks
     [{:Artifacts nil
       :Config {:image #join ["cljdoc/cljdoc:" #cljdoc.deploy/opt :docker-tag]
-               :port_map [{:http 8000 :jmx 9010}]
+               :ports [{:http 8000 :jmx 9010}]
                :volumes ["secrets:/etc/cljdoc"
                          "/data/cljdoc:/var/cljdoc"]}
       :Driver "docker"
@@ -20,12 +22,7 @@
             :CLJDOC_PROFILE "prod"}
       :KillSignal ""
       :Name "backend"
-      :Resources
-      {:CPU 1000
-       :MemoryMB 1600
-       :Networks [{:DynamicPorts [{:Label "http" :Value 0}
-                                  {:Label "jmx" :Value 0 :HostNetwork "0.0.0.0"}]
-                   :MBits 10}]}
+      :Resources {:CPU 1000 :MemoryMB 1600}
       :Services [{:Name "cljdoc"
                   :PortLabel "http"
                   :Checks [{:Name "alive"
@@ -61,21 +58,18 @@
              :HealthyDeadline #nomad/seconds 240
              :MinHealthyTime #nomad/seconds 10}}
    {:Name "lb"
+    :Networks [{:ReservedPorts [{:Label "api" :Value 8080}
+                                {:Label "http" :Value 80}
+                                {:Label "https" :Value 443}]}]
     :Tasks
     [{:Config {:image "traefik:3.1.5"
                :network_mode "host"
-               :port_map [{:api 8080 :http 80 :https 443}]
+               :ports ["api" "http" "https"]
                :volumes ["local:/etc/traefik"
                          "/data/traefik:/data"]}
       :Driver "docker"
       :Name "traefik"
-      :Resources
-      {:CPU 200
-       :MemoryMB 256
-       :Networks [{:MBits 10
-                   :ReservedPorts [{:Label "api" :Value 8080}
-                                   {:Label "http" :Value 80}
-                                   {:Label "https" :Value 443}]}]}
+      :Resources {:CPU 200 :MemoryMB 256}
       :Services [{:Name "traefik"
                   :PortLabel "http"
                   :Checks [{:Name "alive"
