@@ -227,7 +227,6 @@
 (comment
   (def cfg (cljdoc.config/config))
 
-
   (def db-spec (cljdoc.config/db cfg))
 
   (build-queuer-job-fn db-spec true)
@@ -276,6 +275,6 @@
   (Instant/ofEpochMilli (parse-long "1730927007884"))
   ;; => #object[java.time.Instant 0x283dc39f "2024-11-06T21:03:27.884Z"]
 
-  (time (clojars-artifact-info {:group-id "rewrite-clj" :artifact-id "rewrite-clj"} ))
+  (time (clojars-artifact-info {:group-id "rewrite-clj" :artifact-id "rewrite-clj"}))
 
   :eoc)
