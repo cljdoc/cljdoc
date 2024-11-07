@@ -14,7 +14,7 @@
     :Tasks
     [{:Artifacts nil
       :Config {:image #join ["cljdoc/cljdoc:" #cljdoc.deploy/opt :docker-tag]
-               :ports [{:http 8000 :jmx 9010}]
+               :ports ["http" "jmx"]
                :volumes ["secrets:/etc/cljdoc"
                          "/data/cljdoc:/var/cljdoc"]}
       :Driver "docker"
