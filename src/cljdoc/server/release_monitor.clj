@@ -94,8 +94,8 @@
   (let [releases (sort-by :created-ts releases)
         ;; quietly skip last release if already known, we don't have the facility
         ;; to query clojars on exclusive ranges so we get an overlap
-        releases (if (is-known-release? db-spec (last releases))
-                   (butlast releases)
+        releases (if (is-known-release? db-spec (first releases))
+                   (rest releases)
                    releases)]
     (when (seq releases)
       (log/infof "Queuing %s new releases" (count releases))
