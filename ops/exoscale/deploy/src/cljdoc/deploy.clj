@@ -102,9 +102,9 @@
         healthy-allocs (get-in deployment ["TaskGroups" "cljdoc" "HealthyAllocs"])
         placed-allocs  (get-in deployment ["TaskGroups" "cljdoc" "PlacedAllocs"])
         status         (get-in deployment ["Status"])]
+    (log/infof "%d placed / %d healthy / %d desired  - status: '%s'" placed-allocs healthy-allocs desired-total status)
     (assert (= placed-allocs desired-total) "Not enough allocs placed")
     (assert (not= "failed" status) "Deployment failed")
-    (log/infof "%d healthy / %d desired - status: '%s'" healthy-allocs desired-total status)
     (= desired-total healthy-allocs)))
 
 (defn- tag-exists?
