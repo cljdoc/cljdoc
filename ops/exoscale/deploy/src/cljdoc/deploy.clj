@@ -203,11 +203,13 @@
   (cli-matic/run-cmd args CONFIGURATION))
 
 (comment
+  (aero/read-config "/home/lee/proj/oss/cljdoc/cljdoc/resources/config.edn" {:profile :default})
 
   ;; local testing against debian in a VirtualBox VM
-  (def deploy-opts {:docker-tag "0.0.2705-91bda72e"
+  (def deploy-opts {:docker-tag "0.0.2708-lread-ops-support-local-testing-of-host-e6b7d7a"
                     :cljdoc-profile "default"
                     :secrets-filename "../../../resources/secrets.edn"})
+
 
   (defmacro local-test [& body]
     `(with-nomad {:nomad-ip "10.0.1.15"
