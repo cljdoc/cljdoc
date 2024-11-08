@@ -13,7 +13,7 @@
           (throw (Exception. (str "Exception reading " value  " from classpath") e))))))
 
 (defn profile []
-  (let [known-profiles #{:live :local :prod :test nil}
+  (let [known-profiles #{:live :local :prod :test :default nil}
         profile        (keyword (System/getenv "CLJDOC_PROFILE"))]
     (if (contains? known-profiles profile)
       profile
