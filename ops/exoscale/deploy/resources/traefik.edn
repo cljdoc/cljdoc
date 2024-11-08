@@ -5,12 +5,12 @@
  :log {:filePath "/data/traefik.log"}
  :entryPoints {:web {:address ":80"}
                :websecure {:address ":443"}}
- :certifacesResolvers {:letsencrypt
-                       {:acme {:email "martinklepsch@googlemail.com"
-                               :storage "/data/acme.json"
-                               :keyType "RSA2048"
-                               :caServer #cljdoc.deploy/opt :lets-encrypt-endpoint
-                               :httpChallenge {:entryPoint "web"}}}}
+ :certificatesResolvers {:letsencrypt
+                         {:acme {:email "martinklepsch@googlemail.com"
+                                 :storage "/data/acme.json"
+                                 :keyType "RSA2048"
+                                 :caServer #cljdoc.deploy/opt :lets-encrypt-endpoint
+                                 :httpChallenge {:entryPoint "web"}}}}
  :api {:dashboard true
        :insecure true}
  :ping {}
