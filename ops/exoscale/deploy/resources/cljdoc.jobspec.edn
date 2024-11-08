@@ -1,3 +1,4 @@
+;; we convert this edn to json when we send it to nomad via deploy.clj
 {:Job
  {:Datacenters ["dc1"]
   :ID "cljdoc"
@@ -19,7 +20,7 @@
                          "/data/cljdoc:/var/cljdoc"]}
       :Driver "docker"
       :Env {:CLJDOC_SECRETS "/etc/cljdoc/secrets.edn"
-            :CLJDOC_PROFILE "prod"}
+            :CLJDOC_PROFILE #cljdoc.deploy/opt :cljdoc-profile}
       :KillSignal ""
       :Name "backend"
       :Resources {:CPU 1000 :MemoryMB 1600}
@@ -76,6 +77,6 @@
                             :Interval #nomad/seconds 10
                             :Timeout #nomad/seconds 2
                             :Type "tcp"}]}]
-      :Templates [{:DestPath "local/traefik.toml"
-                   :EmbeddedTmpl "{{key \"config/traefik-toml\"}}"}]}]}]
+      :Templates [{:DestPath "local/traefik.yaml"
+                   :EmbeddedTmpl "{{key \"config/traefik-yaml\"}}"}]}]}]
   :Type "service"}}
