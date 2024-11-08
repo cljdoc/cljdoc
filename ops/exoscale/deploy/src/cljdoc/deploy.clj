@@ -163,10 +163,13 @@
           (promote-deployment! deployment-id))
         (log/info "Nothing to do for deployment status" (pr-str (get deployment "Status")))))))
 
-(defmacro with-nomad [{:keys [nomad-ip ssh-key ssh-user]} & body]
-  `(let [jsch#    (JSch.)
-         session# (.getSession jsch# ~ssh-user ~nomad-ip)]
-     (.addIdentity jsch# ~ssh-key)
+(defmacro with-nomad [opts & body]
+  `(let [nomad-ip# (:nomad-ip ~opts)
+         ssh-key# (:ssh-key ~opts)
+         ssh-user# (:ssh-user ~opts)
+         jsch#    (JSch.)
+         session# (.getSession jsch# ssh-user# nomad-ip#)]
+     (.addIdentity jsch# ssh-key#)
      (JSch/setConfig "StrictHostKeyChecking" "no")
      (.connect session# 5000)
      (try
@@ -192,11 +195,13 @@
                   :description ["Deploy cljdoc to production"]
                   :opts        [{:option "ssh-key" :short "k" :as "SSH private key to use for accessing host" :type :string :default "~/.ssh/id_rsa"}
                                 {:option "ssh-user" :short "u" :as "SSH user" :type :string :default :present}
-                                {:option "nomad-ip" :as "IP of Nomad cluster to deploy to" :type :string}
+                                {:option "nomad-ip" :short "i" :as "IP of Nomad cluster to deploy to" :type :string}
                                 {:option "docker-tag" :short "t" :as "Tag of cljdoc/cljdoc image to deploy" :type :string :default :present}
                                 {:option "cljdoc-profile" :short "p" :as "Cljdoc profile" :type :string :default "prod"}
                                 {:option "secrets-filename" :short "s" :as "Secrets edn file" :type :string :default "resources/secrets.edn"}]
-                  :runs        cli-deploy!}]})
+                  :runs        (fn [opts] (cli-deploy!
+                                            (select-keys opts [:ssh-key :ssh-user :nomad-ip])
+                                            (select-keys opts [:docker-tag :cljdoc-profile :secrets-filename])))}]})
 
 (defn -main
   [& args]
@@ -215,6 +220,13 @@
                   :ssh-key "/home/lee/.ssh/id_ed25519_cljdoc_local_vm_testing"
                   :ssh-user "root"}
        ~@body))
+
+  (cli-deploy! {:nomad-ip "10.0.1.15"
+                :ssh-key "/home/lee/.ssh/id_ed25519_cljdoc_local_vm_testing"
+                :ssh-user "root"}
+               {:docker-tag "0.0.2712-92463d13"
+                :cljdoc-profile "default"
+                :secrets-filename "../../../resources/secrets.edn"})
 
   (local-test
    (nomad-post! "/v1/validate/job" (jobspec deploy-opts)))
