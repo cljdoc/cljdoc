@@ -107,8 +107,8 @@
 (defn secrets-config [{:keys [secrets-filename]}]
   (with-out-str
     (pp/pprint
-      (aero/read-config
-        (io/file secrets-filename)))))
+     (aero/read-config
+      (io/file secrets-filename)))))
 
 (defn traefik-config [{:keys [cljdoc-profile]}]
   (-> (io/resource "traefik.edn")
@@ -210,7 +210,6 @@
                     :cljdoc-profile "default"
                     :secrets-filename "../../../resources/secrets.edn"})
 
-
   (defmacro local-test [& body]
     `(with-nomad {:nomad-ip "10.0.1.15"
                   :ssh-key "/home/lee/.ssh/id_ed25519_cljdoc_local_vm_testing"
@@ -218,7 +217,7 @@
        ~@body))
 
   (local-test
-    (nomad-post! "/v1/validate/job" (jobspec deploy-opts)))
+   (nomad-post! "/v1/validate/job" (jobspec deploy-opts)))
   ;; => {"DriverConfigValidated" true,
   ;;     "ValidationErrors" nil,
   ;;     "Error" "",
@@ -373,7 +372,7 @@
   ;;     "SnapshotIndex" 2647,
   ;;     "DeploymentID" "fe58cd9d-49f3-d085-ac86-ad9bff51c235"}
 
-  (local-test (nomad-get (str "/v1/deployment/" "fe58cd9d-49f3-d085-ac86-ad9bff51c235")) )
+  (local-test (nomad-get (str "/v1/deployment/" "fe58cd9d-49f3-d085-ac86-ad9bff51c235")))
   ;; => {"CreateIndex" 2648,
   ;;     "TaskGroups"
   ;;     {"cljdoc"
@@ -414,6 +413,6 @@
   ;;     "EvalPriority" 50}
 
   (local-test
-    (deploy! deploy-opts))
+   (deploy! deploy-opts))
 
   :eoc)
