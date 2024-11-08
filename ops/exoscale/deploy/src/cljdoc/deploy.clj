@@ -23,19 +23,19 @@
 
 (unilog/start-logging! {:level :info :console true})
 
-(def nomad-base-uri "http://localhost:4646")
-(def consul-base-uri "http://localhost:8500")
+(def ^:private nomad-base-uri "http://localhost:4646")
+(def ^:private consul-base-uri "http://localhost:8500")
 
-(defn nomad-get [path]
+(defn- nomad-get [path]
   (json/parse-string (:body (http/get (str nomad-base-uri path)))))
 
-(defn nomad-post! [path body]
+(defn- nomad-post! [path body]
   (->> (http/post (str nomad-base-uri path)
                   {:body (json/generate-string body)})
        :body
        json/parse-string))
 
-(defn consul-put! [k v]
+(defn- consul-put! [k v]
   (->> (http/put (str consul-base-uri "/v1/kv/" k)
                  {:body v})
        :body
@@ -76,12 +76,12 @@
           (Thread/sleep test-interval-ms)
           (recur (inc try-num)))))))
 
-(defn promote-deployment! [deployment-id]
+(defn- promote-deployment! [deployment-id]
   (nomad-post! (str "/v1/deployment/promote/" deployment-id)
                {"DeploymentID" deployment-id
                 "All" true}))
 
-(defn deployment-healthy? [deployment-id]
+(defn- deployment-healthy? [deployment-id]
   (let [deployment     (nomad-get (str "/v1/deployment/" deployment-id))
         desired-total  (get-in deployment ["TaskGroups" "cljdoc" "DesiredTotal"])
         healthy-allocs (get-in deployment ["TaskGroups" "cljdoc" "HealthyAllocs"])
@@ -100,17 +100,17 @@
     (log/info "check for existence of docker tag" tag "returned" status)
     (= 200 status)))
 
-(defn jobspec [opts]
+(defn- jobspec [opts]
   (aero/read-config (io/resource "cljdoc.jobspec.edn")
                     {::opts opts}))
 
-(defn secrets-config [{:keys [secrets-filename]}]
+(defn- secrets-config [{:keys [secrets-filename]}]
   (with-out-str
     (pp/pprint
      (aero/read-config
       (io/file secrets-filename)))))
 
-(defn traefik-config [{:keys [cljdoc-profile]}]
+(defn- traefik-config [{:keys [cljdoc-profile]}]
   (-> (io/resource "traefik.edn")
       (aero/read-config
        {::opts {:lets-encrypt-endpoint
@@ -120,20 +120,20 @@
       (yaml/generate-string :dumper-options {:indent 2
                                              :flow-style :block})))
 
-(defn sync-config! [opts]
+(defn- sync-config! [opts]
   (doseq [[k v] {"config/traefik-yaml" (traefik-config opts)
                  "config/cljdoc/secrets-edn" (secrets-config opts)}]
     (log/info "Syncing configuration:" k)
     (consul-put! k v)))
 
-(defn run-nomad-job! [job-spec]
+(defn- run-nomad-job! [job-spec]
   (let [run-result (nomad-post! "/v1/jobs" job-spec)
         warnings (get run-result "Warnings")]
     (when warnings
       (log/warnf "Create job returned warnings:\n%s" warnings))
     run-result))
 
-(defn deploy!
+(defn- deploy!
   "Deploy the specified docker tag to the Nomad instance listening on
   localhost:4646.
 
@@ -176,15 +176,15 @@
        (finally
          (.disconnect session#)))))
 
-(defn cli-deploy! [{:keys [nomad-ip] :as connect-opts}
-                   {:keys [docker-tag cljdoc-profile] :as deploy-opts}]
+(defn- cli-deploy! [{:keys [nomad-ip] :as connect-opts}
+                    {:keys [docker-tag cljdoc-profile] :as deploy-opts}]
   (wait-until (format "docker tag %s exists" docker-tag) #(tag-exists? docker-tag)
               2000 (.toSeconds TimeUnit/MINUTES 3))
   (log/infof "Deploying to Nomad server at %s:4646 using %s cljdoc-profile" nomad-ip cljdoc-profile)
   (with-nomad connect-opts
     (deploy! deploy-opts)))
 
-(def CONFIGURATION
+(def ^:private CONFIGURATION
   {:app         {:command     "cljdoc-deploy"
                  :description "command-line utilities to deploy cljdoc"
                  :version     "0.0.1"}
