@@ -200,8 +200,8 @@
                                 {:option "cljdoc-profile" :short "p" :as "Cljdoc profile" :type :string :default "prod"}
                                 {:option "secrets-filename" :short "s" :as "Secrets edn file" :type :string :default "resources/secrets.edn"}]
                   :runs        (fn [opts] (cli-deploy!
-                                            (select-keys opts [:ssh-key :ssh-user :nomad-ip])
-                                            (select-keys opts [:docker-tag :cljdoc-profile :secrets-filename])))}]})
+                                           (select-keys opts [:ssh-key :ssh-user :nomad-ip])
+                                           (select-keys opts [:docker-tag :cljdoc-profile :secrets-filename])))}]})
 
 (defn -main
   [& args]
