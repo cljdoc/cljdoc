@@ -211,7 +211,7 @@
   (aero/read-config "/home/lee/proj/oss/cljdoc/cljdoc/resources/config.edn" {:profile :default})
 
   ;; local testing against debian in a VirtualBox VM
-  (def deploy-opts {:docker-tag "0.0.2708-lread-ops-support-local-testing-of-host-e6b7d7a"
+  (def deploy-opts {:docker-tag "0.0.2718-lread-allow-visualvm-91ac4c5"
                     :cljdoc-profile "default"
                     :secrets-filename "../../../resources/secrets.edn"})
 

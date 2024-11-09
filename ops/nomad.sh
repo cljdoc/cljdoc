@@ -46,7 +46,12 @@ cleanup () {
 trap cleanup EXIT ERR INT TERM
 
 # Start SSH port forwarding process for consul (8500) and nomad (4646)
-ssh -M -S "${socket}" -fNT -L 8080:localhost:8080 -L 8500:localhost:8500 -L 4646:localhost:4646 "${user_ip}"
+ssh -M -S "${socket}" -fNT \
+    -L 8080:localhost:8080 \
+    -L 8500:localhost:8500 \
+    -L 4646:localhost:4646 \
+    -L 9010:localhost:9010 \
+    "${user_ip}"
 
 ssh -S "${socket}" -O check "${user_ip}"
 

@@ -4,7 +4,8 @@
  :accessLog {:filePath "/data/access.log"}
  :log {:filePath "/data/traefik.log"}
  :entryPoints {:web {:address ":80"}
-               :websecure {:address ":443"}}
+               :websecure {:address ":443"}
+               :jmx {:address ":9010"}}
  :certificatesResolvers {:letsencrypt
                          {:acme {:email "martinklepsch@googlemail.com"
                                  :storage "/data/acme.json"
