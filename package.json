@@ -33,7 +33,7 @@
     "prettier": "^3.3.3",
     "pretty-quick": "^4.0.0",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.12.2"
+    "typescript-eslint": "^8.13.0"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
