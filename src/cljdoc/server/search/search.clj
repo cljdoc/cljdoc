@@ -15,6 +15,7 @@
    [clojure.tools.logging :as log])
   (:import
    (java.nio.file Paths)
+   (java.util.concurrent Semaphore)
    (org.apache.lucene.analysis Analyzer Analyzer$TokenStreamComponents TokenStream Tokenizer)
    (org.apache.lucene.analysis.icu ICUFoldingFilter)
    (org.apache.lucene.analysis.ngram NGramTokenizer)
@@ -246,6 +247,29 @@
           (log/infof "Artifact indexing complete. Indexed %d jars in %.2f seconds (%.2f/second)"
                      artifacts-indexed seconds-elapsed (/ artifacts-indexed seconds-elapsed)))))))
 
+(defn make-index-reader-fn [^Directory index-directory]
+  (let [^IndexReader reader (atom (DirectoryReader/open index-directory))
+        refresh-semaphore (Semaphore. 1)]
+    (fn index-reader-fn []
+      (let [^DirectoryReader current-reader @reader]
+        (if (.isCurrent current-reader)
+          current-reader
+          (if (.tryAcquire refresh-semaphore)
+            (try
+              (let [new-reader (DirectoryReader/openIfChanged current-reader)]
+                (when new-reader
+                  (swap! reader (constantly new-reader))
+                  (.close current-reader))
+                (.release refresh-semaphore)
+                (or new-reader current-reader))
+              (catch Exception e
+                (.release refresh-semaphore)
+                (throw e)))
+            current-reader))))))
+
+(defn index-reader-close [^IndexReader reader]
+  (.close reader))
+
 (defn download-and-index!
   [clojars-stats ^Directory index & {:keys [force-download?]}]
   (log/info "Download & index starting...")
@@ -361,18 +385,18 @@
   Result keys:
   - :count - total hits
   - :results - vector of matching artifacts with :score"
-  ([index query]
-   (search->results index query 30))
-  ([^Directory index ^Query query ^long max-results]
+  ([index-reader-fn query]
+   (search->results index-reader-fn query 30))
+  ([index-reader-fn ^Query query ^long max-results]
    (if query
-     (with-open [reader (DirectoryReader/open index)]
-       (let [{:keys [^TopDocs topdocs searcher]}
-             (search->results* reader query max-results)]
-         {:count (total-hits topdocs)
-          :results (->> (.scoreDocs topdocs)
-                        (mapv (fn [^ScoreDoc scoredoc]
-                                (doc->artifact (matched-doc searcher scoredoc)
-                                               (hitdoc-score scoredoc)))))}))
+     (let [reader (index-reader-fn)
+           {:keys [^TopDocs topdocs searcher]}
+           (search->results* reader query max-results)]
+       {:count (total-hits topdocs)
+        :results (->> (.scoreDocs topdocs)
+                      (mapv (fn [^ScoreDoc scoredoc]
+                              (doc->artifact (matched-doc searcher scoredoc)
+                                             (hitdoc-score scoredoc)))))})
      {:count 0 :results []})))
 
 (defn- snapshot? [version]
@@ -391,8 +415,8 @@
 
 (defn search
   "Search lucene `index` for `query-in` text as typed by user."
-  [index ^String query-in]
-  (let [r (search->results index (parse-query query-in))]
+  [index-reader-fn ^String query-in]
+  (let [r (search->results index-reader-fn (parse-query query-in))]
     (assoc r :results
            (reduce
             (fn [acc {:keys [versions] :as artifact}]
@@ -414,14 +438,14 @@
   By default returns all artifacts, can optionally specify:
   - group-id - return all matches for exact match on group id
   - artifact-id - return all matches for exact match on artifact-id under group-id (ignored if group-id not specified)"
-  [index {:keys [group-id artifact-id]}]
+  [index-reader-fn {:keys [group-id artifact-id]}]
   (->> (cond (and group-id artifact-id)
-             (search->results index (boolean-query :must [(term-query :group-id.exact group-id)
-                                                          (term-query :artifact-id.exact artifact-id)]))
+             (search->results index-reader-fn (boolean-query :must [(term-query :group-id.exact group-id)
+                                                                    (term-query :artifact-id.exact artifact-id)]))
              group-id
-             (search->results index (term-query :group-id.exact group-id))
+             (search->results index-reader-fn (term-query :group-id.exact group-id))
              :else
-             (search->results index (MatchAllDocsQuery.) 0))
+             (search->results index-reader-fn (MatchAllDocsQuery.) 0))
        :results
        (mapv (fn [artifact]
                (-> artifact
@@ -441,8 +465,8 @@
    - https://github.com/dewitt/opensearch/blob/master/mediawiki/Specifications/OpenSearch/Extensions/Suggestions/1.1/Draft%201.wiki
    - https://developer.mozilla.org/en-US/docs/Web/OpenSearch
    - https://developer.mozilla.org/en-US/docs/Archive/Add-ons/Supporting_search_suggestions_in_search_plugins"
-  [index query-in]
-  (let [suggestions (->> (search->results index (parse-query query-in) 5)
+  [index-reader-fn query-in]
+  (let [suggestions (->> (search->results index-reader-fn (parse-query query-in) 5)
                          :results
                          (mapv (fn [{:keys [group-id artifact-id]}]
                                  (str group-id "/" artifact-id
@@ -489,37 +513,37 @@
 
   (def clojars-stats (:cljdoc/clojars-stats integrant.repl.state/system))
 
-  (def index (disk-index "data/index-lucene950"))
+  (def index (disk-index "data/index-lucene-10_0_0"))
+
+  (def index-reader-fn (make-index-reader-fn index))
 
   (download-and-index! clojars-stats
                        index
                        :force-download? true)
 
-  (search index "metosin muunta")
+  (search index-reader-fn "metosin muunta")
+
   (explain-top-n 6 index "metosin muunta")
 
-  (docs-versions index {:group-id "rewrite-clj"})
-  (docs-versions index {:group-id "babashka" :artifact-id "fs"})
-
-  (search index "re-frame")
-  (search index "org.clojure")
-  (search index "testit")
-  (search index "ring")
-  (search index "conc")
-  (search index "facade")
+  (search index-reader-fn "re-frame")
+  (search index-reader-fn "org.clojure")
+  (search index-reader-fn "testit")
+  (search index-reader-fn "ring")
+  (search index-reader-fn "conc")
+  (search index-reader-fn "facade")
 
   (.toString (parse-query "q/q"))
   ;; => "FunctionScoreQuery((+group-id.exact:q +artifact-id.exact:q)^100.0 (+(group-id:q artifact-id:q (blurb:q)^0.01) +(group-id:q artifact-id:q (blurb:q)^0.01)), scored by boost(double(_score)))"
 
-  (search index "q/q")
+  (search index-reader-fn "q/q")
   (explain-top-n 3 index "q/q")
 
-  (search index "")
+  (search index-reader-fn "")
 
-  (suggest index "clojure tools")
-  (suggest index "nothingatall")
+  (suggest index-reader-fn "clojure tools")
+  (suggest index-reader-fn "nothingatall")
 
-  (search index "clj-kondo")
+  (search index-reader-fn "clj-kondo")
 
   (explain-top-n 3 index "clojure")
 

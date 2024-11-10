@@ -35,18 +35,19 @@
   (search [_ query] "Supports web app libraries search")
   (suggest [_ query] "Supports OpenSearch libraries suggest search."))
 
-(defrecord Searcher [clojars-stats ^Directory index]
+(defrecord Searcher [clojars-stats ^Directory index index-reader-fn]
   ISearcher
   (artifact-versions [_ refined-by]
-    (search/versions index refined-by))
+    (search/versions index-reader-fn refined-by))
   (index-artifacts [_ artifacts]
     (search/index! clojars-stats index artifacts))
   (search [_ query]
-    (search/search index query))
+    (search/search index-reader-fn query))
   (suggest [_ query]
-    (search/suggest index query)))
+    (search/suggest index-reader-fn query)))
 
-(defmethod ig/init-key :cljdoc/searcher [k {:keys [clojars-stats index-factory index-dir enable-indexer?] :or {enable-indexer? true}}]
+(defmethod ig/init-key :cljdoc/searcher [k {:keys [clojars-stats index-factory index-dir enable-indexer?]
+                                            :or {enable-indexer? true}}]
   (log/info "Starting" k)
   (let [index (if index-factory ;; to support unit testing
                 (index-factory)
@@ -55,22 +56,24 @@
     ;; This avoids exceptions on searching a non-existing index.
     (search/index! clojars-stats index [])
     (map->Searcher {:index index
+                    :index-reader-fn (search/make-index-reader-fn index)
                     :clojars-stats clojars-stats
                     :artifact-indexer (when enable-indexer?
                                         (log/info "Starting ArtifactIndexer")
                                         (tt/every! (.toSeconds TimeUnit/HOURS 1)
                                                    #(search/download-and-index! clojars-stats index)))})))
 
-(defmethod ig/halt-key! :cljdoc/searcher [k {:keys [artifact-indexer index] :as _searcher}]
+(defmethod ig/halt-key! :cljdoc/searcher [k {:keys [artifact-indexer index index-reader-fn] :as _searcher}]
   (log/info "Stopping" k)
   (when artifact-indexer
     (log/info "Stopping ArtifactIndexer")
     (tt/cancel! artifact-indexer))
+  (when-let [index-reader (index-reader-fn)]
+    (search/index-reader-close index-reader))
   (when index
     (search/index-close index)))
 
 (comment
-
   (def sr (ig/init-key :cljdoc/searcher {:index-dir "data/index"}))
   (ig/halt-key! :cljdoc/searcher sr)
 
