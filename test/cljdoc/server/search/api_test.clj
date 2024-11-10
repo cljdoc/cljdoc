@@ -261,6 +261,38 @@
       (t/is (= (expected-versions-result [])
                (api/artifact-versions *searcher* {:group-id "g1" :artifact-id "nope"}))))))
 
+(t/deftest changes-are-seen
+  (let [g1-a1-orig {:group-id "g1"
+                    :artifact-id "a1"
+                    :description "g1-a1 original desc"
+                    :origin :clojars
+                    :versions ["1.0.0" "1.0.1"]}
+        g1-a2-orig {:group-id "g1"
+                    :artifact-id "a2"
+                    :description "g1-a2 original desc"
+                    :origin :clojars
+                    :versions ["1.2.3"]}
+        initial [g1-a1-orig g1-a2-orig]
+        g1-a1-update {:group-id "g1"
+                      :artifact-id "a1"
+                      :description "g1-a1 new desc"
+                      :origin :clojars
+                      :versions ["1.0.0" "1.0.1" "1.0.2"]}
+        g1-a3-new {:group-id "g1"
+                   :artifact-id "a3"
+                   :description "g1-a3 added"
+                   :origin :clojars
+                   :versions ["4.5.6" "7.8.9"]}
+        updates [g1-a1-update g1-a3-new]]
+    (api/index-artifacts *searcher* initial)
+    (t/testing "initial data"
+      (t/is (match? (m/in-any-order (expected-versions-result initial))
+                    (api/artifact-versions *searcher* {}))))
+    (api/index-artifacts *searcher* updates)
+    (t/testing "after updates"
+      (t/is (match? (m/in-any-order (expected-versions-result [(merge g1-a1-orig g1-a1-update) g1-a2-orig g1-a3-new]))
+                    (api/artifact-versions *searcher* {}))))))
+
 (comment
   (def s (ig/init-key :cljdoc/searcher {:clojars-stats (reify clojars-stats/IClojarsStats
                                                          (download-count-max [_] 100)
