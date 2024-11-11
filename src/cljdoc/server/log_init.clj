@@ -10,4 +10,9 @@
 (unilog/start-logging!
  {:level   :info
   :console true
+  :appenders [{:appender :rolling-file
+               :file log-file
+               :rolling-policy {:type :time-based
+                                :max-history 14 ;; days (based on pattern)
+                                :pattern "%d{yyyy-MM-dd}"}}]
   :files   [log-file]})
