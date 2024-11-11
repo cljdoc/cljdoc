@@ -22,6 +22,7 @@
                                                :prod true}
                  :dir #profile {:default "data/"
                                 :test "test-data/"
+                                ;; dest within docker container
                                 :prod "/var/cljdoc/"}
                  :opensearch-base-url #profile {:default "http://localhost:8000"
                                                 :prod "https://cljdoc.org"}}
