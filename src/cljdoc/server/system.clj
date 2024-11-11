@@ -6,6 +6,7 @@
             [cljdoc.server.clojars-stats]
             [cljdoc.server.db-backup :as db-backup]
             [cljdoc.server.log-init]
+            [cljdoc.server.metrics-logger]
             [cljdoc.server.pedestal]
             [cljdoc.server.release-monitor]
             [cljdoc.storage.api :as storage]
@@ -37,6 +38,7 @@
       (require ns))
     (merge
      {:cljdoc/tea-time        {}
+      :cljdoc/metrics-logger (ig/ref :cljdoc/tea-time)
       :cljdoc/sqlite          (merge {:db-spec (cfg/db env-config)
                                       :dir     (cfg/data-dir env-config)}
                                      (cfg/db-restore env-config))
