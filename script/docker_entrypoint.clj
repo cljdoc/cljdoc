@@ -48,6 +48,7 @@
     (println "Launching cljdoc server")
     (process/exec "clojure"
                   "-J-XshowSettings:vm" ;; prints heap usage to to stderr at startup
+                  "-J-Xms1024m"         ;; perhaps temporary, will make it easier to diag mem usage
                   "-J-Xmx1024m"
                   "-J-Dcljdoc.host=0.0.0.0"
                   "-J-XX:+ExitOnOutOfMemoryError"
