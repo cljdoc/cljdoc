@@ -27,7 +27,7 @@
                      slurp
                      str/split-lines
                      (mapv #(str/split % #" "))
-                     (into {})) ]
+                     (into {}))]
       {:cgroup-anon (parse-long (get stats "anon"))
        :cgroup-file (parse-long (get stats "file"))})))
 
