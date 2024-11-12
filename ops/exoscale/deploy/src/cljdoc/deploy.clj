@@ -211,7 +211,7 @@
   (aero/read-config "/home/lee/proj/oss/cljdoc/cljdoc/resources/config.edn" {:profile :default})
 
   ;; local testing against debian in a VirtualBox VM
-  (def deploy-opts {:docker-tag "0.0.2718-lread-allow-visualvm-91ac4c5"
+  (def deploy-opts {:docker-tag "0.0.2732-lread-explore-mem-usage-6f7fa85"
                     :cljdoc-profile "default"
                     :secrets-filename "../../../resources/secrets.edn"})
 
@@ -224,7 +224,7 @@
   (cli-deploy! {:nomad-ip "10.0.1.20"
                 :ssh-key "/home/lee/.ssh/id_ed25519_cljdoc_local_vm_testing"
                 :ssh-user "root"}
-               {:docker-tag "0.0.2712-92463d13"
+               {:docker-tag "0.0.2732-lread-explore-mem-usage-6f7fa85"
                 :cljdoc-profile "default"
                 :secrets-filename "../../../resources/secrets.edn"})
 
