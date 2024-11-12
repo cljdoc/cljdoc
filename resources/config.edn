@@ -20,9 +20,9 @@
                                               :prod true}
                  :enable-db-restore? #profile {:default false
                                                :prod true}
-                 :dir #profile {:default "data/"
-                                :test "test-data/"
-                                :prod "/var/cljdoc/"}
+                 :dir #or [#prop cljdoc.dir ;; to support local vm testing, set in docker_entrypoint.clj
+                           #profile {:default "data/"
+                                     :test "test-data/"}]
                  :opensearch-base-url #profile {:default "http://localhost:8000"
                                                 :prod "https://cljdoc.org"}}
  :cljdoc/hardcoded #include "hardcoded-projects-config.edn"}

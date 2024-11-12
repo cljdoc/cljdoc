@@ -5,9 +5,13 @@
 
 (set! *warn-on-reflection* true)
 
-(def log-file "log/cljdoc.log")
+(def log-file (or (System/getProperty "cljdoc.log.file") "log/cljdoc.log"))
 
 (unilog/start-logging!
  {:level   :info
   :console true
-  :files   [log-file]})
+  :appenders [{:appender :rolling-file
+               :file log-file
+               :rolling-policy {:type :time-based
+                                :max-history 14 ;; days (based on pattern)
+                                :pattern "%d{yyyy-MM-dd}"}}]})
