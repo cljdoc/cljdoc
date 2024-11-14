@@ -66,7 +66,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.29.9"}
+        software.amazon.awssdk/s3 {:mvn/version "2.29.12"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.0.0.202409031743-r"} ;; git with jsch
@@ -99,7 +99,7 @@
                          cider/cider-nrepl {:mvn/version "0.50.2"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.10.0"}
                          ;; to support recompiling java code from repl
-                         virgil/virgil {:mvn/version "0.3.0"}
+                         virgil/virgil {:mvn/version "0.3.1"}
                          ;; for ns reload support
                          io.github.tonsky/clj-reload {:mvn/version "0.7.1"}
                          ;; reload support
@@ -119,13 +119,13 @@
 
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.5"}
-                   clj-kondo/clj-kondo {:mvn/version "2024.09.27"}
+                   clj-kondo/clj-kondo {:mvn/version "2024.11.14"}
                    babashka/fs {:mvn/version "0.5.22"}
                    babashka/process {:mvn/version "0.5.22"}}
             :ns-default build}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2024.09.27"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2024.11.14"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
