@@ -19,21 +19,22 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
-    "@parcel/packager-xml": "^2.12.0",
-    "@parcel/transformer-image": "^2.12.0",
-    "@parcel/transformer-xml": "^2.12.0",
+    "@parcel/packager-xml": "^2.13.0",
+    "@parcel/transformer-image": "^2.13.0",
+    "@parcel/transformer-xml": "^2.13.0",
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
     "eslint": "^9.14.0",
-    "parcel": "^2.12.0",
+    "parcel": "^2.13.0",
     "parcel-namer-custom": "^0.2.0",
     "parcel-reporter-static-files-copy": "^1.5.3",
     "parcel-resolver-ignore": "^2.1.5",
     "prettier": "^3.3.3",
     "pretty-quick": "^4.0.0",
+    "svgo": "^3.3.2",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.13.0"
+    "typescript-eslint": "^8.14.0"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
