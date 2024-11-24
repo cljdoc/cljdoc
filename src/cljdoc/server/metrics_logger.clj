@@ -2,13 +2,11 @@
   (:require
    [babashka.fs :as fs]
    [cljdoc.server.metrics-native-mem :as native-mem]
-   [clojure.edn :as edn]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [tea-time.core :as tt])
-  (:import (javax.management ObjectName)
-           (java.lang.management ManagementFactory)))
+  (:import (java.lang.management ManagementFactory)))
 
 (set! *warn-on-reflection* true)
 
