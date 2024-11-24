@@ -11,8 +11,8 @@
   JDK source that emits the output:
   https://github.com/openjdk/jdk/blob/jdk-23%2B37/src/hotspot/share/nmt/memReporter.cpp "
   (:require [clojure.string :as str])
-  (:import (javax.management ObjectName)
-           (java.lang.management ManagementFactory)))
+  (:import (java.lang.management ManagementFactory)
+           (javax.management ObjectName)))
 
 (set! *warn-on-reflection* true)
 
