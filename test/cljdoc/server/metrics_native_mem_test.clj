@@ -10,8 +10,8 @@
                   "foobar"
                   ""]]
     (t/is (match?
-            (m/nested-equals [{}])
-            (mnm/parse-output-text output)))))
+           (m/nested-equals [{}])
+           (mnm/parse-output-text output)))))
 
 (t/deftest sanity-parse-test
   (t/is (match?

@@ -24,11 +24,11 @@
   It avoids a spawn of jcmd."
   []
   (.invoke
-    (ManagementFactory/getPlatformMBeanServer)
-    (ObjectName. "com.sun.management:type=DiagnosticCommand")
-    "vmNativeMemory"
-    (into-array Object [(into-array String ["summary"])])
-    (into-array String ["[Ljava.lang.String;"])))
+   (ManagementFactory/getPlatformMBeanServer)
+   (ObjectName. "com.sun.management:type=DiagnosticCommand")
+   "vmNativeMemory"
+   (into-array Object [(into-array String ["summary"])])
+   (into-array String ["[Ljava.lang.String;"])))
 
 (defn- parse-line [line]
   (let [indent (if (str/blank? line)
@@ -55,12 +55,12 @@
               res
               (let [[t1] tokens
                     [val-key val] (cond
-                            (= "at-peak" t1)
-                            [:at-peak true]
-                            (str/ends-with? t1 "kb")
-                            [:kb (parse-long (subs t1 0 (- (count t1) 2)))]
-                            (str/starts-with? t1 "#")
-                            [:cnt (parse-long (subs t1 1))])]
+                                    (= "at-peak" t1)
+                                    [:at-peak true]
+                                    (str/ends-with? t1 "kb")
+                                    [:kb (parse-long (subs t1 0 (- (count t1) 2)))]
+                                    (str/starts-with? t1 "#")
+                                    [:cnt (parse-long (subs t1 1))])]
                 (recur
                  (rest tokens)
                  (if val-key
@@ -93,23 +93,23 @@
 
 (defn- find-path [parsed ndx p]
   (loop [ps (reverse (subvec parsed 0 ndx))
-                            indent (:indent p)
-                            res (list)]
-                       (let [pf (first ps)
-                             indent-next (:indent pf)]
-                         (cond
-                           (or (not pf) (< indent-next 0))
-                           res
-                           (< indent-next indent)
-                           (recur (rest ps)
-                                  (:indent pf)
-                                  (cons (or (-> pf :m first first)
-                                            (-> pf :path first))
-                                        res))
-                           :else
-                           (recur (rest ps)
-                                  indent
-                                  res)))))
+         indent (:indent p)
+         res (list)]
+    (let [pf (first ps)
+          indent-next (:indent pf)]
+      (cond
+        (or (not pf) (< indent-next 0))
+        res
+        (< indent-next indent)
+        (recur (rest ps)
+               (:indent pf)
+               (cons (or (-> pf :m first first)
+                         (-> pf :path first))
+                     res))
+        :else
+        (recur (rest ps)
+               indent
+               res)))))
 
 (defn- parse-block [block]
   (let [lines (str/split-lines block)
