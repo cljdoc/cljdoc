@@ -110,6 +110,12 @@
             :main-opts  ["-m" "nrepl.cmdline"
                          "--middleware" "[refactor-nrepl.middleware/wrap-refactor cider.nrepl/cider-middleware]"
                          "-i"]}
+           :flowstorm
+           {;; for disabling the official compiler
+            :classpath-overrides {org.clojure/clojure nil}
+            :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"}
+                         com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}
+            :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}
            :test
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
