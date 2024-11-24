@@ -105,6 +105,8 @@
                          ;; reload support
                          integrant/repl {:mvn/version "0.4.0"}}
             :jvm-opts ["-XX:-OmitStackTraceInFastThrow"
+                       ;; enabled to diagnose native memory usage
+                       "-XX:NativeMemoryTracking=summary"
                        ;; allow interrupts in cider
                        "-Djdk.attach.allowAttachSelf"]
             :main-opts  ["-m" "nrepl.cmdline"
