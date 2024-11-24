@@ -1,11 +1,12 @@
 (ns cljdoc.server.metrics-logger
   (:require
    [babashka.fs :as fs]
+   [cljdoc.server.metrics-native-mem :as native-mem]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [tea-time.core :as tt])
-  (:import [java.lang.management ManagementFactory]))
+  (:import (java.lang.management ManagementFactory)))
 
 (set! *warn-on-reflection* true)
 
@@ -32,7 +33,8 @@
        :cgroup-file (parse-long (get stats "file"))})))
 
 (defn- log-stats []
-  (log/info "mem-stats" (merge (heap-stats) (non-heap-stats) (cgroup-mem-stats))))
+  (log/info "mem-stats" (merge (heap-stats) (non-heap-stats) (cgroup-mem-stats)))
+  (log/info "native-mem-stats" (native-mem/metrics)))
 
 (defmethod ig/init-key :cljdoc/metrics-logger
   [k _opts]
