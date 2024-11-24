@@ -48,3 +48,20 @@
   (when metrics-logger
     (log/info "Stopping" k)
     (tt/cancel! (::metrics-logger-job metrics-logger))))
+
+(comment
+  (heap-stats)
+  ;; => {:heap-used 125461000, :heap-committed 339738624, :heap-max 8401190912}
+
+  (non-heap-stats)
+  ;; => {:non-heap-used 117287848, :non-heap-committed 131923968}
+
+  (cgroup-mem-stats)
+  ;; => {:cgroup-anon 8859942912, :cgroup-file 5171736576}
+
+  (->> "/sys/fs/cgroup/memory.stat"
+       slurp
+       str/split-lines
+       (mapv #(str/split % #" ")))
+
+  :eoc)
