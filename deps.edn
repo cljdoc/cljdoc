@@ -115,8 +115,8 @@
            :flowstorm
            {;; for disabling the official compiler
             :classpath-overrides {org.clojure/clojure nil}
-            :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"}
-                         com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}
+            :extra-deps {com.github.flow-storm/clojure #_:clj-kondo/ignore {:mvn/version "RELEASE"}
+                         com.github.flow-storm/flow-storm-dbg #_:clj-kondo/ignore {:mvn/version "RELEASE"}}
             :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}
            :test
            {:extra-paths ["test"]
