@@ -1,11 +1,14 @@
 (ns cljdoc.server.metrics-logger
   (:require
    [babashka.fs :as fs]
+   [cljdoc.server.metrics-native-mem :as native-mem]
+   [clojure.edn :as edn]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [tea-time.core :as tt])
-  (:import [java.lang.management ManagementFactory]))
+  (:import (javax.management ObjectName)
+           (java.lang.management ManagementFactory)))
 
 (set! *warn-on-reflection* true)
 
@@ -32,7 +35,8 @@
        :cgroup-file (parse-long (get stats "file"))})))
 
 (defn- log-stats []
-  (log/info "mem-stats" (merge (heap-stats) (non-heap-stats) (cgroup-mem-stats))))
+  (log/info "mem-stats" (merge (heap-stats) (non-heap-stats) (cgroup-mem-stats)))
+  (log/info "native-mem-stats" (native-mem/metrics)))
 
 (defmethod ig/init-key :cljdoc/metrics-logger
   [k _opts]
@@ -46,20 +50,3 @@
   (when metrics-logger
     (log/info "Stopping" k)
     (tt/cancel! (::metrics-logger-job metrics-logger))))
-
-(comment
-  (heap-stats)
-  ;; => {:heap-used 125461000, :heap-committed 339738624, :heap-max 8401190912}
-
-  (non-heap-stats)
-  ;; => {:non-heap-used 117287848, :non-heap-committed 131923968}
-
-  (cgroup-mem-stats)
-  ;; => {:cgroup-anon 8859942912, :cgroup-file 5171736576}
-
-  (->> "/sys/fs/cgroup/memory.stat"
-       slurp
-       str/split-lines
-       (mapv #(str/split % #" ")))
-
-  :eoc)
