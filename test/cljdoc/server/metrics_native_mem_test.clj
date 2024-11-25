@@ -235,3 +235,46 @@ Total: reserved=1001KB, committed=1002KB
 -                   Unknown (reserved=22001KB, committed=22002KB)
                             (mmap: reserved=22003KB, committed=22004KB, peak=22005KB)
 "))))
+
+(t/deftest hypothetical-parse-test
+  ;; Our parsing tries to be generic to support potential new entries
+  (t/is (match?
+           (m/nested-equals [{:total
+                              {:big {:kb 123456789012345 :cnt 234567890123456}
+                               :zero {:kb 0 :cnt 0}}}
+                             {:metrics-value-order
+                              {:bar {:cnt 443}
+                               :foo {:cnt 32 :kb 99 :at-peak true}
+                               :abc {:cnt 11 :kb 23}}}
+                             {:hierarchy
+                              {:one {:cnt 32}
+                               :two {:buckle
+                                     {:my-big
+                                      {:shoe
+                                       {:cnt 44}}}
+                                     :three
+                                     {:four
+                                      {:kb 5}}
+                                     :five
+                                     {:beehive
+                                      {:cnt 76}}}
+                               :six-tricks {:kb 20}}}])
+           (mnm/parse-output-text "The header lines can change,
+we do not care,
+we only expect interesting data to start with Total:
+
+Total: big=123456789012345KB #234567890123456 zero=0KB #0
+
+-    Metrics Value Order (bar=#443 foo #32 99KB at peak)
+                         (abc 23KB #11)
+
+-    Hierarchy (one: #32)
+               ( two:)
+               (  buckle:)
+               (         my big:)
+               (           shoe #44)
+               (  three:)
+               (    four: 5kb)
+               (  five:)
+               (    beehive #76)
+               (six tricks 20kb)"))))
