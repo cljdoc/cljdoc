@@ -34,9 +34,10 @@
   (let [indent (if (str/blank? line)
                  -1
                  (count (re-find #"^-? *\(? *" line)))
-        line (str/lower-case line)
-        ;; join foo bar -> foo-bar
-        line (str/replace line #"([a-z]) ([a-z])" "$1-$2")
+        line (-> line
+                 str/lower-case
+                 (str/replace #"(\d+)kb" "!$1")  ;; change syntax so we don't interfere with hyphenation replacement
+                 (str/replace #"([a-z]) ([a-z])" "$1-$2"))
         [group metrics-data] (if (str/starts-with? line "-")
                                (rest (re-find #"^- +(.*) +(\(.*)" line))
                                [nil (str/trim line)])
@@ -57,8 +58,8 @@
                     [val-key val] (cond
                                     (= "at-peak" t1)
                                     [:at-peak true]
-                                    (str/ends-with? t1 "kb")
-                                    [:kb (parse-long (subs t1 0 (- (count t1) 2)))]
+                                    (str/starts-with? t1 "!")
+                                    [:kb (parse-long (subs t1 1))]
                                     (str/starts-with? t1 "#")
                                     [:cnt (parse-long (subs t1 1))])]
                 (recur
