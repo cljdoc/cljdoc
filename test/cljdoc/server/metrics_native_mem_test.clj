@@ -239,27 +239,27 @@ Total: reserved=1001KB, committed=1002KB
 (t/deftest hypothetical-parse-test
   ;; Our parsing tries to be generic to support potential new entries
   (t/is (match?
-           (m/nested-equals [{:total
-                              {:big {:kb 123456789012345 :cnt 234567890123456}
-                               :zero {:kb 0 :cnt 0}}}
-                             {:metrics-value-order
-                              {:bar {:cnt 443}
-                               :foo {:cnt 32 :kb 99 :at-peak true}
-                               :abc {:cnt 11 :kb 23}}}
-                             {:hierarchy
-                              {:one {:cnt 32}
-                               :two {:buckle
-                                     {:my-big
-                                      {:shoe
-                                       {:cnt 44}}}
-                                     :three
-                                     {:four
-                                      {:kb 5}}
-                                     :five
-                                     {:beehive
-                                      {:cnt 76}}}
-                               :six-tricks {:kb 20}}}])
-           (mnm/parse-output-text "The header lines can change,
+         (m/nested-equals [{:total
+                            {:big {:kb 123456789012345 :cnt 234567890123456}
+                             :zero {:kb 0 :cnt 0}}}
+                           {:metrics-value-order
+                            {:bar {:cnt 443}
+                             :foo {:cnt 32 :kb 99 :at-peak true}
+                             :abc {:cnt 11 :kb 23}}}
+                           {:hierarchy
+                            {:one {:cnt 32}
+                             :two {:buckle
+                                   {:my-big
+                                    {:shoe
+                                     {:cnt 44}}}
+                                   :three
+                                   {:four
+                                    {:kb 5}}
+                                   :five
+                                   {:beehive
+                                    {:cnt 76}}}
+                             :six-tricks {:kb 20}}}])
+         (mnm/parse-output-text "The header lines can change,
 we do not care,
 we only expect interesting data to start with Total:
 
