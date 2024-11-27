@@ -8,7 +8,10 @@ module "backups_bucket" {
 }
 
 module "main_server" {
-  source     = "./compute"
+  name = "cljdoc.org"
+  source = "./compute"
+  instance_type = "standard.medium"
+  disk_size = 50
   exoscale_zone = var.exoscale_zone
   security_group_ids = [module.firewall.security_group_id]
   base_authorized_key = var.base_authorized_key

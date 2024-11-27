@@ -6,7 +6,10 @@ terraform {
   }
 }
 
+variable "name" {}
 variable "exoscale_zone" {}
+variable "instance_type" {}
+variable "disk_size" {}
 variable "base_authorized_key" {}
 variable "additional_authorized_keys" {}
 variable "security_group_ids" {}
@@ -37,12 +40,12 @@ resource "exoscale_ssh_key" "cljdoc_base_ssh_key" {
 # Server Instance
 
 resource "exoscale_compute_instance" "cljdoc_01" {
-  name               = "cljdoc.org"
+  name               = var.name
   template_id        = data.exoscale_template.debian.id
-  type               = "standard.medium"
+  type               = var.instance_type
   zone               = var.exoscale_zone
   elastic_ip_ids     = [exoscale_elastic_ip.cljdoc.id]
-  disk_size          = 50
+  disk_size          = var.disk_size
   security_group_ids = var.security_group_ids
   ssh_key            = exoscale_ssh_key.cljdoc_base_ssh_key.id
   user_data          = <<EOF
