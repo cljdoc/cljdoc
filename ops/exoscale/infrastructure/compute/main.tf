@@ -23,6 +23,7 @@ variable "elastic_ip_address" {
   type        = string
   default     = null
 }
+variable "ssh_key_id" {}
 
 # Packer built image based on Exoscale's debian template
 
@@ -30,15 +31,6 @@ data "exoscale_template" "debian" {
   zone = var.exoscale_zone # see providers.tf
   name = "debian-cljdoc"
   visibility = "private"
-}
-
-# SSH Keys
-
-# the compute instance only allows a single ssh key to be specified
-# additional_authorized_keys are setup via cloud init
-resource "exoscale_ssh_key" "cljdoc_base_ssh_key" {
-  name = "cljdoc-base-ssh"
-  public_key = var.base_authorized_key
 }
 
 # Server Instance
@@ -51,7 +43,7 @@ resource "exoscale_compute_instance" "cljdoc_01" {
   elastic_ip_ids     = var.elastic_ip_id != null ? [var.elastic_ip_id] : []
   disk_size          = var.disk_size
   security_group_ids = var.security_group_ids
-  ssh_key            = exoscale_ssh_key.cljdoc_base_ssh_key.id
+  ssh_key            = var.ssh_key_id
   user_data          = <<EOF
 #cloud-config
 %{if var.elastic_ip_address != null~}

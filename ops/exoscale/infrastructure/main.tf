@@ -12,6 +12,14 @@ resource "exoscale_elastic_ip" "cljdoc_prod" {
   zone = var.exoscale_zone
 }
 
+# the compute instance only allows a single ssh key to be specified
+# additional_authorized_keys are setup via cloud init
+# see compute/main.tf
+resource "exoscale_ssh_key" "cljdoc_base_ssh_key" {
+  name = "cljdoc-base-ssh"
+  public_key = var.base_authorized_key
+}
+
 module "main_server" {
   name = "cljdoc.org"
   source = "./compute"
@@ -23,6 +31,7 @@ module "main_server" {
   additional_authorized_keys = var.additional_authorized_keys
   elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
   elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
+  ssh_key_id = exoscale_ssh_key.cljdoc_base_ssh_key.id
 }
 
 module "dns" {
@@ -55,4 +64,11 @@ output "cljdoc_instance_ip" {
 
 output "cljdoc_static_ip" {
   value = exoscale_elastic_ip.cljdoc_prod.ip_address
+}
+
+# To support refactor, delete after applied
+
+moved {
+  from = module.main_server.exoscale_ssh_key.cljdoc_base_ssh_key
+  to = exoscale_ssh_key.cljdoc_base_ssh_key
 }
