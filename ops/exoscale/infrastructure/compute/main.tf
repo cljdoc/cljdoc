@@ -13,11 +13,15 @@ variable "disk_size" {}
 variable "base_authorized_key" {}
 variable "additional_authorized_keys" {}
 variable "security_group_ids" {}
-
-# Static IP via Elastic IP
-
-resource "exoscale_elastic_ip" "cljdoc" {
-  zone = var.exoscale_zone
+variable "elastic_ip_id" {
+  description = "Optional elastic IP ID to associate with instance"
+  type        = string
+  default     = null
+}
+variable "elastic_ip_address" {
+  description = "Optional elastic IP address for cloud-init config"
+  type        = string
+  default     = null
 }
 
 # Packer built image based on Exoscale's debian template
@@ -44,14 +48,16 @@ resource "exoscale_compute_instance" "cljdoc_01" {
   template_id        = data.exoscale_template.debian.id
   type               = var.instance_type
   zone               = var.exoscale_zone
-  elastic_ip_ids     = [exoscale_elastic_ip.cljdoc.id]
+  elastic_ip_ids     = var.elastic_ip_id != null ? [var.elastic_ip_id] : []
   disk_size          = var.disk_size
   security_group_ids = var.security_group_ids
   ssh_key            = exoscale_ssh_key.cljdoc_base_ssh_key.id
   user_data          = <<EOF
 #cloud-config
+%{if var.elastic_ip_address != null~}
 runcmd:
-  - ip addr add ${exoscale_elastic_ip.cljdoc.ip_address}/32 dev lo
+  - ip addr add ${var.elastic_ip_address}/32 dev lo
+%{endif~}
 write_files:
   - path: /home/debian/.ssh/authorized_keys
     owner: debian:debian
@@ -70,6 +76,3 @@ output "instance_ip" {
   value = exoscale_compute_instance.cljdoc_01.public_ip_address
 }
 
-output "elastic_ip" {
-  value = exoscale_elastic_ip.cljdoc.ip_address
-}

@@ -7,6 +7,11 @@ module "backups_bucket" {
   bucket_name = "cljdoc-backups"
 }
 
+# Static IP via Elastic IP
+resource "exoscale_elastic_ip" "cljdoc_prod" {
+  zone = var.exoscale_zone
+}
+
 module "main_server" {
   name = "cljdoc.org"
   source = "./compute"
@@ -16,6 +21,8 @@ module "main_server" {
   security_group_ids = [module.firewall.security_group_id]
   base_authorized_key = var.base_authorized_key
   additional_authorized_keys = var.additional_authorized_keys
+  elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
+  elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
 }
 
 module "dns" {
@@ -24,7 +31,7 @@ module "dns" {
   domain_name = each.key
   record_name = ""
   ttl         = 300
-  ip_address  = module.main_server.elastic_ip
+  ip_address  = exoscale_elastic_ip.cljdoc_prod.ip_address
 }
 
 # Outputs
@@ -47,5 +54,13 @@ output "cljdoc_instance_ip" {
 }
 
 output "cljdoc_static_ip" {
-  value = module.main_server.elastic_ip
+  value = exoscale_elastic_ip.cljdoc_prod.ip_address
+}
+
+# To support refactoring, delete after applied
+#
+
+moved {
+  from = module.main_server.exoscale_elastic_ip.cljdoc
+  to = exoscale_elastic_ip.cljdoc_prod
 }
