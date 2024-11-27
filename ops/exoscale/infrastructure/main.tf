@@ -46,25 +46,3 @@ output "cljdoc_instance_ip" {
 output "cljdoc_static_ip" {
   value = module.main_server.elastic_ip
 }
-
-# To support refactor, delete after applied:
-
-moved {
-  from = module.main_server.exoscale_security_group.cljdoc
-  to = module.firewall.exoscale_security_group.cljdoc
-}
-
-moved {
-  from = module.main_server.exoscale_security_group_rule.http
-  to = module.firewall.exoscale_security_group_rule.http
-}
-
-moved {
-  from = module.main_server.exoscale_security_group_rule.https
-  to = module.firewall.exoscale_security_group_rule.https
-}
-
-moved {
-  from = module.main_server.exoscale_security_group_rule.ssh
-  to = module.firewall.exoscale_security_group_rule.ssh
-}
