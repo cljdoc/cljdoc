@@ -1,17 +1,46 @@
-# Exoscale Object Store
+module "firewall" {
+  source = "./firewall"
+}
 
 module "backups_bucket" {
   source      = "./public_bucket"
   bucket_name = "cljdoc-backups"
 }
 
-# Exoscale Compute
+# Static IP via Elastic IP
+resource "exoscale_elastic_ip" "cljdoc_prod" {
+  zone = var.exoscale_zone
+}
 
-module "main_server" {
-  source     = "./server_instance"
+# the compute instance only allows a single ssh key to be specified
+# additional_authorized_keys are setup via cloud init
+# see compute/main.tf
+resource "exoscale_ssh_key" "cljdoc_base_ssh_key" {
+  name = "cljdoc-base-ssh"
+  public_key = var.base_authorized_key
+}
+
+module "cljdoc_01" {
+  name = "cljdoc.org"
+  source = "./compute"
+  instance_type = "standard.medium"
+  disk_size = 50
   exoscale_zone = var.exoscale_zone
+  security_group_ids = [module.firewall.security_group_id]
   base_authorized_key = var.base_authorized_key
   additional_authorized_keys = var.additional_authorized_keys
+  elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
+  elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
+  ssh_key_id = exoscale_ssh_key.cljdoc_base_ssh_key.id
+}
+
+module "dns" {
+  source      = "./dns"
+  for_each    = toset(["cljdoc.org", "cljdoc.xyz"])
+  domain_name = each.key
+  record_name = ""
+  ttl         = 300
+  ip_address  = exoscale_elastic_ip.cljdoc_prod.ip_address
 }
 
 # Outputs
@@ -30,9 +59,9 @@ output "cljdoc_backups_bucket_secret" {
 }
 
 output "cljdoc_instance_ip" {
-  value = module.main_server.instance_ip
+  value = module.cljdoc_01.instance_ip
 }
 
 output "cljdoc_static_ip" {
-  value = module.main_server.elastic_ip
+  value = exoscale_elastic_ip.cljdoc_prod.ip_address
 }

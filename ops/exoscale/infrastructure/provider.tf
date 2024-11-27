@@ -2,15 +2,15 @@ terraform {
   required_providers {
     exoscale = {
       source  = "exoscale/exoscale"
-      version = "~> 0.60"
+      version = "0.62.1"
     }
     # Exoscale uses aws provider for its s3 compatible Object Store
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.65"
+      version = "5.78.0"
     }
   }
-  required_version = ">= 1.9.7"
+  required_version = ">= 1.10.0"
 }
 
 variable "exoscale_api_key" {
