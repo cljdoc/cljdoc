@@ -94,32 +94,6 @@ write_files:
 EOF
 }
 
-# DNS - only becomes active when configured at registrar
-
-resource "exoscale_domain" "cljdoc_org" {
-  name = "cljdoc.org"
-}
-
-resource "exoscale_domain_record" "cljdoc_org_record" {
-  domain      = exoscale_domain.cljdoc_org.id
-  name        = ""
-  record_type = "A"
-  ttl         = 300
-  content     = exoscale_elastic_ip.cljdoc.ip_address
-}
-
-resource "exoscale_domain" "cljdoc_xyz" {
-  name = "cljdoc.xyz"
-}
-
-resource "exoscale_domain_record" "xyz_record" {
-  domain      = exoscale_domain.cljdoc_xyz.id
-  name        = ""
-  record_type = "A"
-  ttl         = 300
-  content     = exoscale_elastic_ip.cljdoc.ip_address
-}
-
 # Outputs
 
 output "instance_ip" {
