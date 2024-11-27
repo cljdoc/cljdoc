@@ -65,10 +65,3 @@ output "cljdoc_instance_ip" {
 output "cljdoc_static_ip" {
   value = exoscale_elastic_ip.cljdoc_prod.ip_address
 }
-
-# To support refactor, delete after applied
-
-moved {
-  from = module.main_server.exoscale_ssh_key.cljdoc_base_ssh_key
-  to = exoscale_ssh_key.cljdoc_base_ssh_key
-}
