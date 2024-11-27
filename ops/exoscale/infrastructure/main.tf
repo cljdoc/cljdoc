@@ -20,7 +20,7 @@ resource "exoscale_ssh_key" "cljdoc_base_ssh_key" {
   public_key = var.base_authorized_key
 }
 
-module "main_server" {
+module "cljdoc_01" {
   name = "cljdoc.org"
   source = "./compute"
   instance_type = "standard.medium"
@@ -59,9 +59,14 @@ output "cljdoc_backups_bucket_secret" {
 }
 
 output "cljdoc_instance_ip" {
-  value = module.main_server.instance_ip
+  value = module.cljdoc_01.instance_ip
 }
 
 output "cljdoc_static_ip" {
   value = exoscale_elastic_ip.cljdoc_prod.ip_address
+}
+
+moved {
+  from = module.main_server.exoscale_compute_instance.cljdoc_01
+  to = module.cljdoc_01.exoscale_compute_instance.cljdoc
 }

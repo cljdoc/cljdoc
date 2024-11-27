@@ -35,7 +35,7 @@ data "exoscale_template" "debian" {
 
 # Server Instance
 
-resource "exoscale_compute_instance" "cljdoc_01" {
+resource "exoscale_compute_instance" "cljdoc" {
   name               = var.name
   template_id        = data.exoscale_template.debian.id
   type               = var.instance_type
@@ -65,6 +65,6 @@ EOF
 # Outputs
 
 output "instance_ip" {
-  value = exoscale_compute_instance.cljdoc_01.public_ip_address
+  value = exoscale_compute_instance.cljdoc.public_ip_address
 }
 
