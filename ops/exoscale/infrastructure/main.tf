@@ -1,20 +1,19 @@
-# Exoscale Object Store
+module "firewall" {
+  source = "./firewall"
+}
 
 module "backups_bucket" {
   source      = "./public_bucket"
   bucket_name = "cljdoc-backups"
 }
 
-# Exoscale Compute
-
 module "main_server" {
   source     = "./compute"
   exoscale_zone = var.exoscale_zone
+  security_group_ids = [module.firewall.security_group_id]
   base_authorized_key = var.base_authorized_key
   additional_authorized_keys = var.additional_authorized_keys
 }
-
-# DNS
 
 module "dns" {
   source      = "./dns"
@@ -46,4 +45,26 @@ output "cljdoc_instance_ip" {
 
 output "cljdoc_static_ip" {
   value = module.main_server.elastic_ip
+}
+
+# To support refactor, delete after applied:
+
+moved {
+  from = module.main_server.exoscale_security_group.cljdoc
+  to = module.firewall.exoscale_security_group.cljdoc
+}
+
+moved {
+  from = module.main_server.exoscale_security_group_rule.http
+  to = module.firewall.exoscale_security_group_rule.http
+}
+
+moved {
+  from = module.main_server.exoscale_security_group_rule.https
+  to = module.firewall.exoscale_security_group_rule.https
+}
+
+moved {
+  from = module.main_server.exoscale_security_group_rule.ssh
+  to = module.firewall.exoscale_security_group_rule.ssh
 }

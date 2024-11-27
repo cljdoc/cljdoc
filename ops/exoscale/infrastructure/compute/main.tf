@@ -9,6 +9,7 @@ terraform {
 variable "exoscale_zone" {}
 variable "base_authorized_key" {}
 variable "additional_authorized_keys" {}
+variable "security_group_ids" {}
 
 # Static IP via Elastic IP
 
@@ -22,40 +23,6 @@ data "exoscale_template" "debian" {
   zone = var.exoscale_zone # see providers.tf
   name = "debian-cljdoc"
   visibility = "private"
-}
-
-# Firewall
-
-resource "exoscale_security_group" "cljdoc" {
-  name        = "cljdoc-firewall"
-  description = "Firewall rules for cljdoc"
-}
-
-resource "exoscale_security_group_rule" "ssh" {
-  security_group_id = exoscale_security_group.cljdoc.id
-  type              = "INGRESS"
-  protocol          = "TCP"
-  cidr              = "0.0.0.0/0"
-  start_port        = 22
-  end_port          = 22
-}
-
-resource "exoscale_security_group_rule" "http" {
-  security_group_id = exoscale_security_group.cljdoc.id
-  type              = "INGRESS"
-  protocol          = "TCP"
-  cidr              = "0.0.0.0/0"
-  start_port        = 80
-  end_port          = 80
-}
-
-resource "exoscale_security_group_rule" "https" {
-  security_group_id = exoscale_security_group.cljdoc.id
-  type              = "INGRESS"
-  protocol          = "TCP"
-  cidr              = "0.0.0.0/0"
-  start_port        = 443
-  end_port          = 443
 }
 
 # SSH Keys
@@ -76,7 +43,7 @@ resource "exoscale_compute_instance" "cljdoc_01" {
   zone               = var.exoscale_zone
   elastic_ip_ids     = [exoscale_elastic_ip.cljdoc.id]
   disk_size          = 50
-  security_group_ids = [ exoscale_security_group.cljdoc.id ]
+  security_group_ids = var.security_group_ids
   ssh_key            = exoscale_ssh_key.cljdoc_base_ssh_key.id
   user_data          = <<EOF
 #cloud-config
