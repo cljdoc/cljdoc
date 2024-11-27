@@ -8,7 +8,7 @@ module "backups_bucket" {
 # Exoscale Compute
 
 module "main_server" {
-  source     = "./server_instance"
+  source     = "./compute"
   exoscale_zone = var.exoscale_zone
   base_authorized_key = var.base_authorized_key
   additional_authorized_keys = var.additional_authorized_keys
