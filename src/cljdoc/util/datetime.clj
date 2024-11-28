@@ -9,7 +9,13 @@
 
   Eg: 1st, 2nd, 3rd & 20th."
   [day]
-  (get {1 "st" 2 "nd" 3 "rd"} day "th"))
+  (if (<= 11 day 13)
+    "th"
+    (case (mod day 10)
+      1 "st"
+      2 "nd"
+      3 "rd"
+      "th")))
 
 (defn ->analytics-format
   "Turns timestamp to a nice, human readable date format."
@@ -20,6 +26,7 @@
          (day-suffix (.getDayOfMonth (.atZone datetime utc))))))
 
 (comment
-
   (day-suffix 21)
+  ;; => "th"
+
   (->analytics-format "2018-10-17T20:58:21.491730Z"))
