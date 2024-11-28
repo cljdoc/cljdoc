@@ -68,7 +68,7 @@ module "cljdoc_02" {
   ssh_key_id = exoscale_ssh_key.cljdoc_base_ssh_key.id
 }
 
-# # Outputs
+# Outputs
 output "cljdoc_backups_bucket" {
   value = module.backups_bucket.bucket_name
 }
