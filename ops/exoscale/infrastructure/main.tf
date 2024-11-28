@@ -37,6 +37,8 @@ module "cljdoc_01" {
   security_group_ids = [module.firewall.security_group_id]
   base_authorized_key = var.base_authorized_key
   additional_authorized_keys = var.additional_authorized_keys
+  #  elastic_ip_id = retired!
+  #  elastic_ip_address = retired!
   elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
   elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
   ssh_key_id = exoscale_ssh_key.cljdoc_base_ssh_key.id
@@ -61,8 +63,8 @@ module "cljdoc_02" {
   security_group_ids = [module.firewall.security_group_id]
   base_authorized_key = var.base_authorized_key
   additional_authorized_keys = var.additional_authorized_keys
-  #  elastic_ip_id = not yet!
-  #  elastic_ip_address = not yet!
+  elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
+  elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
   ssh_key_id = exoscale_ssh_key.cljdoc_base_ssh_key.id
 }
 
@@ -81,14 +83,14 @@ output "cljdoc_backups_bucket_secret" {
   value = module.backups_bucket.write_secret
 }
 
+output "cljdoc_02_instance_ip" {
+  value = module.cljdoc_02.instance_ip
+}
+
 output "cljdoc_instance_ip" {
   value = module.cljdoc_01.instance_ip
 }
 
 output "cljdoc_static_ip" {
   value = exoscale_elastic_ip.cljdoc_prod.ip_address
-}
-
-output "cljdoc_02_instance_ip" {
-  value = module.cljdoc_02.instance_ip
 }
