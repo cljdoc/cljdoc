@@ -36,7 +36,7 @@
                              TermQuery
                              TopDocs)
    (org.apache.lucene.search.similarities BM25Similarity)
-   (org.apache.lucene.store Directory #_ FSDirectory NIOFSDirectory)))
+   (org.apache.lucene.store Directory #_FSDirectory NIOFSDirectory)))
 
 (set! *warn-on-reflection* true)
 
@@ -409,7 +409,7 @@
   ;; temporarily explore mysterious native memory usage, is Lucene contributing?
   (NIOFSDirectory. (fs/path index-path))
   #_(FSDirectory/open ;; automatically chooses best implementation for OS
-   (Paths/get index-path (into-array String nil))))
+     (Paths/get index-path (into-array String nil))))
 
 (defn index-close [^Directory index]
   (.close index))
