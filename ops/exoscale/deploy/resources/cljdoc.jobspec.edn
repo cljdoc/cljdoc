@@ -23,7 +23,7 @@
             :CLJDOC_PROFILE #cljdoc.deploy/opt :cljdoc-profile}
       :KillSignal ""
       :Name "backend"
-      :Resources {:CPU 1000 :MemoryMB 1600}
+      :Resources {:CPU 2000 :MemoryMB 3648}
       :Services [{:Name "cljdoc"
                   :PortLabel "http"
                   :Checks [{:Name "alive"
