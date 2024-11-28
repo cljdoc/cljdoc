@@ -113,8 +113,8 @@
 (defn- traefik-config [{:keys [cljdoc-profile]}]
   (-> (io/resource "traefik.edn")
       (aero/read-config
-       {::opts {:lets-encrypt-endpoint
-                (if (= "prod" cljdoc-profile)
+       {::opts {:lets-encrypt-endpoint "https://acme-staging-v02.api.letsencrypt.org/directory"
+                #_(if (= "prod" cljdoc-profile)
                   "https://acme-v02.api.letsencrypt.org/directory"
                   "https://acme-staging-v02.api.letsencrypt.org/directory")}})
       (yaml/generate-string :dumper-options {:indent 2
