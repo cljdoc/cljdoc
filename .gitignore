@@ -29,3 +29,6 @@ test-data/
 *secret*.tfvars
 *secret*.pkrvars.hcl
 /.cljdoc-preview
+# clerk dirs
+/public
+.clerk
