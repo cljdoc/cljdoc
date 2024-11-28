@@ -8,13 +8,14 @@
   * Use [[explain-top-n]] to get a detailed analysis of the score of the top N results for a query
   * Print out a Query - it's toString shows nicely what is it composed of, boosts, etc."
   (:require
+   [babashka.fs :as fs]
    [cljdoc.server.clojars-stats :as clojars-stats]
    [cljdoc.server.search.clojars :as clojars]
    [cljdoc.server.search.maven-central :as maven-central]
    [clojure.string :as string]
    [clojure.tools.logging :as log])
   (:import
-   (java.nio.file Paths)
+   #_(java.nio.file Paths)
    (java.util.concurrent Semaphore)
    (org.apache.lucene.analysis Analyzer Analyzer$TokenStreamComponents TokenStream Tokenizer)
    (org.apache.lucene.analysis.icu ICUFoldingFilter)
@@ -35,7 +36,7 @@
                              TermQuery
                              TopDocs)
    (org.apache.lucene.search.similarities BM25Similarity)
-   (org.apache.lucene.store Directory FSDirectory)))
+   (org.apache.lucene.store Directory #_ FSDirectory NIOFSDirectory)))
 
 (set! *warn-on-reflection* true)
 
@@ -405,7 +406,9 @@
 ;; public general purpose fns
 
 (defn disk-index [index-path]
-  (FSDirectory/open ;; automatically chooses best implementation for OS
+  ;; temporarily explore mysterious native memory usage, is Lucene contributing?
+  (NIOFSDirectory. (fs/path index-path))
+  #_(FSDirectory/open ;; automatically chooses best implementation for OS
    (Paths/get index-path (into-array String nil))))
 
 (defn index-close [^Directory index]
