@@ -8,6 +8,7 @@ terraform {
 
 variable "name" {}
 variable "exoscale_zone" {}
+variable "template_id" {}
 variable "instance_type" {}
 variable "disk_size" {}
 variable "base_authorized_key" {}
@@ -25,19 +26,11 @@ variable "elastic_ip_address" {
 }
 variable "ssh_key_id" {}
 
-# Packer built image based on Exoscale's debian template
-
-data "exoscale_template" "debian" {
-  zone = var.exoscale_zone # see providers.tf
-  name = "debian-cljdoc"
-  visibility = "private"
-}
-
 # Server Instance
 
 resource "exoscale_compute_instance" "cljdoc" {
   name               = var.name
-  template_id        = data.exoscale_template.debian.id
+  template_id        = var.template_id
   type               = var.instance_type
   zone               = var.exoscale_zone
   elastic_ip_ids     = var.elastic_ip_id != null ? [var.elastic_ip_id] : []

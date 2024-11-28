@@ -20,9 +20,17 @@ resource "exoscale_ssh_key" "cljdoc_base_ssh_key" {
   public_key = var.base_authorized_key
 }
 
+# Packer built image based on Exoscale's debian template
+data "exoscale_template" "debian" {
+  zone = var.exoscale_zone # see providers.tf
+  name = "debian-cljdoc"
+  visibility = "private"
+}
+
 module "cljdoc_01" {
   name = "cljdoc.org"
   source = "./compute"
+  template_id = "f8df82c7-f024-402a-a691-ac67550f142e" # temporary pin to current prod image
   instance_type = "standard.medium"
   disk_size = 50
   exoscale_zone = var.exoscale_zone
