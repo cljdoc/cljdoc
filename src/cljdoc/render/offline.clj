@@ -135,7 +135,8 @@
   (let [ns-name (platf/get-field ns :name)
         render-wiki-link (api/render-wiki-link-fn ns-name valid-ref-pred #(str % ".html"))]
     [:div.ns-offline-page
-     [:h1 ns-name]
+     [:h1 ns-name (when (platf/get-field ns :deprecated)
+                    [:span.fw3.f6.light-red.ml2 "deprecated"])]
      (api/render-ns-docs ns render-wiki-link opts)
      (for [def defs]
        (api/def-block def render-wiki-link opts))]))

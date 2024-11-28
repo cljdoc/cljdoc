@@ -355,7 +355,9 @@
                           #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %)))]
     [:div.ns-page
      [:div.w-80-ns.pv4
-      [:h2 (:namespace ns-entity)]
+      [:h2 (:namespace ns-entity)
+       (when (platf/get-field ns-data :deprecated)
+         [:span.fw3.f6.light-red.ml2 "deprecated"])]
       (render-ns-docs ns-data render-wiki-link opts)
       (if (seq defs)
         (for [adef defs]
@@ -363,6 +365,57 @@
         [:p.i.blue "No vars found in this namespace."])]]))
 
 (comment
+  (def tn ns-data)
+
+  tn
+  ;; => {:platforms
+  ;;     [{:author "Stuart Sierra",
+  ;;       :deprecated "0.2.1",
+  ;;       :added "0.1.0",
+  ;;       :name "clojure.tools.namespace",
+  ;;       :doc
+  ;;       "This namespace is DEPRECATED; most functions have been moved to\nother namespaces",
+  ;;       :platform "clj",
+  ;;       :version-entity
+  ;;       {:id 63792,
+  ;;        :group-id "org.clojure",
+  ;;        :artifact-id "tools.namespace",
+  ;;        :version "1.5.0"}}]}
+  (platf/get-field ns-data :deprecated)
+  ;; => "0.2.1"
+
+  exer
+  ;; => {:platforms
+  ;;     [{:name "cljdoc-exerciser.platform",
+  ;;       :doc
+  ;;       "Clojure namespace - test when there are differences between platforms.\n",
+  ;;       :platform "clj",
+  ;;       :version-entity
+  ;;       {:id 69755,
+  ;;        :group-id "org.cljdoc",
+  ;;        :artifact-id "cljdoc-exerciser",
+  ;;        :version "1.0.108"}}
+  ;;      {:name "cljdoc-exerciser.platform",
+  ;;       :doc
+  ;;       "ClojureScript namespace - test when there are differences between platforms.\n",
+  ;;       :platform "cljs",
+  ;;       :version-entity
+  ;;       {:id 69755,
+  ;;        :group-id "org.cljdoc",
+  ;;        :artifact-id "cljdoc-exerciser",
+  ;;        :version "1.0.108"}}]}
+
+  (platf/varies? exer :doc)
+  ;; => true
+
+  (platf/get-field exer :doc)
+  ;; => "ClojureScript namespace - test when there are differences between platforms.\n"
+
+  (platf/get-field exer :doc "clj")
+  ;; => "Clojure namespace - test when there are differences between platforms.\n"
+  (platf/get-field exer :doc "cljs")
+  ;; => "ClojureScript namespace - test when there are differences between platforms.\n"
+
   (:platforms --d)
 
   (routes/url-for :artifact/namespace :path-params {:group-id "grp" :artifact-id "art" :version "ver" :namespace "foo boo loo"})
