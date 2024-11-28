@@ -68,7 +68,7 @@
                                 {:Label "http" :Value 80}
                                 {:Label "https" :Value 443}]}]
     :Tasks
-    [{:Config {:image "traefik:3.1.7"
+    [{:Config {:image "traefik:3.2.1"
                :network_mode "host"
                :ports ["api" "http" "https"]
                :volumes ["local:/etc/traefik"
