@@ -14,6 +14,7 @@
             [next.jdbc.sql :as sql]
             [tea-time.core :as tt])
   (:import (cljdoc.server.search.api ISearcher)
+           (java.net URI)
            (java.time Duration Instant)))
 
 (set! *warn-on-reflection* true)
@@ -133,8 +134,8 @@
                          :form-params {:project (str group-id "/" artifact-id)
                                        :version version}
                          :headers {:content-type "application/x-www-form-urlencoded"}})
-        build-id (some->> resp
-                          :uri
+        ^URI location (:uri resp)
+        build-id (some->> location
                           .getPath
                           (re-find #"/builds/(\d+)")
                           (second))]
