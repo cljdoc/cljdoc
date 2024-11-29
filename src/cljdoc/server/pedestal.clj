@@ -12,8 +12,8 @@
   - Rendering a sitemap (see [[sitemap-interceptor]])
   - Handling build requests (see [[request-build]], [[full-build]] & [[circle-ci-webhook]])
   - Redirecting to newer releases (see [[resolve-version-interceptor]] & [[jump-interceptor]])"
-  (:require [cheshire.core :as json]
-            [clj-http.lite.client :as http-client]
+  (:require [babashka.http-client :as http-client]
+            [cheshire.core :as json]
             [cljdoc-shared.pom :as pom]
             [cljdoc-shared.proj :as proj]
             [cljdoc.render :as html]
@@ -391,10 +391,10 @@
                     (ring-codec/url-encode status)
                     (name color))]
     (loop [retries-left 1]
-      (let [resp (http-client/get url {:headers {"User-Agent" "clj-http-lite"}
-                                       :throw-exceptions false})]
+      (let [resp (http-client/get url {:headers {:user-agent "cljdoc"}
+                                       :throw false})]
         (cond
-          (http-client/unexceptional-status? (:status resp))
+          (#{200 201} (:status resp))
           (assoc ctx :response {:status 200
                                 :headers {"Content-Type" "image/svg+xml;charset=utf-8"
                                           "Cache-Control" (format "public,max-age=%s" (* 30 60))}

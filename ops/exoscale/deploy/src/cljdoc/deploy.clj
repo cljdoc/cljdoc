@@ -10,9 +10,9 @@
   1. Create a new Nomad deployment with the new version running as a canary.
   2. Promote the Nomad deployment, resulting in a shut down of previous deployments."
   (:require [aero.core :as aero]
+            [babashka.http-client :as http]
             [cheshire.core :as json]
             [cli-matic.core :as cli-matic]
-            [clj-http.lite.client :as http]
             [clj-yaml.core :as yaml]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
@@ -96,7 +96,7 @@
   "Return true if given `tag` exists in the DockerHub cljdoc/cljdoc repository."
   [tag]
   (let [status (:status (http/head (format "https://hub.docker.com/v2/repositories/cljdoc/cljdoc/tags/%s/" tag)
-                                   {:throw-exceptions false}))]
+                                   {:throw false}))]
     (log/info "check for existence of docker tag" tag "returned" status)
     (= 200 status)))
 

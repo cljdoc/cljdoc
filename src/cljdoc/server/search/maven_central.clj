@@ -1,8 +1,8 @@
 (ns cljdoc.server.search.maven-central
   "Fetch listing of artifacts from maven central."
   (:require
+   [babashka.http-client :as http]
    [cheshire.core :as json]
-   [clj-http.lite.client :as http]
    [cljdoc-shared.pom :as pom]
    [cljdoc.spec :as cljdoc-spec]
    [clojure.java.io :as io]
@@ -33,7 +33,7 @@
           (when (not rb/*first-try*)
             (log/errorf rb/*error*  "Try %d of %d: %s" (dec rb/*try*) max-tries url))
           (-> url
-              (http/get {:as :stream :throw-exceptions true})
+              (http/get {:as :stream :throw true})
               :body
               io/input-stream
               io/reader)))
@@ -139,8 +139,16 @@
 (comment
   (fetch-maven-description {:group-id "org.clojure" :artifact-id "clojurescript" :versions ["1.11.5"]})
 
+  (def artifacts (load-maven-central-artifacts false))
+
+  (count artifacts )
+  ;; => 79
+
+  maven-grp-version-counts
+  ;; => #<Atom@22dc8bf8: {"org.clojure" 1997, "com.turtlequeue" 27}>
+
   (load-maven-central-artifacts true)
 
   (reset! maven-grp-version-counts nil)
 
-  nil)
+  :eoc)
