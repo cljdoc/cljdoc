@@ -1,5 +1,5 @@
 (ns cljdoc.util.repositories
-  (:require [clj-http.lite.client :as http]
+  (:require [babashka.http-client :as http]
             [cljdoc-shared.proj :as proj]
             [cljdoc.config :as config]
             [clojure.java.io :as io]
@@ -58,7 +58,7 @@
 
 (defn- resolve-snapshot [repository project version]
   (let [{:keys [body status]} (http/get (metadata-xml-uri repository project version)
-                                        {:throw-exceptions false})]
+                                        {:throw false})]
     (if (= 200 status)
       (let [d (Jsoup/parse ^String body)
             timestamp (.ownText ^Element (first (.select d "versioning > snapshot > timestamp")))
@@ -75,12 +75,12 @@
 (defn resolve-artifact
   ([repository project]
    (let [uri (metadata-xml-uri repository project)]
-     (http/head uri {:throw-exceptions false})))
+     (http/head uri {:throw false})))
   ([repository project version]
    (let [uri (if (snapshot-version? version)
                (metadata-xml-uri repository project version)
                (pom-uri repository project version))]
-     (http/head uri {:throw-exceptions false}))))
+     (http/head uri {:throw false}))))
 
 (defn exists?
   ([repository project]
@@ -165,66 +165,93 @@
   ;; => true
 
   (resolve-artifact "https://repo.clojars.org/" "com.mouryaravi/faraday" "1.11.1+protocol")
-  ;; => {:headers
-  ;;     {"x-cache" "HIT",
-  ;;      "x-timer" "S1671236240.675179,VS0,VE1",
+  ;; => {:status 200,
+  ;;     :body "",
+  ;;     :version :http1.1,
+  ;;     :headers
+  ;;     {"x-cache" "MISS",
+  ;;      "x-timer" "S1732893942.993537,VS0,VE129",
   ;;      "server" "AmazonS3",
-  ;;      "age" "2892",
+  ;;      "age" "0",
   ;;      "via" "1.1 varnish",
   ;;      "content-type" "application/xml",
-  ;;      "content-length" "337",
+  ;;      "content-length" "4402",
   ;;      "connection" "keep-alive",
   ;;      "accept-ranges" "bytes",
-  ;;      "x-cache-hits" "1",
-  ;;      "x-amz-request-id" "B4G6E7Z1ZGVH72GM",
-  ;;      "date" "Sat, 17 Dec 2022 00:17:19 GMT",
+  ;;      "etag" "\"d8db8433db4306839983a9d50f0a6da3\"",
+  ;;      "x-cache-hits" "0",
+  ;;      "x-amz-request-id" "59ZCN4J9THYMZMPX",
+  ;;      "date" "Fri, 29 Nov 2024 15:25:42 GMT",
+  ;;      "last-modified" "Wed, 21 Oct 2020 03:15:18 GMT",
   ;;      "x-amz-id-2"
-  ;;      "WWzieBqJ5DHuN0VOrbb8SFsSbOH9igaKrgc3+hOBSro5Nh0JtIjM5Nu24T1jt3hofSAPRelb9+c=",
-  ;;      "x-served-by" "cache-lga21940-LGA"},
-  ;;     :status 404,
-  ;;     :body nil}
+  ;;      "tH7VQJw8BSG1oeyHFSiJVGpozkF56YToI2x/GU3UrAdO0ftfh45Jwaa9ayjeZI7O1KLzXeajtbQ=",
+  ;;      "x-served-by" "cache-lga21932-LGA"},
+  ;;     :uri
+  ;;     #object[java.net.URI 0x4bcce9a0 "https://repo.clojars.org/com/mouryaravi/faraday/1.11.1+protocol/faraday-1.11.1+protocol.pom"],
+  ;;     :request
+  ;;     {:headers
+  ;;      {:accept "*/*",
+  ;;       :accept-encoding ["gzip" "deflate"],
+  ;;       :user-agent "babashka.http-client/0.4.21"},
+  ;;      :throw false,
+  ;;      :uri
+  ;;      #object[java.net.URI 0x4bcce9a0 "https://repo.clojars.org/com/mouryaravi/faraday/1.11.1+protocol/faraday-1.11.1+protocol.pom"],
+  ;;      :method :head}}
 
   (find-artifact-repository "com.mouryaravi/faraday" "1.11.1+protocol")
-  ;; => nil
+  ;; => "https://repo.clojars.org/"
 
   (artifact-uris "com.mouryaravi/faraday" "1.11.1+protocol")
+  ;; => {:pom
+  ;;     "https://repo.clojars.org/com/mouryaravi/faraday/1.11.1+protocol/faraday-1.11.1+protocol.pom",
+  ;;     :jar
+  ;;     "https://repo.clojars.org/com/mouryaravi/faraday/1.11.1+protocol/faraday-1.11.1+protocol.jar"}
 
   (find-artifact-repository "org.clojure/clojure" "1.9.0")
+  ;; => "https://repo.maven.apache.org/maven2/"
+
   (artifact-uris "org.clojure/clojure" "1.9.0")
+  ;; => {:pom
+  ;;     "https://repo.maven.apache.org/maven2/org/clojure/clojure/1.9.0/clojure-1.9.0.pom",
+  ;;     :jar
+  ;;     "https://repo.maven.apache.org/maven2/org/clojure/clojure/1.9.0/clojure-1.9.0.jar"}
 
   (latest-release-version "org.clojure/clojure")
+  ;; => "1.12.0"
 
   (metadata-xml-uri "https://repo.clojars.org/" 'bidi "2.1.3-SNAPSHOT")
+  ;; => "https://repo.clojars.org/bidi/bidi/2.1.3-SNAPSHOT/maven-metadata.xml"
 
   (find-artifact-repository 'bidi "2.1.3")
+  ;; => "https://repo.clojars.org/"
+
   (find-artifact-repository 'bidi "2.1.4")
+  ;; => "https://repo.clojars.org/"
 
   (artifact-uris 'bidi "2.1.3-SNAPSHOT")
+  ;; => nil
+
   (artifact-uris 'bidi "2.0.9-SNAPSHOT")
+  ;; => {:pom
+  ;;     "https://repo.clojars.org/bidi/bidi/2.0.9-SNAPSHOT/bidi-2.0.9-20160426.224252-1.pom",
+  ;;     :jar
+  ;;     "https://repo.clojars.org/bidi/bidi/2.0.9-SNAPSHOT/bidi-2.0.9-20160426.224252-1.jar"}
+
   (artifact-uris 'bidi "2.1.3")
+  ;; => {:pom "https://repo.clojars.org/bidi/bidi/2.1.3/bidi-2.1.3.pom",
+  ;;     :jar "https://repo.clojars.org/bidi/bidi/2.1.3/bidi-2.1.3.jar"}
 
   (find-artifact-repository 'bidi "2.1.3")
+  ;; => "https://repo.clojars.org/"
+
   (find-artifact-repository 'bidi "2.1.4")
+  ;; => "https://repo.clojars.org/"
 
   (find-artifact-repository 'com.bhauman/spell-spec "0.1.0")
-
-  (releases-since (.minus (Instant/now) (Duration/ofHours 12)))
-
-  ;; (def f "/Users/martin/Downloads/clojars-downloads.edn")
-  ;; (def f "https://clojars.org/stats/downloads-20180525.edn")
-
-  ;; (comment
-  ;;   (->> (edn/read-string (slurp f))
-  ;;        (map (fn [[coord versions]]
-  ;;               (let [v (first (sort-by key versions))]
-  ;;                 [(conj coord (key v)) (val v)])))
-  ;;        (sort-by second >)
-  ;;        (drop 10)
-  ;;        (take 10)
-  ;;        #_(rand-nth)
-  ;;        clojure.pprint/pprint))
-
-  ;;   (def all-poms "http://repo.clojars.org/all-poms.txt")
+  ;; => "https://repo.clojars.org/"
 
   (time (get-pom-xml "org.clojure/clojure" "1.9.0"))
-  (clojure.core.memoize/memo-clear! get-pom-xml '("org.clojure/clojure" "1.9.0")))
+
+  (clojure.core.memoize/memo-clear! get-pom-xml '("org.clojure/clojure" "1.9.0"))
+
+  :eoc)

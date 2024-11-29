@@ -1,5 +1,7 @@
 (ns cljdoc.server.build-log
-  (:require [next.jdbc :as jdbc]
+  (:require [clojure.string :as str]
+            [clojure.walk :as walk]
+            [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
             [next.jdbc.sql :as sql]
             [taoensso.nippy :as nippy])
@@ -7,6 +9,25 @@
 
 (defn- now []
   (str (Instant/now)))
+
+(defn- occlude-sensitive [m]
+  ;; imperfect but good enough.
+  ;; we've switched to babashka http-client which includes the request in its throw
+  ;; which can include sensitive tokens
+  ;; TODO: temporary, we soon will not be saving potentially sensitive info to db
+  (walk/postwalk (fn form-visitor [x]
+                   (println "visiting" x)
+                   (if-not (map? x)
+                     x
+                     (reduce-kv
+                      (fn [m k v]
+                        (if (str/includes? (-> k str str/lower-case)
+                                           "token")
+                          (assoc m k :OCCLUDED)
+                          (assoc m k v)))
+                      {}
+                      x)))
+                 m))
 
 (defprotocol IBuildTracker
   (analysis-requested!
@@ -27,6 +48,7 @@
   IBuildTracker
   (analysis-requested! [_ group-id artifact-id version]
     (->> (jdbc/execute-one! db-spec
+
                             ;; SQLite uses RETURNING syntax to return the generated id
                             ["INSERT INTO builds (group_id, artifact_id, version, analysis_requested_ts) VALUES (?,?,?,?) RETURNING id"
                              group-id artifact-id version (now)]
@@ -49,7 +71,11 @@
     (failed! this build-id error nil))
   (failed! [_ build-id error e]
     (sql/update! db-spec :builds (cond-> {:error error}
-                                   e (assoc :error_info_map (nippy/freeze (Throwable->map e))))
+                                   e (assoc :error_info_map
+                                            (-> e
+                                                Throwable->map
+                                                occlude-sensitive
+                                                nippy/freeze)))
                  {:id build-id}))
   (api-imported! [_this build-id namespaces-count]
     (sql/update! db-spec

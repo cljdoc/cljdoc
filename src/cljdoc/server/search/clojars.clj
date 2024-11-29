@@ -1,7 +1,7 @@
 (ns cljdoc.server.search.clojars
   "Fetch listing of artifacts from clojars."
   (:require
-   [clj-http.lite.client :as http]
+   [babashka.http-client :as http]
    [cljdoc.spec :as cljdoc-spec]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
@@ -14,7 +14,9 @@
 (defonce clojars-last-modified (atom nil))
 
 (comment
-  (reset! clojars-last-modified nil))
+  (reset! clojars-last-modified nil)
+
+  :eoc)
 
 (defn- process-clojars-response [{:keys [headers body]}]
   {:pre [(instance? InputStream body)]}
@@ -34,18 +36,18 @@
 (defn load-clojars-artifacts [force?]
   (try
     (let [res
-          (http/get
-           "https://clojars.org/repo/feed.clj.gz"
-           {:throw-exceptions false
-            :as               :stream
-            :headers          {"If-Modified-Since" (when-not force? @clojars-last-modified)
-                                ;; Avoid double-gzipping by Clojars' proxy:
-                               "Accept-Encoding" ""}})]
+          (http/get "https://clojars.org/repo/feed.clj.gz"
+                    {:throw false
+                     :as :stream
+                     :headers (cond->  {;; Avoid double-gzipping by Clojars' proxy:
+                                        :accept-encoding "identity"}
+                                (and (not force?) @clojars-last-modified)
+                                (assoc :if-modified-since @clojars-last-modified))})]
       (case (:status res)
         304 (do
               (log/debug
                (str
-                "Skipping Clojars download - no change since last one at "
+                "Skipping Clojars download - no change since last checked at "
                 @clojars-last-modified))
               nil) ;; data not changed since the last time, do nothing
         200 (process-clojars-response res)
@@ -56,3 +58,8 @@
 
 (s/fdef load-clojars-artifacts
   :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
+
+(comment
+  (load-clojars-artifacts false)
+
+  :eoc)

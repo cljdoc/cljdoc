@@ -1,6 +1,6 @@
 (ns cljdoc.server.release-monitor
-  (:require [cheshire.core :as json]
-            [clj-http.lite.client :as http]
+  (:require [babashka.http-client :as http]
+            [cheshire.core :as json]
             [cljdoc-shared.proj :as proj]
             [cljdoc.config :as config]
             [cljdoc.server.build-log :as build-log]
@@ -14,6 +14,7 @@
             [next.jdbc.sql :as sql]
             [tea-time.core :as tt])
   (:import (cljdoc.server.search.api ISearcher)
+           (java.net URI)
            (java.time Duration Instant)))
 
 (set! *warn-on-reflection* true)
@@ -26,7 +27,7 @@
 
 (defn- clojars-artifact-info [{:keys [group-id artifact-id]}]
   (let [result (->> (http/get (format "http://clojars.org/api/artifacts/%s/%s" group-id artifact-id)
-                              {:accept :edn})
+                              {:headers {:accept "application/edn"}})
                     :body
                     edn/read-string)]
     {:description (:description result)
@@ -126,14 +127,16 @@
 ;;
 
 (defn- trigger-build
-  [{:keys [id group-id artifact-id version retry-count] :as _release}]
+  [{:keys [group-id artifact-id version] :as _release}]
   ;; I'm really not liking that this makes it all very tied to the HTTP server... - martin
-  (let [req (http/post (str "http://localhost:" (get-in (config/config) [:cljdoc/server :port]) "/api/request-build2")
-                       {:follow-redirects false
-                        :form-params {:project (str group-id "/" artifact-id)
-                                      :version version}
-                        :content-type "application/x-www-form-urlencoded"})
-        build-id (some->> (get-in req [:headers "location"])
+  (let [resp (http/post (str "http://localhost:" (get-in (config/config) [:cljdoc/server :port]) "/api/request-build2")
+                        {:follow-redirects :never
+                         :form-params {:project (str group-id "/" artifact-id)
+                                       :version version}
+                         :headers {:content-type "application/x-www-form-urlencoded"}})
+        ^URI location (:uri resp)
+        build-id (some->> location
+                          .getPath
                           (re-find #"/builds/(\d+)")
                           (second))]
     (assert build-id "Could not extract build-id from response")
@@ -228,12 +231,13 @@
   (def cfg (cljdoc.config/config))
 
   (def db-spec (cljdoc.config/db cfg))
+  (oldest-not-built db-spec)
 
-  (build-queuer-job-fn db-spec true)
+  (build-queuer-job-fn {:db-spec db-spec :build-tracker identity :dry-run? false :max-retries 1})
 
   (def ts (last-release-ts db-spec))
   ts
-  ;; => #object[java.time.Instant 0xf4d333 "2022-12-17T13:09:15.977Z"]
+  ;; => #object[java.time.Instant 0x607adc81 "2024-11-28T22:05:45.720Z"]
 
   (clojars-releases-since ts)
 

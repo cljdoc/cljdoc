@@ -1,6 +1,6 @@
 (ns cljdoc.analysis.service
-  (:require [cheshire.core :as json]
-            [clj-http.lite.client :as http]
+  (:require [babashka.http-client :as http]
+            [cheshire.core :as json]
             [cljdoc-shared.analysis :as analysis]
             [cljdoc.git-repo :as git-repo]
             [clojure.java.io :as io]
@@ -49,11 +49,11 @@
     (log/infof "Starting CircleCI analysis for %s %s %s" project version jarpath)
     (let [analyzer-dep (get-analyzer-dep)
           build (http/post (str "https://circleci.com/api/v1.1/project/" builder-project "/tree/master")
-                           {:accept "application/json"
-                            :form-params {"build_parameters[CLJDOC_ANALYZER_DEP]" (pr-str (select-keys analyzer-dep [:deps]))
+                           {:form-params {"build_parameters[CLJDOC_ANALYZER_DEP]" (pr-str (select-keys analyzer-dep [:deps]))
                                           "build_parameters[CLJDOC_BUILD_ID]" build-id
                                           "build_parameters[CLJDOC_ANALYZER_ARGS]" (pr-str (ng-analysis-args arg repos))}
-                            :basic-auth [api-token ""]})
+                            :headers {:accept-encoding "application/json"
+                                      :circle-token api-token}})
           build-data (-> build :body json/parse-string)]
       {:build-num (get build-data "build_num")
        :build-url (get build-data "build_url")
@@ -92,7 +92,7 @@
   (assert (circle-ci? circle-ci) (format "not a CircleCI instance: %s" circle-ci))
   (http/get
    (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci) "/" build-num "/artifacts")
-   {:accept "application/json", :basic-auth [(:api-token circle-ci) ""]}))
+   {:headers {:accept-encoding "application/json" :circle-token (:api-token circle-ci)}}))
 
 (defn- get-circle-ci-build
   "Retrieve information about the build identified by `build-num`. The project
@@ -103,7 +103,7 @@
   (assert (circle-ci? circle-ci) (format "not a CircleCI instance: %s" circle-ci))
   (http/get
    (str "https://circleci.com/api/v1.1/project/" (:builder-project circle-ci) "/" build-num)
-   {:accept "application/json", :basic-auth [(:api-token circle-ci) ""]}))
+   {:headers {:accept-encoding "application/json" :circle-token (:api-token circle-ci)}}))
 
 (defn- poll-circle-ci-build [circle-ci build-num]
   (loop [n 120] ; 120 * 5s = 10min
