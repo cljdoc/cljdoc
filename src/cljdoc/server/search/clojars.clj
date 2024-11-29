@@ -37,12 +37,12 @@
   (try
     (let [res
           (http/get "https://clojars.org/repo/feed.clj.gz"
-           {:throw false
-            :as :stream
-            :headers (cond->  {;; Avoid double-gzipping by Clojars' proxy:
-                               :accept-encoding "identity"}
-                       (and (not force?) @clojars-last-modified)
-                       (assoc :if-modified-since @clojars-last-modified))})]
+                    {:throw false
+                     :as :stream
+                     :headers (cond->  {;; Avoid double-gzipping by Clojars' proxy:
+                                        :accept-encoding "identity"}
+                                (and (not force?) @clojars-last-modified)
+                                (assoc :if-modified-since @clojars-last-modified))})]
       (case (:status res)
         304 (do
               (log/debug

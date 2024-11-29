@@ -141,7 +141,7 @@
 
   (def artifacts (load-maven-central-artifacts false))
 
-  (count artifacts )
+  (count artifacts)
   ;; => 79
 
   maven-grp-version-counts
