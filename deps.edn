@@ -22,7 +22,7 @@
 
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.955"} ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.47.0.0"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.47.1.0"}     ;; jdbc driver needed to talk to our SQLite db
         ;; hold off on ragtime 0.10.x until we know what to do about: https://github.com/weavejester/ragtime/issues/162
         dev.weavejester/ragtime {:mvn/version "0.9.5"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
@@ -50,8 +50,8 @@
         {:mvn/version "0.64.8"}
 
         ;; html
-        hiccup/hiccup {:mvn/version "2.0.0-RC3"}             ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.18.1"}              ;; xml/html parser/rewriter
+        hiccup/hiccup {:mvn/version "2.0.0-RC4"}             ;; html abstraction
+        org.jsoup/jsoup {:mvn/version "1.18.2"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
@@ -66,11 +66,11 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.29.12"}
+        software.amazon.awssdk/s3 {:mvn/version "2.29.23"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.0.0.202409031743-r"} ;; git with jsch
-        org.babashka/http-client {:mvn/version "0.4.21"}     ;; jdk11+ http client
+        org.babashka/http-client {:mvn/version "0.4.22"}     ;; jdk11+ http client
 
         ;; misc utils
         babashka/fs {:mvn/version "0.5.22"}                  ;; file system utilities (a modern version of clj-commons/fs)
@@ -129,7 +129,7 @@
            {:extra-deps {io.github.nextjournal/clerk {:mvn/version "0.17.1102"}}}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.5"}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.6"}
                    clj-kondo/clj-kondo {:mvn/version "2024.11.14"}
                    babashka/fs {:mvn/version "0.5.22"}
                    babashka/process {:mvn/version "0.5.22"}}
