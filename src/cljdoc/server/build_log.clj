@@ -5,7 +5,10 @@
             [next.jdbc.result-set :as rs]
             [next.jdbc.sql :as sql]
             [taoensso.nippy :as nippy])
-  (:import (java.time Duration Instant)))
+  (:import (java.time Duration Instant LocalDate ZoneOffset)
+           (java.time.format DateTimeFormatter)))
+
+(set! *warn-on-reflection* true)
 
 (defn- now []
   (str (Instant/now)))
@@ -40,7 +43,7 @@
   (git-completed! [_ build-id git-result])
   (completed! [_ build-id])
   (get-build [_ build-id])
-  (recent-builds [_ days])
+  (get-builds [_ end-date-str days])
   (running-build [_ group-id artifact-id version])
   (last-build [_ group-id artifact-id version]))
 
@@ -97,14 +100,28 @@
     (-> (sql/query db-spec ["SELECT * FROM builds WHERE id = ?" build-id]
                    {:builder-fn rs/as-unqualified-maps})
         first))
-  (recent-builds [_ days]
-    (sql/query db-spec [(str "SELECT * FROM builds "
-                             "WHERE analysis_requested_ts "
-                             "BETWEEN DATETIME('now', ?) "
-                             "AND DATETIME('now', '+1 days') "
-                             "ORDER BY id DESC")
-                        (str "-" days " days")]
-               {:builder-fn rs/as-unqualified-maps}))
+  (get-builds [_ end-date-str days]
+    (let [formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd")
+          ^LocalDate end-date (or (and end-date-str (LocalDate/parse end-date-str formatter))
+                                  (LocalDate/now ZoneOffset/UTC))
+          day-strs (mapv #(-> end-date
+                              (.minusDays %)
+                              (.format formatter))
+                         (range days))
+          start-date-str (last day-strs)
+          builds-by-date (->> (sql/query db-spec [(str "SELECT * "
+                                                       "FROM builds "
+                                                       "WHERE analysis_requested_ts "
+                                                       "BETWEEN ? AND ? "
+                                                       "ORDER BY analysis_requested_ts DESC")
+                                                  start-date-str
+                                                  (.format formatter (.plusDays end-date 1))]
+                                         {:builder-fn rs/as-unqualified-maps})
+                              (group-by #(subs (:analysis_requested_ts %) 0 10)))]
+      (mapv (fn [day-str]
+              {:date day-str
+               :builds (get builds-by-date day-str [])})
+            day-strs)))
   (running-build [_ group-id artifact-id version]
     (-> (sql/query db-spec [(str "select * from builds where error is null "
                                  "and import_completed_ts is null "

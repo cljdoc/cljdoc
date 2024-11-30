@@ -6,8 +6,7 @@
             [cljdoc.util.datetime :as dt]
             [clojure.string :as string]
             [taoensso.nippy :as nippy])
-  (:import [java.time Duration Instant]
-           [java.time.temporal ChronoUnit]))
+  (:import [java.time Duration Instant]))
 
 (defn succeeded?
   [build-info]
@@ -26,7 +25,7 @@
     [:div.cf.ba.b--moon-gray.mb2.br1.bg-washed-yellow
      [:div.fl-ns.w-third-ns.bb.bn-ns.b--moon-gray.pa3
       (when-not (string/blank? date)
-        [:span.code (dt/timestamp date)])]
+        [:span.code (dt/datetime->timestamp date)])]
      (into [:div.fl-ns.w-two-thirds-ns.bg-white.bl-ns.b--moon-gray.pa3] contents)]))
 
 (defn- url-for-cljdoc
@@ -237,18 +236,17 @@
 (defn build-aggregates
   "Given builds, calculate aggregate values.
   Returns a map containing total builds, failed builds, failure percentage."
-  [builds]
+  [{:keys [date builds]}]
   (let [build-cnt (count builds)
         failed-build-cnt (->> builds
                               (filter #(some? (:error %)))
                               count)]
-    {:date (-> builds
-               first
-               :analysis_requested_ts
-               dt/human-short)
+    {:date date
      :total build-cnt
      :failed failed-build-cnt
-     :percent-failed (* 100 (/ failed-build-cnt build-cnt))}))
+     :percent-failed (if (zero? build-cnt)
+                       0.0
+                       (* 100.0 (/ failed-build-cnt build-cnt)))}))
 
 (defn mean [coll]
   (if (seq coll) (/ (reduce + coll) (count coll)) 0))
@@ -264,75 +262,77 @@
 
 (defn build-analytics
   [build-aggregates]
-  (let [days   (take 5 build-aggregates)
+  (let [days   build-aggregates
         stddev (Math/sqrt (variance (map :percent-failed days)))
         mean   (mean (map :percent-failed days))
         too-high? (fn [v] (< (+ mean stddev) v))]
     [:div.mb2
      (->> build-aggregates
-          (take 5)
           (map (fn [{:keys [date total failed percent-failed]}]
                  [:dl.dib.w-20
-                  [:dd.f6.ml0 date]
+                  [:dd.f6.ml0 (dt/date->human-short date)]
                   [:dd.f4.b.ml0
                    {:class (when (too-high? percent-failed) "dark-red")}
                    (str (int percent-failed) "% failed")]
                   [:dd.f6.ml0 (str failed "/" total)]])))]))
 
 (defn builds-page [context builds]
-  (->> (for [b (take 100 builds)]
-         [:div.br2.ba.b--moon-gray.mb2
-          [:div.cf.pa3
-           [:div.fl
-            [:h3.ma0.mb2 (:group_id b) "/" (:artifact_id b) " " (:version b)
-             [:a.link.ml2.f5 {:href (str "/builds/" (:id b))}
-              [:span.silver.normal "#" (:id b)]]]
-            (cljdoc-link b false)]
-           [:div.fr
-            (when (done? b)
-              (cond
-                (:error b) [:span.db.bg-washed-red.pa3.br2 (:error b)]
-                (and (:api_imported_ts b)
-                     (:scm_url b)
-                     (:commit_sha b)) [:span.db.bg-washed-green.pa3.br2 "Good"]
-                (and (:import_completed_ts b)
-                     (:git_problem b))        [:span.db.bg-washed-yellow.pa3.br2 (str "Git: " (:git_problem b))]
-                (and (:import_completed_ts b)
-                     (not (:scm_url b)))           [:span.db.bg-washed-yellow.pa3.br2 "SCM URL missing"]
-                (some-> (:error b)
-                        (string/starts-with? "cljdoc.analysis.git")) [:span.db.bg-washed-yellow.pa3.br2 (:error b)]))]]
-          [:div.cf.tc.bt.b--moon-gray.pa2.o-30
-           ;; (def requested (:analysis_requested_ts b))
-           ;; (def completed (:import_completed_ts b))
-           [:div.fl.w-25.br.b--moon-gray
-            [:span.db.f7.ttu.tracked.silver "Analysis requested"]
-            (when (:analysis_requested_ts b)
-              (dt/timestamp (:analysis_requested_ts b)))]
-           [:div.fl.w-25
-            [:span.db.f7.ttu.tracked.gray "Analysis job triggered"]
-            (when (:analysis_triggered_ts b)
-              (seconds-diff
-               (:analysis_requested_ts b)
-               (:analysis_triggered_ts b)))]
-           [:div.fl.w-25
-            [:span.db.f7.ttu.tracked.gray "Analysis data received"]
-            (when (:analysis_received_ts b)
-              (seconds-diff
-               (:analysis_requested_ts b)
-               (:analysis_received_ts b)))]
-           [:div.fl.w-25
-            [:span.db.f7.ttu.tracked.gray "Import completed"]
-            (cond
-              (:import_completed_ts b) (seconds-diff
-                                        (:analysis_requested_ts b)
-                                        (:import_completed_ts b))
-              (:error b)               "failed"
-              :else                    "in progress")]]])
+  (->> (for [{:keys [date builds]} builds]
+         [:div
+          [:h2 (dt/date->human-long date)]
+          (if (zero? (count builds))
+            "No builds"
+            (for [b builds]
+              [:div.br2.ba.b--moon-gray.mb2
+               [:div.cf.pa3
+                [:div.fl
+                 [:h3.ma0.mb2 (:group_id b) "/" (:artifact_id b) " " (:version b)
+                  [:a.link.ml2.f5 {:href (str "/builds/" (:id b))}
+                   [:span.silver.normal "#" (:id b)]]]
+                 (cljdoc-link b false)]
+                [:div.fr
+                 (when (done? b)
+                   (cond
+                     (:error b) [:span.db.bg-washed-red.pa3.br2 (:error b)]
+                     (and (:api_imported_ts b)
+                          (:scm_url b)
+                          (:commit_sha b)) [:span.db.bg-washed-green.pa3.br2 "Good"]
+                     (and (:import_completed_ts b)
+                          (:git_problem b))        [:span.db.bg-washed-yellow.pa3.br2 (str "Git: " (:git_problem b))]
+                     (and (:import_completed_ts b)
+                          (not (:scm_url b)))           [:span.db.bg-washed-yellow.pa3.br2 "SCM URL missing"]
+                     (some-> (:error b)
+                             (string/starts-with? "cljdoc.analysis.git")) [:span.db.bg-washed-yellow.pa3.br2 (:error b)]))]]
+               [:div.cf.tc.bt.b--moon-gray.pa2.o-30
+                ;; (def requested (:analysis_requested_ts b))
+                ;; (def completed (:import_completed_ts b))
+                [:div.fl.w-25.br.b--moon-gray
+                 [:span.db.f7.ttu.tracked.silver "Analysis requested"]
+                 (when (:analysis_requested_ts b)
+                   (dt/datetime->timestamp (:analysis_requested_ts b)))]
+                [:div.fl.w-25
+                 [:span.db.f7.ttu.tracked.gray "Analysis job triggered"]
+                 (when (:analysis_triggered_ts b)
+                   (seconds-diff
+                    (:analysis_requested_ts b)
+                    (:analysis_triggered_ts b)))]
+                [:div.fl.w-25
+                 [:span.db.f7.ttu.tracked.gray "Analysis data received"]
+                 (when (:analysis_received_ts b)
+                   (seconds-diff
+                    (:analysis_requested_ts b)
+                    (:analysis_received_ts b)))]
+                [:div.fl.w-25
+                 [:span.db.f7.ttu.tracked.gray "Import completed"]
+                 (cond
+                   (:import_completed_ts b) (seconds-diff
+                                             (:analysis_requested_ts b)
+                                             (:import_completed_ts b))
+                   (:error b)               "failed"
+                   :else                    "in progress")]]]))])
        (into [:div.mw8.center.pv3.ph2
-              [:h1 "Recent cljdoc builds"]
+              [:h1 "cljdoc builds summary"]
               (->> builds
-                   (partition-by #(-> % :analysis_requested_ts Instant/parse
-                                      (.truncatedTo  ChronoUnit/DAYS)))
                    (map build-aggregates)
                    (build-analytics))])
 

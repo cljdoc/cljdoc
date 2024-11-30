@@ -30,7 +30,7 @@
 
 (defn build-log-routes []
   #{["/builds/:id" :get nop :route-name :show-build]
-    ["/builds" :get nop :route-name :all-builds]})
+    ["/builds" :get nop :route-name :builds-summary]})
 
 (defn documentation-routes []
   ;; param :group-id of first route is a bit misleading

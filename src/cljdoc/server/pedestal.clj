@@ -8,7 +8,7 @@
   The main aspects handlded via HTTP (and thus through this namespace) are:
 
   - Rendering documentation pages (see [[view]])
-  - Rendering build logs (see [[show-build]] & [[all-builds]])
+  - Rendering build logs (see [[show-build]] & [[builds-summary]])
   - Rendering a sitemap (see [[sitemap-interceptor]])
   - Handling build requests (see [[request-build]], [[full-build]] & [[circle-ci-webhook]])
   - Redirecting to newer releases (see [[resolve-version-interceptor]] & [[jump-interceptor]])"
@@ -34,6 +34,7 @@
             [cljdoc.server.search.api :as search-api]
             [cljdoc.server.sitemap :as sitemap]
             [cljdoc.storage.api :as storage]
+            [cljdoc.util.datetime :as dt]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
             [clojure.core.memoize :as memoize]
@@ -374,14 +375,18 @@
                  (assoc ctx :response {:status 404
                                        :body "Build not found"}))))}))
 
-(defn all-builds
+(defn builds-summary
   [build-tracker]
   (interceptor/interceptor
    {:name ::build-index
     :enter (fn build-index-render [ctx]
-             (->> (build-log/recent-builds build-tracker 30)
-                  (render-build-log/builds-page ctx)
-                  (pu/ok-html ctx)))}))
+             (let [end-date (some-> ctx :request :query-params :end-date)]
+               (if (or (nil? end-date) (dt/valid-date? end-date))
+                 (->> (build-log/get-builds build-tracker end-date 5)
+                      (render-build-log/builds-page ctx)
+                      (pu/ok-html ctx))
+                 (assoc ctx :response {:status 400
+                                       :body "invalid end-date, must be valid yyyy-mm-dd"}))))}))
 
 (defn return-badge
   "Fetch badge svg from badgen.
@@ -638,7 +643,7 @@
                       (pu/negotiate-content ["text/html" "application/edn" "application/json"]
                                             "text/html")
                       (show-build build-tracker)]
-         :all-builds [(all-builds build-tracker)]
+         :builds-summary [(builds-summary build-tracker)]
 
          :api/search [(search-interceptor searcher)]
          :api/search-suggest [(search-suggest-interceptor searcher)]
