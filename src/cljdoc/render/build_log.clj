@@ -25,7 +25,8 @@
   (when date
     [:div.cf.ba.b--moon-gray.mb2.br1.bg-washed-yellow
      [:div.fl-ns.w-third-ns.bb.bn-ns.b--moon-gray.pa3
-      [:span date]]
+      (when-not (string/blank? date)
+        [:span.code (dt/timestamp date)])]
      (into [:div.fl-ns.w-two-thirds-ns.bg-white.bl-ns.b--moon-gray.pa3] contents)]))
 
 (defn- url-for-cljdoc
@@ -244,7 +245,7 @@
     {:date (-> builds
                first
                :analysis_requested_ts
-               dt/->analytics-format)
+               dt/human-short)
      :total build-cnt
      :failed failed-build-cnt
      :percent-failed (* 100 (/ failed-build-cnt build-cnt))}))
@@ -305,7 +306,8 @@
            ;; (def completed (:import_completed_ts b))
            [:div.fl.w-25.br.b--moon-gray
             [:span.db.f7.ttu.tracked.silver "Analysis requested"]
-            (:analysis_requested_ts b)]
+            (when (:analysis_requested_ts b)
+              (dt/timestamp (:analysis_requested_ts b)))]
            [:div.fl.w-25
             [:span.db.f7.ttu.tracked.gray "Analysis job triggered"]
             (when (:analysis_triggered_ts b)

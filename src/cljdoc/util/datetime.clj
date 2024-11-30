@@ -17,7 +17,7 @@
       3 "rd"
       "th")))
 
-(defn ->analytics-format
+(defn human-short
   "Turns timestamp to a nice, human readable date format."
   [ts]
   (let [datetime (Instant/parse ts)
@@ -25,8 +25,22 @@
     (str (.format (.withZone (DateTimeFormatter/ofPattern "EEE, MMM dd" Locale/ENGLISH) utc) datetime)
          (day-suffix (.getDayOfMonth (.atZone datetime utc))))))
 
+(defn timestamp [datetime-str]
+  (let [d (java.time.ZonedDateTime/parse datetime-str)]
+    (.format d (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss.S"))))
+
 (comment
   (day-suffix 21)
-  ;; => "th"
+  ;; => "st"
 
-  (->analytics-format "2018-10-17T20:58:21.491730Z"))
+  (->analytics-format "2018-10-22T11:12:13.12313Z")
+  ;; => "Mon, Oct 22nd"
+
+  ;; doesn't round fractional seconds, truncates, that's ok for our usage
+  (timestamp "2018-10-17T20:58:21.491730Z")
+  ;; => "2018-10-17 20:58:21.4"
+
+  (timestamp "2018-10-17T20:58:21.411730Z")
+  ;; => "2018-10-17 20:58:21.4"
+
+  :eoc)
