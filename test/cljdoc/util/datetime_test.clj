@@ -19,4 +19,7 @@
   (t/is (= "st" (dt/day-suffix 31))))
 
 (t/deftest human-short-format-test
-  (t/is (= "Mon, Oct 22nd" (dt/human-short "2018-10-22T20:58:21.491730Z"))))
+  (t/is (= "Mon, Oct 22nd" (dt/date->human-short "2018-10-22"))))
+
+(t/deftest human-long-format-test
+  (t/is (= "Monday, October 22nd, 2018" (dt/date->human-long "2018-10-22"))))
