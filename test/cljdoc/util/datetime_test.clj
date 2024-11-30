@@ -18,5 +18,5 @@
   (t/is (= "th" (dt/day-suffix 24)))
   (t/is (= "st" (dt/day-suffix 31))))
 
-(t/deftest analytics-format-test
-  (t/is (= "Mon, Oct 22nd" (dt/->analytics-format "2018-10-22T20:58:21.491730Z"))))
+(t/deftest human-short-format-test
+  (t/is (= "Mon, Oct 22nd" (dt/human-short "2018-10-22T20:58:21.491730Z"))))
