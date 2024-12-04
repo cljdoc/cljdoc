@@ -47,6 +47,7 @@
                    "traefik.http.routers.cljdoc-http.rule=PathPrefix(`/`)"
                    ;; https
                    "traefik.http.middlewares.compress-response.compress=true"
+                   "traefik.http.middlewares.compress-response.compress.encodings=gzip"
                    "traefik.http.routers.cljdoc-https.entrypoints=websecure"
                    "traefik.http.routers.cljdoc-https.tls=true"
                    "traefik.http.routers.cljdoc-https.tls.certresolver=letsencrypt"
