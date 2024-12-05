@@ -29,6 +29,7 @@
                              BooleanQuery$Builder
                              BoostQuery
                              DoubleValuesSource
+                             DisjunctionMaxQuery
                              IndexSearcher
                              MatchAllDocsQuery
                              Query
@@ -125,16 +126,15 @@
     (cond-> description
       (.add (text-field "blurb" (description->blurb description)))) ;; tokenized jar pom.xml blurbified description
     (add-versions versions)
-    (.add (DoubleDocValuesField. "popularity" popularity)) ;; 0 to 1 - popularity rating
+    (.add (DoubleDocValuesField. "popularity" popularity))
     ;; we'll use this as our boost score at query time
-    (.add (DoubleDocValuesField. "_score" (* 1.5 popularity)))))
+    (.add (DoubleDocValuesField. "_score" popularity))))
 
 (defn- clojars-download-boost [dl-max dl-lib]
-  (if (or (nil? dl-max) (zero? dl-max))
-    0 ;; if dl-max 0 or not available, we don't have stats yet.
-    (/ dl-lib dl-max)))
+  ;; slightly de-boost the long tail of libs that haven't been downloaded much
+  (if (> dl-lib 3000) 1 0.9))
 
-(defn- calculate-doc-popularity
+(defn- calculate-artifact-popularity-boost
   "Return document's popularity relative to other documents.
 
   For clojars this is the artifact download count divided the download count for the most downloaded artifact.
@@ -150,7 +150,7 @@
   (.updateDocument
    idx-writer
    (term "id" (artifact->index-id artifact))
-   (artifact->doc artifact (calculate-doc-popularity clojars-stats artifact))))
+   (artifact->doc artifact (calculate-artifact-popularity-boost clojars-stats artifact))))
 
 (defn- track-indexing-status [{:keys [last-report-time] :as status}]
   (let [status (update status :artifacts-indexed inc)
@@ -176,8 +176,12 @@
       A value of 0 disables length normalization completely.
       Default value is 0.75."
   []
-  (let [k1 0 ;; term frequency unimportant
-        b 0 ;; document length unimportant
+  ;; k1 = 0.5: Reduces impact of term frequency
+  ;; b = 0.75: Standard length normalization
+  ;; Good for: When term presence is more important than frequency (e.g., titles, tags)
+  ;; Implications: More "boolean-like" behavior, less boost for repeated terms
+  (let [k1 0.5
+        b 0.75
         discount-overlaps true]
     (BM25Similarity. k1 b discount-overlaps)))
 
@@ -327,24 +331,27 @@
 
 (defn- freetext-match-query [query-text]
   (let [tokens (tokenize query-text)
-        clauses (map (fn [t] (boolean-query :should [(term-query :group-id t)
-                                                     (term-query :artifact-id t)
-                                                     (-> (term-query :blurb t) (boost 0.01))]))
-                     tokens)]
-    (if (next clauses)
-      (boolean-query :must clauses)
-      (first clauses))))
+        combined-name-clauses (map (fn [t]
+                                     (DisjunctionMaxQuery.
+                                      [(-> (term-query :artifact-id t)
+                                           (boost 1.34))
+                                       (term-query :group-id t)]
+                                      ;; 5% of the lower score is added to the score
+                                      0.05))
+                                   tokens)]
+    (boolean-query :should combined-name-clauses)))
 
 (defn- parse-query
   ^Query [query-text]
   (let [exact (exact-match-query query-text)
         free (freetext-match-query query-text)
-        free (when free (FunctionScoreQuery/boostByValue free (DoubleValuesSource/fromDoubleField "_score")))
-        queries (->> [exact free]
+        queries (->> [#_exact free]
                      (keep identity)
                      (into []))]
     (when (seq queries)
-      (boolean-query :should queries))))
+      (FunctionScoreQuery/boostByValue
+       (boolean-query :should queries)
+       (DoubleValuesSource/fromDoubleField "_score")))))
 
 (defn- hitdoc-num [^ScoreDoc scoredoc]
   (.-doc scoredoc))
@@ -526,7 +533,7 @@
 
   (search index-reader-fn "metosin muunta")
 
-  (explain-top-n 6 index "metosin muunta")
+  (explain-top-n 3 index "reitit http server")
 
   (search index-reader-fn "re-frame")
   (search index-reader-fn "org.clojure")
@@ -554,5 +561,11 @@
   (tokenize "XL---42+'Autocoder billy");; => ("xl" "42" "autocoder" "billy")
   (tokenize "hEy42-the⓰re.slugger.");; => ("hey42" "the" "re" "slugger")
   (tokenize "com.github.lread/test-doc-blocks");; => ("com" "github" "lread" "test" "doc" "blocks")
+  (tokenize "reitit http server");; => ("com" "github" "lread" "test" "doc" "blocks")
 
+  (explain-top-n 3 index "reitit http server")
+  (explain-top-n 3 index "reitit")
+  (explain-top-n 3 index "ring cors")
+  (explain-top-n 4 index "uix")
+  (explain-top-n 3 index "helix")
   nil)
