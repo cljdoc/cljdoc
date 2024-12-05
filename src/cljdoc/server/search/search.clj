@@ -130,10 +130,6 @@
     ;; we'll use this as our boost score at query time
     (.add (DoubleDocValuesField. "_score" popularity))))
 
-(defn- clojars-download-boost [dl-max dl-lib]
-  ;; slightly de-boost the long tail of libs that haven't been downloaded much
-  (if (> dl-lib 3000) 1 0.9))
-
 (defn- calculate-artifact-popularity-boost
   "Return document's popularity relative to other documents.
 
@@ -142,9 +138,9 @@
   [clojars-stats {:as _jar :keys [origin artifact-id group-id]}]
   (case origin
     :maven-central 1.0
-    :clojars (let [dl-max (clojars-stats/download-count-max clojars-stats)
-                   dl-lib (clojars-stats/download-count-artifact clojars-stats group-id artifact-id)]
-               (clojars-download-boost dl-max dl-lib))))
+    :clojars (let [dl-lib (clojars-stats/download-count-artifact clojars-stats group-id artifact-id)]
+               ;; slightly de-boost the long tail of libs that haven't been downloaded much
+               (if (> dl-lib 3000) 1 0.9))))
 
 (defn- index-artifact [clojars-stats ^IndexWriter idx-writer artifact]
   (.updateDocument
@@ -316,19 +312,6 @@
 (defn- boost ^Query [query val]
   (BoostQuery. query val))
 
-(defn- exact-match-query [query-text]
-  (let [query-text (string/trim query-text)
-        terms (remove string/blank? (string/split query-text #"(\s+|/)"))
-        cnt (count terms)]
-    (case cnt
-      1 (-> (boolean-query :should [(term-query :group-id.exact (first terms))
-                                    (term-query :artifact-id.exact (first terms))])
-            (boost 10.0))
-      2 (-> (boolean-query :must [(term-query :group-id.exact (first terms))
-                                  (term-query :artifact-id.exact (second terms))])
-            (boost 10.0))
-      nil)))
-
 (defn- freetext-match-query [query-text]
   (let [tokens (tokenize query-text)
         combined-name-clauses (map (fn [t]
@@ -343,11 +326,7 @@
 
 (defn- parse-query
   ^Query [query-text]
-  (let [exact (exact-match-query query-text)
-        free (freetext-match-query query-text)
-        queries (->> [#_exact free]
-                     (keep identity)
-                     (into []))]
+  (let [queries [(freetext-match-query query-text)]]
     (when (seq queries)
       (FunctionScoreQuery/boostByValue
        (boolean-query :should queries)
@@ -507,13 +486,8 @@
 
 (comment
 
-  (exact-match-query "hello-billy/there")
-  (exact-match-query "hello")
-
   (freetext-match-query "hello")
   (parse-query "hello billy boy")
-
-  (exact-match-query "q")
 
   (freetext-match-query "")
 
