@@ -14,27 +14,27 @@
     "date-fns": "^4.1.0",
     "elasticlunr": "^0.9.5",
     "fuzzysort": "^3.1.0",
-    "idb": "^8.0.0",
-    "preact": "^10.25.0"
+    "idb": "^8.0.1",
+    "preact": "^10.25.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.16.0",
-    "@parcel/packager-xml": "^2.13.2",
-    "@parcel/transformer-image": "^2.13.2",
-    "@parcel/transformer-xml": "^2.13.2",
+    "@eslint/js": "^9.17.0",
+    "@parcel/packager-xml": "^2.13.3",
+    "@parcel/transformer-image": "^2.13.3",
+    "@parcel/transformer-xml": "^2.13.3",
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
-    "eslint": "^9.16.0",
-    "parcel": "^2.13.2",
+    "eslint": "^9.17.0",
+    "parcel": "^2.13.3",
     "parcel-namer-custom": "^0.2.0",
     "parcel-reporter-static-files-copy": "^1.5.3",
     "parcel-resolver-ignore": "^2.1.5",
-    "prettier": "^3.4.1",
+    "prettier": "^3.4.2",
     "pretty-quick": "^4.0.0",
     "svgo": "^3.3.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.16.0"
+    "typescript-eslint": "^8.18.1"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"

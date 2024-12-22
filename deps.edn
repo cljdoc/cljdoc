@@ -9,6 +9,7 @@
         ;; web server/services
         io.pedestal/pedestal.jetty {:mvn/version "0.7.2"}    ;; web site/service with jetty engine
         ;; CVE jetty override: (remove all when pedestal bumps)
+        ;; Jetty 11 is at EOL and will only get "sponsored" releases. Hopefully pedestal will upgrade to Jetty 12
         org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.24"}
         org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.24"}
         org.eclipse.jetty.websocket/websocket-jakarta-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.24"}
@@ -18,10 +19,10 @@
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
         ;; delete override when pedestal updates:
-        org.clojure/tools.analyzer.jvm {:mvn/version "1.3.0"}
+        org.clojure/tools.analyzer.jvm {:mvn/version "1.3.1"}
 
         ;; relational database
-        com.github.seancorfield/next.jdbc {:mvn/version "1.3.955"} ;; jdbc abstraction
+        com.github.seancorfield/next.jdbc {:mvn/version "1.3.981" } ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.47.1.0"}     ;; jdbc driver needed to talk to our SQLite db
         ;; hold off on ragtime 0.10.x until we know what to do about: https://github.com/weavejester/ragtime/issues/162
         dev.weavejester/ragtime {:mvn/version "0.9.5"}       ;; database migrations
@@ -31,10 +32,10 @@
         com.taoensso/nippy {:mvn/version "3.4.2"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "10.0.0"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "10.0.0"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.0.0"}
-        org.apache.lucene/lucene-queryparser {:mvn/version "10.0.0"}
+        org.apache.lucene/lucene-core {:mvn/version "10.1.0"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "10.1.0"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.1.0"}
+        org.apache.lucene/lucene-queryparser {:mvn/version "10.1.0"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "3.0.0"} ;; render adoc to html
@@ -51,7 +52,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-RC4"}             ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.18.2"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.18.3"}              ;; xml/html parser/rewriter
         enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
@@ -66,14 +67,14 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.29.23"}
+        software.amazon.awssdk/s3 {:mvn/version "2.29.39"}
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.0.0.202409031743-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.1.0.202411261347-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.22"}     ;; jdk11+ http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.5.22"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.5.23"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.5.22"}             ;; launch processes
         cheshire/cheshire {:mvn/version "5.13.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
@@ -87,7 +88,7 @@
         version-clj/version-clj {:mvn/version "2.0.3"}       ;; compare versions
         zprint/zprint {:mvn/version "1.2.9"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.16.4"}
+        metosin/malli {:mvn/version "0.17.0"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -96,7 +97,7 @@
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:nrepl
            {:extra-deps {nrepl/nrepl {:mvn/version "1.3.0"}
-                         cider/cider-nrepl {:mvn/version "0.50.2"}
+                         cider/cider-nrepl {:mvn/version "0.50.3"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.10.0"}
                          ;; to support recompiling java code from repl
                          virgil/virgil {:mvn/version "0.3.1"}
@@ -131,7 +132,7 @@
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.6"}
                    clj-kondo/clj-kondo {:mvn/version "2024.11.14"}
-                   babashka/fs {:mvn/version "0.5.22"}
+                   babashka/fs {:mvn/version "0.5.23"}
                    babashka/process {:mvn/version "0.5.22"}}
             :ns-default build}
 
@@ -153,7 +154,7 @@
             :main-opts ["-m" "cljfmt.main"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1250"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1260"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.16"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--ignore-locals"]}}}
