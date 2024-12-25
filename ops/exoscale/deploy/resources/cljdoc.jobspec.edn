@@ -17,7 +17,7 @@
       :Config {:image #join ["cljdoc/cljdoc:" #cljdoc.deploy/opt :docker-tag]
                :ports ["http" "jmx"]
                :volumes ["secrets:/etc/cljdoc"
-                         "/data/cljdoc:/var/cljdoc"]}
+                         "/data/cljdoc:/app/data"]}
       :Driver "docker"
       :Env {:CLJDOC_SECRETS "/etc/cljdoc/secrets.edn"
             :CLJDOC_PROFILE #cljdoc.deploy/opt :cljdoc-profile}

@@ -24,6 +24,12 @@ RUN clojure -Stree -M:cli
 
 COPY . /app
 
+# CLJDOC_DATA_DIR dependencies:
+# - can't change without breaking docs for running cljdoc locally (via docker)
+# - must match volumes mapping in cljdoc.jobspec.edn
+ENV CLJDOC_DATA_DIR=/app/data
+ENV CLJDOC_LOG_FILE=/app/data/cljdoc.log
+
 EXPOSE 8000
 
 ENTRYPOINT ["script/docker_entrypoint.clj"]

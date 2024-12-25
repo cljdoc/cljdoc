@@ -50,12 +50,10 @@
                   "-J-XshowSettings:vm" ;; prints heap usage to to stderr at startup
                   "-J-Xms1024m"         ;; perhaps temporary, will make it easier to diag mem usage
                   "-J-Xmx1024m"
-                  "-J-Dcljdoc.dir=/var/cljdoc" ;; volume-shared with host, see cljdoc.jobspec.edn
-                  "-J-Dcljdoc.log.file=/var/cljdoc/cljdoc.log"
                   "-J-Dcljdoc.host=0.0.0.0"
                   "-J-XX:+ExitOnOutOfMemoryError"
                   "-J-XX:+HeapDumpOnOutOfMemoryError"
-                  "-J-XX:NativeMemoryTracking=summary" ;; temporary for diagnosis of memory usage
+                  "-J-XX:NativeMemoryTracking=summary" ;; perhaps temporary for diagnosis of memory usage
                   ;; perhaps temporary... allow connection via jvisualvm
                   "-J-Dcom.sun.management.jmxremote"
                   "-J-Dcom.sun.management.jmxremote.port=9010"
