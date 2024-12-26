@@ -54,6 +54,7 @@ NOTE: We previously encouraged `/tmp/cljdoc` but current versions of docker need
 ----
 docker run --rm \
   --publish 8000:8000 \
+  --volume "$HOME/.m2:/root/.m2" \
   --volume ./.cljdoc-preview:/app/data \
   --platform linux/amd64 \
   {docker-image}
