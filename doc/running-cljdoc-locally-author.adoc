@@ -208,7 +208,7 @@ From {example-project-name}'s root dir:
 ----
 docker run --rm \
   --volume "$HOME/.m2:/root/.m2" \
-  --volume ./cljdoc-preview:/app/data \
+  --volume ./.cljdoc-preview:/app/data \
   --platform linux/amd64 \
   --entrypoint clojure \
   {docker-image} -Sforce -M:cli ingest \
