@@ -13,7 +13,7 @@
 :example-project-import-url: https://github.com/cljdoc/cljdoc-exerciser
 :example-project-coords: org.cljdoc/cljdoc-exerciser
 :example-project-maven-path: org/cljdoc/cljdoc-exerciser
-:example-project-version: 1.0.100
+:example-project-version: 1.0.110
 
 [[introduction]]
 == Audience
@@ -39,6 +39,22 @@ docker pull {docker-image}
 +
 TIP: Your installation might require you to prefix docker commands with `sudo`, add your user to the docker group or adapt as necessary.
 
+. Navigate to your library home dir.
++
+[TIP]
+====
+Our docs use {example-project-link} as an example library.
+If you want to follow along using {example-project-name}:
+
+[source,shell,subs="verbatim,attributes"]
+----
+git clone {example-project-clone-url}
+cd {example-project-name}
+----
+
+Otherwise, cd to your library project root dir.
+====
+
 . Make a directory for the cljdoc sqlite database:
 +
 [source,shell]
@@ -54,6 +70,7 @@ NOTE: We previously encouraged `/tmp/cljdoc` but current versions of docker need
 ----
 docker run --rm \
   --publish 8000:8000 \
+  --volume "$HOME/.m2:/root/.m2" \
   --volume ./.cljdoc-preview:/app/data \
   --platform linux/amd64 \
   {docker-image}

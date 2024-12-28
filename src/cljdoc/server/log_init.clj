@@ -5,7 +5,7 @@
 
 (set! *warn-on-reflection* true)
 
-(def log-file (or (System/getProperty "cljdoc.log.file") "log/cljdoc.log"))
+(def log-file (or (System/getenv "CLJDOC_LOG_FILE") "log/cljdoc.log"))
 
 (unilog/start-logging!
  {:level   :info
