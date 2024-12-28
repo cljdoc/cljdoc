@@ -39,6 +39,22 @@ docker pull {docker-image}
 +
 TIP: Your installation might require you to prefix docker commands with `sudo`, add your user to the docker group or adapt as necessary.
 
+. Navigate to your library home dir.
++
+[TIP]
+====
+Our docs use {example-project-link} as an example library.
+If you want to follow along using {example-project-name}:
+
+[source,shell,subs="verbatim,attributes"]
+----
+git clone {example-project-clone-url}
+cd {example-project-name}
+----
+
+Otherwise, cd to your library project root dir.
+====
+
 . Make a directory for the cljdoc sqlite database:
 +
 [source,shell]
