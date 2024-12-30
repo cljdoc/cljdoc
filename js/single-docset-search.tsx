@@ -40,12 +40,10 @@ const tokenize = (str?: string): string[] => {
 };
 
 const subTokenize = (tokens: string[]): string[] => {
-  console.log('tokens', tokens);
   // only split on embedded forward slashes for now
   const splitCharRegex = /\//;
   const splitCharsRegex = /\/+/;
   return tokens.reduce((acc, token) => {
-    console.log('sub token', token);
     // break down into subTokens, if appropriate, for example
     // clojure.core.test/foo.bar would break down to clojure.core.test foo.bar
     if (splitCharRegex.test(token)) {
