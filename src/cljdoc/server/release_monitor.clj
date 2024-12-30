@@ -98,28 +98,22 @@
 (defn- queue-new-releases
   "Queues `releases` skipping any already known releases, returns releases that were queued."
   [db-spec releases]
-  (let [releases (sort-by :created-ts releases)
-        ;; quietly skip last release if already known, we don't have the facility
-        ;; to query clojars on exclusive ranges so we get an overlap
-        releases (if (is-known-release? db-spec (first releases))
-                   (rest releases)
-                   releases)]
-    (when (seq releases)
-      (log/infof "Queuing %s new releases" (count releases))
-      (reduce (fn [acc {:keys [group-id artifact-id version] :as release}]
-                (jdbc/with-transaction [tx db-spec]
-                  (if (is-known-release? tx release)
-                    (log/warnf "Skipping %s/%s %s, is aleady known to cljdoc."
+  (when (seq releases)
+    (log/infof "Queuing %s new releases" (count releases))
+    (reduce (fn [acc {:keys [group-id artifact-id version] :as release}]
+              (jdbc/with-transaction [tx db-spec]
+                (if (is-known-release? tx release)
+                  (log/warnf "Skipping %s/%s %s, is aleady known to cljdoc."
+                             group-id artifact-id version)
+                  (do
+                    (log/infof "Queueing %s/%s %s for build."
                                group-id artifact-id version)
-                    (do
-                      (log/infof "Queueing %s/%s %s for build."
-                                 group-id artifact-id version)
-                      (sql/insert! tx :releases
-                                   (select-keys release [:group-id :artifact-id :version :created-ts])
-                                   jdbc/unqualified-snake-kebab-opts)
-                      (conj acc release)))))
-              []
-              releases))))
+                    (sql/insert! tx :releases
+                                 (select-keys release [:group-id :artifact-id :version :created-ts])
+                                 jdbc/unqualified-snake-kebab-opts)
+                    (conj acc release)))))
+            []
+            releases)))
 
 (defn- inc-retry-count! [db-spec {:keys [id retry-count] :as _release}]
   (sql/update! db-spec
