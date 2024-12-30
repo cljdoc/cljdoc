@@ -41,8 +41,8 @@
 
 (defn- clojars-releases-since [from-inst]
   (let [resp (http/get "https://clojars.org/api/release-feed"
-                      {:query-params {"from" (str from-inst)}
-                       :headers {:accept "application/edn"}})
+                       {:query-params {"from" (str from-inst)}
+                        :headers {:accept "application/edn"}})
         results (-> resp :body edn/read-string :releases)]
     (->> results
          (map (fn [r]
