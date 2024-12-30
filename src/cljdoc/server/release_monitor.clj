@@ -1,6 +1,14 @@
 (ns cljdoc.server.release-monitor
+  "Monitor for new library releases between hourly bulk checks done by cljdoc.server.search.api.
+
+  We only monitor clojars and not maven central.
+
+  Maven Central
+  - does not hold many clojure libs (notable exception is org.clojure libs)
+  - their team asks that we only make necessary calls to their APIs to reduce overall traffic
+  - existing hourly bulk update check is sufficient
+  - manual invokation of doc building is still possible for the impatient"
   (:require [babashka.http-client :as http]
-            [cheshire.core :as json]
             [cljdoc-shared.proj :as proj]
             [cljdoc.config :as config]
             [cljdoc.server.build-log :as build-log]
@@ -15,11 +23,10 @@
             [tea-time.core :as tt])
   (:import (cljdoc.server.search.api ISearcher)
            (java.net URI)
-           (java.time Duration Instant)))
+           (java.time Duration Instant)
+           (java.util Date)))
 
 (set! *warn-on-reflection* true)
-
-; TODO. Maven Central
 
 ;;
 ;; Clojars
@@ -30,22 +37,21 @@
                               {:headers {:accept "application/edn"}})
                     :body
                     edn/read-string)]
-    {:description (:description result)
-     :versions (->> result :recent_versions (mapv :version))}))
+    {:versions (->> result :recent_versions (mapv :version))}))
 
 (defn- clojars-releases-since [from-inst]
-  (let [req (http/get "https://clojars.org/search"
-                      {:query-params {"q" (format "at:[%s TO %s]" (str from-inst) (str (Instant/now)))
-                                      "format" "json"
-                                      "page" 1}})
-        results (-> req :body json/parse-string (get "results"))]
+  (let [resp (http/get "https://clojars.org/api/release-feed"
+                       {:query-params {"from" (str from-inst)}
+                        :headers {:accept "application/edn"}})
+        results (-> resp :body edn/read-string :releases)]
     (->> results
-         (sort-by #(get % "created"))
          (map (fn [r]
-                {:created-ts  (Instant/ofEpochMilli (parse-long (get r "created")))
-                 :group-id    (get r "group_name")
-                 :artifact-id (get r "jar_name")
-                 :version     (get r "version")})))))
+                ;; clojars encodes released_at as, e.g.: #inst "2024-12-28T21:27T21:27:00.686000000-00:00"
+                {:created-ts  (.toInstant ^Date (:released_at r))
+                 :group-id    (:group_id r)
+                 :artifact-id (:artifact_id r)
+                 :version     (:version r)
+                 :description (:description r)})))))
 
 ;;
 ;; Local sql db
@@ -92,28 +98,22 @@
 (defn- queue-new-releases
   "Queues `releases` skipping any already known releases, returns releases that were queued."
   [db-spec releases]
-  (let [releases (sort-by :created-ts releases)
-        ;; quietly skip last release if already known, we don't have the facility
-        ;; to query clojars on exclusive ranges so we get an overlap
-        releases (if (is-known-release? db-spec (first releases))
-                   (rest releases)
-                   releases)]
-    (when (seq releases)
-      (log/infof "Queuing %s new releases" (count releases))
-      (reduce (fn [acc {:keys [group-id artifact-id version] :as release}]
-                (jdbc/with-transaction [tx db-spec]
-                  (if (is-known-release? tx release)
-                    (log/warnf "Skipping %s/%s %s, is aleady known to cljdoc."
+  (when (seq releases)
+    (log/infof "Queuing %s new releases" (count releases))
+    (reduce (fn [acc {:keys [group-id artifact-id version] :as release}]
+              (jdbc/with-transaction [tx db-spec]
+                (if (is-known-release? tx release)
+                  (log/warnf "Skipping %s/%s %s, is aleady known to cljdoc."
+                             group-id artifact-id version)
+                  (do
+                    (log/infof "Queueing %s/%s %s for build."
                                group-id artifact-id version)
-                    (do
-                      (log/infof "Queueing %s/%s %s for build."
-                                 group-id artifact-id version)
-                      (sql/insert! tx :releases
-                                   release
-                                   jdbc/unqualified-snake-kebab-opts)
-                      (conj acc release)))))
-              []
-              releases))))
+                    (sql/insert! tx :releases
+                                 (select-keys release [:group-id :artifact-id :version :created-ts])
+                                 jdbc/unqualified-snake-kebab-opts)
+                    (conj acc release)))))
+            []
+            releases)))
 
 (defn- inc-retry-count! [db-spec {:keys [id retry-count] :as _release}]
   (sql/update! db-spec
@@ -146,12 +146,14 @@
   (when (seq releases)
     (log/infof "Writing %d artifacts to search index" (count releases))
     (->> releases
-         (mapv (fn [{:keys [group-id artifact-id]}]
+         (mapv (fn [{:keys [group-id artifact-id] :as r}]
+                 ;; fetch complete :versions to allow for replace of indexed artifact instead of
+                 ;; some sort of update
                  (log/infof "Fetching info for %s/%s" group-id artifact-id)
-                 (let [a {:artifact-id artifact-id
-                          :group-id group-id
-                          :origin :clojars}]
-                   (merge a (clojars-artifact-info a)))))
+                 (let [{:keys [versions]} (clojars-artifact-info r)]
+                   (assoc r
+                          :origin :clojars
+                          :versions versions))))
          (sc/index-artifacts searcher))))
 
 (defn- exclude-new-release?
@@ -237,7 +239,7 @@
 
   (def ts (last-release-ts db-spec))
   ts
-  ;; => #object[java.time.Instant 0x607adc81 "2024-11-28T22:05:45.720Z"]
+  ;; => #object[java.time.Instant 0x676285f "2024-12-21T23:53:58.898Z"]
 
   (clojars-releases-since ts)
 
@@ -262,7 +264,8 @@
   (def foo (clojars-releases-since "2024-11-05T21:54:01.606Z"))
   (count foo)
 
-  (sort-by :created-ts (shuffle foo))
+  (= foo (sort-by :created-ts (shuffle foo)))
+  ;; => true
 
   (queue-new-releases db-spec foo)
 
