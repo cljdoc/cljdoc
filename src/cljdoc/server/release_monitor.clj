@@ -1,4 +1,13 @@
 (ns cljdoc.server.release-monitor
+  "Monitor for new library releases between hourly bulk checks done by cljdoc.server.search.api.
+
+  We only monitor clojars and not maven central.
+
+  Maven Central
+  - does not hold many clojure libs (notable exception is org.clojure libs)
+  - their team asks that we only make necessary calls to their APIs to reduce overall traffic
+  - existing hourly bulk update check is sufficient
+  - manual invokation of doc building is still possible for the impatient"
   (:require [babashka.http-client :as http]
             [cheshire.core :as json]
             [cljdoc-shared.proj :as proj]
@@ -18,8 +27,6 @@
            (java.time Duration Instant)))
 
 (set! *warn-on-reflection* true)
-
-; TODO. Maven Central
 
 ;;
 ;; Clojars
