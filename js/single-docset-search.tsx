@@ -40,27 +40,31 @@ const tokenize = (str?: string): string[] => {
 };
 
 const subTokenize = (tokens: string[]): string[] => {
-  const nonAlphaNumRegex = /[^a-z0-9]/;
-  const nonAlphaNumsRegex = /[^a-z0-9]+/;
-  return tokens.reduce((subTokens, token) => {
+  console.log('tokens', tokens);
+  // only split on embedded forward slashes for now
+  const splitCharRegex = /\//;
+  const splitCharsRegex = /\/+/;
+  return tokens.reduce((acc, token) => {
+    console.log('sub token', token);
     // break down into subTokens, if appropriate, for example
-    // clojure.core.test would break down to clojure core test
-    if (nonAlphaNumRegex.test(token)) {
-      const subTokens = token.split(nonAlphaNumsRegex);
+    // clojure.core.test/foo.bar would break down to clojure.core.test foo.bar
+    if (splitCharRegex.test(token)) {
+      const subTokens = token.split(splitCharsRegex);
       subTokens.forEach(function (subToken: string) {
         if (subToken.length > 0) {
-          subTokens.push(subToken);
+          acc.push(subToken);
         }
       });
     }
-    return subTokens;
+    return acc;
   }, [] as string[]);
 };
 
 elasticlunr.tokenizer = Object.assign((str?: string): string[] => {
   const tokens = tokenize(str);
   const subTokens = subTokenize(tokens);
-  return tokens.concat(subTokens);
+  const final = tokens.concat(subTokens);
+  return final;
 }, elasticlunr.tokenizer);
 
 type Namespace = {
@@ -359,16 +363,12 @@ const search = (
   if (!searchIndex) {
     return;
   }
-  // we'd like to favour exact matches, ex: clojure.tools.test
   const exactTokens = tokenize(query);
-  // but also entertain sub tokens, ex: clojure tools test
-  const subTokens = subTokenize(exactTokens);
+  // we'll not explicitly search on subtokens at this time
 
   const fieldQueries = [
     { field: "name", boost: 10, tokens: exactTokens },
-    { field: "name", boost: 5, tokens: subTokens },
-    { field: "doc", boost: 4, tokens: exactTokens },
-    { field: "doc", boost: 2, tokens: subTokens }
+    { field: "doc", boost: 5, tokens: exactTokens }
   ];
 
   const queryResults: elasticlunr.SearchScores = {};
