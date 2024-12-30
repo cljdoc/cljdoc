@@ -45,7 +45,7 @@ const subTokenize = (tokens: string[]): string[] => {
   const splitCharsRegex = /\/+/;
   return tokens.reduce((acc, token) => {
     // break down into subTokens, if appropriate, for example
-    // clojure.core.test/foo.bar would break down to clojure.core.test foo.bar
+    // clojure.core.test/foo-bar would break down to clojure.core.test foo-bar
     if (splitCharRegex.test(token)) {
       const subTokens = token.split(splitCharsRegex);
       subTokens.forEach(function (subToken: string) {
