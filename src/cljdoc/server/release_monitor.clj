@@ -115,7 +115,7 @@
                       (log/infof "Queueing %s/%s %s for build."
                                  group-id artifact-id version)
                       (sql/insert! tx :releases
-                                   release
+                                   (select-keys release [:group-id :artifact-id :version :created-ts])
                                    jdbc/unqualified-snake-kebab-opts)
                       (conj acc release)))))
               []
