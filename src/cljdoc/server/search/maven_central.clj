@@ -14,6 +14,7 @@
 ;; There are not many clojars libraries on maven central.
 ;; We'll manualy adjust this list for now:
 (def ^:private maven-groups ["org.clojure"
+                             "io.github.clojure"
                              "com.turtlequeue"])
 
 (def ^:private maven-grp-version-counts
