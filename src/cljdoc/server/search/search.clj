@@ -138,10 +138,12 @@
   "Return document's popularity relative to other documents.
 
   For clojars this is the artifact download count divided the download count for the most downloaded artifact.
-  For maven we don't have download stats, so are return 1.0 for now."
+  For maven we don't have download stats, so return 1.0 for now."
   [clojars-stats {:as _jar :keys [origin artifact-id group-id]}]
   (case origin
-    :maven-central 1.0
+    :maven-central (if (and (= "org.clojure" group-id) (= "tools.build" artifact-id))
+                     0.99 ;; we want current io.github.clojure/tools.build to appear before legacy org.clojure/tools.build
+                     1.0)
     :clojars (let [dl-max (clojars-stats/download-count-max clojars-stats)
                    dl-lib (clojars-stats/download-count-artifact clojars-stats group-id artifact-id)]
                (clojars-download-boost dl-max dl-lib))))
