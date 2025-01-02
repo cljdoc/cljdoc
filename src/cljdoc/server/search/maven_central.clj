@@ -14,6 +14,7 @@
 ;; There are not many clojars libraries on maven central.
 ;; We'll manualy adjust this list for now:
 (def ^:private maven-groups ["org.clojure"
+                             "io.github.clojure"
                              "com.turtlequeue"])
 
 (def ^:private maven-grp-version-counts
@@ -130,7 +131,7 @@
   NOTE: Takes ± 2s as of 11/2019"
   [force?]
   (let [artifacts (mapcat #(load-maven-central-artifacts-for % force?) maven-groups)]
-    (log/infof "Downloaded %d artfacts from Maven Central" (count artifacts))
+    (log/infof "Downloaded %d artifacts from Maven Central" (count artifacts))
     artifacts))
 
 (s/fdef load-maven-central-artifacts
