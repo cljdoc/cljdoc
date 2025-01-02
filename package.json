@@ -4,10 +4,11 @@
   "scripts": {
     "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
     "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
-    "dev": "parcel watch resources/public/cljdoc.html --dist-dir resources-compiled/public/out --log-level verbose",
-    "build": "parcel build resources/public/cljdoc.html --dist-dir resources-compiled/public/out --log-level info",
+    "dev": "rsbuild dev",
+    "build": "rsbuild build",
     "typecheck": "npx tsc --watch",
-    "eslint": "eslint ."
+    "eslint": "eslint .",
+    "preview": "rsbuild preview"
   },
   "dependencies": {
     "classnames": "^2.5.1",
@@ -34,7 +35,9 @@
     "pretty-quick": "^4.0.0",
     "svgo": "^3.3.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.1"
+    "typescript-eslint": "^8.18.1",
+    "@rsbuild/core": "^1.1.8",
+    "@rsbuild/plugin-preact": "^1.2.0"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
