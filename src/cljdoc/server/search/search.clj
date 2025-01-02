@@ -138,7 +138,7 @@
   "Return document's popularity relative to other documents.
 
   For clojars this is the artifact download count divided the download count for the most downloaded artifact.
-  For maven we don't have download stats, so return 1.0 for now."
+  For maven we don't have download stats, so return ~1.0 for now."
   [clojars-stats {:as _jar :keys [origin artifact-id group-id]}]
   (case origin
     :maven-central (if (and (= "org.clojure" group-id) (= "tools.build" artifact-id))
