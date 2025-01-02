@@ -20,10 +20,6 @@ import { initRecentDocLinks } from "./recent-doc-links";
 import { mountSingleDocsetSearch } from "./single-docset-search";
 import { mergeHTMLPlugin } from "./hljs-merge-plugin";
 import { copyButtonPlugin } from "./hljs-copybutton-plugin";
-import "../resources/public/cljdoc-logo-alpha.svg";
-import "../resources/public/cljdoc-logo-beta.svg"; 
-import "../resources/public/cljdoc-logo.svg"; 
-import "../resources/public/exoscale.svg"; 
 
 export type SidebarScrollState = { libVersionPath: string; scrollTop: number };
 
