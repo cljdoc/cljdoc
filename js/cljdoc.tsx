@@ -15,13 +15,11 @@ import {
   toggleArticlesTip,
   addPrevNextPageKeyHandlers,
   saveSidebarScrollPos
-} from "./cljdoc";
+} from "./utils";
 import { initRecentDocLinks } from "./recent-doc-links";
 import { mountSingleDocsetSearch } from "./single-docset-search";
 import { mergeHTMLPlugin } from "./hljs-merge-plugin";
 import { copyButtonPlugin } from "./hljs-copybutton-plugin";
-
-export type SidebarScrollState = { libVersionPath: string; scrollTop: number };
 
 // Tracks recently opened projects in localStorage.
 trackProjectOpened();

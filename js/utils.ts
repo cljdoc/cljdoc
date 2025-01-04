@@ -1,4 +1,4 @@
-import { SidebarScrollState } from "./index";
+import { SidebarScrollState } from "./types";
 
 function isNSOverviewPage(): boolean {
   return !!document.querySelector(".ns-overview-page");

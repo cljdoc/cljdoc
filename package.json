@@ -4,8 +4,8 @@
   "scripts": {
     "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
     "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
-    "dev": "parcel watch resources/public/cljdoc.html --dist-dir resources-compiled/public/out --log-level verbose",
-    "build": "parcel build resources/public/cljdoc.html --dist-dir resources-compiled/public/out --log-level info",
+    "dev": "./scripts/build_js.sh --watch",
+    "build": "./scripts/build_js.sh",
     "typecheck": "npx tsc --watch",
     "eslint": "eslint ."
   },
@@ -27,7 +27,6 @@
     "@types/lunr": "^2.3.7",
     "esbuild": "^0.24.2",
     "eslint": "^9.17.0",
-    "minify": "^12.0.0",
     "parcel": "^2.13.3",
     "parcel-namer-custom": "^0.2.0",
     "parcel-reporter-static-files-copy": "^1.5.3",
