@@ -26,6 +26,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
     "eslint": "^9.17.0",
+    "minify": "^12.0.0",
     "parcel": "^2.13.3",
     "parcel-namer-custom": "^0.2.0",
     "parcel-reporter-static-files-copy": "^1.5.3",
@@ -33,6 +34,7 @@
     "prettier": "^3.4.2",
     "pretty-quick": "^4.0.0",
     "svgo": "^3.3.2",
+    "tsup": "^8.3.5",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.1"
   },
