@@ -78,7 +78,7 @@
          :artifact-info
          :description)))
 
-(defn- add-description! [ctx artifact]
+(defn- add-description [ctx artifact]
   (if-let [d (fetch-maven-description ctx artifact)]
     (assoc artifact :description d)
     artifact))
@@ -126,7 +126,7 @@
          (update-grp-version-count! group-id)
          (map maven-doc->artifact)
          (mvn-merge-versions)
-         (mapv #(add-description! ctx %)))))
+         (mapv #(add-description ctx %)))))
 
 (defn load-maven-central-artifacts
   "Load artifacts from Maven Central - if there are any new ones (or `force?` `true` when testing).
