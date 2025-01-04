@@ -486,7 +486,7 @@
                ctx))}))
 
 (def build-static-resource-map
-  "Extracts all static resource names (content-hashed by Parcel) from the cljdoc.html file.
+  "Extracts all static resource names (content-hashed by esbuild) from the cljdoc.html file.
    Then creates a map that translates the plain resource names to their content-hashed counterparts.
     E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
   (memoize/memo
