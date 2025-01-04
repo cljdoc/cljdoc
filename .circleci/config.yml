@@ -54,7 +54,7 @@ aliases:
       command: bb download-deps
 
 orbs:
-  node: cimg/node:22
+  node: cimg/node:22.12.0
 
 jobs:
   #
