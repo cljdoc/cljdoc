@@ -129,8 +129,27 @@
          (mapv #(add-description! ctx %)))))
 
 (defn load-maven-central-artifacts
-  "Load artifacts from Maven Central - if there are any new ones (or `force?`)
-  NOTE: Takes ± 2s as of 11/2019"
+  "Load artifacts from Maven Central - if there are any new ones (or `force?` `true` when testing).
+  The Maven Central team has expressed an interest folks minimizing requests when hitting their APIs so we
+  make some attempts to do so.
+
+  We make:
+  - a single request per group-id to test for any new artifact versions within the group
+  - we don't know what has changed in the group-id, so we request all artifact versions in that group (these are paged requests)
+  - fetch the most recent descriptions for each artifact in that group.
+
+  At the time of this writing (Jan-2025):
+  - we check once each hour
+  - we check 3 groups, so this means a minimum of 3 requests
+  - when all groups need updating we have a total of 93 requests (this will happen at startup)
+  - it is very rare that a group will have a new artifact, so typically there will be 3 requests per hour
+
+  This puts us well under the threshold of 1000 requests in a span of 5 minutes.
+
+  We could cache descriptions and not refetch if there is no change in versions for an artifact, but
+  I think we are in a decent place at this time.
+
+  NOTE: Takes ~6s as for full download as of 01/2025"
   [force?]
   (let [ctx (atom {:requests []})
         start-ts (System/currentTimeMillis)
@@ -154,8 +173,6 @@
 
   (count artifacts)
   ;; => 80
-
-
 
   (load-maven-central-artifacts true)
 

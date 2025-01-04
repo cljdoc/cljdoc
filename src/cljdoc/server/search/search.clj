@@ -274,10 +274,11 @@
   (.close reader))
 
 (defn download-and-index!
-  [clojars-stats ^Directory index & {:keys [force-download?]}]
+  "`:force-download? is to support testing at the REPL`"
+  [clojars-stats maven-search-cache ^Directory index & {:keys [force-download?]}]
   (log/info "Download & index starting...")
   (let [result (index! clojars-stats index (into (clojars/load-clojars-artifacts force-download?)
-                                                 (maven-central/load-maven-central-artifacts force-download?)))]
+                                                 (maven-central/load-maven-central-artifacts maven-search-cache force-download?)))]
     (log/info "Finished downloading & indexing artifacts.")
     result))
 
