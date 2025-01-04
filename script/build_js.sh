@@ -1,5 +1,10 @@
 #!/bin/sh
 
+set -ex
+
+# Remove the old compiled files
+rm -rf resources-compiled/public/out/*
+
 # Compile the JS
 npx \
   --yes \
