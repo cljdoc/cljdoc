@@ -137,11 +137,11 @@
         artifacts (mapcat #(load-maven-central-artifacts-for ctx % force?) maven-groups)
         end-ts (System/currentTimeMillis)
         requests (:requests @ctx)]
-    (log/infof "Downloaded %d artifacts from Maven Central in %.02fs, via %d total (%d unique) http requests to maven search REST API"
+    (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven search REST API (of which %d were retries)"
                (count artifacts)
                (/ (- end-ts start-ts) 1000.0)
                (count requests)
-               (count (distinct requests)))
+               (- (count requests) (count (distinct requests))))
     artifacts))
 
 (s/fdef load-maven-central-artifacts
@@ -150,7 +150,7 @@
 (comment
   (fetch-maven-description {:group-id "org.clojure" :artifact-id "clojurescript" :versions ["1.11.5"]})
 
-  (def artifacts (load-maven-central-artifacts false))
+  (def artifacts (load-maven-central-artifacts true))
 
   (count artifacts)
   ;; => 80
