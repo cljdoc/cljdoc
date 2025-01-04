@@ -4,8 +4,8 @@
   "scripts": {
     "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
     "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
-    "dev": "./scripts/build_js.sh --watch",
-    "build": "./scripts/build_js.sh",
+    "dev": "./script/build_js.sh --watch",
+    "build": "./script/build_js.sh",
     "typecheck": "npx tsc --watch",
     "eslint": "eslint ."
   },
