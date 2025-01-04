@@ -1,6 +1,9 @@
 {
   "name": "cljdoc",
   "type": "module",
+  "engines": {
+    "node": "^22.12.0"
+  },
   "scripts": {
     "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
     "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
