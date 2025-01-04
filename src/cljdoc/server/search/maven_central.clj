@@ -47,10 +47,10 @@
     (json/parse-stream body keyword)))
 
 (defn- fetch-maven-docs
-  "Fetch documents matching the query from Maven Central; supports pagination."
+  "Fetch documents matching the query from Maven Central; requires pagination."
   [query]
   (loop [start 0, acc nil]
-    (let [rows 200
+    (let [rows 200 ;; maximum rows per page, if exceeded will default to 20
           opt-get-all-versions "&core=gav"
 
           {total :numFound, docs :docs}
