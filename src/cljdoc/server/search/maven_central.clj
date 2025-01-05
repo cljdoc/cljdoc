@@ -27,7 +27,7 @@
     (try
       (rb/try-try-again
        {:sleep 500
-        :decay :double
+        :decay :double ; max 9 retries means: .5s then 1s, 2s 4s 8s 16s 32s 64s 128s
         :tries max-tries
         :catch Throwable}
        #(do
@@ -136,12 +136,12 @@
   We make:
   - a single request per group-id to test for any new artifact versions within the group
   - we don't know what has changed in the group-id, so we request all artifact versions in that group (these are paged requests)
-  - fetch the most recent descriptions for each artifact in that group.
+  - fetch the most recent description for each artifact in the group
 
   At the time of this writing (Jan-2025):
   - we check once each hour
   - we check 3 groups, so this means a minimum of 3 requests
-  - when all groups need updating we have a total of 93 requests (this will happen at startup)
+  - when all groups need updating we have a total of 93 requests (this will always happen at startup)
   - it is very rare that a group will have a new artifact, so typically there will be 3 requests per hour
 
   This puts us well under the threshold of 1000 requests in a span of 5 minutes.
@@ -149,7 +149,7 @@
   We could cache descriptions and not refetch if there is no change in versions for an artifact, but
   I think we are in a decent place at this time.
 
-  NOTE: Takes ~6s as for full download as of 01/2025"
+  NOTE: Takes < 1s for a check and ~6s to ~30s for full download as of Jan-2025"
   [force?]
   (let [ctx (atom {:requests []})
         start-ts (System/currentTimeMillis)
@@ -167,14 +167,14 @@
   :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
 
 (comment
-  (fetch-maven-description {:group-id "org.clojure" :artifact-id "clojurescript" :versions ["1.11.5"]})
+  (fetch-maven-description (atom {:requests []})
+                           {:group-id "org.clojure" :artifact-id "clojure" :versions ["1.12.0"]})
+  ;; => "Clojure core environment and runtime library."
 
-  (def artifacts (load-maven-central-artifacts true))
+  (def artifacts (load-maven-central-artifacts false))
 
   (count artifacts)
   ;; => 80
-
-  (load-maven-central-artifacts true)
 
   (reset! maven-grp-version-counts nil)
 
