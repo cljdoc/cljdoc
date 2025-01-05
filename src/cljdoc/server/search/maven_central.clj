@@ -1,11 +1,14 @@
 (ns cljdoc.server.search.maven-central
   "Fetch listing of artifacts from maven central."
   (:require
+   [babashka.fs :as fs]
    [babashka.http-client :as http]
    [cheshire.core :as json]
    [cljdoc-shared.pom :as pom]
    [cljdoc.spec :as cljdoc-spec]
+   [clojure.edn :as edn]
    [clojure.java.io :as io]
+   [clojure.pprint :as pprint]
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
@@ -17,10 +20,7 @@
                              "io.github.clojure"
                              "com.turtlequeue"])
 
-(def ^:private maven-grp-version-counts
-  "group-id -> number of different artifact+version combinations in the group.
-  Used to find out whether there is any new stuff => refetch needed."
-  (atom nil))
+(def successfully-called-yet? (atom false))
 
 (defn- fetch-body [ctx url]
   (let [max-tries 10]
@@ -78,10 +78,17 @@
          :artifact-info
          :description)))
 
-(defn- add-description [ctx artifact]
-  (if-let [d (fetch-maven-description ctx artifact)]
-    (assoc artifact :description d)
-    artifact))
+(defn- add-description [ctx cached-artifacts artifact]
+  (let [cached-artifact (some #(when (and (= (:artifact-id artifact) (:artifact-id %))
+                                          (= (:group-id artifact) (:group-id %)))
+                                 %)
+                              cached-artifacts)
+        d (if (= (:versions cached-artifact) (:versions artifact))
+            (:description cached-artifact)
+            (fetch-maven-description ctx artifact))]
+    (if d
+      (assoc artifact :description d)
+      artifact)))
 
 (defn- maven-doc->artifact [{:keys [g a v #_versionCount #_timestamp]}]
   {:artifact-id a
@@ -97,14 +104,15 @@
   "Are the new artifacts or versions in Maven Central within this group?
   Maven Central does not support ETAG / If-Modified-Since so we use the artifacts+versions count as an
   indication that there is something new and we need to re-fetch."
-  [ctx group-id]
-  (let [versions-cnt (-> (fetch-json ctx (str "https://search.maven.org/solrsearch/select?q=g:" group-id "&core=gav&rows=0"))
+  [ctx cached-artifacts group-id]
+  (let [cached-version-cnt (reduce (fn [acc {:keys [versions]}]
+                                     (+ acc (count versions)))
+                                   0
+                                   cached-artifacts)
+        versions-cnt (-> (fetch-json ctx (str "https://search.maven.org/solrsearch/select?q=g:" group-id "&core=gav&rows=0"))
                          :response :numFound)]
-    (> versions-cnt (get @maven-grp-version-counts group-id -1))))
-
-(defn- update-grp-version-count! [group-id group-docs]
-  (swap! maven-grp-version-counts assoc group-id (count group-docs))
-  group-docs)
+    (println "-na?->" group-id versions-cnt cached-version-cnt)
+    (not= versions-cnt cached-version-cnt)))
 
 (defn- mvn-merge-versions [artifacts]
   (->> artifacts
@@ -117,16 +125,48 @@
                   (dissoc :version)
                   (assoc :versions (map :version versions)))))))
 
-(defn- load-maven-central-artifacts-for [ctx group-id force?]
-  (when (or force? (let [new? (new-artifacts? ctx group-id)]
-                     (when (not new?)
-                       (log/infof "Skipping Maven download for %s, no change detected" group-id))
-                     new?))
-    (->> (fetch-maven-docs ctx (str "g:" group-id))
-         (update-grp-version-count! group-id)
-         (map maven-doc->artifact)
-         (mvn-merge-versions)
-         (mapv #(add-description ctx %)))))
+(defn- cache-dir []
+  (fs/file "resources" "maven-central-cache"))
+
+(defn- cached-group-file [group-id]
+  (fs/file (cache-dir) (str group-id ".edn")))
+
+(defn- get-cached-artifacts [group-id]
+  (let [f (cached-group-file group-id)]
+    (when (fs/exists? f)
+      (-> f
+          slurp
+          edn/read-string))))
+
+(defn- update-cached-artifacts! [group-id artifacts]
+  (let [f (cached-group-file group-id)]
+    (fs/create-dirs (fs/parent f))
+    (with-open [out (io/writer f)]
+      ;; pprint so we can more easily inspect at-a-glance
+      (pprint/write artifacts :stream out))))
+
+(defn- wipe-cache []
+  (fs/delete-tree (cache-dir)))
+
+(defn- load-maven-central-artifacts-for [ctx group-id {:keys [force-fetch? return-even-if-unchanged?]}]
+  (let [cached-artifacts (get-cached-artifacts group-id)]
+    (cond
+      (or force-fetch? (let [new? (new-artifacts? ctx cached-artifacts group-id)]
+                         (when (not new?)
+                           (log/infof "Skipping Maven download for group-id %s, no change detected" group-id))
+                         new?))
+      (let [artifacts (->> (fetch-maven-docs ctx (str "g:" group-id))
+                           (map maven-doc->artifact)
+                           (mvn-merge-versions)
+                           (mapv #(add-description ctx cached-artifacts %)))]
+        (update-cached-artifacts! group-id artifacts)
+        artifacts)
+
+      return-even-if-unchanged?
+      cached-artifacts
+
+      :else
+      nil)))
 
 (defn load-maven-central-artifacts
   "Load artifacts from Maven Central - if there are any new ones (or `force?` `true` when testing).
@@ -141,19 +181,33 @@
   At the time of this writing (Jan-2025):
   - we check once each hour
   - we check 3 groups, so this means a minimum of 3 requests
-  - when all groups need updating we have a total of 93 requests (this will always happen at startup)
+  - we employ artifact group level caching, the number of versions in a group changes we refetch all artifacts in the group
+  - we only fetch the description for an artifact if the number of versions has changed for that artifact
   - it is very rare that a group will have a new artifact, so typically there will be 3 requests per hour
 
   This puts us well under the threshold of 1000 requests in a span of 5 minutes.
 
-  We could cache descriptions and not refetch if there is no change in versions for an artifact, but
-  I think we are in a decent place at this time.
+  Our cache maven central artifacts cache is tiny so there's no need to store in a database.
+  We treat it as a resource and check it in along with code.
+  The dev team can periodically commit/push cache updates, but even if they don't, we are much better off than we were request-wise
+  before caching was added.
 
-  NOTE: Takes < 1s for a check and ~6s to ~30s for full download as of Jan-2025"
-  [force?]
+  REPL friendly options:
+  - `:wipe-cache` To force a complete regeneration of the cache, call with `:wipe-cache true`.
+  - `:force-fetch` Artifacts will be returned on first sucessful fetch and then-after only if there are changes,
+  use `:force-fetch true` to force a fetch and return artifacts. You don't need to `:force-fetch` if you are
+  already specifying `:wipe-cache`.
+
+  NOTE: Takes < 1s for a check and ~6s to ~30s when all groups changed as of Jan-2025"
+  [{:keys [wipe-cache? force-fetch?]}]
+  ;; for REPL support
+  (when wipe-cache?
+    (wipe-cache))
   (let [ctx (atom {:requests []})
         start-ts (System/currentTimeMillis)
-        artifacts (mapcat #(load-maven-central-artifacts-for ctx % force?) maven-groups)
+        artifacts (mapcat #(load-maven-central-artifacts-for ctx % {:force-fetch? force-fetch?
+                                                                    :return-even-if-unchanged? (not @successfully-called-yet?)})
+                          maven-groups)
         end-ts (System/currentTimeMillis)
         requests (:requests @ctx)]
     (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven search REST API (of which %d were retries)"
@@ -161,6 +215,7 @@
                (/ (- end-ts start-ts) 1000.0)
                (count requests)
                (- (count requests) (count (distinct requests))))
+    (reset! successfully-called-yet? true)
     artifacts))
 
 (s/fdef load-maven-central-artifacts
@@ -171,11 +226,21 @@
                            {:group-id "org.clojure" :artifact-id "clojure" :versions ["1.12.0"]})
   ;; => "Clojure core environment and runtime library."
 
-  (def artifacts (load-maven-central-artifacts false))
+  (reset! successfully-called-yet? false)
+
+  (def artifacts (load-maven-central-artifacts {}))
 
   (count artifacts)
   ;; => 80
 
   (reset! maven-grp-version-counts nil)
+
+  (def a (get-cached-artifacts "org.clojure"))
+
+  (reduce (fn [acc {:keys [versions]}]
+            (+ acc (count versions)))
+          0
+          a)
+
 
   :eoc)
