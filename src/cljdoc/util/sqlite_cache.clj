@@ -5,8 +5,7 @@
 
   This namespace exposes `memo-sqlite` function which takes a
   function to memoize and cache-spec, it retuns the memoized function.
-  This function uses the `SQLCache` for memoization.
-  "
+  This function uses `SQLCache` for memoization."
   (:require [clojure.core.cache :as cache]
             [clojure.core.memoize :as memo]
             [clojure.string :as string]

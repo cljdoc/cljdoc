@@ -274,6 +274,7 @@
   (.close reader))
 
 (defn download-and-index!
+  "`:force-download? is to support testing at the REPL`"
   [clojars-stats ^Directory index & {:keys [force-download?]}]
   (log/info "Download & index starting...")
   (let [result (index! clojars-stats index (into (clojars/load-clojars-artifacts force-download?)
