@@ -128,7 +128,7 @@ I took a look at our usage:
 * At startup, or if there are new releases (rare), a total of approximately 100 requests.
 
 This is well under "1000 requests in a span of 5 minutes".
-But, to answer the call to "reduce the number of requests", we now cache Maven Central results as edn under `./resources/maven-central-search/`.
+But, to answer the call to "reduce the number of requests", we now cache Maven Central results as edn under `./resources/maven-central-cache/`.
 This means 3 requests at startup instead of approximately 100.
 And when an artifact group has changes, we only fetch an artifact description if the artifact has a new release.
 This reduces requests from around 100 to typically at most 10.
@@ -136,7 +136,7 @@ This reduces requests from around 100 to typically at most 10.
 Carrying the cache as version-controlled resources means all developers also use the cache.
 Which is good.
 The cache is automatically updated during regular usage.
-If a developer notices a change to edn files under `./resources/maven-central-search/` they should commit and push it.
+If a developer notices a change to edn files under `./resources/maven-central-cache/` they should commit and push it.
 
 == Testing OpenSearch
 
