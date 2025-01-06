@@ -2,10 +2,13 @@
 
 (ns compile-js
   (:require [babashka.fs :as fs]
+            [clojure.pprint :as pprint]
+            [clojure.string :as str]
             [helper.main :as main]
             [helper.shell :as shell]
             [lread.status-line :as status]
-            [pod.babashka.fswatcher :as fw]))
+            [pod.babashka.fswatcher :as fw]
+            [clojure.java.io :as io]))
 
 (def args-usage "Valid args: [--watch|--help]
 
@@ -36,7 +39,7 @@ Options
                  "--target=es2022"
                  "--minify"
                  "--sourcemap"
-                 "--entry-names=[name]-[hash]"
+                 "--entry-names=[name].[hash]"
                  (str "--outdir=" target-dir)
                  (str js-out-name "=" (fs/file js-dir js-entry-point))
                  "--bundle"))
@@ -49,25 +52,41 @@ Options
                  "--minify"
                  "--loader:.svg=copy"
                  "--loader:.png=copy"
-                 "--entry-names=[name]-[hash]"
+                 "--entry-names=[name].[hash]"
                  (str "--outdir=" target-dir)
                  (str (fs/file source-asset-dir "*.png"))
                  (str (fs/file source-asset-dir "*.css"))
                  (str (fs/file source-asset-dir "*.svg"))))
 
+(defn- resource-map
+  "Map of non-hashed to hashed resource."
+  [{:keys [target-dir]}]
+  (reduce (fn [acc n]
+            (let [f (fs/file-name n)
+                  non-hashed-f (str/replace-first f #"\.[A-Z0-9]{8}\." ".")]
+              (assoc acc (str "/" non-hashed-f) (str "/" f))))
+          {}
+          (fs/list-dir target-dir)))
+
+(defn- generate-resource-map [{:keys [target-dir] :as opts}]
+  (with-open [out (io/writer (fs/file target-dir "manifest.edn"))]
+    (pprint/write (resource-map opts) :stream out)))
+
 (defn- compile-all [{:keys [target-dir] :as opts}]
   (fs/delete-tree target-dir)
-  (fs/create-dir target-dir)
+  (fs/create-dirs target-dir)
   (compile-static opts)
   (compile-dynamic opts)
-  (compile-js opts))
+  (compile-js opts)
+  (generate-resource-map opts))
 
 (def ^:private changes-lock (Object.))
 
 (defn- change-detected [{:keys [path]} opts]
   (locking changes-lock
-    (status/line :detail "Changed detected in %s" path)
-    (compile-all opts)))
+    (status/line :head "Recompiling\nChanged detected in %s" path)
+    (compile-all opts)
+    (status/line :detail "Watching for changes...")))
 
 (defn- setup-watch-compile [{:keys [source-asset-dir js-dir] :as opts}]
   (status/line :detail "Watching for changes...")
