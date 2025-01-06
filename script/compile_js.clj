@@ -81,11 +81,11 @@ Options
 (defn -main [& args]
   (when-let [opts (main/doc-arg-opt args-usage args)]
     (let [compile-opts {:target-dir "resources-compiled/public/out"
-                :source-asset-dir "resources/public"
-                :source-asset-static-subdir "static"
-                :js-dir "js"
-                :js-out-name "cljdoc"
-                :js-entry-point "index.tsx"}]
+                        :source-asset-dir "resources/public"
+                        :source-asset-static-subdir "static"
+                        :js-dir "js"
+                        :js-out-name "cljdoc"
+                        :js-entry-point "index.tsx"}]
       (compile-all compile-opts)
       (when (get opts "--watch")
         (setup-watch-compile compile-opts)))))
