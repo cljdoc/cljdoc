@@ -1,0 +1,14 @@
+[{:artifact-id "tools.build",
+  :group-id "io.github.clojure",
+  :origin :maven-central,
+  :versions
+  ["0.10.6"
+   "0.10.5"
+   "0.10.4"
+   "0.10.3"
+   "0.10.1"
+   "0.10.0"
+   "0.9.6"
+   "0.9.5"
+   "0.9.4"
+   "0.9.3"]}]

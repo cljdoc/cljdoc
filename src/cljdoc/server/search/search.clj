@@ -274,13 +274,15 @@
   (.close reader))
 
 (defn download-and-index!
-  "`:force-download? is to support testing at the REPL`"
-  [clojars-stats ^Directory index & {:keys [force-download?]}]
-  (log/info "Download & index starting...")
-  (let [result (index! clojars-stats index (into (clojars/load-clojars-artifacts force-download?)
-                                                 (maven-central/load-maven-central-artifacts force-download?)))]
-    (log/info "Finished downloading & indexing artifacts.")
-    result))
+  "`:force-fetch? is to support testing at the REPL`"
+  ([clojars-stats ^Directory index]
+   (download-and-index! clojars-stats index {}))
+  ([clojars-stats ^Directory index {:keys [force-fetch?]}]
+   (log/info "Download & index starting...")
+   (let [result (index! clojars-stats index (into (clojars/load-clojars-artifacts {:force-fetch? force-fetch?})
+                                                  (maven-central/load-maven-central-artifacts {:force-fetch? force-fetch?})))]
+     (log/info "Finished downloading & indexing artifacts.")
+     result)))
 
 ;; --- search support -----
 
@@ -517,15 +519,17 @@
   (parse-query "")
   (parse-query "   ")
 
+  (require '[integrant.repl.state])
+
   (def clojars-stats (:cljdoc/clojars-stats integrant.repl.state/system))
 
-  (def index (disk-index "data/index-lucene-10_0_0"))
-
-  (def index-reader-fn (make-index-reader-fn index))
+  (def index (disk-index "data/index-lucene-test"))
 
   (download-and-index! clojars-stats
                        index
-                       :force-download? true)
+                       {:force-fetch? true})
+
+  (def index-reader-fn (make-index-reader-fn index))
 
   (search index-reader-fn "metosin muunta")
 

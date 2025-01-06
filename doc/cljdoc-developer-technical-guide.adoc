@@ -98,6 +98,46 @@ Lucene will simply create a fresh new index.
 * Luke is a useful tool to take a peek at your Lucene index.
 Download https://lucene.apache.org/core/downloads.html[a full Lucene binary release], unpack it and then launch luke via the `bin/luke.sh` script.
 
+== External Services
+Cljdoc uses several external services, including Exoscale, GitHub (and other version control systems), CircleCI, Clojars, and Maven Central.
+It is important to us that cljdoc is a good citizen and never knowingly abuses the generosity of any of these services.
+
+This section covers any specific notes we have about those services.
+
+=== Maven Central Search API
+Most artifacts are hosted on clojars, but a handful (most notably org.clojure artifacts) are hosted on Maven Central.
+Cljdoc users the https://central.sonatype.org/search/rest-api-guide/[Maven Central Search REST API] to discover new releases.
+
+At one point, the Maven Central API returned 403s to cljdoc from integration tests running on CircleCI.
+I reached out to the Maven Central team to check if we might be doing something we should not be doing.
+They informed me that the blockage was a mistake and it was quickly reverted.
+
+But this gave me a chance to https://github.com/cljdoc/cljdoc/issues/901[ask the Maven Central team about appropriate usage].
+They responded with:
+
+[quote]
+We just checked your usage of the API, and it looks nice.
+You should not be blocked if you do not pass around 1000 requests in a span of 5 minutes.
+In this case, it was the little change we made that messed up the boundaries.
+Anyway, any effort you can make to reduce the number of requests would be appreciated.
+At the end, this is a free service, and any of these improvements help the community too :)
+
+I took a look at our usage:
+
+* 1 request per Maven group per hour (currently 3)
+* At startup, or if there are new releases (rare), a total of approximately 100 requests.
+
+This is well under "1000 requests in a span of 5 minutes".
+But, to answer the call to "reduce the number of requests", we now cache Maven Central results as edn under `./resources/maven-central-cache/`.
+This means 3 requests at startup instead of approximately 100.
+And when an artifact group has changes, we only fetch an artifact description if the artifact has a new release.
+This reduces requests from around 100 to typically at most 10.
+
+Carrying the cache as version-controlled resources means all developers also use the cache.
+Which is good.
+The cache is automatically updated during regular usage.
+If a developer notices a change to edn files under `./resources/maven-central-cache/` they should commit and push it.
+
 == Testing OpenSearch
 
 Cljdoc includes OpenSearch support for searching for Clojure libraries.
