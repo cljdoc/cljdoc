@@ -86,7 +86,7 @@
         d (if (= (:versions cached-artifact) (:versions artifact))
             (:description cached-artifact)
             (do
-              (log/infof "Fetching new description from Maven Central for %s/%s" (:group-id artifact) (:artifact-id artifact) )
+              (log/infof "Fetching new description from Maven Central for %s/%s" (:group-id artifact) (:artifact-id artifact))
               (fetch-maven-description ctx artifact)))]
     (if d
       (assoc artifact :description d)
