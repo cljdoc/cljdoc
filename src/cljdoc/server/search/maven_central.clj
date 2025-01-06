@@ -85,10 +85,12 @@
                               cached-artifacts)
         d (if (= (:versions cached-artifact) (:versions artifact))
             (:description cached-artifact)
-            (fetch-maven-description ctx artifact))]
+            (do
+              (log/infof "Fetching new description from Maven Central for %s/%s" (:group-id artifact) (:artifact-id artifact) )
+              (fetch-maven-description ctx artifact)))]
     (if d
       (assoc artifact :description d)
-      artifact)))
+      (dissoc artifact :description))))
 
 (defn- maven-doc->artifact [{:keys [g a v #_versionCount #_timestamp]}]
   {:artifact-id a
@@ -111,7 +113,6 @@
                                    cached-artifacts)
         versions-cnt (-> (fetch-json ctx (str "https://search.maven.org/solrsearch/select?q=g:" group-id "&core=gav&rows=0"))
                          :response :numFound)]
-    (println "-na?->" group-id versions-cnt cached-version-cnt)
     (not= versions-cnt cached-version-cnt)))
 
 (defn- mvn-merge-versions [artifacts]
@@ -123,7 +124,7 @@
        (map (fn [versions]
               (-> (first versions)
                   (dissoc :version)
-                  (assoc :versions (map :version versions)))))))
+                  (assoc :versions (mapv :version versions)))))))
 
 (defn- cache-dir []
   (fs/file "resources" "maven-central-cache"))
@@ -142,7 +143,7 @@
   (let [f (cached-group-file group-id)]
     (fs/create-dirs (fs/parent f))
     (with-open [out (io/writer f)]
-      ;; pprint so we can more easily inspect at-a-glance
+      ;; pprint to support easy inspection and diff
       (pprint/write artifacts :stream out))))
 
 (defn- wipe-cache []
@@ -155,12 +156,14 @@
                          (when (not new?)
                            (log/infof "Skipping Maven download for group-id %s, no change detected" group-id))
                          new?))
-      (let [artifacts (->> (fetch-maven-docs ctx (str "g:" group-id))
-                           (map maven-doc->artifact)
-                           (mvn-merge-versions)
-                           (mapv #(add-description ctx cached-artifacts %)))]
-        (update-cached-artifacts! group-id artifacts)
-        artifacts)
+      (do
+        (log/infof "Downloading group-id %s from Maven Central, changed detected" group-id)
+        (let [artifacts (->> (fetch-maven-docs ctx (str "g:" group-id))
+                             (map maven-doc->artifact)
+                             (mvn-merge-versions)
+                             (mapv #(add-description ctx cached-artifacts %)))]
+          (update-cached-artifacts! group-id artifacts)
+          artifacts))
 
       return-even-if-unchanged?
       cached-artifacts
@@ -226,6 +229,8 @@
                            {:group-id "org.clojure" :artifact-id "clojure" :versions ["1.12.0"]})
   ;; => "Clojure core environment and runtime library."
 
+  (wipe-cache)
+
   (reset! successfully-called-yet? false)
 
   (def artifacts (load-maven-central-artifacts {}))
@@ -241,6 +246,5 @@
             (+ acc (count versions)))
           0
           a)
-
 
   :eoc)

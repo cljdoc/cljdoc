@@ -1,28 +1,28 @@
 [{:artifact-id "java-admin-sdk",
   :group-id "com.turtlequeue",
   :origin :maven-central,
-  :versions ("1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.0"),
+  :versions ["1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.0"],
   :description "Turtlequeue is a hosted pub-sub messaging platform."}
  {:artifact-id "java-sdk",
   :group-id "com.turtlequeue",
   :origin :maven-central,
-  :versions ("1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.0"),
+  :versions ["1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.0"],
   :description "Turtlequeue is a hosted pub-sub messaging platform."}
  {:artifact-id "sdk.proto.admin",
   :group-id "com.turtlequeue",
   :origin :maven-central,
-  :versions ("1.0.5" "1.0.4" "1.0.2" "1.0.0"),
+  :versions ["1.0.5" "1.0.4" "1.0.2" "1.0.0"],
   :description "Turtlequeue is a hosted pub-sub messaging platform."}
  {:artifact-id "sdk.proto",
   :group-id "com.turtlequeue",
   :origin :maven-central,
-  :versions ("1.0.5" "1.0.4" "1.0.2" "1.0.0"),
+  :versions ["1.0.5" "1.0.4" "1.0.2" "1.0.0"],
   :description "Turtlequeue is a hosted pub-sub messaging platform."}
  {:artifact-id "clj-client",
   :group-id "com.turtlequeue",
   :origin :maven-central,
   :versions
-  ("0.0.16"
+  ["0.0.16"
    "0.0.13"
    "0.0.11"
    "0.0.10"
@@ -30,5 +30,5 @@
    "0.0.8"
    "0.0.7"
    "0.0.6"
-   "0.0.5"),
+   "0.0.5"],
   :description "TurtleQueue SDK"}]
