@@ -20,6 +20,7 @@
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
+    "esbuild": "^0.24.2",
     "eslint": "^9.17.0",
     "prettier": "^3.4.2",
     "pretty-quick": "^4.0.0",
