@@ -57,16 +57,14 @@
            (shell "npm ci")
            (println "Skipped npm ci: package-lock.json older than node_modules"))}
   compile-js
-  {:doc "compile front end sources"
+  {:doc "compile front end sources [--watch]"
    :depends [deps-js]
+   :requires [compile-js]
    :task (let [out-dir "resources-compiled/public/out"]
-           (if (seq (fs/modified-since out-dir ["resources/public" "js"]))
-             (shell "npm run build")
+           (if (or (some #{"--watch"} *command-line-args*)
+                   (seq (fs/modified-since out-dir ["resources/public" "js"])))
+             (apply compile-js/-main *command-line-args*)
              (println "Skipped: JS assets already compiled to" out-dir)))}
-  compile-js-watch
-  {:doc "compile front end sources and watch for changes"
-   :depends [deps-js]
-   :task (p/exec "npm run dev")}
   code-format-js
   {:doc "(check|fix) JS code format"
    :depends [deps-js]
