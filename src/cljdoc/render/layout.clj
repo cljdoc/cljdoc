@@ -101,7 +101,7 @@
                  [:meta {:content (:title opts) :itemprop "name"}]
                  [:meta {:content (:description opts) :itemprop "description"}]
                  [:meta {:content (str "https://cljdoc.org"
-                                       (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
+                                       (get (:static-resources opts) "/cljdoc-logo-square.png"))
                          :itemprop "image"}]
 
                  ;; OpenGraph Meta Tags (should work for Twitter/Facebook)
@@ -118,10 +118,6 @@
                                               (string/join "&")))
                            :property "og:image"}])
                  [:meta {:name "twitter:card" :content "summary_large_image"}]
-                 ;; Disable image for now; doesn't add much and occupies a lot of space in Slack and similar
-                 ;; [:meta {:content (str "https://cljdoc.org"
-                 ;;                   (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
-                 ;;  :property "og:image"}]
 
                  ;; Canonical URL
                  (when-let [url (:canonical-url opts)]
