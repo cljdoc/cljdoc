@@ -37,7 +37,7 @@
             [cljdoc.util.datetime :as dt]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sentry :as sentry]
-            [clojure.core.memoize :as memoize]
+            [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
@@ -48,7 +48,6 @@
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
             [io.pedestal.interceptor :as interceptor]
             [lambdaisland.uri.normalize :as normalize]
-            [net.cgrand.enlive-html :as en]
             [ring.util.codec :as ring-codec])
   (:import (java.net URLDecoder)
            (java.util Date)))
@@ -485,31 +484,17 @@
                  ctx)
                ctx))}))
 
-(def build-static-resource-map
-  "Extracts all static resource names (content-hashed by Parcel) from the cljdoc.html file.
-   Then creates a map that translates the plain resource names to their content-hashed counterparts.
-    E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
-  (memoize/memo
-   (fn [html-path]
-     (log/info "building static resource map")
-     (let [tags (en/select (en/html-resource html-path) [#{(en/attr? :href) (en/attr? :src)}])]
-       (->> tags
-            (#(for [tag %] (map (:attrs tag) [:href :src])))
-            flatten
-            (filter some?)
-            (map #(let [[prefix suffix] (string/split % #"[a-z0-9]{8}\.(?!.*\.)")]
-                    (when (and prefix suffix)
-                      {(str prefix suffix) %})))
-            (into {}))))))
-
-(defn clear-static-resource-map-cache! []
-  (memoize/memo-clear! build-static-resource-map))
+(defn load-client-asset-map
+  "Load client side asset map.
+   E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
+  [manifest-file]
+  (-> manifest-file slurp edn/read-string))
 
 (def static-resource-interceptor
   (interceptor/interceptor
    {:name  ::static-resource
     :enter (fn [ctx]
-             (assoc ctx :static-resources (build-static-resource-map "public/out/cljdoc.html")))}))
+             (assoc ctx :static-resources (load-client-asset-map "public/out/manifest.edn")))}))
 
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247
@@ -706,5 +691,4 @@
       (http/start)))
 
 (defmethod ig/halt-key! :cljdoc/pedestal [_ server]
-  (clear-static-resource-map-cache!)
   (http/stop server))

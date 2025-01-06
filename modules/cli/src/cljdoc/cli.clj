@@ -32,7 +32,7 @@
         sys           (ig/init sys)
         store         (:cljdoc/storage sys)
         artifact-info (storage/version-entity project version)
-        static-resources (pedestal/build-static-resource-map)]
+        static-resources (pedestal/load-client-asset-map)]
     (if (storage/exists? store artifact-info)
       (let [output (io/file output)]
         (-> (storage/bundle-docs store artifact-info)
