@@ -278,7 +278,7 @@
   [clojars-stats ^Directory index & {:keys [force-download?]}]
   (log/info "Download & index starting...")
   (let [result (index! clojars-stats index (into (clojars/load-clojars-artifacts force-download?)
-                                                 (maven-central/load-maven-central-artifacts force-download?)))]
+                                                 (maven-central/load-maven-central-artifacts)))]
     (log/info "Finished downloading & indexing artifacts.")
     result))
 

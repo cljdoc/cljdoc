@@ -202,24 +202,25 @@
   already specifying `:wipe-cache`.
 
   NOTE: Takes < 1s for a check and ~6s to ~30s when all groups changed as of Jan-2025"
-  [{:keys [wipe-cache? force-fetch?]}]
-  ;; for REPL support
-  (when wipe-cache?
-    (wipe-cache))
-  (let [ctx (atom {:requests []})
-        start-ts (System/currentTimeMillis)
-        artifacts (mapcat #(load-maven-central-artifacts-for ctx % {:force-fetch? force-fetch?
-                                                                    :return-even-if-unchanged? (not @successfully-called-yet?)})
-                          maven-groups)
-        end-ts (System/currentTimeMillis)
-        requests (:requests @ctx)]
-    (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven search REST API (of which %d were retries)"
-               (count artifacts)
-               (/ (- end-ts start-ts) 1000.0)
-               (count requests)
-               (- (count requests) (count (distinct requests))))
-    (reset! successfully-called-yet? true)
-    artifacts))
+  ([] (load-maven-central-artifacts {}))
+  ([{:keys [wipe-cache? force-fetch?]}]
+   ;; for REPL support
+   (when wipe-cache?
+     (wipe-cache))
+   (let [ctx (atom {:requests []})
+         start-ts (System/currentTimeMillis)
+         artifacts (mapcat #(load-maven-central-artifacts-for ctx % {:force-fetch? force-fetch?
+                                                                     :return-even-if-unchanged? (not @successfully-called-yet?)})
+                           maven-groups)
+         end-ts (System/currentTimeMillis)
+         requests (:requests @ctx)]
+     (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven search REST API (of which %d were retries)"
+                (count artifacts)
+                (/ (- end-ts start-ts) 1000.0)
+                (count requests)
+                (- (count requests) (count (distinct requests))))
+     (reset! successfully-called-yet? true)
+     artifacts)))
 
 (s/fdef load-maven-central-artifacts
   :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
@@ -233,12 +234,12 @@
 
   (reset! successfully-called-yet? false)
 
-  (def artifacts (load-maven-central-artifacts {}))
+  (def artifacts (load-maven-central-artifacts))
 
   (count artifacts)
   ;; => 80
 
-  (reset! maven-grp-version-counts nil)
+  (load-maven-central-artifacts)
 
   (def a (get-cached-artifacts "org.clojure"))
 
@@ -246,5 +247,6 @@
             (+ acc (count versions)))
           0
           a)
+  ;; => 2001
 
   :eoc)
