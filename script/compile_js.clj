@@ -2,13 +2,13 @@
 
 (ns compile-js
   (:require [babashka.fs :as fs]
+            [clojure.java.io :as io]
             [clojure.pprint :as pprint]
             [clojure.string :as str]
             [helper.main :as main]
             [helper.shell :as shell]
             [lread.status-line :as status]
-            [pod.babashka.fswatcher :as fw]
-            [clojure.java.io :as io]))
+            [pod.babashka.fswatcher :as fw]))
 
 (def args-usage "Valid args: [--watch|--help]
 
