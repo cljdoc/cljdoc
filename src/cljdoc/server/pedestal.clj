@@ -490,7 +490,7 @@
    Then creates a map that translates the plain resource names to their content-hashed counterparts.
     E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
   (memoize/memo
-    (fn [html-path]
+   (fn [html-path]
      (log/info "building static resource map from" html-path)
      (let [tags (en/select (en/html-resource html-path) [#{(en/attr? :href) (en/attr? :src)}])]
        (->> tags
