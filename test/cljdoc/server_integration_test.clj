@@ -1,4 +1,4 @@
-(ns ^:slow cljdoc.integration-test
+(ns ^:slow ^:integration cljdoc.server-integration-test
   (:require [babashka.fs :as fs]
             [cheshire.core :as json]
             [cljdoc.server.log-init :as log-init]

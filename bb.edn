@@ -102,6 +102,10 @@
   {:doc "Ingest docs locally for testing"
    :depends [compile-java]
    :task (apply clojure "-M:cli ingest" *command-line-args*)}
+  offline-bundle
+  {:doc "Create offline bundle for built lib"
+   :depends [compile-java]
+   :task (apply clojure "-M:cli offline-bundle" *command-line-args*)}
   test
   {:doc "Run tests"
    :depends [deps-js compile-js compile-java]

@@ -182,7 +182,7 @@
       [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
       [["assets/static/codeberg.svg" (io/resource "public/out/codeberg.svg")]]
       [["assets/static/sourcehut.svg" (io/resource "public/out/sourcehut.svg")]]
-      ;; use content-hashed name for source map to preserve link to index.js
+      ;; use content-hashed name for source map to preserve link from generated index.js
       [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page cache-bundle {:docstring-format docstring-format

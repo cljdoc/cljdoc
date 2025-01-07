@@ -186,12 +186,12 @@ jobs:
 
       - run:
           name: Run Tests
-          command: bb test --skip cljdoc.integration-test
+          command: bb test --skip-meta integration
 
   #
   # build: test-integration
   #
-  test-integration:
+  test-server-integration:
     docker: *clojure_image
 
     steps:
@@ -214,32 +214,35 @@ jobs:
 
       - run:
           name: Run Tests
-          command: bb test --focus cljdoc.integration-test
+          command: bb test --focus cljdoc.server-integration-test
 
       - *save_npm_cache
 
   #
-  # build: test-ingest
+  # build: test-cli
   #
-  test-ingest:
+  test-cli-integration:
     docker: *clojure_image
 
     steps:
       - checkout
+      - node/install
 
       - *restore_clojure_cache
+      - *restore_npm_cache
       - *bb_install
 
       - run:
           name: Report Tools Versions
           command: |
+           node --version
            java --version
            clojure --version
            bb --version
 
       - run:
-          name: Build Docs for Sample Library
-          command: bb ingest --project bidi --version 2.1.3
+          name: Run tests
+          command: bb test --focus cljdoc.cli-integration-test
 
   #
   # build: package, output used by:
@@ -366,10 +369,10 @@ workflows:
       - test-unit:
           requires:
             - cache-deps
-      - test-integration:
+      - test-server-integration:
           requires:
             - cache-deps
-      - test-ingest:
+      - test-cli-integration:
           requires:
             - cache-deps
       - package
@@ -379,8 +382,8 @@ workflows:
             - back-end-checks
             - back-end-eastwood
             - test-unit
-            - test-integration
-            - test-ingest
+            - test-server-integration
+            - test-cli-integration
             - package
       - publish-docker:
           requires:
