@@ -52,6 +52,7 @@ Options
                  "esbuild"
                  "--target=es2017"
                  "--minify"
+                 "--define:lunr=window.lunr"
                  "--sourcemap"
                  "--entry-names=[name].[hash]"
                  (str "--outdir=" target-dir)
