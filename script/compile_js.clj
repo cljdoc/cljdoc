@@ -31,8 +31,8 @@ Options
                  (str "--outdir=" target-dir)
                  (str (fs/file source-asset-dir source-asset-static-subdir "*.*"))))
 
-(defn- compile-hash-copy [{:keys [source-asset-dir target-dir]}]
-  (status/line :head "compiling-js: hash copy")
+(defn- compile-with-hash [{:keys [source-asset-dir target-dir]}]
+  (status/line :head "compiling-js: with hash")
   (shell/command "npx"
                  "--yes"
                  "esbuild"
@@ -77,7 +77,7 @@ Options
   (fs/delete-tree target-dir)
   (fs/create-dirs target-dir)
   (compile-copy opts)
-  (compile-hash-copy opts)
+  (compile-with-hash opts)
   (compile-js opts)
   (generate-resource-map opts))
 
