@@ -380,7 +380,7 @@ workflows:
             - back-end-eastwood
             - test-unit
             - test-integration
-            - test-ingest
+            - test-cli
             - package
       - publish-docker:
           requires:
