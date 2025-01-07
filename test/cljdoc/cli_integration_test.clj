@@ -30,8 +30,7 @@
                "bidi-2.1.3/assets/highlightjs/languages/asciidoc.min.js"
                "bidi-2.1.3/assets/highlightjs/languages/clojure-repl.min.js"
                "bidi-2.1.3/assets/highlightjs/languages/clojure.min.js"
-               ;; TODO: questionable
-               "bidi-2.1.3/assets/js/cljdoc.1245e9c7.js.map"
+               #"bidi-2.1.3/assets/js/cljdoc.[0-9a-z]{8}.js.map"
                "bidi-2.1.3/assets/js/index.js"
                "bidi-2.1.3/assets/static/codeberg.svg"
                "bidi-2.1.3/assets/static/sourcehut.svg"
