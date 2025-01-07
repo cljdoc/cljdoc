@@ -490,8 +490,8 @@
    Then creates a map that translates the plain resource names to their content-hashed counterparts.
     E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
   (memoize/memo
-   (fn [html-path]
-     (log/info "building static resource map")
+    (fn [html-path]
+     (log/info "building static resource map from" html-path)
      (let [tags (en/select (en/html-resource html-path) [#{(en/attr? :href) (en/attr? :src)}])]
        (->> tags
             (#(for [tag %] (map (:attrs tag) [:href :src])))
@@ -505,11 +505,14 @@
 (defn clear-static-resource-map-cache! []
   (memoize/memo-clear! build-static-resource-map))
 
+(defn build-default-static-resource-map []
+  (build-static-resource-map "public/out/cljdoc.html"))
+
 (def static-resource-interceptor
   (interceptor/interceptor
    {:name  ::static-resource
     :enter (fn [ctx]
-             (assoc ctx :static-resources (build-static-resource-map "public/out/cljdoc.html")))}))
+             (assoc ctx :static-resources (build-default-static-resource-map)))}))
 
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247
