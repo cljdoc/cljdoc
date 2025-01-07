@@ -39,6 +39,7 @@ Options
                  "--loader:.svg=copy"
                  "--loader:.png=copy"
                  "--entry-names=[name].[hash]"
+                 "--minify"
                  (str "--outdir=" target-dir)
                  (str (fs/file source-asset-dir "*.png"))
                  (str (fs/file source-asset-dir "*.css"))
