@@ -16,10 +16,10 @@ Options
  --watch        Rebuild client-side assets if they change
  --help         Show this help")
 
-(defn- compile-static
+(defn- compile-copy
   "We could use a simple copy but maybe better to use esbuild for consistent console output"
   [{:keys [source-asset-dir source-asset-static-subdir target-dir]}]
-  (status/line :head "copying static resources")
+  (status/line :head "compile-js: straight copy")
   (shell/command "npx"
                  "--yes"
                  "esbuild"
@@ -31,25 +31,11 @@ Options
                  (str "--outdir=" target-dir)
                  (str (fs/file source-asset-dir source-asset-static-subdir "*.*"))))
 
-(defn- compile-js [{:keys [js-dir js-entry-point js-out-name target-dir]}]
-  (status/line :head "compiling to JavaScript")
+(defn- compile-hash-copy [{:keys [source-asset-dir target-dir]}]
+  (status/line :head "compiling-js: hash copy")
   (shell/command "npx"
                  "--yes"
                  "esbuild"
-                 "--target=es2022"
-                 "--minify"
-                 "--sourcemap"
-                 "--entry-names=[name].[hash]"
-                 (str "--outdir=" target-dir)
-                 (str js-out-name "=" (fs/file js-dir js-entry-point))
-                 "--bundle"))
-
-(defn- compile-dynamic [{:keys [source-asset-dir target-dir]}]
-  (status/line :head "compiling dynamic resources")
-  (shell/command "npx"
-                 "--yes"
-                 "esbuild"
-                 "--minify"
                  "--loader:.svg=copy"
                  "--loader:.png=copy"
                  "--entry-names=[name].[hash]"
@@ -57,6 +43,19 @@ Options
                  (str (fs/file source-asset-dir "*.png"))
                  (str (fs/file source-asset-dir "*.css"))
                  (str (fs/file source-asset-dir "*.svg"))))
+
+(defn- compile-js [{:keys [js-dir js-entry-point js-out-name target-dir]}]
+  (status/line :head "compile-js: transpile TypeScript to JS")
+  (shell/command "npx"
+                 "--yes"
+                 "esbuild"
+                 "--target=es2017"
+                 "--minify"
+                 "--sourcemap"
+                 "--entry-names=[name].[hash]"
+                 (str "--outdir=" target-dir)
+                 (str js-out-name "=" (fs/file js-dir js-entry-point))
+                 "--bundle"))
 
 (defn- resource-map
   "Map of non-hashed to hashed resource."
@@ -75,8 +74,8 @@ Options
 (defn- compile-all [{:keys [target-dir] :as opts}]
   (fs/delete-tree target-dir)
   (fs/create-dirs target-dir)
-  (compile-static opts)
-  (compile-dynamic opts)
+  (compile-copy opts)
+  (compile-hash-copy opts)
   (compile-js opts)
   (generate-resource-map opts))
 
