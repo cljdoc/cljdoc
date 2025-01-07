@@ -54,7 +54,7 @@ If you are planning to work on JavaScript files:
 +
 [source,shell]
 ----
-bb compile-js --watch
+bb compile-js-watch
 ----
 +
 NOTE: Leave the watch session open. Continue any work in a separate terminal shell.
@@ -72,7 +72,7 @@ bb server
 IMPORTANT: Leave this web server session open. Continue any work in a separate terminal shell.
 +
 Alternatively you work from a REPL.
-First run `bb compile-js` (or `bb compile-js --watch` if you are working on front end sources).
+First run `bb compile-js` (or `bb compile-js-watch` if you are working on front end sources).
 The launch your REPL with `clj` (or your favorite editor integration), then navigate to `cljdoc.server.system` namespace, load it, then start the server:
 +
 [source,clojure]
