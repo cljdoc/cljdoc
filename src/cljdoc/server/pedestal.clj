@@ -490,11 +490,14 @@
   [manifest-file]
   (-> manifest-file slurp edn/read-string))
 
+(defn load-default-static-resource-map []
+  (load-client-asset-map "resources-compiled/public/out/manifest.edn"))
+
 (def static-resource-interceptor
   (interceptor/interceptor
    {:name  ::static-resource
     :enter (fn [ctx]
-             (assoc ctx :static-resources (load-client-asset-map "public/out/manifest.edn")))}))
+             (assoc ctx :static-resources (load-default-static-resource-map)))}))
 
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247
