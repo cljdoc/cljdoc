@@ -226,8 +226,10 @@ jobs:
 
     steps:
       - checkout
+      - node/install
 
       - *restore_clojure_cache
+      - *restore_npm_cache
       - *bb_install
 
       - run:
