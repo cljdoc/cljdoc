@@ -191,7 +191,7 @@ jobs:
   #
   # build: test-integration
   #
-  test-integration:
+  test-server-integration:
     docker: *clojure_image
 
     steps:
@@ -221,7 +221,7 @@ jobs:
   #
   # build: test-cli
   #
-  test-cli:
+  test-cli-integration:
     docker: *clojure_image
 
     steps:
@@ -235,6 +235,7 @@ jobs:
       - run:
           name: Report Tools Versions
           command: |
+           node --version
            java --version
            clojure --version
            bb --version
@@ -368,10 +369,10 @@ workflows:
       - test-unit:
           requires:
             - cache-deps
-      - test-integration:
+      - test-server-integration:
           requires:
             - cache-deps
-      - test-cli:
+      - test-cli-integration:
           requires:
             - cache-deps
       - package
@@ -381,8 +382,8 @@ workflows:
             - back-end-checks
             - back-end-eastwood
             - test-unit
-            - test-integration
-            - test-cli
+            - test-server-integration
+            - test-cli-integration
             - package
       - publish-docker:
           requires:
