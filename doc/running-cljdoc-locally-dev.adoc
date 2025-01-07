@@ -49,15 +49,19 @@ git clone https://github.com/cljdoc/cljdoc.git
 cd cljdoc
 ----
 
-. (Optional) Setup JavaScript sources to auto-recompile.
+. (Optional) Setup client-side assets to auto-build.
 If you are planning to work on JavaScript files:
 +
 [source,shell]
 ----
-bb compile-js-watch
+bb compile-js --watch
 ----
 +
 NOTE: Leave the watch session open. Continue any work in a separate terminal shell.
++
+NOTE: Our client-side is currently light.
+We currently don't feel the need for hot-reloading (you'll need to refresh your browser to see any changes).
+
 . Start the cljdoc web server
 +
 [source,shell]
@@ -68,7 +72,7 @@ bb server
 IMPORTANT: Leave this web server session open. Continue any work in a separate terminal shell.
 +
 Alternatively you work from a REPL.
-First run `bb compile-js` (or `bb compile-js-watch` if you are working on front end sources).
+First run `bb compile-js` (or `bb compile-js --watch` if you are working on front end sources).
 The launch your REPL with `clj` (or your favorite editor integration), then navigate to `cljdoc.server.system` namespace, load it, then start the server:
 +
 [source,clojure]
