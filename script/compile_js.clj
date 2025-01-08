@@ -53,6 +53,7 @@ Options
                  "esbuild"
                  "--target=es2017"
                  "--minify"
+                 ;; elasticlunr did not expect to wrapped, expose it like so:
                  "--define:lunr=window.lunr"
                  "--sourcemap"
                  "--entry-names=[name].[hash]"
