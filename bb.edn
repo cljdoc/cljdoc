@@ -66,7 +66,7 @@
              (compile-js/-main)
              (println "Skipped: JS assets already compiled to" out-dir)))}
   compile-js-watch
-  {:doc "compile front end sources [--watch]"
+  {:doc "compile front end sources and auto-recompile on changes"
    :depends [deps-js]
    :requires [compile-js]
    :task (compile-js/-main "--watch")}
