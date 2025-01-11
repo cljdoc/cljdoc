@@ -71,9 +71,12 @@ Options
           {}
           (fs/list-dir target-dir)))
 
-(defn- generate-resource-map [{:keys [target-dir] :as opts}]
-  (with-open [out (io/writer (fs/file target-dir "manifest.edn"))]
-    (pprint/write (resource-map opts) :stream out)))
+(defn- generate-resource-map [{:keys [manifest-out-dir] :as opts}]
+  (status/line :head "compile-js: generate manifest")
+  (let [f (fs/file manifest-out-dir "manifest.edn")]
+    (with-open [out (io/writer f)]
+      (pprint/write (resource-map opts) :stream out))
+    (status/line :detail "Wrote: %s" f)))
 
 (defn- compile-all [{:keys [target-dir] :as opts}]
   (fs/delete-tree target-dir)
@@ -103,6 +106,7 @@ Options
 (defn -main [& args]
   (when-let [opts (main/doc-arg-opt args-usage args)]
     (let [compile-opts {:target-dir "resources-compiled/public/out"
+                        :manifest-out-dir "resources-compiled" ;; no need for this to be public
                         :source-asset-dir "resources/public"
                         :source-asset-static-subdir "static"
                         :js-dir "js"

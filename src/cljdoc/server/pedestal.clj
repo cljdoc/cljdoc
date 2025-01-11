@@ -491,7 +491,7 @@
   (-> manifest-file slurp edn/read-string))
 
 (defn load-default-static-resource-map []
-  (load-client-asset-map "resources-compiled/public/out/manifest.edn"))
+  (load-client-asset-map "resources-compiled/manifest.edn"))
 
 (def static-resource-interceptor
   (interceptor/interceptor
