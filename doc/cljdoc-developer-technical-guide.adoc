@@ -326,7 +326,7 @@ Cljdoc will pick up any built client assets when you refresh the browser page.
 
 NOTE: We used to build client-side assets with Parcel.js.
 This is a full-featured build tool, but in the spirit of Clojure, we asked ourselves, do we need something so opionated, complex, and prone to mysteries after upgrade?
-We found that we do not, and now use a simple bb script: link:/script/compile_js.clj.
+We found that we do not, and now use a simple bb script: link:/script/compile_js.clj[].
 
 TIP: Our build automatically minifies CSS and generated JS, but you'll need to handle optimizing any image additions/changes manually yourself.
 
