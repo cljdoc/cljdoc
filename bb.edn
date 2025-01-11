@@ -34,7 +34,6 @@
                    ["target"
                     "resources-compiled"
                     ".cpcache"
-                    ".parcel-cache"
                     "modules/deploy/.cpcache"]))}
   download-deps
   {:doc "download clojure deps"
