@@ -53,7 +53,6 @@
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-RC4"}             ;; html abstraction
         org.jsoup/jsoup {:mvn/version "1.18.3"}              ;; xml/html parser/rewriter
-        enlive/enlive {:mvn/version "1.1.6"}                 ;; html templating
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20240325.1"}                          ;; sanitize html converted from user markdown

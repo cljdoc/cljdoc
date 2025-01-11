@@ -2,7 +2,7 @@
 // num-contributors is updated automatically by doc-readme-update bb task
 :num-contributors: 138
 
-image:resources/public/cljdoc-logo-beta-square.png[cljdoc,100,100]
+image:resources/public/cljdoc-logo-square.png[cljdoc,100,100]
 
 An effort to create a central documentation hub for the Clojure & ClojureScript ecosystem.
 

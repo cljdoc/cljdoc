@@ -28,15 +28,15 @@
 (defn icon-url
   "Return url to icon for `scm-url`.
   `:asset-prefix` supports online (default) and offline rendering."
-  ([scm-url]
-   (icon-url scm-url {:asset-prefix "/"}))
-  ([scm-url {:keys [asset-prefix]}]
+  ([scm-url static-resources]
+   (icon-url scm-url static-resources {:asset-prefix "/"}))
+  ([scm-url static-resources {:keys [asset-prefix]}]
    (let [provider (provider scm-url)]
      (case provider
        :github "https://microicon-clone.vercel.app/github"
        :gitlab "https://microicon-clone.vercel.app/gitlab"
-       :sourcehut  (str asset-prefix "sourcehut.svg")
-       :codeberg (str asset-prefix "codeberg.svg")
+       :sourcehut  (get static-resources "/sourcehut.svg")
+       :codeberg (get static-resources "/codeberg.svg")
        :bitbucket "https://microicon-clone.vercel.app/bitbucket"
        :gitea "https://microicon-clone.vercel.app/gitea"
        "https://microicon-clone.vercel.app/git"))))

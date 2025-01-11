@@ -49,7 +49,7 @@ git clone https://github.com/cljdoc/cljdoc.git
 cd cljdoc
 ----
 
-. (Optional) Setup JavaScript sources to auto-recompile.
+. (Optional) Setup client-side assets to auto-build.
 If you are planning to work on JavaScript files:
 +
 [source,shell]
@@ -58,6 +58,10 @@ bb compile-js-watch
 ----
 +
 NOTE: Leave the watch session open. Continue any work in a separate terminal shell.
++
+NOTE: Our client-side is currently light.
+We currently don't feel the need for hot-reloading (you'll need to refresh your browser to see any changes).
+
 . Start the cljdoc web server
 +
 [source,shell]

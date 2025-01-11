@@ -101,7 +101,7 @@
                  [:meta {:content (:title opts) :itemprop "name"}]
                  [:meta {:content (:description opts) :itemprop "description"}]
                  [:meta {:content (str "https://cljdoc.org"
-                                       (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
+                                       (get (:static-resources opts) "/cljdoc-logo-square.png"))
                          :itemprop "image"}]
 
                  ;; OpenGraph Meta Tags (should work for Twitter/Facebook)
@@ -118,10 +118,6 @@
                                               (string/join "&")))
                            :property "og:image"}])
                  [:meta {:name "twitter:card" :content "summary_large_image"}]
-                 ;; Disable image for now; doesn't add much and occupies a lot of space in Slack and similar
-                 ;; [:meta {:content (str "https://cljdoc.org"
-                 ;;                   (get (:static-resources opts) "/cljdoc-logo-beta-square.png"))
-                 ;;  :property "og:image"}]
 
                  ;; Canonical URL
                  (when-let [url (:canonical-url opts)]
@@ -189,7 +185,7 @@
 (defn top-bar-generic []
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center home-link])
 
-(defn top-bar [version-entity scm-url]
+(defn top-bar [{:keys [version-entity scm-url static-resources]}]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center.bg-white
    [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params version-entity)}
     (proj/clojars-id version-entity)]
@@ -207,7 +203,7 @@
       (and scm-url (scm/http-uri scm-url))
       [:a.link.dim.gray.f6.tr
        {:href (scm/http-uri scm-url)}
-       [:img.v-mid.w1.h1.mr2-ns {:src (scm/icon-url scm-url)}]
+       [:img.v-mid.w1.h1.mr2-ns {:src (scm/icon-url scm-url static-resources)}]
        [:span.v-mid.dib-ns.dn (scm/coordinate (scm/http-uri scm-url))]]
 
       (and scm-url (scm/fs-uri scm-url))

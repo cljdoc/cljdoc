@@ -5,6 +5,7 @@
                            :sha "cf44c15f30ea3867227fa61ceb823e5e942c707f"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
         etaoin/etaoin {:mvn/version "1.1.42"}}
+ :pods {org.babashka/fswatcher {:version "0.0.5"}}
  :tasks
  {;; setup
   :requires ([babashka.fs :as fs]
@@ -33,7 +34,6 @@
                    ["target"
                     "resources-compiled"
                     ".cpcache"
-                    ".parcel-cache"
                     "modules/deploy/.cpcache"]))}
   download-deps
   {:doc "download clojure deps"
@@ -58,14 +58,18 @@
   compile-js
   {:doc "compile front end sources"
    :depends [deps-js]
+   :requires [compile-js]
    :task (let [out-dir "resources-compiled/public/out"]
-           (if (seq (fs/modified-since out-dir ["resources/public" "js"]))
-             (shell "npm run build")
+           (if (seq (fs/modified-since out-dir ["resources/public" "js"
+                                                "tsconfig.json" "script/compile_js.clj"]))
+             (compile-js/-main)
              (println "Skipped: JS assets already compiled to" out-dir)))}
   compile-js-watch
-  {:doc "compile front end sources and watch for changes"
+  {:doc "compile front end sources and auto-recompile on changes"
    :depends [deps-js]
-   :task (p/exec "npm run dev")}
+   :requires [compile-js]
+   :task (compile-js/-main "--watch")}
+
   code-format-js
   {:doc "(check|fix) JS code format"
    :depends [deps-js]

@@ -25,7 +25,9 @@
     (->> (layout/layout
           ;; TODO on mobile this will effectively be rendered as a blank page
           ;; We could instead show a message and the namespace tree.
-          {:top-bar (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
+          {:top-bar (layout/top-bar {:version-entity version-entity
+                                     :scm-url (-> cache-bundle :version :scm :url)
+                                     :static-resources static-resources})
            :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)})
          (layout/page {:title (str (proj/clojars-id version-entity) " " (:version version-entity))
                        :og-img-data {:id "4j9ovv5ojagy8ik"
@@ -45,7 +47,9 @@
                    (filter #(= doc-slug-path (:slug-path (:attrs %))))
                    first)
         [doc-type contents] (doctree/entry->type-and-content doc-p)
-        top-bar-component (layout/top-bar version-entity (-> cache-bundle :version :scm :url))
+        top-bar-component (layout/top-bar {:version-entity version-entity
+                                           :scm-url (-> cache-bundle :version :scm :url)
+                                           :static-resources static-resources})
         sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
         articles-block (doctree/get-neighbour-entries (remove #(contains? #{"Readme" "Changelog"}
                                                                           (:title %))
@@ -104,7 +108,9 @@
         ns-defs    (bundle/defs-for-ns-with-src-uri cache-bundle (:namespace ns-emap))
         [[dominant-platf] :as platf-stats] (api/platform-stats ns-defs)
         ns-data (bundle/get-namespace cache-bundle (:namespace ns-emap))
-        top-bar-component (layout/top-bar version-entity (bundle/scm-url cache-bundle))
+        top-bar-component (layout/top-bar {:version-entity version-entity
+                                           :scm-url (bundle/scm-url cache-bundle)
+                                           :static-resources static-resources})
         opts {:docstring-format (user-config/docstring-format
                                  (-> cache-bundle :version :config)
                                  (proj/clojars-id version-entity))

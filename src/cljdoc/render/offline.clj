@@ -37,7 +37,7 @@
   ;; so taking a shortcut here.
   (str "doc/" (string/join "-" slug-path) ".html"))
 
-(defn- top-bar [version-entity scm-url sub-page?]
+(defn- top-bar [version-entity scm-url static-resources sub-page?]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
    [:a.dib.v-mid.link.dim.black.b.f6.mr3
     {:href (if sub-page? ".." "#")}
@@ -51,7 +51,7 @@
     (when scm-url
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
-       [:img.v-mid.mr2.w1.h1 {:src (scm/icon-url scm-url {:asset-prefix (if sub-page? "../assets/static/" "assets/static/")})}]
+       [:img.v-mid.mr2.w1.h1 {:src (scm/icon-url scm-url static-resources {:asset-prefix (if sub-page? "../assets/static/" "assets/static/")})}]
        [:span.v-mid.dib (scm/coordinate scm-url)]])]])
 
 (defn adjust-refs [sub-page? refs]
@@ -65,7 +65,7 @@
                (adjust-refs sub-page?)
                (apply hiccup.page/include-js)))))
 
-(defn- page [{:keys [version-entity namespace article-title scm-url page-features]} contents]
+(defn- page [{:keys [version-entity namespace article-title scm-url page-features static-resources]} contents]
   (let [sub-page? (or namespace article-title)]
     (hiccup/html {:mode :html}
                  (hiccup.page/doctype :html5)
@@ -81,7 +81,7 @@
                         (adjust-refs sub-page?)
                         (apply hiccup.page/include-css))]
                   [:div.sans-serif
-                   (top-bar version-entity scm-url sub-page?)
+                   (top-bar version-entity scm-url static-resources sub-page?)
                    [:div.absolute.bottom-0.left-0.right-0.overflow-scroll
                     {:style {:top "52px"}}
                     [:div.mw7.center.pa2.pb4
@@ -156,10 +156,13 @@
                             [(-> d :attrs :cljdoc.doc/source-file)
                              (article-url (-> d :attrs :slug-path))]))
                      (into {}))
+        offline-static-resources {"/codeberg.svg" "assets/static/codeberg.svg"
+                                  "/sourcehut.svg" "asets/static/sourcehut.svg"}
         page' (fn [opts contents]
                 (page (assoc opts
                              :scm-url (-> cache-bundle :version :scm :url)
-                             :version-entity version-entity)
+                             :version-entity version-entity
+                             :static-resources offline-static-resources)
                       contents))
         doc-attrs (->> flat-doctree
                        (filter #(-> % :attrs :cljdoc.doc/source-file))
@@ -180,8 +183,8 @@
      [[["assets/tachyons.css" (io/resource (str "public/out" (get static-resources "/tachyons.css")))]]
       [["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
       [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
-      [["assets/static/codeberg.svg" (io/resource "public/out/codeberg.svg")]]
-      [["assets/static/sourcehut.svg" (io/resource "public/out/sourcehut.svg")]]
+      [["assets/static/codeberg.svg" (io/resource (str "public/out" (get static-resources "/codeberg.svg")))]]
+      [["assets/static/sourcehut.svg" (io/resource (str "public/out" (get static-resources "/sourcehut.svg")))]]
       ;; use content-hashed name for source map to preserve link from generated index.js
       [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
       (assets/offline-assets :highlightjs)
