@@ -16,16 +16,16 @@
     "preact": "^10.25.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.17.0",
+    "@eslint/js": "^9.18.0",
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
     "esbuild": "^0.24.2",
-    "eslint": "^9.17.0",
+    "eslint": "^9.18.0",
     "prettier": "^3.4.2",
     "pretty-quick": "^4.0.0",
     "svgo": "^3.3.2",
-    "typescript": "^5.7.2",
+    "typescript": "^5.7.3",
     "typescript-eslint": "^8.18.1"
   },
   "staticFiles": {

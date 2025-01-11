@@ -23,7 +23,7 @@
 
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.981" } ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.47.1.0"}     ;; jdbc driver needed to talk to our SQLite db
+        org.xerial/sqlite-jdbc {:mvn/version "3.47.2.0"}     ;; jdbc driver needed to talk to our SQLite db
         ;; hold off on ragtime 0.10.x until we know what to do about: https://github.com/weavejester/ragtime/issues/162
         dev.weavejester/ragtime {:mvn/version "0.9.5"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
@@ -59,6 +59,8 @@
 
         ;; logging
         spootnik/unilog {:mvn/version "0.7.32"}              ;; easy log setup
+        ;; next dep is to overcome CVE in unilog deps, remove when unilog addresses
+        ch.qos.logback/logback-classic {:mvn/version "1.5.16"}
         org.clojure/tools.logging {:mvn/version "1.3.0"}     ;; logging facade
 
         ;; sentry service support
@@ -66,14 +68,14 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.29.39"}
+        software.amazon.awssdk/s3 {:mvn/version "2.29.50"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.1.0.202411261347-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.22"}     ;; jdk11+ http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.5.23"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.5.24"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.5.22"}             ;; launch processes
         cheshire/cheshire {:mvn/version "5.13.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
@@ -95,8 +97,8 @@
 
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:nrepl
-           {:extra-deps {nrepl/nrepl {:mvn/version "1.3.0"}
-                         cider/cider-nrepl {:mvn/version "0.50.3"}
+           {:extra-deps {nrepl/nrepl {:mvn/version "1.3.1"}
+                         cider/cider-nrepl {:mvn/version "0.52.0"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.10.0"}
                          ;; to support recompiling java code from repl
                          virgil/virgil {:mvn/version "0.3.1"}
@@ -131,7 +133,7 @@
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.6"}
                    clj-kondo/clj-kondo {:mvn/version "2024.11.14"}
-                   babashka/fs {:mvn/version "0.5.23"}
+                   babashka/fs {:mvn/version "0.5.24"}
                    babashka/process {:mvn/version "0.5.22"}}
             :ns-default build}
 
@@ -153,7 +155,7 @@
             :main-opts ["-m" "cljfmt.main"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1260"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1264"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.16"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--ignore-locals"]}}}
