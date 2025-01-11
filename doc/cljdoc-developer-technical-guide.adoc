@@ -288,20 +288,65 @@ Also supports kaocha args, ex:
 bb test --focus cljdoc.util.fixref-test/fix-test
 ```
 
+=== Launching a REPL
+
+As a developer, you'll typically want to first launch a REPL:
+
+```
+bb dev
+```
+
 === Launch a server
 
-As a developer you'll typically want to use the REPL, but you can also launch the server like so:
-```
+You can also launch the cljdoc server sans-REPL like so:
+
+[source,shell]
+----
 bb server
-```
+----
+
+=== Building client-side assets
+Cljdoc is primarily a server-side app but does have some client-side support.
+
+You can manually rebuild client-side assets via:
+
+[source,shell]
+----
+bb compile-js
+----
+
+Or do so automatically on client-side source changes via:
+
+[source,shell]
+----
+bb compile-js-watch
+----
+
+Cljdoc will pick up any built client assets when you refresh the browser page.
+
+NOTE: We used to build client-side assets with Parcel.js.
+This is a full-featured build tool, but in the spirit of Clojure, we asked ourselves, do we need something so opionated, complex, and prone to mysteries after upgrade?
+We found that we do not, and now use a simple bb script: link:/script/compile_js.clj.
+
+TIP: Our build automatically minifies CSS and generated JS, but you'll need to handle optimizing any image additions/changes manually yourself.
 
 === Ingest some docs
 
 It can be convenient to ingest a library's docs from the command line:
 
-```
+[source,shell]
+----
 bb ingest --project bidi --version 2.1.3
-```
+----
+
+=== Generate offline docs
+
+It can also be convenient to generate offline docs from the command line:
+
+[source,shell]
+----
+bb offline-bundle --project bidi --version 2.1.3 --output bidi-2.1.3.zip
+----
 
 === Honoring People who Contribute
 
