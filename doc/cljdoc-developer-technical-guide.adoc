@@ -50,13 +50,25 @@ This little database overview diagram should help.
 
 image::database-overview.svg[]
 
-Historical notes:
+==== Historical notes
 
 * `builds.error_info` is obsolete.
 ** It stored a nippy blob of the exception object
 ** It is replaced by `builds.error_info_map`, which stores a nippy blob of a map representation of the exception
 
-Tips:
+==== Notes on SQLite
+
+SQLite is always a local file and therefore extremely performant.
+If we were to move to a remote database, we'd have to review our db interactions carefully.
+
+Our SQLite databases uses write-ahead-logging `wal` for `journal_mode`.
+The SQLite team, for reasons of backwards compatibility, does not default to `wal`, but it is the defacto config for web server usage and has a dramatic impact on performance.
+
+SQLite tables have a hidden integer `rowid` primary key.
+If a table defines its own integer primary key, SQLite maps it to its internal `rowid`.
+Cljdoc tables typically have a an integer primary key.
+
+==== Tips
 
 * You'll find the SQLite databases under the `data` dir.
 * Using more modern features of SQLite can be problematic.
