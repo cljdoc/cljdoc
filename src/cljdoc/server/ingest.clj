@@ -13,7 +13,7 @@
 
 (defn ingest-cljdoc-analysis-edn
   "Store all the API-related information in the passed `cljdoc-analysis-edn` data"
-  [storage {:keys [analysis group-id artifact-id version] :as cljdoc-analysis-edn}]
+  [storage {:keys [analysis version] :as cljdoc-analysis-edn}]
   (let [project (proj/clojars-id cljdoc-analysis-edn)
         artifact (storage/version-entity project version)]
     (log/info "Verifying cljdoc analysis edn contents against spec")

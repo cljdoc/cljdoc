@@ -12,7 +12,7 @@
             [clojure.tools.logging :as log]
             [integrant.core :as ig]))
 
-(defn build [{:keys [project version jar pom git rev] :as args}]
+(defn build [{:keys [project version] :as args}]
   (let [sys        (select-keys (system/system-config (config/config))
                                 [:cljdoc/storage :cljdoc/build-tracker :cljdoc/analysis-service :cljdoc/sqlite])
         sys        (ig/init sys)

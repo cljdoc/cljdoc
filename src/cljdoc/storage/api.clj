@@ -28,14 +28,14 @@
                             (:artifact-id version-entity)
                             [(:version version-entity)])
     (sqlite/import-api db-spec version-entity api-analysis))
-  (import-doc [_ version-entity {:keys [doc-tree scm scm-articles jar config] :as version-data}]
+  (import-doc [_ version-entity version-data]
     (sqlite/import-doc db-spec version-entity version-data))
   (exists? [_ version-entity]
     (sqlite/docs-available? db-spec
                             (:group-id version-entity)
                             (:artifact-id version-entity)
                             (:version version-entity)))
-  (bundle-docs [_ {:keys [group-id artifact-id version] :as version-entity}]
+  (bundle-docs [_ version-entity]
     (sqlite/bundle-docs db-spec version-entity))
   (list-versions [_ group-id]
     (sqlite/get-documented-versions db-spec group-id))

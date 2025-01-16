@@ -26,20 +26,17 @@
       (string/starts-with? host "gitea.") :gitea)))
 
 (defn icon-url
-  "Return url to icon for `scm-url`.
-  `:asset-prefix` supports online (default) and offline rendering."
-  ([scm-url static-resources]
-   (icon-url scm-url static-resources {:asset-prefix "/"}))
-  ([scm-url static-resources {:keys [asset-prefix]}]
-   (let [provider (provider scm-url)]
-     (case provider
-       :github "https://microicon-clone.vercel.app/github"
-       :gitlab "https://microicon-clone.vercel.app/gitlab"
-       :sourcehut  (get static-resources "/sourcehut.svg")
-       :codeberg (get static-resources "/codeberg.svg")
-       :bitbucket "https://microicon-clone.vercel.app/bitbucket"
-       :gitea "https://microicon-clone.vercel.app/gitea"
-       "https://microicon-clone.vercel.app/git"))))
+  "Return url to icon for `scm-url`."
+  [scm-url static-resources]
+  (let [provider (provider scm-url)]
+    (case provider
+      :github "https://microicon-clone.vercel.app/github"
+      :gitlab "https://microicon-clone.vercel.app/gitlab"
+      :sourcehut  (get static-resources "/sourcehut.svg")
+      :codeberg (get static-resources "/codeberg.svg")
+      :bitbucket "https://microicon-clone.vercel.app/bitbucket"
+      :gitea "https://microicon-clone.vercel.app/gitea"
+      "https://microicon-clone.vercel.app/git")))
 
 (defn- url-scheme
   "Some providers share a url scheme, for example :gitlab uses the same scheme as :github, and :codeberg is hosted on :gitea."

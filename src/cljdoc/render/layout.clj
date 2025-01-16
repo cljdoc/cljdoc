@@ -61,7 +61,7 @@
 
 (defn generic-description
   "Returns a generic description of a project."
-  [{:keys [group-id artifact-id version] :as version-entity}]
+  [{:keys [version] :as version-entity}]
   (format "Documentation for %s v%s on cljdoc." (proj/clojars-id version-entity) version))
 
 (defn description
