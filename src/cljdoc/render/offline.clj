@@ -21,6 +21,7 @@
             [clojure.string :as string]
             [hiccup.page]
             [hiccup2.core :as hiccup]
+            [lambdaisland.uri :as uri]
             [me.raynes.fs.compression :as fs-compression])
   (:import (java.net URL)))
 
@@ -51,8 +52,12 @@
     (when scm-url
       [:a.link.dim.gray.f6.tr
        {:href scm-url}
-       [:img.v-mid.mr2.w1.h1 {:src (scm/icon-url scm-url static-resources {:asset-prefix (if sub-page? "../assets/static/" "assets/static/")})}]
-       [:span.v-mid.dib (scm/coordinate scm-url)]])]])
+       (let [icon-url (scm/icon-url scm-url static-resources)
+             icon-url (if (and sub-page? (uri/relative? icon-url))
+                        (-> (uri/join "../" icon-url) str)
+                        icon-url)]
+         (list [:img.v-mid.mr2.w1.h1 {:src icon-url}]
+               [:span.v-mid.dib (scm/coordinate scm-url)]))])]])
 
 (defn adjust-refs [sub-page? refs]
   (map #(cond->> % sub-page? (str "../"))
