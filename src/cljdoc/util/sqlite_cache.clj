@@ -75,7 +75,7 @@
     (jdbc/execute-one! db-spec [query key-prefix (pr-str k)])))
 
 (defn seed!
-  [{:keys [db-spec key-prefix table key-col value-col]}]
+  [{:keys [db-spec table key-col value-col]}]
   ;; this might seem a bit odd, ya'd think this table would be created by db migrations,
   ;; but it is useful for REPL testing
   (let [create-cmd (string/join " " [(format "create table if not exists %s (" table)
