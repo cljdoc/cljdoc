@@ -8,7 +8,7 @@
 
 (defn ns-entities
   "Return entity-maps for all namespaces in the cache-bundle"
-  [{:keys [version-entity] :as cache-bundle}]
+  [cache-bundle]
   (let [nss-from-defs (set (map :namespace (:defs cache-bundle)))
         nss-with-doc  (set (map :name (filter :doc (:namespaces cache-bundle))))
         has-defs?     (fn [{:keys [namespace]}]
@@ -24,7 +24,7 @@
   (string/lower-case (platf/get-field p :name)))
 
 (defn namespaces
-  [{:keys [version-entity] :as cache-bundle}]
+  [cache-bundle]
   {:pre [(find cache-bundle :namespaces)]}
   (->> (:namespaces cache-bundle)
        (group-by :name)

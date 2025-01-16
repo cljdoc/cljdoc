@@ -114,7 +114,7 @@
 (defn available-docs-denormalized
   "Return all available documents (built or not) with one item per version
   (i.e. in the same format as expected by index-pages/versions-tree)"
-  [searcher {:keys [group-id artifact-id] :as artifact-ent}]
+  [searcher artifact-ent]
   (->> (search-api/artifact-versions searcher artifact-ent)
        (mapcat (fn [artifact]
                  (map

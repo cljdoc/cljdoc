@@ -179,7 +179,7 @@
         daily-backups (->> existing-backups
                            (filterv #(= :daily (:period %)))
                            (sort-by :target-date))]
-    (reduce (fn [acc {:keys [period ^LocalDate target-date max-date] :as missing}]
+    (reduce (fn [acc {:keys [^LocalDate target-date max-date] :as missing}]
               (if-let [daily-match (some (fn [daily]
                                            (let [^LocalDate daily-target-date (:target-date daily)]
                                              (when (and (or (.isEqual target-date daily-target-date)
@@ -263,7 +263,7 @@
 
   There is also `cache-db-spec`, but we solely use `db-spec` to determine if we should restore both dbs.
   Call before any db interaction, else empty db will automatically be created."
-  [{:keys [object-store-fn db-spec bucket-name bucket-region] :as opts}]
+  [{:keys [object-store-fn db-spec] :as opts}]
   (let [object-store-fn (or object-store-fn s3/make-exo-object-store)]
     (with-open [^AutoCloseable object-store (object-store-fn opts)]
       (let [dbname (:dbname db-spec)

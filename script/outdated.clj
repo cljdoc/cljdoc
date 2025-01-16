@@ -37,7 +37,7 @@
                       slurp
                       edn/read-string
                       vals
-                      (keep (fn [{:keys [npm-name version note] :as asset}]
+                      (keep (fn [{:keys [npm-name version] :as asset}]
                               (let [latest-version (-> (shell/command {:out :string :err :string}
                                                                       "npm show" npm-name "dist-tags.latest")
                                                        :out

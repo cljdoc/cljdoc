@@ -70,7 +70,7 @@
   `io.pedestal.http.route/expand-routes`. The `route-resolver` will be
   used for post processing the routes, usually setting the right
   interceptors."
-  [route-resolver {:keys [host port scheme] :as opts}]
+  [route-resolver {:keys [host] :as opts}]
   (->> [(when host
           ;; https://github.com/pedestal/pedestal/issues/570
           #{(select-keys opts [:host :port :scheme])})
