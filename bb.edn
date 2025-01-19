@@ -40,11 +40,11 @@
    :task (clojure "-T:build download-deps")}
   dev
   {:doc "fire up a REPL for dev"
-   :depends [compile-java]
+   :depends [compile-js compile-java]
    :task (shell "clj -M:cli:test:nrepl")}
   flowstorm
   {:doc "fire up a REPL for dev with Flowstorm"
-   :depends [compile-java]
+   :depends [compile-js compile-java]
    :task (shell "clj -M:cli:test:flowstorm:nrepl")}
   clerk
   {:doc "fire up a REPL for with clerk support"
@@ -100,19 +100,19 @@
              (System/exit exit)))}
   server
   {:doc "Launch cljdoc server"
-   :depends [deps-js compile-js compile-java]
+   :depends [compile-js compile-java]
    :task (apply clojure "-M:cli run" *command-line-args*)}
   ingest
   {:doc "Ingest docs locally for testing"
-   :depends [compile-java]
+   :depends [compile-js compile-java]
    :task (apply clojure "-M:cli ingest" *command-line-args*)}
   offline-bundle
   {:doc "Create offline bundle for built lib"
-   :depends [compile-java]
+   :depends [compile-js compile-java]
    :task (apply clojure "-M:cli offline-bundle" *command-line-args*)}
   test
   {:doc "Run tests"
-   :depends [deps-js compile-js compile-java]
+   :depends [compile-js compile-java]
    :task (apply clojure "-M:test" *command-line-args*)}
   lint
   {:doc "[--rebuild] lint source code using clj-kondo"
