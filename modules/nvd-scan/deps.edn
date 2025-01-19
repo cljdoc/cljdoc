@@ -4,4 +4,4 @@
         #_:clj-kondo/ignore
         {:mvn/version "RELEASE"}
         ;; temporarily try bumping transitive dep to current release
-        org.owasp/dependency-check-core {:mvn/version "12.0.0"}}}
+        org.owasp/dependency-check-core {:mvn/version "12.0.1"}}}
