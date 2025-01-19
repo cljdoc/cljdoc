@@ -158,11 +158,11 @@
 
   "
   [f {:keys [clock] :as cache-spec}]
-  (let [cache-spec (assoc cache-spec :clock (or clock (atom (Clock/systemUTC)) ))]
+  (let [cache-spec (assoc cache-spec :clock (or clock (atom (Clock/systemUTC))))]
     (memo/build-memoizer
-      #(memo/->PluggableMemoization
-         % (cache/seed (SQLCache. {}) {:cache-spec cache-spec}))
-      f)))
+     #(memo/->PluggableMemoization
+       % (cache/seed (SQLCache. {}) {:cache-spec cache-spec}))
+     f)))
 
 (comment
   (require '[taoensso.nippy :as nippy])
