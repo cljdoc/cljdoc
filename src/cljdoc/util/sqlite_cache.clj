@@ -11,12 +11,7 @@
             [clojure.string :as string]
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs])
-  (:import (java.time Instant)))
-
-(defn instant-now
-  "abstraction for time so we can redef it in tests"
-  ^Instant []
-  (Instant/now))
+  (:import (java.time Clock Instant)))
 
 (defn- derefable? [v]
   (instance? clojure.lang.IDeref v))
@@ -33,10 +28,10 @@
 
   When `ttl` is `nil` item is not stale.
   Otherwise `ttl` is compared with `cached_ts`."
-  [{:keys [ttl cached_ts]}]
+  [{:keys [ttl cached_ts]} {:keys [clock]}]
   (if (nil? ttl)
     false
-    (> (- (.toEpochMilli (instant-now))
+    (> (- (.toEpochMilli (Instant/now @clock))
           (.toEpochMilli (Instant/parse cached_ts)))
        ttl)))
 
@@ -58,16 +53,16 @@
                        {:builder-fn rs/as-unqualified-maps})))
 
 (defn refresh!
-  [k v {:keys [db-spec key-prefix table key-col value-col serialize-fn ttl]}]
+  [k v {:keys [clock db-spec key-prefix table key-col value-col serialize-fn ttl]}]
   (let [query (format (:refresh query-templates) table value-col key-col)
         value (serialize-fn @v)]
-    (jdbc/execute-one! db-spec [query (instant-now) ttl value key-prefix (pr-str k)])))
+    (jdbc/execute-one! db-spec [query (Instant/now @clock) ttl value key-prefix (pr-str k)])))
 
 (defn cache!
-  [k v {:keys [db-spec key-prefix serialize-fn table key-col value-col ttl]}]
+  [k v {:keys [clock db-spec key-prefix serialize-fn table key-col value-col ttl]}]
   (let [query (format (:cache query-templates) table key-col value-col)
         value (serialize-fn @v)]
-    (jdbc/execute-one! db-spec [query key-prefix (instant-now) ttl (pr-str k) value])))
+    (jdbc/execute-one! db-spec [query key-prefix (Instant/now @clock) ttl (pr-str k) value])))
 
 (defn evict!
   [k {:keys [db-spec key-prefix table key-col]}]
@@ -109,14 +104,14 @@
   (has? [_ k]
     (let [item (fetch! k (:cache-spec state))]
       (and (not (nil? item))
-           (not (stale? item)))))
+           (not (stale? item (:cache-spec state))))))
   (hit [this _k]
     this)
   (miss [this k v]
     ;; never cache nil values
     (when (not (nil? (d-ref v)))
       (let [item (fetch! k (:cache-spec state))]
-        (if (and (not (nil? item)) (stale? item))
+        (if (and (not (nil? item)) (stale? item (:cache-spec state)))
           (refresh! k v (:cache-spec state))
           (cache! k v (:cache-spec state)))))
     this)
@@ -158,47 +153,56 @@
   (memo-f 1) ;; takes more than 5 seconds to return.
   (memo-f 1) ;; return immediately from cache.
   ```
+
+  `cache-spec` can optionally override `:clock` for testing.
+
   "
-  [f cache-spec]
-  (memo/build-memoizer
-   #(memo/->PluggableMemoization
-     % (cache/seed (SQLCache. {}) {:cache-spec cache-spec}))
-   f))
+  [f {:keys [clock] :as cache-spec}]
+  (let [cache-spec (assoc cache-spec :clock (or clock (atom (Clock/systemUTC)) ))]
+    (memo/build-memoizer
+      #(memo/->PluggableMemoization
+         % (cache/seed (SQLCache. {}) {:cache-spec cache-spec}))
+      f)))
 
 (comment
+  (require '[taoensso.nippy :as nippy])
 
   (def db-artifact-repository
     {:key-prefix         "artifact-repository"
      :table              "cache2"
      :key-col            "key"
      :value-col          "val"
-     :ttl                2000
-     :serialize-fn       taoensso.nippy/freeze
-     :deserialize-fn     taoensso.nippy/thaw
+     :ttl                10000 ;; milliseconds
+     :serialize-fn       nippy/freeze
+     :deserialize-fn     nippy/thaw
      :db-spec            {:dbtype   "sqlite"
                           :host     :none
                           :dbname   "data/cache.db"}})
 
-  (require '[cljdoc.util.repositories])
+  (require '[cljdoc.util.repositories :as repo])
 
-  (time (cljdoc.util.repositories/find-artifact-repository 'bidi "2.1.3"))
+  (defn silly-slow-finder [project version]
+    (Thread/sleep 1500)
+    (repo/find-artifact-repository project version))
 
-  (def memoized-find-artifact-repository
-    (memo-sqlite cljdoc.util.repositories/find-artifact-repository
+  (time (silly-slow-finder 'bidi "2.1.3"))
+  ;; "Elapsed time: 1658.114228 msecs"
+
+  (def memoized-finder
+    (memo-sqlite silly-slow-finder
                  db-artifact-repository))
 
-  (time (memoized-find-artifact-repository 'bidi "2.1.3"))
+  (time (memoized-finder 'bidi "2.1.3"))
 
-  (time (memoized-find-artifact-repository 'neverfindme "2.1.3"))
+  (time (memoized-finder 'neverfindme "2.1.3"))
 
-  (time (memoized-find-artifact-repository 'com.bhauman/spell-spec "0.1.0"))
+  (time (memoized-finder 'com.bhauman/spell-spec "0.1.0"))
 
-  (memo/memo-clear!
-   memoized-find-artifact-repository '(com.bhauman/spell-spec "0.1.0"))
+  (memo/memo-clear! memoized-finder '(com.bhauman/spell-spec "0.1.0"))
 
-  (memo/memo-clear! memoized-find-artifact-repository)
+  (memo/memo-clear! memoized-finder)
 
-  (time (memoized-find-artifact-repository 'com.bhauman/spell-spec "0.1.0"))
+  (time (memoized-finder 'com.bhauman/spell-spec "0.1.0"))
 
   (time (cljdoc.util.repositories/artifact-uris 'bidi "2.0.9-SNAPSHOT"))
 
