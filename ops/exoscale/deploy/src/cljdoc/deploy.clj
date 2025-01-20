@@ -41,9 +41,35 @@
        :body
        json/parse-string))
 
-(defmethod aero/reader 'nomad/seconds
+(def duration-unit-multipliers
+  (first
+   (reduce (fn [[res cur] [unit multiplier]]
+             (let [cur (* cur multiplier)]
+               [(assoc res unit cur) cur]))
+           [{} 1]
+           [["ns" 1]
+            ["us" 1000] ;; 1000 us in 1 ns
+            ["ms" 1000] ;; 1000 ms in 1 us
+            ["s"  1000] ;; 1000 s in 1 ms...
+            ["m"  60]
+            ["h"  60]
+            ["d"  24]])))
+
+(defn- duration->nanoseconds [s]
+  (let [matches (re-seq #"(\d*\.?\d+)\s*(ns|us|ms|s|m|h|d)" s)]
+    (if-not (seq matches)
+      (throw (ex-info (str "Invalid duration " s) {}))
+      (->> matches
+           (map (fn [[_ value unit]]
+                  (* (parse-double value) (get duration-unit-multipliers unit))))
+           (reduce +)
+           (+ 0.5)
+           long))))
+
+(defmethod aero/reader 'nomad/duration
+  ;; convert human friendly duration, e.g. "1h30m" to nomad nanoseconds
   [_ _tag value]
-  (* value 1000000000))
+  (duration->nanoseconds value))
 
 (defmethod aero/reader 'env!
   [_ _tag envvar]
@@ -250,12 +276,12 @@
   ;;        :Tasks
   ;;        [{:Env
   ;;          {:CLJDOC_SECRETS "/etc/cljdoc/secrets.edn", :CLJDOC_PROFILE "default"},
-  ;;          :Resources {:CPU 1000, :MemoryMB 1600},
+  ;;          :Resources {:CPU 2000, :MemoryMB 3648},
   ;;          :KillSignal "",
   ;;          :Config
-  ;;          {:image "cljdoc/cljdoc:0.0.2705-91bda72e",
+  ;;          {:image "cljdoc/cljdoc:0.0.2732-lread-explore-mem-usage-6f7fa85",
   ;;           :ports ["http" "jmx"],
-  ;;           :volumes ["secrets:/etc/cljdoc" "/data/cljdoc:/var/cljdoc"]},
+  ;;           :volumes ["secrets:/etc/cljdoc" "/data/cljdoc:/app/data"]},
   ;;          :Templates
   ;;          [{:DestPath "secrets/secrets.edn",
   ;;            :EmbeddedTmpl "{{key \"config/cljdoc/secrets-edn\"}}"}],
@@ -271,15 +297,20 @@
   ;;              :Type "tcp"}],
   ;;            :Tags
   ;;            ["traefik.enable=true"
+  ;;             "traefik.tcp.routers.jxm-router.entrypoints=jmx"
+  ;;             "traefik.tcp.routers.jmx-router.rule=HostSNI(`*`)"
+  ;;             "traefik.tcp.routers.jmx-router.service=jmx-service"
+  ;;             "traefik.tcp.services.jmx-service.loadbalancer.server.port=${NOMAD_HOST_PORT_jmx}"
   ;;             "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
   ;;             "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
   ;;             "traefik.http.routers.cljdoc-http.entrypoints=web"
   ;;             "traefik.http.routers.cljdoc-http.middlewares=redirect-to-https"
   ;;             "traefik.http.routers.cljdoc-http.rule=PathPrefix(`/`)"
   ;;             "traefik.http.middlewares.compress-response.compress=true"
+  ;;             "traefik.http.middlewares.compress-response.compress.encodings=gzip"
   ;;             "traefik.http.routers.cljdoc-https.entrypoints=websecure"
   ;;             "traefik.http.routers.cljdoc-https.tls=true"
-  ;;             "traefik.http.routers.cljdoc-https.tls.certresolver=lets-encrypt"
+  ;;             "traefik.http.routers.cljdoc-https.tls.certresolver=letsencrypt"
   ;;             "traefik.http.routers.cljdoc-https.rule=PathPrefix(`/`)"
   ;;             "traefik.http.routers.cljdoc-https.tls.domains[0].main=cljdoc.org"
   ;;             "traefik.http.routers.cljdoc-https.tls.domains[1].main=cljdoc.xyz"
@@ -302,7 +333,7 @@
   ;;           {:Label "https", :Value 443}]}],
   ;;        :Tasks
   ;;        [{:Config
-  ;;          {:image "traefik:3.1.5",
+  ;;          {:image "traefik:3.2.1",
   ;;           :network_mode "host",
   ;;           :ports ["api" "http" "https"],
   ;;           :volumes ["local:/etc/traefik" "/data/traefik:/data"]},
@@ -426,5 +457,17 @@
 
   (local-test
    (deploy! deploy-opts))
+
+  (duration->nanoseconds "1d1h1m1s1ms1us1ns")
+  ;; => 90061001001001
+
+  (duration->nanoseconds "1h")
+  ;; => 3600000000000
+
+  (= (duration->nanoseconds "0.5h") (duration->nanoseconds "30m"))
+  ;; => true
+
+  (= (duration->nanoseconds "0.5d0.5h0.5m0.5s") (duration->nanoseconds "12h30m30s500ms"))
+  ;; => true
 
   :eoc)

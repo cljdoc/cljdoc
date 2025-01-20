@@ -7,8 +7,8 @@
   [{:Count 1
     :Name "cljdoc"
     :RestartPolicy {:Attempts 2
-                    :Delay #nomad/seconds 15
-                    :Interval #nomad/seconds 1800
+                    :Delay #nomad/duration "15s"
+                    :Interval #nomad/duration "30m"
                     :Mode "fail"}
     :Networks [{:DynamicPorts [{:Label "http" :To 8000}
                                {:Label "jmx" :To 9010}]}]
@@ -28,8 +28,8 @@
                   :PortLabel "http"
                   :Checks [{:Name "alive"
                             :PortLabel "http"
-                            :Interval #nomad/seconds 10
-                            :Timeout #nomad/seconds 2
+                            :Interval #nomad/duration "10s"
+                            :Timeout #nomad/duration "2s"
                             :Type "tcp"}]
                   ;; traefik is now configured through service tags
                   :Tags
@@ -62,8 +62,8 @@
                    :EmbeddedTmpl "{{key \"config/cljdoc/secrets-edn\"}}"}]}]
     :Update {:Canary 1
              :MaxParallel 1
-             :HealthyDeadline #nomad/seconds 240
-             :MinHealthyTime #nomad/seconds 10}}
+             :HealthyDeadline #nomad/duration "4m"
+             :MinHealthyTime #nomad/duration "10s"}}
    {:Name "lb"
     :Networks [{:ReservedPorts [{:Label "api" :Value 8080}
                                 {:Label "http" :Value 80}
@@ -80,8 +80,8 @@
       :Services [{:Name "traefik"
                   :PortLabel "http"
                   :Checks [{:Name "alive"
-                            :Interval #nomad/seconds 10
-                            :Timeout #nomad/seconds 2
+                            :Interval #nomad/duration "10s"
+                            :Timeout #nomad/duration "2s"
                             :Type "tcp"}]}]
       :Templates [{:DestPath "local/traefik.yaml"
                    :EmbeddedTmpl "{{key \"config/traefik-yaml\"}}"}]}]}]
