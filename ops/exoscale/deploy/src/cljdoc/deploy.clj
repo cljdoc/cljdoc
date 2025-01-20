@@ -43,17 +43,17 @@
 
 (def duration-unit-multipliers
   (first
-    (reduce (fn [[res cur] [unit multiplier]]
-              (let [cur (* cur multiplier)]
-                [(assoc res unit cur) cur]))
-            [{} 1]
-            [["ns" 1]
-             ["us" 1000] ;; 1000 us in 1 ns
-             ["ms" 1000] ;; 1000 ms in 1 us
-             ["s"  1000] ;; 1000 s in 1 ms...
-             ["m"  60]
-             ["h"  60]
-             ["d"  24]])))
+   (reduce (fn [[res cur] [unit multiplier]]
+             (let [cur (* cur multiplier)]
+               [(assoc res unit cur) cur]))
+           [{} 1]
+           [["ns" 1]
+            ["us" 1000] ;; 1000 us in 1 ns
+            ["ms" 1000] ;; 1000 ms in 1 us
+            ["s"  1000] ;; 1000 s in 1 ms...
+            ["m"  60]
+            ["h"  60]
+            ["d"  24]])))
 
 (defn- duration->nanoseconds [s]
   (let [matches (re-seq #"(\d*\.?\d+)\s*(ns|us|ms|s|m|h|d)" s)]
@@ -253,7 +253,6 @@
                {:docker-tag "0.0.2732-lread-explore-mem-usage-6f7fa85"
                 :cljdoc-profile "default"
                 :secrets-filename "../../../resources/secrets.edn"})
-
 
   (local-test
    (nomad-post! "/v1/validate/job" (jobspec deploy-opts)))
