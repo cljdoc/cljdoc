@@ -18,8 +18,7 @@
             [clojure.pprint :as pp]
             [clojure.tools.logging :as log]
             [unilog.config :as unilog])
-  (:import (com.jcraft.jsch JSch)
-           (java.util.concurrent TimeUnit)))
+  (:import (com.jcraft.jsch JSch)))
 
 (unilog/start-logging! {:level :info :console true})
 
@@ -66,6 +65,9 @@
            (+ 0.5)
            long))))
 
+(defn- duration->milliseconds [s]
+  (/ (duration->nanoseconds s) 1000 1000))
+
 (defmethod aero/reader 'nomad/duration
   ;; convert human friendly duration, e.g. "1h30m" to nomad nanoseconds
   [_ _tag value]
@@ -83,13 +85,13 @@
       (throw (ex-info (str "Could not find deploy opt for " value)
                       {:opts opts}))))
 
-(defn- wait-until [desc pred test-interval-ms max-time-secs]
-  (let [deadline (+ (System/currentTimeMillis) (* max-time-secs 1000))]
-    (log/infof "%s: will retry every %dms for max of %dm%ds"
+(defn- wait-until [desc pred {:keys [interval timeout]}]
+  (let [deadline (+ (System/currentTimeMillis) (duration->milliseconds timeout))
+        sleep-ms (duration->milliseconds interval)]
+    (log/infof "%s: will retry every %s for max of %s"
                desc
-               test-interval-ms
-               (int (/ max-time-secs 60))
-               (mod max-time-secs 60))
+               interval
+               timeout)
     (loop [try-num 1]
       (if-let [res (pred)]
         (do
@@ -99,7 +101,7 @@
           (when (> (System/currentTimeMillis) deadline)
             (throw (Exception. (format "%s: timed out after failed try %d" desc try-num))))
           (log/infof "%s: failed on try %d" desc try-num)
-          (Thread/sleep test-interval-ms)
+          (Thread/sleep sleep-ms)
           (recur (inc try-num)))))))
 
 (defn- promote-deployment! [deployment-id]
@@ -174,14 +176,13 @@
                            (let [eval (nomad-get (str "/v1/evaluation/" eval-id))
                                  status (get eval "Status")]
                              (when (= "complete" status) eval)))
-                         250
-                         (.toSeconds TimeUnit/MINUTES 1))
+                         {:interval "250ms" :timeout "1m"})
         deployment-id (get eval "DeploymentID")]
     (assert deployment-id "Deployment ID missing")
     (log/info "Evaluation ID:" eval-id)
     (log/info "Deployment ID:" deployment-id)
     (wait-until "deployment healthy" #(deployment-healthy? deployment-id)
-                5000 (.toSeconds TimeUnit/MINUTES 5))
+                {:interval "5s" :timeout "8m"})
     (let [deployment (nomad-get (str "/v1/deployment/" deployment-id))]
       (if (= "running" (get deployment "Status"))
         (do
@@ -208,7 +209,7 @@
 (defn- cli-deploy! [{:keys [nomad-ip] :as connect-opts}
                     {:keys [docker-tag cljdoc-profile] :as deploy-opts}]
   (wait-until (format "docker tag %s exists" docker-tag) #(tag-exists? docker-tag)
-              2000 (.toSeconds TimeUnit/MINUTES 3))
+              {:interval "2s" :timeout "3m"})
   (log/infof "Deploying to Nomad server at %s:4646 using %s cljdoc-profile" nomad-ip cljdoc-profile)
   (with-nomad connect-opts
     (deploy! deploy-opts)))
@@ -469,5 +470,12 @@
 
   (= (duration->nanoseconds "0.5d0.5h0.5m0.5s") (duration->nanoseconds "12h30m30s500ms"))
   ;; => true
+
+  (duration->milliseconds "1s")
+  ;; => 1000
+  (duration->milliseconds "0.5s")
+  ;; => 500
+  (duration->milliseconds "5m")
+  ;; => 300000
 
   :eoc)
