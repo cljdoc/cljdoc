@@ -18,8 +18,7 @@
             [clojure.pprint :as pp]
             [clojure.tools.logging :as log]
             [unilog.config :as unilog])
-  (:import (com.jcraft.jsch JSch)
-           (java.util.concurrent TimeUnit)))
+  (:import (com.jcraft.jsch JSch)))
 
 (unilog/start-logging! {:level :info :console true})
 
