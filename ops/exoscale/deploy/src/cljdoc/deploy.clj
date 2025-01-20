@@ -85,7 +85,7 @@
       (throw (ex-info (str "Could not find deploy opt for " value)
                       {:opts opts}))))
 
-(defn- wait-until [desc pred {:keys [interval timeout]} ]
+(defn- wait-until [desc pred {:keys [interval timeout]}]
   (let [deadline (+ (System/currentTimeMillis) (duration->milliseconds timeout))
         sleep-ms (duration->milliseconds interval)]
     (log/infof "%s: will retry every %s for max of %s"
