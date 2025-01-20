@@ -62,7 +62,7 @@
                    :EmbeddedTmpl "{{key \"config/cljdoc/secrets-edn\"}}"}]}]
     :Update {:Canary 1
              :MaxParallel 1
-             :HealthyDeadline #nomad/duration "4m"
+             :HealthyDeadline #nomad/duration "8m"
              :MinHealthyTime #nomad/duration "10s"}}
    {:Name "lb"
     :Networks [{:ReservedPorts [{:Label "api" :Value 8080}

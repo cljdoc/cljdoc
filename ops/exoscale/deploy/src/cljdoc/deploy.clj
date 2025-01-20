@@ -183,7 +183,7 @@
     (log/info "Evaluation ID:" eval-id)
     (log/info "Deployment ID:" deployment-id)
     (wait-until "deployment healthy" #(deployment-healthy? deployment-id)
-                {:interval "5s" :timeout "5m"})
+                {:interval "5s" :timeout "8m"})
     (let [deployment (nomad-get (str "/v1/deployment/" deployment-id))]
       (if (= "running" (get deployment "Status"))
         (do
