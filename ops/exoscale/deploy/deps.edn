@@ -8,4 +8,4 @@
         spootnik/unilog {:mvn/version "0.7.32"}
         ;; drop in replacement for com.jcraft/jsch:
         ;; See: https://www.matez.de/index.php/2020/06/22/the-future-of-jsch-without-ssh-rsa/
-        com.github.mwiede/jsch {:mvn/version "0.2.22"}}}
+        com.github.mwiede/jsch {:mvn/version "0.2.23"}}}
