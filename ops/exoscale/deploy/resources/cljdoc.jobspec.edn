@@ -49,6 +49,8 @@
                    "traefik.http.routers.acme-challenge.entrypoints=web"
                    "traefik.http.routers.acme-challenge.rule=PathPrefix(`/.well-known/acme-challenge`)"
                    "traefik.http.routers.acme-challenge.priority=1000"
+                   "traefik.http.services.acme-dummy.loadbalancer.server.port=0" ;; internal router needs a service so make a dummy one
+                   "traefik.http.routers.acme-challenge.service=acme-dummy"
                    ;; https
                    "traefik.http.middlewares.compress-response.compress=true"
                    "traefik.http.middlewares.compress-response.compress.encodings=gzip"
