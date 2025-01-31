@@ -61,11 +61,9 @@
 
   (t/testing "cljdoc absolute links"
     (t/testing "are converted to cljdoc root relative to support local testing"
-      (t/is (= ["<a href=\"/some/path/here\">absolute link to cljdoc</a>"
-                "<a href=\"/another/path\">absolute link to cljdoc.xyz</a>"]
+      (t/is (= ["<a href=\"/some/path/here\">absolute link to cljdoc</a>"]
                (fix-result
-                (fixref/fix (str "<a href=\"https://cljdoc.org/some/path/here\">absolute link to cljdoc</a>\n"
-                                 "<a href=\"https://cljdoc.xyz/another/path\">absolute link to cljdoc.xyz</a>")
+                (fixref/fix (str "<a href=\"https://cljdoc.org/some/path/here\">absolute link to cljdoc</a>\n")
                             fix-opts))))))
 
   (t/testing "unknown scm links"

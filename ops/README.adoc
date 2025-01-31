@@ -127,7 +127,7 @@ We use Terraform to create resources on Exoscale, including:
 * Compute instance for the cljdoc server host
 * DNS config
 
-NOTE: `cljdoc.org` and `cljdoc.xyz` domain’s should be configured to point to Exoscale.
+NOTE: The `cljdoc.org` domain should be configured to point to Exoscale.
 
 === Common Commands
 

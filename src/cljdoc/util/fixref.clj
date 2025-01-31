@@ -28,7 +28,9 @@
   (string/starts-with? s "/"))
 
 (defn- get-cljdoc-url-prefix [s]
-  (first (filter #(string/starts-with? s %) ["https://cljdoc.org" "https://cljdoc.xyz"])))
+  (let [expected "https://cljdoc.org"]
+    (when (string/starts-with? s expected)
+      expected)))
 
 (defn- rebase-path
   "Rebase path `s1` to directory of relative path `s2`.
