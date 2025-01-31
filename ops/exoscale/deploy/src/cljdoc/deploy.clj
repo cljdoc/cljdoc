@@ -298,7 +298,7 @@
   ;;              :Type "tcp"}],
   ;;            :Tags
   ;;            ["traefik.enable=true"
-  ;;             "traefik.tcp.routers.jxm-router.entrypoints=jmx"
+  ;;             "traefik.tcp.routers.jmx-router.entrypoints=jmx"
   ;;             "traefik.tcp.routers.jmx-router.rule=HostSNI(`*`)"
   ;;             "traefik.tcp.routers.jmx-router.service=jmx-service"
   ;;             "traefik.tcp.services.jmx-service.loadbalancer.server.port=${NOMAD_HOST_PORT_jmx}"
@@ -306,7 +306,10 @@
   ;;             "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
   ;;             "traefik.http.routers.cljdoc-http.entrypoints=web"
   ;;             "traefik.http.routers.cljdoc-http.middlewares=redirect-to-https"
-  ;;             "traefik.http.routers.cljdoc-http.rule=PathPrefix(`/`)"
+  ;;             "traefik.http.routers.cljdoc-http.rule=(PathPrefix(`/`) && !PathPrefix(`/.well-known/acme-challenge`))"
+  ;;             "traefik.http.routers.acme-challenge.entrypoints=web"
+  ;;             "traefik.http.routers.acme-challenge.rule=PathPrefix(`/.well-known/acme-challenge`)"
+  ;;             "traefik.http.routers.acme-challenge.priority=1000"
   ;;             "traefik.http.middlewares.compress-response.compress=true"
   ;;             "traefik.http.middlewares.compress-response.compress.encodings=gzip"
   ;;             "traefik.http.routers.cljdoc-https.entrypoints=websecure"
@@ -314,17 +317,13 @@
   ;;             "traefik.http.routers.cljdoc-https.tls.certresolver=letsencrypt"
   ;;             "traefik.http.routers.cljdoc-https.rule=PathPrefix(`/`)"
   ;;             "traefik.http.routers.cljdoc-https.tls.domains[0].main=cljdoc.org"
-  ;;             "traefik.http.routers.cljdoc-https.tls.domains[1].main=cljdoc.xyz"
-  ;;             "traefik.http.middlewares.xyz-redirect.redirectregex.permanent=true"
-  ;;             "traefik.http.middlewares.xyz-redirect.redirectregex.regex=^https://.*cljdoc\\.xyz(.*)"
-  ;;             "traefik.http.middlewares.xyz-redirect.redirectregex.replacement=https://cljdoc.org${1}"
   ;;             "traefik.http.routers.cljdoc-https.middlewares=xyz-redirect,compress-response"]}],
   ;;          :Name "backend",
   ;;          :Artifacts nil}],
   ;;        :Update
   ;;        {:Canary 1,
   ;;         :MaxParallel 1,
-  ;;         :HealthyDeadline 240000000000,
+  ;;         :HealthyDeadline 480000000000,
   ;;         :MinHealthyTime 10000000000}}
   ;;       {:Name "lb",
   ;;        :Networks
@@ -334,7 +333,7 @@
   ;;           {:Label "https", :Value 443}]}],
   ;;        :Tasks
   ;;        [{:Config
-  ;;          {:image "traefik:3.2.1",
+  ;;          {:image "traefik:3.3.2",
   ;;           :network_mode "host",
   ;;           :ports ["api" "http" "https"],
   ;;           :volumes ["local:/etc/traefik" "/data/traefik:/data"]},

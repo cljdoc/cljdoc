@@ -29,7 +29,7 @@ data "exoscale_template" "debian" {
 
 module "dns" {
   source      = "./dns"
-  for_each    = toset(["cljdoc.org", "cljdoc.xyz"])
+  for_each    = toset(["cljdoc.org"])
   domain_name = each.key
   record_name = ""
   ttl         = 300
