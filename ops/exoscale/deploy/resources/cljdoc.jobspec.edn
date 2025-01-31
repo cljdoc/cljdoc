@@ -35,7 +35,7 @@
                   :Tags
                   ["traefik.enable=true"
                    ;; jmx (only acessible locally)
-                   "traefik.tcp.routers.jxm-router.entrypoints=jmx"
+                   "traefik.tcp.routers.jmx-router.entrypoints=jmx"
                    "traefik.tcp.routers.jmx-router.rule=HostSNI(`*`)"
                    "traefik.tcp.routers.jmx-router.service=jmx-service"
                    "traefik.tcp.services.jmx-service.loadbalancer.server.port=${NOMAD_HOST_PORT_jmx}"
