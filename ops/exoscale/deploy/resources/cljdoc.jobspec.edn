@@ -44,7 +44,11 @@
                    "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
                    "traefik.http.routers.cljdoc-http.entrypoints=web"
                    "traefik.http.routers.cljdoc-http.middlewares=redirect-to-https"
-                   "traefik.http.routers.cljdoc-http.rule=PathPrefix(`/`)"
+                   "traefik.http.routers.cljdoc-http.rule=(PathPrefix(`/`) && !PathPrefix(`/.well-known/acme-challenge`))"
+                   ;; acme let's encrypt ssl cert challenge
+                   "traefik.http.routers.acme-challenge.entrypoints=web"
+                   "traefik.http.routers.acme-challenge.rule=PathPrefix(`/.well-known/acme-challenge`)"
+                   "traefik.http.routers.acme-challenge.priority=1000"
                    ;; https
                    "traefik.http.middlewares.compress-response.compress=true"
                    "traefik.http.middlewares.compress-response.compress.encodings=gzip"
