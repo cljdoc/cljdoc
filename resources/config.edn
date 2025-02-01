@@ -17,9 +17,9 @@
                  :enable-sentry? #profile {:default false
                                            :prod true}
                  :enable-db-backup? #profile {:default false
-                                              :prod false} ;; temporarily turn off see https://github.com/cljdoc/cljdoc/issues/996
+                                              :prod true}
                  :enable-db-restore? #profile {:default false
-                                               :prod false} ;; temporarily turn off see https://github.com/cljdoc/cljdoc/issues/996
+                                               :prod true}
                  :dir #or [#env CLJDOC_DATA_DIR ;; constant for docker prod/local-preview, see DockerFile
                            #profile {:default "data/"
                                      :test "test-data/"}]
