@@ -12,21 +12,21 @@
     "date-fns": "^4.1.0",
     "elasticlunr": "^0.9.5",
     "fuzzysort": "^3.1.0",
-    "idb": "^8.0.1",
+    "idb": "^8.0.2",
     "preact": "^10.25.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.19.0",
+    "@eslint/js": "^9.20.0",
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
-    "esbuild": "^0.24.2",
-    "eslint": "^9.19.0",
-    "prettier": "^3.4.2",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.20.1",
+    "prettier": "^3.5.0",
     "pretty-quick": "^4.0.0",
     "svgo": "^3.3.2",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.22.0"
+    "typescript-eslint": "^8.24.0"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
