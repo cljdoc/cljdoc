@@ -1045,7 +1045,8 @@
   :group-id "org.clojure",
   :origin :maven-central,
   :versions
-  ["1.7.701"
+  ["1.8.711-beta1"
+   "1.7.701"
    "1.6.681"
    "1.6.673"
    "1.5.648"
