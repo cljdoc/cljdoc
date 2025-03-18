@@ -10,11 +10,11 @@
         io.pedestal/pedestal.jetty {:mvn/version "0.7.2"}    ;; web site/service with jetty engine
         ;; CVE jetty override: (remove all when pedestal bumps)
         ;; Jetty 11 is at EOL and will only get "sponsored" releases. Hopefully pedestal will upgrade to Jetty 12
-        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.24"}
-        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.24"}
-        org.eclipse.jetty.websocket/websocket-jakarta-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.24"}
-        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.24"}
-        org.eclipse.jetty/jetty-alpn-client ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.24"}
+        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
+        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
+        org.eclipse.jetty.websocket/websocket-jakarta-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
+        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
+        org.eclipse.jetty/jetty-alpn-client ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
 
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11,
@@ -60,7 +60,7 @@
         ;; logging
         spootnik/unilog {:mvn/version "0.7.32"}              ;; easy log setup
         ;; next dep is to overcome CVE in unilog deps, remove when unilog addresses
-        ch.qos.logback/logback-classic {:mvn/version "1.5.17"}
+        ch.qos.logback/logback-classic {:mvn/version "1.5.18"}
         org.clojure/tools.logging {:mvn/version "1.3.0"}     ;; logging facade
 
         ;; sentry service support
@@ -68,7 +68,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.30.37"}
+        software.amazon.awssdk/s3 {:mvn/version "2.31.2"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.1.0.202411261347-r"} ;; git with jsch
@@ -155,7 +155,7 @@
             :main-opts ["-m" "cljfmt.main"]}
 
            :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1269"}
+           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1276"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.17"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--ignore-locals"]}}}
