@@ -93,7 +93,7 @@
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
-                              :git/sha "aeeba9d45e4a6f6efe9d2bee403e1dd11c8756c6"}}
+                              :git/sha "b000151410f11151999aeb0f78229db3c70ae5c9"}}
 
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:nrepl
