@@ -45,9 +45,9 @@
             [integrant.core :as ig]
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]
+            [io.pedestal.http.response :as response]
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
             [io.pedestal.interceptor :as interceptor]
-            [io.pedestal.http.response :as response]
             [lambdaisland.uri.normalize :as normalize]
             [ring.util.codec :as ring-codec])
   (:import (java.net URLDecoder)
