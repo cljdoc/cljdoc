@@ -122,7 +122,7 @@
 
   (foo :artifact/version :path-params {:group-id "a" :artifact-id "b"})
   ;; => "/d/a/b/:version"
-  
+
   (match-route "/d/foo/bar/CURRENT")
   ;; => {:path "/d/:group-id/:artifact-id/:version",
   ;;     :method :get,
