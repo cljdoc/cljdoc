@@ -71,27 +71,29 @@
   used for post processing the routes, usually setting the right
   interceptors."
   [route-resolver {:keys [host] :as opts}]
-  (->> [(when host
-          ;; https://github.com/pedestal/pedestal/issues/570
-          #{(select-keys opts [:host :port :scheme])})
-        (documentation-routes)
-        (index-routes)
-        (open-search-routes)
-        (api-routes)
-        (build-log-routes)
-        (info-pages-routes)
-        (utility-routes)]
-       (reduce into #{})
-       (route/expand-routes)
-       (keep route-resolver)))
+  (let [routes (->> [(when host
+                       ;; https://github.com/pedestal/pedestal/issues/570
+                       #{(select-keys opts [:host :port :scheme])})
+                     (documentation-routes)
+                     (index-routes)
+                     (open-search-routes)
+                     (api-routes)
+                     (build-log-routes)
+                     (info-pages-routes)
+                     (utility-routes)]
+                    (reduce into #{})
+                    (route/expand-routes))]
+    (update routes :routes #(keep route-resolver %))))
 
 (defn- url-for-routes
   "A variant of Pedestal's own url-for-routes but instead of
   accepting path-params maps with missing parameters this one throws.
 
   See https://github.com/pedestal/pedestal/issues/572"
-  [routes & default-options]
-  (let [{:as default-opts} default-options
+  ;; NOTE: pedestal has this support now with :strict-path-params? on its url-for-routes
+  [routing-table & default-options]
+  (let [routes (:routes routing-table)
+        {:as default-opts} default-options
         m (#'route/linker-map routes)]
     (fn [route-name & options]
       (let [{:keys [app-name] :as options-map} options
@@ -112,8 +114,33 @@
 
 (comment
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
+  ;; => "/d/a/b/c"
 
+  (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b"})
+  ;; => Execution error (ExceptionInfo) at cljdoc.server.routes$url_for_routes$fn__57100/doInvoke (routes.clj:118).
+  ;;    Missing path-param :version
+
+  (foo :artifact/version :path-params {:group-id "a" :artifact-id "b"})
+  ;; => "/d/a/b/:version"
+  
   (match-route "/d/foo/bar/CURRENT")
+  ;; => {:path "/d/:group-id/:artifact-id/:version",
+  ;;     :method :get,
+  ;;     :path-constraints
+  ;;     {:group-id "([^/]+)", :artifact-id "([^/]+)", :version "([^/]+)"},
+  ;;     :path-re #"/\Qd\E/([^/]+)/([^/]+)/([^/]+)",
+  ;;     :path-parts ["d" :group-id :artifact-id :version],
+  ;;     :interceptors
+  ;;     [{:name :cljdoc.server.routes/identity-interceptor,
+  ;;       :enter #function[clojure.core/identity],
+  ;;       :leave nil,
+  ;;       :error nil}],
+  ;;     :route-name :artifact/version,
+  ;;     :path-params {:group-id "foo", :artifact-id "bar", :version "CURRENT"},
+  ;;     :io.pedestal.http.route.internal/satisfies-constraints?
+  ;;     #function[io.pedestal.http.route.internal/add-satisfies-constraints?/fn--23386]}
 
   (clojure.pprint/pprint
-   (routes identity {})))
+   (routes identity {}))
+
+  :eoc)
