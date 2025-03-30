@@ -83,4 +83,5 @@
        :assets ["highlight.min.js"
                 "languages/clojure.min.js"
                 "languages/clojure-repl.min.js"
-                "languages/asciidoc.min.js"]}}}
+                "languages/asciidoc.min.js"
+                "languages/groovy.min.js"]}}}
