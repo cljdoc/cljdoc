@@ -68,7 +68,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.31.8"}
+        software.amazon.awssdk/s3 {:mvn/version "2.31.14"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.2.0.202503040940-r"} ;; git with jsch
@@ -76,7 +76,7 @@
 
         ;; misc utils
         babashka/fs {:mvn/version "0.5.24"}                  ;; file system utilities (a modern version of clj-commons/fs)
-        babashka/process {:mvn/version "0.5.22"}             ;; launch processes
+        babashka/process {:mvn/version "0.6.23"}             ;; launch processes
         cheshire/cheshire {:mvn/version "5.13.0"}            ;; json
         clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "2.6.3"}            ;; profile/perf monitoring
@@ -101,7 +101,7 @@
                          cider/cider-nrepl {:mvn/version "0.53.2"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.10.0"}
                          ;; to support recompiling java code from repl
-                         virgil/virgil {:mvn/version "0.3.2"}
+                         virgil/virgil {:mvn/version "0.4.0"}
                          ;; for ns reload support
                          io.github.tonsky/clj-reload {:mvn/version "0.9.4"}
                          ;; reload support
@@ -134,7 +134,7 @@
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.8"}
                    clj-kondo/clj-kondo {:mvn/version "2025.02.20"}
                    babashka/fs {:mvn/version "0.5.24"}
-                   babashka/process {:mvn/version "0.5.22"}}
+                   babashka/process {:mvn/version "0.6.23"}}
             :ns-default build}
 
            :clj-kondo
