@@ -17,12 +17,12 @@
                             (str "heapdump-"
                                  (.format create-date DateTimeFormatter/ISO_INSTANT)
                                  ".hprof"))]
-      (println (format "- found existing %s, preserving to %s.gz" heap-dump-file new-name))
+      (println (format "- found existing %s, preserving to %s.zst" heap-dump-file new-name))
       (fs/move heap-dump-file new-name)
-      (t/shell "gzip" new-name))))
+      (t/shell "zstd --rm" new-name))))
 
 (defn turf-old-heap-dumps [heap-dump-dir]
-  (let [old-dumps (->> (fs/glob heap-dump-dir "heapdump-*.hprof.gz")
+  (let [old-dumps (->> (fs/glob heap-dump-dir "heapdump-*.hprof.{gz,zst}")
                        (sort-by fs/creation-time)
                        reverse
                        (drop 2))]
