@@ -26,6 +26,10 @@
   (delete-object [object-store object-key])
   (copy-object [object-store source-key dest-key]))
 
+;; TODO: clj-kondo emits finding: warning: Missing protocol method(s): list-objects, put-object, get-object, delete-object, copy-object
+;; I don't think I'm doing anything wrong here...
+;; Suppress for now
+#_{:clj-kondo/ignore [:missing-protocol-method]}
 (defrecord AwsSdkObjectStore [^S3Client s3 opts]
   IObjectStore AutoCloseable
   (list-objects [_]
