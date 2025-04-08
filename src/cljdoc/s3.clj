@@ -26,12 +26,8 @@
   (delete-object [object-store object-key])
   (copy-object [object-store source-key dest-key]))
 
-;; TODO: clj-kondo emits finding: warning: Missing protocol method(s): list-objects, put-object, get-object, delete-object, copy-object
-;; I don't think I'm doing anything wrong here...
-;; Suppress for now
-#_{:clj-kondo/ignore [:missing-protocol-method]}
 (defrecord AwsSdkObjectStore [^S3Client s3 opts]
-  IObjectStore AutoCloseable
+  IObjectStore
   (list-objects [_]
     (let [{:keys [bucket-name]} opts
           ^ListObjectsV2Request request (-> (ListObjectsV2Request/builder)
@@ -71,6 +67,7 @@
                                          (.destinationKey dest-key)
                                          .build)]
       (.copyObject s3 request)))
+  AutoCloseable
   (close [_] (.close s3)))
 
 (defn s3-exo-client [{:keys [bucket-key bucket-secret bucket-region]}]
