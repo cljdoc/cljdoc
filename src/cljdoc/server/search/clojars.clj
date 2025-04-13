@@ -24,8 +24,8 @@
     (let [artifacts     (into []
                               (comp
                                (map #(-> % edn/read-string (assoc :origin :clojars)))
-                                ;; Latest Clojure Contrib libs are in Maven Central
-                                ;; and thus should be loaded from there
+                               ;; Latest Clojure Contrib libs are in Maven Central
+                               ;; and thus should be loaded from there
                                (filter #(not= "org.clojure" (:group-id %))))
                               (line-seq in))
           last-modified (get headers "last-modified")]

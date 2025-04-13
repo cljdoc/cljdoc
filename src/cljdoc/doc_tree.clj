@@ -226,13 +226,13 @@
 
 (defn- infer-title [path file-contents]
   (or
-    ;; use title from doc content
+   ;; use title from doc content
    (case (filepath->type path)
      :cljdoc/markdown (second (re-find #"(?m)^\s*#+\s*(.*?)\s*$" file-contents))
      :cljdoc/asciidoc (second (re-find #"(?m)^\s*=+\s*(.*?)\s*$" file-contents))
-        ;; we cannot reliably determine a title from plaintext content
+     ;; we cannot reliably determine a title from plaintext content
      :cljdoc/plaintext nil)
-    ;; else use filename without extension as title
+   ;; else use filename without extension as title
    (first (butlast (take-last 2 (string/split path #"[/\.]"))))
    (throw (ex-info (format "No title found for %s" path)
                    {:path path :contents file-contents}))))

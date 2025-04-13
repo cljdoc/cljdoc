@@ -26,9 +26,8 @@
                  (.attributes (-> (Attributes/builder)
                                   (.attribute "env-cljdoc" true)
                                   (.attribute "sectlinks" true)
-                                  (.experimental true) ;; don't let the "experimental" worry you,
-                                                       ;; it now only means enable the stable
-                                                       ;; kbd, menu and button macros
+                                  ;; don't let the "experimental" worry you, it now only means enable the stable kbd, menu and button macros
+                                  (.experimental true)
                                   (.icons Attributes/FONT_ICONS)
                                   (.attribute "outfilesuffix" ".adoc")
                                   (.showTitle true)
@@ -275,6 +274,6 @@
   ;; => "<div class=\"markdown-alert markdown-alert-tip\">\n<p class=\"markdown-alert-title\">tip\n</p><p>p1.1\np1.2</p>\n<p>p2.1\np2.2</p>\n</div>\n"
   ;; => "<div class=\"markdown-alert markdown-alert-tip\">\n<p class=\"markdown-alert-title\">tip\n</p><p>p1.1\np1.2</p>\n<p>p2.1\np2.2</p>\n</div>\n"
 
-;; ^(?:>\\s*\\n)*> {0,3}\\[\\!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\\]\\s*\\n(?:>\\s*\\n)*>\\s*\\S.*
+  ;; ^(?:>\\s*\\n)*> {0,3}\\[\\!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\\]\\s*\\n(?:>\\s*\\n)*>\\s*\\S.*
 
   :eoc)

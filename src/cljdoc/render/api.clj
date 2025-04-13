@@ -289,7 +289,7 @@
          (str text " only.")
          (str text ".")))
      (list
-       ;; we use short form here to match annotations we will be using on vars
+      ;; we use short form here to match annotations we will be using on vars
       (str "Mostly " (platforms->short-text dominant-platf) ".")
       [:br] " Exceptions indicated."))])
 
