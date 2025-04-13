@@ -102,8 +102,8 @@
     (let [people (->> our-records slurp edn/read-string :contributors
                       (remove :exclude-from-reconcile))
           credited-committer-ids (->> people
-                                     (keep #(when (some #{:code :doc} (:contributions %))
-                                              (:github-id %))))
+                                      (keep #(when (some #{:code :doc} (:contributions %))
+                                               (:github-id %))))
           credited-issue-creator-ids (->> people
                                           (keep #(when (some #{:issue} (:contributions %))
                                                    (:github-id %))))]
