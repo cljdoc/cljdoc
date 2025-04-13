@@ -32,10 +32,10 @@
         com.taoensso/nippy {:mvn/version "3.4.2"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "10.1.0"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "10.1.0"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.1.0"}
-        org.apache.lucene/lucene-queryparser {:mvn/version "10.1.0"}
+        org.apache.lucene/lucene-core {:mvn/version "10.2.0"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "10.2.0"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.2.0"}
+        org.apache.lucene/lucene-queryparser {:mvn/version "10.2.0"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "3.0.0"} ;; render adoc to html
