@@ -45,7 +45,7 @@
        distinct
        (map #(vector repo %))))
 
-(defn fetch-commiters-for-repo [repo]
+(defn fetch-committers-for-repo [repo]
   (->> (fetch-all (format "/repos/%s/contributors?per_page=100" repo))
        (map :login)
        (remove #(string/ends-with? % "[bot]"))
@@ -61,10 +61,10 @@
                     (assoc m k (-> v sort vec)))
                   {})))
 
-(defn fetch-commiters [repos]
-  (status/line :detail "Getting commiters")
+(defn fetch-committers [repos]
+  (status/line :detail "Getting committers")
   (->> repos
-       (mapcat fetch-commiters-for-repo)
+       (mapcat fetch-committers-for-repo)
        by-id))
 
 (defn fetch-issue-creators [repos]
@@ -96,12 +96,12 @@
   (status/line :head "Fetching actual contributors from GitHub")
   (let [repos ["cljdoc/cljdoc" "cljdoc/cljdoc-analyzer" "cljdoc/cljdoc-check-action"]
         actual-issue-creators (fetch-issue-creators repos)
-        actual-commiters (fetch-commiters repos)
+        actual-committers (fetch-committers repos)
         our-records "doc/people.edn"]
     (status/line :head "Reconciling with our records in %s" our-records)
     (let [people (->> our-records slurp edn/read-string :contributors
                       (remove :exclude-from-reconcile))
-          credited-commiter-ids (->> people
+          credited-committer-ids (->> people
                                      (keep #(when (some #{:code :doc} (:contributions %))
                                               (:github-id %))))
           credited-issue-creator-ids (->> people
@@ -111,14 +111,14 @@
       (status/line :head "Uncredited issue creators")
       (report-uncredited actual-issue-creators credited-issue-creator-ids)
 
-      (status/line :head "Uncredited commiters")
-      (report-uncredited actual-commiters credited-commiter-ids)
+      (status/line :head "Uncredited committers")
+      (report-uncredited actual-committers credited-committer-ids)
 
       (status/line :head "Credited issue creators not found on GitHub")
       (report-credit-not-on-github actual-issue-creators credited-issue-creator-ids)
 
-      (status/line :head "Credited commiters not found on GitHub")
-      (report-credit-not-on-github actual-commiters credited-commiter-ids)
+      (status/line :head "Credited committers not found on GitHub")
+      (report-credit-not-on-github actual-committers credited-committer-ids)
 
       (status/line :detail "\nMake any necessary updates to %s" our-records))))
 
