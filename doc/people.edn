@@ -66,7 +66,8 @@
   {:github-id "pesterhazy"
    :contributions [:code]}
   {:github-id "eerohele"
-   :contributions [:code]}
+   :contributions [:code]
+   :exclude-from-reconcile "not found as contributor when querying github, not sure why!"}
   {:github-id "nberger"
    :contributions [:sponsor]}
   {:github-id "ajoberstar"
@@ -295,4 +296,5 @@
   {:github-id "xsc"
    :contributions [:issue]}
   {:github-id "exoscale"
-   :contributions [:infra :sponsor]}]}
+   :contributions [:infra :sponsor]
+   :exclude-from-reconcile "indirect contributor"}]}
