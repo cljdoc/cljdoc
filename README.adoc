@@ -1,6 +1,6 @@
 :notitle:
 // num-contributors is updated automatically by doc-readme-update bb task
-:num-contributors: 138
+:num-contributors: 147
 
 image:resources/public/cljdoc-logo-square.png[cljdoc,100,100]
 
@@ -198,6 +198,15 @@ image:tsulej.png[tsulej,width=273,link="https://github.com/tsulej"]
 image:weavejester.png[weavejester,width=273,link="https://github.com/weavejester"]
 image:ptaoussanis.png[ptaoussanis,width=273,link="https://github.com/ptaoussanis"]
 image:tengstrand.png[tengstrand,width=273,link="https://github.com/tengstrand"]
+image:NoahTheDuke.png[NoahTheDuke,width=273,link="https://github.com/NoahTheDuke"]
+image:Ramblurr.png[Ramblurr,width=273,link="https://github.com/Ramblurr"]
+image:aviad.png[aviad,width=273,link="https://github.com/aviad"]
+image:ieugen.png[ieugen,width=273,link="https://github.com/ieugen"]
+image:rafaeldelboni.png[rafaeldelboni,width=273,link="https://github.com/rafaeldelboni"]
+image:teodorlu.png[teodorlu,width=273,link="https://github.com/teodorlu"]
+image:tylernisonoff.png[tylernisonoff,width=273,link="https://github.com/tylernisonoff"]
+image:xsc.png[xsc,width=273,link="https://github.com/xsc"]
+image:exoscale.png[exoscale,width=273,link="https://github.com/exoscale"]
 --
 // AUTO-GENERATED:CONTRIBUTORS-END
 Did we leave someone out? That certainly was not our intention, please do let us know!

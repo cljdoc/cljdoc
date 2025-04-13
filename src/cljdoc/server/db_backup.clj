@@ -292,9 +292,9 @@
     (log/info "Database backup disable, skipping " k)
     (do (log/info "Starting" k)
         {::db-backup-job (tt/every!
-                           ;; we backup daily but check more often to cover failure cases
+                          ;; we backup daily but check more often to cover failure cases
                           (.toSeconds TimeUnit/HOURS 2)
-                           ;; wait 30 minutes to avoid overlap with blue/green deploy and any db restore work
+                          ;; wait 30 minutes to avoid overlap with blue/green deploy and any db restore work
                           (.toSeconds TimeUnit/MINUTES 30)
                           (wrap-error #(backup-job! (assoc opts
                                                            :object-store-fn s3/make-exo-object-store

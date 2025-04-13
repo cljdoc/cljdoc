@@ -129,9 +129,9 @@
   (trigger-build
     [_ {:keys [project version jarpath] :as arg}]
     (log/infof "Starting local analysis for %s %s %s" project version jarpath)
-      ;; Run the analysis-runner (yeah) and return the path to the file containing
-      ;; analysis results. This mimics production usage in
-      ;; https://github.com/cljdoc/builder circleci config.
+    ;; Run the analysis-runner (yeah) and return the path to the file containing
+    ;; analysis results. This mimics production usage in
+    ;; https://github.com/cljdoc/builder circleci config.
     (let [analyzer-dep (get-analyzer-dep)
           future-proc (future
                         (sh/sh "clojure" "-Sdeps" (pr-str (select-keys analyzer-dep [:deps]))

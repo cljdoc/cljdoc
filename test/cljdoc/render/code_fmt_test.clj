@@ -75,7 +75,7 @@
          ;; split lines for better diffs on failure
          (string/split-lines
           (subject/snippet (str ;; grabbed from a sample error_map_info from production
-                              ;; TODO: consistent ordering of maps?
+                            ;; TODO: consistent ordering of maps?
                             '{:cause "clj-http: status 500"
                               :data {:body "{\"message\":\"An internal server error occurred.\"}",
                                      :headers {"connection" "keep-alive",
