@@ -29,7 +29,7 @@
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
         com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.3"}
-        com.taoensso/nippy {:mvn/version "3.4.2"}            ;; fast compact serializer that we use for blobs
+        com.taoensso/nippy {:mvn/version "3.5.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
         org.apache.lucene/lucene-core {:mvn/version "10.2.0"} ;; search engine
