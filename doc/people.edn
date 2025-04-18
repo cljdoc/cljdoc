@@ -66,7 +66,8 @@
   {:github-id "pesterhazy"
    :contributions [:code]}
   {:github-id "eerohele"
-   :contributions [:code]}
+   :contributions [:code]
+   :exclude-from-reconcile "not found as contributor when querying github, not sure why!"}
   {:github-id "nberger"
    :contributions [:sponsor]}
   {:github-id "ajoberstar"
@@ -277,4 +278,23 @@
   {:github-id "ptaoussanis"
    :contributions [:issue]}
   {:github-id "tengstrand"
-   :contributions [:issue]} ]}
+   :contributions [:issue]}
+  {:github-id "NoahTheDuke"
+   :contributions [:issue]}
+  {:github-id "Ramblurr"
+   :contributions [:issue]}
+  {:github-id "aviad"
+   :contributions [:issue]}
+  {:github-id "ieugen"
+   :contributions [:issue]}
+  {:github-id "rafaeldelboni"
+   :contributions [:issue]}
+  {:github-id "teodorlu"
+   :contributions [:issue]}
+  {:github-id "tylernisonoff"
+   :contributions [:issue]}
+  {:github-id "xsc"
+   :contributions [:issue]}
+  {:github-id "exoscale"
+   :contributions [:infra :sponsor]
+   :exclude-from-reconcile "indirect contributor"}]}

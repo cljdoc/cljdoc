@@ -13,20 +13,20 @@
     "elasticlunr": "^0.9.5",
     "fuzzysort": "^3.1.0",
     "idb": "^8.0.2",
-    "preact": "^10.26.4"
+    "preact": "^10.26.5"
   },
   "devDependencies": {
-    "@eslint/js": "^9.23.0",
-    "eslint": "^9.23.0",
+    "@eslint/js": "^9.24.0",
+    "eslint": "^9.24.0",
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
-    "esbuild": "^0.25.1",
+    "esbuild": "^0.25.2",
     "prettier": "^3.5.3",
     "pretty-quick": "^4.1.1",
     "svgo": "^3.3.2",
-    "typescript": "^5.8.2",
-    "typescript-eslint": "^8.28.0"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.30.1"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"

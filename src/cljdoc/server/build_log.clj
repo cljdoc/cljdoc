@@ -126,10 +126,10 @@
     (-> (sql/query db-spec [(str "select * from builds where error is null "
                                  "and import_completed_ts is null "
                                  "and group_id = ? and artifact_id = ? and version = ? "
-                              ;; HACK; this datetime scoping shouldn't be required but
-                              ;; in practice it happens that some webhooks don't reach
-                              ;; the cljdoc api and builds end up in some sort of limbo
-                              ;; where neither an error nor completion has occurred
+                                 ;; HACK; this datetime scoping shouldn't be required but
+                                 ;; in practice it happens that some webhooks don't reach
+                                 ;; the cljdoc api and builds end up in some sort of limbo
+                                 ;; where neither an error nor completion has occurred
                                  "and datetime(analysis_requested_ts) > datetime(?) "
                                  "order by id desc "
                                  "limit 1")
