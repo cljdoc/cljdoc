@@ -7,7 +7,7 @@
         integrant/integrant {:mvn/version "0.13.1"}          ;; configure systems/services that make up your app
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.8.0-alpha-1"}    ;; web site/service with jetty engine
+        io.pedestal/pedestal.jetty {:mvn/version "0.8.0-alpha-2"} ;; web site/service with jetty engine
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
 
         ;; relational database
