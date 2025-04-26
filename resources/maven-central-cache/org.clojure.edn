@@ -28,7 +28,8 @@
   :group-id "org.clojure",
   :origin :maven-central,
   :versions
-  ["1.11.132"
+  ["1.12.35"
+   "1.11.132"
    "1.11.121"
    "1.11.60"
    "1.11.57"
