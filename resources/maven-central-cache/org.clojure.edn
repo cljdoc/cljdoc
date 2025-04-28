@@ -28,7 +28,8 @@
   :group-id "org.clojure",
   :origin :maven-central,
   :versions
-  ["1.11.132"
+  ["1.12.35"
+   "1.11.132"
    "1.11.121"
    "1.11.60"
    "1.11.57"
@@ -349,7 +350,9 @@
   :group-id "org.clojure",
   :origin :maven-central,
   :versions
-  ["0.0-20230227-c7c0a541"
+  ["0.0-20250418-2ce9ab6d"
+   "0.0-20250417-0eb1e76c"
+   "0.0-20230227-c7c0a541"
    "0.0-20211011-0726fdeb"
    "0.0-20210811-6da97fe1"
    "0.0-20210512-04d6fb3b"
@@ -1682,7 +1685,9 @@
   :group-id "org.clojure",
   :origin :maven-central,
   :versions
-  ["0.0-20230227-c7c0a541"
+  ["0.0-20250418-2ce9ab6d"
+   "0.0-20250417-0eb1e76c"
+   "0.0-20230227-c7c0a541"
    "0.0-20211011-0726fdeb"
    "0.0-20210811-6da97fe1"
    "0.0-20210512-04d6fb3b"
