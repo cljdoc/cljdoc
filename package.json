@@ -26,7 +26,7 @@
     "pretty-quick": "^4.1.1",
     "svgo": "^3.3.2",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.31.0"
+    "typescript-eslint": "^8.31.1"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
