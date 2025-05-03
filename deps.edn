@@ -21,10 +21,10 @@
         com.taoensso/nippy {:mvn/version "3.5.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "10.2.0"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "10.2.0"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.2.0"}
-        org.apache.lucene/lucene-queryparser {:mvn/version "10.2.0"}
+        org.apache.lucene/lucene-core {:mvn/version "10.2.1"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "10.2.1"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.2.1"}
+        org.apache.lucene/lucene-queryparser {:mvn/version "10.2.1"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "3.0.0"} ;; render adoc to html
@@ -41,7 +41,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0-RC5"}             ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.19.1"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.20.1"}              ;; xml/html parser/rewriter
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20240325.1"}                          ;; sanitize html converted from user markdown
@@ -57,14 +57,14 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.31.30"}
+        software.amazon.awssdk/s3 {:mvn/version "2.31.33"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.2.0.202503040940-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.22"}     ;; jdk11+ http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.5.24"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.5.25"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.23"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.0.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
@@ -87,7 +87,7 @@
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:nrepl
            {:extra-deps {nrepl/nrepl {:mvn/version "1.3.1"}
-                         cider/cider-nrepl {:mvn/version "0.55.3"}
+                         cider/cider-nrepl {:mvn/version "0.55.7"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.10.0"}
                          ;; to support recompiling java code from repl
                          virgil/virgil {:mvn/version "0.4.0"}
@@ -122,7 +122,7 @@
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.8"}
                    clj-kondo/clj-kondo {:mvn/version "2025.04.07"}
-                   babashka/fs {:mvn/version "0.5.24"}
+                   babashka/fs {:mvn/version "0.5.25"}
                    babashka/process {:mvn/version "0.6.23"}}
             :ns-default build}
 
