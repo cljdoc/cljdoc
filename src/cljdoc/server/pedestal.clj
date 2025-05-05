@@ -45,6 +45,7 @@
             [integrant.core :as ig]
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body]
+            [io.pedestal.http.response :as response]
             [io.pedestal.http.ring-middlewares :as ring-middlewares]
             [io.pedestal.interceptor :as interceptor]
             [lambdaisland.uri.normalize :as normalize]
@@ -515,7 +516,7 @@
   (interceptor/interceptor
    {:name ::not-found-interceptor
     :leave (fn [context]
-             (if-not (http/response? (:response context))
+             (if-not (response/response? (:response context))
                (assoc context :response {:status 404
                                          :headers {"Content-Type" "text/html"}
                                          :body (error/not-found-page (:static-resources context))})
