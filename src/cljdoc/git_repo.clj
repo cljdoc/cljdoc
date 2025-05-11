@@ -1,7 +1,6 @@
 (ns cljdoc.git-repo
   (:require [clj-commons.digest :as digest]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [clojure.tools.logging :as log])
   (:import  (com.jcraft.jsch Session)
