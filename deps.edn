@@ -105,7 +105,8 @@
                          ;; for ns reload support
                          io.github.tonsky/clj-reload {:mvn/version "0.9.4"}
                          ;; reload support
-                         integrant/repl {:mvn/version "0.4.0"}}
+                         integrant/repl {:mvn/version "0.4.0"}
+                         com.clojure-goes-fast/clj-memory-meter {:mvn/version "0.4.0"}}
             :jvm-opts ["-XX:-OmitStackTraceInFastThrow"
                        ;; enabled to diagnose native memory usage
                        "-XX:NativeMemoryTracking=summary"

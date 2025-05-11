@@ -1,7 +1,6 @@
 (ns cljdoc.git-repo
   (:require [clj-commons.digest :as digest]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [clojure.tools.logging :as log])
   (:import  (com.jcraft.jsch Session)
@@ -158,20 +157,8 @@
          (sort-by val >)
          (map key))))
 
-(s/def ::git #(instance? Git %))
-(s/def ::path string?)
-(s/def ::object-loader #(instance? ObjectLoader %))
-(s/def ::git-object (s/keys :req-un [::path ::object-loader]))
-
-(s/fdef ls-files
-  :args (s/cat :repository ::git :revision string?)
-  :ret (s/coll-of ::git-object))
-
-(defn ls-files
-  "Return a seq of maps {:path 'path-of-file :obj-loader 'ObjectLoader}
-  for files in the git repository at the given revision `rev`.
-  ObjectLoader instances can be consumed with slurp, input-stream, etc.
-
+(defn file-sha-map
+  "Return a map of file to 256 sha
   Files in submodules are skipped."
   [^Git g rev]
   (let [tree (tree-for g rev)
@@ -179,23 +166,15 @@
         tw   (TreeWalk. repo)]
     (.addTree tw tree)
     (.setRecursive tw true)
-    (loop [files []]
+    (loop [files {}]
       (if (.next tw)
         (recur
          (if (= FileMode/GITLINK (.getFileMode tw))
            files ; Submodule reference, skip
-           (conj files {:path          (.getPathString tw)
-                        :object-loader (.open repo (.getObjectId tw 0))})))
+           (assoc files (.getPathString tw)
+                  (with-open [stream (io/input-stream (.open repo (.getObjectId tw 0)))]
+                    (digest/sha-256 stream)))))
         files))))
-
-(s/fdef path-sha-pairs
-  :args (s/cat :git-objects (s/coll-of ::git-object))
-  :ret (s/map-of string? string?))
-
-(defn path-sha-pairs [files]
-  (->> (for [{:keys [path object-loader]} files]
-         [path (digest/sha-256 (io/input-stream object-loader))])
-       (into {})))
 
 (extend ObjectLoader
   io/IOFactory
@@ -222,7 +201,10 @@
           (ObjectId/toString)))
 
 (comment
-  (ls-files (->repo (io/file "/Users/lee/proj/oss/-verify/foo")) "v1.2.0")
+  (require '[clj-memory-meter.core :as mm])
+
+  (mm/measure (file-sha-pairs (->repo (io/file "/home/lee/proj/oss/-verify/clojure-desktop-toolkit")) "v0.2.2"))
+  ;; => "746.1 KiB"
 
   (ls-remote-sha "https://github.com/cljdoc/cljdoc-analyzer.git" "RELEASE")
   (ls-remote-sha "git@github.com:cljdoc/cljdoc-analyzer.git" "RELEASE")

@@ -91,8 +91,7 @@
   (when revision
     (cond->
      {:url url
-      :files (-> (git-repo/ls-files repo revision)
-                 git-repo/path-sha-pairs)
+      :files (git-repo/file-sha-map repo revision)
       :rev revision
       :commit revision ;; was this always intended to be a synonym for :rev?
       :branch (git-repo/default-branch repo)}
