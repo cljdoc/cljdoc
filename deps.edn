@@ -132,7 +132,7 @@
            {:extra-deps {io.github.nextjournal/clerk {:mvn/version "0.17.1102"}}}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.8"}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.9"}
                    clj-kondo/clj-kondo {:mvn/version "2025.04.07"}
                    babashka/fs {:mvn/version "0.5.25"}
                    babashka/process {:mvn/version "0.6.23"}}
