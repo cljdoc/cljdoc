@@ -87,7 +87,7 @@
         robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         version-clj/version-clj {:mvn/version "2.0.3"}       ;; compare versions
-        zprint/zprint {:mvn/version "1.2.9"}                 ;; format clojure source/edn
+        zprint/zprint {:mvn/version "1.3.0"}                 ;; format clojure source/edn
 
         metosin/malli {:mvn/version "0.18.0"}
 
