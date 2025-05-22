@@ -89,7 +89,7 @@
         version-clj/version-clj {:mvn/version "2.0.3"}       ;; compare versions
         zprint/zprint {:mvn/version "1.2.9"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.17.0"}
+        metosin/malli {:mvn/version "0.18.0"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
