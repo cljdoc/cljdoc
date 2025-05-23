@@ -68,10 +68,10 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.31.33"}
+        software.amazon.awssdk/s3 {:mvn/version "2.31.48"}
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.2.0.202503040940-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.2.1.202505142326-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.22"}     ;; jdk11+ http client
 
         ;; misc utils
@@ -87,9 +87,9 @@
         robert/bruce {:mvn/version "0.8.0"}                  ;; retry handler
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         version-clj/version-clj {:mvn/version "2.0.3"}       ;; compare versions
-        zprint/zprint {:mvn/version "1.2.9"}                 ;; format clojure source/edn
+        zprint/zprint {:mvn/version "1.3.0"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.17.0"}
+        metosin/malli {:mvn/version "0.18.0"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -99,11 +99,11 @@
  :aliases {:nrepl
            {:extra-deps {nrepl/nrepl {:mvn/version "1.3.1"}
                          cider/cider-nrepl {:mvn/version "0.55.7"}
-                         refactor-nrepl/refactor-nrepl {:mvn/version "3.10.0"}
+                         refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}
                          ;; to support recompiling java code from repl
                          virgil/virgil {:mvn/version "0.4.0"}
                          ;; for ns reload support
-                         io.github.tonsky/clj-reload {:mvn/version "0.9.4"}
+                         io.github.tonsky/clj-reload {:mvn/version "0.9.7"}
                          ;; reload support
                          integrant/repl {:mvn/version "0.4.0"}
                          com.clojure-goes-fast/clj-memory-meter {:mvn/version "0.4.0"}}
@@ -132,7 +132,7 @@
            {:extra-deps {io.github.nextjournal/clerk {:mvn/version "0.17.1102"}}}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.8"}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.9"}
                    clj-kondo/clj-kondo {:mvn/version "2025.04.07"}
                    babashka/fs {:mvn/version "0.5.25"}
                    babashka/process {:mvn/version "0.6.23"}}
