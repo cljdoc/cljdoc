@@ -2,8 +2,8 @@
 
 (ns outdated
   (:require [babashka.fs :as fs]
-            [clojure.edn :as edn]
             [clj-commons.format.table :as table]
+            [clojure.edn :as edn]
             [clojure.string :as string]
             [helper.main :as main]
             [helper.shell :as shell]
