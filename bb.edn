@@ -4,7 +4,8 @@
         lread/status-line {:git/url "https://github.com/lread/status-line.git"
                            :sha "cf44c15f30ea3867227fa61ceb823e5e942c707f"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
-        etaoin/etaoin {:mvn/version "1.1.43"}}
+        etaoin/etaoin {:mvn/version "1.1.43"}
+        io.github.borkdude/unused-deps {:git/sha "77fc627b3a0dc547841a17bdaa09ea51c392676c"}}
  :pods {org.babashka/fswatcher {:version "0.0.5"}}
  :tasks
  {;; setup
@@ -153,6 +154,17 @@
   check-contributors
   {:doc "who'd we miss?"
    :task check-contributors/-main}
+  unused-deps
+  {:doc "find unused dependencies"
+   :task (do
+           (status/line :detail "Dependencies that do not seem to be referenced by code")
+           (status/line :detail "NOTE: some unused deps are overrides to bring in later version of a dep to compensate for bugs or CVEs")
+           (status/line :detail "")
+           (doseq [unused (-> (exec 'borkdude.unused-deps/unused-deps)
+                                :unused-deps
+                                sort)]
+
+               (prn unused)))}
   nvd-scan
   {:doc "Scan Clojure deps for vulnerabilities"
    :task (let [cp (with-out-str (clojure "-Spath -M:cli"))]
