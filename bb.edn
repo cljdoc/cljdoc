@@ -5,7 +5,8 @@
                            :sha "cf44c15f30ea3867227fa61ceb823e5e942c707f"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
         etaoin/etaoin {:mvn/version "1.1.43"}
-        io.github.borkdude/unused-deps {:git/sha "77fc627b3a0dc547841a17bdaa09ea51c392676c"}}
+        io.github.borkdude/unused-deps {:git/sha "77fc627b3a0dc547841a17bdaa09ea51c392676c"}
+        org.clj-commons/pretty {:mvn/version "3.3.2"}}
  :pods {org.babashka/fswatcher {:version "0.0.5"}}
  :tasks
  {;; setup
@@ -32,10 +33,10 @@
                                     (if (fs/exists? d) "d" "-")
                                     d))
                    (fs/delete-tree d))
-                   ["target"
-                    "resources-compiled"
-                    ".cpcache"
-                    "modules/deploy/.cpcache"]))}
+                 ["target"
+                  "resources-compiled"
+                  ".cpcache"
+                  "modules/deploy/.cpcache"]))}
   download-deps
   {:doc "download clojure deps"
    :task (clojure "-T:build download-deps")}
@@ -75,7 +76,7 @@
   {:doc "(check|fix) JS code format"
    :depends [deps-js]
    :task (let [cmd (first *command-line-args*)]
-           (if (= cmd "fix" )
+           (if (= cmd "fix")
              (do (println "fixing")
                  (shell "npm run format"))
              (do (println "checking")
@@ -156,15 +157,28 @@
    :task check-contributors/-main}
   unused-deps
   {:doc "find unused dependencies"
-   :task (do
-           (status/line :detail "Dependencies that do not seem to be referenced by code")
-           (status/line :detail "NOTE: some unused deps are overrides to bring in later version of a dep to compensate for bugs or CVEs")
-           (status/line :detail "")
-           (doseq [unused (-> (exec 'borkdude.unused-deps/unused-deps)
+   :requires ([clj-commons.format.table :as table])
+   :task (let [;; manually update explanations as needed
+               explanations {'org.asciidoctor/asciidoctorj "actual API is in dep org.asciidoctor/asciidoctorj-api which we do not explicity depend on"
+                             'dev.weavejester/ragtime "ragtime API is in its dependencies"
+                             'org.eclipse.jetty/jetty-alpn-client "CVE override"
+                             'org.eclipse.jetty/jetty-alpn-server "CVE override"
+                             'org.eclipse.jetty/jetty-servlet "CVE override"
+                             'org.eclipse.jetty.http2/http2-server "CVE override"
+                             'org.eclipse.jetty.websocket/websocket-jakarta-server "CVE override"
+                             'ch.qos.logback/logback-classic "Logging implementation is not directly called from code"}
+               unused-deps (->> (exec 'borkdude.unused-deps/unused-deps)
                                 :unused-deps
-                                sort)]
-
-               (prn unused)))}
+                                sort
+                                (mapv (fn [d] (-> {:dep (str d)}
+                                                  (assoc :explanation (get explanations (first d)))))))]
+           (status/line :detail "Dependencies that do not seem to be referenced by code")
+           (status/line :detail "NOTE: Update explanation in bb.edn as you see fit")
+           (status/line :detail "")
+      (table/print-table [{:key :dep :title-pad :right :pad :right :title "Dependency"}
+                          :explanation]
+                         unused-deps)
+      (status/line :detail "Total unused deps with no explanation: %d" (count (filter (fn [r] (-> r :explanation nil?)) unused-deps))))}
   nvd-scan
   {:doc "Scan Clojure deps for vulnerabilities"
    :task (let [cp (with-out-str (clojure "-Spath -M:cli"))]
