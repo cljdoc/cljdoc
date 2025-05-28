@@ -175,7 +175,7 @@
            (status/line :detail "NOTE: Update explanation in bb.edn as you see fit")
            (status/line :detail "")
       (table/print-table [{:key :dep :title-pad :right :pad :right :title "Dependency"}
-                          :explanation]
+                          {:key :explanation :title-pad :right :pad :right :title "Explanation"}]
                          unused-deps)
       (status/line :detail "Total unused deps with no explanation: %d" (count (filter (fn [r] (-> r :explanation nil?)) unused-deps))))}
   nvd-scan
