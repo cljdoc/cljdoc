@@ -90,4 +90,11 @@
    <cpe>cpe:/a:jetty:jetty</cpe>
    <cpe>cpe:/a:eclipse:jetty</cpe>
   </suppress>
+  <suppress>
+   <notes><![CDATA[
+     This CVE is described as: An issue in Clojure versions 1.20 to 1.12.0-alpha5 allows an attacker to cause a denial of service (DoS) via the clojure.core$partial$fn__5920 function.
+     False positive; cljdoc uses a later version of clojure
+   ]]></notes>
+   <cve>CVE-2024-22871</cve>
+  </suppress>
 </suppressions>
