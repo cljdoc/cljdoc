@@ -208,8 +208,7 @@
      (wipe-cache))
    (let [artifacts-before (mapcat get-cached-artifacts maven-groups)]
      (try
-       (let [
-             ctx (atom {:requests []})
+       (let [ctx (atom {:requests []})
              start-ts (System/currentTimeMillis)
              artifacts-after (mapcat #(refresh-cache-for ctx % opts) maven-groups)
              end-ts (System/currentTimeMillis)
@@ -223,7 +222,7 @@
            (reset! last-fetch-time (Instant/now))
            artifacts-after))
        (catch Exception e
-         (log/error e "Failed to download artifacts from Maven Central, returning cached artifacts" )
+         (log/error e "Failed to download artifacts from Maven Central, returning cached artifacts")
          (sentry/capture {:ex e})
          (when (or force-fetch? (not @last-fetch-time))
            artifacts-before))))))
