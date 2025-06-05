@@ -173,11 +173,11 @@
       (loop [files {}]
         (if (.next tw)
           (recur
-            (if (= FileMode/GITLINK (.getFileMode tw))
-              files ; Submodule reference, skip
-              (assoc files (.getPathString tw)
-                     (with-open [stream (io/input-stream (.open repo (.getObjectId tw 0)))]
-                       (digest/sha-256 stream)))))
+           (if (= FileMode/GITLINK (.getFileMode tw))
+             files ; Submodule reference, skip
+             (assoc files (.getPathString tw)
+                    (with-open [stream (io/input-stream (.open repo (.getObjectId tw 0)))]
+                      (digest/sha-256 stream)))))
           files)))))
 
 (extend ObjectLoader
