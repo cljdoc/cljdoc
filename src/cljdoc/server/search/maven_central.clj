@@ -6,13 +6,17 @@
    [cheshire.core :as json]
    [cljdoc-shared.pom :as pom]
    [cljdoc.spec :as cljdoc-spec]
+   [cljdoc.util.sentry :as sentry]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :as pprint]
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
-   [robert.bruce :as rb]))
+   [robert.bruce :as rb])
+  (:import [java.time Instant]))
+
+(defonce last-fetch-time (atom nil))
 
 ;; There are not many clojars libraries on maven central.
 ;; We'll manualy adjust this list for now:
@@ -20,19 +24,17 @@
                              "io.github.clojure"
                              "com.turtlequeue"])
 
-(def successfully-called-yet? (atom false))
-
 (defn- fetch-body [ctx url]
-  (let [max-tries 10]
+  (let [max-tries 5]
     (try
       (rb/try-try-again
        {:sleep 500
-        :decay :double ; max 9 retries means: .5s then 1s, 2s 4s 8s 16s 32s 64s 128s
+        :decay :double ; max 3 retries means: .5s then 1s, 2s, 4s total 7.5s
         :tries max-tries
         :catch Throwable}
        #(do
           (when (not rb/*first-try*)
-            (log/errorf rb/*error*  "Try %d of %d: %s" (dec rb/*try*) max-tries url))
+            (log/warnf rb/*error*  "Try %d of %d: %s" (dec rb/*try*) max-tries url))
           (swap! ctx update :requests conj url)
           (-> url
               (http/get {:as :stream :throw true})
@@ -40,8 +42,10 @@
               io/input-stream
               io/reader)))
       (catch Exception e
-        (log/infof e "Failed to download maven artifacts from %s after %d tries" url max-tries)
-        nil))))
+        (throw (ex-info (format "failed to fetch from %s after %d tries" url max-tries)
+                        {:cljdoc/type :fault
+                         :subject :maven-central}
+                        e))))))
 
 (defn- fetch-json [ctx url]
   (when-let [body (fetch-body ctx url)]
@@ -149,15 +153,14 @@
 (defn- wipe-cache []
   (fs/delete-tree (cache-dir)))
 
-(defn- load-maven-central-artifacts-for [ctx group-id {:keys [force-fetch? return-even-if-unchanged?]}]
+(defn- refresh-cache-for [ctx group-id {:keys [force-fetch?]}]
   (let [cached-artifacts (get-cached-artifacts group-id)]
-    (cond
-      (or force-fetch? (let [new? (new-artifacts? ctx cached-artifacts group-id)]
-                         (when (not new?)
-                           (log/infof "Skipping Maven download for group-id %s, no change detected" group-id))
-                         new?))
+    (if (or force-fetch? (let [new? (new-artifacts? ctx cached-artifacts group-id)]
+                           (when (not new?)
+                             (log/infof "Skipping Maven download for group-id %s, cache is up to date" group-id))
+                           new?))
       (do
-        (log/infof "Downloading group-id %s from Maven Central, changed detected" group-id)
+        (log/infof "Downloading group-id %s from Maven Central to refresh stale cache" group-id)
         (let [artifacts (->> (fetch-maven-docs ctx (str "g:" group-id))
                              (map maven-doc->artifact)
                              (mvn-merge-versions)
@@ -165,11 +168,7 @@
           (update-cached-artifacts! group-id artifacts)
           artifacts))
 
-      return-even-if-unchanged?
-      cached-artifacts
-
-      :else
-      nil)))
+      cached-artifacts)))
 
 (defn load-maven-central-artifacts
   "Load artifacts from Maven Central - if there are any new ones (or `force?` `true` when testing).
@@ -196,31 +195,35 @@
   before caching was added.
 
   REPL friendly options:
-  - `:wipe-cache` To force a complete regeneration of the cache, call with `:wipe-cache true`.
-  - `:force-fetch` Artifacts will be returned on first sucessful fetch and then-after only if there are changes,
+  - `:wipe-cache?` To force a complete regeneration of the cache, call with `:wipe-cache true`.
+  - `:force-fetch?` Artifacts will be returned on first sucessful fetch and then-after only if there are changes,
   use `:force-fetch true` to force a fetch and return artifacts. You don't need to `:force-fetch` if you are
   already specifying `:wipe-cache`.
 
   NOTE: Takes < 1s for a check and ~6s to ~30s when all groups changed as of Jan-2025"
   ([] (load-maven-central-artifacts {}))
-  ([{:keys [wipe-cache? force-fetch?]}]
+  ([{:keys [wipe-cache? force-fetch?] :as opts}]
    ;; for REPL support
    (when wipe-cache?
      (wipe-cache))
-   (let [ctx (atom {:requests []})
-         start-ts (System/currentTimeMillis)
-         artifacts (mapcat #(load-maven-central-artifacts-for ctx % {:force-fetch? force-fetch?
-                                                                     :return-even-if-unchanged? (not @successfully-called-yet?)})
-                           maven-groups)
-         end-ts (System/currentTimeMillis)
-         requests (:requests @ctx)]
-     (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven search REST API (of which %d were retries)"
-                (count artifacts)
-                (/ (- end-ts start-ts) 1000.0)
-                (count requests)
-                (- (count requests) (count (distinct requests))))
-     (reset! successfully-called-yet? true)
-     artifacts)))
+   (try
+     (let [artifacts-before (mapcat get-cached-artifacts maven-groups)
+           ctx (atom {:requests []})
+           start-ts (System/currentTimeMillis)
+           artifacts-after (mapcat #(refresh-cache-for ctx % opts) maven-groups)
+           end-ts (System/currentTimeMillis)
+           requests (:requests @ctx)]
+       (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven search REST API (of which %d were retries)"
+                  (count artifacts-after)
+                  (/ (- end-ts start-ts) 1000.0)
+                  (count requests)
+                  (- (count requests) (count (distinct requests))))
+       (when (or force-fetch? (not @last-fetch-time) (not= artifacts-before artifacts-after))
+         (reset! last-fetch-time (Instant/now))
+         artifacts-after))
+     (catch Exception e
+       (log/error "Failed to download artifacts from Maven Central" e)
+       (sentry/capture {:ex e})))))
 
 (s/fdef load-maven-central-artifacts
   :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
@@ -232,14 +235,14 @@
 
   (wipe-cache)
 
-  (reset! successfully-called-yet? false)
+  (reset! last-fetch-time nil)
 
   (def artifacts (load-maven-central-artifacts))
 
   (count artifacts)
   ;; => 80
 
-  (load-maven-central-artifacts)
+  (def a2 (load-maven-central-artifacts {:force-fetch? true}))
 
   (def a (get-cached-artifacts "org.clojure"))
 
@@ -247,6 +250,8 @@
             (+ acc (count versions)))
           0
           a)
-  ;; => 2001
+  ;; => 2034
+
+  (mapcat #(get-cached-artifacts %) maven-groups)
 
   :eoc)
