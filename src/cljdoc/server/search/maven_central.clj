@@ -6,6 +6,7 @@
    [cheshire.core :as json]
    [cljdoc-shared.pom :as pom]
    [cljdoc.spec :as cljdoc-spec]
+   [cljdoc.util.sentry :as sentry]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :as pprint]
@@ -205,20 +206,27 @@
    ;; for REPL support
    (when wipe-cache?
      (wipe-cache))
-   (let [artifacts-before (mapcat get-cached-artifacts maven-groups)
-         ctx (atom {:requests []})
-         start-ts (System/currentTimeMillis)
-         artifacts-after (mapcat #(refresh-cache-for ctx % opts) maven-groups)
-         end-ts (System/currentTimeMillis)
-         requests (:requests @ctx)]
-     (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven search REST API (of which %d were retries)"
-                (count artifacts-after)
-                (/ (- end-ts start-ts) 1000.0)
-                (count requests)
-                (- (count requests) (count (distinct requests))))
-     (when (or force-fetch? (not @last-fetch-time) (not= artifacts-before artifacts-after))
-       (reset! last-fetch-time (Instant/now))
-       artifacts-after))))
+   (let [artifacts-before (mapcat get-cached-artifacts maven-groups)]
+     (try
+       (let [
+             ctx (atom {:requests []})
+             start-ts (System/currentTimeMillis)
+             artifacts-after (mapcat #(refresh-cache-for ctx % opts) maven-groups)
+             end-ts (System/currentTimeMillis)
+             requests (:requests @ctx)]
+         (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven search REST API (of which %d were retries)"
+                    (count artifacts-after)
+                    (/ (- end-ts start-ts) 1000.0)
+                    (count requests)
+                    (- (count requests) (count (distinct requests))))
+         (when (or force-fetch? (not @last-fetch-time) (not= artifacts-before artifacts-after))
+           (reset! last-fetch-time (Instant/now))
+           artifacts-after))
+       (catch Exception e
+         (log/error e "Failed to download artifacts from Maven Central, returning cached artifacts" )
+         (sentry/capture {:ex e})
+         (when (or force-fetch? (not @last-fetch-time))
+           artifacts-before))))))
 
 (s/fdef load-maven-central-artifacts
   :ret (s/nilable (s/every ::cljdoc-spec/artifact)))

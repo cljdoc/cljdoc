@@ -40,7 +40,7 @@
   (artifact-versions [_ refined-by]
     (search/versions index-reader-fn refined-by))
   (index-artifacts [_ artifacts]
-    (search/index! clojars-stats index artifacts))
+    (search/index! clojars-stats index artifacts "newly discovered artifacts"))
   (search [_ query]
     (search/search index-reader-fn query))
   (suggest [_ query]
@@ -54,7 +54,7 @@
                 (search/disk-index index-dir))]
     ;; Force creation of initial index. It might not exist yet, for example, when upgrading to a new version of lucene.
     ;; This avoids exceptions on searching a non-existing index.
-    (search/index! clojars-stats index [])
+    (search/index! clojars-stats index [] "index initialization")
     (map->Searcher {:index index
                     :index-reader-fn (search/make-index-reader-fn index)
                     :clojars-stats clojars-stats

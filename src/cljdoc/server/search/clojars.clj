@@ -3,6 +3,7 @@
   (:require
    [babashka.http-client :as http]
    [cljdoc.spec :as cljdoc-spec]
+   [cljdoc.util.sentry :as sentry]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
@@ -36,23 +37,28 @@
 (defn load-clojars-artifacts
   ([] (load-clojars-artifacts {}))
   ([{:keys [force-fetch?]}]
-   (let [res
-         (http/get "https://clojars.org/repo/feed.clj.gz"
-                   {:throw false
-                    :as :stream
-                    :headers (cond->  {;; Avoid double-gzipping by Clojars' proxy:
-                                       :accept-encoding "identity"}
-                               (and (not force-fetch?) @clojars-last-modified)
-                               (assoc :if-modified-since @clojars-last-modified))})]
-     (case (:status res)
-       304 (do
-             (log/debug
-              (str
-               "Skipping Clojars download - no change since last checked at "
-               @clojars-last-modified))
-             nil) ;; data not changed since the last time, do nothing
-       200 (process-clojars-response res)
-       (throw (ex-info "Unexpected HTTP status from Clojars" {:response res}))))))
+   (try
+     (let [res
+           (http/get "https://clojars.org/repo/feed.clj.gz"
+                     {:throw false
+                      :as :stream
+                      :headers (cond->  {;; Avoid double-gzipping by Clojars' proxy:
+                                         :accept-encoding "identity"}
+                                 (and (not force-fetch?) @clojars-last-modified)
+                                 (assoc :if-modified-since @clojars-last-modified))})]
+       (case (:status res)
+         304 (do
+               (log/debug
+                (str
+                 "Skipping Clojars download - no change since last checked at "
+                 @clojars-last-modified))
+               nil) ;; data not changed since the last time, do nothing
+         200 (process-clojars-response res)
+         (throw (ex-info "Unexpected HTTP status from Clojars" {:response res}))))
+     (catch Exception e
+       (log/info e "Failed to download artifacts from Clojars, pretending there were none.")
+       (sentry/capture {:ex e})
+       nil))))
 
 (s/fdef load-clojars-artifacts
   :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
