@@ -68,10 +68,10 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.31.54"}
+        software.amazon.awssdk/s3 {:mvn/version "2.31.58"}
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.2.1.202505142326-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.22"}     ;; jdk11+ http client
 
         ;; misc utils
@@ -133,13 +133,13 @@
 
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.9"}
-                   clj-kondo/clj-kondo {:mvn/version "2025.04.07"}
+                   clj-kondo/clj-kondo {:mvn/version "2025.06.05"}
                    babashka/fs {:mvn/version "0.5.25"}
                    babashka/process {:mvn/version "0.6.23"}}
             :ns-default build}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2025.04.07"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2025.06.05"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
