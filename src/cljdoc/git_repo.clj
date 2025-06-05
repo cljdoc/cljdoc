@@ -79,7 +79,9 @@
         (string/replace #"^git@github.com:" "https://github.com/")
         (string/replace #"^ssh://git@" "https://"))))
 
-(defn ->repo [^java.io.File d]
+(defn ->repo
+  "Opens an AutoCloseable repo, it is caller's responsibility to close."
+  ^Git [^java.io.File d]
   {:pre [(some? d) (.isDirectory d)]}
   (-> (RepositoryBuilder.)
       (.setGitDir (io/file d ".git"))
@@ -122,9 +124,10 @@
   (let [repo        (.getRepository g)
         last-commit (.resolve repo rev)]
     (if last-commit
-      (-> (RevWalk. repo)
-          (.parseCommit last-commit)
-          (.getTree))
+      (with-open [rev-walk (RevWalk. repo)]
+        (-> rev-walk
+            (.parseCommit last-commit)
+            (.getTree)))
       (let [origin (read-origin g)]
         (throw (ex-info (format "Could not find revision %s in repo %s" rev origin)
                         {:rev rev :origin origin}))))))
@@ -136,45 +139,46 @@
   [^Git g rev ^String f]
   (if-some [tree (tree-for g rev)]
     (let [^Repository repo (.getRepository g)
-          tree-walk (TreeWalk/forPath repo f tree)]
-      (when tree-walk
-        (slurp (.openStream (.open repo (.getObjectId tree-walk 0))))))
+          tree-walk-maybe (TreeWalk/forPath repo f tree)]
+      (when tree-walk-maybe
+        (with-open [tree-walk tree-walk-maybe]
+          (slurp (.openStream (.open repo (.getObjectId tree-walk 0)))))))
     (log/warnf "Could not resolve revision %s in repo %s" rev g)))
 
 (defn get-contributors
   "Get a list of contributors to a given file ordered by the number
   of commits they have made to the given file `f`."
   [^Git g rev f]
-  (let [repo    (.getRepository g)
-        revwalk (RevWalk. repo)]
-    (.markStart revwalk (.parseCommit revwalk (.resolve repo rev)))
-    (.setTreeFilter revwalk
-                    (AndTreeFilter/create (PathFilter/create f)
-                                          TreeFilter/ANY_DIFF))
-    (->> (map (fn [^RevCommit rev-commit] (-> rev-commit .getAuthorIdent .getName))
-              (iterator-seq (.iterator revwalk)))
-         frequencies
-         (sort-by val >)
-         (map key))))
+  (let [repo (.getRepository g)]
+    (with-open [revwalk (RevWalk. repo)]
+      (.markStart revwalk (.parseCommit revwalk (.resolve repo rev)))
+      (.setTreeFilter revwalk
+                      (AndTreeFilter/create (PathFilter/create f)
+                                            TreeFilter/ANY_DIFF))
+      (->> (map (fn [^RevCommit rev-commit] (-> rev-commit .getAuthorIdent .getName))
+                (iterator-seq (.iterator revwalk)))
+           frequencies
+           (sort-by val >)
+           (map key)))))
 
 (defn file-sha-map
   "Return a map of file to 256 sha
   Files in submodules are skipped."
   [^Git g rev]
   (let [tree (tree-for g rev)
-        repo (.getRepository g)
-        tw   (TreeWalk. repo)]
-    (.addTree tw tree)
-    (.setRecursive tw true)
-    (loop [files {}]
-      (if (.next tw)
-        (recur
-         (if (= FileMode/GITLINK (.getFileMode tw))
-           files ; Submodule reference, skip
-           (assoc files (.getPathString tw)
-                  (with-open [stream (io/input-stream (.open repo (.getObjectId tw 0)))]
-                    (digest/sha-256 stream)))))
-        files))))
+        repo (.getRepository g)]
+    (with-open [tw (TreeWalk. repo)]
+      (.addTree tw tree)
+      (.setRecursive tw true)
+      (loop [files {}]
+        (if (.next tw)
+          (recur
+           (if (= FileMode/GITLINK (.getFileMode tw))
+             files ; Submodule reference, skip
+             (assoc files (.getPathString tw)
+                    (with-open [stream (io/input-stream (.open repo (.getObjectId tw 0)))]
+                      (digest/sha-256 stream)))))
+          files)))))
 
 (extend ObjectLoader
   io/IOFactory
