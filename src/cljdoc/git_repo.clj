@@ -81,7 +81,7 @@
 
 (defn ->repo
   "Opens an AutoCloseable repo, it is caller's responsibility to close."
-  [^java.io.File d]
+  ^Git [^java.io.File d]
   {:pre [(some? d) (.isDirectory d)]}
   (-> (RepositoryBuilder.)
       (.setGitDir (io/file d ".git"))
