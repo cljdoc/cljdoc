@@ -226,7 +226,7 @@
 
 (def ^:private index-write-lock (Object.))
 
-(defn index! [clojars-stats ^Directory index artifacts]
+(defn index! [clojars-stats ^Directory index artifacts log-reason]
   ;; Lucene does not support multiple concurrent writers on a single index
   ;; for now, we take the simple approach and use a lock to avoid multiple concurrent writers
   (locking index-write-lock
@@ -247,8 +247,8 @@
                        :start-time (System/currentTimeMillis)}
                       artifacts)
               seconds-elapsed (float (/ (- (System/currentTimeMillis) start-time) 1000))]
-          (log/infof "Artifact indexing complete. Indexed %d jars in %.2f seconds (%.2f/second)"
-                     artifacts-indexed seconds-elapsed (/ artifacts-indexed seconds-elapsed)))))))
+          (log/infof "Artifact indexing complete for %s. Indexed %d jars in %.2f seconds (%.2f/second)"
+                     log-reason artifacts-indexed seconds-elapsed (/ artifacts-indexed seconds-elapsed)))))))
 
 (defn make-index-reader-fn [^Directory index-directory]
   (let [^IndexReader reader (atom (DirectoryReader/open index-directory))
@@ -274,15 +274,17 @@
   (.close reader))
 
 (defn download-and-index!
-  "`:force-fetch? is to support testing at the REPL`"
-  ([clojars-stats ^Directory index]
-   (download-and-index! clojars-stats index {}))
-  ([clojars-stats ^Directory index {:keys [force-fetch?]}]
-   (log/info "Download & index starting...")
-   (let [result (index! clojars-stats index (into (clojars/load-clojars-artifacts {:force-fetch? force-fetch?})
-                                                  (maven-central/load-maven-central-artifacts {:force-fetch? force-fetch?})))]
-     (log/info "Finished downloading & indexing artifacts.")
-     result)))
+  "`:origin` should be :maven-central or :clojars
+   `:force-fetch?` is to support testing at the REPL`"
+  ([clojars-stats ^Directory index {:keys [force-fetch? origin]}]
+   (log/infof "Download & index for %s starting..." origin)
+   (let [log-reason (format "%s download and index" origin)]
+     (index! clojars-stats index
+             (into (case origin
+                     :clojars (clojars/load-clojars-artifacts {:force-fetch? force-fetch?})
+                     :maven-central (maven-central/load-maven-central-artifacts {:force-fetch? force-fetch?})))
+             log-reason))
+   (log/infof "Finished downloading & indexing artifacts for %s." origin)))
 
 ;; --- search support -----
 

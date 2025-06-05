@@ -40,7 +40,7 @@
   (artifact-versions [_ refined-by]
     (search/versions index-reader-fn refined-by))
   (index-artifacts [_ artifacts]
-    (search/index! clojars-stats index artifacts))
+    (search/index! clojars-stats index artifacts "newly discovered artifacts"))
   (search [_ query]
     (search/search index-reader-fn query))
   (suggest [_ query]
@@ -54,20 +54,26 @@
                 (search/disk-index index-dir))]
     ;; Force creation of initial index. It might not exist yet, for example, when upgrading to a new version of lucene.
     ;; This avoids exceptions on searching a non-existing index.
-    (search/index! clojars-stats index [])
+    (search/index! clojars-stats index [] "index initialization")
     (map->Searcher {:index index
                     :index-reader-fn (search/make-index-reader-fn index)
                     :clojars-stats clojars-stats
-                    :artifact-indexer (when enable-indexer?
-                                        (log/info "Starting ArtifactIndexer")
-                                        (tt/every! (.toSeconds TimeUnit/HOURS 1)
-                                                   #(search/download-and-index! clojars-stats index)))})))
+                    :clojars-artifact-indexer (when enable-indexer?
+                                                (log/infof "Starting ArtifactIndexer for clojars")
+                                                (tt/every! (.toSeconds TimeUnit/HOURS 1)
+                                                           #(search/download-and-index! clojars-stats index {:origin :clojars})))
+                    :maven-central-artifact-indexer (when enable-indexer?
+                                                      (log/infof "Starting ArtifactIndexer for maven-central")
+                                                      (tt/every! (.toSeconds TimeUnit/HOURS 1)
+                                                                 #(search/download-and-index! clojars-stats index {:origin :maven-central})))})))
 
-(defmethod ig/halt-key! :cljdoc/searcher [k {:keys [artifact-indexer index index-reader-fn] :as _searcher}]
+(defmethod ig/halt-key! :cljdoc/searcher
+  [k {:keys [clojars-artifact-indexer maven-central-artifact-indexer index index-reader-fn] :as _searcher}]
   (log/info "Stopping" k)
-  (when artifact-indexer
-    (log/info "Stopping ArtifactIndexer")
-    (tt/cancel! artifact-indexer))
+  (when clojars-artifact-indexer
+    (tt/cancel! clojars-artifact-indexer))
+  (when maven-central-artifact-indexer
+    (tt/cancel! clojars-artifact-indexer))
   (when-let [index-reader (index-reader-fn)]
     (search/index-reader-close index-reader))
   (when index
