@@ -12,6 +12,7 @@
    [cljdoc.server.clojars-stats :as clojars-stats]
    [cljdoc.server.search.clojars :as clojars]
    [cljdoc.server.search.maven-central :as maven-central]
+   [cljdoc.util.sentry :as sentry]
    [clojure.string :as string]
    [clojure.tools.logging :as log])
   (:import
@@ -275,14 +276,17 @@
 
 (defn download-and-index!
   "`:origin` should be :maven-central or :clojars
-   `:force-fetch? is to support testing at the REPL`"
+   `:force-fetch?` is to support testing at the REPL`"
   ([clojars-stats ^Directory index {:keys [force-fetch? origin]}]
-   (log/infof "Download & index for %s starting..." origin)
-   (let [result (index! clojars-stats index (into (case origin
-                                                    :clojars (clojars/load-clojars-artifacts {:force-fetch? force-fetch?})
-                                                    :maven-central (maven-central/load-maven-central-artifacts {:force-fetch? force-fetch?}))))]
+   (try
+     (log/infof "Download & index for %s starting..." origin)
+     (index! clojars-stats index (into (case origin
+                                         :clojars (clojars/load-clojars-artifacts {:force-fetch? force-fetch?})
+                                         :maven-central (maven-central/load-maven-central-artifacts {:force-fetch? force-fetch?}))))
      (log/infof "Finished downloading & indexing artifacts for %s." origin)
-     result)))
+     (catch Throwable e
+       (log/error (format "Failed to download and index artifacts for %s" origin) e)
+       (sentry/capture {:ex e})))))
 
 ;; --- search support -----
 
