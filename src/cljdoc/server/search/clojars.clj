@@ -47,9 +47,9 @@
      (case (:status res)
        304 (do
              (log/debug
-               (str
-                 "Skipping Clojars download - no change since last checked at "
-                 @clojars-last-modified))
+              (str
+               "Skipping Clojars download - no change since last checked at "
+               @clojars-last-modified))
              nil) ;; data not changed since the last time, do nothing
        200 (process-clojars-response res)
        (throw (ex-info "Unexpected HTTP status from Clojars" {:response res}))))))
