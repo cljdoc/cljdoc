@@ -274,14 +274,14 @@
   (.close reader))
 
 (defn download-and-index!
-  "`:force-fetch? is to support testing at the REPL`"
-  ([clojars-stats ^Directory index]
-   (download-and-index! clojars-stats index {}))
-  ([clojars-stats ^Directory index {:keys [force-fetch?]}]
-   (log/info "Download & index starting...")
-   (let [result (index! clojars-stats index (into (clojars/load-clojars-artifacts {:force-fetch? force-fetch?})
-                                                  (maven-central/load-maven-central-artifacts {:force-fetch? force-fetch?})))]
-     (log/info "Finished downloading & indexing artifacts.")
+  "`:origin` should be :maven-central or :clojars
+   `:force-fetch? is to support testing at the REPL`"
+  ([clojars-stats ^Directory index {:keys [force-fetch? origin]}]
+   (log/infof "Download & index for %s starting..." origin)
+   (let [result (index! clojars-stats index (into (case origin
+                                                    :clojars (clojars/load-clojars-artifacts {:force-fetch? force-fetch?})
+                                                    :maven-central (maven-central/load-maven-central-artifacts {:force-fetch? force-fetch?}))))]
+     (log/infof "Finished downloading & indexing artifacts for %s." origin)
      result)))
 
 ;; --- search support -----
