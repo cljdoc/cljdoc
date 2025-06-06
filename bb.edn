@@ -35,7 +35,9 @@
                  ["target"
                   "resources-compiled"
                   ".cpcache"
-                  "modules/deploy/.cpcache"]))}
+                  "modules/deploy/.cpcache"
+                  "test-data/server"
+                  "test-data/cli"]))}
   download-deps
   {:doc "download clojure deps"
    :task (clojure "-T:build download-deps")}
