@@ -19,7 +19,7 @@
 
 (def ^:dynamic *service* nil)
 
-(def test-data-dir "test-data")
+(def test-data-dir "test-data/server")
 (def log-size-at-start (atom 0))
 
 (defn- log-line-match
