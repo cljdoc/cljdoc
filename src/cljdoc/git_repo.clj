@@ -1,7 +1,6 @@
 (ns cljdoc.git-repo
   (:require [clj-commons.digest :as digest]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [clojure.tools.logging :as log])
   (:import  (com.jcraft.jsch Session)
@@ -80,7 +79,9 @@
         (string/replace #"^git@github.com:" "https://github.com/")
         (string/replace #"^ssh://git@" "https://"))))
 
-(defn ->repo [^java.io.File d]
+(defn ->repo
+  "Opens an AutoCloseable repo, it is caller's responsibility to close."
+  ^Git [^java.io.File d]
   {:pre [(some? d) (.isDirectory d)]}
   (-> (RepositoryBuilder.)
       (.setGitDir (io/file d ".git"))
@@ -123,9 +124,10 @@
   (let [repo        (.getRepository g)
         last-commit (.resolve repo rev)]
     (if last-commit
-      (-> (RevWalk. repo)
-          (.parseCommit last-commit)
-          (.getTree))
+      (with-open [rev-walk (RevWalk. repo)]
+        (-> rev-walk
+            (.parseCommit last-commit)
+            (.getTree)))
       (let [origin (read-origin g)]
         (throw (ex-info (format "Could not find revision %s in repo %s" rev origin)
                         {:rev rev :origin origin}))))))
@@ -137,65 +139,46 @@
   [^Git g rev ^String f]
   (if-some [tree (tree-for g rev)]
     (let [^Repository repo (.getRepository g)
-          tree-walk (TreeWalk/forPath repo f tree)]
-      (when tree-walk
-        (slurp (.openStream (.open repo (.getObjectId tree-walk 0))))))
+          tree-walk-maybe (TreeWalk/forPath repo f tree)]
+      (when tree-walk-maybe
+        (with-open [tree-walk tree-walk-maybe]
+          (slurp (.openStream (.open repo (.getObjectId tree-walk 0)))))))
     (log/warnf "Could not resolve revision %s in repo %s" rev g)))
 
 (defn get-contributors
   "Get a list of contributors to a given file ordered by the number
   of commits they have made to the given file `f`."
   [^Git g rev f]
-  (let [repo    (.getRepository g)
-        revwalk (RevWalk. repo)]
-    (.markStart revwalk (.parseCommit revwalk (.resolve repo rev)))
-    (.setTreeFilter revwalk
-                    (AndTreeFilter/create (PathFilter/create f)
-                                          TreeFilter/ANY_DIFF))
-    (->> (map (fn [^RevCommit rev-commit] (-> rev-commit .getAuthorIdent .getName))
-              (iterator-seq (.iterator revwalk)))
-         frequencies
-         (sort-by val >)
-         (map key))))
+  (let [repo (.getRepository g)]
+    (with-open [revwalk (RevWalk. repo)]
+      (.markStart revwalk (.parseCommit revwalk (.resolve repo rev)))
+      (.setTreeFilter revwalk
+                      (AndTreeFilter/create (PathFilter/create f)
+                                            TreeFilter/ANY_DIFF))
+      (->> (map (fn [^RevCommit rev-commit] (-> rev-commit .getAuthorIdent .getName))
+                (iterator-seq (.iterator revwalk)))
+           frequencies
+           (sort-by val >)
+           (map key)))))
 
-(s/def ::git #(instance? Git %))
-(s/def ::path string?)
-(s/def ::object-loader #(instance? ObjectLoader %))
-(s/def ::git-object (s/keys :req-un [::path ::object-loader]))
-
-(s/fdef ls-files
-  :args (s/cat :repository ::git :revision string?)
-  :ret (s/coll-of ::git-object))
-
-(defn ls-files
-  "Return a seq of maps {:path 'path-of-file :obj-loader 'ObjectLoader}
-  for files in the git repository at the given revision `rev`.
-  ObjectLoader instances can be consumed with slurp, input-stream, etc.
-
+(defn file-sha-map
+  "Return a map of file to 256 sha
   Files in submodules are skipped."
   [^Git g rev]
   (let [tree (tree-for g rev)
-        repo (.getRepository g)
-        tw   (TreeWalk. repo)]
-    (.addTree tw tree)
-    (.setRecursive tw true)
-    (loop [files []]
-      (if (.next tw)
-        (recur
-         (if (= FileMode/GITLINK (.getFileMode tw))
-           files ; Submodule reference, skip
-           (conj files {:path          (.getPathString tw)
-                        :object-loader (.open repo (.getObjectId tw 0))})))
-        files))))
-
-(s/fdef path-sha-pairs
-  :args (s/cat :git-objects (s/coll-of ::git-object))
-  :ret (s/map-of string? string?))
-
-(defn path-sha-pairs [files]
-  (->> (for [{:keys [path object-loader]} files]
-         [path (digest/sha-256 (io/input-stream object-loader))])
-       (into {})))
+        repo (.getRepository g)]
+    (with-open [tw (TreeWalk. repo)]
+      (.addTree tw tree)
+      (.setRecursive tw true)
+      (loop [files {}]
+        (if (.next tw)
+          (recur
+           (if (= FileMode/GITLINK (.getFileMode tw))
+             files ; Submodule reference, skip
+             (assoc files (.getPathString tw)
+                    (with-open [stream (io/input-stream (.open repo (.getObjectId tw 0)))]
+                      (digest/sha-256 stream)))))
+          files)))))
 
 (extend ObjectLoader
   io/IOFactory
@@ -222,7 +205,10 @@
           (ObjectId/toString)))
 
 (comment
-  (ls-files (->repo (io/file "/Users/lee/proj/oss/-verify/foo")) "v1.2.0")
+  (require '[clj-memory-meter.core :as mm])
+
+  (mm/measure (file-sha-pairs (->repo (io/file "/home/lee/proj/oss/-verify/clojure-desktop-toolkit")) "v0.2.2"))
+  ;; => "746.1 KiB"
 
   (ls-remote-sha "https://github.com/cljdoc/cljdoc-analyzer.git" "RELEASE")
   (ls-remote-sha "git@github.com:cljdoc/cljdoc-analyzer.git" "RELEASE")

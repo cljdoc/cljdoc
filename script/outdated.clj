@@ -2,9 +2,9 @@
 
 (ns outdated
   (:require [babashka.fs :as fs]
+            [clj-commons.format.table :as table]
             [clojure.edn :as edn]
             [clojure.string :as string]
-            [doric.core :as doric]
             [helper.main :as main]
             [helper.shell :as shell]
             [lread.status-line :as status]))
@@ -54,8 +54,7 @@
              (concat [(assoc o :note (first note-lines))]
                      (map (fn [l] {:note l}) (rest note-lines))))
            (mapcat identity)
-           (doric/table [:file :npm-name :current :latest :note])
-           println)
+           (table/print-table [:file :npm-name :current :latest :note]))
       (status/line :detail "All CDN JavaScript deps seem up to date."))))
 
 (defn -main []

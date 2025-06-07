@@ -19,7 +19,7 @@
 
 (def ^:dynamic *service* nil)
 
-(def test-data-dir "test-data")
+(def test-data-dir "test-data/server")
 (def log-size-at-start (atom 0))
 
 (defn- log-line-match
@@ -260,8 +260,8 @@
         (throw (Exception. "Waiting for search index to complete took too long"))
         (if-let [done-line (log-line-match log-init/log-file
                                            @log-size-at-start
-                                           #"Finished downloading & indexing artifacts")]
-          (println (format "<< search index job completed: <<%s>>" done-line))
+                                           #"Finished downloading & indexing artifacts for :clojars")]
+          (println (format "<< clojars search index job completed: <<%s>>" done-line))
           (do
             (Thread/sleep 500)
             (recur))))))

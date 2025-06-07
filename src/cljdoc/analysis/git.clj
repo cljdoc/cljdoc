@@ -91,8 +91,7 @@
   (when revision
     (cond->
      {:url url
-      :files (-> (git-repo/ls-files repo revision)
-                 git-repo/path-sha-pairs)
+      :files (git-repo/file-sha-map repo revision)
       :rev revision
       :commit revision ;; was this always intended to be a synonym for :rev?
       :branch (git-repo/default-branch repo)}
@@ -117,34 +116,34 @@
     (try
       (log/infof "Cloning Git repo from %s" git-url)
       (git-repo/clone git-url git-dir)
-      (let [repo (git-repo/->repo git-dir)
-            version-tag (git-repo/version-tag repo version)
-            revision (or pom-revision
-                         (:name version-tag)
-                         (when (string/ends-with? version "-SNAPSHOT")
-                           (git-repo/default-branch repo)))]
-        (if (not revision)
-          {:error {:type "no-revision-found"
-                   ;; TODO: Won't these values be nil when revision is nil?
-                   :version-tag version-tag
-                   :pom-revision pom-revision}}
-          (let [user-config (cljdoc-config repo revision)
-                updated-config-tag (git-repo/version-tag repo "cljdoc-" version)
-                updated-config-revision  (:name updated-config-tag)
-                updated-user-config (cljdoc-config repo updated-config-revision)]
-            (or (cljdoc-config-error user-config project)
-                (and updated-user-config (cljdoc-config-error updated-user-config project))
-                (let [scm (scm-config scm-url repo revision version-tag)
-                      scm-articles  (scm-config scm-url repo updated-config-revision updated-config-tag)
-                      merged-config (merge user-config (select-keys updated-user-config [:cljdoc.doc/tree :cljdoc/docstring-format]))
-                      scm-doc-tree (or scm-articles scm)]
-                  (log/info "Analyzing git repo at revision:" revision)
-                  (when updated-config-revision
-                    (log/info "... and articles at revision:" updated-config-revision))
-                  (cond-> {:scm scm
-                           :config merged-config
-                           :doc-tree (realize-doc-tree repo project scm-doc-tree merged-config)}
-                    scm-articles (assoc :scm-articles scm-articles)))))))
+      (with-open [repo (git-repo/->repo git-dir)]
+        (let [version-tag (git-repo/version-tag repo version)
+              revision (or pom-revision
+                           (:name version-tag)
+                           (when (string/ends-with? version "-SNAPSHOT")
+                             (git-repo/default-branch repo)))]
+          (if (not revision)
+            {:error {:type "no-revision-found"
+                     ;; TODO: Won't these values be nil when revision is nil?
+                     :version-tag version-tag
+                     :pom-revision pom-revision}}
+            (let [user-config (cljdoc-config repo revision)
+                  updated-config-tag (git-repo/version-tag repo "cljdoc-" version)
+                  updated-config-revision  (:name updated-config-tag)
+                  updated-user-config (cljdoc-config repo updated-config-revision)]
+              (or (cljdoc-config-error user-config project)
+                  (and updated-user-config (cljdoc-config-error updated-user-config project))
+                  (let [scm (scm-config scm-url repo revision version-tag)
+                        scm-articles  (scm-config scm-url repo updated-config-revision updated-config-tag)
+                        merged-config (merge user-config (select-keys updated-user-config [:cljdoc.doc/tree :cljdoc/docstring-format]))
+                        scm-doc-tree (or scm-articles scm)]
+                    (log/info "Analyzing git repo at revision:" revision)
+                    (when updated-config-revision
+                      (log/info "... and articles at revision:" updated-config-revision))
+                    (cond-> {:scm scm
+                             :config merged-config
+                             :doc-tree (realize-doc-tree repo project scm-doc-tree merged-config)}
+                      scm-articles (assoc :scm-articles scm-articles))))))))
       (catch org.eclipse.jgit.api.errors.InvalidRemoteException e
         {:error {:type "invalid-remote"
                  :msg (.getMessage e)}})
