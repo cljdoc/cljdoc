@@ -22,7 +22,7 @@
         org.clojure/tools.analyzer.jvm {:mvn/version "1.3.2"}
 
         ;; relational database
-        com.github.seancorfield/next.jdbc {:mvn/version "1.3.1002" } ;; jdbc abstraction
+        com.github.seancorfield/next.jdbc {:mvn/version "1.3.1048" } ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.49.1.0"}     ;; jdbc driver needed to talk to our SQLite db
         ;; hold off on ragtime 0.10.x until we know what to do about: https://github.com/weavejester/ragtime/issues/162
         dev.weavejester/ragtime {:mvn/version "0.9.5"}       ;; database migrations
