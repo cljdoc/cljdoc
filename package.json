@@ -16,8 +16,8 @@
     "preact": "^10.26.9"
   },
   "devDependencies": {
-    "@eslint/js": "^9.28.0",
-    "eslint": "^9.28.0",
+    "@eslint/js": "^9.29.0",
+    "eslint": "^9.29.0",
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
@@ -26,7 +26,7 @@
     "pretty-quick": "^4.2.2",
     "svgo": "^3.3.2",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.0"
+    "typescript-eslint": "^8.34.0"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
