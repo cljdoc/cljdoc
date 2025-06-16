@@ -1,5 +1,5 @@
 {:paths ["src" "resources"]
- :deps {org.babashka/http-client {:mvn/version "0.4.22"}
+ :deps {org.babashka/http-client {:mvn/version "0.4.23"}
         cli-matic/cli-matic {:mvn/version "0.5.4"}
         aero/aero {:mvn/version "1.1.6"}
         cheshire/cheshire {:mvn/version "6.0.0"}
@@ -8,4 +8,4 @@
         spootnik/unilog {:mvn/version "0.7.32"}
         ;; drop in replacement for com.jcraft/jsch:
         ;; See: https://www.matez.de/index.php/2020/06/22/the-future-of-jsch-without-ssh-rsa/
-        com.github.mwiede/jsch {:mvn/version "2.27.0"}}}
+        com.github.mwiede/jsch {:mvn/version "2.27.2"}}}
