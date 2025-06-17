@@ -11,8 +11,8 @@
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
 
         ;; relational database
-        com.github.seancorfield/next.jdbc {:mvn/version "1.3.1002" } ;; jdbc abstraction
-        org.xerial/sqlite-jdbc {:mvn/version "3.49.1.0"}     ;; jdbc driver needed to talk to our SQLite db
+        com.github.seancorfield/next.jdbc {:mvn/version "1.3.1048" } ;; jdbc abstraction
+        org.xerial/sqlite-jdbc {:mvn/version "3.50.1.0"}     ;; jdbc driver needed to talk to our SQLite db
         ;; hold off on ragtime 0.10.x until we know what to do about: https://github.com/weavejester/ragtime/issues/162
         dev.weavejester/ragtime {:mvn/version "0.9.5"}       ;; database migrations
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
@@ -57,14 +57,14 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.31.58"}
+        software.amazon.awssdk/s3 {:mvn/version "2.31.63"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
-        org.babashka/http-client {:mvn/version "0.4.22"}     ;; jdk11+ http client
+        org.babashka/http-client {:mvn/version "0.4.23"}     ;; jdk11+ http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.5.25"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.5.26"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.23"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.0.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
@@ -78,7 +78,7 @@
         version-clj/version-clj {:mvn/version "2.0.3"}       ;; compare versions
         zprint/zprint {:mvn/version "1.3.0"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.18.0"}
+        metosin/malli {:mvn/version "0.19.1"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -123,7 +123,7 @@
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.9"}
                    clj-kondo/clj-kondo {:mvn/version "2025.06.05"}
-                   babashka/fs {:mvn/version "0.5.25"}
+                   babashka/fs {:mvn/version "0.5.26"}
                    babashka/process {:mvn/version "0.6.23"}}
             :ns-default build}
 
