@@ -9,12 +9,13 @@
         ;; web server/services
         io.pedestal/pedestal.jetty {:mvn/version "0.7.2"}    ;; web site/service with jetty engine
         ;; CVE jetty override: (remove all when pedestal bumps)
-        ;; Jetty 11 is at EOL and will only get "sponsored" releases. Hopefully pedestal will upgrade to Jetty 12
+        ;; Jetty 11 is at EOL and will only get "sponsored" releases. Pedestal 8 should address these issues, we'll upgrade to it when it is out of testing
         org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
         org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
         org.eclipse.jetty.websocket/websocket-jakarta-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
         org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
         org.eclipse.jetty/jetty-alpn-client ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
+        org.apache.commons/commons-fileupload2-core {:mvn/version "2.0.0-M4"}
 
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
         ;; override pedestal dep on old dep that generate warning noise for clojure 1.11+,
@@ -29,13 +30,13 @@
         com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
         com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
         com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.3"}
-        com.taoensso/nippy {:mvn/version "3.5.0"}            ;; fast compact serializer that we use for blobs
+        com.taoensso/nippy {:mvn/version "3.6.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "10.2.1"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "10.2.1"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.2.1"}
-        org.apache.lucene/lucene-queries {:mvn/version "10.2.1"}
+        org.apache.lucene/lucene-core {:mvn/version "10.2.2"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "10.2.2"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.2.2"}
+        org.apache.lucene/lucene-queries {:mvn/version "10.2.2"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "3.0.0"} ;; render adoc to html
@@ -51,8 +52,8 @@
         {:mvn/version "0.64.8"}
 
         ;; html
-        hiccup/hiccup {:mvn/version "2.0.0-RC5"}             ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.20.1"}              ;; xml/html parser/rewriter
+        hiccup/hiccup {:mvn/version "2.0.0"}                 ;; html abstraction
+        org.jsoup/jsoup {:mvn/version "1.21.1"}              ;; xml/html parser/rewriter
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20240325.1"}                          ;; sanitize html converted from user markdown
@@ -68,7 +69,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.31.63"}
+        software.amazon.awssdk/s3 {:mvn/version "2.31.69"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
@@ -79,7 +80,7 @@
         babashka/process {:mvn/version "0.6.23"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.0.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
-        com.taoensso/tufte {:mvn/version "2.7.0"}            ;; profile/perf monitoring
+        com.taoensso/tufte {:mvn/version "3.0.0"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.1.234"}      ;; general caching library
