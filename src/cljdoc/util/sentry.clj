@@ -9,7 +9,6 @@
             [cljdoc.config :as cfg]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.tools.logging :as log]
             [prone.stacks :as prone-stack])
   (:import [java.net InetAddress]
            [java.time Instant]))
@@ -144,11 +143,7 @@
         body (build-envelope config log-event *http-request*)]
     ;; TODO: sentry will return 429 with a Retry-After header on rate-limiting
     ;; https://develop.sentry.dev/sdk/expected-features/rate-limiting/
-    (println "\n\n---\nsending to:" url)
-    (println "body:" body)
     (http/post url {:body body})))
-
-
 
 (comment
 
