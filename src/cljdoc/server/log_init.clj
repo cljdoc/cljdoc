@@ -4,7 +4,8 @@
   (:require [cljdoc.util.sentry :as sentry]
             [unilog.config :as unilog])
   (:import [ch.qos.logback.classic Level]
-           [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy]))
+           [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy]
+           [ch.qos.logback.core UnsynchronizedAppenderBase]))
 
 (set! *warn-on-reflection* true)
 
@@ -21,7 +22,7 @@
    ;; TODO: What to do when not a ThrowableProxy, does that happen?
    :log-exceptions (when-let [ex (.getThrowableProxy event)]
                      (when (instance? ThrowableProxy ex)
-                       (.getThrowable ex)))})
+                       (.getThrowable ^ThrowableProxy ex)))})
 
 (defmethod unilog/build-appender :sentry
   [config]

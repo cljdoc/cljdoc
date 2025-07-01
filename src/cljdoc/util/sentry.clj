@@ -30,10 +30,10 @@
 
 (def config
   "We initalize at load time rather than via integrant because we need logging to be up as early as possible"
-  {:sentry-dsn cfg/sentry-dsn
-   :sentry-project-id (extract-sentry-project-id cfg/sentry-dsn)
+  {:sentry-dsn (cfg/sentry-dsn)
+   :sentry-project-id (extract-sentry-project-id (cfg/sentry-dsn))
    :environment "production"
-   :release cfg/version
+   :release (cfg/version)
    :sentry-client {:name "cljdoc.clojure"
                    :version "0.0.1"}
    :server-name (.getHostName (InetAddress/getLocalHost)) ;; TODO: apparently this isn't terribly reliable?
@@ -138,7 +138,7 @@
      (json/generate-string (build-event-envelope-item {:payload-length event-payload-length})) "\n"
      event-payload)))
 
-(defn sentry-capture-log-event [{:keys [sentry-project-id] :as config} log-event]
+(defn capture-log-event [{:keys [sentry-project-id] :as config} log-event]
   (let [url (make-sentry-url sentry-project-id)
         body (build-envelope config log-event *http-request*)]
     ;; TODO: sentry will return 429 with a Retry-After header on rate-limiting
