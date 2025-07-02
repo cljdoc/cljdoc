@@ -47,7 +47,6 @@
                       pre-context-lines)
           begin-line-num (max 1, (- target-line-num pre-lines))
           end-line-num (+ begin-line-num pre-lines post-context-lines)]
-      (println "limits->" begin-line-num end-line-num)
       (when-let [file-path (io/resource file-path)]
         (with-open [rdr (io/reader file-path)]
           (let [{:keys [line-num] :as result}
@@ -56,7 +55,6 @@
                                          [(inc ndx) line])
                                        (line-seq rdr) (range)))]
                   (let [[line-num line] (first lines)]
-                    (println "->>" line-num ":" line)
                     (cond
                       (not line)
                       acc
@@ -83,7 +81,6 @@
                                  (assoc :line-num line-num)
                                  (update  :post conj line))
                              (rest lines)))))]
-            (println "target->>" target-line-num "line-num->>" line-num "end-line-num->>" end-line-num)
             (when (<= target-line-num line-num)
               result)))))))
 
@@ -94,7 +91,6 @@
   (let [{:keys [pre target post]} (file->source-context (:class-path-url frame) (:line-number frame)
                                                         {:pre-context-lines 5
                                                          :post-context-lines 5})]
-    (println "->" pre post target)
     (cond-> {:filename     (:file-name frame)
              :lineno       (:line-number frame)
              :function     (str (:package frame) "/" (:method-name frame))
@@ -108,7 +104,7 @@
     (mapv (fn [ex ndx]
             {:type (:type ex)
              :value (:message ex)
-             :thread-id log-thread-name
+             :thread_id log-thread-name
              :mechanism {:type (if (= (dec cnt-exes) ndx)
                                  "cljdoc-sentry-appender"
                                  "chained")
