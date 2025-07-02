@@ -15,14 +15,13 @@
   "Generalize log event for consumption by sentry"
   [^ILoggingEvent event]
   {:logger (.getLoggerName event)
-   :log-level (.getLevel event)
    :log-message (.getFormattedMessage event)
    :log-timestamp (str (.getInstant event))
    :log-thread-name (.getThreadName event)
    ;; TODO: What to do when not a ThrowableProxy, does that happen?
-   :log-exceptions (when-let [ex (.getThrowableProxy event)]
-                     (when (instance? ThrowableProxy ex)
-                       (.getThrowable ^ThrowableProxy ex)))})
+   :log-exception (when-let [ex (.getThrowableProxy event)]
+                    (when (instance? ThrowableProxy ex)
+                      (.getThrowable ^ThrowableProxy ex)))})
 
 (defmethod unilog/build-appender :sentry
   [config]

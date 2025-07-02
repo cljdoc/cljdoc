@@ -9,6 +9,7 @@
             [cljdoc.config :as cfg]
             [clojure.java.io :as io]
             [clojure.string :as string]
+            [lambdaisland.uri :as uri]
             [prone.stacks :as prone-stack])
   (:import [java.net InetAddress]
            [java.time Instant]))
@@ -19,49 +20,90 @@
   "When bound, we'll send the http request to sentry"
   nil)
 
-(defn extract-sentry-project-id [sentry-dsn]
+(defn extract-project-id [sentry-dsn]
   (when sentry-dsn
-    (let [[_ url] (string/split sentry-dsn #"@")]
-      (-> (string/split url #"/")
-          (last)
-          (string/split #"\?")
-          (first)
-          (parse-long)))))
+    (-> sentry-dsn
+        uri/parse
+        :path
+        (string/split #"/")
+        last
+        parse-long)))
 
 (def config
   "We initalize at load time rather than via integrant because we need logging to be up as early as possible"
   {:sentry-dsn (cfg/sentry-dsn)
-   :sentry-project-id (extract-sentry-project-id (cfg/sentry-dsn))
+   :sentry-project-id (extract-project-id (cfg/sentry-dsn))
    :environment "production"
    :release (cfg/version)
    :sentry-client {:name "cljdoc.clojure"
                    :version "0.0.1"}
    :server-name (.getHostName (InetAddress/getLocalHost)) ;; TODO: apparently this isn't terribly reliable?
-   :timeout-ms 3000
    :app-namespaces ["cljdoc"]})
 
-(defn file->source [file-path line-number]
-  (some-> file-path
-          (io/resource)
-          slurp
-          (string/split #"\n")
-          (#(drop (- line-number 6) %))
-          (#(take 11 %))))
+(defn- file->source-context [file-path target-line-num {:keys [pre-context-lines post-context-lines]}]
+  (when (>= target-line-num 1)
+    (let [pre-lines (if (< target-line-num pre-context-lines)
+                      (dec target-line-num)
+                      pre-context-lines)
+          begin-line-num (max 1, (- target-line-num pre-lines))
+          end-line-num (+ begin-line-num pre-lines post-context-lines)]
+      (println "limits->" begin-line-num end-line-num)
+      (when-let [file-path (io/resource file-path)]
+        (with-open [rdr (io/reader file-path)]
+          (let [{:keys [line-num] :as result}
+                (loop [acc {:pre [] :target nil :post []}
+                       lines (->> (map (fn [line ndx]
+                                         [(inc ndx) line])
+                                       (line-seq rdr) (range)))]
+                  (let [[line-num line] (first lines)]
+                    (println "->>" line-num ":" line)
+                    (cond
+                      (not line)
+                      acc
 
-(defn in-app [package app-namespaces]
+                      (< line-num begin-line-num)
+                      (recur (assoc acc :line-num line-num)
+                             (rest lines))
+
+                      (= line-num end-line-num)
+                      (update acc :post conj line)
+
+                      (= line-num target-line-num)
+                      (recur (assoc acc :line-num line-num :target line)
+                             (rest lines))
+
+                      (< line-num target-line-num)
+                      (recur (-> acc
+                                 (assoc :line-num line-num)
+                                 (update :pre conj line))
+                             (rest lines))
+
+                      :else
+                      (recur (-> acc
+                                 (assoc :line-num line-num)
+                                 (update  :post conj line))
+                             (rest lines)))))]
+            (println "target->>" target-line-num "line-num->>" line-num "end-line-num->>" end-line-num)
+            (when (<= target-line-num line-num)
+              result)))))))
+
+(defn- in-app [package app-namespaces]
   (boolean (some #(string/starts-with? package %) app-namespaces)))
 
-(defn frame->sentry [app-namespaces frame]
-  (let [source (file->source (:class-path-url frame) (:line-number frame))]
-    {:filename     (:file-name frame)
-     :lineno       (:line-number frame)
-     :function     (str (:package frame) "/" (:method-name frame))
-     :in_app       (in-app (:package frame) app-namespaces)
-     :context_line (nth source 5 nil)
-     :pre_context  (take 5 source)
-     :post_context (drop 6 source)}))
+(defn frame->sentry [frame {:keys [app-namespaces]}]
+  (let [{:keys [pre target post]} (file->source-context (:class-path-url frame) (:line-number frame)
+                                                        {:pre-context-lines 5
+                                                         :post-context-lines 5})]
+    (println "->" pre post target)
+    (cond-> {:filename     (:file-name frame)
+             :lineno       (:line-number frame)
+             :function     (str (:package frame) "/" (:method-name frame))
+             :in_app       (in-app (:package frame) app-namespaces)}
+      target (assoc :context_line target)
+      pre    (assoc :pre_context pre)
+      post   (assoc :post_context post))))
 
-(defn exceptions->sentry [exceptions {:keys [app-namespaces]} {:keys [log-thread-name]}]
+(defn exceptions->sentry [exceptions config {:keys [log-thread-name]}]
   (let [cnt-exes (count exceptions)]
     (mapv (fn [ex ndx]
             {:type (:type ex)
@@ -72,7 +114,7 @@
                                  "chained")
                          :exception_id ndx
                          :data (:data ex)} ;; this will get translated to json so won't look like :keywords
-             :stacktrace {:frames (mapv (fn [frame] (frame->sentry app-namespaces frame))
+             :stacktrace {:frames (mapv (fn [frame] (frame->sentry frame config))
                                         (:frames ex))}})
           exceptions (reverse (range 0 cnt-exes)))))
 
@@ -95,16 +137,16 @@
 (defn build-event-envelope-header [{:keys [sentry-dsn sentry-client]}]
   {:dsn sentry-dsn
    :sdk sentry-client
-   :sent_at (str (Instant/now))})
+   :sent_at :tbd})
 
-(defn build-event-envelope-item [{:keys [payload-length]}]
+(defn build-event-envelope-item []
   {:type "event"
    :content_type "application/json"
-   :length payload-length})
+   :length :tbd})
 
-(defn flatten-exceptions [exceptions]
-  (when exceptions
-    (let [exceptions prone-stack/normalize-exception]
+(defn flatten-to-exceptions [ex]
+  (when ex
+    (let [exceptions (prone-stack/normalize-exception ex)]
       (loop [ex exceptions
              acc [ex]]
         (if-let [caused-by (:caused-by ex)]
@@ -115,9 +157,9 @@
 
 (defn build-event-payload
   [{:keys [sentry-client server-name release environment] :as config}
-   {:keys [log-timestamp log-exceptions logger] :as log-event}
+   {:keys [log-message log-timestamp log-exception logger] :as log-event}
    http-request]
-  (let [log-exceptions (flatten-exceptions log-exceptions)]
+  (let [exceptions (flatten-to-exceptions log-exception)]
     (cond-> {:event_id (str (random-uuid))
              :timestamp log-timestamp
              :level "error" ;; we'll consider all events errors
@@ -127,25 +169,34 @@
              :release release
              :sdk sentry-client
              :environment environment}
-      log-exceptions (assoc :exception {:values (exceptions->sentry log-exceptions config log-event)})
+      log-message (assoc :logentry {:formatted log-message})
+      exceptions (assoc :exception {:values (exceptions->sentry exceptions config log-event)})
       http-request (assoc :request (http-request->sentry http-request)))))
 
-(defn build-envelope [config log-event http-request]
-  (let [event-payload (json/generate-string (build-event-payload config log-event http-request))
-        event-payload-length (alength (.getBytes event-payload "UTF-8"))]
-    (str
-     (json/generate-string (build-event-envelope-header config)) "\n"
-     (json/generate-string (build-event-envelope-item {:payload-length event-payload-length})) "\n"
-     event-payload)))
+(defn build-envelope [{:keys [config log-event http-request]}]
+  [(build-event-envelope-header config)
+   (build-event-envelope-item)
+   (build-event-payload config log-event http-request)])
 
 (defn capture-log-event [{:keys [sentry-project-id] :as config} log-event]
   (let [url (make-sentry-url sentry-project-id)
-        body (build-envelope config log-event *http-request*)]
+        [header item payload] (build-envelope
+                                {:config config
+                                 :log-event log-event
+                                 :http-request *http-request*})
+        payload (json/generate-string payload)
+        payload-length (alength (.getBytes payload "UTF-8"))
+        item (assoc item :length payload-length)
+        header (assoc header :sent_at (str (Instant/now)))
+        body (->> [header item payload]
+                  (mapv json/generate-string)
+                  (string/join "\n"))]
     ;; TODO: sentry will return 429 with a Retry-After header on rate-limiting
     ;; https://develop.sentry.dev/sdk/expected-features/rate-limiting/
     (http/post url {:body body})))
 
 (comment
-
+  (str (Instant/now))
+  ;; => "2025-07-01T17:22:50.697092017Z"
 
   :eoc)
