@@ -167,6 +167,7 @@
                              'org.eclipse.jetty/jetty-servlet "CVE override"
                              'org.eclipse.jetty.http2/http2-server "CVE override"
                              'org.eclipse.jetty.websocket/websocket-jakarta-server "CVE override"
+                             'org.apache.commons/commons-fileupload2-core "CVE override"
                              'ch.qos.logback/logback-classic "Logging implementation is not directly called from code"}
                unused-deps (->> (exec 'borkdude.unused-deps/unused-deps)
                                 :unused-deps
