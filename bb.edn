@@ -5,7 +5,7 @@
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
         etaoin/etaoin {:mvn/version "1.1.43"}
         io.github.borkdude/unused-deps {:git/sha "77fc627b3a0dc547841a17bdaa09ea51c392676c"}
-        org.clj-commons/pretty {:mvn/version "3.4.1"}}
+        org.clj-commons/pretty {:mvn/version "3.5.0"}}
  :pods {org.babashka/fswatcher {:version "0.0.5"}}
  :tasks
  {;; setup
