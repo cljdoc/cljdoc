@@ -104,7 +104,7 @@
                          ;; to support recompiling java code from repl
                          virgil/virgil {:mvn/version "0.4.0"}
                          ;; for ns reload support
-                         io.github.tonsky/clj-reload {:mvn/version "0.9.7"}
+                         io.github.tonsky/clj-reload {:mvn/version "0.9.8"}
                          ;; reload support
                          integrant/repl {:mvn/version "0.4.0"}
                          com.clojure-goes-fast/clj-memory-meter {:mvn/version "0.4.0"}}
