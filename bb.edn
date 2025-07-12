@@ -5,7 +5,7 @@
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
         etaoin/etaoin {:mvn/version "1.1.43"}
         io.github.borkdude/unused-deps {:git/sha "77fc627b3a0dc547841a17bdaa09ea51c392676c"}
-        org.clj-commons/pretty {:mvn/version "3.4.1"}}
+        org.clj-commons/pretty {:mvn/version "3.5.0"}}
  :pods {org.babashka/fswatcher {:version "0.0.5"}}
  :tasks
  {;; setup
@@ -167,6 +167,7 @@
                              'org.eclipse.jetty/jetty-servlet "CVE override"
                              'org.eclipse.jetty.http2/http2-server "CVE override"
                              'org.eclipse.jetty.websocket/websocket-jakarta-server "CVE override"
+                             'org.apache.commons/commons-fileupload2-core "CVE override"
                              'ch.qos.logback/logback-classic "Logging implementation is not directly called from code"}
                unused-deps (->> (exec 'borkdude.unused-deps/unused-deps)
                                 :unused-deps
