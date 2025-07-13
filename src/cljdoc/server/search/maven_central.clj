@@ -164,6 +164,7 @@
         (let [artifacts (->> (fetch-maven-docs ctx (str "g:" group-id))
                              (map maven-doc->artifact)
                              (mvn-merge-versions)
+                             (sort-by :artifact-id)
                              (mapv #(add-description ctx cached-artifacts %)))]
           (update-cached-artifacts! group-id artifacts)
           artifacts))
