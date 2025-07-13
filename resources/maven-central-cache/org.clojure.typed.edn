@@ -1,0 +1,162 @@
+{:etag "\"92d0be5b0889b68d1eb7fe85044e5a20\"",
+ :artifacts
+ [{:etag "\"5181ae11995aa5bd38ae9b2072d3340b\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "analyzer.common",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description "A variant of tools.analyzer."}
+  {:etag "\"f05e5af2d17a73cca23465e7a0b955fd\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "analyzer.js",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description "A variant of tools.analyzer.js."}
+  {:etag "\"24bcd90e242f34b164a5196899afb0ec\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "analyzer.jvm",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description "A variant of tools.analyzer.jvm."}
+  {:etag "\"20b3dea58aa999257a42cbf4557e16dd\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "annotator.jvm",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description
+   "Runtime type inference algorithm for core.typed and clojure.spec."}
+  {:etag "\"d1eef9e3c9cde37149895f0eb5608aee\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "checker.js",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description
+   "An optional type system for ClojureScript — full system for annotating and type-checking."}
+  {:etag "\"64645350836f5e4a0146ff32ceb7efda\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "checker.jvm",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description
+   "An optional type system for Clojure — full system for annotating and type-checking."}
+  {:etag "\"dac3642315e735105801aa3923c227aa\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "lang.jvm",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description
+   "Extensible languages in Clojure, a la Racket's #lang."}
+  {:etag "\"b02163bc1eeb1e65a73f71713f7bc5b8\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "lib.clojure",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description
+   "Type annotations and macros for the base Clojure distribution."}
+  {:etag "\"49b9c50b98ff165a81cf77b929210e46\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "lib.core.async",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description "Type annotations and macros for core.async."}
+  {:etag "\"7ab95f3a721da37a382b10f4135e3c29\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "pom",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description "An optional type system for Clojure"}
+  {:etag "\"df0386cae3c69c5dfbb44d7970eb2625\"",
+   :group-id "org.clojure.typed",
+   :artifact-id "runtime.jvm",
+   :versions
+   ["1.10.0-alpha1"
+    "1.0.1"
+    "1.0.0"
+    "1.0.0-alpha1"
+    "0.8.0-alpha7"
+    "0.8.0-alpha6"
+    "0.8.0-alpha5"
+    "0.8.0-alpha3"],
+   :origin :maven-central,
+   :description
+   "An optional type system for Clojure — zero-dependency artifact for annotations only."}]}
