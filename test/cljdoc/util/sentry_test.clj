@@ -2,44 +2,28 @@
   "Inspired by, and lifted from, raven-clj tests"
   (:require [cljdoc.util.sentry :as sentry]
             [clojure.test :as t]
+            [lambdaisland.uri :as uri]
             [matcher-combinators.matchers :as m]
             [matcher-combinators.test]))
 
+(defn- make-dsn
+  [opts]
+  (str
+    (merge (uri/uri "https://example.com")
+           {:user "b70a31b3510c4cf793964a185cfe1fd0"
+            :password "b7d80b520139450f903720eb7991bf3d"}
+           opts)))
+
 (t/deftest extract-project-id-test
-  (t/testing "dsn parsing"
-    (t/is (= 1
-             (sentry/extract-project-id
-              "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com/1"))))
-
-  (t/testing "dsn parsing with long"
-    (t/is (= 99999999999
-             (sentry/extract-project-id
-              "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com/99999999999"))))
-
-  (t/testing "dsn parsing without secret"
-    (t/is (= 1
-             (sentry/extract-project-id
-              "https://b70a31b3510c4cf793964a185cfe1fd0@example.com/1"))))
-
-  (t/testing "dsn parsing with path"
-    (t/is (= 1
-             (sentry/extract-project-id
-              "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com/sentry/1"))))
-
-  (t/testing "dsn parsing with port"
-    (t/is (= 1
-             (sentry/extract-project-id
-              "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com:9000/1"))))
-
-  (t/testing "dsn parsing with port and path"
-    (t/is (= 1
-             (sentry/extract-project-id
-              "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com:9000/sentry/1"))))
-
-  (t/testing "dsn parsing with query parameters"
-    (t/is (= 1
-             (sentry/extract-project-id
-              "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com:9000/sentry/1?environment=test&servername=example")))))
+  (doseq [[desc expected-project-id dsn]
+          [["simple case"        1           (make-dsn {:path "/1"})]
+           ["project id is long" 99999999999 (make-dsn {:path "/99999999999"})]
+           ["no secret"          1           (make-dsn {:path "/1" :password nil})]
+           ["path prefix"        1           (make-dsn {:path "/sentry/1"})]
+           ["port"               1           (make-dsn {:path "/1" :port 9000})]
+           ["port & path prefix" 1           (make-dsn {:path "/sentry/1" :port 9000})]
+           ["query string"       1           (make-dsn {:path "/sentry/1" :port 9000 :query "environment=test&servername=example"})]]]
+    (t/is (= expected-project-id (sentry/extract-project-id dsn)) (str desc ": " dsn))))
 
 (def test-config
   "We initalize at load time rather than via integrant because we need logging to be up as early as possible"
@@ -59,96 +43,96 @@
             "cljdoc/util/sentry/sample_source.clj"
             10
             [";; line 5" ";; line 6" ";; line 7" ";; line 8" ";; line 9"]
-            ";; line 10"
-            [";; line 11" ";; line 12" ";; line 13" ";; line 14" ";; line 15"]]
-           ["context first lines of file"
-            "cljdoc/util/sentry/sample_source.clj"
-            1
-            []
-            "(ns cljdoc.util.sentry.sample-source)"
-            [";; line 2" ";; line 3" ";; line 4" ";; line 5" ";; line 6"]]
-           ["context last lines of file"
-            "cljdoc/util/sentry/sample_source.clj"
-            15
-            [";; line 10" ";; line 11" ";; line 12" ";; line 13" ";; line 14"]
-            ";; line 15"
-            [";; line 16" ";; line 17" ";; line 18" ";; line 19" ";; line 20"]]
-           ["target line reduces pre-context"
-            "cljdoc/util/sentry/sample_source.clj"
-            3
-            ["(ns cljdoc.util.sentry.sample-source)" ";; line 2"]
-            ";; line 3"
-            [";; line 4" ";; line 5" ";; line 6" ";; line 7" ";; line 8"]]
-           ["target line reduces post-context"
-            "cljdoc/util/sentry/sample_source.clj"
-            18
-            [";; line 13" ";; line 14" ";; line 15" ";; line 16" ";; line 17"]
-            ";; line 18"
-            [";; line 19" ";; line 20"]]
-           ["target line eliminates post-context"
-            "cljdoc/util/sentry/sample_source.clj"
-            20
-            [";; line 15" ";; line 16" ";; line 17" ";; line 18" ";; line 19"]
-            ";; line 20"
-            []]
-           ["target line out of bounds zero"
-            "cljdoc/util/sentry/sample_source.clj"
-            0]
-           ["target line out of bounds negative"
-            "cljdoc/util/sentry/sample_source.clj"
-            -1]
-           ["target line out of bounds upper"
-            "cljdoc/util/sentry/sample_source.clj"
-            21]
-           ;; file missing
-           ["file is missing"
-            "src/wont_find_me_anywhere.clj"
-            3]
-           ;; small file
-           ["small file 0"
-            "cljdoc/util/sentry/sample_source_small.clj"
-            0]
-           ["small file 1"
-            "cljdoc/util/sentry/sample_source_small.clj"
-            1
-            []
-            "(ns cljdoc.util.sentry.sample-source-small)"
-            [";; line 2" ";; line 3" ";; line 4"]]
-           ["small file 2"
-            "cljdoc/util/sentry/sample_source_small.clj"
-            2
-            ["(ns cljdoc.util.sentry.sample-source-small)"]
-            ";; line 2"
-            [ ";; line 3" ";; line 4"]]
-           ["small file 3"
-            "cljdoc/util/sentry/sample_source_small.clj"
-            3
-            ["(ns cljdoc.util.sentry.sample-source-small)" ";; line 2"]
-            ";; line 3"
-            [";; line 4"]]
-           ["small file 4"
-            "cljdoc/util/sentry/sample_source_small.clj"
-            4
-            ["(ns cljdoc.util.sentry.sample-source-small)" ";; line 2" ";; line 3"]
-            ";; line 4"
-            []]
-           ["small file 5"
-            "cljdoc/util/sentry/sample_source_small.clj"
-            5]]]
-    (t/is (match? (m/nested-equals (cond-> {:filename "filename.clj"
-                                            :lineno line-number
-                                            :function "cljdoc.util.sentry/baz"
-                                            :in_app true}
-                                     expected-pre-context (assoc :pre_context expected-pre-context)
-                                     expected-context-line (assoc :context_line expected-context-line)
-                                     expected-post-context (assoc :post_context expected-post-context)))
-                  (sentry/frame->sentry {:class-path-url file-path
-                                         :file-name "filename.clj"
-                                         :line-number line-number
-                                         :package "cljdoc.util.sentry"
-                                         :method-name "baz"}
-                                        {:app-namespaces ["cljdoc"]}))
-          desc)))
+          ";; line 10"
+          [";; line 11" ";; line 12" ";; line 13" ";; line 14" ";; line 15"]]
+     ["context first lines of file"
+      "cljdoc/util/sentry/sample_source.clj"
+      1
+      []
+      "(ns cljdoc.util.sentry.sample-source)"
+      [";; line 2" ";; line 3" ";; line 4" ";; line 5" ";; line 6"]]
+     ["context last lines of file"
+      "cljdoc/util/sentry/sample_source.clj"
+      15
+      [";; line 10" ";; line 11" ";; line 12" ";; line 13" ";; line 14"]
+      ";; line 15"
+      [";; line 16" ";; line 17" ";; line 18" ";; line 19" ";; line 20"]]
+     ["target line reduces pre-context"
+      "cljdoc/util/sentry/sample_source.clj"
+      3
+      ["(ns cljdoc.util.sentry.sample-source)" ";; line 2"]
+      ";; line 3"
+      [";; line 4" ";; line 5" ";; line 6" ";; line 7" ";; line 8"]]
+     ["target line reduces post-context"
+      "cljdoc/util/sentry/sample_source.clj"
+      18
+      [";; line 13" ";; line 14" ";; line 15" ";; line 16" ";; line 17"]
+      ";; line 18"
+      [";; line 19" ";; line 20"]]
+     ["target line eliminates post-context"
+      "cljdoc/util/sentry/sample_source.clj"
+      20
+      [";; line 15" ";; line 16" ";; line 17" ";; line 18" ";; line 19"]
+      ";; line 20"
+      []]
+     ["target line out of bounds zero"
+      "cljdoc/util/sentry/sample_source.clj"
+      0]
+     ["target line out of bounds negative"
+      "cljdoc/util/sentry/sample_source.clj"
+      -1]
+     ["target line out of bounds upper"
+      "cljdoc/util/sentry/sample_source.clj"
+      21]
+     ;; file missing
+     ["file is missing"
+      "src/wont_find_me_anywhere.clj"
+      3]
+     ;; small file
+     ["small file 0"
+      "cljdoc/util/sentry/sample_source_small.clj"
+      0]
+     ["small file 1"
+      "cljdoc/util/sentry/sample_source_small.clj"
+      1
+      []
+      "(ns cljdoc.util.sentry.sample-source-small)"
+      [";; line 2" ";; line 3" ";; line 4"]]
+     ["small file 2"
+      "cljdoc/util/sentry/sample_source_small.clj"
+      2
+      ["(ns cljdoc.util.sentry.sample-source-small)"]
+      ";; line 2"
+      [ ";; line 3" ";; line 4"]]
+     ["small file 3"
+      "cljdoc/util/sentry/sample_source_small.clj"
+      3
+      ["(ns cljdoc.util.sentry.sample-source-small)" ";; line 2"]
+      ";; line 3"
+      [";; line 4"]]
+     ["small file 4"
+      "cljdoc/util/sentry/sample_source_small.clj"
+      4
+      ["(ns cljdoc.util.sentry.sample-source-small)" ";; line 2" ";; line 3"]
+      ";; line 4"
+      []]
+     ["small file 5"
+      "cljdoc/util/sentry/sample_source_small.clj"
+      5]]]
+  (t/is (match? (m/nested-equals (cond-> {:filename "filename.clj"
+                                          :lineno line-number
+                                          :function "cljdoc.util.sentry/baz"
+                                          :in_app true}
+                                   expected-pre-context (assoc :pre_context expected-pre-context)
+                                   expected-context-line (assoc :context_line expected-context-line)
+                                   expected-post-context (assoc :post_context expected-post-context)))
+                (sentry/frame->sentry {:class-path-url file-path
+                                       :file-name "filename.clj"
+                                       :line-number line-number
+                                       :package "cljdoc.util.sentry"
+                                       :method-name "baz"}
+                                      {:app-namespaces ["cljdoc"]}))
+        desc)))
 
 
 (t/deftest frame->sentry-not-in-app
@@ -210,6 +194,12 @@
                                                           :log-exception (ex-info "something bad happened" {:some :data}) )}))))
 
 (comment
+
+  (make-dsn {:path "/1"})
+  ;; => "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com/1"
+
+  (make-dsn {:path "/sentry/1" :password nil :query "environment=test&servername=example"})
+  ;; => "https://b70a31b3510c4cf793964a185cfe1fd0@example.com/sentry/1?environment=test&servername=example"
 
   (sentry/build-envelope {:config test-config
                                         :log-event (assoc test-event
