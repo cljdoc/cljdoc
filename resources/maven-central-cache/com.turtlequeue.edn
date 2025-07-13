@@ -1,34 +1,41 @@
-[{:artifact-id "clj-client",
-  :group-id "com.turtlequeue",
-  :origin :maven-central,
-  :versions
-  ["0.0.16"
-   "0.0.13"
-   "0.0.11"
-   "0.0.10"
-   "0.0.9"
-   "0.0.8"
-   "0.0.7"
-   "0.0.6"
-   "0.0.5"],
-  :description "TurtleQueue SDK"}
- {:artifact-id "java-admin-sdk",
-  :group-id "com.turtlequeue",
-  :origin :maven-central,
-  :versions ["1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.0"],
-  :description "Turtlequeue is a hosted pub-sub messaging platform."}
- {:artifact-id "java-sdk",
-  :group-id "com.turtlequeue",
-  :origin :maven-central,
-  :versions ["1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.0"],
-  :description "Turtlequeue is a hosted pub-sub messaging platform."}
- {:artifact-id "sdk.proto",
-  :group-id "com.turtlequeue",
-  :origin :maven-central,
-  :versions ["1.0.5" "1.0.4" "1.0.2" "1.0.0"],
-  :description "Turtlequeue is a hosted pub-sub messaging platform."}
- {:artifact-id "sdk.proto.admin",
-  :group-id "com.turtlequeue",
-  :origin :maven-central,
-  :versions ["1.0.5" "1.0.4" "1.0.2" "1.0.0"],
-  :description "Turtlequeue is a hosted pub-sub messaging platform."}]
+{:etag "\"8f6d6a4e4b0605437b82118ee9a61e15\"",
+ :artifacts
+ [{:etag "\"1920f548ec71e8ce86042632539a27c4\"",
+   :artifact-id "clj-client",
+   :group-id "com.turtlequeue",
+   :origin :maven-central,
+   :versions
+   ["0.0.16"
+    "0.0.13"
+    "0.0.11"
+    "0.0.10"
+    "0.0.9"
+    "0.0.8"
+    "0.0.7"
+    "0.0.6"
+    "0.0.5"],
+   :description "TurtleQueue SDK"}
+  {:etag "\"71268b5cc57a7a45fabbb5931b5ffcc9\"",
+   :artifact-id "java-admin-sdk",
+   :group-id "com.turtlequeue",
+   :origin :maven-central,
+   :versions ["1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.0"],
+   :description "Turtlequeue is a hosted pub-sub messaging platform."}
+  {:etag "\"bca436ff950a5f869d9968431e584e32\"",
+   :artifact-id "java-sdk",
+   :group-id "com.turtlequeue",
+   :origin :maven-central,
+   :versions ["1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.0"],
+   :description "Turtlequeue is a hosted pub-sub messaging platform."}
+  {:etag "\"f3fe7223adff4e6cc53ade0c9203045f\"",
+   :artifact-id "sdk.proto",
+   :group-id "com.turtlequeue",
+   :origin :maven-central,
+   :versions ["1.0.5" "1.0.4" "1.0.2" "1.0.0"],
+   :description "Turtlequeue is a hosted pub-sub messaging platform."}
+  {:etag "\"b5a9fcb68ca9f58ee2e1291b131eba41\"",
+   :artifact-id "sdk.proto.admin",
+   :group-id "com.turtlequeue",
+   :origin :maven-central,
+   :versions ["1.0.5" "1.0.4" "1.0.2" "1.0.0"],
+   :description "Turtlequeue is a hosted pub-sub messaging platform."}]}
