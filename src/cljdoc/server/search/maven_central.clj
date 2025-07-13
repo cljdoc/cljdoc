@@ -72,19 +72,14 @@
     {:etag etag
      :artifacts (mapv
                  (fn [artifact-id]
-                   (println "checking artifact id" artifact-id)
                    (let [{:keys [etag] :as cached-artifact} (some #(when (= artifact-id (:artifact-id %)) %) artifacts)
-                         _ (println "cached-artifact" cached-artifact)
                          url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
                          artifact-response (fetch ctx url (when etag {:headers {"If-None-Match" etag}}))]
                      (if (= 304 (:status artifact-response))
-                       (do
-                         (println "returning cached artifact")
-                         cached-artifact)
+                       cached-artifact
                        (let [etag (get-in artifact-response [:headers "etag"])
                              versions (parse-artifact-versions (:body artifact-response))
                              description (fetch-maven-description ctx group-id artifact-id (first versions))]
-                         (println "returning parsed artifact")
                          (cond-> {:etag etag
                                   :group-id group-id
                                   :artifact-id artifact-id
