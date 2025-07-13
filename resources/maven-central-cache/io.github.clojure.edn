@@ -1,14 +1,15 @@
 {:etag "\"52ee0a595ba8a2acc050ef2faf028624\"",
  :artifacts
  [{:etag "\"747c1cafde9881bdbf557b41f8dd3f16\"",
-   :group-id "io.github.clojure",
    :artifact-id "buildtest",
-   :versions ["0.3.2" "0.3.1" "0.3.0"],
+   :group-id "io.github.clojure",
    :origin :maven-central,
+   :versions ["0.3.2" "0.3.1" "0.3.0"],
    :description "Dummy project for build and deployment testing"}
   {:etag "\"6cb62cec01d77a222ed4da2a4c59b685\"",
-   :group-id "io.github.clojure",
    :artifact-id "tools.build",
+   :group-id "io.github.clojure",
+   :origin :maven-central,
    :versions
    ["0.10.9"
     "0.10.8"
@@ -22,5 +23,4 @@
     "0.9.6"
     "0.9.5"
     "0.9.4"
-    "0.9.3"],
-   :origin :maven-central}]}
+    "0.9.3"]}]}

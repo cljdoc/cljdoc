@@ -82,10 +82,10 @@
                                   versions (parse-artifact-versions (:body artifact-response))
                                   description (fetch-maven-description ctx group-id artifact-id (first versions))]
                               (cond-> {:etag etag
-                                       :group-id group-id
                                        :artifact-id artifact-id
-                                       :versions versions
-                                       :origin :maven-central}
+                                       :group-id group-id
+                                       :origin :maven-central
+                                       :versions versions}
                                 description (assoc :description description)))))))
                      (sort-by :artifact-id)
                      (into []))}))
