@@ -70,23 +70,25 @@
                        (mapv :artifact-id artifacts)
                        (parse-group-artifact-ids (:body group-response)))]
     {:etag etag
-     :artifacts (mapv
-                 (fn [artifact-id]
-                   (let [{:keys [etag] :as cached-artifact} (some #(when (= artifact-id (:artifact-id %)) %) artifacts)
-                         url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
-                         artifact-response (fetch ctx url (when etag {:headers {"If-None-Match" etag}}))]
-                     (if (= 304 (:status artifact-response))
-                       cached-artifact
-                       (let [etag (get-in artifact-response [:headers "etag"])
-                             versions (parse-artifact-versions (:body artifact-response))
-                             description (fetch-maven-description ctx group-id artifact-id (first versions))]
-                         (cond-> {:etag etag
-                                  :group-id group-id
-                                  :artifact-id artifact-id
-                                  :versions versions
-                                  :origin :maven-central}
-                           description (assoc :description description))))))
-                 artifact-ids)}))
+     :artifacts (->> artifact-ids
+                     (mapv
+                      (fn [artifact-id]
+                        (let [{:keys [etag] :as cached-artifact} (some #(when (= artifact-id (:artifact-id %)) %) artifacts)
+                              url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
+                              artifact-response (fetch ctx url (when etag {:headers {"If-None-Match" etag}}))]
+                          (if (= 304 (:status artifact-response))
+                            cached-artifact
+                            (let [etag (get-in artifact-response [:headers "etag"])
+                                  versions (parse-artifact-versions (:body artifact-response))
+                                  description (fetch-maven-description ctx group-id artifact-id (first versions))]
+                              (cond-> {:etag etag
+                                       :group-id group-id
+                                       :artifact-id artifact-id
+                                       :versions versions
+                                       :origin :maven-central}
+                                description (assoc :description description)))))))
+                     (sort-by :artifact-id)
+                     (into []))}))
 
 (defn- cache-dir []
   (fs/file "resources" "maven-central-cache"))
