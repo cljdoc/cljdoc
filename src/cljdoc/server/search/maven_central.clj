@@ -199,8 +199,8 @@
              requests (:requests @ctx)]
          (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven repository"
                     (->> groups-after
-                        (mapcat :artifacts)
-                        count)
+                         (mapcat :artifacts)
+                         count)
                     (/ (- end-ts start-ts) 1000.0)
                     (count requests))
          (when (or force-fetch? (not @last-fetch-time) (not= groups-before groups-after))
