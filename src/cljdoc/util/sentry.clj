@@ -120,7 +120,12 @@
                          ;; Lee interpretation: "root of the tree" might be misleading. I think this means
                          ;; root cause? The logback sentry appender lists cause last and assigns it id of 0.
                          :exception_id ndx
-                         :data (:data ex)} ;; this will get translated to json so won't look like :keywords
+                         ;; this will get translated to json so we str to preserve colon in :keywords
+                         ;; sentry.io doesn't display when map is nested, so adapt accordingly
+                         :data (reduce-kv (fn [m k v]
+                                            (assoc m (str k) (pr-str v)))
+                                          {}
+                                          (:data ex)) }
              :stacktrace {:frames (mapv (fn [frame] (frame->sentry frame config))
                                         (:frames ex))}})
           exceptions (reverse (range 0 cnt-exes)))))
@@ -198,8 +203,7 @@
                   payload-json)]
     ;; TODO: sentry will return 429 with a Retry-After header on rate-limiting
     ;; https://develop.sentry.dev/sdk/expected-features/rate-limiting/
-    #_(http/post url {:body body})
-    (println "-body->" body)))
+    (http/post url {:body body})))
 
 (comment
   (str (Instant/now))
@@ -209,5 +213,8 @@
 
   (log/error (ex-info "ex msg" {:ex :data}) "log msg")
 
+  (log/error "just a message")
+
+  (log/error (ex-info "ex msg2" {:ex {:nested :data}}) "nested ex data")
 
   :eoc)
