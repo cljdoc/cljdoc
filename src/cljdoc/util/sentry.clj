@@ -33,7 +33,9 @@
   "We initalize at load time rather than via integrant because we need logging to be up as early as possible"
   {:sentry-dsn (cfg/sentry-dsn)
    :sentry-project-id (extract-project-id (cfg/sentry-dsn))
-   :environment "production"
+   :environment (if (= :prod (cfg/profile))
+                  "production"
+                  "dev")
    :release (cfg/version)
    :sentry-client {:name "cljdoc.clojure"
                    :version "0.0.1"}
