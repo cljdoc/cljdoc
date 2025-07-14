@@ -79,6 +79,7 @@
         clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "3.0.0"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
+        prone/prone {:mvn/version "2021-04-23"}              ;; exceptions->data for sentry
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.1.234"}      ;; general caching library
         org.clojure/core.memoize {:mvn/version "1.1.266"}    ;; function caching library
