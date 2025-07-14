@@ -108,6 +108,15 @@
              :mechanism {:type (if (= (dec cnt-exes) ndx)
                                  "cljdoc-sentry-appender"
                                  "chained")
+                         ;; https://develop.sentry.dev/sdk/data-model/event-payloads/exception/ under exception_id
+                         ;; The SDK should assign simple incrementing integers
+                         ;; to each exception in the tree, starting with 0 for the root of the tree.
+                         ;; In other words, when flattened into the list provided in the exception
+                         ;; values on the event, the last exception in the list should have ID 0,
+                         ;; the previous one should have ID 1, the next previous should have ID 2, etc.
+                         ;;
+                         ;; Lee interpretation: "root of the tree" might be misleading. I think this means
+                         ;; root cause? The logback sentry appender lists cause last and assigns it id of 0.
                          :exception_id ndx
                          :data (:data ex)} ;; this will get translated to json so won't look like :keywords
              :stacktrace {:frames (mapv (fn [frame] (frame->sentry frame config))
@@ -147,9 +156,7 @@
              acc [ex]]
         (if-let [caused-by (:caused-by ex)]
           (recur caused-by (conj acc caused-by))
-          (->> acc
-               reverse
-               (mapv #(dissoc % :caused-by))))))))
+          (mapv #(dissoc % :caused-by) acc))))))
 
 (defn build-event-payload
   [{:keys [sentry-client server-name release environment] :as config}
