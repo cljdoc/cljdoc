@@ -12,7 +12,7 @@
 (def log-file (or (System/getenv "CLJDOC_LOG_FILE") "log/cljdoc.log"))
 
 (defn log-event->map
-  "Generalize log event for consumption by sentry"
+  "Convert log event for consumption by sentry"
   [^ILoggingEvent event]
   {:logger (.getLoggerName event)
    :log-message (.getFormattedMessage event)
@@ -31,7 +31,7 @@
            (start []
              (if-not (:sentry-dsn config)
                ;; TODO consider a custom error logger for errors when trying to talk to sentry
-               ;; TODO if we dont' call start on super I expect this means appender is not started?
+               ;; TODO if we dont' call `start` on super I expect this means appender is not started?
                (println "WARN: Sentry DSN not configured, errors will not be sent to sentry.io.")
                (let [^UnsynchronizedAppenderBase this this]
                  (proxy-super start))))
@@ -57,15 +57,6 @@
                   (assoc :log-min-level Level/WARN))
               {:appender :rolling-file
                :file "log/cljdoc.log"
-               :rolling-policy {:type :time-based
-                                :max-history 14 ;; days (based on pattern)
-                                :pattern "%d{yyyy-MM-dd}"}}]})
-
-(unilog/start-logging!
- {:level   :info
-  :console true
-  :appenders [{:appender :rolling-file
-               :file log-file
                :rolling-policy {:type :time-based
                                 :max-history 14 ;; days (based on pattern)
                                 :pattern "%d{yyyy-MM-dd}"}}]})
