@@ -32,7 +32,7 @@
              (if-not (:sentry-dsn config)
                ;; TODO consider a custom error logger for errors when trying to talk to sentry
                ;; TODO if we dont' call `start` on super I expect this means appender is not started?
-               (println "WARN: Sentry DSN not configured, errors will not be sent to sentry.io.")
+               (println "SENTRY_WARN: Sentry DSN not configured, errors will not be sent to sentry.io.")
                (let [^UnsynchronizedAppenderBase this this]
                  (proxy-super start))))
            (append [^ILoggingEvent event]
@@ -46,7 +46,7 @@
                      (sentry/capture-log-event config log-event)))
                  (catch Throwable t
                    ;; TODO consider a custom error logger for errors when trying to talk to sentry
-                   (println "ERROR: unable to send log event to sentry.io:" event t))))))))
+                   (println "SENTRY_ERROR: unable to send log event to sentry.io:" event t))))))))
 
 
 (unilog/start-logging!
