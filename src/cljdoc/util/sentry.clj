@@ -189,19 +189,25 @@
                                 {:config config
                                  :log-event log-event
                                  :http-request *http-request*})
-        payload (json/generate-string payload)
-        payload-length (alength (.getBytes payload "UTF-8"))
-        item (assoc item :length payload-length)
+        payload-json (json/generate-string payload)
+        payload-json-length (alength (.getBytes payload-json "UTF-8"))
+        item (assoc item :length payload-json-length)
         header (assoc header :sent_at (str (Instant/now)))
-        body (->> [header item payload]
-                  (mapv json/generate-string)
-                  (string/join "\n"))]
+        body (str (json/generate-string header) "\n"
+                  (json/generate-string item) "\n"
+                  payload-json)]
     ;; TODO: sentry will return 429 with a Retry-After header on rate-limiting
     ;; https://develop.sentry.dev/sdk/expected-features/rate-limiting/
-    (http/post url {:body body})))
+    #_(http/post url {:body body})
+    (println "-body->" body)))
 
 (comment
   (str (Instant/now))
   ;; => "2025-07-01T17:22:50.697092017Z"
+
+  (require '[clojure.tools.logging :as log])
+
+  (log/error (ex-info "ex msg" {:ex :data}) "log msg")
+
 
   :eoc)
