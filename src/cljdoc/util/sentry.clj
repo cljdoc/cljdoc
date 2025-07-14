@@ -217,4 +217,6 @@
 
   (log/error (ex-info "ex msg2" {:ex {:nested :data}}) "nested ex data")
 
+  (log/error (ex-info "foo" {} (ex-info "bar" {} (ex-info "cause" {}))) "booya")
+
   :eoc)
