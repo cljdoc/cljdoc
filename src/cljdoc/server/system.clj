@@ -5,7 +5,7 @@
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.clojars-stats]
             [cljdoc.server.db-backup :as db-backup]
-            [cljdoc.server.log-init]
+            [cljdoc.server.log.init]
             [cljdoc.server.metrics-logger]
             [cljdoc.server.pedestal]
             [cljdoc.server.release-monitor]

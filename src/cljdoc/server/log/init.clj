@@ -1,6 +1,6 @@
 (ns cljdoc.server.log.init
   "Some libraries have unusual default logging, jetty for instance can emit DEBUG lines.
-  We've separated out log-init to allow it to be easily required from other nses."
+  We've separated out log init to allow it to be easily required from other nses."
   (:require [babashka.fs :as fs]
             [cljdoc.log.sentry :as sentry]
             [unilog.config :as unilog])

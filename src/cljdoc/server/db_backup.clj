@@ -24,7 +24,7 @@
   (:require [babashka.fs :as fs]
             [babashka.process :as process]
             [cljdoc.s3 :as s3]
-            [cljdoc.server.log-init] ;; to quiet odd jetty DEBUG logging
+            [cljdoc.server.log.init] ;; to quiet odd jetty DEBUG logging
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [next.jdbc :as jdbc]
