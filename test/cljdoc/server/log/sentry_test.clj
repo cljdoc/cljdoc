@@ -191,7 +191,7 @@
                                                                :thread_id "some-thread"
                                                                :mechanism {:type "cljdoc-sentry-appender"
                                                                            :exception_id 0
-                                                                           :data {:some :data}}}]})]
+                                                                           :data {":some" ":data"}}}]})]
                 (sentry/build-envelope {:config test-config
                                         :log-event (assoc test-event
                                                           :log-exception (ex-info "something bad happened" {:some :data}) )}))))
@@ -204,7 +204,7 @@
                                                                :thread_id "some-thread"
                                                                :mechanism {:type "cljdoc-sentry-appender"
                                                                            :exception_id 3
-                                                                           :data {:bad1 :data1}}}
+                                                                           :data {":bad1" ":data1"}}}
                                                               {:type "clojure.lang.ExceptionInfo"
                                                                :value "bad2"
                                                                :thread_id "some-thread"
@@ -216,13 +216,13 @@
                                                                :thread_id "some-thread"
                                                                :mechanism {:type "chained"
                                                                            :exception_id 1
-                                                                           :data {:bad3 :data3}}}
+                                                                           :data {":bad3" ":data3"}}}
                                                              {:type "clojure.lang.ExceptionInfo"
                                                                :value "cause"
                                                                :thread_id "some-thread"
                                                                :mechanism {:type "chained"
                                                                            :exception_id 0
-                                                                           :data {:cause :cause-data}}}]})]
+                                                                           :data {":cause" ":cause-data"}}}]})]
                 (sentry/build-envelope {:config test-config
                                         :log-event (assoc test-event
                                                           :log-exception (ex-info "bad1" {:bad1 :data1}
