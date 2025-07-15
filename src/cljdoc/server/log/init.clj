@@ -2,7 +2,7 @@
   "Some libraries have unusual default logging, jetty for instance can emit DEBUG lines.
   We've separated out log init to allow it to be easily required from other nses."
   (:require [babashka.fs :as fs]
-            [cljdoc.log.sentry :as sentry]
+            [cljdoc.server.log.sentry :as sentry]
             [unilog.config :as unilog])
   (:import [ch.qos.logback.classic Level LoggerContext]
            [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy]

@@ -37,8 +37,8 @@
    :timeout-ms 3000
    :app-namespaces ["cljdoc"]})
 
-(def sample-source "cljdoc/server/log/sentry/sample_source.clj")
-(def sample-source-small "cljdoc/util/sentry/sample_source_small.clj")
+(def sample-source       "cljdoc/server/log/sentry/sample_source.clj")
+(def sample-source-small "cljdoc/server/log/sentry/sample_source_small.clj")
 
 (t/deftest frame->sentry-context-test
   (doseq [[desc file-path line-number expected-pre-context expected-context-line expected-post-context]
@@ -124,7 +124,7 @@
       5]]]
   (t/is (match? (m/nested-equals (cond-> {:filename "filename.clj"
                                           :lineno line-number
-                                          :function "cljdoc.util.sentry/baz"
+                                          :function "cljdoc.server.log.sentry/baz"
                                           :in_app true}
                                    expected-pre-context (assoc :pre_context expected-pre-context)
                                    expected-context-line (assoc :context_line expected-context-line)
@@ -132,7 +132,7 @@
                 (sentry/frame->sentry {:class-path-url file-path
                                        :file-name "filename.clj"
                                        :line-number line-number
-                                       :package "cljdoc.util.sentry"
+                                       :package "cljdoc.server.log.sentry"
                                        :method-name "baz"}
                                       {:app-namespaces ["cljdoc"]}))
         desc)))

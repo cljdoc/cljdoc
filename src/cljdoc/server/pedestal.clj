@@ -29,6 +29,7 @@
             [cljdoc.server.api :as api]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.log.init] ;; to quiet odd jetty DEBUG logging
+            [cljdoc.server.log.sentry :as sentry]
             [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.search.api :as search-api]
@@ -36,7 +37,6 @@
             [cljdoc.storage.api :as storage]
             [cljdoc.util.datetime :as dt]
             [cljdoc.util.repositories :as repos]
-            [cljdoc.util.sentry :as sentry]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as string]
