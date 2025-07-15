@@ -1,4 +1,4 @@
-(ns cljdoc.util.sentry
+(ns cljdoc.server.log.sentry
   "Support for sending log events to sentry.
   Some code lifted from https://github.com/sethtrain/raven-clj, mods:
   - moved to current, non-deprecated, sentry.io evenlope REST API

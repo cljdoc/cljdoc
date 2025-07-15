@@ -1,6 +1,6 @@
-(ns cljdoc.util.sentry-test
+(ns cljdoc.server.log.sentry-test
   "Inspired by, and lifted from, raven-clj tests"
-  (:require [cljdoc.util.sentry :as sentry]
+  (:require [cljdoc.server.log.sentry :as sentry]
             [clojure.test :as t]
             [lambdaisland.uri :as uri]
             [matcher-combinators.matchers :as m]
@@ -37,52 +37,55 @@
    :timeout-ms 3000
    :app-namespaces ["cljdoc"]})
 
+(def sample-source "cljdoc/server/log/sentry/sample_source.clj")
+(def sample-source-small "cljdoc/util/sentry/sample_source_small.clj")
+
 (t/deftest frame->sentry-context-test
   (doseq [[desc file-path line-number expected-pre-context expected-context-line expected-post-context]
           [["context mid file"
-            "cljdoc/util/sentry/sample_source.clj"
+            sample-source
             10
             [";; line 5" ";; line 6" ";; line 7" ";; line 8" ";; line 9"]
           ";; line 10"
           [";; line 11" ";; line 12" ";; line 13" ";; line 14" ";; line 15"]]
      ["context first lines of file"
-      "cljdoc/util/sentry/sample_source.clj"
+      sample-source
       1
       []
-      "(ns cljdoc.util.sentry.sample-source)"
+      "(ns cljdoc.server.log.sentry.sample-source)"
       [";; line 2" ";; line 3" ";; line 4" ";; line 5" ";; line 6"]]
      ["context last lines of file"
-      "cljdoc/util/sentry/sample_source.clj"
+      sample-source
       15
       [";; line 10" ";; line 11" ";; line 12" ";; line 13" ";; line 14"]
       ";; line 15"
       [";; line 16" ";; line 17" ";; line 18" ";; line 19" ";; line 20"]]
      ["target line reduces pre-context"
-      "cljdoc/util/sentry/sample_source.clj"
+      sample-source
       3
-      ["(ns cljdoc.util.sentry.sample-source)" ";; line 2"]
+      ["(ns cljdoc.server.log.sentry.sample-source)" ";; line 2"]
       ";; line 3"
       [";; line 4" ";; line 5" ";; line 6" ";; line 7" ";; line 8"]]
      ["target line reduces post-context"
-      "cljdoc/util/sentry/sample_source.clj"
+      sample-source
       18
       [";; line 13" ";; line 14" ";; line 15" ";; line 16" ";; line 17"]
       ";; line 18"
       [";; line 19" ";; line 20"]]
      ["target line eliminates post-context"
-      "cljdoc/util/sentry/sample_source.clj"
+      sample-source
       20
       [";; line 15" ";; line 16" ";; line 17" ";; line 18" ";; line 19"]
       ";; line 20"
       []]
      ["target line out of bounds zero"
-      "cljdoc/util/sentry/sample_source.clj"
+      sample-source
       0]
      ["target line out of bounds negative"
-      "cljdoc/util/sentry/sample_source.clj"
+      sample-source
       -1]
      ["target line out of bounds upper"
-      "cljdoc/util/sentry/sample_source.clj"
+      sample-source
       21]
      ;; file missing
      ["file is missing"
@@ -90,34 +93,34 @@
       3]
      ;; small file
      ["small file 0"
-      "cljdoc/util/sentry/sample_source_small.clj"
+      sample-source-small
       0]
      ["small file 1"
-      "cljdoc/util/sentry/sample_source_small.clj"
+      sample-source-small
       1
       []
-      "(ns cljdoc.util.sentry.sample-source-small)"
+      "(ns cljdoc.server.log.sentry.sample-source-small)"
       [";; line 2" ";; line 3" ";; line 4"]]
      ["small file 2"
-      "cljdoc/util/sentry/sample_source_small.clj"
+      sample-source-small
       2
-      ["(ns cljdoc.util.sentry.sample-source-small)"]
+      ["(ns cljdoc.server.log.sentry.sample-source-small)"]
       ";; line 2"
       [ ";; line 3" ";; line 4"]]
      ["small file 3"
-      "cljdoc/util/sentry/sample_source_small.clj"
+      sample-source-small
       3
-      ["(ns cljdoc.util.sentry.sample-source-small)" ";; line 2"]
+      ["(ns cljdoc.server.log.sentry.sample-source-small)" ";; line 2"]
       ";; line 3"
       [";; line 4"]]
      ["small file 4"
-      "cljdoc/util/sentry/sample_source_small.clj"
+      sample-source-small
       4
-      ["(ns cljdoc.util.sentry.sample-source-small)" ";; line 2" ";; line 3"]
+      ["(ns cljdoc.server.log.sentry.sample-source-small)" ";; line 2" ";; line 3"]
       ";; line 4"
       []]
      ["small file 5"
-      "cljdoc/util/sentry/sample_source_small.clj"
+      sample-source-small
       5]]]
   (t/is (match? (m/nested-equals (cond-> {:filename "filename.clj"
                                           :lineno line-number

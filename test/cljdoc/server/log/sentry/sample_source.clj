@@ -1,4 +1,4 @@
-(ns cljdoc.util.sentry.sample-source)
+(ns cljdoc.server.log.sentry.sample-source)
 ;; line 2
 ;; line 3
 ;; line 4
