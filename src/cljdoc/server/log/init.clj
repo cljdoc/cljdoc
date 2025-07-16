@@ -11,7 +11,7 @@
   (:import [ch.qos.logback.classic Level LoggerContext Logger]
            [ch.qos.logback.classic.encoder PatternLayoutEncoder ]
            [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy]
-           [ch.qos.logback.core UnsynchronizedAppenderBase ConsoleAppender OutputStreamAppender ]
+           [ch.qos.logback.core Appender UnsynchronizedAppenderBase ConsoleAppender OutputStreamAppender ]
            [ch.qos.logback.core.encoder Encoder]
            [ch.qos.logback.core.rolling RollingFileAppender TimeBasedRollingPolicy]
            [ch.qos.logback.core.status OnFileStatusListener StatusManager StatusListener]))
@@ -46,6 +46,7 @@
            (append [^ILoggingEvent event]
              (when (:sentry-dsn config)
                (try
+                 ;; TODO Probably more idiomatic to specify as a logback filter?...
                  (when (or (.isGreaterOrEqual (.getLevel event) Level/ERROR)
                            ;; tea-time logs errors at WARN, we consider them errors
                            (and (= "tea-time.core" (.getLoggerName event))
@@ -92,6 +93,7 @@
 (defn- add-rolling-file-appender ^OutputStreamAppender [ctx ^Encoder encoder]
   (let [^RollingFileAppender appender (RollingFileAppender.)]
       (.setContext appender ctx)
+      (.setName appender "rolling-file")
       (.setFile appender log-file)
       (.setRollingPolicy appender (doto (TimeBasedRollingPolicy.)
                                     (.setContext ctx)
@@ -99,18 +101,27 @@
                                     (.setFileNamePattern (rolling-log-filename log-file))
                                     (.setParent appender)
                                     (.start)))
-      (.setName appender "rolling-file")
       (.setEncoder appender encoder)
       (.start appender)
       appender))
 
-(defn configure [^LoggerContext ctx]
-  (println "hello from clojure configurator" ctx)
+(defn- add-sentry-appender ^OutputStreamAppender [ctx sentry-config]
+  (let [^Appender appender (sentry-appender sentry-config)]
+    (.setContext appender ctx)
+    (.setName appender "sentry")
+    (.start appender)
+    appender))
+
+(defn configure
+  "Invoked by cljdoc.sever.log.LogConfigurator (java)"
+  [^LoggerContext ctx]
   (add-status-manager ctx)
   (let [encoder (add-pattern-encoder ctx)
         console-appender (add-console-appender ctx encoder)
         rolling-file-appender (add-rolling-file-appender ctx encoder)
+        sentry-appender (add-sentry-appender ctx sentry/config)
         ^Logger root-logger (.getLogger ctx Logger/ROOT_LOGGER_NAME)]
     (.setLevel root-logger Level/INFO)
     (.addAppender root-logger console-appender)
-    (.addAppender root-logger rolling-file-appender)))
+    (.addAppender root-logger rolling-file-appender)
+    (.addAppender root-logger sentry-appender)))
