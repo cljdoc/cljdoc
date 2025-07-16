@@ -116,6 +116,15 @@ It is important to us that cljdoc is a good citizen and never knowingly abuses t
 
 This section covers any specific notes we have about those services.
 
+=== Logging & Sentry.io
+Cljdoc sends `ERROR` level log events to sentry.io.
+(Cljdoc also sends tea-time `WARN` level events, because we also find these interesting).
+We only sends log events to sentry.io in production.
+
+Logback logs on logging itself can be found in `log/logger.log`.
+This log includes `ERROR` events when we the cljdoc sentry appender fails to log to sentry.io.
+If you are on the ops team, it is a good idea to have an occassional peek at this file on production.
+
 === Maven Central Search API
 Most artifacts are hosted on clojars, but a handful (most notably org.clojure artifacts) are hosted on Maven Central.
 Cljdoc users the https://central.sonatype.org/search/rest-api-guide/[Maven Central Search REST API] to discover new releases.
