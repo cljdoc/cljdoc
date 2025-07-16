@@ -1,18 +1,20 @@
 (ns cljdoc.server.log.init
-  "Some libraries have unusual default logging, jetty for instance can emit DEBUG lines.
-  We've separated out log init to allow it to be easily required from other nses."
+  "Initialize our logging via [[configure]] which is called by LogConfigurator.java
+  which is invoked as a service. Using a logback Configurator has 3 advantages:
+  1. Logging is initialized very early for us. We don't need to worry about it.
+  2. We get full access to features of logback (as opposed to using an abstraction like unilog which only
+     exposes a subset of features).
+  3. We can access and inject any config easily and programmatically. I prefer this over
+     less convenient mechanism available in a logback.xml file, for example."
   (:require [babashka.fs :as fs]
             [cljdoc.server.log.sentry :as sentry])
   (:import [ch.qos.logback.classic Level LoggerContext Logger]
            [ch.qos.logback.classic.encoder PatternLayoutEncoder ]
-           [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy Configurator Configurator$ExecutionStatus]
-           [ch.qos.logback.core Appender UnsynchronizedAppenderBase ConsoleAppender OutputStreamAppender ]
+           [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy]
+           [ch.qos.logback.core UnsynchronizedAppenderBase ConsoleAppender OutputStreamAppender ]
            [ch.qos.logback.core.encoder Encoder]
-           [ch.qos.logback.core.rolling RollingFileAppender RollingPolicy TimeBasedRollingPolicy]
-           [ch.qos.logback.core.status OnFileStatusListener StatusManager StatusListener]
-           [ch.qos.logback.core.util StatusPrinter2]
-           [java.io PrintStream]
-           [org.slf4j LoggerFactory]))
+           [ch.qos.logback.core.rolling RollingFileAppender TimeBasedRollingPolicy]
+           [ch.qos.logback.core.status OnFileStatusListener StatusManager StatusListener]))
 
 (set! *warn-on-reflection* true)
 
@@ -33,32 +35,7 @@
                     (when (instance? ThrowableProxy ex)
                       (.getThrowable ^ThrowableProxy ex)))})
 
-#_(defmethod unilog/build-appender :sentry
-  [config]
-  (assoc config
-         :appender
-         (proxy [UnsynchronizedAppenderBase] []
-           (start []
-             (if-not (:sentry-dsn config)
-               (let [^UnsynchronizedAppenderBase this this]
-                 (proxy-super addWarn "Sentry DSN not configured, logged errors will not be sent to sentry.io. This is normal for local dev."))
-               (let [^UnsynchronizedAppenderBase this this]
-                 (proxy-super start))))
-           (append [^ILoggingEvent event]
-             (when (:sentry-dsn config)
-               (try
-                 (when (or (.isGreaterOrEqual (.getLevel event) Level/ERROR)
-                           ;; tea-time logs errors at WARN, we consider them errors
-                           (and (= "tea-time.core" (.getLoggerName event))
-                                (.isGreaterOrEqual (.getLevel event) Level/WARN)))
-                   (let [log-event (log-event->map event)]
-                     (sentry/capture-log-event config log-event)))
-                 (catch Throwable t
-                   (let [^UnsynchronizedAppenderBase this this]
-                     (proxy-super addError (str "Unable to forward log event event to sentry.io:" event) t)))))))))
-
-
-#_(defn sentry-appender [config]
+(defn sentry-appender [config]
   (proxy [UnsynchronizedAppenderBase] []
            (start []
              (if-not (:sentry-dsn config)
@@ -137,16 +114,3 @@
     (.setLevel root-logger Level/INFO)
     (.addAppender root-logger console-appender)
     (.addAppender root-logger rolling-file-appender)))
-
-#_(unilog/start-logging!
- {:level   :info
-  :console true
-  :appenders [(-> {:appender :sentry}
-                  (merge sentry/config)
-                  (assoc :log-min-level Level/WARN))
-              {:appender :rolling-file
-               :file "log/cljdoc.log"
-               :rolling-policy {:type :time-based
-                                :max-history 14 ;; days (based on pattern)
-                                :pattern "%d{yyyy-MM-dd}"}}]})
-
