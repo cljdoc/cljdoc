@@ -2,11 +2,13 @@
   "Some libraries have unusual default logging, jetty for instance can emit DEBUG lines.
   We've separated out log init to allow it to be easily required from other nses."
   (:require [babashka.fs :as fs]
-            [cljdoc.server.log.sentry :as sentry]
-            [unilog.config :as unilog])
-  (:import [ch.qos.logback.classic Level LoggerContext]
-           [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy]
-           [ch.qos.logback.core UnsynchronizedAppenderBase]
+            [cljdoc.server.log.sentry :as sentry])
+  (:import [ch.qos.logback.classic Level LoggerContext Logger]
+           [ch.qos.logback.classic.encoder PatternLayoutEncoder ]
+           [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy Configurator Configurator$ExecutionStatus]
+           [ch.qos.logback.core Appender UnsynchronizedAppenderBase ConsoleAppender OutputStreamAppender ]
+           [ch.qos.logback.core.encoder Encoder]
+           [ch.qos.logback.core.rolling RollingFileAppender RollingPolicy TimeBasedRollingPolicy]
            [ch.qos.logback.core.status OnFileStatusListener StatusManager StatusListener]
            [ch.qos.logback.core.util StatusPrinter2]
            [java.io PrintStream]
@@ -31,7 +33,7 @@
                     (when (instance? ThrowableProxy ex)
                       (.getThrowable ^ThrowableProxy ex)))})
 
-(defmethod unilog/build-appender :sentry
+#_(defmethod unilog/build-appender :sentry
   [config]
   (assoc config
          :appender
@@ -55,7 +57,88 @@
                    (let [^UnsynchronizedAppenderBase this this]
                      (proxy-super addError (str "Unable to forward log event event to sentry.io:" event) t)))))))))
 
-(unilog/start-logging!
+
+#_(defn sentry-appender [config]
+  (proxy [UnsynchronizedAppenderBase] []
+           (start []
+             (if-not (:sentry-dsn config)
+               (let [^UnsynchronizedAppenderBase this this]
+                 (proxy-super addWarn "Sentry DSN not configured, logged errors will not be sent to sentry.io. This is normal for local dev."))
+               (let [^UnsynchronizedAppenderBase this this]
+                 (proxy-super start))))
+           (append [^ILoggingEvent event]
+             (when (:sentry-dsn config)
+               (try
+                 (when (or (.isGreaterOrEqual (.getLevel event) Level/ERROR)
+                           ;; tea-time logs errors at WARN, we consider them errors
+                           (and (= "tea-time.core" (.getLoggerName event))
+                                (.isGreaterOrEqual (.getLevel event) Level/WARN)))
+                   (let [log-event (log-event->map event)]
+                     (sentry/capture-log-event config log-event)))
+                 (catch Throwable t
+                   (let [^UnsynchronizedAppenderBase this this]
+                     (proxy-super addError (str "Unable to forward log event event to sentry.io:" event) t))))))))
+
+(defn- add-status-manager
+  "Tell logback to info/warn/errors from logging to a file."
+  [^LoggerContext ctx]
+  (println "adding status manager")
+  (let [^StatusManager status-manager (.getStatusManager ctx)
+        ^StatusListener listener (doto (OnFileStatusListener.)
+                                   (.setContext ctx)
+                                   ;; TODO: Consider maybe timestamping? Deleting old?
+                                   (.setFilename logger-file)
+                                   .start)]
+    (.add status-manager listener)))
+
+(defn- add-pattern-encoder ^Encoder [ctx]
+  (let [^PatternLayoutEncoder encoder (PatternLayoutEncoder.)]
+      (.setContext encoder ctx)
+      (.setPattern encoder "[%level] %msg%n")
+      (.start encoder)
+      encoder))
+
+(defn- add-console-appender ^OutputStreamAppender [ctx ^Encoder encoder]
+  (let [^OutputStreamAppender appender (ConsoleAppender.)]
+      (.setContext appender ctx)
+      (.setName appender "console")
+      (.setEncoder appender encoder)
+      (.start appender)
+      appender))
+
+(defn- rolling-log-filename [log-file]
+  (let [path (fs/parent log-file)
+        file-name (fs/file-name log-file)
+        [base-name ext] (fs/split-ext file-name)]
+    (str (fs/path path (str base-name "-%d{yyyy-MM-dd}" "." ext)))))
+
+(defn- add-rolling-file-appender ^OutputStreamAppender [ctx ^Encoder encoder]
+  (let [^RollingFileAppender appender (RollingFileAppender.)]
+      (.setContext appender ctx)
+      (.setFile appender log-file)
+      (.setRollingPolicy appender (doto (TimeBasedRollingPolicy.)
+                                    (.setContext ctx)
+                                    (.setMaxHistory 14) ;; max files to keep
+                                    (.setFileNamePattern (rolling-log-filename log-file))
+                                    (.setParent appender)
+                                    (.start)))
+      (.setName appender "rolling-file")
+      (.setEncoder appender encoder)
+      (.start appender)
+      appender))
+
+(defn configure [^LoggerContext ctx]
+  (println "hello from clojure configurator" ctx)
+  (add-status-manager ctx)
+  (let [encoder (add-pattern-encoder ctx)
+        console-appender (add-console-appender ctx encoder)
+        rolling-file-appender (add-rolling-file-appender ctx encoder)
+        ^Logger root-logger (.getLogger ctx Logger/ROOT_LOGGER_NAME)]
+    (.setLevel root-logger Level/INFO)
+    (.addAppender root-logger console-appender)
+    (.addAppender root-logger rolling-file-appender)))
+
+#_(unilog/start-logging!
  {:level   :info
   :console true
   :appenders [(-> {:appender :sentry}
@@ -67,12 +150,3 @@
                                 :max-history 14 ;; days (based on pattern)
                                 :pattern "%d{yyyy-MM-dd}"}}]})
 
-;; register a status listener so that we can see "status" errors from our appender
-(let [^LoggerContext lc (LoggerFactory/getILoggerFactory)
-      ^StatusManager status-manager (.getStatusManager lc)
-      ^StatusListener listener (doto (OnFileStatusListener.)
-                         (.setFilename logger-file))]
-  (.add status-manager listener)
-  ;; Print any pre-existing status messages
-  (.print (doto (StatusPrinter2.)
-            (.setPrintStream (PrintStream. (fs/file logger-file)))) status-manager))
