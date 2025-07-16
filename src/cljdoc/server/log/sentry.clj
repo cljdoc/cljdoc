@@ -125,7 +125,7 @@
                          :data (reduce-kv (fn [m k v]
                                             (assoc m (str k) (pr-str v)))
                                           {}
-                                          (:data ex)) }
+                                          (:data ex))}
              :stacktrace {:frames (mapv (fn [frame] (frame->sentry frame config))
                                         (:frames ex))}})
           exceptions (reverse (range 0 cnt-exes)))))
@@ -191,9 +191,9 @@
 (defn capture-log-event [{:keys [sentry-project-id] :as config} log-event]
   (let [url (make-sentry-url sentry-project-id)
         [header item payload] (build-envelope
-                                {:config config
-                                 :log-event log-event
-                                 :http-request *http-request*})
+                               {:config config
+                                :log-event log-event
+                                :http-request *http-request*})
         payload-json (json/generate-string payload)
         payload-json-length (alength (.getBytes payload-json "UTF-8"))
         item (assoc item :length payload-json-length)

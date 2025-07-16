@@ -9,10 +9,10 @@
 (defn- make-dsn
   [opts]
   (str
-    (merge (uri/uri "https://example.com")
-           {:user "b70a31b3510c4cf793964a185cfe1fd0"
-            :password "b7d80b520139450f903720eb7991bf3d"}
-           opts)))
+   (merge (uri/uri "https://example.com")
+          {:user "b70a31b3510c4cf793964a185cfe1fd0"
+           :password "b7d80b520139450f903720eb7991bf3d"}
+          opts)))
 
 (t/deftest extract-project-id-test
   (doseq [[desc expected-project-id dsn]
@@ -46,109 +46,108 @@
             sample-source
             10
             [";; line 5" ";; line 6" ";; line 7" ";; line 8" ";; line 9"]
-          ";; line 10"
-          [";; line 11" ";; line 12" ";; line 13" ";; line 14" ";; line 15"]]
-     ["context first lines of file"
-      sample-source
-      1
-      []
-      "(ns cljdoc.server.log.sentry.sample-source)"
-      [";; line 2" ";; line 3" ";; line 4" ";; line 5" ";; line 6"]]
-     ["context last lines of file"
-      sample-source
-      15
-      [";; line 10" ";; line 11" ";; line 12" ";; line 13" ";; line 14"]
-      ";; line 15"
-      [";; line 16" ";; line 17" ";; line 18" ";; line 19" ";; line 20"]]
-     ["target line reduces pre-context"
-      sample-source
-      3
-      ["(ns cljdoc.server.log.sentry.sample-source)" ";; line 2"]
-      ";; line 3"
-      [";; line 4" ";; line 5" ";; line 6" ";; line 7" ";; line 8"]]
-     ["target line reduces post-context"
-      sample-source
-      18
-      [";; line 13" ";; line 14" ";; line 15" ";; line 16" ";; line 17"]
-      ";; line 18"
-      [";; line 19" ";; line 20"]]
-     ["target line eliminates post-context"
-      sample-source
-      20
-      [";; line 15" ";; line 16" ";; line 17" ";; line 18" ";; line 19"]
-      ";; line 20"
-      []]
-     ["target line out of bounds zero"
-      sample-source
-      0]
-     ["target line out of bounds negative"
-      sample-source
-      -1]
-     ["target line out of bounds upper"
-      sample-source
-      21]
-     ;; file missing
-     ["file is missing"
-      "src/wont_find_me_anywhere.clj"
-      3]
-     ;; small file
-     ["small file 0"
-      sample-source-small
-      0]
-     ["small file 1"
-      sample-source-small
-      1
-      []
-      "(ns cljdoc.server.log.sentry.sample-source-small)"
-      [";; line 2" ";; line 3" ";; line 4"]]
-     ["small file 2"
-      sample-source-small
-      2
-      ["(ns cljdoc.server.log.sentry.sample-source-small)"]
-      ";; line 2"
-      [ ";; line 3" ";; line 4"]]
-     ["small file 3"
-      sample-source-small
-      3
-      ["(ns cljdoc.server.log.sentry.sample-source-small)" ";; line 2"]
-      ";; line 3"
-      [";; line 4"]]
-     ["small file 4"
-      sample-source-small
-      4
-      ["(ns cljdoc.server.log.sentry.sample-source-small)" ";; line 2" ";; line 3"]
-      ";; line 4"
-      []]
-     ["small file 5"
-      sample-source-small
-      5]]]
-  (t/is (match? (m/nested-equals (cond-> {:filename "filename.clj"
-                                          :lineno line-number
-                                          :function "cljdoc.server.log.sentry/baz"
-                                          :in_app true}
-                                   expected-pre-context (assoc :pre_context expected-pre-context)
-                                   expected-context-line (assoc :context_line expected-context-line)
-                                   expected-post-context (assoc :post_context expected-post-context)))
-                (sentry/frame->sentry {:class-path-url file-path
-                                       :file-name "filename.clj"
-                                       :line-number line-number
-                                       :package "cljdoc.server.log.sentry"
-                                       :method-name "baz"}
-                                      {:app-namespaces ["cljdoc"]}))
-        desc)))
-
+            ";; line 10"
+            [";; line 11" ";; line 12" ";; line 13" ";; line 14" ";; line 15"]]
+           ["context first lines of file"
+            sample-source
+            1
+            []
+            "(ns cljdoc.server.log.sentry.sample-source)"
+            [";; line 2" ";; line 3" ";; line 4" ";; line 5" ";; line 6"]]
+           ["context last lines of file"
+            sample-source
+            15
+            [";; line 10" ";; line 11" ";; line 12" ";; line 13" ";; line 14"]
+            ";; line 15"
+            [";; line 16" ";; line 17" ";; line 18" ";; line 19" ";; line 20"]]
+           ["target line reduces pre-context"
+            sample-source
+            3
+            ["(ns cljdoc.server.log.sentry.sample-source)" ";; line 2"]
+            ";; line 3"
+            [";; line 4" ";; line 5" ";; line 6" ";; line 7" ";; line 8"]]
+           ["target line reduces post-context"
+            sample-source
+            18
+            [";; line 13" ";; line 14" ";; line 15" ";; line 16" ";; line 17"]
+            ";; line 18"
+            [";; line 19" ";; line 20"]]
+           ["target line eliminates post-context"
+            sample-source
+            20
+            [";; line 15" ";; line 16" ";; line 17" ";; line 18" ";; line 19"]
+            ";; line 20"
+            []]
+           ["target line out of bounds zero"
+            sample-source
+            0]
+           ["target line out of bounds negative"
+            sample-source
+            -1]
+           ["target line out of bounds upper"
+            sample-source
+            21]
+           ;; file missing
+           ["file is missing"
+            "src/wont_find_me_anywhere.clj"
+            3]
+           ;; small file
+           ["small file 0"
+            sample-source-small
+            0]
+           ["small file 1"
+            sample-source-small
+            1
+            []
+            "(ns cljdoc.server.log.sentry.sample-source-small)"
+            [";; line 2" ";; line 3" ";; line 4"]]
+           ["small file 2"
+            sample-source-small
+            2
+            ["(ns cljdoc.server.log.sentry.sample-source-small)"]
+            ";; line 2"
+            [";; line 3" ";; line 4"]]
+           ["small file 3"
+            sample-source-small
+            3
+            ["(ns cljdoc.server.log.sentry.sample-source-small)" ";; line 2"]
+            ";; line 3"
+            [";; line 4"]]
+           ["small file 4"
+            sample-source-small
+            4
+            ["(ns cljdoc.server.log.sentry.sample-source-small)" ";; line 2" ";; line 3"]
+            ";; line 4"
+            []]
+           ["small file 5"
+            sample-source-small
+            5]]]
+    (t/is (match? (m/nested-equals (cond-> {:filename "filename.clj"
+                                            :lineno line-number
+                                            :function "cljdoc.server.log.sentry/baz"
+                                            :in_app true}
+                                     expected-pre-context (assoc :pre_context expected-pre-context)
+                                     expected-context-line (assoc :context_line expected-context-line)
+                                     expected-post-context (assoc :post_context expected-post-context)))
+                  (sentry/frame->sentry {:class-path-url file-path
+                                         :file-name "filename.clj"
+                                         :line-number line-number
+                                         :package "cljdoc.server.log.sentry"
+                                         :method-name "baz"}
+                                        {:app-namespaces ["cljdoc"]}))
+          desc)))
 
 (t/deftest frame->sentry-not-in-app
   (t/is (match? (cond-> {:filename "core.clj"
                          :lineno 44
                          :function "clojure/baz"
                          :in_app false})
-                  (sentry/frame->sentry {:class-path-url "clojure/core.clj"
-                                         :file-name "core.clj"
-                                         :line-number 44
-                                         :package "clojure"
-                                         :method-name "baz"}
-                                        {:app-namespaces ["cljdoc"]}))))
+                (sentry/frame->sentry {:class-path-url "clojure/core.clj"
+                                       :file-name "core.clj"
+                                       :line-number 44
+                                       :package "clojure"
+                                       :method-name "baz"}
+                                      {:app-namespaces ["cljdoc"]}))))
 
 (def expected-header {:dsn (:sentry-dsn test-config)
                       :sdk (:sentry-client test-config)
@@ -180,8 +179,8 @@
   (t/is (match? (m/nested-equals [expected-header
                                   expected-item
                                   expected-payload])
-           (sentry/build-envelope {:config test-config
-                                   :log-event test-event}))))
+                (sentry/build-envelope {:config test-config
+                                        :log-event test-event}))))
 
 (t/deftest build-envelope-with-exception-test
   (t/is (match? [expected-header
@@ -194,7 +193,7 @@
                                                                            :data {":some" ":data"}}}]})]
                 (sentry/build-envelope {:config test-config
                                         :log-event (assoc test-event
-                                                          :log-exception (ex-info "something bad happened" {:some :data}) )}))))
+                                                          :log-exception (ex-info "something bad happened" {:some :data}))}))))
 
 (t/deftest build-envelope-with-chained-exception-test
   (t/is (match? [expected-header
@@ -211,13 +210,13 @@
                                                                :mechanism {:type "chained"
                                                                            :exception_id 2
                                                                            :data {}}}
-                                                             {:type "clojure.lang.ExceptionInfo"
+                                                              {:type "clojure.lang.ExceptionInfo"
                                                                :value "bad3"
                                                                :thread_id "some-thread"
                                                                :mechanism {:type "chained"
                                                                            :exception_id 1
                                                                            :data {":bad3" ":data3"}}}
-                                                             {:type "clojure.lang.ExceptionInfo"
+                                                              {:type "clojure.lang.ExceptionInfo"
                                                                :value "cause"
                                                                :thread_id "some-thread"
                                                                :mechanism {:type "chained"
@@ -239,8 +238,8 @@
   ;; => "https://b70a31b3510c4cf793964a185cfe1fd0@example.com/sentry/1?environment=test&servername=example"
 
   (sentry/build-envelope {:config test-config
-                                        :log-event (assoc test-event
-                                                          :log-exception (ex-info "something bad happened" {:some :data}) )})
+                          :log-event (assoc test-event
+                                            :log-exception (ex-info "something bad happened" {:some :data}))})
   ;; => [{:dsn "https://some-dsn-url",
   ;;      :sdk {:name "cljdoc.clojure", :version "0.0.1"},
   ;;      :sent_at :tbd}

@@ -9,7 +9,7 @@
   (:require [babashka.fs :as fs]
             [cljdoc.server.log.sentry :as sentry])
   (:import [ch.qos.logback.classic Level Logger LoggerContext]
-           [ch.qos.logback.classic.encoder PatternLayoutEncoder ]
+           [ch.qos.logback.classic.encoder PatternLayoutEncoder]
            [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy]
            [ch.qos.logback.core Appender ConsoleAppender OutputStreamAppender UnsynchronizedAppenderBase]
            [ch.qos.logback.core.encoder Encoder]
@@ -19,7 +19,7 @@
 (set! *warn-on-reflection* true)
 
 (def log-file (str (fs/absolutize (or (System/getenv "CLJDOC_LOG_FILE") "log/cljdoc.log"))))
-(def log-dir (str (fs/parent log-file)) )
+(def log-dir (str (fs/parent log-file)))
 (def logger-file (str (fs/path log-dir "logger.log")))
 (fs/create-dirs log-dir)
 
@@ -37,25 +37,25 @@
 
 (defn sentry-appender [config]
   (proxy [UnsynchronizedAppenderBase] []
-           (start []
-             (if-not (:sentry-dsn config)
-               (let [^UnsynchronizedAppenderBase this this]
-                 (proxy-super addWarn "Sentry DSN not configured, logged errors will not be sent to sentry.io. This is normal for local dev."))
-               (let [^UnsynchronizedAppenderBase this this]
-                 (proxy-super start))))
-           (append [^ILoggingEvent event]
-             (when (:sentry-dsn config)
-               (try
-                 ;; TODO Probably more idiomatic to specify as a logback filter?...
-                 (when (or (.isGreaterOrEqual (.getLevel event) Level/ERROR)
-                           ;; tea-time logs errors at WARN, we consider them errors
-                           (and (= "tea-time.core" (.getLoggerName event))
-                                (.isGreaterOrEqual (.getLevel event) Level/WARN)))
-                   (let [log-event (log-event->map event)]
-                     (sentry/capture-log-event config log-event)))
-                 (catch Throwable t
-                   (let [^UnsynchronizedAppenderBase this this]
-                     (proxy-super addError (str "Unable to forward log event event to sentry.io:" event) t))))))))
+    (start []
+      (if-not (:sentry-dsn config)
+        (let [^UnsynchronizedAppenderBase this this]
+          (proxy-super addWarn "Sentry DSN not configured, logged errors will not be sent to sentry.io. This is normal for local dev."))
+        (let [^UnsynchronizedAppenderBase this this]
+          (proxy-super start))))
+    (append [^ILoggingEvent event]
+      (when (:sentry-dsn config)
+        (try
+          ;; TODO Probably more idiomatic to specify as a logback filter?...
+          (when (or (.isGreaterOrEqual (.getLevel event) Level/ERROR)
+                    ;; tea-time logs errors at WARN, we consider them errors
+                    (and (= "tea-time.core" (.getLoggerName event))
+                         (.isGreaterOrEqual (.getLevel event) Level/WARN)))
+            (let [log-event (log-event->map event)]
+              (sentry/capture-log-event config log-event)))
+          (catch Throwable t
+            (let [^UnsynchronizedAppenderBase this this]
+              (proxy-super addError (str "Unable to forward log event event to sentry.io:" event) t))))))))
 
 (defn- add-status-manager
   "Tell logback to info/warn/errors from logging to a file."
@@ -71,18 +71,18 @@
 
 (defn- add-pattern-encoder ^Encoder [ctx]
   (let [^PatternLayoutEncoder encoder (PatternLayoutEncoder.)]
-      (.setContext encoder ctx)
-      (.setPattern encoder "[%level] %msg%n")
-      (.start encoder)
-      encoder))
+    (.setContext encoder ctx)
+    (.setPattern encoder "[%level] %msg%n")
+    (.start encoder)
+    encoder))
 
 (defn- add-console-appender ^OutputStreamAppender [ctx ^Encoder encoder]
   (let [^OutputStreamAppender appender (ConsoleAppender.)]
-      (.setContext appender ctx)
-      (.setName appender "console")
-      (.setEncoder appender encoder)
-      (.start appender)
-      appender))
+    (.setContext appender ctx)
+    (.setName appender "console")
+    (.setEncoder appender encoder)
+    (.start appender)
+    appender))
 
 (defn- rolling-log-filename [log-file]
   (let [path (fs/parent log-file)
@@ -92,18 +92,18 @@
 
 (defn- add-rolling-file-appender ^OutputStreamAppender [ctx ^Encoder encoder]
   (let [^RollingFileAppender appender (RollingFileAppender.)]
-      (.setContext appender ctx)
-      (.setName appender "rolling-file")
-      (.setFile appender log-file)
-      (.setRollingPolicy appender (doto (TimeBasedRollingPolicy.)
-                                    (.setContext ctx)
-                                    (.setMaxHistory 14) ;; max files to keep
-                                    (.setFileNamePattern (rolling-log-filename log-file))
-                                    (.setParent appender)
-                                    (.start)))
-      (.setEncoder appender encoder)
-      (.start appender)
-      appender))
+    (.setContext appender ctx)
+    (.setName appender "rolling-file")
+    (.setFile appender log-file)
+    (.setRollingPolicy appender (doto (TimeBasedRollingPolicy.)
+                                  (.setContext ctx)
+                                  (.setMaxHistory 14) ;; max files to keep
+                                  (.setFileNamePattern (rolling-log-filename log-file))
+                                  (.setParent appender)
+                                  (.start)))
+    (.setEncoder appender encoder)
+    (.start appender)
+    appender))
 
 (defn- add-sentry-appender ^OutputStreamAppender [ctx sentry-config]
   (let [^Appender appender (sentry-appender sentry-config)]
