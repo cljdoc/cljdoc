@@ -8,13 +8,13 @@
      less convenient mechanism available in a logback.xml file, for example."
   (:require [babashka.fs :as fs]
             [cljdoc.server.log.sentry :as sentry])
-  (:import [ch.qos.logback.classic Level LoggerContext Logger]
+  (:import [ch.qos.logback.classic Level Logger LoggerContext]
            [ch.qos.logback.classic.encoder PatternLayoutEncoder ]
            [ch.qos.logback.classic.spi ILoggingEvent ThrowableProxy]
-           [ch.qos.logback.core Appender UnsynchronizedAppenderBase ConsoleAppender OutputStreamAppender ]
+           [ch.qos.logback.core Appender ConsoleAppender OutputStreamAppender UnsynchronizedAppenderBase]
            [ch.qos.logback.core.encoder Encoder]
            [ch.qos.logback.core.rolling RollingFileAppender TimeBasedRollingPolicy]
-           [ch.qos.logback.core.status OnFileStatusListener StatusManager StatusListener]))
+           [ch.qos.logback.core.status OnFileStatusListener StatusListener StatusManager]))
 
 (set! *warn-on-reflection* true)
 
