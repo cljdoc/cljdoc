@@ -19,11 +19,12 @@
 (set! *warn-on-reflection* true)
 
 (def log-file (str (fs/absolutize (or (System/getenv "CLJDOC_LOG_FILE") "log/cljdoc.log"))))
-(def log-dir (str (fs/parent log-file)))
-(def logger-file (str (fs/path log-dir "logger.log")))
+(def ^:private log-dir (str (fs/parent log-file)))
+(def ^:privat logger-file (str (fs/path log-dir "logger.log")))
+
 (fs/create-dirs log-dir)
 
-(defn log-event->map
+(defn- log-event->map
   "Convert log event for consumption by sentry"
   [^ILoggingEvent event]
   {:logger (.getLoggerName event)
@@ -35,7 +36,7 @@
                     (when (instance? ThrowableProxy ex)
                       (.getThrowable ^ThrowableProxy ex)))})
 
-(defn sentry-appender [config]
+(defn- sentry-appender [config]
   (proxy [UnsynchronizedAppenderBase] []
     (start []
       (if-not (:sentry-dsn config)
@@ -59,7 +60,7 @@
 
 (defn- add-status-manager
   "Tell logback to info/warn/errors from logging to a file."
-  [^LoggerContext ctx]
+  [^LoggerContext ctx logger-file]
   (println "adding status manager")
   (let [^StatusManager status-manager (.getStatusManager ctx)
         ^StatusListener listener (doto (OnFileStatusListener.)
@@ -69,10 +70,10 @@
                                    .start)]
     (.add status-manager listener)))
 
-(defn- add-pattern-encoder ^Encoder [ctx]
+(defn- add-pattern-encoder ^Encoder [ctx log-pattern]
   (let [^PatternLayoutEncoder encoder (PatternLayoutEncoder.)]
     (.setContext encoder ctx)
-    (.setPattern encoder "[%level] %msg%n")
+    (.setPattern encoder log-pattern)
     (.start encoder)
     encoder))
 
@@ -84,13 +85,13 @@
     (.start appender)
     appender))
 
-(defn- rolling-log-filename [log-file]
+(defn- rolling-log-filename [log-file log-file-pattern]
   (let [path (fs/parent log-file)
         file-name (fs/file-name log-file)
         [base-name ext] (fs/split-ext file-name)]
-    (str (fs/path path (str base-name "-%d{yyyy-MM-dd}" "." ext)))))
+    (str (fs/path path (str base-name log-file-pattern "." ext)))))
 
-(defn- add-rolling-file-appender ^OutputStreamAppender [ctx ^Encoder encoder]
+(defn- add-rolling-file-appender ^OutputStreamAppender [ctx log-file log-file-pattern ^Encoder encoder]
   (let [^RollingFileAppender appender (RollingFileAppender.)]
     (.setContext appender ctx)
     (.setName appender "rolling-file")
@@ -98,7 +99,7 @@
     (.setRollingPolicy appender (doto (TimeBasedRollingPolicy.)
                                   (.setContext ctx)
                                   (.setMaxHistory 14) ;; max files to keep
-                                  (.setFileNamePattern (rolling-log-filename log-file))
+                                  (.setFileNamePattern (rolling-log-filename log-file log-file-pattern ))
                                   (.setParent appender)
                                   (.start)))
     (.setEncoder appender encoder)
@@ -115,10 +116,10 @@
 (defn configure
   "Invoked by cljdoc.sever.log.LogConfigurator (java)"
   [^LoggerContext ctx]
-  (add-status-manager ctx)
-  (let [encoder (add-pattern-encoder ctx)
+  (add-status-manager ctx logger-file)
+  (let [encoder (add-pattern-encoder ctx "%p [%d] %t - %c %m%n")
         console-appender (add-console-appender ctx encoder)
-        rolling-file-appender (add-rolling-file-appender ctx encoder)
+        rolling-file-appender (add-rolling-file-appender ctx log-file "-%d{yyyy-MM-dd}" encoder)
         sentry-appender (add-sentry-appender ctx sentry/config)
         ^Logger root-logger (.getLogger ctx Logger/ROOT_LOGGER_NAME)]
     (.setLevel root-logger Level/INFO)
