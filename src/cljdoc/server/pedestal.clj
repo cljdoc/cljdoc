@@ -28,7 +28,6 @@
             [cljdoc.render.search :as render-search]
             [cljdoc.server.api :as api]
             [cljdoc.server.build-log :as build-log]
-            [cljdoc.server.log.init] ;; to quiet odd jetty DEBUG logging
             [cljdoc.server.log.sentry :as sentry]
             [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]

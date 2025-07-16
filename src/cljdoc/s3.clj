@@ -1,6 +1,5 @@
 (ns cljdoc.s3
-  (:require [cljdoc.server.log.init] ;; to quiet odd jetty DEBUG logging
-            [clojure.java.io :as io])
+  (:require [clojure.java.io :as io])
   (:import (java.lang AutoCloseable)
            (software.amazon.awssdk.auth.credentials AwsBasicCredentials AwsCredentialsProvider StaticCredentialsProvider)
            (software.amazon.awssdk.core.sync RequestBody ResponseTransformer)
