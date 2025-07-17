@@ -117,9 +117,10 @@ It is important to us that cljdoc is a good citizen and never knowingly abuses t
 This section covers any specific notes we have about those services.
 
 === Logging & Sentry.io
-Cljdoc sends `ERROR` level log events to sentry.io.
-(Cljdoc also sends tea-time `WARN` level events, because we also find these interesting).
-We only sends log events to sentry.io in production.
+Cljdoc sends `ERROR` level log events to sentry.io (in production only).
+This means anytime you call `log/error` or `log/errorf`, you feel the event is important enough for ops team review at sentry.io.
+
+Cljdoc also sends tea-time `WARN` level events, because we also find these interesting.
 
 Logback logs on logging itself can be found in `log/logger.log`.
 This log includes `ERROR` events when we the cljdoc sentry appender fails to log to sentry.io.
