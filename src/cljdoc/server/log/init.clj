@@ -97,7 +97,7 @@
     (.setRollingPolicy appender (doto (TimeBasedRollingPolicy.)
                                   (.setContext ctx)
                                   (.setMaxHistory 14) ;; max files to keep
-                                  (.setFileNamePattern (rolling-log-filename log-file log-file-pattern ))
+                                  (.setFileNamePattern (rolling-log-filename log-file log-file-pattern))
                                   (.setParent appender)
                                   (.start)))
     (.setEncoder appender encoder)
