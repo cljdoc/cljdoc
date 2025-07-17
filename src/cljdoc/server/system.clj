@@ -121,10 +121,15 @@
   {:cljdoc.util.repositories/get-pom-xml (sqlite-cache/memo-sqlite repos/get-pom-xml cache-opts)})
 
 (defn -main []
-  (ig/init
-   (cljdoc.server.system/system-config
-    (cfg/config)))
-  (deref (promise)))
+  (try
+    (ig/init
+      (cljdoc.server.system/system-config
+        (cfg/config)))
+    (throw (ex-info "oof" {}))
+    (deref (promise))
+    (catch Throwable e
+      (log/fatal e "Unexpected exception")
+      (System/exit 1))))
 
 (comment
   ;; This is the main REPL entry point into cljdoc.
