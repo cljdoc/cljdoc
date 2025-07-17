@@ -7,6 +7,7 @@
   3. We can access and inject any config easily and programmatically. I prefer this over
      less convenient mechanism available in a logback.xml file, for example."
   (:require [babashka.fs :as fs]
+            [cljdoc.config :as cfg]
             [cljdoc.server.log.sentry :as sentry])
   (:import [ch.qos.logback.classic Level Logger LoggerContext]
            [ch.qos.logback.classic.encoder PatternLayoutEncoder]
@@ -14,13 +15,14 @@
            [ch.qos.logback.core Appender ConsoleAppender OutputStreamAppender UnsynchronizedAppenderBase]
            [ch.qos.logback.core.encoder Encoder]
            [ch.qos.logback.core.rolling RollingFileAppender TimeBasedRollingPolicy]
-           [ch.qos.logback.core.status OnFileStatusListener StatusListener StatusManager]))
+           [ch.qos.logback.core.status  StatusListener StatusManager WarnStatus]
+           [cljdoc.server.log CustomFileStatusListener]))
 
 (set! *warn-on-reflection* true)
 
 (def log-file (str (fs/absolutize (or (System/getenv "CLJDOC_LOG_FILE") "log/cljdoc.log"))))
 (def ^:private log-dir (str (fs/parent log-file)))
-(def ^:privat logger-file (str (fs/path log-dir "logger.log")))
+(def ^:private logger-file (str (fs/path log-dir "logger.log")))
 
 (fs/create-dirs log-dir)
 
@@ -39,11 +41,8 @@
 (defn- sentry-appender [config]
   (proxy [UnsynchronizedAppenderBase] []
     (start []
-      (if-not (:sentry-dsn config)
-        (let [^UnsynchronizedAppenderBase this this]
-          (proxy-super addWarn "Sentry DSN not configured, logged errors will not be sent to sentry.io. This is normal for local dev."))
-        (let [^UnsynchronizedAppenderBase this this]
-          (proxy-super start))))
+      (let [^UnsynchronizedAppenderBase this this]
+        (proxy-super start)))
     (append [^ILoggingEvent event]
       (when (:sentry-dsn config)
         (try
@@ -61,14 +60,13 @@
 (defn- add-status-manager
   "Tell logback to info/warn/errors from logging to a file."
   [^LoggerContext ctx logger-file]
-  (println "adding status manager")
   (let [^StatusManager status-manager (.getStatusManager ctx)
-        ^StatusListener listener (doto (OnFileStatusListener.)
+        ^StatusListener listener (doto (CustomFileStatusListener.)
                                    (.setContext ctx)
-                                   ;; TODO: Consider maybe timestamping? Deleting old?
                                    (.setFilename logger-file)
                                    .start)]
-    (.add status-manager listener)))
+    (.add status-manager listener)
+    status-manager))
 
 (defn- add-pattern-encoder ^Encoder [ctx log-pattern]
   (let [^PatternLayoutEncoder encoder (PatternLayoutEncoder.)]
@@ -116,13 +114,13 @@
 (defn configure
   "Invoked by cljdoc.sever.log.LogConfigurator (java)"
   [^LoggerContext ctx]
-  (add-status-manager ctx logger-file)
-  (let [encoder (add-pattern-encoder ctx "%p [%d] %t - %c %m%n")
-        console-appender (add-console-appender ctx encoder)
-        rolling-file-appender (add-rolling-file-appender ctx log-file "-%d{yyyy-MM-dd}" encoder)
-        sentry-appender (add-sentry-appender ctx sentry/config)
+  (let [status-manager (add-status-manager ctx logger-file)
+        encoder (add-pattern-encoder ctx "%p [%d] %t - %c %m%n")
         ^Logger root-logger (.getLogger ctx Logger/ROOT_LOGGER_NAME)]
     (.setLevel root-logger Level/INFO)
-    (.addAppender root-logger console-appender)
-    (.addAppender root-logger rolling-file-appender)
-    (.addAppender root-logger sentry-appender)))
+    (.addAppender root-logger (add-console-appender ctx encoder))
+    (.addAppender root-logger (add-rolling-file-appender ctx log-file "-%d{yyyy-MM-dd}" encoder))
+    (if-not (cfg/sentry-dsn)
+      (.add status-manager (WarnStatus. "Sentry DSN not configured, sentry appender not started, logged errors will not be sent to sentry.io. This is normal for local dev."
+                                        ctx))
+      (.addAppender root-logger (add-sentry-appender ctx sentry/config)))))
