@@ -53,9 +53,9 @@
         (with-open [rdr (io/reader file-path)]
           (let [{:keys [line-num] :as result}
                 (loop [acc {:pre [] :target nil :post []}
-                       lines (->> (map (fn [line ndx]
-                                         [(inc ndx) line])
-                                       (line-seq rdr) (range)))]
+                       lines (map (fn [line ndx]
+                                    [(inc ndx) line])
+                                  (line-seq rdr) (range))]
                   (let [[line-num line] (first lines)]
                     (cond
                       (not line)

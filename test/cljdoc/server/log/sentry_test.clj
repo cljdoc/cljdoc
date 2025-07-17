@@ -138,10 +138,10 @@
           desc)))
 
 (t/deftest frame->sentry-not-in-app
-  (t/is (match? (cond-> {:filename "core.clj"
-                         :lineno 44
-                         :function "clojure/baz"
-                         :in_app false})
+  (t/is (match? {:filename "core.clj"
+                 :lineno 44
+                 :function "clojure/baz"
+                 :in_app false}
                 (sentry/frame->sentry {:class-path-url "clojure/core.clj"
                                        :file-name "core.clj"
                                        :line-number 44
@@ -240,104 +240,5 @@
   (sentry/build-envelope {:config test-config
                           :log-event (assoc test-event
                                             :log-exception (ex-info "something bad happened" {:some :data}))})
-  ;; => [{:dsn "https://some-dsn-url",
-  ;;      :sdk {:name "cljdoc.clojure", :version "0.0.1"},
-  ;;      :sent_at :tbd}
-  ;;     {:type "event", :content_type "application/json", :length :tbd}
-  ;;     {:sdk {:name "cljdoc.clojure", :version "0.0.1"},
-  ;;      :release "some-guid",
-  ;;      :event_id "22e296c9-6028-45ed-a57e-867a2a07b7db",
-  ;;      :level "error",
-  ;;      :logger "some.logger",
-  ;;      :environment "some-env",
-  ;;      :server_name "some-server",
-  ;;      :exception
-  ;;      {:values
-  ;;       [{:type "clojure.lang.ExceptionInfo",
-  ;;         :value "something bad happened",
-  ;;         :thread-id "some-thread",
-  ;;         :mechanism
-  ;;         {:type "cljdoc-sentry-appender", :exception_id 0, :data {:some :data}},
-  ;;         :stacktrace
-  ;;         {:frames
-  ;;          [{:filename "NO_SOURCE_FILE",
-  ;;            :lineno 201,
-  ;;            :function "cljdoc.util/invokeStatic",
-  ;;            :in_app true}
-  ;;           {:filename "NO_SOURCE_FILE",
-  ;;            :lineno 199,
-  ;;            :function "cljdoc.util/invoke",
-  ;;            :in_app true}
-  ;;           {:filename "Compiler.java",
-  ;;            :lineno 7739,
-  ;;            :function "clojure.lang/eval",
-  ;;            :in_app false}
-  ;;           {:filename "interruptible_eval.clj",
-  ;;            :lineno 106,
-  ;;            :function "nrepl.middleware.interruptible-eval/[fn]",
-  ;;            :in_app false,
-  ;;            :context_line
-  ;;            "                                  (Compiler/eval input true))]",
-  ;;            :pre_context
-  ;;            ["                  (try"
-  ;;             "                    (let [value (if eval-fn"
-  ;;             "                                  (eval-fn input)"
-  ;;             "                                  ;; If eval-fn is not provided, call"
-  ;;             "                                  ;; Compiler/eval directly for slimmer stack."],
-  ;;            :post_context
-  ;;            ["                      (set! *3 *2)"
-  ;;             "                      (set! *2 *1)"
-  ;;             "                      (set! *1 value)"
-  ;;             "                      (try"
-  ;;             "                        ;; *out* has :tag metadata; *err* does not"]}
-  ;;           {:filename "interruptible_eval.clj",
-  ;;            :lineno 101,
-  ;;            :function "nrepl.middleware.interruptible-eval/run--1435",
-  ;;            :in_app false,
-  ;;            :context_line "                  (try",
-  ;;            :pre_context
-  ;;            ["                                ;; If error happens during read phase, call"
-  ;;             "                                ;; caught-hook but don't continue executing."
-  ;;             "                                (caught e)"
-  ;;             "                                eof)))]"
-  ;;             "                (when-not (identical? input eof)"],
-  ;;            :post_context
-  ;;            ["                    (let [value (if eval-fn"
-  ;;             "                                  (eval-fn input)"
-  ;;             "                                  ;; If eval-fn is not provided, call"
-  ;;             "                                  ;; Compiler/eval directly for slimmer stack."
-  ;;             "                                  (Compiler/eval input true))]"]}
-  ;;           {:filename "session.clj",
-  ;;            :lineno 230,
-  ;;            :function "nrepl.middleware.session/session-loop--1519",
-  ;;            :in_app false,
-  ;;            :context_line "                 (r) ;; -1 stack frame this way.",
-  ;;            :pre_context
-  ;;            ["                   [exec-id ^Runnable r ^Runnable ack msg] (.take queue)"
-  ;;             "                   bindings (add-per-message-bindings msg @session)]"
-  ;;             "               (swap! state assoc :running exec-id)"
-  ;;             "               (push-thread-bindings bindings)"
-  ;;             "               (if (fn? r)"],
-  ;;            :post_context
-  ;;            ["                 (.run r))"
-  ;;             "               (swap! session (fn [current]"
-  ;;             "                                (-> (merge current (get-thread-bindings))"
-  ;;             "                                    ;; Remove vars that we don't want to save"
-  ;;             "                                    ;; into the session."]}
-  ;;           {:filename "SessionThread.java",
-  ;;            :lineno 21,
-  ;;            :function "nrepl/run",
-  ;;            :in_app false,
-  ;;            :context_line "        runFn.invoke();",
-  ;;            :pre_context
-  ;;            ["        setDaemon(true);"
-  ;;             "    }"
-  ;;             ""
-  ;;             "    @Override"
-  ;;             "    public void run() {"],
-  ;;            :post_context ["    }" "}"]}]}}]},
-  ;;      :timestamp "2025-07-01T11:12:13.123Z",
-  ;;      :logentry {:formatted "Something bad happened"},
-  ;;      :platform "clojure"}]
 
   :eoc)

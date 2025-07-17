@@ -59,7 +59,7 @@
 
 (defn- add-status-manager
   "Tell logback to info/warn/errors from logging to a file."
-  [^LoggerContext ctx logger-file]
+  ^StatusManager [^LoggerContext ctx logger-file]
   (let [^StatusManager status-manager (.getStatusManager ctx)
         ^StatusListener listener (doto (CustomFileStatusListener.)
                                    (.setContext ctx)
