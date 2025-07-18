@@ -9,7 +9,7 @@
 
 (set! *warn-on-reflection* true)
 
-(defn- group-path [project]
+(defn group-path [project]
   (string/replace (proj/group-id project) #"\." "/"))
 
 (defn- version-directory-uri
