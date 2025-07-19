@@ -18,13 +18,11 @@
    [io.pedestal.service.resources :as resources])
   (:import [jakarta.servlet.http HttpServletResponse]))
 
-
 ;; TODO: Temp fix for bug?
 (extend-protocol sp/ResponseBufferSize
   HttpServletResponse
   (response-buffer-size [response]
     (.getBufferSize response)))
-
 
 (def ^:private nop
   (interceptor/interceptor
@@ -101,14 +99,12 @@
     (-> routes
         (update :routes #(keep route-resolver %))
         ;; TODO: Seems awkward, this built-in includes interceptor, and addition is... blech
-        (update :routes #(into % (:routes (resources/resource-routes {:resource-root "public/out"})) )))))
+        (update :routes #(into % (:routes (resources/resource-routes {:resource-root "public/out"})))))))
 
 (comment
-  (conj nil 3 )
+  (conj nil 3)
 
   (routes identity {})
-
-
 
   :eoc)
 
