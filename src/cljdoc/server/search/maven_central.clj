@@ -6,7 +6,6 @@
    [cljdoc-shared.pom :as pom]
    [cljdoc.spec :as cljdoc-spec]
    [cljdoc.util.repositories :as mvn-repo]
-   [cljdoc.util.sentry :as sentry]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :as pprint]
@@ -210,7 +209,6 @@
            (caches->docs groups-after)))
        (catch Exception e
          (log/error e "Failed to download artifacts from Maven Central, returning cached artifacts")
-         (sentry/capture {:ex e})
          (when (or force-fetch? (not @last-fetch-time))
            (caches->docs groups-before)))))))
 

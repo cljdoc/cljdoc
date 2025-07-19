@@ -4,8 +4,7 @@
   Includes background jobs to download stats and prune stats that are
   no longer needed. Need is defined via a configurable retention timeframe
   specified in days."
-  (:require [cljdoc.util.sentry :as sentry]
-            [clojure.core.memoize :as memoize]
+  (:require [clojure.core.memoize :as memoize]
             [clojure.edn :as edn]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
@@ -98,8 +97,7 @@
     (try
       (wrapped-fn)
       (catch Exception e
-        (log/error e)
-        (sentry/capture {:ex e})))))
+        (log/error e "clojars-stats job error")))))
 
 (defprotocol IClojarsStats
   (download-count-max [_] "Return download count for artifact with most downloads")

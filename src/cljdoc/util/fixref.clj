@@ -185,8 +185,8 @@
                             (sort-by count)
                             first)]
         (when-not best-guess
-          (log/errorf "Did not find unique file on SCM for jar file %s - found no good candidate from candidates: %s"
-                      jar-file-path (pr-str matches)))
+          (log/warnf "Did not find unique file on SCM for jar file %s - found no good candidate from candidates: %s"
+                     jar-file-path (pr-str matches)))
         best-guess))))
 
 (defn match-files

@@ -3,7 +3,6 @@
   (:require
    [babashka.http-client :as http]
    [cljdoc.spec :as cljdoc-spec]
-   [cljdoc.util.sentry :as sentry]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
@@ -56,8 +55,7 @@
          200 (process-clojars-response res)
          (throw (ex-info "Unexpected HTTP status from Clojars" {:response res}))))
      (catch Exception e
-       (log/info e "Failed to download artifacts from Clojars, pretending there were none.")
-       (sentry/capture {:ex e})
+       (log/error e "Failed to download artifacts from Clojars, pretending there were none.")
        nil))))
 
 (s/fdef load-clojars-artifacts
