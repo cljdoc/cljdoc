@@ -52,14 +52,14 @@
   (let [port (+ 8000 (rand-int 1000))
         opensearch-base-url (format "http://localhost:%d" port)
         env-cfg {:cljdoc/server {:port port
-                             :opensearch-base-url opensearch-base-url
-                             :analysis-service :local
-                             :autobuild-clojars-releases? false
-                             :enable-db-backup? false
-                             :enable-db-restore? false
-                             :clojars-stats-retention-days 5
-                             :dir test-data-dir}
-             :cljdoc/version "some-version"}
+                                 :opensearch-base-url opensearch-base-url
+                                 :analysis-service :local
+                                 :autobuild-clojars-releases? false
+                                 :enable-db-backup? false
+                                 :enable-db-restore? false
+                                 :clojars-stats-retention-days 5
+                                 :dir test-data-dir}
+                 :cljdoc/version "some-version"}
         sys-cfg (sys/system-config env-cfg)]
     ;; start everything up, including cljdoc/pedestal-connector but don't start pedestal
     (ig/init sys-cfg (->> sys-cfg
