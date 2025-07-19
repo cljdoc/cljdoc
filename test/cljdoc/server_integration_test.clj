@@ -88,15 +88,15 @@
   (let [build-req-resp (pdt/response-for *connector*
                                          :post "/api/request-build2"
                                          :body (codec/form-encode {:project "metosin/muuntaja" :version "0.6.4"})
-                                         :headers {"Content-Type" "application/x-www-form-urlencoded"})]
+                                         :headers {"content-type" "application/x-www-form-urlencoded"})]
     (t/testing "build request"
       (t/is (match? {:status 303
-                     :headers {"Location" "/builds/1"}}
+                     :headers {:location "/builds/1"}}
                     build-req-resp)
             "Build request returns redirect to build info location"))
 
     (t/testing "build info"
-      (let [build-uri (get-in build-req-resp [:headers "Location"])
+      (let [build-uri (get-in build-req-resp [:headers :location])
             builds-html-page (pdt/response-for *connector* :get build-uri)]
 
         (t/testing "during build"
@@ -111,7 +111,7 @@
                 "build info page includes project version")
 
           (t/is (match? {:status 200
-                         :headers {"Content-Type" "application/edn"}
+                         :headers {:content-type "application/edn"}
                          :body (m/via edn/read-string {:group_id "metosin"
                                                        :artifact_id "muuntaja"
                                                        :version "0.6.4"
@@ -120,7 +120,7 @@
                 "build info as edn")
 
           (t/is (match? {:status 200
-                         :headers {"Content-Type" "application/json"}
+                         :headers {:content-type "application/json"}
                          :body (m/via json/parse-string {"group_id" "metosin"
                                                          "artifact_id" "muuntaja"
                                                          "version" "0.6.4"
@@ -142,20 +142,20 @@
                     (recur))))))
 
           (t/is (match? {:status 200
-                         :headers {"Content-Type" "text/html"}
+                         :headers {:content-type "text/html"}
                          :body #"Successfully imported 10 namespaces"}
                         (pdt/response-for *connector* :get build-uri))
                 "build info page describes api analyis")
 
           (t/is (match? {:status 200
-                         :headers {"Content-Type" "text/html"}
+                         :headers {:content-type "text/html"}
                          :body #"Git Import Completed"}
                         (pdt/response-for *connector* :get build-uri))
                 "build info page acknowledges git import")
 
           (doseq [accept ["text/html" "foobar"]]
             (t/is (match? {:status 200
-                           :headers {"Content-Type" "text/html"}
+                           :headers {:content-type "text/html"}
                            :body #"Git Import Completed"}
                           (pdt/response-for *connector*
                                             :get build-uri
@@ -166,19 +166,19 @@
     ;; we had a problem with +s with clojars
     ;; and then after an upgrade to pedestal, hence this explicit test
     (t/is (match? {:status 404
-                   :headers {"Content-Type" "text/html"}
+                   :headers {:content-type "text/html"}
                    :body #"Want to build some documentation?"}
                   (pdt/response-for *connector* :get "/d/com.github.strojure/parsesso/1.2.2+295"))))
 
   (t/testing "sitemap for built libs (used by search engines)"
     (t/is (match? {:status 200
-                   :headers {"Content-Type" "text/xml"}
+                   :headers {:content-type "text/xml"}
                    :body #"(?s)<\?xml.*metosin/muuntaja/0\.6\.4"}
                   (pdt/response-for *connector* :get "/sitemap.xml"))))
 
   (t/testing "built lib content"
     (t/is (match? {:status 302
-                   :headers {"Location" "/d/metosin/muuntaja/0.6.4/doc/readme"}}
+                   :headers {:location "/d/metosin/muuntaja/0.6.4/doc/readme"}}
                   (pdt/response-for *connector* :get "/d/metosin/muuntaja/0.6.4"))
           "lib doc page redirects to default content")
 
@@ -204,13 +204,13 @@
 
   (t/testing "searchset api (used by cljdoc)"
     (t/is (match? {:status 200
-                   :headers {"Content-Type" "application/json"}
+                   :headers {:content-type "application/json"}
                    :body (m/via json/parse-string {"namespaces" (m/via count 10)})}
                   (pdt/response-for *connector* :get "/api/searchset/metosin/muuntaja/0.6.4"))
           "searchset API for built lib")
 
     (t/is (match? {:status 200
-                   :headers {"Content-Type" "application/json"}
+                   :headers {:content-type "application/json"}
                    :body (m/via json/parse-string {"namespaces" (m/via count 10)})}
                   (pdt/response-for *connector*
                                     :get "/api/searchset/metosin/muuntaja/0.6.4"
@@ -219,7 +219,7 @@
 
   (t/testing "versions api for built artifacts"
     (t/is (match? {:status 200
-                   :headers {"Content-Type" "application/json"}
+                   :headers {:content-type "application/json"}
                    :body (m/via json/parse-string {"metosin" {"muuntaja" ["0.6.4"]}})}
                   (pdt/response-for *connector*
                                     :get "/versions/metosin/muuntaja"
@@ -227,7 +227,7 @@
           "version for artifact API as json")
 
     (t/is (match? {:status 200
-                   :headers {"Content-Type" "application/edn"}
+                   :headers {:content-type "application/edn"}
                    :body (m/via edn/read-string {"metosin" {"muuntaja" ["0.6.4"]}})}
                   (pdt/response-for *connector*
                                     :get "/versions/metosin/muuntaja"
@@ -236,8 +236,8 @@
 
   (t/testing "offline download (used by Dash)"
     (t/is (match? {:status 200
-                   :headers {"Content-Disposition" "attachment; filename=\"muuntaja-0.6.4.zip\""
-                             "Content-Type" "application/zip"}
+                   :headers {:content-disposition "attachment; filename=\"muuntaja-0.6.4.zip\""
+                             :content-type "application/zip"}
                    :zip-entries (m/embeds ["muuntaja-0.6.4/assets/js/index.js"
                                            "muuntaja-0.6.4/index.html"
                                            "muuntaja-0.6.4/doc/configuration.html"
@@ -269,7 +269,7 @@
   (t/testing "search api for available artifacts (used by cljdoc, Dash)"
     (doseq [accept ["application/json" "foobar"]]
       (t/is (match? {:status 200
-                     :headers {"Content-Type" "application/json"}
+                     :headers {:content-type "application/json"}
                      :body (m/via json/parse-string {"count" int?
                                                      "results" (m/embeds [{"artifact-id" "rewrite-clj"
                                                                            "group-id" "rewrite-clj"
@@ -287,7 +287,7 @@
       ;; kinda brittle, API only returns the top 5 results so if popularity of a lib changes
       ;; might need to adjust
       (t/is (match? {:status 200
-                     :headers {"Content-Type" "application/x-suggestions+json"}
+                     :headers {:content-type "application/x-suggestions+json"}
                      :body (m/via json/parse-string ["rewrite-clj" (m/embeds
                                                                     ["rewrite-clj/rewrite-clj "
                                                                      "net.vemv/rewrite-clj "])])}
@@ -298,7 +298,7 @@
 
   (t/testing "versions api for available artifacts (used by Dash)"
     (t/is (match? {:status 200
-                   :headers {"Content-Type" "application/json"}
+                   :headers {:content-type "application/json"}
                    :body (m/via json/parse-string (m/equals {"borkdude" {"babashka" (m/embeds ["0.2.6"])
                                                                          "rewrite-edn" (m/embeds ["0.4.6"])}}))}
                   (pdt/response-for *connector*
@@ -307,7 +307,7 @@
           "buildable versions for artifact group")
 
     (t/is (match? {:status 200
-                   :headers {"Content-Type" "application/json"}
+                   :headers {:content-type "application/json"}
                    :body (m/via json/parse-string (m/equals {"borkdude"
                                                              (m/equals {"rewrite-edn" (m/embeds ["0.4.6"])})}))}
                   (pdt/response-for *connector*
@@ -318,7 +318,7 @@
   (t/testing "versions api endpoints also serve html"
     (doseq [accept ["text/html" "foobar"]]
       (t/is (t/is (match? {:status 200
-                           :headers {"Content-Type" "text/html"}
+                           :headers {:content-type "text/html"}
                            :body #"(?s)^<!DOCTYPE html>.*borkdude*.*babashka"}
                           (pdt/response-for *connector*
                                             :get "/versions/borkdude?all=true"
@@ -326,7 +326,7 @@
                   (format "buildable versions for artifact group for accept %s" accept))))
     (doseq [accept ["text/html" "foobar"]]
       (t/is (t/is (match? {:status 200
-                           :headers {"Content-Type" "text/html"}
+                           :headers {:content-type "text/html"}
                            :body #"(?s)^<!DOCTYPE html>.*borkdude*.*rewrite-edn"}
                           (pdt/response-for *connector*
                                             :get "/versions/borkdude/rewrite-edn?all=true"
@@ -336,7 +336,7 @@
 (t/deftest api-ping-test
   (doseq [accept ["text/html" "foobar" "application/json"]]
     (t/is (match? {:status 200
-                   :headers {"Content-Type" "text/html"}
+                   :headers {:content-type "text/html"}
                    :body "pong"}
                   (pdt/response-for *connector*
                                     :get "/api/ping"
@@ -345,47 +345,47 @@
 
 (t/deftest bad-build-request-test
   (t/is (match? {:status 400
-                 :headers {"Content-Type" "text/html"}
+                 :headers {:content-type "text/html"}
                  :body "ERROR: Must specify project and version params"}
                 (pdt/response-for *connector*
                                   :post "/api/request-build2"
-                                  :headers {"Content-Type" "application/x-www-form-urlencoded"}
+                                  :headers {"content-type" "application/x-www-form-urlencoded"}
                                   :body (codec/form-encode {:aversion "1.2.3"})))
         "incorrect parms")
   (t/is (match? {:status 400
-                 :headers {"Content-Type" "text/html"}
+                 :headers {:content-type "text/html"}
                  :body "ERROR: Must specify project and version params"}
                 (pdt/response-for *connector*
                                   :post "/api/request-build2"
                                   :body (codec/form-encode {:project "rewrite-clj/rewrite-clj" :version "1.1.45"})))
         "params provided, but missing content type")
   (t/is (match? {:status 404
-                 :headers {"Content-Type" "text/html"}
+                 :headers {:content-type "text/html"}
                  :body "ERROR: project nevernever/gonnafindme version 1.2.3 not found in maven repositories"}
                 (pdt/response-for *connector*
                                   :post "/api/request-build2"
-                                  :headers {"Content-Type" "application/x-www-form-urlencoded"}
+                                  :headers {"content-type" "application/x-www-form-urlencoded"}
                                   :body (codec/form-encode {:project "nevernever/gonnafindme" :version "1.2.3"})))
         "requested lib does not exist html response"))
 
 (t/deftest bad-build-info-request-test
   (doseq [accept ["text/html" "foobar"]]
     (t/is (match? {:status 404
-                   :headers {"Content-Type" "text/html"}
+                   :headers {:content-type "text/html"}
                    :body #"(?s)^<!DOCTYPE html>.*Page not found"}
                   (pdt/response-for *connector*
                                     :get "/builds/notgonnafindthisid"
                                     :headers {"Accept" accept}))
           (format "returns html and defaults - accept %s" accept)))
   (t/is (match? {:status 404
-                 :headers {"Content-Type" "application/edn"}
+                 :headers {:content-type "application/edn"}
                  :body (m/via edn/read-string "Build not found")}
                 (pdt/response-for *connector*
                                   :get "/builds/notgonnafindthisid"
                                   :headers {"Accept" "application/edn"}))
         "accept edn")
   (t/is (match? {:status 404
-                 :headers {"Content-Type" "application/json"}
+                 :headers {:content-type "application/json"}
                  :body (m/via json/parse-string "Build not found")}
                 (pdt/response-for *connector*
                                   :get "/builds/notgonnafindthisid"
@@ -395,7 +395,7 @@
 (t/deftest bad-api-search-request-test
   (doseq [accept ["application/json" "foobar" "text/html"]]
     (t/is (match? {:status 400
-                   :headers {"Content-Type" "application/json"}
+                   :headers {:content-type "application/json"}
                    :body "ERROR: Missing q query param"}
                   (pdt/response-for *connector*
                                     :get "/api/search"
@@ -405,7 +405,7 @@
 (t/deftest bad-api-search-suggest-request-test
   (doseq [accept ["application/x-suggestions+json" "application/json" "foobar" "text/html"]]
     (t/is (match? {:status 400
-                   :headers {"Content-Type" "application/x-suggestions+json"}
+                   :headers {:content-type "application/x-suggestions+json"}
                    :body "ERROR: Missing q query param"}
                   (pdt/response-for *connector*
                                     :get "/api/search-suggest"
@@ -414,14 +414,14 @@
 
 (t/deftest bad-api-searchset-request-test
   (t/is (match? {:status 404
-                 :headers {"Content-Type" "application/json"}
+                 :headers {:content-type "application/json"}
                  :body (m/via json/parse-string {"error" #"Could not find data"})}
                 (pdt/response-for *connector*
                                   :get "/api/searchset/nevernever/gonnafindme/1.2.3"))))
 
 (t/deftest bad-download-request-test
   (t/is (match? {:status 404
-                 :headers {"Content-Type" "text/html"}
+                 :headers {:content-type "text/html"}
                  :body #"Could not find data"}
                 (pdt/response-for *connector* :get "/download/nope/nope/nope"))))
 
@@ -436,7 +436,7 @@
   (pdt/response-for *connector*
                     :post "/api/request-build2"
                     :body (codec/form-encode {:project "metosin/muuntaja" :version "0.6.4"})
-                    :headers {"Content-Type" "application/x-www-form-urlencoded"})
+                    :headers {"content-type" "application/x-www-form-urlencoded"})
 
   (pdt/response-for *connector* :get "/sitemap.xml")
   ;; => {:status 200,
