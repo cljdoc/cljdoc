@@ -51,15 +51,16 @@
                         :enable-indexer? (cfg/enable-artifact-indexer? env-config)
                         :tea-time        (ig/ref :cljdoc/tea-time)
                         :clojars-stats   (ig/ref :cljdoc/clojars-stats)}
-      :cljdoc/pedestal {:port                (cfg/get-in env-config [:cljdoc/server :port])
-                        :host                (get-in env-config [:cljdoc/server :host])
-                        :opensearch-base-url (cfg/get-in env-config [:cljdoc/server :opensearch-base-url])
-                        :build-tracker       (ig/ref :cljdoc/build-tracker)
-                        :analysis-service    (ig/ref :cljdoc/analysis-service)
-                        :storage             (ig/ref :cljdoc/storage)
-                        :cache               (ig/ref :cljdoc/cache)
-                        :searcher            (ig/ref :cljdoc/searcher)
-                        :cljdoc-version      (cfg/version env-config)}
+      :cljdoc/pedestal-connector {:port                (cfg/get-in env-config [:cljdoc/server :port])
+                                  :host                (get-in env-config [:cljdoc/server :host])
+                                  :opensearch-base-url (cfg/get-in env-config [:cljdoc/server :opensearch-base-url])
+                                  :build-tracker       (ig/ref :cljdoc/build-tracker)
+                                  :analysis-service    (ig/ref :cljdoc/analysis-service)
+                                  :storage             (ig/ref :cljdoc/storage)
+                                  :cache               (ig/ref :cljdoc/cache)
+                                  :searcher            (ig/ref :cljdoc/searcher)
+                                  :cljdoc-version      (cfg/version env-config)}
+      :cljdoc/pedestal (ig/ref :cljdoc/pedestal-connector)
       :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
       :cljdoc/db-backup (merge {:db-spec (ig/ref :cljdoc/sqlite)
                                 :cache-db-spec (-> env-config cfg/cache :db-spec)}
@@ -165,23 +166,5 @@
 
   (do (integrant.repl/halt)
       (integrant.repl/go))
-
-  ;; To invoke a URL in a started system
-  integrant.repl.state/system
-  (do
-    (require '[io.pedestal.test :as pdt])
-    (pdt/response-for
-     (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
-     :get "/api/search?q=async" #_:body :headers {"Accept" "*/*"}))
-
-  ;; reset the system and test the searchset api
-  (do
-    (integrant.repl/reset)
-    (require '[cheshire.core :as json])
-    (require '[io.pedestal.test :as pdt])
-    (-> (get-in integrant.repl.state/system [:cljdoc/pedestal :io.pedestal.http/service-fn])
-        (pdt/response-for :get "/api/searchset/seancorfield/next.jdbc/1.2.659" #_:body :headers {"Accept" "*/*"})
-        :body
-        (json/parse-string keyword)))
 
   nil)

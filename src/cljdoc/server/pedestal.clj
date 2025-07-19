@@ -43,10 +43,12 @@
             [clojure.tools.logging :as log]
             [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
-            [io.pedestal.http :as http]
+            [io.pedestal.connector :as conn]
             [io.pedestal.http.body-params :as body]
+            [io.pedestal.http.jetty :as jetty]
             [io.pedestal.http.response :as response]
-            [io.pedestal.http.ring-middlewares :as ring-middlewares]
+            [io.pedestal.http.ring-middlewares :as middlewares]
+            [io.pedestal.http.route :as http-route]
             [io.pedestal.interceptor :as interceptor]
             [lambdaisland.uri.normalize :as normalize]
             [ring.util.codec :as ring-codec])
@@ -670,29 +672,55 @@
                               (last-build-loader build-tracker)])
        (assoc route :interceptors)))
 
-(defmethod ig/init-key :cljdoc/pedestal [_ opts]
-  (log/infof "Starting pedestal on %s:%s" (:host opts) (:port opts))
-  (-> {::http/routes (routes/routes (partial route-resolver opts) {})
-       ::http/type   :jetty
-       ::http/join?  false
-       ::http/port   (:port opts)
-       ::http/host   (:host opts)
-       ;; TODO look into this some more:
-       ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
-       ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-       ::http/resource-path "public/out"
-       ::http/not-found-interceptor not-found-interceptor
-       ::http/path-params-decoder nil}
-      http/default-interceptors
-      (update ::http/interceptors #(into [sentry/interceptor
-                                          static-resource-interceptor
-                                          redirect-trailing-slash-interceptor
-                                          (ring-middlewares/not-modified)
-                                          etag-interceptor
-                                          cache-control-interceptor]
-                                         %))
-      (http/create-server)
-      (http/start)))
+(defn create-connector [opts]
+  (-> (conn/default-connector-map (:host opts) (:port opts))
+      (update :interceptors #(into [sentry/interceptor
+                                    static-resource-interceptor
+                                    redirect-trailing-slash-interceptor
+                                    (middlewares/not-modified)
+                                    etag-interceptor
+                                    cache-control-interceptor
 
-(defmethod ig/halt-key! :cljdoc/pedestal [_ server]
-  (http/stop server))
+                                    not-found-interceptor
+                                    (middlewares/content-type {:mime-types {}})
+                                    http-route/query-params
+
+                                    ;; cljdoc decouples routes from handling, specify routes here
+                                    (http-route/router (routes/routes (partial route-resolver opts) {}))] %))
+      (jetty/create-connector {:join? false})))
+
+;; (defmethod ig/init-key :cljdoc/pedestal [_ opts]
+;;   (log/infof "Starting pedestal on %s:%s" (:host opts) (:port opts))
+;;     (-> {::http/routes
+;;        ::http/type   :jetty
+;;        ::http/join?  false
+;;        ::http/port   (:port opts)
+;;        ::http/host   (:host opts)
+;;        ;; TODO look into this some more:
+;;        ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
+;;        ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
+;;        ::http/resource-path "public/out"
+;;        ::http/not-found-interceptor not-found-interceptor
+;;        ::http/path-params-decoder nil}
+;;       http/default-interceptors
+;;       (update ::http/interceptors #(into [sentry/interceptor
+;;                                           static-resource-interceptor
+;;                                           redirect-trailing-slash-interceptor
+;;                                           (ring-middlewares/not-modified)
+;;                                           etag-interceptor
+;;                                           cache-control-interceptor]
+;;                                          %))
+;;       (http/create-server)
+;;       (http/start)))
+
+(defmethod ig/init-key :cljdoc/pedestal-connector [_ opts]
+  (log/infof "Creating pedestal connector on %s:%s" (:host opts) (:port opts))
+  (create-connector opts))
+
+(defmethod ig/init-key :cljdoc/pedestal [_ connector]
+  (log/infof "Starting pedestal connector")
+  (conn/start! connector))
+
+(defmethod ig/halt-key! :cljdoc/pedestal [_ connector]
+  (log/infof "Stopping pedestal connector")
+  (conn/stop! connector))

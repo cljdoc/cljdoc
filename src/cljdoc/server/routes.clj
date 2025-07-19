@@ -12,7 +12,19 @@
   generating all routes. See docstring of `routes` for details."
   (:require
    [io.pedestal.http.route :as route]
-   [io.pedestal.interceptor :as interceptor]))
+   [io.pedestal.interceptor :as interceptor]
+   [io.pedestal.service.protocols :as sp]
+   ;; TODO: Temp fix for bug?
+   [io.pedestal.service.resources :as resources])
+  (:import [jakarta.servlet.http HttpServletResponse]))
+
+
+;; TODO: Temp fix for bug?
+(extend-protocol sp/ResponseBufferSize
+  HttpServletResponse
+  (response-buffer-size [response]
+    (.getBufferSize response)))
+
 
 (def ^:private nop
   (interceptor/interceptor
@@ -65,6 +77,8 @@
      ;; See https://github.com/cljdoc/cljdoc/issues/348
      :constraints {:project #"^[^/]+(/[^/]+)?$"}]})
 
+;; TODO: In 0.8.0 I think we can have :interceptor in input route table??
+;; So might be able to resolve before expanding?
 (defn routes
   "Return the expanded routes given the `opts` as passed to
   `io.pedestal.http.route/expand-routes`. The `route-resolver` will be
@@ -72,6 +86,7 @@
   interceptors."
   [route-resolver {:keys [host] :as opts}]
   (let [routes (->> [(when host
+                       ;; TODO: Turf?
                        ;; https://github.com/pedestal/pedestal/issues/570
                        #{(select-keys opts [:host :port :scheme])})
                      (documentation-routes)
@@ -83,7 +98,19 @@
                      (utility-routes)]
                     (reduce into #{})
                     (route/expand-routes))]
-    (update routes :routes #(keep route-resolver %))))
+    (-> routes
+        (update :routes #(keep route-resolver %))
+        ;; TODO: Seems awkward, this built-in includes interceptor, and addition is... blech
+        (update :routes #(into % (:routes (resources/resource-routes {:resource-root "public/out"})) )))))
+
+(comment
+  (conj nil 3 )
+
+  (routes identity {})
+
+
+
+  :eoc)
 
 (defn- url-for-routes
   "A variant of Pedestal's own url-for-routes but instead of
