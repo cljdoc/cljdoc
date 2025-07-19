@@ -49,6 +49,7 @@
             [io.pedestal.http.response :as response]
             [io.pedestal.http.ring-middlewares :as middlewares]
             [io.pedestal.http.route :as http-route]
+            [io.pedestal.http.secure-headers :as http-secure-headers]
             [io.pedestal.interceptor :as interceptor]
             [lambdaisland.uri.normalize :as normalize]
             [ring.util.codec :as ring-codec])
@@ -684,8 +685,10 @@
                                     not-found-interceptor
                                     (middlewares/content-type {:mime-types {}})
                                     http-route/query-params
+                                    ;; allow CDN delivered javascript
+                                    (http-secure-headers/secure-headers {:content-security-policy-settings {:object-src "'none'"}})
 
-                                    ;; cljdoc decouples routes from handling, specify routes here
+                                    ;; cljdoc decouples routes from interceptors, specify routes here
                                     (http-route/router (routes/routes (partial route-resolver opts) {}))] %))
       (jetty/create-connector {:join? false})))
 
