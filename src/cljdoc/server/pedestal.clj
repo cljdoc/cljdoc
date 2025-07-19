@@ -56,6 +56,11 @@
   (:import (java.net URLDecoder)
            (java.util Date)))
 
+;; pedestal emits deprecation warnings for internal usages of itself.
+;; This is noise to us. We use eastwood and clj-kondo to learn about
+;; deprecations, so turn this pedestal feature off.
+(System/setProperty "io.pedestal.suppress-deprecation-warnings" "true")
+
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
   based on the cache-bundle that has been injected into the context previously
