@@ -24,6 +24,8 @@
   (response-buffer-size [response]
     (.getBufferSize response)))
 
+;; Pedestal requires that each route have an interceptor, this no-op interceptor
+;; will be replaced when routes are resolved
 (def ^:private nop
   (interceptor/interceptor
    {:name ::identity-interceptor
