@@ -13,8 +13,8 @@
   (:require
    [io.pedestal.http.route :as route]
    [io.pedestal.interceptor :as interceptor]
-   [io.pedestal.service.protocols :as sp]
    ;; TODO: Temp fix for bug?
+   [io.pedestal.service.protocols :as sp]
    [io.pedestal.service.resources :as resources])
   (:import [jakarta.servlet.http HttpServletResponse]))
 
