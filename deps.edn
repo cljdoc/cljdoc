@@ -129,7 +129,7 @@
             :main-opts ["-m" "kaocha.runner"]}
 
            :clerk
-           {:extra-deps {io.github.nextjournal/clerk {:mvn/version "0.17.1102"}}}
+           {:extra-deps {io.github.nextjournal/clerk {:mvn/version "0.18.1142"}}}
 
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.9"}
