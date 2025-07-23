@@ -1,19 +1,21 @@
 (ns cljdoc.server.routes
-  "Pedestals routing is pretty nice but tying the routing table too much
-  to the handlers can be annoying when trying to generate routes outside
-  of a Pedestal server (e.g. when rendering files statically.)
+  "By default, pedestal ties routing to handlers/interceptors.
 
-  This namespace lists all routes of cljdoc and exposes some utility
-  functions to generate URLs given the routing information.
+  It is a awkward to go against the pedestal-way, but we decoupled routes
+  from handlers.
 
-  With some more work this could probably also be used from ClojureScript.
+  One big plus of decoupling is that it allows us to expose a `url-for` a given route + params
+  for use by our renderers. (There is a interceptor-scoped `url-for` in the pedestal API,
+  but it was a bit too magic for our taste).
 
-  For use with http handlers a `route-resolver` can be passed when
-  generating all routes. See docstring of `routes` for details."
+  Routes can be optionally hooked up to handlers by the `route-resolver` passed into `routes`."
   (:require
    [io.pedestal.http.route :as route]
    [io.pedestal.interceptor :as interceptor]))
 
+;; Pedestal requires an interceptor to be associated with a route, so we
+;; specify a no-op interceptor to appease it. This dummy interceptor can
+;; be replaced by the `route-resolver` passed into `routes`.
 (def ^:private nop
   (interceptor/interceptor
    {:name ::identity-interceptor
@@ -67,9 +69,10 @@
 
 (defn routes
   "Return the expanded routes given the `opts` as passed to
-  `io.pedestal.http.route/expand-routes`. The `route-resolver` will be
-  used for post processing the routes, usually setting the right
-  interceptors."
+  `io.pedestal.http.route/expand-routes`.
+
+  The `route-resolver` is used to post process the routes, and typically
+  assigns interceptors to the routes."
   [route-resolver {:keys [host] :as opts}]
   (->> [(when host
           ;; https://github.com/pedestal/pedestal/issues/570
