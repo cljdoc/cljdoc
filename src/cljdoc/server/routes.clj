@@ -89,10 +89,11 @@
        (keep route-resolver)))
 
 (defn- url-for-routes
-  "A variant of Pedestal's own url-for-routes but instead of
-  accepting path-params maps with missing parameters this one throws.
+  "A variant of Pedestal's `url-for-routes` that throws when there is a missing
+  path-param.
 
-  See https://github.com/pedestal/pedestal/issues/572"
+  Pedestal's `url-for-routes` now has a `:strict-path-params?` that will also throw,
+  but we'll stick with our version as we appriciate the reporting of the missing key."
   [routes & default-options]
   (let [{:as default-opts} default-options
         m (#'route/linker-map routes)]
