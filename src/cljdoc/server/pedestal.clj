@@ -495,13 +495,14 @@
 (def error-interceptor
   (interceptor/interceptor
    {:name ::interceptor
-    :error (fn sentry-intercept [ctx ex-info]
+    :error (fn sentry-intercept [ctx ex-info-inst]
              (binding [sentry/*http-request* (:request ctx)]
-               (log/error ex-info
-                          "Exception when processing request"
-                          (merge (dissoc (ex-data ex-info) :exception)
-                                 {:path-params (-> ctx :request :path-params)
-                                  :route-name  (-> ctx :route :route-name)})))
+               (let [ex-data (ex-data ex-info-inst)
+                     cause (:exception ex-data)
+                     log-ex (ex-info "Exception when processing request"
+                                     (dissoc ex-data :exception :exception-type)
+                                     cause)]
+                 (log/error log-ex "Unexpected exception")))
              (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))}))
 
 (def static-resource-interceptor
