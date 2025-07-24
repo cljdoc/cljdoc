@@ -21,12 +21,12 @@
     "@types/elasticlunr": "^0.9.9",
     "@types/eslint__js": "^8.42.3",
     "@types/lunr": "^2.3.7",
-    "esbuild": "^0.25.6",
+    "esbuild": "^0.25.8",
     "prettier": "^3.6.2",
     "pretty-quick": "^4.2.2",
     "svgo": "^4.0.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.36.0"
+    "typescript-eslint": "^8.38.0"
   },
   "staticFiles": {
     "staticPath": "resources/public/static"
