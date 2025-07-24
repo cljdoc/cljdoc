@@ -2,8 +2,7 @@
   (:refer-clojure :exclude [get-in])
   (:require [aero.core :as aero]
             [babashka.fs :as fs]
-            [clojure.java.io :as io]
-            [clojure.tools.logging :as log]))
+            [clojure.java.io :as io]))
 
 (defmethod aero/reader 'slurp
   [_ _tag value]
@@ -17,7 +16,7 @@
         profile        (keyword (System/getenv "CLJDOC_PROFILE"))]
     (if (contains? known-profiles profile)
       profile
-      (log/warnf "No known profile found in CLJDOC_PROFILE %s" profile))))
+      (throw (ex-info (format "Unknown config profile: %s" profile) {})))))
 
 (defn get-in
   [config-map ks]
@@ -63,8 +62,7 @@
    :dbname (let [new-path (str (fs/file (data-dir config) "cljdoc.db.sqlite"))
                  old-path (str (fs/file (data-dir config) "build-log.db"))]
              (if (fs/exists? old-path)
-               (do (log/warnf "Database needs to be moved from %s to %s" old-path new-path)
-                   old-path)
+               (throw (ex-info (format "Database needs to be moved from %s to %s" old-path new-path) {}))
                new-path))
    ;; These settings are permanent but it seems like
    ;; this is the easiest way to set them. In a migration

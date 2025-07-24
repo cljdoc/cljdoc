@@ -5,13 +5,11 @@
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.clojars-stats]
             [cljdoc.server.db-backup :as db-backup]
-            [cljdoc.server.log-init]
             [cljdoc.server.metrics-logger]
             [cljdoc.server.pedestal]
             [cljdoc.server.release-monitor]
             [cljdoc.storage.api :as storage]
             [cljdoc.util.repositories :as repos]
-            [cljdoc.util.sentry]
             [cljdoc.util.sqlite-cache :as sqlite-cache]
             [clojure.java.io :as io]
             [clojure.string :as string]
@@ -123,10 +121,14 @@
   {:cljdoc.util.repositories/get-pom-xml (sqlite-cache/memo-sqlite repos/get-pom-xml cache-opts)})
 
 (defn -main []
-  (ig/init
-   (cljdoc.server.system/system-config
-    (cfg/config)))
-  (deref (promise)))
+  (try
+    (ig/init
+     (cljdoc.server.system/system-config
+      (cfg/config)))
+    (deref (promise))
+    (catch Throwable e
+      (log/fatal e "Unexpected exception")
+      (System/exit 1))))
 
 (comment
   ;; This is the main REPL entry point into cljdoc.

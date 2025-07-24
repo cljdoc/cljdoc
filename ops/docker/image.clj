@@ -5,14 +5,16 @@
   This makes the docker context very predictable and removes the need for
   separate .dockerignore files"
   (:require [babashka.fs :as fs]
-            [babashka.tasks :as t]))
+            [babashka.tasks :as t]
+            [clojure.string :as str]))
 
 (defn create-image [cljdoc-zip cljdoc-version]
   (let [cljdoc-build "cljdoc-build"
         docker-image "cljdoc/cljdoc"
-        docker-tag (str docker-image ":" cljdoc-version)]
+        docker-tag (str docker-image ":" (str/replace cljdoc-version "/" "-"))]
     (println "building cljdoc docker image from:" cljdoc-zip)
     (println "with version:" cljdoc-version)
+    (println "and tag:" docker-tag)
     (fs/delete-tree cljdoc-build)
     ;; fs/unzip does not restore executable status, but InfoZip does so shell out.
     (t/shell "unzip" cljdoc-zip "-d" cljdoc-build)

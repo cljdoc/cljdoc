@@ -28,7 +28,7 @@
             [cljdoc.render.search :as render-search]
             [cljdoc.server.api :as api]
             [cljdoc.server.build-log :as build-log]
-            [cljdoc.server.log-init] ;; to quiet odd jetty DEBUG logging
+            [cljdoc.server.log.sentry :as sentry]
             [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.search.api :as search-api]
@@ -36,7 +36,6 @@
             [cljdoc.storage.api :as storage]
             [cljdoc.util.datetime :as dt]
             [cljdoc.util.repositories :as repos]
-            [cljdoc.util.sentry :as sentry]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as string]
@@ -493,6 +492,19 @@
 (defn load-default-static-resource-map []
   (load-client-asset-map "resources-compiled/manifest.edn"))
 
+(def error-interceptor
+  (interceptor/interceptor
+   {:name ::interceptor
+    :error (fn sentry-intercept [ctx ex-info-inst]
+             (binding [sentry/*http-request* (:request ctx)]
+               (let [ex-data (ex-data ex-info-inst)
+                     cause (:exception ex-data)
+                     log-ex (ex-info "Exception when processing request"
+                                     (dissoc ex-data :exception :exception-type)
+                                     cause)]
+                 (log/error log-ex "Unexpected exception")))
+             (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))}))
+
 (def static-resource-interceptor
   (interceptor/interceptor
    {:name  ::static-resource
@@ -683,7 +695,7 @@
        ::http/not-found-interceptor not-found-interceptor
        ::http/path-params-decoder nil}
       http/default-interceptors
-      (update ::http/interceptors #(into [sentry/interceptor
+      (update ::http/interceptors #(into [error-interceptor
                                           static-resource-interceptor
                                           redirect-trailing-slash-interceptor
                                           (ring-middlewares/not-modified)
