@@ -125,7 +125,6 @@
     (ig/init
      (cljdoc.server.system/system-config
       (cfg/config)))
-    (throw (ex-info "oof" {}))
     (deref (promise))
     (catch Throwable e
       (log/fatal e "Unexpected exception")
