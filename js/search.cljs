@@ -1,0 +1,51 @@
+(ns search
+  (:require ["preact" :refer [Component]]
+            [squint.core :refer [defclass]]
+            ["./listselect" :as listselect]))
+
+(defn- cleanSearchStr [s]
+  (.replace s "/[{}[]\"]+/g" ""))
+
+(defn- resultUri [{:keys [group_name jar_name version]}]
+  (str  "/d/" + group_name + "/" + jar_name + "/" + version))
+
+(defn SingleResultView [r isSelected selectResult]
+  ;; jar_name??
+  (let [project (if (= (:group_name r) (:jar_name r))
+                  (:group_name r)
+                  (str (:group_name r) "/" (:jar_name r)))
+        docsUri (resultUri r)
+        rowClass (if isSelected
+                   "pa3 bb b--light-gray bg-light-blue"
+                   "pa3 bb b--light-gray")]
+    #jsx [:<>
+          [:a {:class "no-underline black"
+               :href docsUri}
+           [:div {:class rowClass
+                  :onMouseOver selectResult}
+            [:h4 {:class "dib ma0"}
+             project
+             [:span {:class "ml2 gray normal"}
+              (:version r)]]
+            [:a {:class "link blue ml2"
+                 :href docsUri}
+             "view docs"]]]]))
+
+(defclass App
+  (extends Component)
+
+  (constructor [this props]
+    (super props))
+
+  Object
+  (render [this props state]
+          (let [resultsView (fn [selectResult]
+                              #jsx [:<>
+                                    [:div {:class "bg-white br1 br--bottom bb bl br b--blue w-100 absolute"
+                                           :style "top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"}
+                                     <listselect.ResultsView {:resultView SingleResultView
+                                                              :results state.results
+                                                              :selectedIndex state.selectedIndex
+                                                              :onMouseOver selectResult}]])]
+            #jsx [:<>
+                  ])))
