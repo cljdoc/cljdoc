@@ -7,7 +7,6 @@ export const squintPlugin = {
     build.onLoad({ filter: /\.cljs$/ }, async (args) => {
       let source = await fs.promises.readFile(args.path, 'utf8')
       try {
-        console.log("squint-compile:" + args.path)
         const js = compileString(source);
         return {
           contents: js,
