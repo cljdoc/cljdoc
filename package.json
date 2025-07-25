@@ -8,6 +8,7 @@
     "eslint": "eslint ."
   },
   "dependencies": {
+    "squint-cljs": "0.8.129",
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
     "elasticlunr": "^0.9.5",

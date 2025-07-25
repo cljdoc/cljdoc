@@ -8,7 +8,9 @@
             [helper.main :as main]
             [helper.shell :as shell]
             [lread.status-line :as status]
-            [pod.babashka.fswatcher :as fw]))
+            [pod.babashka.fswatcher :as fw])
+  (:import [java.time LocalDateTime]
+           [java.time.format DateTimeFormatter]))
 
 (def args-usage "Valid args: [--watch|--help]
 
@@ -46,7 +48,7 @@ Options
                  (str (fs/file source-asset-dir "*.css"))
                  (str (fs/file source-asset-dir "*.svg"))))
 
-(defn- compile-js [{:keys [js-dir js-entry-point js-out-name target-dir]}]
+#_(defn- compile-js [{:keys [js-dir js-entry-point js-out-name target-dir]}]
   (status/line :head "compile-js: transpile TypeScript to JS")
   (shell/command "npx"
                  "--yes"
@@ -60,6 +62,16 @@ Options
                  (str "--outdir=" target-dir)
                  (str js-out-name "=" (fs/file js-dir js-entry-point))
                  "--bundle"))
+
+(defn- compile-js [{:keys [js-dir js-entry-point js-out-name target-dir]}]
+  (status/line :head "compile-js: transpile Sources to JS")
+  ;; to use plugins, it seems we need to use the esbuild API
+  (shell/command "node"
+                 "esbuild/build.js"
+                 js-dir
+                 js-entry-point
+                 js-out-name
+                 target-dir))
 
 (defn- resource-map
   "Map of non-hashed to hashed resource."
@@ -84,7 +96,9 @@ Options
   (compile-copy opts)
   (compile-with-hash opts)
   (compile-js opts)
-  (generate-resource-map opts))
+  (generate-resource-map opts)
+  (status/line :detail "Completed at %s"
+               (.format (LocalDateTime/now) (DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss"))))
 
 (def ^:private changes-lock (Object.))
 
@@ -95,13 +109,14 @@ Options
     (status/line :detail "Watching for changes...")))
 
 (defn- setup-watch-compile [{:keys [source-asset-dir js-dir] :as opts}]
-  (status/line :detail "Watching for changes...")
-  (doseq [d [source-asset-dir js-dir]]
-    (fw/watch d
-              (fn [event]
-                (change-detected event opts))
-              {:recursive true}))
-  (deref (promise)))
+  (let [watch-dirs [source-asset-dir js-dir]]
+    (status/line :detail "Watching for changes in... %s" watch-dirs)
+    (doseq [d watch-dirs]
+      (fw/watch d
+                (fn [event]
+                  (change-detected event opts))
+                {:recursive true}))
+    (deref (promise))))
 
 (defn -main [& args]
   (when-let [opts (main/doc-arg-opt args-usage args)]
