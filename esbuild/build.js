@@ -3,19 +3,6 @@ import path from 'path';
 import process from 'process';
 import {squintPlugin} from './squint-plugin.js';
 
-// TODO: --minify
-// TODO: define:
-
-// esbuild.build({
-//   entryPoints: ['js/index.tsx'],
-//   target: ['es2017'],
-//   bundle: true,
-//   outdir: 'resources-compiled/public/out', // Can I pass this in somehow?
-//   entryNames: '[name].[hash]',
-//   plugins: [squintPlugin],
-// }).catch(() => process.exit(1));
-
-
 async function compileJs({ jsDir, jsEntryPoint, jsOutName, targetDir }) {
   try {
     const result = await esbuild.build({
