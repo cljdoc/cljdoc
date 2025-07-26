@@ -8,7 +8,7 @@ import {
   isNSOverviewPage,
   isNSOfflinePage,
   isProjectDocumentationPage,
-  initSrollIndicator,
+  initScrollIndicator,
   initToggleRaw,
   restoreSidebarScrollPos,
   toggleMetaDialog,
@@ -59,7 +59,7 @@ if (isNSOverviewPage()) {
 
 // Namespace page for online docs.
 if (isNSPage()) {
-  initSrollIndicator();
+  initScrollIndicator();
   initToggleRaw();
 }
 
