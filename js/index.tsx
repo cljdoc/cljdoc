@@ -19,7 +19,7 @@ import {
 import { initRecentDocLinks } from "./recent_doc_links";
 import { mountSingleDocsetSearch } from "./single-docset-search";
 import { mergeHTMLPlugin } from "./hljs-merge-plugin";
-import { copyButtonPlugin } from "./hljs-copybutton-plugin";
+import { copyButtonPlugin } from "./hljs_copy_button_plugin";
 
 export type SidebarScrollState = { libVersionPath: string; scrollTop: number };
 
