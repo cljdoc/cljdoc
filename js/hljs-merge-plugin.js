@@ -1,3 +1,6 @@
+// Pasted from https://github.com/highlightjs/highlight.js/issues/2889#issue-748412174
+// We had transcribed this to TypeScript and started to transcribe it to squint, but why?
+// It is more maitainable to use the JS provided version.
 'use strict';
 
 var originalStream;
