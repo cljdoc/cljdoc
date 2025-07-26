@@ -18,7 +18,7 @@ import {
 } from "./cljdoc";
 import { initRecentDocLinks } from "./recent_doc_links";
 import { mountSingleDocsetSearch } from "./single-docset-search";
-import { mergeHTMLPlugin } from "./hljs-merge-plugin";
+import { mergeHTMLPlugin } from "./hljs_merge_plugin";
 import { copyButtonPlugin } from "./hljs-copybutton-plugin";
 
 export type SidebarScrollState = { libVersionPath: string; scrollTop: number };
