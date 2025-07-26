@@ -145,12 +145,11 @@
                              (when meta-icon
                                (.replace (.-classList meta-icon) "dn" "db-ns"))))))))
 
-
 (defn toggleArticlesTip []
   (let [tip-toggler (query-doc "[data-id='cljdoc-js--articles-tip-toggler']")
         tip (query-doc "[data-id='cljdoc-js--articles-tip']")]
     (when (and tip-toggler tip)
-      (.set (.onClick tip-toggler)
+      (.addEventListener tip-toggler "click"
             (fn [] (.toggle (.-classList tip) "dn"))))))
 
 (defn addPrevNextPageKeyHandlers []
