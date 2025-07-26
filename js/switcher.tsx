@@ -1,6 +1,7 @@
 import { Component } from "preact";
 import fuzzysort from "fuzzysort";
-import { Library, docsUri, project } from "./library";
+import { docsUri, project } from "./library";
+import { Library } from "./library-legacy"
 import { ResultsView, ResultViewComponent } from "./listselect";
 
 export interface VisitedLibrary extends Library {

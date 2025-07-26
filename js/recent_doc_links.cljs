@@ -2,19 +2,25 @@
   (:require ["./library" :as lib]
             ["preact" :as preact]))
 
+(defn- day-date [date]
+  (Date. (.getFullYear date)
+         (.getMonth date)
+         (.getDate date)))
+
 (defn- last-viewed-message [{:keys [last_viewed]}]
-  (.log console "last_viewed" last_viewed)
   (when last_viewed
-    (let [last-viewed-date (Date. (Date/parse last_viewed))
-          days-in-ms 86400000
-          days-ago (int (/ (- (.getTime (Date.))
-                              (.getTime last-viewed-date))
-                           days-in-ms))]
-      (.log console "days ago" days-ago)
+    (let [activity-day (day-date (Date. last_viewed))
+          now-day (day-date (Date.))
+          ms-per-day 86400000
+          days-ago (int (/ (- now-day activity-day)
+                           ms-per-day))]
+
+      (.log console "days ago" activity-day now-day days-ago)
+      ;; not actually accurate because date is UTC
       (str " last viewed "
            (cond
-             (zero? days-ago) "today" ;; not actually true because could technically be yesterday
-             (= 1 days-ago) "day ago"
+             (zero? days-ago) "today"
+             (= 1 days-ago) "1 day ago"
              :else (str days-ago " days ago"))))))
 
 (defn initRecentDocLinks [doc-links]

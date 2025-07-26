@@ -1,7 +1,8 @@
 import { Component } from "preact";
 import { useState } from "preact/hooks";
 import { ResultsView, ResultViewComponent } from "./listselect";
-import { Library, docsUri, project } from "./library";
+import { docsUri, project } from "./library";
+import { Library } from "./library-legacy"
 
 // Doing types for debouncing functions is really hard.
 // https://gist.github.com/ca0v/73a31f57b397606c9813472f7493a940
