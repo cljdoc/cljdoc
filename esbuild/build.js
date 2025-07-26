@@ -23,7 +23,8 @@ async function compileJs({ jsDir, jsEntryPoint, jsOutName, targetDir }) {
     console.log(await esbuild.analyzeMetafile(result.metafile))
   } catch (error) {
     console.error('❌ Build failed:', error);
-    process.exit(1);
+    // TODO: don't want to exit when watching, comment out for now
+    // process.exit(1);
   }
 }
 

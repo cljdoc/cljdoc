@@ -16,7 +16,7 @@ import {
   addPrevNextPageKeyHandlers,
   saveSidebarScrollPos
 } from "./cljdoc";
-import { initRecentDocLinks } from "./recent-doc-links";
+import { initRecentDocLinks } from "./recent_doc_links";
 import { mountSingleDocsetSearch } from "./single-docset-search";
 import { mergeHTMLPlugin } from "./hljs-merge-plugin";
 import { copyButtonPlugin } from "./hljs-copybutton-plugin";
