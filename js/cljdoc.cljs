@@ -69,16 +69,16 @@
                                                            markdowns (query-doc-all ".markdown" parent)
                                                            raws (query-doc-all ".raw" parent)]
                                                        (doseq [[ndx markdown] (map-indexed vector markdowns)]
-                                                         (let [raw (when raws (get raws idx))]
+                                                         (let [raw (when raws (get raws ndx))]
                                                            (if (.contains (.-classList markdown) "dn")
                                                              (do
                                                                (.remove (.-classList markdown) "dn")
                                                                (when raw (.add (.-classList raw) "dn"))
-                                                               (.innerText el "raw docstring"))
+                                                               (set! (.-innerText el) "raw docstring"))
                                                              (do
-                                                               (.add (.-classlist markdown) "dn")
-                                                               (when raw (.remove (.classList raw) "dn"))
-                                                               (.innerText el "formatted docstring"))))))))))]
+                                                               (.add (.-classList markdown) "dn")
+                                                               (when raw (.remove (.-classList raw) "dn"))
+                                                               (set! (.-innerText el) "formatted docstring"))))))))))]
     (add-toggle-handlers)))
 
 (defn- lib-version-path
