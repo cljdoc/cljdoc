@@ -17,7 +17,7 @@ async function compileJs({ jsDir, jsEntryPoint, jsOutName, targetDir }) {
       entryNames: '[name].[hash]',
       bundle: true,
       metafile: true,
-      resolveExtensions: ['.ts', '.tsx', '.cljs', '.json'],
+      resolveExtensions: ['.ts', '.tsx', '.cljs', '.js', '.json'],
       plugins: [squintPlugin]
     });
     console.log(await esbuild.analyzeMetafile(result.metafile))
