@@ -1,14 +1,14 @@
 (ns cljdoc
-  (:require ["./dom" :refer [query-doc query-doc-all]]))
+  (:require ["./dom" :as dom]))
 
 (defn isNSOverviewPage []
-  (boolean (query-doc ".ns-overview-page")))
+  (boolean (dom/query-doc ".ns-overview-page")))
 
 (defn isNSPage []
-  (boolean (query-doc ".ns-page")))
+  (boolean (dom/query-doc ".ns-page")))
 
 (defn isNSOfflinePage []
-  (boolean (query-doc ".ns-offline-page")))
+  (boolean (dom/query-doc ".ns-offline-page")))
 
 (defn isProjectDocumentationPage []
   (let [path-segs  (-> window.location.pathname
@@ -17,10 +17,10 @@
          (= "d" (second path-segs)))))
 
 (defn initScrollIndicator []
-  (let [main-scroll-view (query-doc ".js--main-scroll-view")
-        sidebar-scroll-view (query-doc ".js--namespace-contents-scroll-view")
-        def-blocks (query-doc-all ".def-block")
-        def-items (query-doc-all ".def-item")
+  (let [main-scroll-view (dom/query-doc ".js--main-scroll-view")
+        sidebar-scroll-view (dom/query-doc ".js--namespace-contents-scroll-view")
+        def-blocks (dom/query-doc-all ".def-block")
+        def-items (dom/query-doc-all ".def-item")
         is-elem-visible (fn [container el]
                           (let [{:keys [y height] } (.getBoundingClientRect el)
                                 etop y
@@ -34,9 +34,9 @@
                                     (if-not (and main-scroll-view
                                              sidebar-scroll-view
                                              (is-elem-visible main-scroll-view el))
-                                      (.remove (.-classList def-item) "scroll-indicator")
+                                      (dom/remove-class def-item "scroll-indicator")
                                       (do
-                                        (.add (.-classList def-item) "scroll-indicator")
+                                        (dom/add-class def-item "scroll-indicator")
                                         (cond
                                           (zero? idx)
                                           (set! sidebar-scroll-view.scrollTop 1)
@@ -49,24 +49,24 @@
     (draw-scroll-indicator)))
 
 (defn initToggleRaw []
-  (let [toggles (query-doc-all ".js--toggle-raw")
+  (let [toggles (dom/query-doc-all ".js--toggle-raw")
         add-toggle-handlers (fn []
                               (doseq [[ndx el] (map-indexed vector toggles)]
                                 (.addEventListener el "click"
                                                    (fn []
                                                      (let [parent (.-parentElement el)
-                                                           markdowns (query-doc-all ".markdown" parent)
-                                                           raws (query-doc-all ".raw" parent)]
+                                                           markdowns (dom/query-doc-all ".markdown" parent)
+                                                           raws (dom/query-doc-all ".raw" parent)]
                                                        (doseq [[ndx markdown] (map-indexed vector markdowns)]
                                                          (let [raw (when raws (get raws ndx))]
-                                                           (if (.contains (.-classList markdown) "dn")
+                                                           (if (dom/has-class? markdown "dn")
                                                              (do
-                                                               (.remove (.-classList markdown) "dn")
-                                                               (when raw (.add (.-classList raw) "dn"))
+                                                               (dom/remove-class markdown "dn")
+                                                               (when raw (dom/add-class raw "dn"))
                                                                (set! (.-innerText el) "raw docstring"))
                                                              (do
-                                                               (.add (.-classList markdown) "dn")
-                                                               (when raw (.remove (.-classList raw) "dn"))
+                                                               (dom/add-class markdown "dn")
+                                                               (when raw (dom/remove-class raw "dn"))
                                                                (set! (.-innerText el) "formatted docstring"))))))))))]
     (add-toggle-handlers)))
 
@@ -90,14 +90,14 @@
   "Cljdoc always loads a full page.
   This means the sidebar nav scoll position needs to be restored/set."
   []
-  (when-let [main-side-bar (query-doc ".js--main-sidebar")]
+  (when-let [main-side-bar (dom/query-doc ".js--main-sidebar")]
     (let [sidebar-scroll-state (JSON/parse (or (.getItem sessionStorage "sidebarScroll") "null"))]
       (.removeItem sessionStorage "sidebarScroll")
       (when-not window.location.search
         (if (and sidebar-scroll-state
                  (= (lib-version-path) (.-libVersionPath sidebar-scroll-state)))
           (set! (.-scrollTop main-side-bar) (.-scrollTop sidebar-scroll-state))
-          (when-let [selected-elem (query-doc "a.b" main-side-bar)]
+          (when-let [selected-elem (dom/query-doc "a.b" main-side-bar)]
             (when (is-element-out-of-view selected-elem)
               (.scrollIntoView selected-elem {:behavior "instant"
                                               :block "start"}))))))))
@@ -106,8 +106,8 @@
  "Support for restoreSidebarScrollPos
   When item in sidebar is clicked saves scroll pos and lib/version to session."
   []
-  (when-let [main-side-bar (query-doc ".js--main-sidebar")]
-    (let [anchor-elems (query-doc-all "a" main-side-bar)]
+  (when-let [main-side-bar (dom/query-doc ".js--main-sidebar")]
+    (let [anchor-elems (dom/query-doc-all "a" main-side-bar)]
       (doseq [anchor anchor-elems]
         (.addEventListener anchor "click"
                            (fn []
@@ -117,33 +117,33 @@
                                (.setItem sessionStorage "sidebarScroll" (JSON/stringify data)))))))))
 
 (defn toggleMetaDialog []
-  (when (query-doc ".js--main-scroll-view")
-    (let [meta-icon (query-doc "[data-id='cljdoc-js--meta-icon']")
-          meta-dialog (query-doc "[data-id='cljdoc-js--meta-dialog']")
-          meta-close (query-doc "[data-id='cljdoc-js--meta-close']")]
+  (when (dom/query-doc ".js--main-scroll-view")
+    (let [meta-icon (dom/query-doc "[data-id='cljdoc-js--meta-icon']")
+          meta-dialog (dom/query-doc "[data-id='cljdoc-js--meta-dialog']")
+          meta-close (dom/query-doc "[data-id='cljdoc-js--meta-close']")]
       (when meta-icon
         (.addEventListener meta-icon "click"
                            (fn []
-                             (.replace (.-classList meta-icon) "db-ns" "dn")
+                             (dom/replace-class meta-icon "db-ns" "dn")
                              (when meta-dialog
-                               (.replace (.-classList meta-dialog) "dn" "db-ns")))))
+                               (dom/replace-class meta-dialog "dn" "db-ns")))))
       (when meta-close
         (.addEventListener meta-close "click"
                            (fn []
-                             (.replace (.-classList meta-dialog) "db-ns" "dn")
+                             (dom/replace-class meta-dialog "db-ns" "dn")
                              (when meta-icon
-                               (.replace (.-classList meta-icon) "dn" "db-ns"))))))))
+                               (dom/replace-class meta-icon "dn" "db-ns"))))))))
 
 (defn toggleArticlesTip []
-  (let [tip-toggler (query-doc "[data-id='cljdoc-js--articles-tip-toggler']")
-        tip (query-doc "[data-id='cljdoc-js--articles-tip']")]
+  (let [tip-toggler (dom/query-doc "[data-id='cljdoc-js--articles-tip-toggler']")
+        tip (dom/query-doc "[data-id='cljdoc-js--articles-tip']")]
     (when (and tip-toggler tip)
       (.addEventListener tip-toggler "click"
-            (fn [] (.toggle (.-classList tip) "dn"))))))
+            (fn [] (dom/toggle-class tip "dn"))))))
 
 (defn addPrevNextPageKeyHandlers []
-  (let [prev-link (query-doc "a[data-id='cljdoc-prev-article-page-link']")
-        next-link (query-doc "a[data-id='cljdoc-next-article-page-link']")]
+  (let [prev-link (dom/query-doc "a[data-id='cljdoc-prev-article-page-link']")
+        next-link (dom/query-doc "a[data-id='cljdoc-next-article-page-link']")]
     (when (or prev-link next-link)
       (.addEventListener document "keydown"
                          (fn [e]

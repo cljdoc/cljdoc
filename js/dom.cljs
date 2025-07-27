@@ -23,3 +23,6 @@
 
 (defn has-class? [el c]
   (.contains (.-classList el) c))
+
+(defn toggle-class [el c]
+  (.toggle (.-classList el) c))
