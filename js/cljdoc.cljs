@@ -1,16 +1,5 @@
-(ns cljdoc)
-
-(defn- query-doc
-  ([q elem]
-   (when elem (.querySelector elem q)))
-  ([q] (query-doc q document)))
-
-(defn- query-doc-all
-  ([q elem]
-   (.log console "qsa" q elem)
-   (when elem
-     (.querySelectorAll elem q)))
-  ([q] (query-doc-all q document)))
+(ns cljdoc
+  (:require ["./dom" :refer [query-doc query-doc-all]]))
 
 (defn isNSOverviewPage []
   (boolean (query-doc ".ns-overview-page")))
