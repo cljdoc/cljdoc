@@ -1,10 +1,10 @@
 (ns library)
 
-(defn docsUri [{:keys [group_id artifact_id version] :as foo}]
+(defn docsUri [{:keys [group-id artifact-id version] :as foo}]
   (.log console "docsUri" foo)
-  (str "/d/" + group_id + "/" artifact_id + "/" version))
+  (str "/d/" + group-id + "/" artifact-id + "/" version))
 
-(defn project [{:keys [group_id artifact_id]}]
-  (if (= group_id artifact_id)
-    group_id
-    (str group_id "/" artifact_id)))
+(defn project [{:keys [group-id artifact-id]}]
+  (if (= group-id artifact-id)
+    group-id
+    (str group-id "/" artifact-id)))
