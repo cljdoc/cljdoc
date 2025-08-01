@@ -12,25 +12,10 @@
   (:require
    [io.pedestal.http.route :as route]
    [io.pedestal.interceptor :as interceptor]
-   ;; TODO: Temp fix for bug?
-   [io.pedestal.service.protocols :as sp]
-   [io.pedestal.service.resources :as resources])
-  (:import [jakarta.servlet.http HttpServletResponse]))
-
-<<<<<<< HEAD
-;; TODO: Temp fix for bug?
-(extend-protocol sp/ResponseBufferSize
-  HttpServletResponse
-  (response-buffer-size [response]
-    (.getBufferSize response)))
+   [io.pedestal.service.resources :as resources]))
 
 ;; Pedestal requires that each route have an interceptor, this no-op interceptor
 ;; will be replaced when routes are resolved
-=======
-;; Pedestal requires an interceptor to be associated with a route, so we
-;; specify a no-op interceptor to appease it. This dummy interceptor can
-;; be replaced by the `route-resolver` passed into `routes`.
->>>>>>> master
 (def ^:private nop
   (interceptor/interceptor
    {:name ::identity-interceptor
