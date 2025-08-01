@@ -506,12 +506,7 @@
    {:name ::interceptor
     :error (fn sentry-intercept [ctx ex-info-inst]
              (binding [sentry/*http-request* (:request ctx)]
-               (let [ex-data (ex-data ex-info-inst)
-                     cause (:exception ex-data)
-                     log-ex (ex-info "Exception when processing request"
-                                     (dissoc ex-data :exception :exception-type)
-                                     cause)]
-                 (log/error log-ex "Unexpected exception")))
+               (log/error ex-info-inst "Unexpected exception"))
              (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))}))
 
 (def static-resource-interceptor
