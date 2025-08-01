@@ -69,7 +69,9 @@ export class ResultsView<ResultType> extends Component<
       <div
         className="bg-white br1 br--bottom bb bl br b--blue w-100 overflow-y-scroll"
         style={{ maxHeight: "20rem" }}
-        ref={node => (this.resultsViewNode = node)}
+        ref={node => {
+          this.resultsViewNode = node;
+        }}
       >
         {props.results.map((r, idx) => (
           <props.resultView
