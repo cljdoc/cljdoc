@@ -67,8 +67,6 @@
      ;; See https://github.com/cljdoc/cljdoc/issues/348
      :constraints {:project #"^[^/]+(/[^/]+)?$"}]})
 
-;; TODO: In 0.8.0 I think we can have :interceptor in input route table??
-;; So might be able to resolve before expanding?
 (defn routes
   "Return the expanded routes given the `opts` as passed to
   `io.pedestal.http.route/expand-routes`.
@@ -94,56 +92,26 @@
         ;; TODO: Seems awkward, this built-in includes interceptor, and addition is... blech
         (update :routes #(into % (:routes (resources/resource-routes {:resource-root "public/out"})))))))
 
-(comment
-  (conj nil 3)
-
-  (routes identity {})
-
-  :eoc)
-
-(defn- url-for-routes
-  "A variant of Pedestal's `url-for-routes` that throws when there is a missing
-  path-param.
-
-  Pedestal's `url-for-routes` now has a `:strict-path-params?` that will also throw,
-  but we'll stick with our version as we appriciate the reporting of the missing key."
-  [routes & default-options]
-  (let [{:as default-opts} default-options
-        m (#'route/linker-map routes)]
-    (fn [route-name & options]
-      (let [{:keys [app-name] :as options-map} options
-            default-app-name (:app-name default-opts)
-            route (#'route/find-route m (or app-name default-app-name) route-name)
-            opts (#'route/combine-opts options-map default-opts route)]
-        (doseq [k (:path-params route)]
-          (when-not (get-in opts [:path-params k])
-            (throw (ex-info (format "Missing path-param %s" k)
-                            {:route-path (:path route) :route-name (:route-name route) :opts opts}))))
-        (#'route/link-str route opts)))))
-
 (def url-for
-  (url-for-routes (routes identity {})))
+  (route/url-for-routes (routes identity {}) :strict-path-params? true))
 
 (defn match-route [path-info]
-  (route/try-routing-for (routes identity {}) :map-tree path-info :get))
+  (route/try-routing-for (routes identity {}) path-info :get))
 
 (comment
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
   ;; => "/d/a/b/c"
 
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b"})
-  ;; => Execution error (ExceptionInfo) at cljdoc.server.routes$url_for_routes$fn__57100/doInvoke (routes.clj:118).
-  ;;    Missing path-param :version
-
-  (foo :artifact/version :path-params {:group-id "a" :artifact-id "b"})
-  ;; => "/d/a/b/:version"
+  ;; => Execution error (ExceptionInfo) at io.pedestal.http.route/link-str (route.clj:265).
+  ;;    Attempted to create a URL with `url-for`, but missing required :path-params - :strict-path-params was set to true.
+  ;;                                Either include all path-params (`nil` is not allowed), or if your URL actually contains ':' in the path, set :strict-path-params to false in the options
 
   (match-route "/d/foo/bar/CURRENT")
   ;; => {:path "/d/:group-id/:artifact-id/:version",
   ;;     :method :get,
   ;;     :path-constraints
   ;;     {:group-id "([^/]+)", :artifact-id "([^/]+)", :version "([^/]+)"},
-  ;;     :path-re #"/\Qd\E/([^/]+)/([^/]+)/([^/]+)",
   ;;     :path-parts ["d" :group-id :artifact-id :version],
   ;;     :interceptors
   ;;     [{:name :cljdoc.server.routes/identity-interceptor,
@@ -153,7 +121,7 @@
   ;;     :route-name :artifact/version,
   ;;     :path-params {:group-id "foo", :artifact-id "bar", :version "CURRENT"},
   ;;     :io.pedestal.http.route.internal/satisfies-constraints?
-  ;;     #function[io.pedestal.http.route.internal/add-satisfies-constraints?/fn--23386]}
+  ;;     #function[io.pedestal.http.route.internal/add-satisfies-constraints?/fn--22131]}
 
   (clojure.pprint/pprint
    (routes identity {}))
