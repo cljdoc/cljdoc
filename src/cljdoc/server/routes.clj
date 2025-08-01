@@ -1,15 +1,14 @@
 (ns cljdoc.server.routes
-  "Pedestals routing is pretty nice but tying the routing table too much
-  to the handlers can be annoying when trying to generate routes outside
-  of a Pedestal server (e.g. when rendering files statically.)
+  "By default, pedestal ties routing to handlers/interceptors.
 
-  This namespace lists all routes of cljdoc and exposes some utility
-  functions to generate URLs given the routing information.
+  It is a awkward to go against the pedestal-way, but we decoupled routes
+  from handlers.
 
-  With some more work this could probably also be used from ClojureScript.
+  One big plus of decoupling is that it allows us to expose a `url-for` a given route + params
+  for use by our renderers. (There is a interceptor-scoped `url-for` in the pedestal API,
+  but it was a bit too magic for our taste).
 
-  For use with http handlers a `route-resolver` can be passed when
-  generating all routes. See docstring of `routes` for details."
+  Routes can be optionally hooked up to handlers by the `route-resolver` passed into `routes`."
   (:require
    [io.pedestal.http.route :as route]
    [io.pedestal.interceptor :as interceptor]
@@ -18,6 +17,7 @@
    [io.pedestal.service.resources :as resources])
   (:import [jakarta.servlet.http HttpServletResponse]))
 
+<<<<<<< HEAD
 ;; TODO: Temp fix for bug?
 (extend-protocol sp/ResponseBufferSize
   HttpServletResponse
@@ -26,6 +26,11 @@
 
 ;; Pedestal requires that each route have an interceptor, this no-op interceptor
 ;; will be replaced when routes are resolved
+=======
+;; Pedestal requires an interceptor to be associated with a route, so we
+;; specify a no-op interceptor to appease it. This dummy interceptor can
+;; be replaced by the `route-resolver` passed into `routes`.
+>>>>>>> master
 (def ^:private nop
   (interceptor/interceptor
    {:name ::identity-interceptor
@@ -81,9 +86,10 @@
 ;; So might be able to resolve before expanding?
 (defn routes
   "Return the expanded routes given the `opts` as passed to
-  `io.pedestal.http.route/expand-routes`. The `route-resolver` will be
-  used for post processing the routes, usually setting the right
-  interceptors."
+  `io.pedestal.http.route/expand-routes`.
+
+  The `route-resolver` is used to post process the routes, and typically
+  assigns interceptors to the routes."
   [route-resolver {:keys [host] :as opts}]
   (let [routes (->> [(when host
                        ;; TODO: Turf?
@@ -111,14 +117,13 @@
   :eoc)
 
 (defn- url-for-routes
-  "A variant of Pedestal's own url-for-routes but instead of
-  accepting path-params maps with missing parameters this one throws.
+  "A variant of Pedestal's `url-for-routes` that throws when there is a missing
+  path-param.
 
-  See https://github.com/pedestal/pedestal/issues/572"
-  ;; NOTE: pedestal has this support now with :strict-path-params? on its url-for-routes
-  [routing-table & default-options]
-  (let [routes (:routes routing-table)
-        {:as default-opts} default-options
+  Pedestal's `url-for-routes` now has a `:strict-path-params?` that will also throw,
+  but we'll stick with our version as we appriciate the reporting of the missing key."
+  [routes & default-options]
+  (let [{:as default-opts} default-options
         m (#'route/linker-map routes)]
     (fn [route-name & options]
       (let [{:keys [app-name] :as options-map} options

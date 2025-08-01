@@ -205,7 +205,9 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
       return (
         <div
           className="bg-black-30 fixed top-0 right-0 bottom-0 left-0 sans-serif"
-          ref={node => (this.backgroundNode = node)}
+          ref={node => {
+            this.backgroundNode = node;
+          }}
           onClick={(e: MouseEvent) =>
             e.target === this.backgroundNode
               ? this.setState({ show: false })
@@ -216,7 +218,9 @@ class Switcher extends Component<SwitcherProps, SwitcherState> {
             <input
               placeholder="Jump to recently viewed docs..."
               className="pa2 w-100 br1 border-box b--blue ba input-reset"
-              ref={node => (this.inputNode = node)}
+              ref={node => {
+                this.inputNode = node;
+              }}
               onKeyUp={(e: KeyboardEvent) => this.handleInputKeyUp(e)}
               onInput={(e: Event) => {
                 const target = e.target as HTMLFormElement;

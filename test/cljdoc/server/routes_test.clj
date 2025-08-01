@@ -11,3 +11,10 @@
     (t/is (some? (dispatch "/badge/foo")))
     (t/is (some? (dispatch "/badge/foo/bar")))
     (t/is (nil?  (dispatch "/badge/foo/bar/baz")))))
+
+(t/deftest url-for-test
+  (t/is (= "/api/ping" (routes/url-for :ping)) "route without params")
+  (t/is (= "/d/foo/bar/baz/doc/quux" (routes/url-for :artifact/doc {:params {:group-id "foo" :artifact-id "bar" :version "baz" :article-slug "quux"}}))
+        "route with params")
+  (t/is (thrown? Exception (routes/url-for :artifact/doc {:params {:article-slug "quux"}}))
+        "route with missing"))

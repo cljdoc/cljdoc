@@ -116,34 +116,34 @@ It is important to us that cljdoc is a good citizen and never knowingly abuses t
 
 This section covers any specific notes we have about those services.
 
-=== Maven Central Search API
-Most artifacts are hosted on clojars, but a handful (most notably org.clojure artifacts) are hosted on Maven Central.
-Cljdoc users the https://central.sonatype.org/search/rest-api-guide/[Maven Central Search REST API] to discover new releases.
+=== Logging & Sentry.io
+Cljdoc sends `ERROR` level log events to sentry.io (in production only).
+This means anytime you call `log/error` or `log/errorf`, you feel the event is important enough for ops team review at sentry.io.
 
-At one point, the Maven Central API returned 403s to cljdoc from integration tests running on CircleCI.
-I reached out to the Maven Central team to check if we might be doing something we should not be doing.
-They informed me that the blockage was a mistake and it was quickly reverted.
+Cljdoc also sends tea-time `WARN` level events, because we also find these interesting.
 
-But this gave me a chance to https://github.com/cljdoc/cljdoc/issues/901[ask the Maven Central team about appropriate usage].
-They responded with:
+Logback logs on logging itself can be found in `log/logger.log`.
+This log includes `ERROR` events when we the cljdoc sentry appender fails to log to sentry.io.
+If you are on the ops team, it is a good idea to have an occassional peek at this file on production.
 
-[quote]
-We just checked your usage of the API, and it looks nice.
-You should not be blocked if you do not pass around 1000 requests in a span of 5 minutes.
-In this case, it was the little change we made that messed up the boundaries.
-Anyway, any effort you can make to reduce the number of requests would be appreciated.
-At the end, this is a free service, and any of these improvements help the community too :)
+=== Maven Central Artifacts Cache
+Most Clojure libraries are hosted on clojars, but a handful are hosted on Maven Central.
 
-I took a look at our usage:
+Initially we used the https://central.sonatype.org/search/rest-api-guide/[Maven Central Search REST API].
+But this service is now often stale, or down, and the Maven Central team has let me know that they have no plans to invest more effort into it.
 
-* 1 request per Maven group per hour (currently 3)
-* At startup, or if there are new releases (rare), a total of approximately 100 requests.
+So, we switched to discovering updates by consulting the Maven Central repo directly.
+This is technically more requests to Maven Central than our prior strategy, but we should still be well under our 1000 requests over a span of 5 minutes.
 
-This is well under "1000 requests in a span of 5 minutes".
-But, to answer the call to "reduce the number of requests", we now cache Maven Central results as edn under `./resources/maven-central-cache/`.
-This means 3 requests at startup instead of approximately 100.
+When hitting the old search API, we were typically making 4 requests per hour.
+On a full update we would make approximately 100 requests.
+
+At the time of this writing we make approximately 96 requests per our.
+(These requests check the etag though, and typically return 304, so could be considered light).
+On a full update, we are at 188 requests.
+
+We cache Maven Central results as edn under `./resources/maven-central-cache/`.
 And when an artifact group has changes, we only fetch an artifact description if the artifact has a new release.
-This reduces requests from around 100 to typically at most 10.
 
 Carrying the cache as version-controlled resources means all developers also use the cache.
 Which is good.
