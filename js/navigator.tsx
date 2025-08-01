@@ -44,7 +44,7 @@ class Navigator extends Component<NavigatorProps, NavigatorState> {
               onKeyUp={(e: KeyboardEvent) =>
                 e.key == "Enter" ? this.navigate() : null
               }
-              ref={node => (this.clojarsIdInput = node)}
+              ref={node => {(this.clojarsIdInput = node)}}
               placeholder="e.g. 're-frame' or 'ring/ring-core'"
             />
           </fieldset>
@@ -58,7 +58,7 @@ class Navigator extends Component<NavigatorProps, NavigatorState> {
               onKeyUp={(e: KeyboardEvent) =>
                 e.key == "Enter" ? this.navigate() : null
               }
-              ref={node => (this.versionInput = node)}
+              ref={node => {(this.versionInput = node)}}
               placeholder="e.g. '1.0.2'"
             />
           </fieldset>
