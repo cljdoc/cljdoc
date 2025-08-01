@@ -692,7 +692,7 @@
 
 (defn create-connector [opts]
   (-> (conn/default-connector-map (:host opts) (:port opts))
-      (update :interceptors #(into [sentry/interceptor
+      (update :interceptors #(into [error-interceptor
                                     static-resource-interceptor
                                     redirect-trailing-slash-interceptor
                                     (middlewares/not-modified)
