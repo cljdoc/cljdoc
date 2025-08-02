@@ -95,7 +95,7 @@
                  first-article-slug
                  ;; instead of rendering a mostly white page we
                  ;; redirect to the README/first listed article
-                 (let [location (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))]
+                 (let [location (routes/url-for :artifact/doc :path-params (assoc path-params :article-slug first-article-slug))]
                    (assoc ctx :response {:status 302, :headers {"Location" location}}))
 
                  :else
@@ -457,7 +457,7 @@
                (->> (if release
                       {:status 302
                        :headers {"Location" (routes/url-for :artifact/version
-                                                            :params
+                                                            :path-params
                                                             {:group-id (proj/group-id project)
                                                              :artifact-id (proj/artifact-id project)
                                                              :version release})}}

@@ -92,7 +92,7 @@
         ;; TODO: Seems awkward, this built-in includes interceptor, and addition is... blech
         (update :routes #(into % (:routes (resources/resource-routes {:resource-root "public/out"})))))))
 
-(defn url-for-routes
+(defn- url-for-routes
   "Customized version of pedestal's url-for-routes.
 
   Their version supports `:strict-path-params?` but it does not do what we want.
