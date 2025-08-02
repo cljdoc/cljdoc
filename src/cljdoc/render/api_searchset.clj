@@ -14,7 +14,7 @@
 (defn path-for-doc
   [doc version-entity]
   (routes/url-for :artifact/doc
-                  :params
+                  :path-params
                   (assoc version-entity
                          :article-slug
                          (str/join "/" (or (get-in doc [:attrs :slug-path])

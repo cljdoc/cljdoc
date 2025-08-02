@@ -28,7 +28,7 @@
             [cljdoc.render.search :as render-search]
             [cljdoc.server.api :as api]
             [cljdoc.server.build-log :as build-log]
-            [cljdoc.server.log-init] ;; to quiet odd jetty DEBUG logging
+            [cljdoc.server.log.sentry :as sentry]
             [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]
             [cljdoc.server.search.api :as search-api]
@@ -36,21 +36,29 @@
             [cljdoc.storage.api :as storage]
             [cljdoc.util.datetime :as dt]
             [cljdoc.util.repositories :as repos]
-            [cljdoc.util.sentry :as sentry]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
-            [io.pedestal.http :as http]
+            [io.pedestal.connector :as conn]
             [io.pedestal.http.body-params :as body]
-            [io.pedestal.http.ring-middlewares :as ring-middlewares]
+            [io.pedestal.http.jetty :as jetty]
+            [io.pedestal.http.response :as response]
+            [io.pedestal.http.ring-middlewares :as middlewares]
+            [io.pedestal.http.route :as http-route]
+            [io.pedestal.http.secure-headers :as http-secure-headers]
             [io.pedestal.interceptor :as interceptor]
             [lambdaisland.uri.normalize :as normalize]
             [ring.util.codec :as ring-codec])
   (:import (java.net URLDecoder)
            (java.util Date)))
+
+;; pedestal emits deprecation warnings for internal usages of itself.
+;; This is noise to us. We use eastwood and clj-kondo to learn about
+;; deprecations, so turn this pedestal feature off.
+(System/setProperty "io.pedestal.suppress-deprecation-warnings" "true")
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
@@ -87,7 +95,7 @@
                  first-article-slug
                  ;; instead of rendering a mostly white page we
                  ;; redirect to the README/first listed article
-                 (let [location (routes/url-for :artifact/doc :params (assoc path-params :article-slug first-article-slug))]
+                 (let [location (routes/url-for :artifact/doc :path-params (assoc path-params :article-slug first-article-slug))]
                    (assoc ctx :response {:status 302, :headers {"Location" location}}))
 
                  :else
@@ -449,7 +457,7 @@
                (->> (if release
                       {:status 302
                        :headers {"Location" (routes/url-for :artifact/version
-                                                            :params
+                                                            :path-params
                                                             {:group-id (proj/group-id project)
                                                              :artifact-id (proj/artifact-id project)
                                                              :version release})}}
@@ -493,6 +501,14 @@
 (defn load-default-static-resource-map []
   (load-client-asset-map "resources-compiled/manifest.edn"))
 
+(def error-interceptor
+  (interceptor/interceptor
+   {:name ::interceptor
+    :error (fn sentry-intercept [ctx ex-info-inst]
+             (binding [sentry/*http-request* (:request ctx)]
+               (log/error ex-info-inst "Unexpected exception"))
+             (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))}))
+
 (def static-resource-interceptor
   (interceptor/interceptor
    {:name  ::static-resource
@@ -515,7 +531,7 @@
   (interceptor/interceptor
    {:name ::not-found-interceptor
     :leave (fn [context]
-             (if-not (http/response? (:response context))
+             (if-not (response/response? (:response context))
                (assoc context :response {:status 404
                                          :headers {"Content-Type" "text/html"}
                                          :body (error/not-found-page (:static-resources context))})
@@ -669,29 +685,32 @@
                               (last-build-loader build-tracker)])
        (assoc route :interceptors)))
 
-(defmethod ig/init-key :cljdoc/pedestal [_ opts]
-  (log/infof "Starting pedestal on %s:%s" (:host opts) (:port opts))
-  (-> {::http/routes (routes/routes (partial route-resolver opts) {})
-       ::http/type   :jetty
-       ::http/join?  false
-       ::http/port   (:port opts)
-       ::http/host   (:host opts)
-       ;; TODO look into this some more:
-       ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
-       ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-       ::http/resource-path "public/out"
-       ::http/not-found-interceptor not-found-interceptor
-       ::http/path-params-decoder nil}
-      http/default-interceptors
-      (update ::http/interceptors #(into [sentry/interceptor
-                                          static-resource-interceptor
-                                          redirect-trailing-slash-interceptor
-                                          (ring-middlewares/not-modified)
-                                          etag-interceptor
-                                          cache-control-interceptor]
-                                         %))
-      (http/create-server)
-      (http/start)))
+(defn create-connector [opts]
+  (-> (conn/default-connector-map (:host opts) (:port opts))
+      (update :interceptors #(into [error-interceptor
+                                    static-resource-interceptor
+                                    redirect-trailing-slash-interceptor
+                                    (middlewares/not-modified)
+                                    etag-interceptor
+                                    cache-control-interceptor
+                                    not-found-interceptor
+                                    (middlewares/content-type {:mime-types {}})
+                                    http-route/query-params
+                                    ;; allow CDN delivered javascript
+                                    (http-secure-headers/secure-headers {:content-security-policy-settings {:object-src "'none'"}})
 
-(defmethod ig/halt-key! :cljdoc/pedestal [_ server]
-  (http/stop server))
+                                    ;; cljdoc decouples routes from interceptors, specify routes here
+                                    (http-route/router (routes/routes (partial route-resolver opts) {}))] %))
+      (jetty/create-connector {:join? false})))
+
+(defmethod ig/init-key :cljdoc/pedestal-connector [_ opts]
+  (log/infof "Creating pedestal connector on %s:%s" (:host opts) (:port opts))
+  (create-connector opts))
+
+(defmethod ig/init-key :cljdoc/pedestal [_ connector]
+  (log/infof "Starting pedestal connector")
+  (conn/start! connector))
+
+(defmethod ig/halt-key! :cljdoc/pedestal [_ connector]
+  (log/infof "Stopping pedestal connector")
+  (conn/stop! connector))

@@ -24,8 +24,6 @@
   (:require [babashka.fs :as fs]
             [babashka.process :as process]
             [cljdoc.s3 :as s3]
-            [cljdoc.server.log-init] ;; to quiet odd jetty DEBUG logging
-            [cljdoc.util.sentry :as sentry]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [next.jdbc :as jdbc]
@@ -255,8 +253,7 @@
     (try
       (wrapped-fn)
       (catch Exception e
-        (log/error e)
-        (sentry/capture {:ex e})))))
+        (log/error e "db backup job error")))))
 
 (defn restore-db!
   "If `db-spec` `dbname` does not exist, attempt automatic restore from latest available daily backup.

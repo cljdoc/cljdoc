@@ -1,7 +1,7 @@
 .nrepl*
 target/
 docker/docker-target
-log/
+/log/
 data/
 .terraform
 terraform.tfstate*

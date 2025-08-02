@@ -7,20 +7,8 @@
         integrant/integrant {:mvn/version "0.13.1"}          ;; configure systems/services that make up your app
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.7.2"}    ;; web site/service with jetty engine
-        ;; CVE jetty override: (remove all when pedestal bumps)
-        ;; Jetty 11 is at EOL and will only get "sponsored" releases. Pedestal 8 should address these issues, we'll upgrade to it when it is out of testing
-        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.eclipse.jetty.websocket/websocket-jakarta-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.eclipse.jetty/jetty-alpn-client ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.apache.commons/commons-fileupload2-core {:mvn/version "2.0.0-M4"}
-
+        io.pedestal/pedestal.jetty {:mvn/version "0.8.0-beta-3"} ;; web site/service with jetty engine
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
-        ;; override pedestal dep on old dep that generate warning noise for clojure 1.11+,
-        ;; delete override when pedestal updates:
-        org.clojure/tools.analyzer.jvm {:mvn/version "1.3.2"}
 
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.1048" } ;; jdbc abstraction
@@ -59,17 +47,12 @@
         {:mvn/version "20240325.1"}                          ;; sanitize html converted from user markdown
 
         ;; logging
-        spootnik/unilog {:mvn/version "0.7.32"}              ;; easy log setup
-        ;; next dep is to overcome CVE in unilog deps, remove when unilog addresses
         ch.qos.logback/logback-classic {:mvn/version "1.5.18"}
         org.clojure/tools.logging {:mvn/version "1.3.0"}     ;; logging facade
 
-        ;; sentry service support
-        raven-clj/raven-clj {:mvn/version "1.7.0"}           ;; Sentry service interface
-
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.32.6"}
+        software.amazon.awssdk/s3 {:mvn/version "2.32.13"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
@@ -82,6 +65,7 @@
         clj-commons/fs {:mvn/version "1.6.311"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "3.0.0"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
+        prone/prone {:mvn/version "2021-04-23"}              ;; exceptions->data for sentry
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
         org.clojure/core.cache {:mvn/version "1.1.234"}      ;; general caching library
         org.clojure/core.memoize {:mvn/version "1.1.266"}    ;; function caching library
@@ -132,14 +116,14 @@
            {:extra-deps {io.github.nextjournal/clerk {:mvn/version "0.18.1150"}}}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.9"}
-                   clj-kondo/clj-kondo {:mvn/version "2025.06.05"}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.10"}
+                   clj-kondo/clj-kondo {:mvn/version "2025.07.28"}
                    babashka/fs {:mvn/version "0.5.26"}
                    babashka/process {:mvn/version "0.6.23"}}
             :ns-default build}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2025.06.05"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2025.07.28"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
