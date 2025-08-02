@@ -92,20 +92,52 @@
         ;; TODO: Seems awkward, this built-in includes interceptor, and addition is... blech
         (update :routes #(into % (:routes (resources/resource-routes {:resource-root "public/out"})))))))
 
+(defn url-for-routes
+  "Customized version of pedestal's url-for-routes.
+
+  Their version supports `:strict-path-params?` but it does not do what we want.
+  Our version here will throw when there are missing params but is OK with extra params.
+  We also throw with which params are missing."
+  [routing-table & default-options]
+  {:pre []}
+  (let [routes (:routes routing-table)
+        {:as default-opts} default-options
+        m      (#'route/linker-map routes)]
+    (fn [route-name & options]
+      (let [{:keys [app-name] :as options-map} options
+            default-app-name (:app-name default-opts)
+            route            (#'route/find-route m (or app-name default-app-name) route-name)
+            opts             (#'route/combine-opts options-map default-opts route)
+            missing-params (reduce (fn [acc k]
+                                     (if-not (get-in opts [:path-params k])
+                                       (conj acc k)
+                                       acc))
+                                   []
+                                   (:path-params route))]
+
+        (when (seq missing-params)
+          (throw (ex-info (format "Missing path-params: %s" missing-params)
+                          {:route-path (:path route)
+                           :route-name (:route-name route)
+                           :opts opts})))
+        (#'route/link-str route opts)))))
+
 (def url-for
-  (route/url-for-routes (routes identity {}) :strict-path-params? true))
+  (url-for-routes (routes identity {})))
 
 (defn match-route [path-info]
   (route/try-routing-for (routes identity {}) path-info :get))
 
 (comment
+  (url-for :artifact/index :path-params {:group-id "g" :artifact-id "a"} )
+  ;; => "/versions/g/a"
+
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
   ;; => "/d/a/b/c"
 
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b"})
-  ;; => Execution error (ExceptionInfo) at io.pedestal.http.route/link-str (route.clj:265).
-  ;;    Attempted to create a URL with `url-for`, but missing required :path-params - :strict-path-params was set to true.
-  ;;                                Either include all path-params (`nil` is not allowed), or if your URL actually contains ':' in the path, set :strict-path-params to false in the options
+  ;; => Execution error (ExceptionInfo) at cljdoc.server.routes$url_for_routes$fn__62949/doInvoke (routes.clj:119).
+  ;;    Missing path-params [:version]
 
   (match-route "/d/foo/bar/CURRENT")
   ;; => {:path "/d/:group-id/:artifact-id/:version",
