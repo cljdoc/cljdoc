@@ -703,30 +703,6 @@
                                     (http-route/router (routes/routes (partial route-resolver opts) {}))] %))
       (jetty/create-connector {:join? false})))
 
-;; (defmethod ig/init-key :cljdoc/pedestal [_ opts]
-;;   (log/infof "Starting pedestal on %s:%s" (:host opts) (:port opts))
-;;     (-> {::http/routes
-;;        ::http/type   :jetty
-;;        ::http/join?  false
-;;        ::http/port   (:port opts)
-;;        ::http/host   (:host opts)
-;;        ;; TODO look into this some more:
-;;        ;; - https://groups.google.com/forum/#!topic/pedestal-users/caRnQyUOHWA
-;;        ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}
-;;        ::http/resource-path "public/out"
-;;        ::http/not-found-interceptor not-found-interceptor
-;;        ::http/path-params-decoder nil}
-;;       http/default-interceptors
-;;       (update ::http/interceptors #(into [sentry/interceptor
-;;                                           static-resource-interceptor
-;;                                           redirect-trailing-slash-interceptor
-;;                                           (ring-middlewares/not-modified)
-;;                                           etag-interceptor
-;;                                           cache-control-interceptor]
-;;                                          %))
-;;       (http/create-server)
-;;       (http/start)))
-
 (defmethod ig/init-key :cljdoc/pedestal-connector [_ opts]
   (log/infof "Creating pedestal connector on %s:%s" (:host opts) (:port opts))
   (create-connector opts))

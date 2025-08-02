@@ -89,7 +89,6 @@
                     (route/expand-routes))]
     (-> routes
         (update :routes #(keep route-resolver %))
-        ;; TODO: Seems awkward, this built-in includes interceptor, and addition is... blech
         (update :routes #(into % (:routes (resources/resource-routes {:resource-root "public/out"})))))))
 
 (defn- url-for-routes
