@@ -129,7 +129,7 @@
   (route/try-routing-for (routes identity {}) path-info :get))
 
 (comment
-  (url-for :artifact/index :path-params {:group-id "g" :artifact-id "a"} )
+  (url-for :artifact/index :path-params {:group-id "g" :artifact-id "a"})
   ;; => "/versions/g/a"
 
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
