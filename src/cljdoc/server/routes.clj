@@ -11,11 +11,11 @@
   Routes can be optionally hooked up to handlers by the `route-resolver` passed into `routes`."
   (:require
    [io.pedestal.http.route :as route]
-   [io.pedestal.interceptor :as interceptor]))
+   [io.pedestal.interceptor :as interceptor]
+   [io.pedestal.service.resources :as resources]))
 
-;; Pedestal requires an interceptor to be associated with a route, so we
-;; specify a no-op interceptor to appease it. This dummy interceptor can
-;; be replaced by the `route-resolver` passed into `routes`.
+;; Pedestal requires that each route have an interceptor, this no-op interceptor
+;; will be replaced when routes are resolved
 (def ^:private nop
   (interceptor/interceptor
    {:name ::identity-interceptor
@@ -74,50 +74,87 @@
   The `route-resolver` is used to post process the routes, and typically
   assigns interceptors to the routes."
   [route-resolver {:keys [host] :as opts}]
-  (->> [(when host
-          ;; https://github.com/pedestal/pedestal/issues/570
-          #{(select-keys opts [:host :port :scheme])})
-        (documentation-routes)
-        (index-routes)
-        (open-search-routes)
-        (api-routes)
-        (build-log-routes)
-        (info-pages-routes)
-        (utility-routes)]
-       (reduce into #{})
-       (route/expand-routes)
-       (keep route-resolver)))
+  (let [routes (->> [(when host
+                       ;; TODO: Turf?
+                       ;; https://github.com/pedestal/pedestal/issues/570
+                       #{(select-keys opts [:host :port :scheme])})
+                     (documentation-routes)
+                     (index-routes)
+                     (open-search-routes)
+                     (api-routes)
+                     (build-log-routes)
+                     (info-pages-routes)
+                     (utility-routes)]
+                    (reduce into #{})
+                    (route/expand-routes))]
+    (-> routes
+        (update :routes #(keep route-resolver %))
+        (update :routes #(into % (:routes (resources/resource-routes {:resource-root "public/out"})))))))
 
 (defn- url-for-routes
-  "A variant of Pedestal's `url-for-routes` that throws when there is a missing
-  path-param.
+  "Customized version of pedestal's url-for-routes.
 
-  Pedestal's `url-for-routes` now has a `:strict-path-params?` that will also throw,
-  but we'll stick with our version as we appriciate the reporting of the missing key."
-  [routes & default-options]
-  (let [{:as default-opts} default-options
-        m (#'route/linker-map routes)]
+  Their version supports `:strict-path-params?` but it does not do what we want.
+  Our version here will throw when there are missing params but is OK with extra params.
+  We also throw with which params are missing."
+  [routing-table & default-options]
+  {:pre []}
+  (let [routes (:routes routing-table)
+        {:as default-opts} default-options
+        m      (#'route/linker-map routes)]
     (fn [route-name & options]
       (let [{:keys [app-name] :as options-map} options
             default-app-name (:app-name default-opts)
-            route (#'route/find-route m (or app-name default-app-name) route-name)
-            opts (#'route/combine-opts options-map default-opts route)]
-        (doseq [k (:path-params route)]
-          (when-not (get-in opts [:path-params k])
-            (throw (ex-info (format "Missing path-param %s" k)
-                            {:route-path (:path route) :route-name (:route-name route) :opts opts}))))
+            route            (#'route/find-route m (or app-name default-app-name) route-name)
+            opts             (#'route/combine-opts options-map default-opts route)
+            missing-params (reduce (fn [acc k]
+                                     (if-not (get-in opts [:path-params k])
+                                       (conj acc k)
+                                       acc))
+                                   []
+                                   (:path-params route))]
+
+        (when (seq missing-params)
+          (throw (ex-info (format "Missing path-params: %s" missing-params)
+                          {:route-path (:path route)
+                           :route-name (:route-name route)
+                           :opts opts})))
         (#'route/link-str route opts)))))
 
 (def url-for
   (url-for-routes (routes identity {})))
 
 (defn match-route [path-info]
-  (route/try-routing-for (routes identity {}) :map-tree path-info :get))
+  (route/try-routing-for (routes identity {}) path-info :get))
 
 (comment
+  (url-for :artifact/index :path-params {:group-id "g" :artifact-id "a"})
+  ;; => "/versions/g/a"
+
   (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b" :version "c"})
+  ;; => "/d/a/b/c"
+
+  (url-for :artifact/version :path-params {:group-id "a" :artifact-id "b"})
+  ;; => Execution error (ExceptionInfo) at cljdoc.server.routes$url_for_routes$fn__62949/doInvoke (routes.clj:119).
+  ;;    Missing path-params [:version]
 
   (match-route "/d/foo/bar/CURRENT")
+  ;; => {:path "/d/:group-id/:artifact-id/:version",
+  ;;     :method :get,
+  ;;     :path-constraints
+  ;;     {:group-id "([^/]+)", :artifact-id "([^/]+)", :version "([^/]+)"},
+  ;;     :path-parts ["d" :group-id :artifact-id :version],
+  ;;     :interceptors
+  ;;     [{:name :cljdoc.server.routes/identity-interceptor,
+  ;;       :enter #function[clojure.core/identity],
+  ;;       :leave nil,
+  ;;       :error nil}],
+  ;;     :route-name :artifact/version,
+  ;;     :path-params {:group-id "foo", :artifact-id "bar", :version "CURRENT"},
+  ;;     :io.pedestal.http.route.internal/satisfies-constraints?
+  ;;     #function[io.pedestal.http.route.internal/add-satisfies-constraints?/fn--22131]}
 
   (clojure.pprint/pprint
-   (routes identity {})))
+   (routes identity {}))
+
+  :eoc)

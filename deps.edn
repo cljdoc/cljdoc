@@ -7,20 +7,8 @@
         integrant/integrant {:mvn/version "0.13.1"}          ;; configure systems/services that make up your app
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.7.2"}    ;; web site/service with jetty engine
-        ;; CVE jetty override: (remove all when pedestal bumps)
-        ;; Jetty 11 is at EOL and will only get "sponsored" releases. Pedestal 8 should address these issues, we'll upgrade to it when it is out of testing
-        org.eclipse.jetty/jetty-servlet ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.eclipse.jetty.http2/http2-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.eclipse.jetty.websocket/websocket-jakarta-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.eclipse.jetty/jetty-alpn-server ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.eclipse.jetty/jetty-alpn-client ^{:antq/exclude ["12.x"]} {:mvn/version "11.0.25"}
-        org.apache.commons/commons-fileupload2-core {:mvn/version "2.0.0-M4"}
-
+        io.pedestal/pedestal.jetty {:mvn/version "0.8.0-beta-3"} ;; web site/service with jetty engine
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
-        ;; override pedestal dep on old dep that generate warning noise for clojure 1.11+,
-        ;; delete override when pedestal updates:
-        org.clojure/tools.analyzer.jvm {:mvn/version "1.3.2"}
 
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.1048" } ;; jdbc abstraction

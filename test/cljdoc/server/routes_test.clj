@@ -14,7 +14,20 @@
 
 (t/deftest url-for-test
   (t/is (= "/api/ping" (routes/url-for :ping)) "route without params")
-  (t/is (= "/d/foo/bar/baz/doc/quux" (routes/url-for :artifact/doc {:params {:group-id "foo" :artifact-id "bar" :version "baz" :article-slug "quux"}}))
+  (t/is (= "/d/foo/bar/baz/doc/quux" (routes/url-for :artifact/doc
+                                                     {:path-params {:group-id "foo"
+                                                                    :artifact-id "bar"
+                                                                    :version "baz"
+                                                                    :article-slug "quux"}}))
         "route with params")
-  (t/is (thrown? Exception (routes/url-for :artifact/doc {:params {:article-slug "quux"}}))
-        "route with missing"))
+
+  (t/is (thrown-with-msg? Exception #"Missing path-params: \[:group-id :artifact-id :version]"
+                          (routes/url-for :artifact/doc {:path-params {:article-slug "quux"}}))
+        "missing param")
+  (t/is (= "/d/foo/bar/baz/doc/quux" (routes/url-for :artifact/doc
+                                                     {:path-params {:group-id "foo"
+                                                                    :artifact-id "bar"
+                                                                    :version "baz"
+                                                                    :article-slug "quux"
+                                                                    :some-extra-param "blarg"}}))
+        "extra path param should not matter"))
