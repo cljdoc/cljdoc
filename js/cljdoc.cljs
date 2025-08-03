@@ -12,10 +12,7 @@
   (boolean (dom/query-doc ".ns-offline-page")))
 
 (defn isProjectDocumentationPage []
-  (let [path-segs  (-> js/window.location.pathname
-                       (.split "/"))]
-    (and (>= (count path-segs) 5)
-         (= "d" (second path-segs)))))
+  (library/coords-from-current-loc))
 
 (defn initScrollIndicator []
   (let [main-scroll-view (dom/query-doc ".js--main-scroll-view")
