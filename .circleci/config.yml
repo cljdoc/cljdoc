@@ -71,9 +71,9 @@ jobs:
       - *save_clojure_cache
 
   #
-  # build: back-end-checks
+  # build: checks
   #
-  back-end-checks:
+  checks:
     docker: *clojure_image
 
     steps:
@@ -321,7 +321,7 @@ workflows:
   build-and-deploy:
     jobs:
       - cache-deps
-      - back-end-checks:
+      - checks:
           requires:
             - cache-deps
       - back-end-eastwood:
@@ -339,7 +339,7 @@ workflows:
       - package
       - build:
           requires:
-            - back-end-checks
+            - checks
             - back-end-eastwood
             - test-unit
             - test-server-integration
