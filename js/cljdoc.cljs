@@ -96,7 +96,7 @@
                                               :block "start"}))))))))
 
 (defn saveSidebarScrollPos
- "Support for restoreSidebarScrollPos
+  "Support for restoreSidebarScrollPos
   When item in sidebar is clicked saves scroll pos and lib/version to session."
   []
   (when-let [main-side-bar (dom/query-doc ".js--main-sidebar")]
@@ -134,7 +134,7 @@
         tip (dom/query-doc "[data-id='cljdoc-js--articles-tip']")]
     (when (and tip-toggler tip)
       (.addEventListener tip-toggler "click"
-            (fn [] (dom/toggle-class tip "dn"))))))
+                         (fn [] (dom/toggle-class tip "dn"))))))
 
 (defn addPrevNextPageKeyHandlers []
   (let [prev-link (dom/query-doc "a[data-id='cljdoc-prev-article-page-link']")

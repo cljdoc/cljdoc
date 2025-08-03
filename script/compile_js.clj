@@ -49,19 +49,19 @@ Options
                  (str (fs/file source-asset-dir "*.svg"))))
 
 #_(defn- compile-js [{:keys [js-dir js-entry-point js-out-name target-dir]}]
-  (status/line :head "compile-js: transpile TypeScript to JS")
-  (shell/command "npx"
-                 "--yes"
-                 "esbuild"
-                 "--target=es2017"
-                 "--minify"
-                 ;; elasticlunr did not expect to wrapped, expose it like so:
-                 "--define:lunr=window.lunr"
-                 "--sourcemap"
-                 "--entry-names=[name].[hash]"
-                 (str "--outdir=" target-dir)
-                 (str js-out-name "=" (fs/file js-dir js-entry-point))
-                 "--bundle"))
+    (status/line :head "compile-js: transpile TypeScript to JS")
+    (shell/command "npx"
+                   "--yes"
+                   "esbuild"
+                   "--target=es2017"
+                   "--minify"
+                   ;; elasticlunr did not expect to wrapped, expose it like so:
+                   "--define:lunr=window.lunr"
+                   "--sourcemap"
+                   "--entry-names=[name].[hash]"
+                   (str "--outdir=" target-dir)
+                   (str js-out-name "=" (fs/file js-dir js-entry-point))
+                   "--bundle"))
 
 (defn- compile-js [{:keys [js-dir js-entry-point js-out-name target-dir]}]
   (status/line :head "compile-js: transpile Sources to JS")

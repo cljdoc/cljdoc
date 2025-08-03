@@ -15,9 +15,9 @@
   (let [results-view-node (useRef nil)]
     (useEffect (fn []
                  (.log console "huston we have been updated" results-view-node)
-                #_ (when results-view-node
-                   (restrict-to-viewport (.-current results-view-node)
-                                         selectedIndex)))
+                 #_(when results-view-node
+                     (restrict-to-viewport (.-current results-view-node)
+                                           selectedIndex)))
                [selectedIndex])
     (.log console "ResultsView" resultView results selectedIndex onMouseOver)
     #jsx [:<>

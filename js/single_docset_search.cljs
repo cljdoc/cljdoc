@@ -31,9 +31,9 @@
                         (.test standalone-comment-regex candidate))
                   tokens
                   (let [token (trim-superfluous-punctuation candidate)]
-                        (if (seq token)
-                          (conj tokens token)
-                          tokens))))
+                    (if (seq token)
+                      (conj tokens token)
+                      tokens))))
               []
               candidate-tokens))))
 
@@ -157,7 +157,7 @@
   (if (= "def" (:kind item))
     #jsx [:<>
           [:div {:class "mb1"}
-           [:span (:namespace item)]"/"(:name item)]]
+           [:span (:namespace item)] "/" (:name item)]]
     #jsx [:<>
           [:div {:class "mb1"} (:name item)]]))
 
@@ -220,7 +220,6 @@
 
         (.sort results (fn [a b]
                          (- (:score b) (:score a))))
-
 
         (.log js/console "search-index" search-index)
         (.log js/console "doc store" (:documentStore search-index))
@@ -421,10 +420,10 @@
                             :style "z-index:1; max-width: 90vw; max-height: 80vh"}
                        (-> (for [[ndx result] (map-indexed vector results)]
                              #jsx [:ResultListItem {:searchResult result
-                                               :index ndx
-                                               :selected (= selected-ndx ndx)
-                                               :onMouseDown (fn [e] (.preventDefault e))
-                                               :onClick (fn [e]
-                                                          (.preventDefault e)
-                                                          (on-result-navigation (-> result :doc :path)))}])
+                                                    :index ndx
+                                                    :selected (= selected-ndx ndx)
+                                                    :onMouseDown (fn [e] (.preventDefault e))
+                                                    :onClick (fn [e]
+                                                               (.preventDefault e)
+                                                               (on-result-navigation (-> result :doc :path)))}])
                            doall)]])]]])))

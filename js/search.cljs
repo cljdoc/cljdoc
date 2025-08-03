@@ -9,17 +9,16 @@
       (when @timer-id
         (js/clearTimeout @timer-id))
       (js/Promise.
-        (fn [resolve reject]
-          (reset! timer-id
-                  (js/setTimeout
-                    (fn []
-                      (try
-                        (-> (apply f args) resolve)
-                        (catch :default e
-                          (reject e))
-                        (finally
-                          (reset! timer-id nil)))
-                      ) delay-ms)))))))
+       (fn [resolve reject]
+         (reset! timer-id
+                 (js/setTimeout
+                  (fn []
+                    (try
+                      (-> (apply f args) resolve)
+                      (catch :default e
+                        (reject e))
+                      (finally
+                        (reset! timer-id nil)))) delay-ms)))))))
 
 (defn- clean-search-str [s]
   (.replace s "/[{}[]\"]+/g" ""))

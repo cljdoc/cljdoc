@@ -34,7 +34,7 @@
            (form-field {:name "version"
                         :label "Version"
                         :tip "optional"
-                        :placeholder "e.g. '1.0.2'" })]
+                        :placeholder "e.g. '1.0.2'"})]
           [:input
            {:class "bg-blue white bn pv2 ph3 br2"
             :type "submit"

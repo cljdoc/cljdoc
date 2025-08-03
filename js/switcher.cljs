@@ -33,8 +33,6 @@
           (.log console "saving prev opened" prev-opened)
           (.setItem localStorage "previouslyOpened" (JSON/stringify prev-opened)))))))
 
-
-
 (defn- SwitcherSingleResultView [{:keys [result isSelected selectResult]}]
   (.log console "ssrv!!!" result isSelected selectResult)
   (let [_ (.log console "foo+++" (library/project result))
@@ -86,8 +84,8 @@
                               (do
                                 (.preventDefault e)
                                 (set-selected-ndx! (min
-                                                     (inc selectected-ndx)
-                                                     (-> results count dec))))))
+                                                    (inc selectected-ndx)
+                                                    (-> results count dec))))))
 
                           (cond
                             (and (= "k" key)
