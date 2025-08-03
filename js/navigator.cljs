@@ -1,8 +1,9 @@
 ;; used on ./versions page - which I think no one uses!
+(ns navigator)
 
 (defn onsubmit [e]
   (.preventDefault e)
-  (let [form (.getElementById document "cljdoc-navigator")
+  (let [form (.getElementById js/document "cljdoc-navigator")
         project (some-> (.querySelector form "[name=project]") .-value)
         version (some-> (.querySelector form "[name=version]") .-value)]
     (when (and project (pos? (.-length project)))

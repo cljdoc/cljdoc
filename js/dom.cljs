@@ -3,14 +3,13 @@
 (defn query-doc
   ([q elem]
    (when elem (.querySelector elem q)))
-  ([q] (query-doc q document)))
+  ([q] (query-doc q js/document)))
 
 (defn query-doc-all
   ([q elem]
-   (.log console "qsa" q elem)
    (when elem
      (.querySelectorAll elem q)))
-  ([q] (query-doc-all q document)))
+  ([q] (query-doc-all q js/document)))
 
 (defn remove-class [el c]
   (.remove (.-classList el) c))

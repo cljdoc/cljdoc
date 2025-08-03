@@ -1,6 +1,6 @@
 (ns mobile
-  (:require ["preact/hooks" :refer [useState]]
-            ["./dom" :as dom]))
+  (:require ["./dom" :as dom]
+            ["preact/hooks" :refer [useState]]))
 
 (defn MobileNav []
   (let [[scroll-pos-main set-scroll-pos-main] (useState nil)
@@ -14,19 +14,19 @@
                            is-nav-shown? (and main-view
                                               (dom/has-class? main-view display))]
                        (if is-nav-shown?
-                         (let [scroll-pos (.-scrollY window)]
+                         (let [scroll-pos (.-scrollY js/window)]
                            (dom/remove-class main-view display)
                            (when main-sidebar
                              (dom/replace-class main-sidebar hide display))
-                           (.scrollTo window 0 scroll-pos-main)
+                           (.scrollTo js/window 0 scroll-pos-main)
                            (set-show-nav false)
                            (set-scroll-pos-nav scroll-pos))
-                         (let [scroll-pos (.-scrollY window)]
+                         (let [scroll-pos (.-scrollY js/window)]
                            (when main-view (dom/add-class main-view display))
                            (when main-sidebar
                              (dom/add-class main-sidebar "flex-grow-1")
                              (dom/replace-class main-sidebar display hide))
-                           (.scrollTo window 0 scroll-pos-nav)
+                           (.scrollTo js/window 0 scroll-pos-nav)
                            (set-show-nav true)
                            (set-scroll-pos-main scroll-pos)))))]
     #jsx [:<>

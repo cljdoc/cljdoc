@@ -3,7 +3,7 @@
             ["./search" :refer [debounced]]
             ["elasticlunr$default" :as elasticlunr]
             ["idb" :refer [openDB]]
-            ["preact" :refer [render]]
+            ["preact" :refer [render h]]
             ["preact/hooks" :refer [useEffect useRef useState]]
             [clojure.string :as str]))
 
@@ -102,9 +102,7 @@
               items (->> [(mapv #(assoc % :kind :namespace) (:namespaces search-set))
                           (mapv #(assoc % :kind :def) (:defs search-set))
                           (mapv #(assoc % :kind :doc) (:docs search-set))]
-                         (reduce (fn [acc n]
-                                   (into acc n))
-                                 [])
+                         (reduce into [])
                          (map-indexed (fn [ndx item]
                                         (assoc item :id ndx))))]
           (.log js/console "fetched items" items)
@@ -179,9 +177,9 @@
                   :onMouseDown (fn [e] (when onMouseDown (onMouseDown e)))
                   :onclick (fn [e] (when onClick (onClick e)))}
               [:div {:class "flex flex-row items-end"}
-               [:ResultIcon {:item result}]
+               (h ResultIcon {:item result})
                [:div {:class "flex flex-column"}
-                [:ResultName {:item result}]]]]]])))
+                (h ResultName {:item result})]]]]])))
 
 (defn- search [search-index query]
   (when search-index
@@ -216,6 +214,7 @@
 
       (let [results []]
         (doseq [doc-ref (js/Object.keys query-results)]
+          #_{:clj-kondo/ignore [:unused-value]}
           (conj! results {:ref doc-ref :score (aget query-results doc-ref)}))
 
         (.sort results (fn [a b]
@@ -243,6 +242,7 @@
                         (if (contains? seen unique-id)
                           acc
                           (do
+                            #_{:clj-kondo/ignore [:unused-value]}
                             (conj! seen unique-id)
                             (conj acc n))))))
                   []
@@ -359,7 +359,7 @@
                         :disabled (not search-index)
                         :placeholder (if search-index "Search..." "Loading...")
                         :ref input-elem
-                        :onFocus (fn [{:keys [target] :as e}]
+                        :onFocus (fn [{:keys [target] :as _e}]
                                    (.log console "onFocus" target)
                                    (dom/toggle-class target "b--blue")
                                    (-> (debounced-search search-index (.-value target))
@@ -371,7 +371,7 @@
                                                 (when-not show-results
                                                   (set-show-results! true))))
                                        (.catch js/console.error)))
-                        :onBlur (fn [{:keys [target] :as e}]
+                        :onBlur (fn [{:keys [target] :as _e}]
                                   (dom/toggle-class target "b--blue")
                                   (when show-results
                                     (set-show-results! false)))
@@ -419,11 +419,11 @@
                       [:ol {:class "list pa0 ma0 no-underline black bg-white br--bottom ba br1 b--blue absolute overflow-y-scroll"
                             :style "z-index:1; max-width: 90vw; max-height: 80vh"}
                        (-> (for [[ndx result] (map-indexed vector results)]
-                             #jsx [:ResultListItem {:searchResult result
-                                                    :index ndx
-                                                    :selected (= selected-ndx ndx)
-                                                    :onMouseDown (fn [e] (.preventDefault e))
-                                                    :onClick (fn [e]
-                                                               (.preventDefault e)
-                                                               (on-result-navigation (-> result :doc :path)))}])
+                             (h ResultListItem {:searchResult result
+                                                :index ndx
+                                                :selected (= selected-ndx ndx)
+                                                :onMouseDown (fn [e] (.preventDefault e))
+                                                :onClick (fn [e]
+                                                           (.preventDefault e)
+                                                           (on-result-navigation (-> result :doc :path)))}))
                            doall)]])]]])))

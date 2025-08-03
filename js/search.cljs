@@ -1,7 +1,8 @@
 (ns search
-  (:require ["preact/hooks" :refer [useState useEffect]]
-            ["./library" :as library]
-            ["./listselect" :refer [ResultsView]]))
+  (:require ["./library" :as library]
+            ["./listselect" :refer [ResultsView]]
+            ["preact" :refer [h]]
+            ["preact/hooks" :refer [useEffect useState]]))
 
 (defn debounced [delay-ms f]
   (let [timer-id (atom nil)]
@@ -26,7 +27,7 @@
 (defn- load-results [q call-back]
   ;; TODO: url changed for testing, change back to relative
   ;; TODO server could just return edn?
-  (.log console "lr" q call-back)
+  (.log js/console "lr" q call-back)
   (let [url (str "http://localhost:8000/api/search?q=" q)]
     (-> (js/fetch url)
         (.then (fn [response] (.json response)))
@@ -37,7 +38,7 @@
 
 (defn- SearchInput [{:keys [initialValue focus unfocus newResultsCallback
                             onEnter onArrowUp onArrowDown] :as props}]
-  (.log console "si props" props)
+  (.log js/console "si props" props)
   (let [on-key-down (fn [{:keys [key] :as e}]
                       (case key
                         "Enter" (onEnter)
@@ -51,7 +52,7 @@
         [input-value set-input-value!] (useState (or initialValue ""))]
     (useEffect (fn []
                  (when initialValue
-                   (.log console "si init" initialValue)
+                   (.log js/console "si init" initialValue)
                    (load-results (clean-search-str initialValue) newResultsCallback)))
                [])
     #jsx [:input {:autofocus true
@@ -94,10 +95,10 @@
                        #jsx [:<>
                              [:div {:class "bg-white br1 br--bottom bb bl br b--blue w-100 absolute"
                                     :style "top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"}
-                              [:ResultsView {:resultView SingleResultView
-                                             :results results
-                                             :selectedIndex selected-ndx
-                                             :onMouseOver selectResult}]]])]
+                              (h ResultsView {:resultView SingleResultView
+                                              :results results
+                                              :selectedIndex selected-ndx
+                                              :onMouseOver selectResult})]])]
     #jsx [:<>
           [:div {:class "relative system-sans-serif"}
            (SearchInput {:initialValue initialValue

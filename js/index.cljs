@@ -1,35 +1,36 @@
 (ns index
-  (:require ["preact" :refer [render]]
+  (:require ["./cljdoc" :refer [addPrevNextPageKeyHandlers initScrollIndicator
+                                initToggleRaw isNSOfflinePage isNSOverviewPage
+                                isNSPage isProjectDocumentationPage
+                                restoreSidebarScrollPos saveSidebarScrollPos
+                                toggleArticlesTip toggleMetaDialog]]
             ["./dom" :as dom]
-            ["./switcher" :refer [trackProjectOpened Switcher]]
-            ["./search" :refer [App]]
+            ["./hljs-merge-plugin" :refer [mergeHTMLPlugin]]
+            ["./hljs_copy_button_plugin" :refer [copyButtonPlugin]]
             ["./mobile" :refer [MobileNav]]
             ["./navigator" :refer [Navigator]]
-            ["./cljdoc" :refer [isNSPage isNSOverviewPage isNSOfflinePage isProjectDocumentationPage
-                                initScrollIndicator initToggleRaw restoreSidebarScrollPos
-                                toggleMetaDialog toggleArticlesTip addPrevNextPageKeyHandlers
-                                saveSidebarScrollPos]]
             ["./recent_doc_links" :refer [initRecentDocLinks]]
+            ["./search" :refer [App]]
             ["./single_docset_search" :refer [mount-single-docset-search]]
-            ["./hljs-merge-plugin" :refer [mergeHTMLPlugin]]
-            ["./hljs_copy_button_plugin" :refer [copyButtonPlugin]]))
+            ["./switcher" :refer [Switcher trackProjectOpened]]
+            ["preact" :refer [h render]]))
 
 (trackProjectOpened)
 
 (when-let [switcher-node (dom/query-doc "[data-id='cljdoc-switcher']")]
-  (render #jsx [:Switcher]
+  (render (h Switcher)
           switcher-node))
 
 (let [search-node (dom/query-doc "[data-id='cljdoc-search']")]
   (when (and search-node (.-dataset search-node))
-    (render #jsx [:App {:initialValue (-> search-node .-dataset .-initialValue)
-                        :results []
-                        :focused false
-                        :selectedIndex 0}]
+    (render (h App {:initialValue (-> search-node .-dataset .-initialValue)
+                     :results []
+                     :focused false
+                     :selectedIndex 0})
             search-node)))
 
 (when-let [navigator-node (dom/query-doc "[data-id='cljdoc-js--cljdoc-navigator']")]
-  (render #jsx [:Navigator] navigator-node))
+  (render (h Navigator) navigator-node))
 
 (when (isNSOverviewPage)
   (initToggleRaw))
@@ -43,7 +44,7 @@
 
 (when (isProjectDocumentationPage)
   (when-let [mobile-nav-node (dom/query-doc "[data-id='cljdoc-js--mobile-nav']")]
-    (render #jsx [:MobileNav]
+    (render (h MobileNav)
             mobile-nav-node))
   (toggleMetaDialog)
   (toggleArticlesTip)

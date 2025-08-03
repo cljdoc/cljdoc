@@ -84,7 +84,7 @@
   This means the sidebar nav scoll position needs to be restored/set."
   []
   (when-let [main-side-bar (dom/query-doc ".js--main-sidebar")]
-    (let [sidebar-scroll-state (JSON/parse (or (.getItem js/sessionStorage "sidebarScroll") "null"))]
+    (let [sidebar-scroll-state (.parse js/JSON (or (.getItem js/sessionStorage "sidebarScroll") "null"))]
       (.removeItem js/sessionStorage "sidebarScroll")
       (when-not js/window.location.search
         (if (and sidebar-scroll-state
@@ -107,7 +107,7 @@
                              (let [scroll-top (.-scrollTop main-side-bar)
                                    data {:libVersionPath (library/coords-path-from-current-loc)
                                          :scrollTop scroll-top}]
-                               (.setItem js/sessionStorage "sidebarScroll" (JSON/stringify data)))))))))
+                               (.setItem js/sessionStorage "sidebarScroll" (.stringify js/JSON data)))))))))
 
 (defn toggleMetaDialog []
   (when (dom/query-doc ".js--main-scroll-view")
