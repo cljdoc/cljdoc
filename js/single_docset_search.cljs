@@ -1,9 +1,11 @@
 (ns single-docset-search
   (:require ["./dom" :as dom]
+            ["preact" :refer [render]]
             ["preact/hooks" :refer [useEffect useRef useState]]
             ["./search" :refer [debounced]]
             ["idb" :refer [DBSchema IDBPDatabase openDB]]
-            ["elasticlunr$default" :as elasticlunr]))
+            ["elasticlunr$default" :as elasticlunr]
+            [squint-cljs/string.js :as str]))
 
 (def SEARCHSET_VERSION 3)
 
@@ -22,7 +24,7 @@
           ;; this gets rid of normal punctuation
           ;; we leave in ! and ? because they can be interesting in var names
           trim-superfluous-punctuation (fn [candidate]
-                                         (.replaceAll candidate superfluous-punctutation-regex ""))]
+                                         (str/replace candidate superfluous-punctutation-regex ""))]
       (reduce (fn [tokens candidate]
                 ;; keep tokens like *, <, >, +, ->> but skip tokens like ===============
                 (if (or (.test long-all-punctuation-regex candidate)
@@ -57,37 +59,64 @@
   (min (max value min-value) max-value))
 
 (defn ^:async mount-single-docset-search []
-  (let [single-docset-search-node (.querySelector document "[data-id='cljdoc-js--single-docset-search']")
-        url (some-> single-docset-search-node .-dataset .searchsetUrl)]
+  (let [single-docset-search-node (dom/query-doc "[data-id='cljdoc-js--single-docset-search']")
+        url (some-> single-docset-search-node .-dataset .-searchsetUrl)]
     (when (and single-docset-search-node
                (string? url))
+      (.log js/console "mounting dss" url)
       (render #jsx [:<> [:SingleDocsetSearch {:url url}]]
               single-docset-search-node))))
 
 (defn- is-expired [date-string]
-  (let [date (Date. date-string)
-        expires-at (Date.)
-        now (Date .)]
-    (.setDate expired-at (inc (.getDate date)))
+  (let [date (js/Date. date-string)
+        expires-at (js/Date.)
+        now (js/Date.)]
+    (.setDate expires-at (inc (.getDate date)))
     (> now expires-at)))
 
 (defn- ^:async evict-bad-search-sets [db]
+  (.log js/console "evict-bad-search-sets" db)
   (let [keys (js-await (.getAllKeys db "searchsets"))]
+    (.log js/console "evict check" keys)
     (doseq [key keys]
-      (let [stored-searchset (js-await (.get db searchsets key))]
+      (let [stored-searchset (js-await (.get db "searchsets" key))]
         (when (and stored-searchset
                    (or (not= (:version stored-searchset) SEARCHSET_VERSION)
                        (is-expired (:stored-at stored-searchset))
                        (not (seq stored-searchset))))
-          (js-await (.delete db "searchsets" key)))))))
+          (js-await (.delete db "searchsets" key))))))
+  db)
 
 (defn- ^:async fetch-index-items [url db]
   (let [stored-searchset (js-await (.get db "searchsets" url))]
-    (when (and stored-searchset
-               (= (:version stored-searchset) SEARCHSET_VERSION)
-               (not (is-expired (:stored-at stored-searchset)) )
-               (seq store-searchset))
-      (:indexItems stored-searchset))))
+    (.log js/console "fetch index items" stored-searchset)
+    (if (and stored-searchset
+             (= (:version stored-searchset) SEARCHSET_VERSION)
+             (not (is-expired (:stored-at stored-searchset)))
+             (seq stored-searchset))
+      (:indexItems stored-searchset)
+      (do
+        (.log js/console "fetching items from" url)
+        (let [response (js-await (js/fetch url))
+              search-set (js-await (.json response))
+              items (->> [(mapv #(assoc % :kind :namespace) (:namespaces search-set))
+                          (mapv #(assoc % :kind :def) (:defs search-set))
+                          (mapv #(assoc % :kind :doc) (:docs search-set))]
+                         (reduce (fn [acc n]
+                                   (into acc n))
+                                 [])
+                         (map-indexed (fn [ndx item]
+                                        (assoc item :id ndx))))]
+          (.log js/console "fetched items" items)
+
+          (js-await (.put db "searchsets"
+                          {:storedAt (.toISOString (js/Date.))
+                           :version SEARCHSET_VERSION
+                           :indexItems items}
+                          url))
+
+          (.log js/console "items put" db)
+          items)))))
 
 (defn- build-search-index [index-items]
   (let [search-index (elasticlunr
@@ -101,7 +130,6 @@
       (.addDoc search-index item))
 
     search-index))
-
 
 (defn- ResultIcon [{:keys [item]}]
   (let [colors {"NS"  "bg-light-purple"
@@ -122,7 +150,6 @@
                  :aria-label label
                  :title label}
            text]]))
-
 
 (defn- ResultName [{:keys [item]}]
   (if (= "def" (:kind item))
@@ -153,76 +180,101 @@
                [:div {:class "flex flex-column"}
                 [:ResultName {:item result}]]]]]])))
 
-;; TODO: hmmm...
 (defn- search [search-index query]
   (when search-index
+    (.log js/console "search" search-index query)
     (let [exact-tokens (tokenize query)
           field-queries [{:field "name" :boost 10 :tokens exact-tokens}
                          {:field "doc" :boost 5 :tokens exact-tokens}]
           query-results {}]
-      (for [fq field-queries]
-        (let [search-config { (:field fq) {:boost (:boost fq)
-                                           :bool "OR"
-                                           :expand true}}
+      ;; until I clearly understand what the intent here...
+      ;; ...for now we'll mimic the original mutable typescript implementation
+      (doseq [field-query field-queries]
+        (let [search-config {(:field field-query) {:boost (:boost field-query)
+                                                   :bool "OR"
+                                                   :expand true}}
               field-search-results (.fieldSearch search-index
-                                                 (:tokens fq)
-                                                 (:field fq)
+                                                 (:tokens field-query)
+                                                 (:field field-query)
                                                  search-config)]
-          (.log console "fsr" field-search-result)
+          (doseq [doc-ref field-search-results]
+            (assoc! field-search-results doc-ref (* (get field-search-results doc-ref)
+                                                    (:boost field-query))))
+          (doseq [doc-ref field-search-results]
+            (assoc! query-results doc-ref (+ (get query-results doc-ref 0)
+                                             (get field-search-results doc-ref))))))
 
-          ()))
-      ))
-  )
+      (let [results []]
+        (doseq [doc-ref query-results]
+          (conj! results {:ref doc-ref :score (:doc-ref query-results)}))
+
+        (.sort results (fn [a b]
+                         (- (:-score b) (:-score a))))
+
+
+        (.log js/console "search-index" search-index)
+        (.log js/console "doc store" (:documentStore search-index))
+        (let [results-with-docs (mapv (fn [r] {:result r
+                                               :doc (.getDoc (:documentStore search-index) (:ref r))})
+                                      results)]
+          ;; TODO: filter out dupes.
+          results-with-docs)))))
 
 (def ^:private debounced-search (debounced 300 search))
 
 (defn SingleDocsetSearch [{:keys [url]}]
-  (let [[db set-db!] (useState IDBPDatabase)
-        [index-items set-index-items!] (useState IndexItem [])
-        [search-index set-search-index!] (useState Index)
+  (let [[db set-db!] (useState nil)
+        [index-items set-index-items!] (useState nil)
+        [search-index set-search-index!] (useState nil)
 
         [results set-results!] (useState [])
         [show-results set-show-results!] (useState false)
         [selected-ndx set-selected-ndx!] (useState nil)
 
-        current-url (URL. window.location.href)
-        [input-value set-input-value!] (useState (or (.get (.-searcParams current-url) "q")
+        current-url (js/URL. js/window.location.href)
+        [input-value set-input-value!] (useState (or (.get (.-searchParams current-url) "q")
                                                      ""))
         input-elem (useRef nil)]
 
     (useEffect
-     (fn []
+     (fn init-input-elem []
+       (.log js/console "init input elem")
        (let [handle-key-down (fn [{:keys [key] :as e}]
                                (when (and (.-current input-elem)
                                           (or (.-metaKey e) (.-ctrlKey e))
                                           (= "/" key))
                                  (.focus (.-current input-elem))))]
-         (.addEventListener document "keydown" handle-key-down)
+         (.addEventListener js/document "keydown" handle-key-down)
          (fn []
-           (.removeEventListener document "keydown" handle-key-down))))
+           (.removeEventListener js/document "keydown" handle-key-down))))
      [input-elem])
 
     (useEffect
-     (fn []
-       (->
-        (openDB "cljdoc-searchsets-store" 1
-                {:upgrade (fn [db]
-                            (.createObjectStore "searchsets"))})
-        (.then evictBadSearchSets)
-        (.then setDb)
-        (.catch console.error))
-       []))
+      (fn init-db []
+        (.log js/console "init db")
+        (let [db-version 1]
+          (-> (openDB "cljdoc-searchsets-store"
+                      db-version
+                      {:upgrade (fn [db]
+                                  (.log js/console "creating object store" db)
+                                  (.createObjectStore db "searchsets"))})
+              (.then evict-bad-search-sets)
+              (.then set-db!)
+              (.catch js/console.error))))
+      [])
 
     (useEffect
-     (fn []
+     (fn fetch-index []
        (when db
-         (-> (fetchIndexItems url db)
-             (.then setIndexItems)
-             (.catch console.error))))
+         (.log js/console "docset fetching" url db)
+         (-> (fetch-index-items url db)
+             (.then set-index-items!)
+             (.catch js/console.error))))
      [url db])
 
     (useEffect
-     (fn []
+     (fn build-index []
+       (.log js/console "build search index")
        (when index-items
          (set-search-index! (build-search-index index-items))))
      [index-items])
@@ -252,16 +304,15 @@
                                        (set-selected-ndx! ndx))))))
           on-result-navigation (fn [path]
                                  (when-let [input (.-current input-elem)]
-                                   (let [redirect-to (URL. (str window.location.origin path))
+                                   (let [redirect-to (js/URL. (str js/window.location.origin path))
                                          params (.-searchParams redirect-to)]
                                      (.set params "q" (.-value input))
                                      (set! (.-search redirect-to) (.toString params))
-                                     (when (not= (.-href current-url) (.-href redirec-to))
-                                       (.assign window.location (.toString redirect-to)))
+                                     (when (not= (.-href current-url) (.-href redirect-to))
+                                       (.assign js/window.location (.toString redirect-to)))
                                      (when show-results
                                        (set-show-results! false)
-                                       (.blur input))
-                                   )))]
+                                       (.blur input)))))]
       (clamp-selected-ndx)
 
       #jsx [:<>
@@ -281,15 +332,17 @@
                         :placeholder (if search-index "Search..." "Loading...")
                         :ref input-elem
                         :onFocus (fn [{:keys [target] :as e}]
+                                   (.log console "onFocus" target)
                                    (dom/toggle-class target "b--blue")
                                    (-> (debounced-search search-index (.-value target))
                                        (.then (fn [results]
+                                                (.log console "results" results)
                                                 (if results
                                                   (set-results! results)
                                                   (set-results! []))
                                                 (when-not show-results
                                                   (set-show-results! true))))
-                                       (.catch console.error)))
+                                       (.catch js/console.error)))
                         :onBlur (fn [{:keys [target] :as e}]
                                   (dom/toggle-class target "b--blue")
                                   (when show-results
@@ -312,20 +365,20 @@
                                        "Enter" (do
                                                  (.preventDefault e)
                                                  (if show-results
-                                                   (when (and selected-ndx (seq results) )
+                                                   (when (and selected-ndx (seq results))
                                                      (on-result-navigation
-                                                       (-> results
-                                                           (get selected-ndx)
-                                                           :doc
-                                                           :path)))
+                                                      (-> results
+                                                          (get selected-ndx)
+                                                          :doc
+                                                          :path)))
                                                    (set-show-results! true)))
                                        nil))
-                        :onInput (fn [{:keys [target] as e}]
+                        :onInput (fn [{:keys [target] :as e}]
                                    (.preventDefault e)
-                                   (set-input-value! (.-value input))
-                                   (if (zero? (-> input .-value count))
+                                   (set-input-value! (.-value target))
+                                   (if (zero? (-> target .-value count))
                                      (set-results! [])
-                                     (-> (debounced-search search-index (.-value input))
+                                     (-> (debounced-search search-index (.-value target))
                                          (.then (fn [results]
                                                   (if results
                                                     (set-results! results)

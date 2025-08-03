@@ -17,7 +17,7 @@ import {
   saveSidebarScrollPos
 } from "./cljdoc";
 import { initRecentDocLinks } from "./recent_doc_links";
-import { mountSingleDocsetSearch } from "./single-docset-search";
+import { mountSingleDocsetSearch } from "./single_docset_search";
 import { mergeHTMLPlugin } from "./hljs-merge-plugin";
 import { copyButtonPlugin } from "./hljs_copy_button_plugin";
 

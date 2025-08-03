@@ -1,20 +1,12 @@
 (ns switcher
   (:require ["preact/hooks" :refer [useState useEffect useRef]]
             ["fuzzysort$default" :as fuzzysort]
-            ["./library" :refer [docsUri project]]
+            ["./library" :as library]
             ["./listselect" :refer [ResultsView]]))
 
 (defn- is-same-project [p1 p2]
   (and (== (:group-id p1) (:group-id p2))
        (== (:artifact-id p1) (:artifact-id p2))))
-
-;; TODO: looks like we repeat similar in cljdoc.cljs lib-version-path
-(defn- parse-cljdoc-uri [uri]
-  (let [[lead group-id artifact-id version] (rest (.split uri "/"))]
-    (when (= "d" lead)
-      {:group-id group-id
-       :artifact-id artifact-id
-       :version version})))
 
 (defn- load-prev-opened []
   (JSON/parse (or (.getItem localStorage "previouslyOpened") "[]")))
@@ -25,7 +17,7 @@
 (defn trackProjectOpened []
   (when (not (is-error-page?))
     (let [max-track-count 15
-          project (parse-cljdoc-uri window.location.pathname)]
+          project (library/coords-from-current-loc)]
       (when project
         ;; TODO: also referred to in recent_doc_links.cljs
         (.log console "project" project)
@@ -45,15 +37,15 @@
 
 (defn- SwitcherSingleResultView [{:keys [result isSelected selectResult]}]
   (.log console "ssrv!!!" result isSelected selectResult)
-  (let [_ (.log console "foo+++" (project result))
-        uri (docsUri result)]
+  (let [_ (.log console "foo+++" (library/project result))
+        uri (library/docs-path result)]
     #jsx [:<>
           [:a {:class "no-underline black" :href uri :onMouseOver selectResult}
            [:div {:class (if isSelected
                            "pa3 bb b--light-gray bg-light-blue"
                            "pa3 bb b--light-gray")}
             [:h4 {:class "dib ma0"}
-             (project result)
+             (library/project result)
              [:span {:class "ml2 gray normal"} (:version result)]]
             [:a {:class "link blue ml2" :href uri}
              "view docs"]]]]))

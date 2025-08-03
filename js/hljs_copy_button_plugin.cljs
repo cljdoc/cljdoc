@@ -6,7 +6,7 @@
 (def copyButtonPlugin
   {"before:highlightElement"
    (fn [{:keys [el]}]
-     (let [button (.createElement document "button")]
+     (let [button (.createElement js/document "button")]
        (set! (.-innerHTML button) "copy")
        (set! (.-className button) "hljs-copy-button")
        (set! (.-copied (.-dataset button)) "false")
@@ -15,12 +15,12 @@
          (.appendChild parent button)
          (.addEventListener button "click"
                             (fn []
-                              (when-let [clipboard (.-clipboard navigator)]
+                              (when-let [clipboard js/navigator.clipboard]
                                 (-> (.writeText clipboard (.-innerText el))
                                     (.then (fn []
                                              (set! (.-innerHTML button) "copied")
                                              (set! (.-copied (.-dataset button)) "true"))))
-                                (setTimeout (fn []
-                                              (set! (.-innerHTML button) "copy")
-                                              (set! (.-copied (.-dataset button)) "false"))
-                                            2000)))))))})
+                                (js/setTimeout (fn []
+                                                 (set! (.-innerHTML button) "copy")
+                                                 (set! (.-copied (.-dataset button)) "false"))
+                                               2000)))))))})

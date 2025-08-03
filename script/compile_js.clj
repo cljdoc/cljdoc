@@ -126,7 +126,7 @@ Options
                         :source-asset-static-subdir "static"
                         :js-dir "js"
                         :js-out-name "cljdoc"
-                        :js-entry-point "index.tsx"}]
+                        :js-entry-point "index.cljs"}]
       (compile-all compile-opts)
       (when (get opts "--watch")
         (setup-watch-compile compile-opts)))))

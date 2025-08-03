@@ -1,6 +1,7 @@
 // Pasted from https://github.com/highlightjs/highlight.js/issues/2889#issue-748412174
 // We had transcribed this to TypeScript and started to transcribe it to squint, but why?
-// It is more maitainable to use the JS provided version.
+// If we do make custom changes this plugin, maybe Squinting it makes sense, but until then, let's
+// leave it as JavaScript.
 'use strict';
 
 var originalStream;

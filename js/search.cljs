@@ -1,16 +1,25 @@
 (ns search
   (:require ["preact/hooks" :refer [useState useEffect]]
-            ["./library" :refer [docsUri project]]
+            ["./library" :as library]
             ["./listselect" :refer [ResultsView]]))
 
 (defn debounced [delay-ms f]
   (let [timer-id (atom nil)]
     (fn [& args]
       (when @timer-id
-        (clearTimeout @timer-id))
-      (reset! timer-id
-              (setTimeout (apply f args)
-                          delay-ms)))))
+        (js/clearTimeout @timer-id))
+      (js/Promise.
+        (fn [resolve reject]
+          (reset! timer-id
+                  (js/setTimeout
+                    (fn []
+                      (try
+                        (-> (apply f args) resolve)
+                        (catch :default e
+                          (reject e))
+                        (finally
+                          (reset! timer-id nil)))
+                      ) delay-ms)))))))
 
 (defn- clean-search-str [s]
   (.replace s "/[{}[]\"]+/g" ""))
@@ -28,7 +37,7 @@
 (def ^:private load-results-debounced (debounced 300 load-results))
 
 (defn- SearchInput [{:keys [initialValue focus unfocus newResultsCallback
-                           onEnter onArrowUp onArrowDown] :as props}]
+                            onEnter onArrowUp onArrowDown] :as props}]
   (.log console "si props" props)
   (let [on-key-down (fn [{:keys [key] :as e}]
                       (case key
@@ -59,10 +68,9 @@
                                (load-results-debounced (.-value target)
                                                        newResultsCallback)))}]))
 
-
 (defn- SingleResultView [{:keys [result isSelected selectResult]}]
   ;; jar_name??
-  (let [uri (docsUri result)
+  (let [uri (library/docs-path result)
         rowClass (if isSelected
                    "pa3 bb b--light-gray bg-light-blue"
                    "pa3 bb b--light-gray")]
@@ -70,7 +78,7 @@
           [:a {:class "no-underline black" :href uri}
            [:div {:class rowClass :onMouseOver selectResult}
             [:h4 {:class "dib ma0"}
-             (project result)
+             (library/project result)
              [:span {:class "ml2 gray normal"}
               (:version result)]]
             [:a {:class "link blue ml2" :href uri}
@@ -100,7 +108,7 @@
                                                (set-selected-ndx! 0))
                          :onEnter (fn []
                                     (when-let [result (get results selected-ndx)]
-                                      (.open window (docsUri result) "_self")))
+                                      (.open window (library/docs-path result) "_self")))
                          :onArrowUp (fn []
                                       (set-selected-ndx! (max (dec selected-ndx) 0)))
                          :onArrowDown (fn []
