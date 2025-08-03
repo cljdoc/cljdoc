@@ -72,35 +72,11 @@
    :depends [deps-js]
    :requires [compile-js]
    :task (compile-js/-main "--watch")}
-
-  code-format-js
-  {:doc "(check|fix) JS code format"
-   :depends [deps-js]
-   :task (let [cmd (first *command-line-args*)]
-           (if (= cmd "fix")
-             (do (println "fixing")
-                 (shell "npm run format"))
-             (do (println "checking")
-                 (shell "npm run lint"))))}
   compile-java
   {:doc "Compile java sources"
    :task (if (seq (fs/modified-since bs/class-dir (fs/glob "." "src/**.java")))
            (clojure "-T:build" "compile-java")
            (println "Java sources already compiled to" bs/class-dir))}
-  lint-js
-  {:doc "lint typescript"
-   :depends [deps-js]
-   :task (let [exit (-> (shell {:continue true} "npx tsc") :exit)]
-           (if (zero? exit)
-             (println "Exited with 0, so all seems good.")
-             (System/exit exit)))}
-  eslint
-  {:doc "eslint typescript"
-   :depends [deps-js]
-   :task (let [exit (-> (apply shell {:continue true} "npx eslint" *command-line-args*) :exit)]
-           (if (zero? exit)
-             (println "No eslint errors detected")
-             (System/exit exit)))}
   server
   {:doc "Launch cljdoc server"
    :depends [compile-js compile-java]
