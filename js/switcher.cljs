@@ -1,8 +1,8 @@
 (ns switcher
   (:require ["./library" :as library]
+            #_:clj-kondo/ignore ;; used in #jsx as tag
             ["./listselect" :refer [ResultsView]]
             ["fuzzysort$default" :as fuzzysort]
-            ["preact" :refer [h]]
             ["preact/hooks" :refer [useEffect useRef useState]]))
 
 (defn- is-same-project [p1 p2]
@@ -35,14 +35,14 @@
           (.setItem js/localStorage "previouslyOpened" (.stringify js/JSON prev-opened)))))))
 
 (defn- SwitcherSingleResultView [{:keys [result isSelected selectResult]}]
-  (.log js/console "ssrv!!!" result isSelected selectResult)
-  (let [_ (.log js/console "foo+++" (library/project result))
-        uri (library/docs-path result)]
+  (.log js/console "ssrv" result isSelected selectResult)
+  (let [uri (library/docs-path result)
+        row-class (if isSelected
+                    "pa3 bb b--light-gray bg-light-blue"
+                    "pa3 bb b--light-gray")]
     #jsx [:<>
           [:a {:class "no-underline black" :href uri :onMouseOver selectResult}
-           [:div {:class (if isSelected
-                           "pa3 bb b--light-gray bg-light-blue"
-                           "pa3 bb b--light-gray")}
+           [:div {:class row-class}
             [:h4 {:class "dib ma0"}
              (library/project result)
              [:span {:class "ml2 gray normal"} (:version result)]]
@@ -73,40 +73,39 @@
                       (set-selected-ndx! 0)
                       (set-results! prev-opened)
                       (set-prev-opened! prev-opened))
-        handle-key-down (fn [{:keys [target key metaKey ctrlKey] :as e}]
-                          (.log js/console "key" key)
-                          (when (= target (.-current input-node))
-                            (cond
-                              (= "ArrowUp" key)
+        on-input-key-down (fn [{:keys [key] :as e}]
+                            (.log js/console "switcher key" key)
+                            (case key
+                              "Enter"
+                              (let [{:keys [group-id artifact-id version]} (get results selected-ndx)]
+                                (set! js/window.location.href (str "/d/" group-id "/" artifact-id "/" version)))
+                              "ArrowUp"
                               (do
                                 (.preventDefault e)
                                 (set-selected-ndx! (max (dec selected-ndx) 0)))
-                              (= "Arrowdown" key)
+                              "ArrowDown"
                               (do
+                                (.log js/console "ad" selected-ndx (count results)
+                                      (min (inc selected-ndx) (-> results count dec)))
                                 (.preventDefault e)
-                                (set-selected-ndx! (min
-                                                    (inc selected-ndx)
-                                                    (-> results count dec))))))
+                                (set-selected-ndx! (min (inc selected-ndx)
+                                                        (-> results count dec))))
+                              nil))
+        on-global-key-down (fn [{:keys [key metaKey ctrlKey] :as e}]
+                            (cond
+                              (and (= "k" key)
+                                   (or (and is-macos? metaKey) (and (not is-macos?) ctrlKey)))
+                              (do
+                                (.log js/console "handling K key")
+                                (.preventDefault e)
+                                (set-show! true)
+                                (set-results! prev-opened))
 
-                          (cond
-                            (and (= "k" key)
-                                 (or (and is-macos? metaKey) (and (not is-macos?) ctrlKey))
-                                 (= target js/document.body))
-                            (do
-                              (.log js/console "handling K key")
-                              (.preventDefault e)
-                              (set-show! true)
-                              (set-results! prev-opened))
-
-                            (= "Escape" key)
-                            (do
-                              (.log js/console "handling escape")
-                              (set-show! false)
-                              (set-results! []))))
-        handle-input-key-up (fn [{:keys [key] :as _e}]
-                              (when (= "Enter" key)
-                                (let [{:keys [group-id artifact-id version]} (get results selected-ndx)]
-                                  (set! js/window.location.href (str "/d/" group-id "/" artifact-id "/" version)))))
+                              (= "Escape" key)
+                              (do
+                                (.log js/console "handling escape")
+                                (set-show! false)
+                                (set-results! []))))
         update-results (fn [search-str]
                          (.log js/console "update results" search-str)
                          (.log js/console "fuzzysort" fuzzysort)
@@ -120,7 +119,7 @@
                              (set-selected-ndx! 0))))]
     (useEffect (fn []
                  (.log js/console "ue init")
-                 (.addEventListener js/document "keydown" handle-key-down))
+                 (.addEventListener js/document "keydown" on-global-key-down))
                [])
     (useEffect (fn []
                  (.log js/console "ue show" show)
@@ -139,11 +138,11 @@
               [:input {:placeholder "Jump to recently viewed docs..."
                        :class "pa2 w-100 br1 border-box b--blue ba input-reset"
                        :ref input-node
-                       :onKeyUp handle-input-key-up
+                       :onKeyDown on-input-key-down
                        :onInput (fn [e]
                                   (.log js/console "onInput" e)
                                   (update-results (-> e .-target .-value)))}]
-              (h ResultsView {:results results
-                              :selectedIndex selected-ndx
-                              :onMouseOver set-selected-ndx!
-                              :resultView SwitcherSingleResultView})]]])))
+              [:ResultsView {:resultView SwitcherSingleResultView
+                             :results results
+                             :selectedIndex selected-ndx
+                             :onMouseOver set-selected-ndx!}]]]])))
