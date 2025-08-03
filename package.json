@@ -1,12 +1,6 @@
 {
   "name": "cljdoc",
   "type": "module",
-  "scripts": {
-    "format": "prettier --write 'js/**/*.{js,jsx,ts,tsx}'",
-    "lint": "prettier --check 'js/**/*.{js,jsx,ts,tsx}'",
-    "typecheck": "npx tsc --watch",
-    "eslint": "eslint ."
-  },
   "dependencies": {
     "squint-cljs": "0.8.152",
     "elasticlunr": "0.9.5",
@@ -15,26 +9,6 @@
     "preact": "10.26.9"
   },
   "devDependencies": {
-    "@eslint/js": "9.31.0",
-    "eslint": "9.31.0",
-    "@types/elasticlunr": "0.9.9",
-    "@types/eslint__js": "8.42.3",
-    "@types/lunr": "2.3.7",
-    "esbuild": "0.25.8",
-    "prettier": "3.6.2",
-    "pretty-quick": "4.2.2",
-    "svgo": "4.0.0",
-    "typescript": "5.8.3",
-    "typescript-eslint": "8.38.0"
-  },
-  "staticFiles": {
-    "staticPath": "resources/public/static"
-  },
-  "alias": {
-    "react": "preact/compat",
-    "react-dom": "preact/compat",
-    "react/jsx-runtime": "preact/jsx-runtime",
-    "react/jsx-dev-runtime": "preact/jsx-dev-runtime",
-    "preact/jsx-dev-runtime": "preact/jsx-runtime"
+    "esbuild": "0.25.8"
   }
 }
