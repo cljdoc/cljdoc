@@ -3,7 +3,9 @@
    ["preact" :refer [h]]
    ["preact/hooks" :refer [useEffect useRef]]))
 
-(defn- restrict-to-viewport [container selected-index]
+(defn- restrict-to-viewport
+  "Ensure that item at `selected-index` is visible by scrolling to it within `container`"
+  [container selected-index]
   (let [container-rect (.getBoundingClientRect container)
         selected-rect (.getBoundingClientRect (aget (.-children container) selected-index))
         delta-top (- (.-top selected-rect) (.-top container-rect))
