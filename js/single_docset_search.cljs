@@ -1,13 +1,13 @@
 (ns single-docset-search
-  (:require ["./dom" :as dom]
+  (:require [clojure.string :as str]
+            ["./dom" :as dom]
             ["preact" :refer [render]]
             ["preact/hooks" :refer [useEffect useRef useState]]
             ["./search" :refer [debounced]]
-            ["idb" :refer [DBSchema IDBPDatabase openDB]]
-            ["elasticlunr$default" :as elasticlunr]
-            [squint-cljs/string.js :as str]))
+            ["idb" :refer [openDB]]
+            ["elasticlunr$default" :as elasticlunr]))
 
-(def SEARCHSET_VERSION 3)
+(def SEARCHSET_VERSION 4)
 
 ;; TODO: tests for tokenization?
 (defn- tokenize [s]
@@ -132,6 +132,8 @@
     search-index))
 
 (defn- ResultIcon [{:keys [item]}]
+  (.log js/console "result icon" item)
+  (.log js/console "result icon type" (:type item))
   (let [colors {"NS"  "bg-light-purple"
                 "DOC" "bg-green"
                 "VAR" "bg-dark-blue"
@@ -141,12 +143,12 @@
         {:keys [text label]} (case (:kind item)
                                "namespace" {:text "NS"}
                                "def" {:label (:type item)
-                                      :text (-> item :type (subs 0 3) .toUpperCase)}
-                               "doc" {:text "doc"})
+                                      :text (-> item :type (subs 0 3) str/upper-case)}
+                               "doc" {:text "DOC"})
         color (get colors text default-color)]
     #jsx [:<>
           [:div {:class (str "pa1 white-90 br1 mr2 tc f6 " color)
-                 :style "width:2.5rem; fontSize: 13px; marginBottom: 2px"
+                 :style "width:2.5rem; font-size: 13px; margin-bottom: 2px;"
                  :aria-label label
                  :title label}
            text]]))
@@ -155,24 +157,24 @@
   (if (= "def" (:kind item))
     #jsx [:<>
           [:div {:class "mb1"}
-           ;; TODO: class empty string?
-           [:span {:class ""} (:namespace item)]
-           (:name item)]]
+           [:span (:namespace item)]"/"(:name item)]]
     #jsx [:<>
           [:div {:class "mb1"} (:name item)]]))
 
-(defn- ResultListItem [{:keys [searchResult index selected onClick onMouseDown]}]
+(defn- ResultListItem [{:keys [searchResult selected onClick onMouseDown]}]
   (let [item (useRef nil)]
+    (.log js/console "rli" searchResult)
     (useEffect (fn []
                  (when (and (.-current item) selected)
                    (.scrollIntoView (.-current item) {:block "nearest"})))
                [(.-current item) selected])
-    (let [result (.-doc searchResult)]
+    (let [result (:doc searchResult)]
       #jsx [:<>
-            [:li {:class "pa2 bb b--light-gray"}
-             :ref item
+            [:li {:class "pa2 bb b--light-gray"
+                  :ref item}
              [:a {:class "no-underline black"
-                  :href (.-path result)
+                  ;; TODO: hmmm...
+                  :href "#" #_(.-path result)
                   :onMouseDown (fn [e] (when onMouseDown (onMouseDown e)))
                   :onclick (fn [e] (when onClick (onClick e)))}
               [:div {:class "flex flex-row items-end"}
@@ -184,6 +186,7 @@
   (when search-index
     (.log js/console "search" search-index query)
     (let [exact-tokens (tokenize query)
+          _ (.log js/console "tokens" exact-tokens)
           field-queries [{:field "name" :boost 10 :tokens exact-tokens}
                          {:field "doc" :boost 5 :tokens exact-tokens}]
           query-results {}]
@@ -197,28 +200,56 @@
                                                  (:tokens field-query)
                                                  (:field field-query)
                                                  search-config)]
-          (doseq [doc-ref field-search-results]
-            (assoc! field-search-results doc-ref (* (get field-search-results doc-ref)
-                                                    (:boost field-query))))
-          (doseq [doc-ref field-search-results]
-            (assoc! query-results doc-ref (+ (get query-results doc-ref 0)
-                                             (get field-search-results doc-ref))))))
+
+          ;; boost field
+          (let [boost (:boost field-query)]
+            (doseq [doc-ref (js/Object.keys field-search-results)]
+              (let [current-value (aget field-search-results doc-ref)]
+                (aset field-search-results doc-ref
+                      (* current-value boost)))))
+
+          ;; accumulate results
+          (doseq [doc-ref (js/Object.keys field-search-results)]
+            (aset query-results doc-ref (+ (or (aget query-results doc-ref) 0)
+                                           (aget field-search-results doc-ref))))))
 
       (let [results []]
-        (doseq [doc-ref query-results]
-          (conj! results {:ref doc-ref :score (:doc-ref query-results)}))
+        (doseq [doc-ref (js/Object.keys query-results)]
+          (conj! results {:ref doc-ref :score (aget query-results doc-ref)}))
 
         (.sort results (fn [a b]
-                         (- (:-score b) (:-score a))))
+                         (- (:score b) (:score a))))
 
 
         (.log js/console "search-index" search-index)
         (.log js/console "doc store" (:documentStore search-index))
-        (let [results-with-docs (mapv (fn [r] {:result r
-                                               :doc (.getDoc (:documentStore search-index) (:ref r))})
-                                      results)]
-          ;; TODO: filter out dupes.
-          results-with-docs)))))
+        (let [results-with-docs (mapv (fn [r]
+                                        ;; (.log js/console "rwd" r)
+                                        ;; (.log js/console "rwd ref" (:ref r))
+                                        ;; (.log js/console "rwd doc" (.getDoc (:documentStore search-index) (:ref r)))
+                                        ;; (.log js/console "rwd ds" (:documentStore search-index))
+                                        {:result r
+                                         :doc (.getDoc (:documentStore search-index) (:ref r))})
+                                      results)
+              seen #{}]
+          (reduce (fn [acc {:keys [doc] :as n}]
+                    (.log js/console "dedupe" (:kind doc) seen)
+                    (if-not (contains? #{"namespace" "def"} (:kind doc))
+                      (do
+                        (.log js/console "na")
+                        (conj acc n))
+                      ;; stringify unique id to json... JS does not do object equality
+                      (let [unique-id (.stringify js/JSON (select-keys doc [:kind :name :path :namespace]))]
+                        (.log js/console "unique-id" unique-id)
+                        (if (contains? seen unique-id)
+                          (do
+                            (.log js/console "seen")
+                            acc)
+                          (do
+                            (conj! seen unique-id)
+                            (conj acc n))))))
+                  []
+                  results-with-docs))))))
 
 (def ^:private debounced-search (debounced 300 search))
 
@@ -250,18 +281,18 @@
      [input-elem])
 
     (useEffect
-      (fn init-db []
-        (.log js/console "init db")
-        (let [db-version 1]
-          (-> (openDB "cljdoc-searchsets-store"
-                      db-version
-                      {:upgrade (fn [db]
-                                  (.log js/console "creating object store" db)
-                                  (.createObjectStore db "searchsets"))})
-              (.then evict-bad-search-sets)
-              (.then set-db!)
-              (.catch js/console.error))))
-      [])
+     (fn init-db []
+       (.log js/console "init db")
+       (let [db-version 1]
+         (-> (openDB "cljdoc-searchsets-store"
+                     db-version
+                     {:upgrade (fn [db]
+                                 (.log js/console "creating object store" db)
+                                 (.createObjectStore db "searchsets"))})
+             (.then evict-bad-search-sets)
+             (.then set-db!)
+             (.catch js/console.error))))
+     [])
 
     (useEffect
      (fn fetch-index []
@@ -322,7 +353,7 @@
               [:div {:style "position: relative"}
                [:img {:src "/search-icon.svg"
                       :class "w1 h1"
-                      :style "position: absolute; left: 0.58rem; right: 0.58rem; zIndex 1"}]
+                      :style "position: absolute; left: 0.58rem; top: 0.58rem; z-index: 1;"}]
                [:input {:name "single-docset-search-term"
                         :type "text"
                         :aria-describedby "single-docset-search-term-description"
@@ -387,13 +418,15 @@
                                                     (set-show-results! true))))
                                          (.catch console.error))))}]]
               (when (and show-results (seq results))
-                [:ol {:class "list pa0 ma0 no-underline black bg-white br--bottom ba br1 b--blue absolute overflow-y-scroll"
-                      :style "zIndex:1; maxWidth: 90vw; maxHeight: 80vh"}
-                 (for [[ndx result] (map-indexed vector results)]
-                   [:ResultListItem {:searchResult result
-                                     :index index
-                                     :selected (= selected-ndx ndx)
-                                     :onMouseDown (fn [e] (.preventDefault e))
-                                     :onClick (fn [e]
-                                                (.preventDefault e)
-                                                (on-result-navigation (-> result :doc :path)))}])])]]])))
+                #jsx [:<>
+                      [:ol {:class "list pa0 ma0 no-underline black bg-white br--bottom ba br1 b--blue absolute overflow-y-scroll"
+                            :style "z-index:1; max-width: 90vw; max-height: 80vh"}
+                       (-> (for [[ndx result] (map-indexed vector results)]
+                             #jsx [:ResultListItem {:searchResult result
+                                               :index ndx
+                                               :selected (= selected-ndx ndx)
+                                               :onMouseDown (fn [e] (.preventDefault e))
+                                               :onClick (fn [e]
+                                                          (.preventDefault e)
+                                                          (on-result-navigation (-> result :doc :path)))}])
+                           doall)]])]]])))
