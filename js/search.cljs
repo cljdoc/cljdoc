@@ -1,7 +1,7 @@
 (ns search
   (:require ["./library" :as library]
+            #_:clj-kondo/ignore ;; used in #jsx as tag
             ["./listselect" :refer [ResultsView]]
-            ["preact" :refer [h]]
             ["preact/hooks" :refer [useEffect useState]]))
 
 (defn debounced [delay-ms f]
@@ -26,7 +26,7 @@
 
 (defn- load-results [q call-back]
   ;; TODO: url changed for testing, change back to relative
-  ;; TODO server could just return edn?
+  ;; TODO server could just return edn? would that be at all helpful?
   (.log js/console "lr" q call-back)
   (let [url (str "http://localhost:8000/api/search?q=" q)]
     (-> (js/fetch url)
@@ -60,7 +60,7 @@
                   :class "pa2 w-100 br1 border-box b--blue ba input-reset"
                   :value input-value
                   :onFocus focus
-                  :onBlur (fn [_e] (setTimeout (unfocus) 200))
+                  :onBlur (fn [_e] (setTimeout unfocus 200))
                   :onKeyDown on-key-down
                   :onInput (fn [e]
                              (let [target (.-target e)]
@@ -69,7 +69,6 @@
                                                        newResultsCallback)))}]))
 
 (defn- SingleResultView [{:keys [result isSelected selectResult]}]
-  ;; jar_name??
   (let [uri (library/docs-path result)
         rowClass (if isSelected
                    "pa3 bb b--light-gray bg-light-blue"
@@ -89,16 +88,7 @@
 (defn App [{:keys [initialValue]}]
   (let [[selected-ndx set-selected-ndx!] (useState 0)
         [results      set-results!] (useState [])
-        [focused      set-focused!] (useState false)
-
-        results-view (fn [selectResult]
-                       #jsx [:<>
-                             [:div {:class "bg-white br1 br--bottom bb bl br b--blue w-100 absolute"
-                                    :style "top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"}
-                              (h ResultsView {:resultView SingleResultView
-                                              :results results
-                                              :selectedIndex selected-ndx
-                                              :onMouseOver selectResult})]])]
+        [focused      set-focused!] (useState false)]
     #jsx [:<>
           [:div {:class "relative system-sans-serif"}
            (SearchInput {:initialValue initialValue
@@ -114,6 +104,13 @@
                          :onArrowDown (fn []
                                         (set-selected-ndx! (min (inc selected-ndx)
                                                                 (-> results count dec))))
-                         :onFocus (fn [] (set-focused! true))})
+                         :focus (fn [] (set-focused! true))
+                         :unfocus (fn [] (set-focused! false))})
            (when (and focused (seq results))
-             (results-view selected-ndx))]]))
+             #jsx [:<>
+                   [:div {:class "bg-white br1 br--bottom bb bl br b--blue w-100 absolute"
+                          :style "top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"}
+                    [:ResultsView {:resultView SingleResultView
+                                   :results results
+                                   :selectedIndex selected-ndx
+                                   :onMouseOver set-selected-ndx!}]]])]]))

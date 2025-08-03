@@ -1,8 +1,9 @@
 (ns listselect
-  (:require ["preact/hooks" :refer [useEffect useRef]]))
+  (:require
+   ["preact" :refer [h]]
+   ["preact/hooks" :refer [useEffect useRef]]))
 
 (defn- restrict-to-viewport [container selected-index]
-  (.log js/console "rtvp" container selected-index)
   (let [container-rect (.getBoundingClientRect container)
         selected-rect (.getBoundingClientRect (aget (.-children container) selected-index))
         delta-top (- (.-top selected-rect) (.-top container-rect))
@@ -14,23 +15,18 @@
 (defn ResultsView [{:keys [resultView results selectedIndex onMouseOver]}]
   (let [results-view-node (useRef nil)]
     (useEffect (fn []
-                 (.log js/console "huston we have been updated" results-view-node)
-                 #_(when results-view-node
-                     (restrict-to-viewport (.-current results-view-node)
-                                           selectedIndex)))
+                 (when results-view-node
+                   (restrict-to-viewport (.-current results-view-node)
+                                         selectedIndex)))
                [selectedIndex])
-    (.log js/console "ResultsView" resultView results selectedIndex onMouseOver)
     #jsx [:<>
           [:div
            {:className "bg-white br1 br--bottom bb bl br b--blue w-100 overflow-y-scroll"
             :style {:maxHeight "20rem"}
             :ref results-view-node}
            (-> (for [[idx result] (map-indexed vector results)]
-                 (do
-                   (.log console "lp" idx result)
-                   ;; TODO need to call with preact h?
-                   (resultView
+                 (h resultView
                     {:result result
                      :isSelected (= selectedIndex idx)
-                     :selectResult (fn [] (onMouseOver idx))})))
+                     :selectResult (fn [] (onMouseOver idx))}))
                doall)]]))
