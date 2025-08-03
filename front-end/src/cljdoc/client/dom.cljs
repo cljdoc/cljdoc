@@ -1,4 +1,4 @@
-(ns dom)
+(ns cljdoc.client.dom)
 
 (defn query-doc
   ([q elem]

@@ -1,6 +1,6 @@
-(ns cljdoc
-  (:require ["./dom" :as dom]
-            ["./library" :as library]))
+(ns cljdoc.client.cljdoc
+  (:require [cljdoc.client.dom :as dom]
+            [cljdoc.client.library :as library]))
 
 (defn isNSOverviewPage []
   (boolean (dom/query-doc ".ns-overview-page")))

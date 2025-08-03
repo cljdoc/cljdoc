@@ -1,6 +1,6 @@
-(ns single-docset-search
-  (:require ["./dom" :as dom]
-            ["./search" :refer [debounced]]
+(ns cljdoc.client.single-docset-search
+  (:require [cljdoc.client.dom :as dom]
+            [cljdoc.client.search :refer [debounced]]
             ["elasticlunr$default" :as elasticlunr]
             ["idb" :refer [openDB]]
             ["preact" :refer [render h]]

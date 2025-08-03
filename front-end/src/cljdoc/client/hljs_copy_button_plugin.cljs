@@ -1,4 +1,4 @@
-(ns hljs-copy-button-plugin
+(ns cljdoc.client.hljs-copy-button-plugin
   "A plugin to add a copy button to code blocks
   There is https://github.com/arronhunt/highlightjs-copy but it seems to have some
   unresolved issues. There is not much code to this, so let's just do a bare bones ourselves.")

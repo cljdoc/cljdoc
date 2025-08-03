@@ -1,19 +1,21 @@
-(ns index
-  (:require ["./cljdoc" :refer [addPrevNextPageKeyHandlers initScrollIndicator
-                                initToggleRaw isNSOfflinePage isNSOverviewPage
-                                isNSPage isProjectDocumentationPage
-                                restoreSidebarScrollPos saveSidebarScrollPos
-                                toggleArticlesTip toggleMetaDialog]]
-            ["./dom" :as dom]
-            ["./hljs-merge-plugin" :refer [mergeHTMLPlugin]]
-            ["./hljs_copy_button_plugin" :refer [copyButtonPlugin]]
-            ["./mobile" :refer [MobileNav]]
-            ["./navigator" :refer [Navigator]]
-            ["./recent_doc_links" :refer [initRecentDocLinks]]
-            ["./search" :refer [App]]
-            ["./single_docset_search" :refer [mount-single-docset-search]]
-            ["./switcher" :refer [Switcher trackProjectOpened]]
-            ["preact" :refer [h render]]))
+(ns cljdoc.client.index
+  (:require ["./hljs-merge-plugin" :refer [mergeHTMLPlugin]]
+            ["preact" :refer [h render]]
+            [cljdoc.client.cljdoc :refer [addPrevNextPageKeyHandlers
+                                          initScrollIndicator initToggleRaw
+                                          isNSOfflinePage isNSOverviewPage
+                                          isNSPage isProjectDocumentationPage
+                                          restoreSidebarScrollPos
+                                          saveSidebarScrollPos
+                                          toggleArticlesTip toggleMetaDialog]]
+            [cljdoc.client.dom :as dom]
+            [cljdoc.client.hljs-copy-button-plugin :refer [copyButtonPlugin]]
+            [cljdoc.client.mobile :refer [MobileNav]]
+            [cljdoc.client.navigator :refer [Navigator]]
+            [cljdoc.client.recent-doc-links :refer [initRecentDocLinks]]
+            [cljdoc.client.search :refer [App]]
+            [cljdoc.client.single-docset-search :refer [mount-single-docset-search]]
+            [cljdoc.client.switcher :refer [Switcher trackProjectOpened]]))
 
 (trackProjectOpened)
 

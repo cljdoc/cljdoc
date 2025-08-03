@@ -1,5 +1,5 @@
-(ns recent-doc-links
-  (:require ["./library" :as lib]
+(ns cljdoc.client.recent-doc-links
+  (:require [cljdoc.client.library :as lib]
             ["preact" :as preact]))
 
 (defn- day-date [date]

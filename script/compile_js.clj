@@ -48,15 +48,30 @@ Options
                  (str (fs/file source-asset-dir "*.css"))
                  (str (fs/file source-asset-dir "*.svg"))))
 
+(defn- transpile-to-js [{:keys [source-dir js-dir]}]
+  (status/line :head "compile-js: compiling cljs with squint")
+  (fs/delete-tree js-dir)
+  (shell/command "npx" "squint" "compile"
+                 "--extension" ".jsx"
+                 "--paths" source-dir
+                 "--output-dir" js-dir)
+  ;; TODO: fix
+  (fs/copy (fs/file source-dir "hljs-merge-plugin.js") (fs/file js-dir "cljdoc/client")))
+
 (defn- compile-js [{:keys [js-dir js-entry-point js-out-name target-dir]}]
-  (status/line :head "compile-js: transpile Sources to JS")
-  ;; to use plugins, it seems we need to use the esbuild API
-  (shell/command "node"
-                 "esbuild/build.js"
-                 js-dir
-                 js-entry-point
-                 js-out-name
-                 target-dir))
+  (status/line :head "compile-js: bundle js")
+  (shell/command "npx"
+                 "--yes"
+                 "esbuild"
+                 "--target=es2017"
+                 "--resolve-extensions=.jsx,.js"
+                 "--minify"
+                 ;; elasticlunr did not expect to wrapped, expose it like so:
+                 "--define:lunr=window.lunr"
+                 "--entry-names=[name].[hash]"
+                 (str "--outdir=" target-dir)
+                 (str js-out-name "=" (fs/file js-dir js-entry-point))
+                 "--bundle"))
 
 (defn- resource-map
   "Map of non-hashed to hashed resource."
@@ -80,6 +95,7 @@ Options
   (fs/create-dirs target-dir)
   (compile-copy opts)
   (compile-with-hash opts)
+  (transpile-to-js opts)
   (compile-js opts)
   (generate-resource-map opts)
   (status/line :detail "Completed at %s"
@@ -93,8 +109,8 @@ Options
     (compile-all opts)
     (status/line :detail "Watching for changes...")))
 
-(defn- setup-watch-compile [{:keys [source-asset-dir js-dir] :as opts}]
-  (let [watch-dirs [source-asset-dir js-dir]]
+(defn- setup-watch-compile [{:keys [source-dir source-asset-dir] :as opts}]
+  (let [watch-dirs [source-asset-dir source-dir]]
     (status/line :detail "Watching for changes in... %s" watch-dirs)
     (doseq [d watch-dirs]
       (fw/watch d
@@ -109,9 +125,10 @@ Options
                         :manifest-out-dir "resources-compiled" ;; no need for this to be public
                         :source-asset-dir "resources/public"
                         :source-asset-static-subdir "static"
-                        :js-dir "js"
+                        :js-dir "target/js-transpiled"
                         :js-out-name "cljdoc"
-                        :js-entry-point "index.cljs"}]
+                        :source-dir "front-end/src"
+                        :js-entry-point "cljdoc/client/index.jsx"}]
       (compile-all compile-opts)
       (when (get opts "--watch")
         (setup-watch-compile compile-opts)))))

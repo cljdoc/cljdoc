@@ -1,4 +1,4 @@
-(ns switcher
+(ns cljdoc.client.switcher
   (:require ["./library" :as library]
             #_:clj-kondo/ignore ;; used in #jsx as tag
             ["./listselect" :refer [ResultsView]]

@@ -1,5 +1,5 @@
-(ns mobile
-  (:require ["./dom" :as dom]
+(ns cljdoc.client.mobile
+  (:require [cljdoc.client.dom :as dom]
             ["preact/hooks" :refer [useState]]))
 
 (defn MobileNav []

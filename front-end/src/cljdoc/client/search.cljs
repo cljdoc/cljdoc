@@ -1,7 +1,7 @@
-(ns search
-  (:require ["./library" :as library]
+(ns cljdoc.client.search
+  (:require [cljdoc.client.library :as library]
             #_:clj-kondo/ignore ;; used in #jsx as tag
-            ["./listselect" :refer [ResultsView]]
+            [cljdoc.client.listselect :refer [ResultsView]]
             ["preact/hooks" :refer [useEffect useState]]))
 
 (defn debounced [delay-ms f]

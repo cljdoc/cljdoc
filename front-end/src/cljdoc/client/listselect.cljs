@@ -1,4 +1,4 @@
-(ns listselect
+(ns cljdoc.client.listselect
   (:require
    ["preact" :refer [h]]
    ["preact/hooks" :refer [useEffect useRef]]))

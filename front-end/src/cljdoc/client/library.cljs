@@ -1,4 +1,4 @@
-(ns library)
+(ns cljdoc.client.library)
 
 (defn docs-coords-path
   "Return coords portion of docs path for given `coords`"

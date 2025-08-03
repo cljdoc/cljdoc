@@ -1,5 +1,5 @@
 ;; used on ./versions page - which I think no one uses!
-(ns navigator)
+(ns cljdoc.client.navigator)
 
 (defn onsubmit [e]
   (.preventDefault e)
