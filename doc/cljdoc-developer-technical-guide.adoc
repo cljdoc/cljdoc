@@ -37,6 +37,15 @@ The cljdoc web site then draws on this database to present library docs to cljdo
 Note that while most Clojure developers host their source on github, gitlab and
 bitbucket are also supported source code repositories.
 
+== Front End Code
+The cljdoc front-end code is not too heavy.
+The most complex part is the client-side docset search feature.
+
+Originally the front-end was written in JavaScript, then it was migrated to TypeScript.
+But the current maintainers don't understand TypeScript very well at all.
+We, therefore, migrated it to ClojureScript.
+We chose https://github.com/squint-cljs/squint[squint] for an easier migration and to keep our bundle sizes nice and small.
+
 == Database Overview
 
 === SQLite
