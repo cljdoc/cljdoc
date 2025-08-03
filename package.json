@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "squint-cljs": "0.8.152",
-    "classnames": "2.5.1",
     "elasticlunr": "0.9.5",
     "fuzzysort": "3.1.0",
     "idb": "8.0.3",
