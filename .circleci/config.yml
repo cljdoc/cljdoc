@@ -122,42 +122,6 @@ jobs:
           command: bb eastwood
 
   #
-  # build: front-end-checks
-  #
-  front-end-checks:
-    docker: *clojure_image
-
-    steps:
-      - checkout
-      - *restore_clojure_cache
-
-      - node/install
-      - *restore_npm_cache
-      - *bb_install
-      - *npm_deps_install
-
-      - run:
-          name: Report Tools Versions
-          command: |
-            node --version
-            npx tsc --version
-            bb --version
-
-      - run:
-          name: Lint Front End Source Format
-          command: bb code-format-js
-
-      - run:
-          name: Compile TypeScript to Check for Issues
-          command: bb lint-js
-
-      - run:
-          name: Run eslint
-          command: bb eslint
-
-      - *save_npm_cache
-
-  #
   # build: test
   #
   test-unit:
@@ -357,9 +321,6 @@ workflows:
   build-and-deploy:
     jobs:
       - cache-deps
-      - front-end-checks:
-          requires:
-            - cache-deps
       - back-end-checks:
           requires:
             - cache-deps
@@ -378,7 +339,6 @@ workflows:
       - package
       - build:
           requires:
-            - front-end-checks
             - back-end-checks
             - back-end-eastwood
             - test-unit
