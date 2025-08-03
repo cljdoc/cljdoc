@@ -26,7 +26,7 @@
                            (let [{:keys [y height]} (.getBoundingClientRect el)
                                  etop y
                                  ebottom (+ etop height)
-                                 cbottom (js/window.innerHeight)
+                                 cbottom (.-innerHeight js/window)
                                  ctop (- cbottom (.-clientHeight container))]
                              (and (<= etop cbottom) (>= ebottom ctop))))
         draw-scroll-indicator (fn []

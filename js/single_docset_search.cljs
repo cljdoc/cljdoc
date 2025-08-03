@@ -1,11 +1,11 @@
 (ns single-docset-search
-  (:require [clojure.string :as str]
-            ["./dom" :as dom]
+  (:require ["./dom" :as dom]
+            ["./search" :refer [debounced]]
+            ["elasticlunr$default" :as elasticlunr]
+            ["idb" :refer [openDB]]
             ["preact" :refer [render]]
             ["preact/hooks" :refer [useEffect useRef useState]]
-            ["./search" :refer [debounced]]
-            ["idb" :refer [openDB]]
-            ["elasticlunr$default" :as elasticlunr]))
+            [clojure.string :as str]))
 
 (def SEARCHSET_VERSION 4)
 
@@ -169,12 +169,13 @@
                    (.scrollIntoView (.-current item) {:block "nearest"})))
                [(.-current item) selected])
     (let [result (:doc searchResult)]
+      (.log js/console "rli path" (:path result))
       #jsx [:<>
-            [:li {:class "pa2 bb b--light-gray"
+            [:li {:class (cond-> "pa2 bb b--light-gray"
+                           selected (str " bg-light-blue"))
                   :ref item}
              [:a {:class "no-underline black"
-                  ;; TODO: hmmm...
-                  :href "#" #_(.-path result)
+                  :href (:path result)
                   :onMouseDown (fn [e] (when onMouseDown (onMouseDown e)))
                   :onclick (fn [e] (when onClick (onClick e)))}
               [:div {:class "flex flex-row items-end"}
@@ -233,7 +234,6 @@
                                       results)
               seen #{}]
           (reduce (fn [acc {:keys [doc] :as n}]
-                    (.log js/console "dedupe" (:kind doc) seen)
                     (if-not (contains? #{"namespace" "def"} (:kind doc))
                       (do
                         (.log js/console "na")
@@ -242,9 +242,7 @@
                       (let [unique-id (.stringify js/JSON (select-keys doc [:kind :name :path :namespace]))]
                         (.log js/console "unique-id" unique-id)
                         (if (contains? seen unique-id)
-                          (do
-                            (.log js/console "seen")
-                            acc)
+                          acc
                           (do
                             (conj! seen unique-id)
                             (conj acc n))))))
