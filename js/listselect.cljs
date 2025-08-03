@@ -28,6 +28,7 @@
            (-> (for [[idx result] (map-indexed vector results)]
                  (do
                    (.log console "lp" idx result)
+                   ;; TODO need to call with preact h?
                    (resultView
                     {:result result
                      :isSelected (= selectedIndex idx)
