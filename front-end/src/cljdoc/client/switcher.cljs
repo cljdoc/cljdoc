@@ -34,7 +34,7 @@
           (.log js/console "saving prev opened" prev-opened)
           (.setItem js/localStorage "previouslyOpened" (.stringify js/JSON prev-opened)))))))
 
-(defn- SwitcherSingleResultView [{:keys [result isSelected selectResult]}]
+(defn- RowView [{:keys [result isSelected selectResult]}]
   (.log js/console "ssrv" result isSelected selectResult)
   (let [uri (lib/docs-path result)
         row-class (if isSelected
@@ -142,7 +142,7 @@
                        :onInput (fn [e]
                                   (.log js/console "onInput" e)
                                   (update-results (-> e .-target .-value)))}]
-              [:ResultsView {:resultView SwitcherSingleResultView
+              [:ResultsView {:resultView RowView
                              :results results
                              :selectedIndex selected-ndx
                              :onMouseOver set-selected-ndx!}]]]])))

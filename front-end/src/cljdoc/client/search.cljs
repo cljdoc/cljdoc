@@ -49,7 +49,7 @@
                                (load-results-debounced (.-value target)
                                                        newResultsCallback)))}]))
 
-(defn- SingleResultView [{:keys [result isSelected selectResult]}]
+(defn- RowView [{:keys [result isSelected selectResult]}]
   (let [uri (lib/docs-path result)
         rowClass (if isSelected
                    "pa3 bb b--light-gray bg-light-blue"
@@ -91,7 +91,7 @@
              #jsx [:<>
                    [:div {:class "bg-white br1 br--bottom bb bl br b--blue w-100 absolute"
                           :style "top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"}
-                    [:ResultsView {:resultView SingleResultView
+                    [:ResultsView {:resultView RowView
                                    :results results
                                    :selectedIndex selected-ndx
                                    :onMouseOver set-selected-ndx!}]]])]]))

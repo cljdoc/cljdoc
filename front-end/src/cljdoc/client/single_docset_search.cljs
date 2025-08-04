@@ -9,7 +9,6 @@
 
 (def SEARCHSET_VERSION 4)
 
-;; TODO: tests for tokenization?
 (defn- tokenize [s]
   (when s
     (let [candidate-tokens (-> s
@@ -51,7 +50,7 @@
             []
             tokens)))
 
-;; override default elastic lunr tokenizer
+;; override default elastic lunr tokenizer used during indexing
 (set! elasticlunr.tokenizer (fn [s]
                               (.concat (tokenize s) (sub-tokenize s))))
 
@@ -63,7 +62,6 @@
         url (some-> single-docset-search-node .-dataset .-searchsetUrl)]
     (when (and single-docset-search-node
                (string? url))
-      (.log js/console "mounting dss" url)
       (render #jsx [:<> [:SingleDocsetSearch {:url url}]]
               single-docset-search-node))))
 
@@ -75,9 +73,7 @@
     (> now expires-at)))
 
 (defn- ^:async evict-bad-search-sets [db]
-  (.log js/console "evict-bad-search-sets" db)
   (let [keys (js-await (.getAllKeys db "searchsets"))]
-    (.log js/console "evict check" keys)
     (doseq [key keys]
       (let [stored-searchset (js-await (.get db "searchsets" key))]
         (when (and stored-searchset
@@ -89,14 +85,12 @@
 
 (defn- ^:async fetch-index-items [url db]
   (let [stored-searchset (js-await (.get db "searchsets" url))]
-    (.log js/console "fetch index items" stored-searchset)
     (if (and stored-searchset
              (= (:version stored-searchset) SEARCHSET_VERSION)
              (not (is-expired (:stored-at stored-searchset)))
              (seq stored-searchset))
       (:indexItems stored-searchset)
       (do
-        (.log js/console "fetching items from" url)
         (let [response (js-await (js/fetch url))
               search-set (js-await (.json response))
               items (->> [(mapv #(assoc % :kind :namespace) (:namespaces search-set))
@@ -105,15 +99,11 @@
                          (reduce into [])
                          (map-indexed (fn [ndx item]
                                         (assoc item :id ndx))))]
-          (.log js/console "fetched items" items)
-
           (js-await (.put db "searchsets"
                           {:storedAt (.toISOString (js/Date.))
                            :version SEARCHSET_VERSION
                            :indexItems items}
                           url))
-
-          (.log js/console "items put" db)
           items)))))
 
 (defn- build-search-index [index-items]
@@ -130,8 +120,6 @@
     search-index))
 
 (defn- ResultIcon [{:keys [item]}]
-  (.log js/console "result icon" item)
-  (.log js/console "result icon type" (:type item))
   (let [colors {"NS"  "bg-light-purple"
                 "DOC" "bg-green"
                 "VAR" "bg-dark-blue"
@@ -161,13 +149,11 @@
 
 (defn- ResultListItem [{:keys [searchResult selected onClick onMouseDown]}]
   (let [item (useRef nil)]
-    (.log js/console "rli" searchResult)
     (useEffect (fn []
                  (when (and (.-current item) selected)
                    (.scrollIntoView (.-current item) {:block "nearest"})))
                [(.-current item) selected])
     (let [result (:doc searchResult)]
-      (.log js/console "rli path" (:path result))
       #jsx [:<>
             [:li {:class (cond-> "pa2 bb b--light-gray"
                            selected (str " bg-light-blue"))
@@ -183,34 +169,31 @@
 
 (defn- search [search-index query]
   (when search-index
-    (.log js/console "search" search-index query)
     (let [exact-tokens (tokenize query)
-          _ (.log js/console "tokens" exact-tokens)
           field-queries [{:field "name" :boost 10 :tokens exact-tokens}
                          {:field "doc" :boost 5 :tokens exact-tokens}]
           query-results {}]
-      ;; until I clearly understand what the intent here...
-      ;; ...for now we'll mimic the original mutable typescript implementation
+      ;; ...for now we mimic the original mutable typescript implementation
+      ;; which probably makes sense for perf
       (doseq [field-query field-queries]
         (let [search-config {(:field field-query) {:boost (:boost field-query)
                                                    :bool "OR"
-                                                   :expand true}}
-              field-search-results (.fieldSearch search-index
-                                                 (:tokens field-query)
-                                                 (:field field-query)
-                                                 search-config)]
+                                                   :expand true}}]
+          (when-let [field-search-results (.fieldSearch search-index
+                                                        (:tokens field-query)
+                                                        (:field field-query)
+                                                        search-config)]
+            ;; boost field
+            (let [boost (:boost field-query)]
+              (doseq [doc-ref (js/Object.keys field-search-results)]
+                (let [current-value (aget field-search-results doc-ref)]
+                  (aset field-search-results doc-ref
+                        (* current-value boost)))))
 
-          ;; boost field
-          (let [boost (:boost field-query)]
+            ;; accumulate results
             (doseq [doc-ref (js/Object.keys field-search-results)]
-              (let [current-value (aget field-search-results doc-ref)]
-                (aset field-search-results doc-ref
-                      (* current-value boost)))))
-
-          ;; accumulate results
-          (doseq [doc-ref (js/Object.keys field-search-results)]
-            (aset query-results doc-ref (+ (or (aget query-results doc-ref) 0)
-                                           (aget field-search-results doc-ref))))))
+              (aset query-results doc-ref (+ (or (aget query-results doc-ref) 0)
+                                             (aget field-search-results doc-ref)))))))
 
       (let [results []]
         (doseq [doc-ref (js/Object.keys query-results)]
@@ -220,25 +203,16 @@
         (.sort results (fn [a b]
                          (- (:score b) (:score a))))
 
-        (.log js/console "search-index" search-index)
-        (.log js/console "doc store" (:documentStore search-index))
         (let [results-with-docs (mapv (fn [r]
-                                        ;; (.log js/console "rwd" r)
-                                        ;; (.log js/console "rwd ref" (:ref r))
-                                        ;; (.log js/console "rwd doc" (.getDoc (:documentStore search-index) (:ref r)))
-                                        ;; (.log js/console "rwd ds" (:documentStore search-index))
                                         {:result r
                                          :doc (.getDoc (:documentStore search-index) (:ref r))})
                                       results)
               seen #{}]
           (reduce (fn [acc {:keys [doc] :as n}]
                     (if-not (contains? #{"namespace" "def"} (:kind doc))
-                      (do
-                        (.log js/console "na")
-                        (conj acc n))
+                      (conj acc n)
                       ;; stringify unique id to json... JS does not do object equality
                       (let [unique-id (.stringify js/JSON (select-keys doc [:kind :name :path :namespace]))]
-                        (.log js/console "unique-id" unique-id)
                         (if (contains? seen unique-id)
                           acc
                           (do
@@ -266,7 +240,6 @@
 
     (useEffect
      (fn init-input-elem []
-       (.log js/console "init input elem")
        (let [handle-key-down (fn [{:keys [key] :as e}]
                                (when (and (.-current input-elem)
                                           (or (.-metaKey e) (.-ctrlKey e))
@@ -279,12 +252,10 @@
 
     (useEffect
      (fn init-db []
-       (.log js/console "init db")
        (let [db-version 1]
          (-> (openDB "cljdoc-searchsets-store"
                      db-version
                      {:upgrade (fn [db]
-                                 (.log js/console "creating object store" db)
                                  (.createObjectStore db "searchsets"))})
              (.then evict-bad-search-sets)
              (.then set-db!)
@@ -294,7 +265,6 @@
     (useEffect
      (fn fetch-index []
        (when db
-         (.log js/console "docset fetching" url db)
          (-> (fetch-index-items url db)
              (.then set-index-items!)
              (.catch js/console.error))))
@@ -302,7 +272,6 @@
 
     (useEffect
      (fn build-index []
-       (.log js/console "build search index")
        (when index-items
          (set-search-index! (build-search-index index-items))))
      [index-items])
@@ -360,11 +329,9 @@
                         :placeholder (if search-index "Search..." "Loading...")
                         :ref input-elem
                         :onFocus (fn [{:keys [target] :as _e}]
-                                   (.log console "onFocus" target)
                                    (dom/toggle-class target "b--blue")
                                    (-> (debounced-search search-index (.-value target))
                                        (.then (fn [results]
-                                                (.log console "results" results)
                                                 (if results
                                                   (set-results! results)
                                                   (set-results! []))
