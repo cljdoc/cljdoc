@@ -1,6 +1,8 @@
-(ns cljdoc.client.switcher
+(ns cljdoc.client.lib-switcher
   (:require ["fuzzysort$default" :as fuzzysort]
+            ["preact" :refer [h render]]
             ["preact/hooks" :refer [useEffect useRef useState]]
+            [cljdoc.client.dom :as dom]
             [cljdoc.client.library :as lib]
             #_:clj-kondo/ignore ;; used in #jsx as tag
             [cljdoc.client.listselect :refer [ResultsView]]))
@@ -43,7 +45,7 @@
             [:a {:class "link blue ml2" :href uri}
              "view docs"]]]]))
 
-(defn Switcher []
+(defn- Switcher []
   (let [prev-opened (some->> (load-prev-opened)
                              (mapv (fn [{:keys [artifact-id group-id] :as p}]
                                      (assoc p :project-id (if (= group-id artifact-id)
@@ -127,3 +129,9 @@
                              :results results
                              :selectedIndex selected-ndx
                              :onMouseOver set-selected-ndx!}]]]])))
+
+(defn init []
+  (track-project-opened)
+  (when-let [switcher-node (dom/query-doc "[data-id='cljdoc-switcher']")]
+    (render (h Switcher)
+            switcher-node)))

@@ -1,6 +1,8 @@
 (ns cljdoc.client.mobile
-  (:require ["preact/hooks" :refer [useState]]
-            [cljdoc.client.dom :as dom]))
+  (:require ["preact" :refer [h render]]
+            ["preact/hooks" :refer [useState]]
+            [cljdoc.client.dom :as dom]
+            [cljdoc.client.page :as page]))
 
 (defn MobileNav []
   (let [[scroll-pos-main set-scroll-pos-main] (useState nil)
@@ -42,3 +44,8 @@
              (if show-nav
                "Back to Content"
                "Tap for Articles & Namespaces")]]]]))
+
+(defn init []
+  (when (page/is-project-doc)
+    (when-let [mobile-nav-node (dom/query-doc "[data-id='cljdoc-js--mobile-nav']")]
+      (render (h MobileNav) mobile-nav-node))))

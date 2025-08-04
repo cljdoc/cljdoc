@@ -1,5 +1,6 @@
 (ns cljdoc.client.recent-doc-links
   (:require ["preact" :as preact]
+            [cljdoc.client.dom :as dom]
             [cljdoc.client.library :as lib]))
 
 (defn- day-date [date]
@@ -20,7 +21,7 @@
              (= 1 days-ago) "1 day ago"
              :else (str days-ago " days ago"))))))
 
-(defn init [doc-links]
+(defn- init-doc-links [doc-links]
   (let [previously-opened (some-> js/localStorage
                                   (.getItem "previouslyOpened")
                                   (js/JSON.parse))]
@@ -45,3 +46,7 @@
                                  (last-viewed-message visited)]]])
                        recents))]]]
        doc-links))))
+
+(defn init []
+ (when-let [recently-visited-node (dom/query-doc "[data-id='cljdoc-doc-links']")]
+   (init-doc-links recently-visited-node)))

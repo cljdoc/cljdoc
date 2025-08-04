@@ -1,5 +1,7 @@
 ;; used on ./versions page - which I think no one uses!
-(ns cljdoc.client.navigator)
+(ns cljdoc.client.versions-form
+  (:require ["preact" :refer [h render]]
+            [cljdoc.client.dom :as dom]))
 
 (defn onsubmit [e]
   (.preventDefault e)
@@ -22,7 +24,7 @@
                  :autocapitalize "none"
                  :placeholder placeholder}]])
 
-(defn Navigator []
+(defn- Navigator []
   #jsx [:<>
         [:form {:id "cljdoc-navigator"
                 :onsubmit onsubmit}
@@ -40,3 +42,7 @@
            {:class "bg-blue white bn pv2 ph3 br2"
             :type "submit"
             :value "Go to Documentation"}]]]])
+
+(defn init []
+  (when-let [navigator-node (dom/query-doc "[data-id='cljdoc-js--cljdoc-navigator']")]
+    (render (h Navigator) navigator-node)))

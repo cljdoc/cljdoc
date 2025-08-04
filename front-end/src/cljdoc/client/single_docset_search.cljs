@@ -58,14 +58,6 @@
 (defn- clamp [value min-value max-value]
   (min (max value min-value) max-value))
 
-(defn ^:async init []
-  (let [single-docset-search-node (dom/query-doc "[data-id='cljdoc-js--single-docset-search']")
-        url (some-> single-docset-search-node .-dataset .-searchsetUrl)]
-    (when (and single-docset-search-node
-               (string? url))
-      (render #jsx [:<> [:SingleDocsetSearch {:url url}]]
-              single-docset-search-node))))
-
 (defn- is-expired [date-string]
   (let [date (js/Date. date-string)
         expires-at (js/Date.)
@@ -223,7 +215,7 @@
                   []
                   results-with-docs))))))
 
-(defn SingleDocsetSearch [{:keys [url]}]
+(defn- SingleDocsetSearch [{:keys [url]}]
   (let [[db set-db!] (useState nil)
         [index-items set-index-items!] (useState nil)
         [search-index set-search-index!] (useState nil)
@@ -385,3 +377,11 @@
                                                            (.preventDefault e)
                                                            (on-result-navigation (-> result :doc :path)))}))
                            doall)]])]]])))
+
+(defn ^:async init []
+  (let [single-docset-search-node (dom/query-doc "[data-id='cljdoc-js--single-docset-search']")
+        url (some-> single-docset-search-node .-dataset .-searchsetUrl)]
+    (when (and single-docset-search-node
+               (string? url))
+      (render (h SingleDocsetSearch {:url url})
+              single-docset-search-node))))

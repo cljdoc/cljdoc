@@ -1,5 +1,7 @@
-(ns cljdoc.client.search
-  (:require ["preact/hooks" :refer [useEffect useState]]
+(ns cljdoc.client.lib-search
+  (:require ["preact" :refer [h render]]
+            ["preact/hooks" :refer [useEffect useState]]
+            [cljdoc.client.dom :as dom]
             [cljdoc.client.flow :as flow]
             [cljdoc.client.library :as lib]
             #_:clj-kondo/ignore ;; used in #jsx as tag
@@ -64,7 +66,7 @@
             [:div {:class "gray f6"} (:blurb result)]
             [:div {:class "gray i f7"} (:origin result)]]]]))
 
-(defn LibSearch [{:keys [initialValue]}]
+(defn- LibSearch [{:keys [initialValue]}]
   (let [[selected-ndx set-selected-ndx!] (useState 0)
         [results      set-results!] (useState [])
         [focused      set-focused!] (useState false)]
@@ -93,3 +95,12 @@
                                    :results results
                                    :selectedIndex selected-ndx
                                    :onMouseOver set-selected-ndx!}]]])]]))
+
+(defn init []
+  (let [search-node (dom/query-doc "[data-id='cljdoc-search']")]
+    (when (and search-node (.-dataset search-node))
+      (render (h LibSearch {:initialValue (-> search-node .-dataset .-initialValue)
+                            :results []
+                            :focused false
+                            :selectedIndex 0})
+              search-node))))
