@@ -48,5 +48,5 @@
        doc-links))))
 
 (defn init []
- (when-let [recently-visited-node (dom/query-doc "[data-id='cljdoc-doc-links']")]
+ (when-let [recently-visited-node (dom/query "[data-id='cljdoc-doc-links']")]
    (init-doc-links recently-visited-node)))

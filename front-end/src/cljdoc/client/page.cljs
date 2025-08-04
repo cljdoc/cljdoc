@@ -3,13 +3,13 @@
             [cljdoc.client.library :as lib]))
 
 (defn is-namespace-overview []
-  (boolean (dom/query-doc ".ns-overview-page")))
+  (boolean (dom/query ".ns-overview-page")))
 
 (defn is-namespace []
-  (boolean (dom/query-doc ".ns-page")))
+  (boolean (dom/query ".ns-page")))
 
 (defn is-namespace-offline []
-  (boolean (dom/query-doc ".ns-offline-page")))
+  (boolean (dom/query ".ns-offline-page")))
 
 (defn is-project-doc []
   (lib/coords-from-current-loc))

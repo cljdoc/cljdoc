@@ -44,5 +44,5 @@
             :value "Go to Documentation"}]]]])
 
 (defn init []
-  (when-let [navigator-node (dom/query-doc "[data-id='cljdoc-js--cljdoc-navigator']")]
+  (when-let [navigator-node (dom/query "[data-id='cljdoc-js--cljdoc-navigator']")]
     (render (h Navigator) navigator-node)))

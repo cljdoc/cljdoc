@@ -5,10 +5,11 @@
             [cljdoc.client.flow :as flow]
             [cljdoc.client.library :as lib]
             #_:clj-kondo/ignore ;; used in #jsx as tag
-            [cljdoc.client.listselect :refer [ResultsView]]))
+            [cljdoc.client.listselect :refer [ResultsView]]
+            [clojure.string :as str]))
 
 (defn- clean-search-str [s]
-  (.replace s "/[{}[]\"]+/g" ""))
+  (str/replace s #"[{}[]\"]" ""))
 
 (defn- load-results [q call-back]
   (let [url (str "/api/search?q=" q)]
@@ -97,7 +98,7 @@
                                    :onMouseOver set-selected-ndx!}]]])]]))
 
 (defn init []
-  (let [search-node (dom/query-doc "[data-id='cljdoc-search']")]
+  (let [search-node (dom/query "[data-id='cljdoc-search']")]
     (when (and search-node (.-dataset search-node))
       (render (h LibSearch {:initialValue (-> search-node .-dataset .-initialValue)
                             :results []

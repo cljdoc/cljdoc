@@ -5,7 +5,8 @@
             [cljdoc.client.dom :as dom]
             [cljdoc.client.library :as lib]
             #_:clj-kondo/ignore ;; used in #jsx as tag
-            [cljdoc.client.listselect :refer [ResultsView]]))
+            [cljdoc.client.listselect :refer [ResultsView]]
+            [clojure.string :as str]))
 
 (defn- is-same-project [p1 p2]
   (and (== (:group-id p1) (:group-id p2))
@@ -64,7 +65,7 @@
         background-node (useRef nil)
         input-node (useRef nil)
 
-        is-macos? (-> js/navigator.platform .toUpperCase (.indexOf "MAC") (>= 0))
+        is-macos? (-> js/navigator.platform str/upper-case (.indexOf "MAC") (>= 0))
 
         reset-state (fn []
                       (set-selected-ndx! 0)
@@ -133,6 +134,6 @@
 
 (defn init []
   (track-project-opened)
-  (when-let [switcher-node (dom/query-doc "[data-id='cljdoc-switcher']")]
+  (when-let [switcher-node (dom/query "[data-id='cljdoc-switcher']")]
     (render (h Switcher)
             switcher-node)))

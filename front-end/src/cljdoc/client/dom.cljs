@@ -1,15 +1,15 @@
 (ns cljdoc.client.dom)
 
-(defn query-doc
+(defn query
   ([q elem]
    (when elem (.querySelector elem q)))
-  ([q] (query-doc q js/document)))
+  ([q] (query q js/document)))
 
-(defn query-doc-all
+(defn query-all
   ([q elem]
    (when elem
      (.querySelectorAll elem q)))
-  ([q] (query-doc-all q js/document)))
+  ([q] (query-all q js/document)))
 
 (defn remove-class [el c]
   (.remove (.-classList el) c))

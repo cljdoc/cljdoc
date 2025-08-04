@@ -4,10 +4,10 @@
             [cljdoc.client.page :as page]))
 
 (defn- init-scroll-indicator []
-  (let [main-scroll-view (dom/query-doc ".js--main-scroll-view")
-        sidebar-scroll-view (dom/query-doc ".js--namespace-contents-scroll-view")
-        def-blocks (dom/query-doc-all ".def-block")
-        def-items (dom/query-doc-all ".def-item")
+  (let [main-scroll-view (dom/query ".js--main-scroll-view")
+        sidebar-scroll-view (dom/query ".js--namespace-contents-scroll-view")
+        def-blocks (dom/query-all ".def-block")
+        def-items (dom/query-all ".def-item")
         is-elem-visible? (fn [container el]
                            (let [{:keys [y height]} (.getBoundingClientRect el)
                                  etop y
@@ -46,14 +46,14 @@
   "Cljdoc always loads a full page.
   This means the sidebar nav scoll position needs to be restored/set."
   []
-  (when-let [main-side-bar (dom/query-doc ".js--main-sidebar")]
+  (when-let [main-side-bar (dom/query ".js--main-sidebar")]
     (let [sidebar-scroll-state (.parse js/JSON (or (.getItem js/sessionStorage "sidebarScroll") "null"))]
       (.removeItem js/sessionStorage "sidebarScroll")
       (when-not js/window.location.search
         (if (and sidebar-scroll-state
                  (= (lib/coords-path-from-current-loc) (.-libVersionPath sidebar-scroll-state)))
           (set! (.-scrollTop main-side-bar) (.-scrollTop sidebar-scroll-state))
-          (when-let [selected-elem (dom/query-doc "a.b" main-side-bar)]
+          (when-let [selected-elem (dom/query "a.b" main-side-bar)]
             (when (is-element-out-of-view selected-elem)
               (.scrollIntoView selected-elem {:behavior "instant"
                                               :block "start"}))))))))
@@ -62,8 +62,8 @@
   "Support for restoreSidebarScrollPos
   When item in sidebar is clicked saves scroll pos and lib/version to session."
   []
-  (when-let [main-side-bar (dom/query-doc ".js--main-sidebar")]
-    (let [anchor-elems (dom/query-doc-all "a" main-side-bar)]
+  (when-let [main-side-bar (dom/query ".js--main-sidebar")]
+    (let [anchor-elems (dom/query-all "a" main-side-bar)]
       (doseq [anchor anchor-elems]
         (.addEventListener anchor "click"
                            (fn []

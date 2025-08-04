@@ -11,8 +11,8 @@
         toggle-nav (fn []
                      (let [display "dn"
                            hide "db"
-                           main-view (dom/query-doc ".js--main-scroll-view")
-                           main-sidebar (dom/query-doc ".js--main-sidebar")
+                           main-view (dom/query ".js--main-scroll-view")
+                           main-sidebar (dom/query ".js--main-sidebar")
                            is-nav-shown? (and main-view
                                               (dom/has-class? main-view display))]
                        (if is-nav-shown?
@@ -47,5 +47,5 @@
 
 (defn init []
   (when (page/is-project-doc)
-    (when-let [mobile-nav-node (dom/query-doc "[data-id='cljdoc-js--mobile-nav']")]
+    (when-let [mobile-nav-node (dom/query "[data-id='cljdoc-js--mobile-nav']")]
       (render (h MobileNav) mobile-nav-node))))

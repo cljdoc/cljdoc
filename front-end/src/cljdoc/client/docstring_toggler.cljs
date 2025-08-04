@@ -3,14 +3,14 @@
             [cljdoc.client.page :as page]))
 
 (defn- init-toggle-docstring-raw []
-  (let [toggles (dom/query-doc-all ".js--toggle-raw")
+  (let [toggles (dom/query-all ".js--toggle-raw")
         add-toggle-handlers (fn []
                               (doseq [el toggles]
                                 (.addEventListener el "click"
                                                    (fn []
                                                      (let [parent (.-parentElement el)
-                                                           markdowns (dom/query-doc-all ".markdown" parent)
-                                                           raws (dom/query-doc-all ".raw" parent)]
+                                                           markdowns (dom/query-all ".markdown" parent)
+                                                           raws (dom/query-all ".raw" parent)]
                                                        (doseq [[ndx markdown] (map-indexed vector markdowns)]
                                                          (let [raw (when raws (get raws ndx))
                                                                hide "dn"]
