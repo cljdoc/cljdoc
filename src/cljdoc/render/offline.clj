@@ -179,7 +179,6 @@
                                     (rich-text/determine-features (:doc-tuple %)))))
         ;; naive for now, assume a feature's value is always simply `true`
         lib-page-features (->> doc-attrs (map :page-features) (apply merge))
-        source-map (str (get static-resources "/cljdoc.js") ".map")
         docstring-format (user-config/docstring-format
                           (-> cache-bundle :version :config)
                           (proj/clojars-id version-entity))]
@@ -191,7 +190,6 @@
       [["assets/static/codeberg.svg" (io/resource (str "public/out" (get static-resources "/codeberg.svg")))]]
       [["assets/static/sourcehut.svg" (io/resource (str "public/out" (get static-resources "/sourcehut.svg")))]]
       ;; use content-hashed name for source map to preserve link from generated index.js
-      [[(str "assets/js" source-map) (io/resource (str "public/out" source-map))]]
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page cache-bundle {:docstring-format docstring-format
                                                     :scm scm-info
