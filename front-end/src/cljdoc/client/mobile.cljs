@@ -1,6 +1,6 @@
 (ns cljdoc.client.mobile
-  (:require [cljdoc.client.dom :as dom]
-            ["preact/hooks" :refer [useState]]))
+  (:require ["preact/hooks" :refer [useState]]
+            [cljdoc.client.dom :as dom]))
 
 (defn MobileNav []
   (let [[scroll-pos-main set-scroll-pos-main] (useState nil)

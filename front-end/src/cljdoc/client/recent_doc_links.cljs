@@ -1,6 +1,6 @@
 (ns cljdoc.client.recent-doc-links
-  (:require [cljdoc.client.library :as lib]
-            ["preact" :as preact]))
+  (:require ["preact" :as preact]
+            [cljdoc.client.library :as lib]))
 
 (defn- day-date [date]
   (js/Date. (.getFullYear date)

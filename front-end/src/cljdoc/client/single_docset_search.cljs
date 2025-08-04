@@ -1,10 +1,10 @@
 (ns cljdoc.client.single-docset-search
-  (:require [cljdoc.client.dom :as dom]
-            [cljdoc.client.search :refer [debounced]]
-            ["elasticlunr$default" :as elasticlunr]
+  (:require ["elasticlunr$default" :as elasticlunr]
             ["idb" :refer [openDB]]
-            ["preact" :refer [render h]]
+            ["preact" :refer [h render]]
             ["preact/hooks" :refer [useEffect useRef useState]]
+            [cljdoc.client.dom :as dom]
+            [cljdoc.client.search :refer [debounced]]
             [clojure.string :as str]))
 
 (def SEARCHSET_VERSION 4)
