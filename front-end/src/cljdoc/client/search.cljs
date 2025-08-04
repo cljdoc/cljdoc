@@ -18,8 +18,7 @@
 (def ^:private load-results-debounced (flow/debounced 300 load-results))
 
 (defn- SearchInput [{:keys [initialValue focus unfocus newResultsCallback
-                            onEnter onArrowUp onArrowDown] :as props}]
-  (.log js/console "si props" props)
+                            onEnter onArrowUp onArrowDown]}]
   (let [on-key-down (fn [{:keys [key] :as e}]
                       (case key
                         "Enter" (onEnter)
@@ -33,7 +32,6 @@
         [input-value set-input-value!] (useState (or initialValue ""))]
     (useEffect (fn []
                  (when initialValue
-                   (.log js/console "si init" initialValue)
                    (load-results (clean-search-str initialValue) newResultsCallback)))
                [])
     #jsx [:input {:autofocus true

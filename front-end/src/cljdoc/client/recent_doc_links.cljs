@@ -36,7 +36,6 @@
                (let [recents (-> previously-opened
                                  reverse
                                  (.slice 0 3))]
-                 (.log console "recents" recents)
                  (mapv (fn [visited]
                          #jsx [:li {:class "mr1 pt2"}
                                [:a {:class "link blue nowrap"
