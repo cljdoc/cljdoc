@@ -10,12 +10,13 @@
 (def SEARCHSET_VERSION 4)
 
 (defn- tokenize [s]
-  (when s
+  (if (not  s)
+    []
     (let [candidate-tokens (-> s
-                               .toString
-                               .trim
-                               .toLowerCase
-                               (.split #"\s+"))
+                               str
+                               str/trim
+                               str/lower-case
+                               (str/split #"\s+"))
           long-all-punctuation-regex #"^[^a-z0-9]{7,}$"
           standalone-comment-regex #"^;+$"
           superfluous-punctutation-regex #"^[.,]+|[.,]+$"
@@ -38,13 +39,12 @@
 
 (defn- sub-tokenize [tokens]
   ;; only split on embedded forward slashes for now
-  (let [split-char-regex #"\/"
-        split-chars-regex #"\/+"]
-
+  (let [split-char-regex #"/"
+        split-chars-regex #"/+"]
     (reduce (fn [acc token]
               (if-not (.test split-char-regex token)
                 acc
-                (->> (.split token split-chars-regex)
+                (->> (str/split token split-chars-regex)
                      (remove #(zero? (count %)))
                      (into acc))))
             []
@@ -52,7 +52,8 @@
 
 ;; override default elastic lunr tokenizer used during indexing
 (set! elasticlunr.tokenizer (fn [s]
-                              (.concat (tokenize s) (sub-tokenize s))))
+                              (let [tokens (tokenize s)]
+                                (into tokens (sub-tokenize tokens)))))
 
 (defn- clamp [value min-value max-value]
   (min (max value min-value) max-value))
@@ -90,21 +91,20 @@
              (not (is-expired (:stored-at stored-searchset)))
              (seq stored-searchset))
       (:indexItems stored-searchset)
-      (do
-        (let [response (js-await (js/fetch url))
-              search-set (js-await (.json response))
-              items (->> [(mapv #(assoc % :kind :namespace) (:namespaces search-set))
-                          (mapv #(assoc % :kind :def) (:defs search-set))
-                          (mapv #(assoc % :kind :doc) (:docs search-set))]
-                         (reduce into [])
-                         (map-indexed (fn [ndx item]
-                                        (assoc item :id ndx))))]
-          (js-await (.put db "searchsets"
-                          {:storedAt (.toISOString (js/Date.))
-                           :version SEARCHSET_VERSION
-                           :indexItems items}
-                          url))
-          items)))))
+      (let [response (js-await (js/fetch url))
+            search-set (js-await (.json response))
+            items (->> [(mapv #(assoc % :kind :namespace) (:namespaces search-set))
+                        (mapv #(assoc % :kind :def) (:defs search-set))
+                        (mapv #(assoc % :kind :doc) (:docs search-set))]
+                       (reduce into [])
+                       (map-indexed (fn [ndx item]
+                                      (assoc item :id ndx))))]
+        (js-await (.put db "searchsets"
+                        {:storedAt (.toISOString (js/Date.))
+                         :version SEARCHSET_VERSION
+                         :indexItems items}
+                        url))
+        items))))
 
 (defn- build-search-index [index-items]
   (let [search-index (elasticlunr
@@ -112,6 +112,7 @@
                         (.setRef index "id")
                         (.addField index "name")
                         (.addField index "doc")
+                        ;; remove all default pipeline functions: trimmer, stop word filter & stemmer
                         (-> index .-pipeline .reset)
                         (.saveDocument index true)))]
     (doseq [item index-items]
@@ -240,14 +241,14 @@
 
     (useEffect
      (fn init-input-elem []
-       (let [handle-key-down (fn [{:keys [key] :as e}]
+       (let [on-global-key-down (fn [{:keys [key] :as e}]
                                (when (and (.-current input-elem)
                                           (or (.-metaKey e) (.-ctrlKey e))
                                           (= "/" key))
                                  (.focus (.-current input-elem))))]
-         (.addEventListener js/document "keydown" handle-key-down)
+         (.addEventListener js/document "keydown" on-global-key-down)
          (fn []
-           (.removeEventListener js/document "keydown" handle-key-down))))
+           (.removeEventListener js/document "keydown" on-global-key-down))))
      [input-elem])
 
     (useEffect
