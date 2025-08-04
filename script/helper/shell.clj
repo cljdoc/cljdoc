@@ -17,7 +17,7 @@
   (let [[opts cmd args] (if (map? cmd)
                           [cmd (first args) (rest args)]
                           [nil cmd args])
-        opts (merge opts default-opts)]
+        opts (merge default-opts opts)]
     (apply tasks/shell opts cmd args)))
 
 (defn clojure
@@ -26,5 +26,5 @@
   (let [[opts args] (if (map? (first args))
                       [(first args) (rest args)]
                       [nil args])
-        opts (merge opts default-opts)]
+        opts (merge default-opts opts)]
     (apply tasks/clojure opts args)))
