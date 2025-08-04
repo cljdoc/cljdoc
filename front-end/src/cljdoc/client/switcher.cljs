@@ -123,7 +123,7 @@
                        :onKeyDown on-input-key-down
                        :onInput (fn [e]
                                   (update-results (-> e .-target .-value)))}]
-              [:ResultsView {:resultView RowView
+              [:ResultsView {:rowView RowView
                              :results results
                              :selectedIndex selected-ndx
                              :onMouseOver set-selected-ndx!}]]]])))

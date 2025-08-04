@@ -89,7 +89,7 @@
              #jsx [:<>
                    [:div {:class "bg-white br1 br--bottom bb bl br b--blue w-100 absolute"
                           :style "top: 2.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1)"}
-                    [:ResultsView {:resultView RowView
+                    [:ResultsView {:rowView RowView
                                    :results results
                                    :selectedIndex selected-ndx
                                    :onMouseOver set-selected-ndx!}]]])]]))

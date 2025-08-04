@@ -3,7 +3,7 @@
    ["preact" :refer [h]]
    ["preact/hooks" :refer [useEffect useRef]]))
 
-(defn- restrict-to-viewport
+(defn- keep-selection-in-viewport
   "Ensure that item at `selected-index` is visible by scrolling to it within `container`"
   [container selected-index]
   (let [container-rect (.getBoundingClientRect container)
@@ -14,12 +14,12 @@
       (< delta-top 0) (.scrollBy container 0 delta-top)
       (> delta-bottom 0) (.scrollBy container 0 delta-bottom))))
 
-(defn ResultsView [{:keys [resultView results selectedIndex onMouseOver]}]
+(defn ResultsView [{:keys [rowView results selectedIndex onMouseOver]}]
   (let [results-view-node (useRef nil)]
     (useEffect (fn []
                  (when results-view-node
-                   (restrict-to-viewport (.-current results-view-node)
-                                         selectedIndex)))
+                   (keep-selection-in-viewport (.-current results-view-node)
+                                               selectedIndex)))
                [selectedIndex])
     #jsx [:<>
           [:div
@@ -27,7 +27,7 @@
             :style {:maxHeight "20rem"}
             :ref results-view-node}
            (-> (for [[idx result] (map-indexed vector results)]
-                 (h resultView
+                 (h rowView
                     {:result result
                      :isSelected (= selectedIndex idx)
                      :selectResult (fn [] (onMouseOver idx))}))
