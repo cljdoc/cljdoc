@@ -26,9 +26,9 @@
 (let [search-node (dom/query-doc "[data-id='cljdoc-search']")]
   (when (and search-node (.-dataset search-node))
     (render (h App {:initialValue (-> search-node .-dataset .-initialValue)
-                     :results []
-                     :focused false
-                     :selectedIndex 0})
+                    :results []
+                    :focused false
+                    :selectedIndex 0})
             search-node)))
 
 (when-let [navigator-node (dom/query-doc "[data-id='cljdoc-js--cljdoc-navigator']")]

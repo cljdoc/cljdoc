@@ -92,20 +92,20 @@
                                                         (-> results count dec))))
                               nil))
         on-global-key-down (fn [{:keys [key metaKey ctrlKey] :as e}]
-                            (cond
-                              (and (= "k" key)
-                                   (or (and is-macos? metaKey) (and (not is-macos?) ctrlKey)))
-                              (do
-                                (.log js/console "handling K key")
-                                (.preventDefault e)
-                                (set-show! true)
-                                (set-results! prev-opened))
+                             (cond
+                               (and (= "k" key)
+                                    (or (and is-macos? metaKey) (and (not is-macos?) ctrlKey)))
+                               (do
+                                 (.log js/console "handling K key")
+                                 (.preventDefault e)
+                                 (set-show! true)
+                                 (set-results! prev-opened))
 
-                              (= "Escape" key)
-                              (do
-                                (.log js/console "handling escape")
-                                (set-show! false)
-                                (set-results! []))))
+                               (= "Escape" key)
+                               (do
+                                 (.log js/console "handling escape")
+                                 (set-show! false)
+                                 (set-results! []))))
         update-results (fn [search-str]
                          (.log js/console "update results" search-str)
                          (.log js/console "fuzzysort" fuzzysort)

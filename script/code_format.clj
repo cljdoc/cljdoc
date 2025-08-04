@@ -21,7 +21,7 @@ Options
       (shell/command "clojure -M:code-format" cmd
                      "src" "test" "modules" "script"
                      "ops/exoscale/deploy"
-                     "js"))))
+                     "front-end/src"))))
 
 (main/when-invoked-as-script
  (apply -main *command-line-args*))

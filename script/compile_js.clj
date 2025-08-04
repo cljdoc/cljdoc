@@ -75,7 +75,7 @@ Options
        "--target=es2017"
        "--resolve-extensions=.jsx,.js"
        "--minify"
-                 ;; elasticlunr did not expect to wrapped, expose it like so:
+       ;; elasticlunr did not expect to wrapped, expose it like so:
        "--define:lunr=window.lunr"
        "--entry-names=[name].[hash]"
        (str "--outdir=" target-dir)
