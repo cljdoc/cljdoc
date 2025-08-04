@@ -269,7 +269,7 @@
 
     (let [on-arrow-up (fn []
                         (if (seq results)
-                          (let [max (dec (-> results count dec))]
+                          (let [max (-> results count dec)]
                             (if (or (not selected-ndx) (zero? selected-ndx))
                               (set-selected-ndx! max)
                               (set-selected-ndx! (dec selected-ndx))))
@@ -277,7 +277,7 @@
 
           on-arrow-down (fn []
                           (if (seq results)
-                            (let [max (dec (-> results count dec))]
+                            (let [max (-> results count dec)]
                               (if (or (not selected-ndx) (= selected-ndx max))
                                 (set-selected-ndx! 0)
                                 (set-selected-ndx! (inc selected-ndx))))
@@ -288,6 +288,7 @@
                                  (if (not (seq results))
                                    (set-selected-ndx! nil)
                                    (let [ndx (clamp selected-ndx 0 (-> results count dec))]
+                                     (.log js/console "clamp" ndx selected-ndx (-> results count dec))
                                      (when (not= ndx selected-ndx)
                                        (set-selected-ndx! ndx))))))
           on-result-navigation (fn [path]
