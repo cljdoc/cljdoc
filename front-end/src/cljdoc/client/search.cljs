@@ -1,7 +1,7 @@
 (ns cljdoc.client.search
   (:require ["preact/hooks" :refer [useEffect useState]]
             [cljdoc.client.flow :as flow]
-            [cljdoc.client.library :as library]
+            [cljdoc.client.library :as lib]
             #_:clj-kondo/ignore ;; used in #jsx as tag
             [cljdoc.client.listselect :refer [ResultsView]]))
 
@@ -50,7 +50,7 @@
                                                        newResultsCallback)))}]))
 
 (defn- SingleResultView [{:keys [result isSelected selectResult]}]
-  (let [uri (library/docs-path result)
+  (let [uri (lib/docs-path result)
         rowClass (if isSelected
                    "pa3 bb b--light-gray bg-light-blue"
                    "pa3 bb b--light-gray")]
@@ -58,7 +58,7 @@
           [:a {:class "no-underline black" :href uri}
            [:div {:class rowClass :onMouseOver selectResult}
             [:h4 {:class "dib ma0"}
-             (library/project result)
+             (lib/project result)
              [:span {:class "ml2 gray normal"}
               (:version result)]]
             [:a {:class "link blue ml2" :href uri}
@@ -79,7 +79,7 @@
                                                (set-selected-ndx! 0))
                          :onEnter (fn []
                                     (when-let [result (get results selected-ndx)]
-                                      (.open window (library/docs-path result) "_self")))
+                                      (.open window (lib/docs-path result) "_self")))
                          :onArrowUp (fn []
                                       (set-selected-ndx! (max (dec selected-ndx) 0)))
                          :onArrowDown (fn []

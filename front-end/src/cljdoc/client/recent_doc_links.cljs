@@ -20,7 +20,7 @@
              (= 1 days-ago) "1 day ago"
              :else (str days-ago " days ago"))))))
 
-(defn initRecentDocLinks [doc-links]
+(defn init [doc-links]
   (let [previously-opened (some-> js/localStorage
                                   (.getItem "previouslyOpened")
                                   (js/JSON.parse))]

@@ -1,9 +1,9 @@
 (ns cljdoc.client.switcher
-  (:require ["./library" :as library]
+  (:require ["fuzzysort$default" :as fuzzysort]
+            ["preact/hooks" :refer [useEffect useRef useState]]
+            [cljdoc.client.library :as lib]
             #_:clj-kondo/ignore ;; used in #jsx as tag
-            ["./listselect" :refer [ResultsView]]
-            ["fuzzysort$default" :as fuzzysort]
-            ["preact/hooks" :refer [useEffect useRef useState]]))
+            [cljdoc.client.listselect :refer [ResultsView]]))
 
 (defn- is-same-project [p1 p2]
   (and (== (:group-id p1) (:group-id p2))
@@ -15,10 +15,10 @@
 (defn- is-error-page? []
   (.querySelector js/document "head > title[data-error]"))
 
-(defn trackProjectOpened []
+(defn track-project-opened []
   (when (not (is-error-page?))
     (let [max-track-count 15
-          project (library/coords-from-current-loc)]
+          project (lib/coords-from-current-loc)]
       (when project
         ;; TODO: also referred to in recent_doc_links.cljs
         (.log js/console "project" project)
@@ -36,7 +36,7 @@
 
 (defn- SwitcherSingleResultView [{:keys [result isSelected selectResult]}]
   (.log js/console "ssrv" result isSelected selectResult)
-  (let [uri (library/docs-path result)
+  (let [uri (lib/docs-path result)
         row-class (if isSelected
                     "pa3 bb b--light-gray bg-light-blue"
                     "pa3 bb b--light-gray")]
@@ -44,7 +44,7 @@
           [:a {:class "no-underline black" :href uri :onMouseOver selectResult}
            [:div {:class row-class}
             [:h4 {:class "dib ma0"}
-             (library/project result)
+             (lib/project result)
              [:span {:class "ml2 gray normal"} (:version result)]]
             [:a {:class "link blue ml2" :href uri}
              "view docs"]]]]))

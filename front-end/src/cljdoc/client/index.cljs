@@ -1,23 +1,17 @@
 (ns cljdoc.client.index
   (:require ["./hljs-merge-plugin" :refer [mergeHTMLPlugin]]
             ["preact" :refer [h render]]
-            [cljdoc.client.cljdoc :refer [addPrevNextPageKeyHandlers
-                                          initScrollIndicator initToggleRaw
-                                          isNSOfflinePage isNSOverviewPage
-                                          isNSPage isProjectDocumentationPage
-                                          restoreSidebarScrollPos
-                                          saveSidebarScrollPos
-                                          toggleArticlesTip toggleMetaDialog]]
+            [cljdoc.client.cljdoc :as cljdoc]
             [cljdoc.client.dom :as dom]
             [cljdoc.client.hljs-copy-button-plugin :refer [copyButtonPlugin]]
             [cljdoc.client.mobile :refer [MobileNav]]
             [cljdoc.client.navigator :refer [Navigator]]
-            [cljdoc.client.recent-doc-links :refer [initRecentDocLinks]]
+            [cljdoc.client.recent-doc-links :as recent-doc-links]
             [cljdoc.client.search :refer [App]]
-            [cljdoc.client.single-docset-search :refer [mount-single-docset-search]]
-            [cljdoc.client.switcher :refer [Switcher trackProjectOpened]]))
+            [cljdoc.client.single-docset-search :as single-docset-search]
+            [cljdoc.client.switcher :refer [Switcher] :as switcher]))
 
-(trackProjectOpened)
+(switcher/track-project-opened)
 
 (when-let [switcher-node (dom/query-doc "[data-id='cljdoc-switcher']")]
   (render (h Switcher)
@@ -34,33 +28,33 @@
 (when-let [navigator-node (dom/query-doc "[data-id='cljdoc-js--cljdoc-navigator']")]
   (render (h Navigator) navigator-node))
 
-(when (isNSOverviewPage)
-  (initToggleRaw))
+(when (cljdoc/is-namespace-overview-page)
+  (cljdoc/init-toggle-docstring-raw))
 
-(when (isNSPage)
-  (initScrollIndicator)
-  (initToggleRaw))
+(when (cljdoc/is-namespace-page)
+  (cljdoc/init-scroll-indicator)
+  (cljdoc/init-toggle-docstring-raw))
 
-(when (isNSOfflinePage)
-  (initToggleRaw))
+(when (cljdoc/is-namespace-offline-page)
+  (cljdoc/init-toggle-docstring-raw))
 
-(when (isProjectDocumentationPage)
+(when (cljdoc/is-project-doc-page)
   (when-let [mobile-nav-node (dom/query-doc "[data-id='cljdoc-js--mobile-nav']")]
     (render (h MobileNav)
             mobile-nav-node))
-  (toggleMetaDialog)
-  (toggleArticlesTip)
-  (addPrevNextPageKeyHandlers))
+  (cljdoc/toggle-meta-dialog)
+  (cljdoc/toggle-articles-tip)
+  (cljdoc/add-next-prev-key-for-articles))
 
 (when-let [recently-visited-node (dom/query-doc "[data-id='cljdoc-doc-links']")]
-  (initRecentDocLinks recently-visited-node))
+  (recent-doc-links/init recently-visited-node))
 
-(mount-single-docset-search)
+(single-docset-search/init)
 
 (.addEventListener js/document "DOMContentLoaded"
                    (fn []
-                     (saveSidebarScrollPos)
-                     (restoreSidebarScrollPos)))
+                     (cljdoc/save-sidebar-scroll-pos)
+                     (cljdoc/restore-sidebar-scroll-pos)))
 
 (set! js/window.mergeHTMLPlugin mergeHTMLPlugin)
 (set! js/window.copyButtonPlugin copyButtonPlugin)

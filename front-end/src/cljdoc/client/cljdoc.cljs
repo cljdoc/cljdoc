@@ -1,20 +1,20 @@
 (ns cljdoc.client.cljdoc
   (:require [cljdoc.client.dom :as dom]
-            [cljdoc.client.library :as library]))
+            [cljdoc.client.library :as lib]))
 
-(defn isNSOverviewPage []
+(defn is-namespace-overview-page []
   (boolean (dom/query-doc ".ns-overview-page")))
 
-(defn isNSPage []
+(defn is-namespace-page []
   (boolean (dom/query-doc ".ns-page")))
 
-(defn isNSOfflinePage []
+(defn is-namespace-offline-page []
   (boolean (dom/query-doc ".ns-offline-page")))
 
-(defn isProjectDocumentationPage []
-  (library/coords-from-current-loc))
+(defn is-project-doc-page []
+  (lib/coords-from-current-loc))
 
-(defn initScrollIndicator []
+(defn init-scroll-indicator []
   (let [main-scroll-view (dom/query-doc ".js--main-scroll-view")
         sidebar-scroll-view (dom/query-doc ".js--namespace-contents-scroll-view")
         def-blocks (dom/query-doc-all ".def-block")
@@ -46,7 +46,7 @@
 
     (draw-scroll-indicator)))
 
-(defn initToggleRaw []
+(defn init-toggle-docstring-raw []
   (let [toggles (dom/query-doc-all ".js--toggle-raw")
         add-toggle-handlers (fn []
                               (doseq [el toggles]
@@ -76,7 +76,7 @@
     (or (> (.-top rect) (.-innerHeight js/window))
         (< (.-bottom rect) 0))))
 
-(defn restoreSidebarScrollPos
+(defn restore-sidebar-scroll-pos
   "Cljdoc always loads a full page.
   This means the sidebar nav scoll position needs to be restored/set."
   []
@@ -85,14 +85,14 @@
       (.removeItem js/sessionStorage "sidebarScroll")
       (when-not js/window.location.search
         (if (and sidebar-scroll-state
-                 (= (library/coords-path-from-current-loc) (.-libVersionPath sidebar-scroll-state)))
+                 (= (lib/coords-path-from-current-loc) (.-libVersionPath sidebar-scroll-state)))
           (set! (.-scrollTop main-side-bar) (.-scrollTop sidebar-scroll-state))
           (when-let [selected-elem (dom/query-doc "a.b" main-side-bar)]
             (when (is-element-out-of-view selected-elem)
               (.scrollIntoView selected-elem {:behavior "instant"
                                               :block "start"}))))))))
 
-(defn saveSidebarScrollPos
+(defn save-sidebar-scroll-pos
   "Support for restoreSidebarScrollPos
   When item in sidebar is clicked saves scroll pos and lib/version to session."
   []
@@ -102,11 +102,11 @@
         (.addEventListener anchor "click"
                            (fn []
                              (let [scroll-top (.-scrollTop main-side-bar)
-                                   data {:libVersionPath (library/coords-path-from-current-loc)
+                                   data {:libVersionPath (lib/coords-path-from-current-loc)
                                          :scrollTop scroll-top}]
                                (.setItem js/sessionStorage "sidebarScroll" (.stringify js/JSON data)))))))))
 
-(defn toggleMetaDialog []
+(defn toggle-meta-dialog []
   (when (dom/query-doc ".js--main-scroll-view")
     (let [meta-icon (dom/query-doc "[data-id='cljdoc-js--meta-icon']")
           meta-dialog (dom/query-doc "[data-id='cljdoc-js--meta-dialog']")
@@ -126,14 +126,14 @@
                              (when meta-icon
                                (dom/replace-class meta-icon hide display))))))))
 
-(defn toggleArticlesTip []
+(defn toggle-articles-tip []
   (let [tip-toggler (dom/query-doc "[data-id='cljdoc-js--articles-tip-toggler']")
         tip (dom/query-doc "[data-id='cljdoc-js--articles-tip']")]
     (when (and tip-toggler tip)
       (.addEventListener tip-toggler "click"
                          (fn [] (dom/toggle-class tip "dn"))))))
 
-(defn addPrevNextPageKeyHandlers []
+(defn add-next-prev-key-for-articles []
   (let [prev-link (dom/query-doc "a[data-id='cljdoc-prev-article-page-link']")
         next-link (dom/query-doc "a[data-id='cljdoc-next-article-page-link']")]
     (when (or prev-link next-link)

@@ -58,7 +58,7 @@
 (defn- clamp [value min-value max-value]
   (min (max value min-value) max-value))
 
-(defn ^:async mount-single-docset-search []
+(defn ^:async init []
   (let [single-docset-search-node (dom/query-doc "[data-id='cljdoc-js--single-docset-search']")
         url (some-> single-docset-search-node .-dataset .-searchsetUrl)]
     (when (and single-docset-search-node
