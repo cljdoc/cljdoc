@@ -1,25 +1,9 @@
 (ns cljdoc.client.search
   (:require ["preact/hooks" :refer [useEffect useState]]
+            [cljdoc.client.flow :as flow]
             [cljdoc.client.library :as library]
             #_:clj-kondo/ignore ;; used in #jsx as tag
             [cljdoc.client.listselect :refer [ResultsView]]))
-
-(defn debounced [delay-ms f]
-  (let [timer-id (atom nil)]
-    (fn [& args]
-      (when @timer-id
-        (js/clearTimeout @timer-id))
-      (js/Promise.
-       (fn [resolve reject]
-         (reset! timer-id
-                 (js/setTimeout
-                  (fn []
-                    (try
-                      (-> (apply f args) resolve)
-                      (catch :default e
-                        (reject e))
-                      (finally
-                        (reset! timer-id nil)))) delay-ms)))))))
 
 (defn- clean-search-str [s]
   (.replace s "/[{}[]\"]+/g" ""))
@@ -31,7 +15,7 @@
         (.then (fn [json] (.-results json)))
         (.then (fn [results] (call-back results))))))
 
-(def ^:private load-results-debounced (debounced 300 load-results))
+(def ^:private load-results-debounced (flow/debounced 300 load-results))
 
 (defn- SearchInput [{:keys [initialValue focus unfocus newResultsCallback
                             onEnter onArrowUp onArrowDown] :as props}]

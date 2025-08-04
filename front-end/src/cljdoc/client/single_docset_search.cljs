@@ -4,7 +4,7 @@
             ["preact" :refer [h render]]
             ["preact/hooks" :refer [useEffect useRef useState]]
             [cljdoc.client.dom :as dom]
-            [cljdoc.client.search :refer [debounced]]
+            [cljdoc.client.flow :as flow]
             [clojure.string :as str]))
 
 (def SEARCHSET_VERSION 4)
@@ -248,7 +248,7 @@
                   []
                   results-with-docs))))))
 
-(def ^:private debounced-search (debounced 300 search))
+(def ^:private debounced-search (flow/debounced 300 search))
 
 (defn SingleDocsetSearch [{:keys [url]}]
   (let [[db set-db!] (useState nil)
