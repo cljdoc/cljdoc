@@ -223,8 +223,6 @@
                   []
                   results-with-docs))))))
 
-(def ^:private debounced-search (flow/debounced 300 search))
-
 (defn SingleDocsetSearch [{:keys [url]}]
   (let [[db set-db!] (useState nil)
         [index-items set-index-items!] (useState nil)
@@ -242,10 +240,10 @@
     (useEffect
      (fn init-input-elem []
        (let [on-global-key-down (fn [{:keys [key] :as e}]
-                               (when (and (.-current input-elem)
-                                          (or (.-metaKey e) (.-ctrlKey e))
-                                          (= "/" key))
-                                 (.focus (.-current input-elem))))]
+                                  (when (and (.-current input-elem)
+                                             (or (.-metaKey e) (.-ctrlKey e))
+                                             (= "/" key))
+                                    (.focus (.-current input-elem))))]
          (.addEventListener js/document "keydown" on-global-key-down)
          (fn []
            (.removeEventListener js/document "keydown" on-global-key-down))))
@@ -310,7 +308,15 @@
                                        (.assign js/window.location (.toString redirect-to)))
                                      (when show-results
                                        (set-show-results! false)
-                                       (.blur input)))))]
+                                       (.blur input)))))
+          handle-search (flow/debounced 300
+                                        (fn [query]
+                                          (let [results (search search-index query)]
+                                            (if results
+                                              (set-results! results)
+                                              (set-results! []))
+                                            (when-not show-results
+                                              (set-show-results! true)))))]
       (clamp-selected-ndx)
 
       #jsx [:<>
@@ -330,15 +336,7 @@
                         :placeholder (if search-index "Search..." "Loading...")
                         :ref input-elem
                         :onFocus (fn [{:keys [target] :as _e}]
-                                   (dom/toggle-class target "b--blue")
-                                   (-> (debounced-search search-index (.-value target))
-                                       (.then (fn [results]
-                                                (if results
-                                                  (set-results! results)
-                                                  (set-results! []))
-                                                (when-not show-results
-                                                  (set-show-results! true))))
-                                       (.catch js/console.error)))
+                                   (handle-search (.-value target)))
                         :onBlur (fn [{:keys [target] :as _e}]
                                   (dom/toggle-class target "b--blue")
                                   (when show-results
@@ -371,17 +369,9 @@
                                        nil))
                         :onInput (fn [{:keys [target] :as e}]
                                    (.preventDefault e)
-                                   (set-input-value! (.-value target))
-                                   (if (zero? (-> target .-value count))
-                                     (set-results! [])
-                                     (-> (debounced-search search-index (.-value target))
-                                         (.then (fn [results]
-                                                  (if results
-                                                    (set-results! results)
-                                                    (set-results! []))
-                                                  (when-not show-results
-                                                    (set-show-results! true))))
-                                         (.catch console.error))))}]]
+                                   (let [value (.-value target)]
+                                     (set-input-value! value)
+                                     (handle-search value)))}]]
               (when (and show-results (seq results))
                 #jsx [:<>
                       [:ol {:class "list pa0 ma0 no-underline black bg-white br--bottom ba br1 b--blue absolute overflow-y-scroll"
