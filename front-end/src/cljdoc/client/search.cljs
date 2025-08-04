@@ -64,7 +64,7 @@
             [:div {:class "gray f6"} (:blurb result)]
             [:div {:class "gray i f7"} (:origin result)]]]]))
 
-(defn App [{:keys [initialValue]}]
+(defn LibSearch [{:keys [initialValue]}]
   (let [[selected-ndx set-selected-ndx!] (useState 0)
         [results      set-results!] (useState [])
         [focused      set-focused!] (useState false)]

@@ -7,7 +7,7 @@
             [cljdoc.client.mobile :refer [MobileNav]]
             [cljdoc.client.navigator :refer [Navigator]]
             [cljdoc.client.recent-doc-links :as recent-doc-links]
-            [cljdoc.client.search :refer [App]]
+            [cljdoc.client.search :refer [LibSearch]]
             [cljdoc.client.single-docset-search :as single-docset-search]
             [cljdoc.client.switcher :refer [Switcher] :as switcher]))
 
@@ -19,7 +19,7 @@
 
 (let [search-node (dom/query-doc "[data-id='cljdoc-search']")]
   (when (and search-node (.-dataset search-node))
-    (render (h App {:initialValue (-> search-node .-dataset .-initialValue)
+    (render (h LibSearch {:initialValue (-> search-node .-dataset .-initialValue)
                     :results []
                     :focused false
                     :selectedIndex 0})
