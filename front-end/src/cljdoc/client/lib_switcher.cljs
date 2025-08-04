@@ -17,7 +17,7 @@
 (defn- is-error-page? []
   (.querySelector js/document "head > title[data-error]"))
 
-(defn track-project-opened []
+(defn- track-project-opened []
   (when (not (is-error-page?))
     (let [max-track-count 15
           project (lib/coords-from-current-loc)]
@@ -25,7 +25,8 @@
         (let [prev-opened (->> (load-prev-opened)
                                (remove #(is-same-project project %))
                                doall)
-              _ (.push prev-opened project)
+              dated-project (assoc project :last_viewed (.toUTCString (js/Date.)))
+              _ (.push prev-opened dated-project)
               prev-opened (->> prev-opened
                                (take max-track-count)
                                doall)]
