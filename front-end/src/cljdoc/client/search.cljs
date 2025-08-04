@@ -25,10 +25,7 @@
   (.replace s "/[{}[]\"]+/g" ""))
 
 (defn- load-results [q call-back]
-  ;; TODO: url changed for testing, change back to relative
-  ;; TODO server could just return edn? would that be at all helpful?
-  (.log js/console "lr" q call-back)
-  (let [url (str "http://localhost:8000/api/search?q=" q)]
+  (let [url (str "/api/search?q=" q)]
     (-> (js/fetch url)
         (.then (fn [response] (.json response)))
         (.then (fn [json] (.-results json)))
