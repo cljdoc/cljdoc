@@ -63,8 +63,8 @@
    :depends [deps-js]
    :requires [compile-js]
    :task (let [out-dir "resources-compiled/public/out"]
-           (if (seq (fs/modified-since out-dir ["resources/public" "js"
-                                                "tsconfig.json" "script/compile_js.clj"]))
+           (if (seq (fs/modified-since out-dir ["resources/public" "front-end"
+                                                "script/compile_js.clj"]))
              (compile-js/-main)
              (println "Skipped: JS assets already compiled to" out-dir)))}
   compile-js-watch
