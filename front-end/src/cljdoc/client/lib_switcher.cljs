@@ -5,7 +5,7 @@
             [cljdoc.client.dom :as dom]
             [cljdoc.client.library :as lib]
             #_:clj-kondo/ignore ;; used in #jsx as tag
-            [cljdoc.client.listselect :refer [ResultsView]]
+            [cljdoc.client.list-search :refer [ListSearch]]
             [clojure.string :as str]))
 
 (defn- is-same-project [p1 p2]
@@ -47,45 +47,26 @@
             [:a {:class "link blue ml2" :href uri}
              "view docs"]]]]))
 
-(defn- Switcher []
-  (let [prev-opened (some->> (load-prev-opened)
-                             (mapv (fn [{:keys [artifact-id group-id] :as p}]
-                                     (assoc p :project-id (if (= group-id artifact-id)
-                                                            group-id
-                                                            (str group-id "/" artifact-id)))))
-                             reverse
-                             doall)
+(defn- load-recently-visited-docs []
+  (some->> (load-prev-opened)
+           (mapv (fn [{:keys [artifact-id group-id] :as p}]
+                   (assoc p :project-id (if (= group-id artifact-id)
+                                          group-id
+                                          (str group-id "/" artifact-id)))))
+           reverse
+           doall))
 
-        [selected-ndx set-selected-ndx!] (useState 0)
-        ;; TODO: why are we saving both results and prev-opened?
-        [results      set-results!] (useState prev-opened)
-        [prev-opened  set-prev-opened!] (useState prev-opened)
-        [show         set-show!] (useState false)
+(defn- Switcher []
+  (let [recently-visited-docs (load-recently-visited-docs)
+        [results               set-results!] (useState recently-visited-docs)
+        [show                  set-show!] (useState false)
 
         background-node (useRef nil)
-        input-node (useRef nil)
 
         is-macos? (-> js/navigator.platform str/upper-case (.indexOf "MAC") (>= 0))
 
         reset-state (fn []
-                      (set-selected-ndx! 0)
-                      (set-results! prev-opened)
-                      (set-prev-opened! prev-opened))
-        on-input-key-down (fn [{:keys [key] :as e}]
-                            (case key
-                              "Enter"
-                              (let [{:keys [group-id artifact-id version]} (get results selected-ndx)]
-                                (set! js/window.location.href (str "/d/" group-id "/" artifact-id "/" version)))
-                              "ArrowUp"
-                              (do
-                                (.preventDefault e)
-                                (set-selected-ndx! (max (dec selected-ndx) 0)))
-                              "ArrowDown"
-                              (do
-                                (.preventDefault e)
-                                (set-selected-ndx! (min (inc selected-ndx)
-                                                        (-> results count dec))))
-                              nil))
+                      (set-results! recently-visited-docs))
         on-global-key-down (fn [{:keys [key metaKey ctrlKey] :as e}]
                              (cond
                                (and (= "k" key)
@@ -93,7 +74,7 @@
                                (do
                                  (.preventDefault e)
                                  (set-show! true)
-                                 (set-results! prev-opened))
+                                 (set-results! recently-visited-docs))
 
                                (= "Escape" key)
                                (do
@@ -103,16 +84,12 @@
                          (if (= "" search-str)
                            (reset-state)
                            (let [fuzzy-sort-options {:key :project-id}
-                                 results (.go fuzzysort search-str prev-opened fuzzy-sort-options)]
-                             (set-results! (mapv #(.-obj %) results))
-                             (set-selected-ndx! 0))))]
+                                 results (.go fuzzysort search-str recently-visited-docs fuzzy-sort-options)]
+                             (set-results! (mapv #(.-obj %) results)))))]
     (useEffect (fn []
                  (.addEventListener js/document "keydown" on-global-key-down))
                [])
-    (useEffect (fn []
-                 (when (and show (.-current input-node))
-                   (-> input-node .-current .focus)))
-               [show])
+
     (when show
       #jsx [:<>
             [:div {:class "bg-black-30 fixed top-0 right-0 bottom-0 left-0 sans-serif"
@@ -121,16 +98,13 @@
                               (when (= e.target (.-current background-node))
                                 (set-show! false)))}
              [:div {:class "mw7 center mt6 bg-white pa3 br2 shadow-3"}
-              [:input {:placeholder "Jump to recently viewed docs..."
-                       :class "pa2 w-100 br1 border-box b--blue ba input-reset"
-                       :ref input-node
-                       :onKeyDown on-input-key-down
-                       :onInput (fn [e]
-                                  (update-results (-> e .-target .-value)))}]
-              [:ResultsView {:rowView RowView
-                             :results results
-                             :selectedIndex selected-ndx
-                             :onMouseOver set-selected-ndx!}]]]])))
+              [:ListSearch {:show show
+                            :initialValue ""
+                            :place-holder-text "Jump to recently viewed docs..."
+                            :results results
+                            :rowView RowView
+                            :resultsFetcher update-results
+                            :onActivateItem (fn [item] (.open js/window (lib/docs-path item) "_self"))}]]]])))
 
 (defn init []
   (track-project-opened)
