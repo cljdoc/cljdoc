@@ -22,7 +22,6 @@
         input-node (useRef nil)
         [input-value set-input-value!] (useState (or initial-value ""))]
     (useEffect (fn setup []
-                 (.log js/console "searchinput effect")
                  (-> input-node .-current .focus)
                  (when initial-value
                    (results-fetcher initial-value)))
@@ -81,7 +80,6 @@
                           :results-fetcher resultsFetcher
                           :onEnter (fn []
                                      (when-let [item (get results selected-ndx)]
-                                       (.log js/console "onEnter" item onActivateItem)
                                        (set-focused! true)
                                        (onActivateItem item)
                                        (set-selected-ndx! 0)))

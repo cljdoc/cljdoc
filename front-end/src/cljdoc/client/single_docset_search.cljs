@@ -290,7 +290,6 @@
                                  (if (not (seq results))
                                    (set-selected-ndx! nil)
                                    (let [ndx (clamp selected-ndx 0 (-> results count dec))]
-                                     (.log js/console "clamp" ndx selected-ndx (-> results count dec))
                                      (when (not= ndx selected-ndx)
                                        (set-selected-ndx! ndx))))))
           on-result-navigation (fn [path]
