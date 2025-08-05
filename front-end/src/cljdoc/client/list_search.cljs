@@ -1,11 +1,13 @@
 (ns cljdoc.client.list-search
+  "Support for an input that searches items and presents them in a selectable list."
   (:require ["preact" :refer [h]]
             ["preact/hooks" :refer [useEffect useState useRef]]
             #_:clj-kondo/ignore ;; used in #jsx as tag
             [clojure.string :as str]))
 
-(defn- SearchInput [{:keys [place-holder-text initial-value focus unfocus results-fetcher
-                            onEnter onArrowUp onArrowDown]}]
+(defn- #_:clj-kondo/ignore ;; used in jsx as tag
+  SearchInput [{:keys [place-holder-text initial-value focus unfocus results-fetcher
+                       onEnter onArrowUp onArrowDown]}]
   (let [on-key-down (fn [{:keys [key] :as e}]
                       (case key
                         "Enter" (onEnter)
@@ -47,7 +49,8 @@
       (< delta-top 0) (.scrollBy container 0 delta-top)
       (> delta-bottom 0) (.scrollBy container 0 delta-bottom))))
 
-(defn- ResultsView [{:keys [rowView results selectedIndex selectResult]}]
+(defn- #_:clj-kondo/ignore ;; used in jsx as tag
+  ResultsView [{:keys [rowView results selectedIndex selectResult]}]
   (let [results-view-node (useRef nil)]
     (useEffect (fn []
                  (when results-view-node

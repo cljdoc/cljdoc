@@ -72,12 +72,10 @@
                                          :scrollTop scroll-top}]
                                (.setItem js/sessionStorage "sidebarScroll" (.stringify js/JSON data)))))))))
 
-
-
-(defn init[]
+(defn init []
   (when (page/is-namespace)
     (init-scroll-indicator)
     (.addEventListener js/document "DOMContentLoaded"
-                   (fn []
-                     (save-sidebar-scroll-pos)
-                     (restore-sidebar-scroll-pos)))))
+                       (fn []
+                         (save-sidebar-scroll-pos)
+                         (restore-sidebar-scroll-pos)))))
