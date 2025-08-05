@@ -1,4 +1,5 @@
-(ns cljdoc.client.library)
+(ns cljdoc.client.library
+  (:require [clojure.string :as str]))
 
 (warn-on-lazy-reusage!)
 
@@ -22,7 +23,7 @@
 (defn parse-docs-uri
   "Return coords from `uri`"
   [uri]
-  (let [[lead group-id artifact-id version] (rest (.split uri "/"))]
+  (let [[_ lead group-id artifact-id version] (str/split uri #"/")]
     (when (= "d" lead)
       {:group-id group-id
        :artifact-id artifact-id
