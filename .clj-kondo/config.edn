@@ -13,4 +13,4 @@
            :warn-on-reflection {:level :off :warn-only-on-interop true}
            :unresolved-var {:exclude [clj-commons.digest/sha-256]}
            ;; for squint
-           :unresolved-symbol {:exclude [js-await]}}}
+           :unresolved-symbol {:exclude [js-await warn-on-lazy-reusage!]}}}

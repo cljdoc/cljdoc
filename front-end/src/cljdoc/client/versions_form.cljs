@@ -3,6 +3,8 @@
   (:require ["preact" :refer [h render]]
             [cljdoc.client.dom :as dom]))
 
+(warn-on-lazy-reusage!)
+
 (defn onsubmit [e]
   (.preventDefault e)
   (let [form (.getElementById js/document "cljdoc-navigator")

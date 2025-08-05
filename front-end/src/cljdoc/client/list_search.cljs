@@ -5,6 +5,8 @@
             #_:clj-kondo/ignore ;; used in #jsx as tag
             [clojure.string :as str]))
 
+(warn-on-lazy-reusage!)
+
 (defn- #_:clj-kondo/ignore ;; used in jsx as tag
   SearchInput [{:keys [place-holder-text initial-value focus unfocus results-fetcher
                        onEnter onArrowUp onArrowDown]}]

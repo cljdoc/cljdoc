@@ -1,5 +1,7 @@
 (ns cljdoc.client.dom)
 
+(warn-on-lazy-reusage!)
+
 (defn query
   ([q el]
    (when el (.querySelector el q)))

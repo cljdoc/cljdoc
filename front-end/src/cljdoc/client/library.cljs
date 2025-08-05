@@ -1,5 +1,7 @@
 (ns cljdoc.client.library)
 
+(warn-on-lazy-reusage!)
+
 (defn docs-coords-path
   "Return coords portion of docs path for given `coords`"
   [{:keys [group-id artifact-id version] :as _coords}]

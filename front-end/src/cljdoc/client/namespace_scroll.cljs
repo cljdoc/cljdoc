@@ -3,6 +3,8 @@
             [cljdoc.client.library :as lib]
             [cljdoc.client.page :as page]))
 
+(warn-on-lazy-reusage!)
+
 (defn- init-scroll-indicator []
   (let [main-scroll-view (dom/query ".js--main-scroll-view")
         sidebar-scroll-view (dom/query ".js--namespace-contents-scroll-view")

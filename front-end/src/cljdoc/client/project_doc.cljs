@@ -2,6 +2,8 @@
   (:require [cljdoc.client.dom :as dom]
             [cljdoc.client.page :as page]))
 
+(warn-on-lazy-reusage!)
+
 (defn- toggle-meta-dialog []
   (when (dom/query ".js--main-scroll-view")
     (let [meta-icon (dom/query "[data-id='cljdoc-js--meta-icon']")

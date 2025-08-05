@@ -7,6 +7,8 @@
             [cljdoc.client.flow :as flow]
             [clojure.string :as str]))
 
+(warn-on-lazy-reusage!)
+
 (def SEARCHSET_VERSION 4)
 
 (defn- tokenize [s]
