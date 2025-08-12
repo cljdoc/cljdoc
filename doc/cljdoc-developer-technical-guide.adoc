@@ -269,6 +269,14 @@ alongside, in the same directory, the draw.io source `system-overview.drawio`.
 
 To make things easy to find, images should sit in the same directory as the doc.
 
+== Tools Versions
+Our intention is to use latest temurin JDK, and latest LTS of nodejs.
+
+If you use sdkman, we have an `.sdkmanrc`, use `sdk env`, so relect dev version.
+If you use asdf, we have a `.tools-version` that should pick up the correct version of nodejs.
+
+When bumping tools versions be sure to also hit our `.circle/config.yml`.
+
 == Java Source
 
 We have a wee bit of Java source to work-around a flexmark bug.
