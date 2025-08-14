@@ -16,7 +16,7 @@
        (== (:artifact-id p1) (:artifact-id p2))))
 
 (defn- load-prev-opened []
-  (.parse js/JSON (or (.getItem js/localStorage "previouslyOpened") "[]")))
+  (.parse js/JSON (or (.getItem js/localStorage "previously_opened") "[]")))
 
 (defn- is-error-page? []
   (.querySelector js/document "head > title[data-error]"))
@@ -34,7 +34,7 @@
               prev-opened (->> prev-opened
                                (take max-track-count)
                                doall)]
-          (.setItem js/localStorage "previouslyOpened" (.stringify js/JSON prev-opened)))))))
+          (.setItem js/localStorage "previously_opened" (.stringify js/JSON prev-opened)))))))
 
 (defn- RowView [{:keys [result isSelected selectResult]}]
   (let [uri (lib/docs-path result)

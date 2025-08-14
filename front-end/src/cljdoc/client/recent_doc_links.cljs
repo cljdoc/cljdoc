@@ -27,7 +27,7 @@
 
 (defn- init-doc-links [doc-links]
   (let [previously-opened (some-> js/localStorage
-                                  (.getItem "previouslyOpened")
+                                  (.getItem "previously_opened")
                                   (js/JSON.parse))]
     (when (> (count previously-opened) 0)
       (when (>= (count previously-opened) 3)
