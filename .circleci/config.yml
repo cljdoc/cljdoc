@@ -53,8 +53,12 @@ aliases:
       name: Bring Down Clojure deps
       command: bb download-deps
 
+  - &node_install
+    node/install:
+      node-version: '22.18.0'
+
 orbs:
-  node: circleci/node@7.1.0
+  node: circleci/node@7.1.1
 
 jobs:
   #
@@ -129,7 +133,7 @@ jobs:
 
     steps:
       - checkout
-      - node/install
+      - *node_install
       - run:
           name: Install extra tools
           command: apt update && apt install -y zstd
@@ -160,7 +164,7 @@ jobs:
 
     steps:
       - checkout
-      - node/install
+      - *node_install
 
       - *restore_clojure_cache
       - *restore_npm_cache
@@ -190,7 +194,7 @@ jobs:
 
     steps:
       - checkout
-      - node/install
+      - *node_install
 
       - *restore_clojure_cache
       - *restore_npm_cache
@@ -217,7 +221,7 @@ jobs:
 
     steps:
       - checkout
-      - node/install
+      - *node_install
       - run:
           name: Install extra tools
           command: apt update && apt install -y zip
