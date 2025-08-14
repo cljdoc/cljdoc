@@ -6,7 +6,7 @@
         etaoin/etaoin {:mvn/version "1.1.43"}
         io.github.borkdude/unused-deps {:git/sha "77fc627b3a0dc547841a17bdaa09ea51c392676c"}
         org.clj-commons/pretty {:mvn/version "3.6.3"}}
- :pods {org.babashka/fswatcher {:version "0.0.5"}}
+ :pods {org.babashka/fswatcher {:version "0.0.7"}}
  :tasks
  {;; setup
   :requires ([babashka.fs :as fs]
@@ -63,8 +63,8 @@
    :depends [deps-js]
    :requires [compile-js]
    :task (let [out-dir "resources-compiled/public/out"]
-           (if (seq (fs/modified-since out-dir ["resources/public" "js"
-                                                "tsconfig.json" "script/compile_js.clj"]))
+           (if (seq (fs/modified-since out-dir ["resources/public" "front-end"
+                                                "script/compile_js.clj"]))
              (compile-js/-main)
              (println "Skipped: JS assets already compiled to" out-dir)))}
   compile-js-watch
@@ -72,35 +72,11 @@
    :depends [deps-js]
    :requires [compile-js]
    :task (compile-js/-main "--watch")}
-
-  code-format-js
-  {:doc "(check|fix) JS code format"
-   :depends [deps-js]
-   :task (let [cmd (first *command-line-args*)]
-           (if (= cmd "fix")
-             (do (println "fixing")
-                 (shell "npm run format"))
-             (do (println "checking")
-                 (shell "npm run lint"))))}
   compile-java
   {:doc "Compile java sources"
    :task (if (seq (fs/modified-since bs/class-dir (fs/glob "." "src/**.java")))
            (clojure "-T:build" "compile-java")
            (println "Java sources already compiled to" bs/class-dir))}
-  lint-js
-  {:doc "lint typescript"
-   :depends [deps-js]
-   :task (let [exit (-> (shell {:continue true} "npx tsc") :exit)]
-           (if (zero? exit)
-             (println "Exited with 0, so all seems good.")
-             (System/exit exit)))}
-  eslint
-  {:doc "eslint typescript"
-   :depends [deps-js]
-   :task (let [exit (-> (apply shell {:continue true} "npx eslint" *command-line-args*) :exit)]
-           (if (zero? exit)
-             (println "No eslint errors detected")
-             (System/exit exit)))}
   server
   {:doc "Launch cljdoc server"
    :depends [compile-js compile-java]

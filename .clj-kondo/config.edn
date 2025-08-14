@@ -11,4 +11,6 @@
            :unused-value {:level :warning}
            :aliased-namespace-symbol {:level :warning}
            :warn-on-reflection {:level :off :warn-only-on-interop true}
-           :unresolved-var {:exclude [clj-commons.digest/sha-256]}}}
+           :unresolved-var {:exclude [clj-commons.digest/sha-256]}
+           ;; for squint
+           :unresolved-symbol {:exclude [js-await warn-on-lazy-reusage!]}}}
