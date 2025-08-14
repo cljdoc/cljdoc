@@ -1,4 +1,5 @@
 (ns cljdoc.client.lib-search
+  "Support for searching for a library"
   (:require ["preact" :refer [h render]]
             ["preact/hooks" :refer [useState]]
             [cljdoc.client.dom :as dom]

@@ -1,10 +1,13 @@
 (ns cljdoc.client.project-doc
+  "Misc support for project documentation page"
   (:require [cljdoc.client.dom :as dom]
             [cljdoc.client.page :as page]))
 
 (warn-on-lazy-reusage!)
 
-(defn- toggle-meta-dialog []
+(defn- toggle-meta-dialog
+  "Support for the little helper window brought up by the bottom right icon when viewing a project"
+  []
   (when (dom/query ".js--main-scroll-view")
     (let [meta-icon (dom/query "[data-id='cljdoc-js--meta-icon']")
           meta-dialog (dom/query "[data-id='cljdoc-js--meta-dialog']")

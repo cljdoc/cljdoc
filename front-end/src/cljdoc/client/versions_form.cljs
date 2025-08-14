@@ -1,5 +1,5 @@
-;; used on ./versions page - which I think no one uses!
 (ns cljdoc.client.versions-form
+  "Used on ./versions page - which I think no one uses!"
   (:require ["preact" :refer [h render]]
             [cljdoc.client.dom :as dom]))
 

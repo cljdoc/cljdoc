@@ -1,4 +1,5 @@
 (ns cljdoc.client.mobile
+  "Support for mobile/small screens"
   (:require ["preact" :refer [h render]]
             ["preact/hooks" :refer [useState]]
             [cljdoc.client.dom :as dom]

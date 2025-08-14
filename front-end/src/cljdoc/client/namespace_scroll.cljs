@@ -1,4 +1,5 @@
 (ns client.namespace-scroll
+  "Support for scrolling through namespace"
   (:require [cljdoc.client.dom :as dom]
             [cljdoc.client.library :as lib]
             [cljdoc.client.page :as page]))

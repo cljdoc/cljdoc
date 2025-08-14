@@ -1,4 +1,5 @@
 (ns cljdoc.client.lib-switcher
+  "Support for the quick lib switcher brought up by ctrl/meta k"
   (:require ["fuzzysort$default" :as fuzzysort]
             ["preact" :refer [h render]]
             ["preact/hooks" :refer [useEffect useRef useState]]

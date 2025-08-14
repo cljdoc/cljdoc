@@ -1,4 +1,6 @@
 (ns cljdoc.client.recent-doc-links
+  "Support presenting recently visited libraries
+  See also [[cljdoc.client.lib-switcher]] which includes the tracking support."
   (:require ["preact" :as preact]
             [cljdoc.client.dom :as dom]
             [cljdoc.client.library :as lib]))

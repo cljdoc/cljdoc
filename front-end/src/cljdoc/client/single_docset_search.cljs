@@ -1,4 +1,5 @@
 (ns cljdoc.client.single-docset-search
+  "Support for searching within a single library"
   (:require ["elasticlunr$default" :as elasticlunr]
             ["idb" :refer [openDB]]
             ["preact" :refer [h render]]
