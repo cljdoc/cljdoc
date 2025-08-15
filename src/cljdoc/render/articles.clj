@@ -1,6 +1,7 @@
 (ns cljdoc.render.articles
   "HTML fragments related to rendering articles and article-trees"
-  (:require [cljdoc.server.routes :as routes]
+  (:require [cljdoc.render.components :as components]
+            [cljdoc.server.routes :as routes]
             [cljdoc.util.scm :as scm]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]))
@@ -68,15 +69,14 @@
           (string/join ", " (butlast contributors))
           " & " (last contributors)]
          [:b.db "Can you improve this documentation?"])
-       [:a.link.dib.white.bg-blue.ph2.pv1.br2.mt2.pointer.hover-bg-dark-blue.lh-copy
-        {:href doc-scm-url}
-        (case (scm/provider doc-scm-url)
-          :gitlab "Edit on GitLab"
-          :sourcehut "Edit on sourcehut"
-          :github "Edit on GitHub"
-          :codeberg "Edit on Codeberg"
-          :bitbucket "Edit on Bitbucket"
-          "Edit at git repository")]]])])
+       (components/link-button {:href doc-scm-url}
+                               (case (scm/provider doc-scm-url)
+                                 :gitlab "Edit on GitLab"
+                                 :sourcehut "Edit on sourcehut"
+                                 :github "Edit on GitHub"
+                                 :codeberg "Edit on Codeberg"
+                                 :bitbucket "Edit on Bitbucket"
+                                 "Edit at git repository"))]])])
 
 (defn doc-overview
   [{:keys [version-entity doc-tree prev-page next-page]}]

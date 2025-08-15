@@ -3,6 +3,7 @@
   (:require [cljdoc-shared.proj :as proj]
             [cljdoc.config :as config]
             [cljdoc.render.assets :as assets]
+            [cljdoc.render.components :as components]
             [cljdoc.render.links :as links]
             [cljdoc.server.routes :as routes]
             [cljdoc.util.scm :as scm]
@@ -195,8 +196,7 @@
              [:td.pl2.tl help]])]]]]
    (into [:div.mv3]
          (map (fn [[description link]]
-                [:a.link.db.white.bg-blue.ph2.pv1.br2.mt2.pointer.hover-bg-dark-blue.lh-copy
-                 {:href link} description])
+                (components/link-button {:href link :class "db"} description))
               [["Raise an issue" (links/github-url :issues)]
                ["Browse cljdoc source" (links/github-url :home)]
                ["Chat on Slack" (links/slack)]]))
