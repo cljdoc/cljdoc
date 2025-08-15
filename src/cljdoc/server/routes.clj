@@ -54,7 +54,6 @@
 
 (defn info-pages-routes []
   #{["/" :get nop :route-name :home]
-    ["/shortcuts" :get nop :route-name :shortcuts]
     ["/sitemap.xml" :get nop :route-name :sitemap]
     ["/opensearch.xml" :get nop :route-name :opensearch]})
 
