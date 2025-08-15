@@ -19,3 +19,6 @@
       :userguide/scm-faq      (str (github-url :userguide/authors) "#git-sources")
       :userguide/articles     (str (github-url :userguide/authors) "#articles")
       :userguide/offline-docs (str (github-url :userguide/users) "#offline-docs"))))
+
+(defn slack []
+  "https://clojurians.slack.com/messages/C8V0BQ0M6/")

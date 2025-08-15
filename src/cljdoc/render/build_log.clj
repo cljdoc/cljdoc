@@ -219,7 +219,7 @@
 
           ;; [:p [:code [:pre (with-out-str (clojure.pprint/pprint build-info))]]] ;DEBUG
           [:p.lh-copy.dark-gray "Having trouble? Please reach out via "
-           [:a.link.blue {:href "https://clojurians.slack.com/messages/C8V0BQ0M6/"} "Slack"]
+           [:a.link.blue {:href (links/slack)} "Slack"]
            " or "
            [:a.link.blue {:href (links/github-url :issues)} "open an issue on GitHub"]
            ". Thanks!"]]

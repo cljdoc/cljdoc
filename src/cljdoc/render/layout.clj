@@ -164,20 +164,20 @@
 
 (defn- shortcuts []
   (->> [:div.overflow-auto
-        [:table.w-auto.mw6
+        [:table.w-auto
          [:tbody.lh-copy
           (shortcut [:span (kbd  "⌘") "+" (kbd "K")] "Jump to recent docs")
-          (shortcut (kbd "←") "Move to previous article")
-          (shortcut (kbd "→") "Move to next article")
-          (shortcut [:span (kbd "⌘") "+" (kbd "/")] "Jump to the search field")]]]))
+          (shortcut (kbd "←")                        "Move to previous article")
+          (shortcut (kbd "→")                        "Move to next article")
+          (shortcut [:span (kbd "⌘") "+" (kbd "/")]  "Jump to the search field")]]]))
 
 (defn meta-info-dialog []
   [:div
    [:img.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
     {:data-id "cljdoc-js--meta-icon"
      :src "https://microicon-clone.vercel.app/explore/48/357edd"}]
-   [:div.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
-    {:data-id "cljdoc-js--meta-dialog"}
+   [:div.ma3.pa3.ba.br3.bw1.b--blue.fixed.right-0.bottom-0.bg-white.dn
+    {:data-id "cljdoc-js--meta-dialog" :style "width:20rem"}
     [:p.ma0
      [:b "cljdoc"]
      " is builds & hosts documentation for Clojure/Script libraries"]
@@ -187,12 +187,12 @@
      (shortcuts)]
     (into [:div.mv3]
           (map (fn [[description link]]
-                 [:a.link.db.white.bg-blue.ph2.pv1.br2.mt2.hover-bg-dark-blue
+                 [:a.link.db.white.bg-blue.ph2.pv1.br2.mt2.pointer.hover-bg-dark-blue
                   {:href link} description])
                [["Raise an issue" (links/github-url :issues)]
                 ["Browse cljdoc source" (links/github-url :home)]
-                ["Chat on Slack" (links/github-url :home)]]))
-    [:a.link.black.fr.pointer {:data-id "cljdoc-js--meta-close"}
+                ["Chat on Slack" (links/slack)]]))
+    [:a.link.white.bg-blue.ph2.pv1.br2.pointer.hover-bg-dark-blue.fr.f6 {:data-id "cljdoc-js--meta-close"}
      "× close"]]])
 
 (def home-link
