@@ -1,5 +1,6 @@
 (ns cljdoc.render.build-log
   (:require [cljdoc.render.code-fmt :as code-fmt]
+            [cljdoc.render.components :as components]
             [cljdoc.render.layout :as layout]
             [cljdoc.render.links :as links]
             [cljdoc.server.routes :as routes]
@@ -209,9 +210,10 @@
             (section
              ""
              [:h3.mt0 "Build successful!"]
-             [:a.f6.link.dim.ph3.pv2.mb2.dib.white.bg-blue
-              {:href (url-for-cljdoc build-info)}
-              "Continue to Documentation →"])
+             (components/link-button
+              {:href (url-for-cljdoc build-info)
+               :class "f5"}
+              "Continue to Documentation →"))
 
             :else
             [:script
