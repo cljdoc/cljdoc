@@ -188,12 +188,12 @@
      [:table.w-auto
       [:tbody.lh-copy
        (for [[key-seq help] [[["⌘" "k"] "Jump to recent docs"]
-                             [["←"]     "Move to previous article" ]
+                             [["←"]     "Move to previous article"]
                              [["→"]     "Move to next article"]
                              [["⌘" "/"] "Jump to the search field"]]]
-            [:tr
-             [:td.nowrap.tl.gray.f5 (kbd key-seq) ]
-             [:td.pl2.tl help]])]]]]
+         [:tr
+          [:td.nowrap.tl.gray.f5 (kbd key-seq)]
+          [:td.pl2.tl help]])]]]]
    (into [:div.mv3]
          (map (fn [[description link]]
                 (components/link-button {:href link :class "db"} description))
