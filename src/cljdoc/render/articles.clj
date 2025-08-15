@@ -60,7 +60,7 @@
    ;; outside of div with markdown specific styling so markdown
    ;; styling does not override tachyons classes.
    (when doc-html
-     [:div.bt.b--light-gray.pv4.f7.cf
+     [:div.bt.b--light-gray.pv4.f6.cf
       [:p.lh-copy.w-60-ns.ma0.tr.fr
        (if (< 1 (count contributors))
          [:span.db
@@ -68,7 +68,7 @@
           (string/join ", " (butlast contributors))
           " & " (last contributors)]
          [:b.db "Can you improve this documentation?"])
-       [:a.link.dib.white.bg-blue.ph2.pv1.br2.mt2
+       [:a.link.dib.white.bg-blue.ph2.pv1.br2.mt2.pointer.hover-bg-dark-blue.lh-copy
         {:href doc-scm-url}
         (case (scm/provider doc-scm-url)
           :gitlab "Edit on GitLab"
