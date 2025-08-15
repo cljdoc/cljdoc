@@ -154,22 +154,12 @@
     ;; again negative margins are used to make the background reach over the text container
     [:span.relative.nl2.nr2.ph2.bg-white title]]))
 
-(defn- kbd [key]
-  [:kbd.dib.mid-gray.bw1.b--solid.b--light-silver.bg-light-gray.br2.pa1 key])
-
-(defn- shortcut [key-seq desc]
-  [:tr
-   [:td.nowrap.tl.gray.f5 key-seq ]
-   [:td.pl2.tl desc]])
-
-(defn- shortcuts []
-  (->> [:div.overflow-auto
-        [:table.w-auto
-         [:tbody.lh-copy
-          (shortcut [:span (kbd  "⌘") "+" (kbd "K")] "Jump to recent docs")
-          (shortcut (kbd "←")                        "Move to previous article")
-          (shortcut (kbd "→")                        "Move to next article")
-          (shortcut [:span (kbd "⌘") "+" (kbd "/")]  "Jump to the search field")]]]))
+(defn- kbd [key-seq]
+  [:span
+   (->> key-seq
+        (mapv (fn [key]
+                [:kbd.dib.mid-gray.bw1.b--solid.b--light-silver.bg-light-gray.br2.pa1 key]))
+        (interpose [:span.pa1.code "+"]))])
 
 (defn- meta-icon
   "See cljdoc.css svg.button for color, hover color"
@@ -191,10 +181,18 @@
     [:b "cljdoc"]
     " builds & hosts documentation for Clojure/Script libraries"]
    [:div.mt3
-
     [:span.tracked
      "Keyboard shortcuts"]
-    (shortcuts)]
+    [:div.overflow-auto
+     [:table.w-auto
+      [:tbody.lh-copy
+       (for [[key-seq help] [[["⌘" "k"] "Jump to recent docs"]
+                             [["←"]     "Move to previous article" ]
+                             [["→"]     "Move to next article"]
+                             [["⌘" "/"] "Jump to the search field"]]]
+            [:tr
+             [:td.nowrap.tl.gray.f5 (kbd key-seq) ]
+             [:td.pl2.tl help]])]]]]
    (into [:div.mv3]
          (map (fn [[description link]]
                 [:a.link.db.white.bg-blue.ph2.pv1.br2.mt2.pointer.hover-bg-dark-blue.lh-copy
