@@ -12,6 +12,16 @@ pre {
  * Tachyons extras
  */
 
+svg.button {
+  /* tachyons blue */
+  fill: #357edd
+}
+
+svg.button:hover {
+  /* tachyons dark-blue  */
+  fill: #00449e;
+}
+
 .f7 {
   font-size: 12px;
 }

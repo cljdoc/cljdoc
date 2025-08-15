@@ -171,29 +171,44 @@
           (shortcut (kbd "→")                        "Move to next article")
           (shortcut [:span (kbd "⌘") "+" (kbd "/")]  "Jump to the search field")]]]))
 
+(defn- meta-icon
+  "See cljdoc.css svg.button for color, hover color"
+  []
+  [:svg.ma3.fixed.right-0.bottom-0.pointer.dn.db-ns
+   {:data-id "cljdoc-js--meta-icon"
+    :viewBox "0 0 20 20"
+    :width 48
+    :height 48
+    :class "button"}
+   [:path
+    {:d
+     "M10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20zM7.88 7.88l-3.54 7.78 7.78-3.54 3.54-7.78-7.78 3.54zM10 11a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"}]])
+
+(defn- meta-popup []
+  [:div.ma3.pa3.ba.br3.bw1.b--blue.fixed.right-0.bottom-0.bg-white.dn
+   {:data-id "cljdoc-js--meta-dialog" :style "width:20rem"}
+   [:p.ma0
+    [:b "cljdoc"]
+    " builds & hosts documentation for Clojure/Script libraries"]
+   [:div.mt3
+
+    [:span.tracked
+     "Keyboard shortcuts"]
+    (shortcuts)]
+   (into [:div.mv3]
+         (map (fn [[description link]]
+                [:a.link.db.white.bg-blue.ph2.pv1.br2.mt2.pointer.hover-bg-dark-blue.lh-copy
+                 {:href link} description])
+              [["Raise an issue" (links/github-url :issues)]
+               ["Browse cljdoc source" (links/github-url :home)]
+               ["Chat on Slack" (links/slack)]]))
+   [:a.link.white.bg-blue.ph2.pv1.br2.pointer.hover-bg-dark-blue.fr.f6.lh-copy {:data-id "cljdoc-js--meta-close"}
+    "× close"]])
+
 (defn meta-info-dialog []
   [:div
-   [:img.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
-    {:data-id "cljdoc-js--meta-icon"
-     :src "https://microicon-clone.vercel.app/explore/48/357edd"}]
-   [:div.ma3.pa3.ba.br3.bw1.b--blue.fixed.right-0.bottom-0.bg-white.dn
-    {:data-id "cljdoc-js--meta-dialog" :style "width:20rem"}
-    [:p.ma0
-     [:b "cljdoc"]
-     " builds & hosts documentation for Clojure/Script libraries"]
-    [:div.mt3
-     [:span.tracked
-      "Keyboard shortcuts"]
-     (shortcuts)]
-    (into [:div.mv3]
-          (map (fn [[description link]]
-                 [:a.link.db.white.bg-blue.ph2.pv1.br2.mt2.pointer.hover-bg-dark-blue.lh-copy
-                  {:href link} description])
-               [["Raise an issue" (links/github-url :issues)]
-                ["Browse cljdoc source" (links/github-url :home)]
-                ["Chat on Slack" (links/slack)]]))
-    [:a.link.white.bg-blue.ph2.pv1.br2.pointer.hover-bg-dark-blue.fr.f6.lh-copy {:data-id "cljdoc-js--meta-close"}
-     "× close"]]])
+   (meta-icon)
+   (meta-popup)])
 
 (def home-link
   [:a {:href "/"}
