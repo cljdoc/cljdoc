@@ -23,7 +23,6 @@
             [cljdoc.render.error :as error]
             [cljdoc.render.home :as render-home]
             [cljdoc.render.index-pages :as index-pages]
-            [cljdoc.render.meta :as render-meta]
             [cljdoc.render.offline :as offline]
             [cljdoc.render.search :as render-search]
             [cljdoc.server.api :as api]
