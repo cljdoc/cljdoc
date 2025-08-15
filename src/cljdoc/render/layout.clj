@@ -3,6 +3,7 @@
   (:require [cljdoc-shared.proj :as proj]
             [cljdoc.config :as config]
             [cljdoc.render.assets :as assets]
+            [cljdoc.render.components :as components]
             [cljdoc.render.links :as links]
             [cljdoc.server.routes :as routes]
             [cljdoc.util.scm :as scm]
@@ -154,27 +155,58 @@
     ;; again negative margins are used to make the background reach over the text container
     [:span.relative.nl2.nr2.ph2.bg-white title]]))
 
+(defn- kbd [key-seq]
+  [:span
+   (->> key-seq
+        (mapv (fn [key]
+                [:kbd.dib.mid-gray.bw1.b--solid.b--light-silver.bg-light-gray.br2.pa1 key]))
+        (interpose [:span.pa1.code "+"]))])
+
+(defn- meta-icon
+  "See cljdoc.css svg.button for color, hover color"
+  []
+  [:svg.ma3.fixed.right-0.bottom-0.pointer.dn.db-ns
+   {:data-id "cljdoc-js--meta-icon"
+    :viewBox "0 0 20 20"
+    :width 48
+    :height 48
+    :class "button"}
+   [:path
+    {:d
+     "M10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20zM7.88 7.88l-3.54 7.78 7.78-3.54 3.54-7.78-7.78 3.54zM10 11a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"}]])
+
+(defn- meta-popup []
+  [:div.ma3.pa3.ba.br3.bw1.b--blue.fixed.right-0.bottom-0.bg-white.dn
+   {:data-id "cljdoc-js--meta-dialog" :style "width:20rem"}
+   [:p.ma0
+    [:b "cljdoc"]
+    " builds & hosts documentation for Clojure/Script libraries"]
+   [:div.mt3
+    [:span.tracked
+     "Keyboard shortcuts"]
+    [:div.overflow-auto
+     [:table.w-auto
+      [:tbody.lh-copy
+       (for [[key-seq help] [[["⌘" "k"] "Jump to recent docs"]
+                             [["←"]     "Move to previous article"]
+                             [["→"]     "Move to next article"]
+                             [["⌘" "/"] "Jump to the search field"]]]
+         [:tr
+          [:td.nowrap.tl.gray.f5 (kbd key-seq)]
+          [:td.pl2.tl help]])]]]]
+   (into [:div.mv3]
+         (map (fn [[description link]]
+                (components/link-button {:href link :class "db"} description))
+              [["Raise an issue" (links/github-url :issues)]
+               ["Browse cljdoc source" (links/github-url :home)]
+               ["Chat on Slack" (links/slack)]]))
+   [:a.link.white.bg-blue.ph2.pv1.br2.pointer.hover-bg-dark-blue.fr.f6.lh-copy {:data-id "cljdoc-js--meta-close"}
+    "× close"]])
+
 (defn meta-info-dialog []
   [:div
-   [:img.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
-    {:data-id "cljdoc-js--meta-icon"
-     :src "https://microicon-clone.vercel.app/explore/48/357edd"}]
-   [:div.ma3.pa3.ba.br3.b--blue.bw2.w-20.fixed.right-0.bottom-0.bg-white.dn
-    {:data-id "cljdoc-js--meta-dialog"}
-    [:p.ma0
-     [:b "cljdoc"]
-     " is a website building & hosting documentation for Clojure/Script libraries"]
-    (into [:div.mv3]
-          (map (fn [[description link]]
-                 [:a.db.link.black.mv1.pv3.tc.br2.pointer
-                  {:href link, :style {:background-color "#ECF2FB"}}
-                  description])
-               [["Keyboard shortcuts"  (routes/url-for :shortcuts)]
-                ["Report a problem"    (links/github-url :issues)]
-                ;; ["Recent improvements" "#"] TODO add link once it exists
-                ["cljdoc on GitHub"    (links/github-url :home)]]))
-    [:a.link.black.fr.pointer {:data-id "cljdoc-js--meta-close"}
-     "× close"]]])
+   (meta-icon)
+   (meta-popup)])
 
 (def home-link
   [:a {:href "/"}

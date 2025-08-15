@@ -1,6 +1,7 @@
 (ns cljdoc.render.articles
   "HTML fragments related to rendering articles and article-trees"
-  (:require [cljdoc.server.routes :as routes]
+  (:require [cljdoc.render.components :as components]
+            [cljdoc.server.routes :as routes]
             [cljdoc.util.scm :as scm]
             [clojure.string :as string]
             [hiccup2.core :as hiccup]))
@@ -60,7 +61,7 @@
    ;; outside of div with markdown specific styling so markdown
    ;; styling does not override tachyons classes.
    (when doc-html
-     [:div.bt.b--light-gray.pv4.f7.cf
+     [:div.bt.b--light-gray.pv4.f6.cf
       [:p.lh-copy.w-60-ns.ma0.tr.fr
        (if (< 1 (count contributors))
          [:span.db
@@ -68,15 +69,14 @@
           (string/join ", " (butlast contributors))
           " & " (last contributors)]
          [:b.db "Can you improve this documentation?"])
-       [:a.link.dib.white.bg-blue.ph2.pv1.br2.mt2
-        {:href doc-scm-url}
-        (case (scm/provider doc-scm-url)
-          :gitlab "Edit on GitLab"
-          :sourcehut "Edit on sourcehut"
-          :github "Edit on GitHub"
-          :codeberg "Edit on Codeberg"
-          :bitbucket "Edit on Bitbucket"
-          "Edit at git repository")]]])])
+       (components/link-button {:href doc-scm-url}
+                               (case (scm/provider doc-scm-url)
+                                 :gitlab "Edit on GitLab"
+                                 :sourcehut "Edit on sourcehut"
+                                 :github "Edit on GitHub"
+                                 :codeberg "Edit on Codeberg"
+                                 :bitbucket "Edit on Bitbucket"
+                                 "Edit at git repository"))]])])
 
 (defn doc-overview
   [{:keys [version-entity doc-tree prev-page next-page]}]
