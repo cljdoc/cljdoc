@@ -180,7 +180,7 @@
     {:data-id "cljdoc-js--meta-dialog" :style "width:20rem"}
     [:p.ma0
      [:b "cljdoc"]
-     " is builds & hosts documentation for Clojure/Script libraries"]
+     " builds & hosts documentation for Clojure/Script libraries"]
     [:div.mt3
      [:span.tracked
       "Keyboard shortcuts"]
