@@ -154,6 +154,23 @@
     ;; again negative margins are used to make the background reach over the text container
     [:span.relative.nl2.nr2.ph2.bg-white title]]))
 
+(defn- kbd [key]
+  [:kbd.dib.mid-gray.bw1.b--solid.b--light-silver.bg-light-gray.br2.pa1 key])
+
+(defn- shortcut [key-seq desc]
+  [:tr
+   [:td.nowrap.tl.gray.f5 key-seq ]
+   [:td.pl2.tl desc]])
+
+(defn- shortcuts []
+  (->> [:div.overflow-auto
+        [:table.w-auto.mw6
+         [:tbody.lh-copy
+          (shortcut [:span (kbd  "⌘") "+" (kbd "K")] "Jump to recent docs")
+          (shortcut (kbd "←") "Move to previous article")
+          (shortcut (kbd "→") "Move to next article")
+          (shortcut [:span (kbd "⌘") "+" (kbd "/")] "Jump to the search field")]]]))
+
 (defn meta-info-dialog []
   [:div
    [:img.ma3.fixed.right-0.bottom-0.bg-white.dn.db-ns.pointer
@@ -163,16 +180,18 @@
     {:data-id "cljdoc-js--meta-dialog"}
     [:p.ma0
      [:b "cljdoc"]
-     " is a website building & hosting documentation for Clojure/Script libraries"]
+     " is builds & hosts documentation for Clojure/Script libraries"]
+    [:div.mt3
+     [:span.tracked
+      "Keyboard shortcuts"]
+     (shortcuts)]
     (into [:div.mv3]
           (map (fn [[description link]]
-                 [:a.db.link.black.mv1.pv3.tc.br2.pointer
-                  {:href link, :style {:background-color "#ECF2FB"}}
-                  description])
-               [["Keyboard shortcuts"  (routes/url-for :shortcuts)]
-                ["Report a problem"    (links/github-url :issues)]
-                ;; ["Recent improvements" "#"] TODO add link once it exists
-                ["cljdoc on GitHub"    (links/github-url :home)]]))
+                 [:a.link.db.white.bg-blue.ph2.pv1.br2.mt2.hover-bg-dark-blue
+                  {:href link} description])
+               [["Raise an issue" (links/github-url :issues)]
+                ["Browse cljdoc source" (links/github-url :home)]
+                ["Chat on Slack" (links/github-url :home)]]))
     [:a.link.black.fr.pointer {:data-id "cljdoc-js--meta-close"}
      "× close"]]])
 
