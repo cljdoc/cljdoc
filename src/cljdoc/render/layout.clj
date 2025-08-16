@@ -159,12 +159,10 @@
   [:span
    (->> key-seq
         (mapv (fn [key]
-                (let [{:keys [key attrs]} (if (= :modifier key)
-                                            {:key "Ctrl" ;; default to Ctrl, will adjust client-side if need be
-                                             :attrs {:data-id "cljdoc-js--modifier-key"}}
-                                            {:key key
-                                             :attrs {}})]
-                  [:kbd.dib.mid-gray.bw1.b--solid.b--light-silver.bg-light-gray.br2.pa1
+                (let [attrs (cond-> {:style "cursor: default; min-width: 0.75rem;"}
+                              (= :modifier key) (assoc :data-id "cljdoc-js--modifier-key"))
+                      key (if (= :modifier key) "Ctrl" key)]
+                  [:kbd.dib.mid-gray.bw1.b--solid.b--light-silver.bg-light-gray.br2.pv1.ph2.sans-serif.lh-solid.v-mid.tc.f6
                    attrs key])))
         (interpose [:span.pa1.code "+"]))])
 
@@ -198,7 +196,7 @@
                              [["→"]           "Move to next article"]
                              [[:modifier "/"] "Jump to the search field"]]]
          [:tr
-          [:td.nowrap.tl.gray.f5 (kbd key-seq)]
+          [:td.nowrap.tl.gray (kbd key-seq)]
           [:td.pl2.tl help]])]]]]
    (into [:div.mv3]
          (map (fn [[description link]]
