@@ -1,7 +1,8 @@
 (ns cljdoc.client.project-doc
   "Misc support for project documentation page"
   (:require [cljdoc.client.dom :as dom]
-            [cljdoc.client.page :as page]))
+            [cljdoc.client.page :as page]
+            [clojure.string :as str]))
 
 (warn-on-lazy-reusage!)
 
@@ -14,6 +15,9 @@
           meta-close (dom/query "[data-id='cljdoc-js--meta-close']")
           display "db-ns"
           hide "dn"]
+      (when (str/starts-with? js/navigator.platform "Mac")
+        (doseq [el (dom/query-all "[data-id='cljdoc-js--modifier-key']" meta-dialog)]
+          (set! (.-innerText el) "⌘")))
       (when meta-icon
         (.addEventListener meta-icon "click"
                            (fn []
