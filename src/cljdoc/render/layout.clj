@@ -159,7 +159,13 @@
   [:span
    (->> key-seq
         (mapv (fn [key]
-                [:kbd.dib.mid-gray.bw1.b--solid.b--light-silver.bg-light-gray.br2.pa1 key]))
+                (let [{:keys [key attrs]} (if (= :modifier key)
+                                            {:key "Ctrl" ;; default to Ctrl, will adjust client-side if need be
+                                             :attrs {:data-id "cljdoc-js--modifier-key"}}
+                                            {:key key
+                                             :attrs {}})]
+                  [:kbd.dib.mid-gray.bw1.b--solid.b--light-silver.bg-light-gray.br2.pa1
+                   attrs key])))
         (interpose [:span.pa1.code "+"]))])
 
 (defn- meta-icon
@@ -187,10 +193,10 @@
     [:div.overflow-auto
      [:table.w-auto
       [:tbody.lh-copy
-       (for [[key-seq help] [[["⌘" "k"] "Jump to recent docs"]
-                             [["←"]     "Move to previous article"]
-                             [["→"]     "Move to next article"]
-                             [["⌘" "/"] "Jump to the search field"]]]
+       (for [[key-seq help] [[[:modifier "k"] "Jump to recent docs"]
+                             [["←"]           "Move to previous article"]
+                             [["→"]           "Move to next article"]
+                             [[:modifier "/"] "Jump to the search field"]]]
          [:tr
           [:td.nowrap.tl.gray.f5 (kbd key-seq)]
           [:td.pl2.tl help]])]]]]
