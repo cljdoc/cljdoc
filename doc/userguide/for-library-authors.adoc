@@ -21,7 +21,7 @@ Default handling:
 * link:#api[API] automatically documented
 * link:#articles[Articles] include `README`, `CHANGELOG` and articles under `doc/` (else `docs/`), see link:#auto-discovered-articles[auto-discovered articles]
 
-NOTE: Cljdoc currently only processes libraries that have been deployed to clojars. 
+NOTE: Cljdoc currently only processes libraries that have been deployed to clojars.
 We do have https://github.com/cljdoc/cljdoc/issues/459[ideas for processing source-based libraries], but have not implemented yet.
 
 == Mechanics
@@ -326,8 +326,16 @@ If you include namespaces that require additional/optional dependencies, make su
 If these dependencies are expected to be provided by, for example, some container or JVM, mark them with a `scope` of `"provided"` in our `pom.xml`.
 Provided dependencies are skipped at runtime, but inform cljdoc they are required for API analysis.
 
-TIP: You can express `provided` in a `project.clj`, for https://github.com/funcool/cats/blob/d1b7f3d60c7791798182937c54cbafa4e81536d4/project.clj#L6-L12[example].
-The `deps.edn` file does not support scoping, you'll have to express these directly in your `pom.xml`.
+[TIP]
+====
+You can express `provided` in a `project.clj`, for https://github.com/funcool/cats/blob/d1b7f3d60c7791798182937c54cbafa4e81536d4/project.clj#L6-L12[example].
+
+The `deps.edn` file does not support scoping dependencies, so things are a bit trickier.
+Examples from the wild for inpiration:
+
+* Lazytest https://github.com/NoahTheDuke/lazytest/blob/f846dd83aa31ebca2ffe54059bc6e8a508df115a/build.clj#L1-L112[writes provided deps to its generated pom.xml] with the help of https://github.com/NoahTheDuke/clein[clein]
+* Eql uses https://github.com/clojure/data.xml[clojure.data.xml] to https://github.com/matterandvoid-space/eql/blob/560db80ce487a9507a15b44387c18413d7bcc91c/build.clj#L1-L125[add the provided deps to its generated pom.xml]
+====
 
 Cljdoc will automatically search Clojars and Maven Central for dependencies.
 If any of your library's dependencies are hosted elsewhere, those maven repositories will need to be specified in your `pom.xml`.
@@ -356,7 +364,7 @@ Consider https://www.martinklepsch.org/posts/writing-awesome-docstrings.html[the
 
 1. Backtick-Quote ``` function arguments & special keywords to `make` them `stand` out `more`
 2. Link to other functions using link:#wikilink[`+[[wikilink]]+`] syntax
-3. Include small examples using markdown fenced `\```Clojure ... ```` code blocks 
+3. Include small examples using markdown fenced `\```Clojure ... ```` code blocks
 4. Use Markdown tables to describe complex options maps
 5. You can include images and links to articles, just be sure to use git repo root-relative links (links that start with a `/`):
   * `![my image](/dir1/dir2/image1.png)`
@@ -510,7 +518,7 @@ We have a https://github.com/cljdoc/cljdoc-check-action[Cljdoc check action] you
 ** If cljdoc has not already built a requested version of a library, you are given the option to build it from https://cljdoc.org[cljdoc.org].
 * By rebuild request at cljdoc.org
 [[rebuild]]
-** If your docs have already been built, you can request a rebuild via the barely visible rebuild hover link on the top right corner of your library docs page: 
+** If your docs have already been built, you can request a rebuild via the barely visible rebuild hover link on the top right corner of your library docs page:
 +
 image::cljdoc-rebuild-link.png[]
 * By REST request
