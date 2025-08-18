@@ -15,7 +15,7 @@ appreciate you letting us know.
 == Related developer docs
 You can learn how to setup a local development environment in link:running-cljdoc-locally.adoc[Running cljdoc locally].
 
-Being aware of how to diagnose and fix analysis job builds will also be of use, see link:fixing-builds.md[fixing cljdoc builds].
+Being aware of how to diagnose and fix analysis job builds will also be of use, see link:fixing-builds.adoc[fixing cljdoc builds].
 
 [[system-overview]]
 == System Overview

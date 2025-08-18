@@ -73,7 +73,7 @@ So by invistigating a failing build and opening a pull request to the
 respective project you help to get more and more of the Clojure/Script
 ecosystem documented on cljdoc.
 
-There is a link:doc/fixing-builds.md[full guide on fixing builds] available.
+There is a link:doc/fixing-builds.adoc[full guide on fixing builds] available.
 
 === Outreach
 
