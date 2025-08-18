@@ -259,10 +259,15 @@ Or ping a cljdoc dev team member who has a Dash license: @lread @martinklepsch @
 If we do want to make changes that might impact Dash, we should first discuss amongst ourselves and then reach out to support@kapeli.com.
 You will find that Bogdan, the author of Dash, is super nice and supportive.
 
-NOTE: What about Zeal?
+[NOTE]
+====
+What about Zeal?
 https://zealdocs.org/[Zeal] is an open source offline document browser for Linux and Windows.
 The author of Dash has been generous with sharing docsets with Zeal, but cljdoc support is a custom addon to Dash.
-See https://github.com/cljdoc/cljdoc/issues/646[#646] for some notes on supporting Zeal.
+
+Zeal users can create Dash-compatible docsets for Zeal with https://github.com/Ramblurr[@Ramblurr]'s https://github.com/Ramblurr/cljdocset[cljdocset] tool.
+See https://github.com/cljdoc/cljdoc/issues/646[#646] for some notes on supporting Zeal more direclty in cljdoc.
+====
 
 == Conventions
 
