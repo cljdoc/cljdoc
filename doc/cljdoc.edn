@@ -9,7 +9,6 @@
                    ["Userguide" {}
                     ["For Library Authors" {:file "doc/userguide/for-library-authors.adoc"}]
                     ["For Library Users" {:file "doc/userguide/for-users.adoc"}]
-                    ["Articles" {:file "doc/userguide/articles.md"}]
                     ["FAQ" {:file "doc/userguide/faq.md"}]]
                    ["Running cljdoc Locally" {:file "doc/running-cljdoc-locally.adoc"}]
                    ["Developer Technical Guide" {:file "doc/cljdoc-developer-technical-guide.adoc"}]
