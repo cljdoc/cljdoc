@@ -13,7 +13,7 @@
       :roadmap            (str doc-base "roadmap.adoc")
       :running-locally    (str doc-base "running-cljdoc-locally.adoc")
       :userguide/authors  (str doc-base "userguide/for-library-authors.adoc")
-      :userguide/users    (str doc-base "userguide/for-users.md")
+      :userguide/users    (str doc-base "userguide/for-users.adoc")
 
       :userguide/basic-setup  (str (github-url :userguide/authors) "#basic-setup")
       :userguide/scm-faq      (str (github-url :userguide/authors) "#git-sources")

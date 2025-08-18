@@ -32,7 +32,7 @@ When cljdoc is link:#triggers[triggered] to build your library's documentation, 
 . Analyzes your library's link:#git-sources[sources on git]
 . Analyzes your library's jar to discover its public link:#api[API].
 
-After building your docs, they are available at https://cljdoc.org[cljdoc.org] for online and link:for-users.md#offline-docs[offline] browsing.
+After building your docs, they are available at https://cljdoc.org[cljdoc.org] for online and link:for-users.adoc#offline-docs[offline] browsing.
 
 See also: link:/doc/cljdoc-developer-technical-guide.adoc#system-overview[System Overview].
 
@@ -522,7 +522,7 @@ We have a https://github.com/cljdoc/cljdoc-check-action[Cljdoc check action] you
 +
 image::cljdoc-rebuild-link.png[]
 * By REST request
-** An automated release process can trigger a build via rest link:/doc/docsets.md#trigger-a-build-for-a-project[trigger a cljdoc build via REST].
+** An automated release process can trigger a build via rest link:/doc/docsets.adoc#trigger-a-build-for-a-project[trigger a cljdoc build via REST].
 
 [[modules]]
 == Module Support
