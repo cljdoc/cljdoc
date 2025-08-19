@@ -249,8 +249,10 @@
        vec))
 
 (defn- ->searchset-members
-  [members]
-  (map #(select-keys % [:type :name :arglists :doc]) members))
+  [members version-entity parent]
+  (->> members
+       (mapv #(select-keys % [:type :name :arglists :doc]))
+       (mapv #(assoc % :path (path-for-def version-entity (:namespace parent) (:name %)) ))))
 
 (defn- update-if-exists [m k f]
   (if (contains? m k)
@@ -276,7 +278,7 @@
              (comp
               (map #(select-keys % [:platform :type :namespace :name :arglists :doc :members]))
               (map #(update-if-exists % :arglists ->deregexify))
-              (map #(update % :members ->searchset-members))
+              (map #(update % :members ->searchset-members version-entity %))
               (map #(assoc % :path (path-for-def version-entity (:namespace %) (:name %)))))
              cache-bundle-defs)
        (sort-by (juxt :namespace :name :platform))

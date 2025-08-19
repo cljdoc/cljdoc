@@ -10,7 +10,7 @@
 
 (warn-on-lazy-reusage!)
 
-(def SEARCHSET_VERSION 4)
+(def SEARCHSET_VERSION 5)
 
 (defn- tokenize [s]
   (if (not  s)
@@ -90,6 +90,11 @@
             search-set (js-await (.json response))
             items (->> [(mapv #(assoc % :kind :namespace) (:namespaces search-set))
                         (mapv #(assoc % :kind :def) (:defs search-set))
+                        (->> (:defs search-set)
+                             (keep #(when-let [members (seq (:members %))]
+                                      (mapv (fn [m] (assoc m :namespace (:namespace %))) members)))
+                             (mapcat identity)
+                             (mapv #(assoc % :kind :def)))
                         (mapv #(assoc % :kind :doc) (:docs search-set))]
                        (reduce into [])
                        (map-indexed (fn [ndx item]

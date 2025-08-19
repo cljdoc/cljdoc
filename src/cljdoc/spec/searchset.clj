@@ -28,7 +28,8 @@
                [:type keyword?]
                [:name symbol?]
                [:arglists [:sequential [:vector any?]]]
-               [:doc {:optional true} string?]]]]]]]
+               [:doc {:optional true} string?]
+               [:path string?]]]]]]]
    [:docs [:vector
            [:map
             [:name string?]
