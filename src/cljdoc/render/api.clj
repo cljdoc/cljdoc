@@ -207,11 +207,12 @@
   (let [members (platf/get-field def :members)]
     (when (seq members)
       [:div.pl3.bl.b--black-10
-       (for [m members]
+       (for [m members
+             :let [def-name (platf/get-field m :name)]]
          [:div.bb.b--black-10.mb1
           [:h4.def-block-title.mv0.pt2.pb3
-           (platf/get-field m :name)
-           (render-var-annotation (platforms->var-annotation m))]
+           {:name def-name :id def-name}
+           def-name (render-var-annotation (platforms->var-annotation m))]
           (render-var-args-and-docs m render-wiki-link opts)])])))
 
 (defn def-block
@@ -221,7 +222,7 @@
     [:div.def-block
      [:hr.mv3.b--black-10]
      [:h4.def-block-title.mv0.pv3
-      {:name (platf/get-field def :name), :id def-name}
+      {:name def-name :id def-name}
       def-name (render-var-annotation (platforms->var-annotation def))
       (when-not (= :var (platf/get-field def :type))
         [:span.f7.ttu.normal.gray.ml2 (platf/get-field def :type)])
