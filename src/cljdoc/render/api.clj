@@ -299,14 +299,22 @@
             (varies-for-platforms? d))
     (platforms->var-annotation d)))
 
-(defn definitions-list [_ns-entity defs {:keys [indicate-platforms-other-than]}]
-  [:div.pb4
-   [:ul.list.pl0
-    (for [def defs
-          :let [def-name (platf/get-field def :name)]]
-      [:li.def-item
-       [:a.link.dim.blue.dib.pa1.pl0 {:href (str "#" def-name)} def-name
-        (render-var-annotation (var-index-platform-annotation indicate-platforms-other-than def))]])]])
+(defn- definitions-list* [defs {:keys [indicate-platforms-other-than level] :as opts}]
+  (let [level (or level 0)]
+    [:ul.list.pl0 {:style {:margin-left (str (* level 10) "px")}}
+     (for [def defs
+           :let [def-name (platf/get-field def :name)]]
+       [:li.def-item
+        [:a.link.dim.blue.dib.pa1.pl0
+         {:href (str "#" def-name)}
+         def-name
+         (render-var-annotation (var-index-platform-annotation indicate-platforms-other-than def))]
+        (let [members (platf/get-field def :members)]
+          (when (seq members)
+            (definitions-list* members (assoc opts :level (inc level)))))])]))
+
+(defn definitions-list [defs opts]
+  [:div.pb4 (definitions-list* defs opts)])
 
 (defn namespace-overview
   [ns-url-fn mp-ns defs valid-ref-pred opts]
