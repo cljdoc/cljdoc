@@ -13,7 +13,7 @@
 (def SEARCHSET_VERSION 5)
 
 (defn- tokenize [s]
-  (if (not  s)
+  (if (not s)
     []
     (let [candidate-tokens (-> s
                                str
