@@ -21,7 +21,6 @@
         draw-scroll-indicator (fn []
                                 (doseq [[idx el] (map-indexed vector def-detail-blocks)]
                                   (let [def-item (get def-list-items idx)]
-                                    (.log js/console "item" (is-elem-visible? def-detail-scroll-view el) def-item)
                                     (if-not (and def-detail-scroll-view
                                                  def-list-scroll-view
                                                  (is-elem-visible? def-detail-scroll-view el))
