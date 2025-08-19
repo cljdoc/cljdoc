@@ -209,7 +209,7 @@
       [:div.pl3.bl.b--black-10
        (for [m members
              :let [def-name (platf/get-field m :name)]]
-         [:div.bb.b--black-10.mb1
+         [:div.bb.b--black-10.mb1.def-block
           [:h4.def-block-title.mv0.pt2.pb3
            {:name def-name :id def-name}
            def-name (render-var-annotation (platforms->var-annotation m))]
@@ -302,20 +302,22 @@
 
 (defn- definitions-list* [defs {:keys [indicate-platforms-other-than level] :as opts}]
   (let [level (or level 0)]
-    [:ul.list.pl0 {:style {:margin-left (str (* level 10) "px")}}
-     (for [def defs
+    (for [def defs
            :let [def-name (platf/get-field def :name)]]
        [:li.def-item
         [:a.link.dim.blue.dib.pa1.pl0
-         {:href (str "#" def-name)}
+         {:href (str "#" def-name) :style {:margin-left (str (* level 10) "px")}}
          def-name
          (render-var-annotation (var-index-platform-annotation indicate-platforms-other-than def))]
         (let [members (platf/get-field def :members)]
           (when (seq members)
-            (definitions-list* members (assoc opts :level (inc level)))))])]))
+            (definitions-list* members (assoc opts :level (inc level)))))])))
 
 (defn definitions-list [defs opts]
-  [:div.pb4 (definitions-list* defs opts)])
+  [:div.pb4
+
+   [:ul.list.pl0
+   (definitions-list* defs opts)]])
 
 (defn namespace-overview
   [ns-url-fn mp-ns defs valid-ref-pred opts]

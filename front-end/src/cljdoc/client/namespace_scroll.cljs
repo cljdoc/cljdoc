@@ -7,10 +7,10 @@
 (warn-on-lazy-reusage!)
 
 (defn- init-scroll-indicator []
-  (let [main-scroll-view (dom/query ".js--main-scroll-view")
-        sidebar-scroll-view (dom/query ".js--namespace-contents-scroll-view")
-        def-blocks (dom/query-all ".def-block")
-        def-items (dom/query-all ".def-item")
+  (let [def-detail-scroll-view (dom/query ".js--main-scroll-view")
+        def-list-scroll-view (dom/query ".js--namespace-contents-scroll-view")
+        def-detail-blocks (dom/query-all ".def-block" def-detail-scroll-view)
+        def-list-items (dom/query-all ".def-item" def-list-scroll-view)
         is-elem-visible? (fn [container el]
                            (let [{:keys [y height]} (.getBoundingClientRect el)
                                  etop y
@@ -19,22 +19,23 @@
                                  ctop (- cbottom (.-clientHeight container))]
                              (and (<= etop cbottom) (>= ebottom ctop))))
         draw-scroll-indicator (fn []
-                                (doseq [[idx el] (map-indexed vector def-blocks)]
-                                  (let [def-item (get def-items idx)]
-                                    (if-not (and main-scroll-view
-                                                 sidebar-scroll-view
-                                                 (is-elem-visible? main-scroll-view el))
+                                (doseq [[idx el] (map-indexed vector def-detail-blocks)]
+                                  (let [def-item (get def-list-items idx)]
+                                    (.log js/console "item" (is-elem-visible? def-detail-scroll-view el) def-item)
+                                    (if-not (and def-detail-scroll-view
+                                                 def-list-scroll-view
+                                                 (is-elem-visible? def-detail-scroll-view el))
                                       (dom/remove-class def-item "scroll-indicator")
                                       (do
                                         (dom/add-class def-item "scroll-indicator")
                                         (cond
                                           (zero? idx)
-                                          (set! sidebar-scroll-view.scrollTop 1)
+                                          (set! def-list-scroll-view.scrollTop 1)
 
-                                          (not (is-elem-visible? sidebar-scroll-view def-item))
+                                          (not (is-elem-visible? def-list-scroll-view def-item))
                                           (.scrollIntoView def-item)))))))]
-    (when main-scroll-view
-      (.addEventListener main-scroll-view "scroll" draw-scroll-indicator))
+    (when def-detail-scroll-view
+      (.addEventListener def-detail-scroll-view "scroll" draw-scroll-indicator))
 
     (draw-scroll-indicator)))
 
