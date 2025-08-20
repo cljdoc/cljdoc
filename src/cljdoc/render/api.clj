@@ -141,6 +141,16 @@
        (render-docs (platf/get-field n :doc))))
    (docstring-format-toggle-control n opts)])
 
+(defn- render-def-detail-title [def]
+  (let [def-name (platf/get-field def :name)]
+  [:h4.def-block-title.mv0.pv3
+      {:name def-name :id def-name}
+      def-name (render-var-annotation (platforms->var-annotation def))
+      (when-not (= :var (platf/get-field def :type))
+        [:span.f7.ttu.normal.gray.ml2 (platf/get-field def :type)])
+      (when (platf/get-field def :deprecated)
+        [:span.fw3.f6.light-red.ml2 "deprecated"])]))
+
 (defn- looks-like-arglists? [x]
   (and (sequential? x)
        (sequential? (first x))))
@@ -216,22 +226,8 @@
            def-name (render-var-annotation (platforms->var-annotation m))]
           (render-var-args-and-docs m render-wiki-link opts)])])))
 
-(defn def-block
-  [def render-wiki-link opts]
-  {:pre [(platf/multiplatform? def)]}
-  (let [def-name (platf/get-field def :name)]
-    [:div.def-block
-     [:hr.mv3.b--black-10]
-     [:h4.def-block-title.mv0.pv3
-      {:name def-name :id def-name}
-      def-name (render-var-annotation (platforms->var-annotation def))
-      (when-not (= :var (platf/get-field def :type))
-        [:span.f7.ttu.normal.gray.ml2 (platf/get-field def :type)])
-      (when (platf/get-field def :deprecated)
-        [:span.fw3.f6.light-red.ml2 "deprecated"])]
-     (render-var-args-and-docs def render-wiki-link opts)
-     (render-protocol-members def render-wiki-link opts)
-     (when (or (platf/varies? def :src-uri) ; if it varies they can't be both nil
+(defn- render-source-links [def]
+  (when (or (platf/varies? def :src-uri) ; if it varies they can't be both nil
                (platf/get-field def :src-uri)) ; if it doesn't vary, ensure non-nil
        (if (platf/varies? def :src-uri)
          (for [p (sort (platf/platforms def))
@@ -239,8 +235,18 @@
            [:a.link.f7.gray.hover-dark-gray.mr2
             {:href (platf/get-field def :src-uri p)}
             (format "source (%s)" p)])
-         [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"]))
-     (docstring-format-toggle-control def opts)]))
+         [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"])))
+
+(defn def-details
+  [def render-wiki-link opts]
+  {:pre [(platf/multiplatform? def)]}
+  [:div.def-block
+   [:hr.mv3.b--black-10]
+   (render-def-detail-title def)
+   (render-var-args-and-docs def render-wiki-link opts)
+   (render-protocol-members def render-wiki-link opts)
+   (render-source-links def)
+   (docstring-format-toggle-control def opts)])
 
 (defn namespace-list [{:keys [current version-entity]} namespaces]
   (let [keyed-namespaces (ns-tree/index-by :namespace namespaces)
@@ -364,7 +370,7 @@
       (render-ns-docs ns-data render-wiki-link opts)
       (if (seq defs)
         (for [adef defs]
-          (def-block adef render-wiki-link opts))
+          (def-details adef render-wiki-link opts))
         [:p.i.blue "No vars found in this namespace."])]]))
 
 (comment
