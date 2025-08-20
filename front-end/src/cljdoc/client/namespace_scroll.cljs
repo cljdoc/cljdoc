@@ -7,10 +7,10 @@
 (warn-on-lazy-reusage!)
 
 (defn- init-scroll-indicator []
-  (let [main-scroll-view (dom/query ".js--main-scroll-view")
-        sidebar-scroll-view (dom/query ".js--namespace-contents-scroll-view")
-        def-blocks (dom/query-all ".def-block")
-        def-items (dom/query-all ".def-item")
+  (let [def-detail-scroll-view (dom/query ".js--main-scroll-view")
+        def-nav-scroll-view (dom/query ".js--namespace-contents-scroll-view")
+        def-detail-blocks (dom/query-all ".def-block" def-detail-scroll-view)
+        def-nav-items (dom/query-all ".def-item" def-nav-scroll-view)
         is-elem-visible? (fn [container el]
                            (let [{:keys [y height]} (.getBoundingClientRect el)
                                  etop y
@@ -19,22 +19,33 @@
                                  ctop (- cbottom (.-clientHeight container))]
                              (and (<= etop cbottom) (>= ebottom ctop))))
         draw-scroll-indicator (fn []
-                                (doseq [[idx el] (map-indexed vector def-blocks)]
-                                  (let [def-item (get def-items idx)]
-                                    (if-not (and main-scroll-view
-                                                 sidebar-scroll-view
-                                                 (is-elem-visible? main-scroll-view el))
-                                      (dom/remove-class def-item "scroll-indicator")
-                                      (do
-                                        (dom/add-class def-item "scroll-indicator")
-                                        (cond
-                                          (zero? idx)
-                                          (set! sidebar-scroll-view.scrollTop 1)
+                                (loop [ndx (count def-detail-blocks)
+                                       in-indicator-block false
+                                       indicator-block-found false]
+                                  (let [ndx (dec ndx)]
+                                    (when (>= ndx 0)
+                                      (let [detail-el (get def-detail-blocks ndx)
+                                            show-indicator? (and def-detail-scroll-view
+                                                                 def-nav-scroll-view
+                                                                 (not indicator-block-found)
+                                                                 (is-elem-visible? def-detail-scroll-view detail-el))
+                                            nav-item-el (get def-nav-items ndx)]
+                                        (if-not show-indicator?
+                                          (dom/remove-class nav-item-el "scroll-indicator")
+                                          (do
+                                            (dom/add-class nav-item-el "scroll-indicator")
+                                            (cond
+                                              (zero? ndx)
+                                              (set! def-detail-scroll-view.scrollTop 1)
 
-                                          (not (is-elem-visible? sidebar-scroll-view def-item))
-                                          (.scrollIntoView def-item)))))))]
-    (when main-scroll-view
-      (.addEventListener main-scroll-view "scroll" draw-scroll-indicator))
+                                              (not (is-elem-visible? def-nav-scroll-view nav-item-el))
+                                              (.scrollIntoView nav-item-el))))
+                                        (recur ndx
+                                               show-indicator?
+                                               (or indicator-block-found
+                                                   (and (not show-indicator?) in-indicator-block))))))))]
+    (when def-detail-scroll-view
+      (.addEventListener def-detail-scroll-view "scroll" draw-scroll-indicator))
 
     (draw-scroll-indicator)))
 

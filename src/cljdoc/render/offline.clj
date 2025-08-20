@@ -144,7 +144,7 @@
                     [:span.fw3.f6.light-red.ml2 "deprecated"])]
      (api/render-ns-docs ns render-wiki-link opts)
      (for [def defs]
-       (api/def-block def render-wiki-link opts))]))
+       (api/def-details def render-wiki-link opts))]))
 
 (defn- docs-files
   "Return a list of [file-path content] pairs describing a zip archive.

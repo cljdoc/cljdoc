@@ -127,7 +127,7 @@
              :main-sidebar-contents (sidebar/sidebar-contents route-params cache-bundle last-build)
              :vars-sidebar-contents (when (seq ns-defs)
                                       [(api/platforms-supported-note platf-stats)
-                                       (api/definitions-list ns-emap ns-defs {:indicate-platforms-other-than dominant-platf})])
+                                       (api/definitions-list ns-defs {:indicate-platforms-other-than dominant-platf})])
              :content (api/namespace-page {:ns-entity ns-emap
                                            :ns-data ns-data
                                            :defs ns-defs
