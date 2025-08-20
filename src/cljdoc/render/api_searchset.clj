@@ -252,7 +252,7 @@
   [members version-entity parent]
   (->> members
        (mapv #(select-keys % [:type :name :arglists :doc]))
-       (mapv #(assoc % :path (path-for-def version-entity (:namespace parent) (:name %)) ))))
+       (mapv #(assoc % :path (path-for-def version-entity (:namespace parent) (:name %))))))
 
 (defn- update-if-exists [m k f]
   (if (contains? m k)

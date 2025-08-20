@@ -144,13 +144,13 @@
 
 (defn- render-def-details-title [def]
   (let [def-name (platf/get-field def :name)]
-  [:h4.def-block-title.mv0.pv3
-      {:name def-name :id def-name}
-      def-name (render-var-annotation (platforms->var-annotation def))
-      (when-not (= :var (platf/get-field def :type))
-        [:span.f7.ttu.normal.gray.ml2 (platf/get-field def :type)])
-      (when (platf/get-field def :deprecated)
-        [:span.fw3.f6.light-red.ml2 "deprecated"])]))
+    [:h4.def-block-title.mv0.pv3
+     {:name def-name :id def-name}
+     def-name (render-var-annotation (platforms->var-annotation def))
+     (when-not (= :var (platf/get-field def :type))
+       [:span.f7.ttu.normal.gray.ml2 (platf/get-field def :type)])
+     (when (platf/get-field def :deprecated)
+       [:span.fw3.f6.light-red.ml2 "deprecated"])]))
 
 (defn- looks-like-arglists? [x]
   (and (sequential? x)
@@ -229,14 +229,14 @@
 
 (defn- render-source-links [def]
   (when (or (platf/varies? def :src-uri) ; if it varies they can't be both nil
-               (platf/get-field def :src-uri)) ; if it doesn't vary, ensure non-nil
-       (if (platf/varies? def :src-uri)
-         (for [p (sort (platf/platforms def))
-               :when (platf/get-field def :src-uri p)]
-           [:a.link.f7.gray.hover-dark-gray.mr2
-            {:href (platf/get-field def :src-uri p)}
-            (format "source (%s)" p)])
-         [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"])))
+            (platf/get-field def :src-uri)) ; if it doesn't vary, ensure non-nil
+    (if (platf/varies? def :src-uri)
+      (for [p (sort (platf/platforms def))
+            :when (platf/get-field def :src-uri p)]
+        [:a.link.f7.gray.hover-dark-gray.mr2
+         {:href (platf/get-field def :src-uri p)}
+         (format "source (%s)" p)])
+      [:a.link.f7.gray.hover-dark-gray.mr2 {:href (platf/get-field def :src-uri)} "source"])))
 
 (defn def-details
   [def render-wiki-link opts]
@@ -303,20 +303,20 @@
 (defn- definitions-list* [defs {:keys [indicate-platforms-other-than level] :as opts}]
   (let [level (or level 0)]
     (for [def defs
-           :let [def-name (platf/get-field def :name)]]
-       [:li.def-item
-        [:a.link.dim.blue.dib.pa1.pl0
-         {:href (str "#" def-name) :style {:margin-left (str (* level 10) "px")}}
-         def-name
-         (render-var-annotation (var-index-platform-annotation indicate-platforms-other-than def))]
-        (let [members (platf/get-field def :members)]
-          (when (seq members)
-            (definitions-list* members (assoc opts :level (inc level)))))])))
+          :let [def-name (platf/get-field def :name)]]
+      [:li.def-item
+       [:a.link.dim.blue.dib.pa1.pl0
+        {:href (str "#" def-name) :style {:margin-left (str (* level 10) "px")}}
+        def-name
+        (render-var-annotation (var-index-platform-annotation indicate-platforms-other-than def))]
+       (let [members (platf/get-field def :members)]
+         (when (seq members)
+           (definitions-list* members (assoc opts :level (inc level)))))])))
 
 (defn definitions-list [defs opts]
   [:div.pb4
    [:ul.list.pl0
-   (definitions-list* defs opts)]])
+    (definitions-list* defs opts)]])
 
 (defn namespace-overview
   [ns-url-fn mp-ns defs valid-ref-pred opts]
