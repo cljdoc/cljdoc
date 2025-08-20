@@ -36,7 +36,7 @@
                                             (dom/add-class nav-item-el "scroll-indicator")
                                             (cond
                                               (zero? ndx)
-                                              (set! def-detail-scroll-view.scrollTop 1)
+                                              (set! def-nav-scroll-view.scrollTop 1)
 
                                               (not (is-elem-visible? def-nav-scroll-view nav-item-el))
                                               (.scrollIntoView nav-item-el))))
