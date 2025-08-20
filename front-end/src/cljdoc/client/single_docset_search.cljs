@@ -10,7 +10,7 @@
 
 (warn-on-lazy-reusage!)
 
-(def SEARCHSET_VERSION 5)
+(def SEARCHSET_VERSION 6)
 
 (defn- tokenize [s]
   (if (not s)
@@ -92,7 +92,11 @@
                         (mapv #(assoc % :kind :def) (:defs search-set))
                         (->> (:defs search-set)
                              (keep #(when-let [members (seq (:members %))]
-                                      (mapv (fn [m] (assoc m :namespace (:namespace %))) members)))
+                                      (mapv (fn [m]
+                                              (assoc m
+                                                     :namespace (:namespace %)
+                                                     :protocol-name (:name %)))
+                                            members)))
                              (mapcat identity)
                              (mapv #(assoc % :kind :def)))
                         (mapv #(assoc % :kind :doc) (:docs search-set))]
@@ -134,7 +138,7 @@
                                "doc" {:text "DOC"})
         color (get colors text default-color)]
     #jsx [:<>
-          [:div {:class (str "pa1 white-90 br1 mr2 tc f6 " color)
+          [:div {:class (str "dib pa1 white-90 br1 mr2 tc f6 " color)
                  :style "width:2.5rem; font-size: 13px; margin-bottom: 2px;"
                  :aria-label label
                  :title label}
@@ -147,6 +151,12 @@
            [:span (:namespace item)] "/" (:name item)]]
     #jsx [:<>
           [:div {:class "mb1"} (:name item)]]))
+
+(defn- ResultProtocol [{:keys [item]}]
+  (when (:protocol-name item)
+    #jsx [:<> [:div {:class "ml2 nowrap"}
+               (h ResultIcon {:item {:kind "def" :type "protocol"}})
+               [:span (:protocol-name item)]]]))
 
 (defn- ResultListItem [{:keys [searchResult selected onClick onMouseDown]}]
   (let [item (useRef nil)]
@@ -166,7 +176,9 @@
               [:div {:class "flex flex-row items-end"}
                (h ResultIcon {:item result})
                [:div {:class "flex flex-column"}
-                (h ResultName {:item result})]]]]])))
+                (h ResultName {:item result})]
+               [:div {:class "flex"}
+                (h ResultProtocol {:item result})]]]]])))
 
 (defn- search [search-index query]
   (when search-index
