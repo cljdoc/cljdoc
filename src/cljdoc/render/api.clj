@@ -63,13 +63,14 @@
        (markdown-docstring->html doc-str render-wiki-link opts)
        (plaintext-docstring->html doc-str :hidden)])))
 
-;; TODO: Allow for protocol functions.
 (defn valid-ref-pred-fn [{:keys [defs] :as _cache-bundle}]
   (fn [current-ns target-ns target-var]
     (let [target-ns (if target-ns (ns-tree/replant-ns current-ns target-ns) current-ns)]
       (if target-var
-        (some #(and (= target-var (:name %))
-                    (= target-ns (:namespace %)))
+        (some (fn [{:keys [namespace name members]}]
+                (and (= target-ns namespace)
+                     (or (= target-var name)
+                         (some #(= target-var (str (:name %))) members))))
               defs)
         (some #(= target-ns (:namespace %)) defs)))))
 
