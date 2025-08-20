@@ -8,9 +8,9 @@
 
 (defn- init-scroll-indicator []
   (let [def-detail-scroll-view (dom/query ".js--main-scroll-view")
-        def-list-scroll-view (dom/query ".js--namespace-contents-scroll-view")
+        def-nav-scroll-view (dom/query ".js--namespace-contents-scroll-view")
         def-detail-blocks (dom/query-all ".def-block" def-detail-scroll-view)
-        def-list-items (dom/query-all ".def-item" def-list-scroll-view)
+        def-nav-items (dom/query-all ".def-item" def-nav-scroll-view)
         is-elem-visible? (fn [container el]
                            (let [{:keys [y height]} (.getBoundingClientRect el)
                                  etop y
@@ -26,19 +26,19 @@
                                     (when (>= ndx 0)
                                       (let [detail-el (get def-detail-blocks ndx)
                                             show-indicator? (and def-detail-scroll-view
-                                                                 def-list-scroll-view
+                                                                 def-nav-scroll-view
                                                                  (not indicator-block-found)
                                                                  (is-elem-visible? def-detail-scroll-view detail-el))
-                                            nav-item-el (get def-list-items ndx)]
+                                            nav-item-el (get def-nav-items ndx)]
                                         (if-not show-indicator?
                                           (dom/remove-class nav-item-el "scroll-indicator")
                                           (do
                                             (dom/add-class nav-item-el "scroll-indicator")
                                             (cond
                                               (zero? ndx)
-                                              (set! def-list-scroll-view.scrollTop 1)
+                                              (set! def-detail-scroll-view.scrollTop 1)
 
-                                              (not (is-elem-visible? def-list-scroll-view nav-item-el))
+                                              (not (is-elem-visible? def-nav-scroll-view nav-item-el))
                                               (.scrollIntoView nav-item-el))))
                                         (recur ndx
                                                show-indicator?
