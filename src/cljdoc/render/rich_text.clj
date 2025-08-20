@@ -69,7 +69,8 @@
     render-wiki-link
     ;; Replicate the interesting parts of flexmark's WikiLinkLinkRefProcessor
     ;; while customizing to our use case.
-    ;; We only want a wikilink to be considered such when it actually resolves.
+    ;; We only want a wikilink to be considered such when it actually resolves to a valid
+    ;; destination.
     (.linkRefProcessorFactory
      (reify LinkRefProcessorFactory
        (getWantExclamationPrefix [_this _opts] false)

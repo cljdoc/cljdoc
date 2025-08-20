@@ -63,6 +63,7 @@
        (markdown-docstring->html doc-str render-wiki-link opts)
        (plaintext-docstring->html doc-str :hidden)])))
 
+;; TODO: Allow for protocol functions.
 (defn valid-ref-pred-fn [{:keys [defs] :as _cache-bundle}]
   (fn [current-ns target-ns target-var]
     (let [target-ns (if target-ns (ns-tree/replant-ns current-ns target-ns) current-ns)]
@@ -315,7 +316,6 @@
 
 (defn definitions-list [defs opts]
   [:div.pb4
-
    [:ul.list.pl0
    (definitions-list* defs opts)]])
 
