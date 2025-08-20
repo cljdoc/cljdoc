@@ -231,14 +231,6 @@
         [:span.fw3.f6.light-red.ml2 "deprecated"])]
      (render-var-args-and-docs def render-wiki-link opts)
      (render-protocol-members def render-wiki-link opts)
-     (when (seq (platf/get-field def :members))
-       [:div.lh-copy.pl3.bl.b--black-10
-        (for [m (platf/get-field def :members)]
-          [:div
-           [:h5 (:name m)]
-           (render-arglists (:name m) (:arglists m))
-           (when (:doc m)
-             [:p (docstring->html (:doc m) render-wiki-link opts)])])])
      (when (or (platf/varies? def :src-uri) ; if it varies they can't be both nil
                (platf/get-field def :src-uri)) ; if it doesn't vary, ensure non-nil
        (if (platf/varies? def :src-uri)
