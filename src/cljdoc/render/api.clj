@@ -141,7 +141,7 @@
        (render-docs (platf/get-field n :doc))))
    (docstring-format-toggle-control n opts)])
 
-(defn- render-def-detail-title [def]
+(defn- render-def-details-title [def]
   (let [def-name (platf/get-field def :name)]
   [:h4.def-block-title.mv0.pv3
       {:name def-name :id def-name}
@@ -242,7 +242,7 @@
   {:pre [(platf/multiplatform? def)]}
   [:div.def-block
    [:hr.mv3.b--black-10]
-   (render-def-detail-title def)
+   (render-def-details-title def)
    (render-var-args-and-docs def render-wiki-link opts)
    (render-protocol-members def render-wiki-link opts)
    (render-source-links def)
