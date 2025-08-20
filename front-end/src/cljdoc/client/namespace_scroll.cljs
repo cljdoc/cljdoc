@@ -19,20 +19,31 @@
                                  ctop (- cbottom (.-clientHeight container))]
                              (and (<= etop cbottom) (>= ebottom ctop))))
         draw-scroll-indicator (fn []
-                                (doseq [[idx el] (map-indexed vector def-detail-blocks)]
-                                  (let [def-item (get def-list-items idx)]
-                                    (if-not (and def-detail-scroll-view
-                                                 def-list-scroll-view
-                                                 (is-elem-visible? def-detail-scroll-view el))
-                                      (dom/remove-class def-item "scroll-indicator")
-                                      (do
-                                        (dom/add-class def-item "scroll-indicator")
-                                        (cond
-                                          (zero? idx)
-                                          (set! def-list-scroll-view.scrollTop 1)
+                                (loop [ndx (count def-detail-blocks)
+                                       in-indicator-block false
+                                       indicator-block-found false]
+                                  (let [ndx (dec ndx)]
+                                    (when (>= ndx 0)
+                                      (let [detail-el (get def-detail-blocks ndx)
+                                            show-indicator? (and def-detail-scroll-view
+                                                                 def-list-scroll-view
+                                                                 (not indicator-block-found)
+                                                                 (is-elem-visible? def-detail-scroll-view detail-el))
+                                            nav-item-el (get def-list-items ndx)]
+                                        (if-not show-indicator?
+                                          (dom/remove-class nav-item-el "scroll-indicator")
+                                          (do
+                                            (dom/add-class nav-item-el "scroll-indicator")
+                                            (cond
+                                              (zero? ndx)
+                                              (set! def-list-scroll-view.scrollTop 1)
 
-                                          (not (is-elem-visible? def-list-scroll-view def-item))
-                                          (.scrollIntoView def-item)))))))]
+                                              (not (is-elem-visible? def-list-scroll-view nav-item-el))
+                                              (.scrollIntoView nav-item-el))))
+                                        (recur ndx
+                                               show-indicator?
+                                               (or indicator-block-found
+                                                   (and (not show-indicator?) in-indicator-block))))))))]
     (when def-detail-scroll-view
       (.addEventListener def-detail-scroll-view "scroll" draw-scroll-indicator))
 
