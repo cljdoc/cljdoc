@@ -52,7 +52,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.32.20"}
+        software.amazon.awssdk/s3 {:mvn/version "2.32.27"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
