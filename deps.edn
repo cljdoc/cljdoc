@@ -7,7 +7,7 @@
         integrant/integrant {:mvn/version "0.13.1"}          ;; configure systems/services that make up your app
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.8.0-rc-1"} ;; web site/service with jetty engine
+        io.pedestal/pedestal.jetty {:mvn/version "0.8.0-rc-2"} ;; web site/service with jetty engine
         co.deps/ring-etag-middleware {:mvn/version "0.2.1"}  ;; fast checksum based ETags for http responses
 
         ;; relational database
@@ -52,7 +52,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.32.20"}
+        software.amazon.awssdk/s3 {:mvn/version "2.32.27"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
@@ -109,7 +109,7 @@
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
-                         nubank/matcher-combinators {:mvn/version "3.9.1" :exclusions [midje/midje]}}
+                         nubank/matcher-combinators {:mvn/version "3.9.2" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clerk

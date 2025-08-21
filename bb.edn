@@ -137,14 +137,7 @@
    :requires ([clj-commons.format.table :as table])
    :task (let [;; manually update explanations as needed
                explanations {'org.asciidoctor/asciidoctorj "actual API is in dep org.asciidoctor/asciidoctorj-api which we do not explicity depend on"
-                             'dev.weavejester/ragtime "ragtime API is in its dependencies"
-                             'org.eclipse.jetty/jetty-alpn-client "CVE override"
-                             'org.eclipse.jetty/jetty-alpn-server "CVE override"
-                             'org.eclipse.jetty/jetty-servlet "CVE override"
-                             'org.eclipse.jetty.http2/http2-server "CVE override"
-                             'org.eclipse.jetty.websocket/websocket-jakarta-server "CVE override"
-                             'org.apache.commons/commons-fileupload2-core "CVE override"
-                             'ch.qos.logback/logback-classic "Logging implementation is not directly called from code"}
+                             'dev.weavejester/ragtime "ragtime API is in its dependencies"}
                unused-deps (->> (exec 'borkdude.unused-deps/unused-deps)
                                 :unused-deps
                                 sort
