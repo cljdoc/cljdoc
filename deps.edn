@@ -109,7 +109,7 @@
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
                          org.clojure/test.check {:mvn/version "1.1.1"}
-                         nubank/matcher-combinators {:mvn/version "3.9.1" :exclusions [midje/midje]}}
+                         nubank/matcher-combinators {:mvn/version "3.9.2" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clerk
