@@ -1,0 +1,1 @@
+{:config-in-call {cljdoc.client.list-search/SearchInput {:ignore {:row 10, :col 10, :end-row 10, :end-col 27, :linters :all}}, cljdoc.client.list-search/ResultsView {:ignore {:row 53, :col 10, :end-row 53, :end-col 27, :linters :all}}}}
