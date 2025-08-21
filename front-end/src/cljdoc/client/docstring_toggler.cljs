@@ -2,8 +2,6 @@
   (:require [cljdoc.client.dom :as dom]
             [cljdoc.client.page :as page]))
 
-(warn-on-lazy-reusage!)
-
 (defn- init-toggle-docstring-raw []
   (let [toggles (dom/query-all ".js--toggle-raw")
         add-toggle-handlers (fn []

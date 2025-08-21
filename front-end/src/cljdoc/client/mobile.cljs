@@ -5,8 +5,6 @@
             [cljdoc.client.dom :as dom]
             [cljdoc.client.page :as page]))
 
-(warn-on-lazy-reusage!)
-
 (defn MobileNav []
   (let [[scroll-pos-main set-scroll-pos-main] (useState nil)
         [scroll-pos-nav set-scroll-pos-nav] (useState nil)

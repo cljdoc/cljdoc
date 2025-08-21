@@ -3,8 +3,6 @@
   There is https://github.com/arronhunt/highlightjs-copy but it seems to have some
   unresolved issues. There is not much code to this, so let's just do a bare bones ourselves.")
 
-(warn-on-lazy-reusage!)
-
 (def copyButtonPlugin
   {"before:highlightElement"
    (fn [{:keys [el]}]

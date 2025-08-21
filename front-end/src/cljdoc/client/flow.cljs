@@ -1,7 +1,5 @@
 (ns cljdoc.client.flow)
 
-(warn-on-lazy-reusage!)
-
 (defn debounced
   "Debounce funtion `f` with a `delay-ms`."
   [delay-ms f]

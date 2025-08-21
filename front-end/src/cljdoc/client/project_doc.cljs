@@ -4,8 +4,6 @@
             [cljdoc.client.page :as page]
             [clojure.string :as str]))
 
-(warn-on-lazy-reusage!)
-
 (defn- toggle-meta-dialog
   "Support for the little helper window brought up by the bottom right icon when viewing a project"
   []

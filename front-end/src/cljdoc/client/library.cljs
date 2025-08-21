@@ -1,8 +1,6 @@
 (ns cljdoc.client.library
   (:require [clojure.string :as str]))
 
-(warn-on-lazy-reusage!)
-
 (defn docs-coords-path
   "Return coords portion of docs path for given `coords`"
   [{:keys [group-id artifact-id version] :as _coords}]
