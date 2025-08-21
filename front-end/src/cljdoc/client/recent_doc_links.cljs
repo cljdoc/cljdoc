@@ -5,8 +5,6 @@
             [cljdoc.client.dom :as dom]
             [cljdoc.client.library :as lib]))
 
-(warn-on-lazy-reusage!)
-
 (defn- day-date [date]
   (js/Date. (.getFullYear date)
             (.getMonth date)

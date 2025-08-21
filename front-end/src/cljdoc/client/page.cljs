@@ -2,8 +2,6 @@
   (:require [cljdoc.client.dom :as dom]
             [cljdoc.client.library :as lib]))
 
-(warn-on-lazy-reusage!)
-
 (defn is-namespace-overview []
   (boolean (dom/query ".ns-overview-page")))
 

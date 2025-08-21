@@ -9,8 +9,6 @@
             [cljdoc.client.list-search :refer [ListSearch]]
             [clojure.string :as str]))
 
-(warn-on-lazy-reusage!)
-
 (defn- is-same-project [p1 p2]
   (and (== (:group-id p1) (:group-id p2))
        (== (:artifact-id p1) (:artifact-id p2))))

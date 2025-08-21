@@ -9,8 +9,6 @@
             [cljdoc.client.list-search :refer [ListSearch]]
             [clojure.string :as str]))
 
-(warn-on-lazy-reusage!)
-
 (defn- clean-search-str [s]
   (str/replace s #"[{}[]\"]" ""))
 
