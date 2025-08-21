@@ -15,6 +15,7 @@ project.clj
 .DS_Store
 .cache
 .clj-kondo/.cache
+.clj-kondo/.lock
 node_modules
 .envrc
 .calva
