@@ -1,4 +1,4 @@
-{:deps {org.clojure/clojure {:mvn/version "1.12.1"}
+{:deps {org.clojure/clojure {:mvn/version "1.12.2"}
 
         ;; configuration
         aero/aero {:mvn/version "1.1.6"}                     ;; rich configuration support with profiles
@@ -41,7 +41,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0"}                 ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.21.1"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.21.2"}              ;; xml/html parser/rewriter
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20240325.1"}                          ;; sanitize html converted from user markdown
@@ -52,7 +52,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.32.27"}
+        software.amazon.awssdk/s3 {:mvn/version "2.32.31"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch

@@ -33,12 +33,13 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "\"4aff730b1e3bc8ca82b2f1dd85e3c507\"",
+  {:etag "\"418a109275fb6cc4a9a09c353ee81ebc\"",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.12.1"
+   ["1.12.2"
+    "1.12.1"
     "1.12.0"
     "1.12.0-rc2"
     "1.12.0-rc1"
@@ -1854,12 +1855,14 @@
     "0.2.1"
     "0.2.0"
     "0.1.0"]}
-  {:etag "\"313a77c9e9ed27b469a97b3cccf743fc\"",
+  {:etag "\"539d143a54136bfd4ca592dc0d9b7021\"",
    :artifact-id "tools.deps",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.24.1529"
+   ["0.25.1539"
+    "0.25.1535"
+    "0.24.1529"
     "0.24.1523"
     "0.24.1519"
     "0.23.1512"
@@ -2075,12 +2078,13 @@
     "0.1.35"
     "0.1.29"
     "0.1.14"]}
-  {:etag "\"a7e2e8d197e64b5264a4ea10439dab00\"",
+  {:etag "\"7e8b19e7cee0aaa2008962514c74e835\"",
    :artifact-id "tools.deps.cli",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.11.100"
+   ["0.12.105"
+    "0.11.100"
     "0.11.93"
     "0.11.86"
     "0.11.78"
