@@ -18,6 +18,7 @@
             [cljdoc-shared.proj :as proj]
             [cljdoc.render :as html]
             [cljdoc.render.api-searchset :as api-searchset]
+            [cljdoc.render.badge :as render-badge]
             [cljdoc.render.build-log :as render-build-log]
             [cljdoc.render.build-req :as render-build-req]
             [cljdoc.render.error :as error]
@@ -395,34 +396,12 @@
                                        :body "invalid end-date, must be valid yyyy-mm-dd"}))))}))
 
 (defn return-badge
-  "Fetch badge svg from badgen.
-   Naive retry logic to compensate for fact that badgen.net will often fail on 1st request for uncached badges."
-  [ctx status color]
-  (let [url (format "https://badgen.net/badge/cljdoc/%s/%s"
-                    (ring-codec/url-encode status)
-                    (name color))]
-    (loop [retries-left 1]
-      (let [resp (http-client/get url {:headers {:user-agent "cljdoc"}
-                                       :throw false})]
-        (cond
-          (#{200 201} (:status resp))
-          (assoc ctx :response {:status 200
-                                :headers {"Content-Type" "image/svg+xml;charset=utf-8"
-                                          "Cache-Control" (format "public,max-age=%s" (* 30 60))}
-                                :body (:body resp)})
-
-          (> retries-left 0)
-          (do
-            (log/warnf "Badge service returned %d for url %s, retries left %d" (:status resp) url retries-left)
-            (Thread/sleep 300)
-            (recur (dec retries-left)))
-
-          :else
-          (do
-            (log/errorf "Badge service returned %d for url %s after retries, response headers: %s"
-                        (:status resp) url (:headers resp))
-            (assoc ctx :response {:status 503
-                                  :body (str "Badge service error for URL " url)})))))))
+  "Generate cljdoc badge"
+  [ctx badge-text badge-status]
+  (assoc ctx :response {:status 200
+                        :headers {"Content-Type" "image/svg+xml;charset=utf-8"
+                                  "Cache-Control" (format "public,max-age=%s" (* 30 60))}
+                        :body (render-badge/cljdoc-badge badge-text badge-status)}))
 
 (defn badge-interceptor []
   (interceptor/interceptor
@@ -430,19 +409,17 @@
     :leave (fn badge [ctx]
              (if-let [last-build (::last-build ctx)]
                (let [{:keys [version]} (-> ctx :request :path-params)
-                     [status color] (cond
-                                      (not (build-log/api-import-successful? last-build))
-                                      ["API import failed" :red]
+                     [badge-text badge-status] (cond
+                                                 (not (build-log/api-import-successful? last-build))
+                                                 ["API import failed" :api-import-failed]
 
-                                      (not (build-log/git-import-successful? last-build))
-                                      ["Git import failed" :red]
+                                                 (not (build-log/git-import-successful? last-build))
+                                                 ["Git import failed" :git-import-failed]
 
-                                      :else
-                                      [version :blue])]
-                 (return-badge ctx status color))
-               (let [{:keys [project]} (-> ctx :request :path-params)]
-                 (assoc ctx :response {:status 404
-                                       :body (str "No build found for " project)}))))}))
+                                                 :else
+                                                 [version :success])]
+                 (return-badge ctx badge-text badge-status))
+               (return-badge ctx "Build not found" :build-not-found)))}))
 
 (defn jump-interceptor []
   (interceptor/interceptor
