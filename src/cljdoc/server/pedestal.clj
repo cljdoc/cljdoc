@@ -419,7 +419,7 @@
                                                  :else
                                                  [version :success])]
                  (return-badge ctx badge-text badge-status))
-               (return-badge ctx "Build not found" :build-not-found)))}))
+               (return-badge ctx "Library not found" :library-not-found)))}))
 
 (defn jump-interceptor []
   (interceptor/interceptor
