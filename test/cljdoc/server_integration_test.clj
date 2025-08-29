@@ -101,6 +101,7 @@
         test-artifact-id "cljdoc-exerciser"
         test-project (str test-group-id "/" test-artifact-id)
         test-project-version (latest-version test-project)
+        test-project-pom-description "A library to exercise cldoc rendering"
         build-req-resp (pdt/response-for *connector*
                                          :post "/api/request-build2"
                                          :body (codec/form-encode {:project test-project :version test-project-version})
@@ -217,7 +218,7 @@
                                        (.select "head > meta[content]")
                                        (.eachAttr "content")
                                        (->> (map str)))
-                                  (m/embeds [(str test-project ":  Documentation for " test-project " v" test-project-version " on cljdoc.")]))}
+                                  (m/embeds [(str test-project ": " test-project-pom-description " Documentation for " test-project " v" test-project-version " on cljdoc.")]))}
                     (pdt/response-for *connector* :get (str "/d/" test-project "/" test-project-version "/doc/document-tests")))
             "at least one html meta tag has the project's description"))
 
