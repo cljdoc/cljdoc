@@ -43,7 +43,7 @@
         badge-width (+ label-rect-width badge-text-rect-width)
         gradient-id "gradid"
         mask-id "maskid"
-        status-color (if (= :sucess badge-status)
+        status-color (if (= :success badge-status)
                        (:blue colors)
                        (:red colors))
         accessible-text (str label ": " badge-text)]
