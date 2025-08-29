@@ -20,9 +20,9 @@
 
 (defn- calc-width [text]
   (transduce
-    (map (fn [c] (get widths-verdana-110 (int c) fallback-width)))
-    +
-    text))
+   (map (fn [c] (get widths-verdana-110 (int c) fallback-width)))
+   +
+   text))
 
 ;; we only use two colors at this point
 (def ^:private colors {:blue "#08C"

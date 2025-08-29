@@ -22,7 +22,7 @@
 (def ^:private out-dir "./target/badge-test")
 
 (t/use-fixtures :once (fn [f]
-                        (when (fs/exists? out-dir )
+                        (when (fs/exists? out-dir)
                           (fs/delete-tree out-dir))
                         (fs/create-dirs out-dir)
                         (f)))

@@ -217,7 +217,7 @@
                                        (.select "head > meta[content]")
                                        (.eachAttr "content")
                                        (->> (map str)))
-                                  (m/embeds [(str test-project ":  Documentation for " test-project " v" test-project-version " on cljdoc." )]))}
+                                  (m/embeds [(str test-project ":  Documentation for " test-project " v" test-project-version " on cljdoc.")]))}
                     (pdt/response-for *connector* :get (str "/d/" test-project "/" test-project-version "/doc/document-tests")))
             "at least one html meta tag has the project's description"))
 
@@ -650,7 +650,5 @@
 
   ;; call this when done to shutdown and clean up test dir
   (halt! s)
-
-
 
   :eoc)
