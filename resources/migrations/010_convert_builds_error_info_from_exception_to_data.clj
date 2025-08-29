@@ -16,7 +16,7 @@
     (log/info "rows to udpate:" cnt)
     (jdbc/execute-one! db-spec ["alter table builds add error_info_map"])
     (doseq [row (sql/query db-spec ["select id, error_info from builds where error_info is not null"]
-                           {:builder-fn rs/as-unqualified-maps} )
+                           {:builder-fn rs/as-unqualified-maps})
             :let [id (:id row)
                   ;; For security reasons, newer versions of nippy are restrictive on what
                   ;; classes they will thaw. For this conversion from exception-object to
@@ -42,7 +42,7 @@
   (up db-spec)
 
   (def after (sql/query db-spec ["select id, error_info, error_info_map from builds where error_info_map is not null"]
-                        {:builder-fn rs/as-unqualified-maps} ))
+                        {:builder-fn rs/as-unqualified-maps}))
   (count after);; => 589
 
   nil)
