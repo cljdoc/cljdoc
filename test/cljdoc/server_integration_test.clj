@@ -264,7 +264,7 @@
                                       :headers {"Accept" "application/edn"}))
             "versions for artifact API as edn"))
 
-    (t/testing "offline download (used by Dash)"
+    (t/testing "offline download (used by Dash and by cljdocset for Zeal)"
       (let [expected-name (str test-artifact-id "-" test-project-version)]
         (t/is (match? {:status 200
                        :headers {:content-disposition (format "attachment; filename=\"%s.zip\""
