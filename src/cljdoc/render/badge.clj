@@ -80,14 +80,24 @@
   (reduce max widths-verdana-110)
   ;; => 290
 
-  (keep-indexed (fn [idx width]
-                  (when (= width 290)
-                    (let [c (char idx)]
-                      (when (Character/isDefined c)
-                        {:code-point (format "U+%04X" idx)
-                         :width width}))))
-                widths-verdana-110)
-  ;; => ({:code-point "U+0604", :width 290})
+  (->> widths-verdana-110
+       (map-indexed vector)
+       (sort-by second)
+       reverse
+       (mapv (fn [[idx width]]
+               {:code-point (format "U+%04X" idx)
+                :width width}))
+       (take 10))
+  ;; => ({:code-point "U+0604", :width 290}
+  ;;     {:code-point "U+102A", :width 240}
+  ;;     {:code-point "U+0BCC", :width 230}
+  ;;     {:code-point "U+0FD0", :width 220}
+  ;;     {:code-point "U+0DDE", :width 220}
+  ;;     {:code-point "U+0DDB", :width 220}
+  ;;     {:code-point "U+17D8", :width 200}
+  ;;     {:code-point "U+0DF2", :width 200}
+  ;;     {:code-point "U+0D8E", :width 200}
+  ;;     {:code-point "U+0D4C", :width 200})
 
   (calc-width "\u0604")
   ;; => 290
