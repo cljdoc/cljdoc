@@ -12,8 +12,7 @@
   - Rendering a sitemap (see [[sitemap-interceptor]])
   - Handling build requests (see [[request-build]], [[full-build]] & [[circle-ci-webhook]])
   - Redirecting to newer releases (see [[resolve-version-interceptor]] & [[jump-interceptor]])"
-  (:require [babashka.http-client :as http-client]
-            [cheshire.core :as json]
+  (:require [cheshire.core :as json]
             [cljdoc-shared.pom :as pom]
             [cljdoc-shared.proj :as proj]
             [cljdoc.render :as html]
@@ -50,8 +49,7 @@
             [io.pedestal.http.route :as http-route]
             [io.pedestal.http.secure-headers :as http-secure-headers]
             [io.pedestal.interceptor :as interceptor]
-            [lambdaisland.uri.normalize :as normalize]
-            [ring.util.codec :as ring-codec])
+            [lambdaisland.uri.normalize :as normalize])
   (:import (java.net URLDecoder)
            (java.util Date)))
 
