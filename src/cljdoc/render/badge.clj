@@ -35,7 +35,7 @@
 (defn cljdoc-badge
   "Render badge [ cljdoc | `badge-text` ] with `badge-status`.
   If `badge-status` is `:success`, badge text background renders blue, else red."
-  [badge-text badge-status]
+  ^String [badge-text badge-status]
   (let [label-start-text 50
         badge-text-width (calc-width badge-text)
         label-rect-width (+ label-text-width 100)
