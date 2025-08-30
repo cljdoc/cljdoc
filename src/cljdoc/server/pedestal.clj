@@ -39,7 +39,6 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
-            [co.deps.ring-etag-middleware :as etag]
             [integrant.core :as ig]
             [io.pedestal.connector :as conn]
             [io.pedestal.http.body-params :as body]
@@ -444,14 +443,6 @@
                                                         :artifact-id (proj/artifact-id project)})})
                     (assoc ctx :response))))}))
 
-(def etag-interceptor
-  (interceptor/interceptor
-   {:name ::etag
-    :leave (fn [{:keys [response] :as ctx}]
-             (if-not response
-               ctx
-               (assoc ctx :response (etag/add-file-etag response false))))}))
-
 (def cache-control-interceptor
   (interceptor/interceptor
    {:name  ::cache-control
@@ -668,7 +659,6 @@
                                     static-resource-interceptor
                                     redirect-trailing-slash-interceptor
                                     (middlewares/not-modified)
-                                    etag-interceptor
                                     cache-control-interceptor
                                     not-found-interceptor
                                     (middlewares/content-type {:mime-types {}})
