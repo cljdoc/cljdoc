@@ -539,7 +539,9 @@
              (let [template (slurp (io/resource "opensearch.xml"))]
                (->> {:status 200
                      :headers {"Content-Type" "application/opensearchdescription+xml"}
-                     :body (string/replace template "{{base.url}}" opensearch-base-url)}
+                     :body (-> template
+                               (string/replace "{{base.url}}" opensearch-base-url)
+                               (string/replace "{{favicon.ico}}" (get (:static-resources ctx) "/favicon.ico")))}
                     (assoc ctx :response))))}))
 
 (def offline-bundle
