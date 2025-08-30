@@ -334,9 +334,12 @@
              [:form {:class "black-80 w-100"
                      :onSubmit (fn [e] (.preventDefault e))}
               [:div {:style "position: relative"}
-               [:img {:src "/search-icon.svg"
-                      :class "w1 h1"
-                      :style "position: absolute; left: 0.58rem; top: 0.58rem; z-index: 1;"}]
+               [:svg {:class "w1 h1"
+                      :style "position: absolute; left: 0.58rem; top: 0.58rem; z-index: 1; stroke: currentColor; stroke-width: 3; fill: none"
+                      :viewBox "0 0 24 24"
+                      :xmlns "http://www.w3.org/2000/svg"}
+                [:circle {:cx "11.963" :cy "8.7873" :r "7.2449"}]
+                [:line {:x1 "16.075" :y1 "15.902" :x2 "20.357" :y2 "23.212"}]]
                [:input {:name "single-docset-search-term"
                         :type "text"
                         :aria-describedby "single-docset-search-term-description"

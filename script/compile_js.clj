@@ -36,7 +36,6 @@ Options
        "esbuild"
        "--minify"
        "--sourcemap"
-       "--loader:.svg=copy"
        "--loader:.txt=copy"
        (str "--outdir=" target-dir)
        (str (fs/file source-asset-dir source-asset-static-subdir "*.*"))))
