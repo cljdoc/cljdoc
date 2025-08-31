@@ -51,7 +51,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.32.31"}
+        software.amazon.awssdk/s3 {:mvn/version "2.33.0"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
@@ -142,4 +142,5 @@
            {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1276"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.17"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
+                        "--exclude=io.pedestal/pedestal.jetty@0.8.0-rc-2" ;; see https://github.com/cljdoc/cljdoc/issues/1081
                         "--ignore-locals"]}}}
