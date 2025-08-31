@@ -462,11 +462,9 @@
              (if (get-in ctx [:response :headers "Cache-Control"])
                ctx
                (assoc-in ctx [:response :headers "Cache-Control"]
-                             (if (immutable-asset? ctx)
-                               "max-age=31536000,immutable,public"
-                               "no-cache"))))}))
-
-
+                         (if (immutable-asset? ctx)
+                           "max-age=31536000,immutable,public"
+                           "no-cache"))))}))
 
 (def error-interceptor
   (interceptor/interceptor
