@@ -142,4 +142,5 @@
            {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1276"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.17"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
+                        "--exclude=io.pedestal/pedestal.jetty@0.8.0-rc-2" ;; see https://github.com/cljdoc/cljdoc/issues/1081
                         "--ignore-locals"]}}}
