@@ -36,8 +36,6 @@ Options
        "esbuild"
        "--minify"
        "--sourcemap"
-       "--loader:.ico=copy"
-       "--loader:.svg=copy"
        "--loader:.txt=copy"
        (str "--outdir=" target-dir)
        (str (fs/file source-asset-dir source-asset-static-subdir "*.*"))))
@@ -49,10 +47,12 @@ Options
        "esbuild"
        "--loader:.svg=copy"
        "--loader:.png=copy"
+       "--loader:.ico=copy"
        "--entry-names=[name].[hash]"
        "--minify"
        "--sourcemap"
        (str "--outdir=" target-dir)
+       (str (fs/file source-asset-dir "*.ico"))
        (str (fs/file source-asset-dir "*.png"))
        (str (fs/file source-asset-dir "*.css"))
        (str (fs/file source-asset-dir "*.svg"))))

@@ -3,7 +3,7 @@
             [cljdoc.config :as config]
             [cljdoc.render.offline :as offline]
             [cljdoc.server.api :as api]
-            [cljdoc.server.pedestal :as pedestal]
+            [cljdoc.server.built-assets :as built-assets]
             [cljdoc.server.system :as system]
             [cljdoc.storage.api :as storage]
             [cljdoc.util.repositories :as repositories]
@@ -32,7 +32,7 @@
         sys           (ig/init sys)
         store         (:cljdoc/storage sys)
         artifact-info (storage/version-entity project version)
-        static-resources (pedestal/load-default-static-resource-map)]
+        static-resources (built-assets/load-map)]
     (if (storage/exists? store artifact-info)
       (let [output (io/file output)]
         (-> (storage/bundle-docs store artifact-info)
