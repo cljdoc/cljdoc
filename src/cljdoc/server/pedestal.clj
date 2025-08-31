@@ -37,6 +37,7 @@
             [cljdoc.util.repositories :as repos]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
+            [clojure.set :as cset]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
@@ -443,21 +444,27 @@
                                                         :artifact-id (proj/artifact-id project)})})
                     (assoc ctx :response))))}))
 
+(defn- immutable-asset? [ctx]
+  (when (= :io.pedestal.service.resources/get-resource (-> ctx :route :route-name))
+    (let [requested-asset (-> ctx :request :uri)
+          source-asset (-> ctx
+                           :static-resources
+                           cset/map-invert
+                           (get requested-asset))]
+      ;; if in source asset not match generated asset, the asset has been cache busted
+      ;; and is therefore immutable
+      (not= requested-asset source-asset))))
+
 (def cache-control-interceptor
   (interceptor/interceptor
    {:name  ::cache-control
     :leave (fn [ctx]
-             (if-not (get-in ctx [:response :headers "Cache-Control"])
-               (if-let [content-type (get-in ctx [:response :headers "Content-Type"])]
-                 (let [cacheable-content-type? (fn [content-type]
-                                                 (some
-                                                  #(contains? #{"text/css" "text/javascript" "image/svg+xml"
-                                                                "image/png" "image/x-icon" "text/xml"} %)
-                                                  (string/split content-type #";")))]
-                   (assoc-in ctx [:response :headers "Cache-Control"]
-                             (if (cacheable-content-type? content-type) "max-age=31536000,immutable,public" "no-cache")))
-                 ctx)
-               ctx))}))
+             (if (get-in ctx [:response :headers "Cache-Control"])
+               ctx
+               (assoc-in ctx [:response :headers "Cache-Control"]
+                             (if (immutable-asset? ctx)
+                               "max-age=31536000,immutable,public"
+                               "no-cache"))))}))
 
 (defn load-client-asset-map
   "Load client side asset map.
