@@ -27,6 +27,7 @@
             [cljdoc.render.search :as render-search]
             [cljdoc.server.api :as api]
             [cljdoc.server.build-log :as build-log]
+            [cljdoc.server.built-assets :as built-assets]
             [cljdoc.server.log.sentry :as sentry]
             [cljdoc.server.pedestal-util :as pu]
             [cljdoc.server.routes :as routes]
@@ -35,7 +36,6 @@
             [cljdoc.storage.api :as storage]
             [cljdoc.util.datetime :as dt]
             [cljdoc.util.repositories :as repos]
-            [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.set :as cset]
             [clojure.string :as string]
@@ -466,14 +466,7 @@
                                "max-age=31536000,immutable,public"
                                "no-cache"))))}))
 
-(defn load-client-asset-map
-  "Load client side asset map.
-   E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
-  [manifest-file]
-  (-> manifest-file slurp edn/read-string))
 
-(defn load-default-static-resource-map []
-  (load-client-asset-map "resources-compiled/manifest.edn"))
 
 (def error-interceptor
   (interceptor/interceptor
@@ -487,7 +480,7 @@
   (interceptor/interceptor
    {:name  ::static-resource
     :enter (fn [ctx]
-             (assoc ctx :static-resources (load-default-static-resource-map)))}))
+             (assoc ctx :static-resources (built-assets/load)))}))
 
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247

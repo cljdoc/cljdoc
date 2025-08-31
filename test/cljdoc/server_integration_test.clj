@@ -2,8 +2,8 @@
   (:require [babashka.fs :as fs]
             [babashka.http-client :as http]
             [cheshire.core :as json]
+            [cljdoc.server.built-assets :as built-assets]
             [cljdoc.server.log.init :as log-init]
-            [cljdoc.server.pedestal :as server]
             [cljdoc.server.search.clojars :as clojars]
             [cljdoc.server.system :as sys]
             [clojure.edn :as edn]
@@ -251,7 +251,7 @@
       (t/is (match? {:status 200
                      :headers {:cache-control "max-age=31536000,immutable,public"}}
                     (pdt/response-for *connector* :get
-                                      (get (server/load-default-static-resource-map) "/favicon.ico")))
+                                      (get (built-assets/load) "/favicon.ico")))
             "cache busted resources, like favicon.ico, are immutable"))
 
     (t/testing "searchset api (used by cljdoc)"
