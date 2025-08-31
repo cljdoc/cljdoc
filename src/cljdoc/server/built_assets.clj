@@ -1,7 +1,7 @@
 (ns cljdoc.server.built-assets
   (:require [clojure.edn :as edn]))
 
-(defn load
+(defn load-map
   "Load client side asset map.
    E.g. /cljdoc.js -> /cljdoc.db58f58a.js"
   []

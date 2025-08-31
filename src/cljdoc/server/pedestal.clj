@@ -480,7 +480,7 @@
   (interceptor/interceptor
    {:name  ::static-resource
     :enter (fn [ctx]
-             (assoc ctx :static-resources (built-assets/load)))}))
+             (assoc ctx :static-resources (built-assets/load-map)))}))
 
 (def redirect-trailing-slash-interceptor
   ;; Needed because https://github.com/containous/traefik/issues/4247

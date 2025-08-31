@@ -251,7 +251,7 @@
       (t/is (match? {:status 200
                      :headers {:cache-control "max-age=31536000,immutable,public"}}
                     (pdt/response-for *connector* :get
-                                      (get (built-assets/load) "/favicon.ico")))
+                                      (get (built-assets/load-map) "/favicon.ico")))
             "cache busted resources, like favicon.ico, are immutable"))
 
     (t/testing "searchset api (used by cljdoc)"
