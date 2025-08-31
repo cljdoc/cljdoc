@@ -3,6 +3,7 @@
             [babashka.http-client :as http]
             [cheshire.core :as json]
             [cljdoc.server.log.init :as log-init]
+            [cljdoc.server.pedestal :as server]
             [cljdoc.server.search.clojars :as clojars]
             [cljdoc.server.system :as sys]
             [clojure.edn :as edn]
@@ -225,13 +226,33 @@
     (t/testing "built lib badge"
       (t/is (match? {:status 200
                      :headers {:content-type "image/svg+xml;charset=utf-8"
-                               :cache-control #"public,max-age="}
+                               :cache-control #"public,max-age=1800"}
                      :body (m/via #(-> ^String %
                                        Jsoup/parse
                                        (.selectFirst (str "text:contains(" test-project-version ")"))
                                        .text)
                                   (m/equals test-project-version))}
                     (pdt/response-for *connector* :get (str "/badge/" test-project)))))
+
+    (t/testing "cache control"
+      ;; cljdoc badge verified in test above
+      (t/is (match? {:status 200
+                     :headers {:cache-control "no-cache"}}
+                    (pdt/response-for *connector* :get "/"))
+            "home page is dynamic and not cached")
+      (t/is (match? {:status 200
+                     :headers {:cache-control "no-cache"}}
+                    (pdt/response-for *connector* :get "/robots.txt"))
+            "robots.txt, although delivered form a resource file, is dynamic and not cached")
+      (t/is (match? {:status 200
+                     :headers {:cache-control "no-cache"}}
+                    (pdt/response-for *connector* :get "/sitemap.xml"))
+            "sitemap.xml is dynamic and not cached")
+      (t/is (match? {:status 200
+                     :headers {:cache-control "max-age=31536000,immutable,public"}}
+                    (pdt/response-for *connector* :get
+                                      (get (server/load-default-static-resource-map) "/favicon.ico")))
+            "cache busted resources, like favicon.ico, are immutable"))
 
     (t/testing "searchset api (used by cljdoc)"
       (t/is (match? {:status 200
