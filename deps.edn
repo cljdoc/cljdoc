@@ -58,7 +58,7 @@
         org.babashka/http-client {:mvn/version "0.4.23"}     ;; jdk11+ http client
 
         ;; misc utils
-        babashka/fs {:mvn/version "0.5.26"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.5.27"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.23"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.0.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.312"}              ;; file system utilities
@@ -117,7 +117,7 @@
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.10"}
                    clj-kondo/clj-kondo {:mvn/version "2025.07.28"}
-                   babashka/fs {:mvn/version "0.5.26"}
+                   babashka/fs {:mvn/version "0.5.27"}
                    babashka/process {:mvn/version "0.6.23"}}
             :ns-default build}
 
