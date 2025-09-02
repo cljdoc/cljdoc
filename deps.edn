@@ -60,7 +60,7 @@
         ;; misc utils
         babashka/fs {:mvn/version "0.5.27"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.23"}             ;; launch processes
-        cheshire/cheshire {:mvn/version "6.0.0"}             ;; json
+        cheshire/cheshire {:mvn/version "6.1.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.312"}              ;; file system utilities
         com.taoensso/tufte {:mvn/version "3.0.0"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
