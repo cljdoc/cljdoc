@@ -16,7 +16,7 @@
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [ragtime.core :as ragtime]
-            [ragtime.jdbc :as jdbc]
+            [ragtime.next-jdbc :as ragtime-next-jdbc]
             [taoensso.nippy :as nippy]
             [tea-time.core :as tt]))
 
@@ -109,9 +109,9 @@
   (when enable-db-restore?
     (db-backup/restore-db! opts))
 
-  (ragtime/migrate-all (jdbc/sql-database db-spec)
+  (ragtime/migrate-all (ragtime-next-jdbc/sql-database db-spec)
                        {}
-                       (jdbc/load-resources "migrations")
+                       (ragtime-next-jdbc/load-resources "migrations")
                        {:reporter (fn [_store direction migration]
                                     (log/infof "Migrating %s %s" direction migration))})
   db-spec)
