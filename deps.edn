@@ -12,9 +12,8 @@
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.1048" } ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.50.3.0"}     ;; jdbc driver needed to talk to our SQLite db
-        ;; hold off on ragtime 0.10.x until we know what to do about: https://github.com/weavejester/ragtime/issues/162
-        dev.weavejester/ragtime {:mvn/version "0.9.5"}       ;; database migrations
-        com.mjachimowicz/ragtime-clj {:mvn/version "0.1.2"}  ;; database migration support for Clojure code migrations
+        dev.weavejester/ragtime {:mvn/version "0.12.0"       ;; database migrations
+                                 :exclusions [dev.weavejester/ragtime.jdbc]} ;; we only use next.jdbc
         com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
         com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.3"}
         com.taoensso/nippy {:mvn/version "3.6.0"}            ;; fast compact serializer that we use for blobs

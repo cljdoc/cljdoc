@@ -8,7 +8,6 @@
             [taoensso.nippy :as nippy]))
 
 (defn up [db-spec]
-  (binding [])
   (let [cnt (-> (sql/query db-spec ["select count(*) as c from builds where error_info is not null"]
                            {:builder-fn rs/as-unqualified-maps})
                 first
@@ -26,7 +25,7 @@
                   ex-as-data (nippy/freeze (Throwable->map ex))]]
       (sql/update! db-spec :builds {:error_info_map ex-as-data} {:id id}))))
 
-(defn down [db-spec]
+(defn down [_db-spec]
   ;; sqlite3 supports dropping columns starting with v3.35.5, but we are not using
   ;; a current version of sqlite3 in production as of this writing.
   ;; Also relying on a current version might be a slightly annoying to setup for macOS devs as
