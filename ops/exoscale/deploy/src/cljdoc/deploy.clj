@@ -116,7 +116,8 @@
         placed-allocs  (get-in deployment ["TaskGroups" "cljdoc" "PlacedAllocs"])
         status         (get-in deployment ["Status"])]
     (log/infof "%d placed / %d healthy / %d desired  - status: '%s'" placed-allocs healthy-allocs desired-total status)
-    (assert (= placed-allocs desired-total) "Not enough allocs placed")
+    (assert (= placed-allocs desired-total) (str "Not enough allocs placed, placed-allocs: " placed-allocs
+                                                 ", desired-total: " desired-total))
     (assert (not= "failed" status) "Deployment failed")
     (= desired-total healthy-allocs)))
 
