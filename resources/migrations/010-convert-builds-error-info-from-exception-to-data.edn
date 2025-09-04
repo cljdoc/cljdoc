@@ -1,0 +1,2 @@
+{:up migrations.010-convert-builds-error-info-from-exception-to-data/up
+ :down migrations.010-convert-builds-error-info-from-exception-to-data/down}
