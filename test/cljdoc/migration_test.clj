@@ -36,8 +36,13 @@
 
 (t/deftest migrations-correspond-to-source-files-test
   (let [loaded-migrations (->> (ragtime-next-jdbc/load-resources "migrations")
-                               (reduce (fn [acc n]
-                                         (assoc acc (:id n) n))
+                               (reduce (fn [acc {:keys [id] :as n}]
+                                         (assoc acc
+                                                ;; compensate for historical ragtime-clj migration
+                                                (if (str/starts-with? id "010_")
+                                                  (str/replace id "_" "-")
+                                                  id)
+                                                n))
                                        {}))
         file-migration-ids (->> (migration-files)
                                 (keep #(some-> (re-find #"^(.*)(\.clj|(\.up|\.down)\.sql)$" %)

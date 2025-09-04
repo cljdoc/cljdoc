@@ -1,2 +1,4 @@
-{:up migrations.010-convert-builds-error-info-from-exception-to-data/up
+{;; override default id to match what ragtime-clj auto-generated
+ :id "010_convert_builds_error_info_from_exception_to_data"
+ :up migrations.010-convert-builds-error-info-from-exception-to-data/up
  :down migrations.010-convert-builds-error-info-from-exception-to-data/down}
