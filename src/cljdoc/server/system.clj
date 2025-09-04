@@ -15,7 +15,6 @@
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
-            [ragtime.clj.core] ;; allow Clojure-based migrations
             [ragtime.core :as ragtime]
             [ragtime.jdbc :as jdbc]
             [taoensso.nippy :as nippy]
