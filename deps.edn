@@ -7,10 +7,10 @@
         integrant/integrant {:mvn/version "0.13.1"}          ;; configure systems/services that make up your app
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.8.0-rc-1"} ;; web site/service with jetty engine
+        io.pedestal/pedestal.jetty {:mvn/version "0.8.0-rc-3"} ;; web site/service with jetty engine
 
         ;; relational database
-        com.github.seancorfield/next.jdbc {:mvn/version "1.3.1048" } ;; jdbc abstraction
+        com.github.seancorfield/next.jdbc {:mvn/version "1.3.1070" } ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.50.3.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.12.0"       ;; database migrations
                                  :exclusions [dev.weavejester/ragtime.jdbc]} ;; we only use next.jdbc
@@ -50,7 +50,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.33.0"}
+        software.amazon.awssdk/s3 {:mvn/version "2.33.5"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch

@@ -4,8 +4,8 @@
                            :sha "cf44c15f30ea3867227fa61ceb823e5e942c707f"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
         etaoin/etaoin {:mvn/version "1.1.43"}
-        io.github.borkdude/unused-deps {:git/sha "77fc627b3a0dc547841a17bdaa09ea51c392676c"}
-        org.clj-commons/pretty {:mvn/version "3.6.3"}}
+        io.github.borkdude/unused-deps {:git/sha "27fabdad3e4095ae1cca58bd6b047fb9a36fbb76"}
+        org.clj-commons/pretty {:mvn/version "3.6.4"}}
  :pods {org.babashka/fswatcher {:version "0.0.7"}}
  :tasks
  {;; setup
