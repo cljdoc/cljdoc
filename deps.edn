@@ -4,7 +4,7 @@
         aero/aero {:mvn/version "1.1.6"}                     ;; rich configuration support with profiles
 
         ;; app component/service orchestration
-        integrant/integrant {:mvn/version "0.13.1"}          ;; configure systems/services that make up your app
+        integrant/integrant {:mvn/version "1.0.0"}          ;; configure systems/services that make up your app
 
         ;; web server/services
         io.pedestal/pedestal.jetty {:mvn/version "0.8.0-rc-3"} ;; web site/service with jetty engine
