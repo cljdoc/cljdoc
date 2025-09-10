@@ -4,7 +4,7 @@
         aero/aero {:mvn/version "1.1.6"}                     ;; rich configuration support with profiles
 
         ;; app component/service orchestration
-        integrant/integrant {:mvn/version "0.13.1"}          ;; configure systems/services that make up your app
+        integrant/integrant {:mvn/version "1.0.0"}          ;; configure systems/services that make up your app
 
         ;; web server/services
         io.pedestal/pedestal.jetty {:mvn/version "0.8.0-rc-3"} ;; web site/service with jetty engine
@@ -50,7 +50,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.33.5"}
+        software.amazon.awssdk/s3 {:mvn/version "2.33.6"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
