@@ -493,7 +493,7 @@ Cljdoc does not automatically build snapshot releases, but they will show up in 
 Upon selecting a snapshot release, cljdoc will offer to build its docset.
 
 By its nature, a snapshot release will likely have many releases under the same version.
-You can choose to link:#rebuild[rebuild] for against the current releases.
+You can choose to link:#rebuild[rebuild] against the current releases.
 
 [[verifying-articles]]
 === Article Verification Script
