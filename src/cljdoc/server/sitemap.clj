@@ -1,10 +1,10 @@
 (ns cljdoc.server.sitemap
   (:require [cljdoc.server.routes :as routes]
             [cljdoc.storage.api :as storage]
+            [cljdoc.util.version :as version]
             [clojure.spec.alpha :as spec]
             [clojure.string :as string]
-            [sitemap.core :as sitemap]
-            [version-clj.core :as version-clj]))
+            [sitemap.core :as sitemap]))
 
 (spec/fdef query->url-entries
   :args (spec/cat :version :cljdoc.spec/version-entity)
@@ -24,8 +24,8 @@
   (->> docs
        (map :version)
        (remove #(string/ends-with? % "-SNAPSHOT"))
-       (version-clj/version-sort)
-       last))
+       (sort version/version-compare)
+       first))
 
 (defn- all-latest-release-docs [db-spec]
   (->> (storage/all-distinct-docs db-spec)

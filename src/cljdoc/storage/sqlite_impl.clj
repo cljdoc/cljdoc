@@ -23,6 +23,7 @@
   to the mix."
   (:require [cljdoc-shared.proj :as proj]
             [cljdoc.user-config :as user-config]
+            [cljdoc.util.version :as version]
             [clojure.set :as cset]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
@@ -32,8 +33,7 @@
             [next.jdbc.result-set :as rs]
             [next.jdbc.sql :as sql]
             [taoensso.nippy :as nippy]
-            [taoensso.tufte :as tufte :refer [defnp]]
-            [version-clj.core :as version-clj])
+            [taoensso.tufte :as tufte :refer [defnp]])
   (:import (org.sqlite SQLiteException)))
 
 ;; keep our linter happy by declaring hugsql imported functions
@@ -228,8 +228,8 @@
   (->> (get-documented-versions db-spec group-id artifact-id)
        (map :version)
        (remove #(string/ends-with? % "-SNAPSHOT"))
-       (version-clj/version-sort)
-       (last)))
+       (sort version/version-compare)
+       first))
 
 (defn all-distinct-docs [db-spec]
   (->> (sql/query db-spec ["select group_id, artifact_id, name from versions"]
