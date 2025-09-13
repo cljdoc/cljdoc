@@ -6,7 +6,7 @@
   (:require [cljdoc-shared.proj :as proj]
             [cljdoc.render.layout :as layout]
             [cljdoc.server.routes :as routes]
-            [version-clj.core :as v]))
+            [cljdoc.util.version :as version]))
 
 (defn artifact-index
   [{:keys [group-id artifact-id] :as artifact-entity} versions-tree source static-resources]
@@ -114,7 +114,7 @@
                      :static-resources static-resources})))
 
 (defn sort-by-version [version-entities]
-  (sort-by :version #(- (v/version-compare %1 %2)) version-entities))
+  (sort-by :version #(- (version/version-compare %1 %2)) version-entities))
 
 (defn versions-tree
   "Make the versions seq into group -> artifact -> list of versions (latest first)"
