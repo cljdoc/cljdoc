@@ -114,7 +114,7 @@
                      :static-resources static-resources})))
 
 (defn sort-by-version [version-entities]
-  (sort-by :version #(- (version/version-compare %1 %2)) version-entities))
+  (sort-by :version version/version-compare version-entities))
 
 (defn versions-tree
   "Make the versions seq into group -> artifact -> list of versions (latest first)"
