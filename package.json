@@ -6,9 +6,9 @@
     "elasticlunr": "0.9.5",
     "fuzzysort": "3.1.0",
     "idb": "8.0.3",
-    "preact": "10.27.1"
+    "preact": "10.27.2"
   },
   "devDependencies": {
-    "esbuild": "0.25.9"
+    "esbuild": "0.25.10"
   }
 }

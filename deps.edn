@@ -19,10 +19,10 @@
         com.taoensso/nippy {:mvn/version "3.6.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "10.2.2"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "10.2.2"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.2.2"}
-        org.apache.lucene/lucene-queries {:mvn/version "10.2.2"}
+        org.apache.lucene/lucene-core {:mvn/version "10.3.0"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "10.3.0"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.3.0"}
+        org.apache.lucene/lucene-queries {:mvn/version "10.3.0"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "3.0.0"} ;; render adoc to html
@@ -50,7 +50,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.33.9"}
+        software.amazon.awssdk/s3 {:mvn/version "2.33.12"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
@@ -85,7 +85,7 @@
                          ;; to support recompiling java code from repl
                          virgil/virgil {:mvn/version "0.4.0"}
                          ;; for ns reload support
-                         io.github.tonsky/clj-reload {:mvn/version "0.9.8"}
+                         io.github.tonsky/clj-reload {:mvn/version "1.0.0"}
                          ;; reload support
                          integrant/repl {:mvn/version "0.5.0"}
                          com.clojure-goes-fast/clj-memory-meter {:mvn/version "0.4.0"}}
@@ -134,7 +134,7 @@
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :code-format
-           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.13.1"}}
+           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.13.3"}}
             :main-opts ["-m" "cljfmt.main"]}
 
            :outdated
