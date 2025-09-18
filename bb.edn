@@ -146,8 +146,8 @@
            (status/line :detail "Dependencies that do not seem to be referenced by code")
            (status/line :detail "NOTE: Update explanation in bb.edn as you see fit")
            (status/line :detail "")
-      (table/print-table [{:key :dep :title-pad :right :pad :right :title "Dependency"}
-                          {:key :explanation :title-pad :right :pad :right :title "Explanation"}]
+      (table/print-table [{:key :dep         :title-align :left :title "Dependency"  :align :left}
+                          {:key :explanation :title-align :left :title "Explanation" :align :left}]
                          unused-deps)
       (status/line :detail "Total unused deps with no explanation: %d" (count (filter (fn [r] (-> r :explanation nil?)) unused-deps))))}
   nvd-scan
