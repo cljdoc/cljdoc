@@ -1855,12 +1855,13 @@
     "0.2.1"
     "0.2.0"
     "0.1.0"]}
-  {:etag "\"539d143a54136bfd4ca592dc0d9b7021\"",
+  {:etag "\"8265a7b01f71b5e9041e039dbb4ac6a8\"",
    :artifact-id "tools.deps",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.25.1539"
+   ["0.25.1543"
+    "0.25.1539"
     "0.25.1535"
     "0.24.1529"
     "0.24.1523"
@@ -2078,12 +2079,13 @@
     "0.1.35"
     "0.1.29"
     "0.1.14"]}
-  {:etag "\"7e8b19e7cee0aaa2008962514c74e835\"",
+  {:etag "\"6d3ee01ba1be3e28c769c03fd0560016\"",
    :artifact-id "tools.deps.cli",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.12.105"
+   ["0.12.110"
+    "0.12.105"
     "0.11.100"
     "0.11.93"
     "0.11.86"
