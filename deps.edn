@@ -1,10 +1,10 @@
-{:deps {org.clojure/clojure {:mvn/version "1.12.2"}
+{:deps {org.clojure/clojure {:mvn/version "1.12.3"}
 
         ;; configuration
         aero/aero {:mvn/version "1.1.6"}                     ;; rich configuration support with profiles
 
         ;; app component/service orchestration
-        integrant/integrant {:mvn/version "1.0.0"}           ;; configure systems/services that make up your app
+        integrant/integrant {:mvn/version "1.0.1"}           ;; configure systems/services that make up your app
 
         ;; web server/services
         io.pedestal/pedestal.jetty {:mvn/version "0.8.0"}    ;; web site/service with jetty engine
@@ -12,7 +12,7 @@
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.1070" } ;; jdbc abstraction
         org.xerial/sqlite-jdbc {:mvn/version "3.50.3.0"}     ;; jdbc driver needed to talk to our SQLite db
-        dev.weavejester/ragtime {:mvn/version "0.12.0"       ;; database migrations
+        dev.weavejester/ragtime {:mvn/version "0.12.1"       ;; database migrations
                                  :exclusions [dev.weavejester/ragtime.jdbc]} ;; we only use next.jdbc
         com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
         com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.3"}
@@ -45,12 +45,12 @@
         {:mvn/version "20240325.1"}                          ;; sanitize html converted from user markdown
 
         ;; logging
-        ch.qos.logback/logback-classic {:mvn/version "1.5.18"}
+        ch.qos.logback/logback-classic {:mvn/version "1.5.19"}
         org.clojure/tools.logging {:mvn/version "1.3.0"}     ;; logging facade
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.33.13"}
+        software.amazon.awssdk/s3 {:mvn/version "2.34.8"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.3.0.202506031305-r"} ;; git with jsch
@@ -83,7 +83,7 @@
                          cider/cider-nrepl {:mvn/version "0.57.0"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}
                          ;; to support recompiling java code from repl
-                         virgil/virgil {:mvn/version "0.4.0"}
+                         virgil/virgil {:mvn/version "0.5.0"}
                          ;; for ns reload support
                          io.github.tonsky/clj-reload {:mvn/version "1.0.0"}
                          ;; reload support
@@ -134,7 +134,7 @@
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :code-format
-           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.13.3"}}
+           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.13.4"}}
             :main-opts ["-m" "cljfmt.main"]}
 
            :outdated

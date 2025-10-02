@@ -33,12 +33,13 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "\"418a109275fb6cc4a9a09c353ee81ebc\"",
+  {:etag "W/\"eaa409188e54c9ff934abdfd1314c464\"",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.12.2"
+   ["1.12.3"
+    "1.12.2"
     "1.12.1"
     "1.12.0"
     "1.12.0-rc2"
@@ -459,12 +460,13 @@
     "0.0-971"
     "0.0-927"],
    :description "ClojureScript compiler and core runtime library."}
-  {:etag "\"ae2ef7de749a80f400f6460390de57a8\"",
+  {:etag "W/\"b10b3cd84b983d78574e7bae40b173b9\"",
    :artifact-id "core.async",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.9.808-alpha1"
+   ["1.9.829-alpha2"
+    "1.9.808-alpha1"
     "1.8.741"
     "1.8.735"
     "1.8.730"
@@ -1827,12 +1829,13 @@
    :group-id "org.clojure",
    :origin :maven-central,
    :versions ["0.9.2" "0.9.1" "0.9.0" "0.8.4"]}
-  {:etag "\"b23ee987e299f9e5199f0bd3c6c88bf5\"",
+  {:etag "W/\"7b2e6c14a1188350fa631f31a3b2a501\"",
    :artifact-id "tools.cli",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.1.230"
+   ["1.2.245"
+    "1.1.230"
     "1.0.219"
     "1.0.214"
     "1.0.206"
@@ -1855,12 +1858,14 @@
     "0.2.1"
     "0.2.0"
     "0.1.0"]}
-  {:etag "\"8265a7b01f71b5e9041e039dbb4ac6a8\"",
+  {:etag "W/\"4c82b3408fbca903b9f81fb255eaa4b9\"",
    :artifact-id "tools.deps",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.25.1543"
+   ["0.26.1553"
+    "0.26.1549"
+    "0.25.1543"
     "0.25.1539"
     "0.25.1535"
     "0.24.1529"
@@ -2079,12 +2084,13 @@
     "0.1.35"
     "0.1.29"
     "0.1.14"]}
-  {:etag "\"6d3ee01ba1be3e28c769c03fd0560016\"",
+  {:etag "W/\"db6ab74a58d6d06a23083e0e3c4ff65c\"",
    :artifact-id "tools.deps.cli",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.12.110"
+   ["0.13.115"
+    "0.12.110"
     "0.12.105"
     "0.11.100"
     "0.11.93"
