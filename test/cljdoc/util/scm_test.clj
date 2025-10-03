@@ -90,12 +90,17 @@
   (t/is (= "git@gitea.heevyis.ninja:josha/formulare.git" (scm/ssh-uri "https://gitea.heevyis.ninja/josha/formulare")))
   (t/is (= "git@unknown-scm.com:circleci/clj-yaml.git" (scm/ssh-uri "https://unknown-scm.com/circleci/clj-yaml"))))
 
-(t/deftest scm-uri-inversion-test-to-http
-  (t/is (= "http://github.com/circleci/clj-yaml" (scm/http-uri "git@github.com:circleci/clj-yaml.git")))
-  (t/is (= "http://gitea.heevyis.ninja/josha/formulare" (scm/http-uri "git@gitea.heevyis.ninja:josha/formulare.git")))
-  (t/is (= "http://unknown-scm.com/circleci/clj-yaml" (scm/http-uri "git@unknown-scm.com:circleci/clj-yaml"))))
+(t/deftest scm-uri-inversion-test-to-https
+  (t/is (= "https://github.com/circleci/clj-yaml" (scm/http-uri "git@github.com:circleci/clj-yaml.git")))
+  (t/is (= "https://gitea.heevyis.ninja/josha/formulare" (scm/http-uri "git@gitea.heevyis.ninja:josha/formulare.git")))
+  (t/is (= "https://unknown-scm.com/circleci/clj-yaml" (scm/http-uri "git@unknown-scm.com:circleci/clj-yaml"))))
 
-(t/deftest http-uri-remove-extra-segments
+(t/deftest http-preserve-groups-for-gitlab
+  ;; gitlab supports groups and subgroups
+  (t/is (= "https://gitlab.com/group1/group2/group3/project"
+           (scm/http-uri "https://gitlab.com/group1/group2/group3/project"))))
+
+(t/deftest http-uri-remove-extra-segments-for-non-gitlab
   (t/is (= "http://github.com/circleci/clj-yaml" (scm/http-uri "http://github.com/circleci/clj-yaml/some/extra/stuff")))
   (t/is (= "https://github.com/circleci/clj-yaml" (scm/http-uri "https://github.com/circleci/clj-yaml/some/extra/stuff"))))
 
@@ -108,6 +113,8 @@
 (t/deftest normalize-git-url-test
   (t/is (= (scm/normalize-git-url "git@github.com:clojure/clojure.git")
            "https://github.com/clojure/clojure"))
+  (t/is (= (scm/normalize-git-url "git@foobar.com:clojure/clojure.git")
+           "https://foobar.com/clojure/clojure"))
   (t/is (= (scm/normalize-git-url "http://github.com/clojure/clojure.git")
            "https://github.com/clojure/clojure"))
   (t/is (= (scm/normalize-git-url "http://github.com/clojure/clojure")

@@ -52,7 +52,10 @@
   [scm-url]
   (cond
     (string/starts-with? scm-url "http")
-    (re-find #"http.*//[^/]*/[^/]*/[^/]*" scm-url)
+    ;; gitlab supports groups and subgroups, so no stripping of extra segments for it
+    (if (= :gitlab (provider scm-url))
+      scm-url
+      (re-find #"http.*//[^/]*/[^/]*/[^/]*" scm-url))
 
     (or (string/starts-with? scm-url "git@")
         (string/starts-with? scm-url "ssh://"))
@@ -60,7 +63,7 @@
         (string/replace #":" "/")
         (string/replace #"\.git$" "")
         ;; three slashes because of prior :/ replace
-        (string/replace #"^(ssh///)*git@" "http://"))))
+        (string/replace #"^(ssh///)*git@" "https://"))))
 
 (defn fs-uri
   "Normalize a provided `scm-path` to it's canonical path,
@@ -134,5 +137,5 @@
   [s]
   (cond-> s
     (string/starts-with? s "http") (string/replace #"^http://" "https://")
-    (string/starts-with? s "git@github.com:") (string/replace #"^git@github.com:" "https://github.com/")
+    (string/starts-with? s "git@") (string/replace #"^git@(.*):" "https://$1/")
     (string/ends-with? s ".git") (string/replace #".git$" "")))
