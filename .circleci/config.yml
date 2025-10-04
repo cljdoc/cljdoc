@@ -2,7 +2,7 @@ version: 2.1
 
 aliases:
   - &clojure_image
-    - image: clojure:temurin-24-tools-deps-noble
+    - image: clojure:temurin-25-tools-deps-noble
 
   - &restore_clojure_cache
     restore_cache:

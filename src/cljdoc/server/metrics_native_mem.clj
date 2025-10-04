@@ -36,6 +36,9 @@
                  (count (re-find #"^-? *\(? *" line)))
         line (-> line
                  str/lower-case
+                 ;; jdk25 introduced tag=, which we don't need
+                 ;; (malloc=75KB tag=Native Memory Tracking #1339) (peak=76KB #1354)
+                 (str/replace #"tag=(\w+ )+" "")
                  (str/replace #"(\d+)kb" "!$1")  ;; change syntax so we don't interfere with hyphenation replacement
                  (str/replace #"([a-z]) ([a-z])" "$1-$2"))
         [group metrics-data] (if (str/starts-with? line "-")
@@ -139,7 +142,25 @@
   (parse-output-text (get-native-memory-metrics-text)))
 
 (comment
+  (str/replace "   (malloc=6139KB tag=Class #69941)"
+               #"tag=(\w+ )+" "")
+  ;; => "   (malloc=6139KB #69941)"
+
+  (str/replace "    (malloc=75KB tag=Native Memory Tracking #1339) (peak=76KB #1354)"
+               #"tag=(\w+ )+" "")
+  ;; => "    (malloc=75KB #1339) (peak=76KB #1354)"
+
   (println (get-native-memory-metrics-text))
+
+  (spit (str "fiddle/native-mem-stats-"
+             (System/getProperty "java.version")
+             ".txt")
+        (get-native-memory-metrics-text))
+
+  (spit (str "fiddle/native-mem-stats-"
+             (System/getProperty "java.version")
+             ".edn")
+        (pr-str (metrics)))
 
   (metrics)
 

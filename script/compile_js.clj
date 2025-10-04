@@ -41,7 +41,7 @@ Options
        (str (fs/file source-asset-dir source-asset-static-subdir "*.*"))))
 
 (defn- compile-with-hash [{:keys [source-asset-dir target-dir]}]
-  (status/line :head "compiling-js: with hash")
+  (status/line :head "compile-js: with hash")
   (cmd "npx"
        "--yes"
        "esbuild"
@@ -72,6 +72,8 @@ Options
   (cmd "npx"
        "--yes"
        "esbuild"
+       "--jsx=automatic"
+       "--jsx-import-source=preact"
        "--target=es2017"
        "--resolve-extensions=.jsx,.js"
        "--minify"
