@@ -41,7 +41,7 @@ Options
        (str (fs/file source-asset-dir source-asset-static-subdir "*.*"))))
 
 (defn- compile-with-hash [{:keys [source-asset-dir target-dir]}]
-  (status/line :head "compiling-js: with hash")
+  (status/line :head "compile-js: with hash")
   (cmd "npx"
        "--yes"
        "esbuild"
