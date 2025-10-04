@@ -1,4 +1,4 @@
-FROM eclipse-temurin:24-alpine
+FROM eclipse-temurin:25-alpine
 
 WORKDIR /tmp
 
