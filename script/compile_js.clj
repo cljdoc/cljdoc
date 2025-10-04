@@ -72,6 +72,8 @@ Options
   (cmd "npx"
        "--yes"
        "esbuild"
+       "--jsx=automatic"
+       "--jsx-import-source=preact"
        "--target=es2017"
        "--resolve-extensions=.jsx,.js"
        "--minify"
