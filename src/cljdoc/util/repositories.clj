@@ -1,7 +1,7 @@
 (ns cljdoc.util.repositories
-  (:require [babashka.http-client :as http]
-            [cljdoc-shared.proj :as proj]
+  (:require [cljdoc-shared.proj :as proj]
             [cljdoc.config :as config]
+            [cljdoc.http-client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string])
   (:import (org.jsoup Jsoup)
