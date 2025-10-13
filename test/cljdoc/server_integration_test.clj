@@ -1,7 +1,7 @@
 (ns ^:slow ^:integration cljdoc.server-integration-test
   (:require [babashka.fs :as fs]
-            [babashka.http-client :as http]
             [cheshire.core :as json]
+            [cljdoc.http-client :as http]
             [cljdoc.server.built-assets :as built-assets]
             [cljdoc.server.log.init :as log-init]
             [cljdoc.server.search.clojars :as clojars]

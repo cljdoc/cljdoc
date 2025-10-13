@@ -25,18 +25,30 @@
 (def ^:private nomad-base-uri "http://localhost:4646")
 (def ^:private consul-base-uri "http://localhost:8500")
 
+(defn http-request
+  "Wrap only to set timeout defaults"
+  [opts]
+  (http/request (assoc opts
+                       :timeout (* 5 60 1000)
+                       :client (http/client
+                                 (merge http/default-client-opts
+                                        {:connect-timeout (* 15 1000)})))))
+
 (defn- nomad-get [path]
-  (json/parse-string (:body (http/get (str nomad-base-uri path)))))
+  (json/parse-string (:body (http-request {:method :get
+                                           :uri (str nomad-base-uri path)}))))
 
 (defn- nomad-post! [path body]
-  (->> (http/post (str nomad-base-uri path)
-                  {:body (json/generate-string body)})
+  (->> (http-request {:method :post
+                      :uri (str nomad-base-uri path)
+                      :body (json/generate-string body)})
        :body
        json/parse-string))
 
 (defn- consul-put! [k v]
-  (->> (http/put (str consul-base-uri "/v1/kv/" k)
-                 {:body v})
+  (->> (http-request {:method :put
+                      :uri (str consul-base-uri "/v1/kv/" k)
+                      :body v})
        :body
        json/parse-string))
 
@@ -124,8 +136,9 @@
 (defn- tag-exists?
   "Return true if given `tag` exists in the DockerHub cljdoc/cljdoc repository."
   [tag]
-  (let [status (:status (http/head (format "https://hub.docker.com/v2/repositories/cljdoc/cljdoc/tags/%s/" tag)
-                                   {:throw false}))]
+  (let [status (:status (http-request {:method :head
+                                       :uri (format "https://hub.docker.com/v2/repositories/cljdoc/cljdoc/tags/%s/" tag)
+                                       :throw false}))]
     (log/info "check for existence of docker tag" tag "returned" status)
     (= 200 status)))
 

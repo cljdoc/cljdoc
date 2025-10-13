@@ -4,9 +4,9 @@
   - moved to current, non-deprecated, sentry.io evenlope REST API
   - log full exception chain
   - send events indirectly via logging appender."
-  (:require [babashka.http-client :as http]
-            [cheshire.core :as json]
+  (:require [cheshire.core :as json]
             [cljdoc.config :as cfg]
+            [cljdoc.http-client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string]
             [lambdaisland.uri :as uri]

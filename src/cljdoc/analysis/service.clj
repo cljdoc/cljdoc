@@ -1,8 +1,8 @@
 (ns cljdoc.analysis.service
-  (:require [babashka.http-client :as http]
-            [cheshire.core :as json]
+  (:require [cheshire.core :as json]
             [cljdoc-shared.analysis :as analysis]
             [cljdoc.git-repo :as git-repo]
+            [cljdoc.http-client :as http]
             [clojure.java.io :as io]
             [clojure.java.shell :as sh]
             [clojure.tools.logging :as log]))

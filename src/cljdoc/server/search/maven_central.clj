@@ -2,8 +2,8 @@
   "Fetch listing of artifacts from maven central."
   (:require
    [babashka.fs :as fs]
-   [babashka.http-client :as http]
    [cljdoc-shared.pom :as pom]
+   [cljdoc.http-client :as http]
    [cljdoc.spec :as cljdoc-spec]
    [cljdoc.util.repositories :as mvn-repo]
    [clojure.edn :as edn]

@@ -1,7 +1,7 @@
 (ns cljdoc.server.search.clojars
   "Fetch listing of artifacts from clojars."
   (:require
-   [babashka.http-client :as http]
+   [cljdoc.http-client :as http]
    [cljdoc.spec :as cljdoc-spec]
    [clojure.edn :as edn]
    [clojure.java.io :as io]

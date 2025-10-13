@@ -8,9 +8,9 @@
   - their team asks that we only make necessary calls to their APIs to reduce overall traffic
   - existing hourly bulk update check is sufficient
   - manual invokation of doc building is still possible for the impatient"
-  (:require [babashka.http-client :as http]
-            [cljdoc-shared.proj :as proj]
+  (:require [cljdoc-shared.proj :as proj]
             [cljdoc.config :as config]
+            [cljdoc.http-client :as http]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.search.api :as sc]
             [cljdoc.util.repositories :as repositories]
@@ -234,12 +234,13 @@
 
   (def db-spec (cljdoc.config/db cfg))
   (oldest-not-built db-spec)
+  ;; => nil
 
   (build-queuer-job-fn {:db-spec db-spec :build-tracker identity :dry-run? false :max-retries 1})
 
   (def ts (last-release-ts db-spec))
   ts
-  ;; => #object[java.time.Instant 0x676285f "2024-12-21T23:53:58.898Z"]
+  ;; => #object[java.time.Instant 0x1db22fea "2025-10-09T16:01:33.830Z"]
 
   (clojars-releases-since ts)
 
