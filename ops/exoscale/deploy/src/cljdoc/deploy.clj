@@ -31,8 +31,8 @@
   (http/request (assoc opts
                        :timeout (* 5 60 1000)
                        :client (http/client
-                                 (merge http/default-client-opts
-                                        {:connect-timeout (* 15 1000)})))))
+                                (merge http/default-client-opts
+                                       {:connect-timeout (* 15 1000)})))))
 
 (defn- nomad-get [path]
   (json/parse-string (:body (http-request {:method :get
