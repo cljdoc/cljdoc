@@ -14,35 +14,18 @@
   column which is used to store most of the information in a schema-less manner.
   See [[get-namespaces]] and [[get-vars]] for details.
 
-  All `meta` columns are serialized with [Nippy](https://github.com/ptaoussanis/nippy).
-
-  #### JDBC, HUGSQL, SQLite
-
-  For most of the time this namespace only used raw jdbc functions since queries
-  were basic. At some point the need for more complex queries arose [1] and HUGSQL was added
-  to the mix."
+  All `meta` columns are serialized with [Nippy](https://github.com/ptaoussanis/nippy)."
   (:require [cljdoc-shared.proj :as proj]
             [cljdoc.user-config :as user-config]
             [cljdoc.util.version :as version]
             [clojure.set :as cset]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
-            [hugsql.adapter.next-jdbc :as adapter]
-            [hugsql.core :as hugsql]
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
             [next.jdbc.sql :as sql]
-            [taoensso.nippy :as nippy]
-            [taoensso.tufte :as tufte :refer [defnp]])
+            [taoensso.nippy :as nippy])
   (:import (org.sqlite SQLiteException)))
-
-;; keep our linter happy by declaring hugsql imported functions
-(declare sql-resolve-version-ids)
-(declare sql-get-namespaces)
-(declare sql-get-vars)
-
-(hugsql/def-db-fns "sql/sqlite_impl.sql"
-  {:adapter (adapter/hugsql-adapter-next-jdbc)})
 
 ;; Writing ----------------------------------------------------------------------
 
@@ -88,7 +71,7 @@
 
 ;; Reading ----------------------------------------------------------------------
 
-(defnp ^:private get-version-id
+(defn- get-version-id
   [db-spec group-id artifact-id version-name]
   {:pre [(and group-id artifact-id version-name)]}
   (-> (sql/query db-spec
@@ -98,7 +81,7 @@
       first
       :id))
 
-(defnp ^:private get-version
+(defn- get-version
   "Returns metadata for specific `version-id` a map:
    - `:config` - a copy of the actual cljdoc.edn in the library git repo for example:
        ```
@@ -140,20 +123,26 @@
 (defn- version-row-fn [r]
   (cset/rename-keys r {:group_id :group-id, :artifact_id :artifact-id, :name :version}))
 
-(defnp ^:private resolve-version-ids [db-spec version-entities]
-  (let [v-tuples (map (fn [v] [(:group-id v) (:artifact-id v) (:version v)]) version-entities)]
-    (->> (sql-resolve-version-ids db-spec {:version-entities v-tuples})
-         (map version-row-fn))))
-
-;; TODO We currently store various fields in metadata and the database table
-;; this is probably a bad idea as it might lead to inconsistencies and because
-;; we would have to manually verify conformance of blob data compared to
-;; non-null columns where conformance is ensured on insert
+(defn- resolve-version-ids [db-spec version-entities]
+  (when (seq version-entities)
+    (let [v-tuples (map (fn [v] [(:group-id v) (:artifact-id v) (:version v)]) version-entities)
+          tuple-?  (string/join "," (repeat 3 "?"))
+          tuples-? (string/join "," (repeat (count v-tuples) (str "(" tuple-? ")")))]
+      (->> (sql/query db-spec
+                      (into [(string/join
+                              "\n"
+                              [(format "WITH v_ents(gid,aid,name) AS (VALUES %s)" tuples-?)
+                               "SELECT id, group_id, artifact_id, name"
+                               "FROM versions"
+                               "WHERE (group_id, artifact_id, name) IN v_ents"])]
+                            (mapcat identity v-tuples))
+                      {:builder-fn rs/as-unqualified-maps})
+           (map version-row-fn)))))
 
 (defn index-by [f m]
   (into {} (map (juxt f identity) m)))
 
-(defnp ^:private get-namespaces
+(defn- get-namespaces
   "Returns a sequence of namespaces for `resolved-versions` (as in version.id).
 
   A namespace is returned for each available platform:
@@ -165,18 +154,26 @@
   Database note: Items marked with [blob] are stored in nippy blob only."
   [db-spec resolved-versions]
   (let [id-indexed (index-by :id resolved-versions)]
-    (->> (sql-get-namespaces db-spec {:version-ids (map :id resolved-versions)})
+    (->> (sql/query db-spec
+                    (into [(string/join
+                            "\n"
+                            ["select version_id, name, meta"
+                             "from namespaces"
+                             (format "where version_id IN (%s)"
+                                     (string/join "," (repeat (count resolved-versions) "?")))])]
+                          (map :id resolved-versions))
+                    {:builder-fn rs/as-unqualified-maps})
          ;; Match up version entities so each namespace can be linked back to it's artifact
          (map (fn [r] (assoc r :version-entity (get id-indexed (:version_id r)))))
          ;; Deserialize nippy, add name and version entity to map
          (map (fn [r] (merge (-> r :meta nippy/thaw) (select-keys r [:name :version-entity])))))))
 
-(defnp ^:private vars-row-fn [r]
+(defn- vars-row-fn [r]
   (assert (-> r :meta nippy/thaw :namespace)
           (format "namespace missing from meta"))
   (-> r :meta nippy/thaw (assoc :name (:name r))))
 
-(defnp ^:private get-vars
+(defn- get-vars
   "Return a sequence vars for `namespaces-with-resolved-version-entities`, see the [[get-namespaces]] return.
 
   A var is returned for each available platform:
@@ -195,11 +192,21 @@
 
   Database note: Items marked with [blob] are stored in nippy blob only."
   [db-spec namespaces-with-resolved-version-entities]
-  (let [ns-idents (->> namespaces-with-resolved-version-entities
-                       (map (fn [ns] [(-> ns :version-entity :id) (:name ns)])))]
-    (assert (seq ns-idents))
-    (->> (sql-get-vars db-spec {:ns-idents ns-idents})
-         (map vars-row-fn))))
+  (when (seq namespaces-with-resolved-version-entities)
+    (let [ns-idents (->> namespaces-with-resolved-version-entities
+                         (map (fn [ns] [(-> ns :version-entity :id) (:name ns)])))
+          tuple-?  (string/join "," (repeat 2 "?"))
+          tuples-? (string/join "," (repeat (count ns-idents) (str "(" tuple-? ")")))]
+      (assert (seq ns-idents))
+      (->> (sql/query db-spec
+                      (into [(string/join
+                              "\n"
+                              [(format "WITH pairs(id, ns) AS (VALUES %s)" tuples-?)
+                               "SELECT name, meta"
+                               "FROM vars WHERE (version_id, namespace) IN pairs"])]
+                            (mapcat identity ns-idents))
+                      {:builder-fn rs/as-unqualified-maps})
+           (map vars-row-fn)))))
 
 (defn- sql-exists?
   "A small helper to deal with the complex keys that sqlite returns for exists queries."
@@ -224,7 +231,7 @@
                    {:builder-fn rs/as-unqualified-maps})
         (map version-row-fn))))
 
-(defnp latest-release-version [db-spec {:keys [group-id artifact-id]}]
+(defn latest-release-version [db-spec {:keys [group-id artifact-id]}]
   (->> (get-documented-versions db-spec group-id artifact-id)
        (map :version)
        (remove #(string/ends-with? % "-SNAPSHOT"))
@@ -246,33 +253,38 @@
         (sql-exists? db-spec ["select exists(select id from vars where version_id = ?)" v-id]))))
 
 (defn bundle-docs
-  "Bundles the documentation for a particular artifact.
+  "Reads and bundles the documentation for the specified artifact.
 
-  If `dependency-version-entities` are provided namespaces and vars from those dependencies
-  will also be included which was mainly added to support module-based libraries.
+  When a libary includes submodules via `include-namespaces-from-deps` in its `cljdoc.edn`
+  (for example, example reitit), the namespaces from those specified deps (if their docs
+  have been built) will be included. Submodule dep versions come from
+  `dependency-version-entities`, which should be the direct dependencies found in the
+  project's pom.  
 
   **Note:** When rendering namespaces we ultimately need some information about the backing Git
   repository to create proper source links. For now this is only supported if the modules
   included via `dependency-version-entities`are backed by the same Git repository as the primary
   artifact."
   [db-spec {:keys [group-id artifact-id version dependency-version-entities] :as v}]
-  (let [primary-version-entity (select-keys v [:group-id :artifact-id :version])
-        resolved-versions      (resolve-version-ids db-spec (conj dependency-version-entities primary-version-entity))
-        primary-resolved       (first (filter #(= primary-version-entity (dissoc % :id)) resolved-versions))]
-    (if-not primary-resolved
-      (throw (Exception. (format "Could not find version %s" v)))
-      (let [version-data (or (get-version db-spec (:id primary-resolved)) {})
-            ;; TODO: is this misleading? I don't know that version data config retrieved from db will ever have sub-project configs merged
-            include-cfg  (user-config/include-namespaces-from-deps (:config version-data) (proj/clojars-id v))
-            wanted?      (set (map proj/normalize include-cfg))
-            extra-deps   (filter #(wanted? (str (:group-id %) "/" (:artifact-id %))) resolved-versions)
-            namespaces   (set (get-namespaces db-spec (conj extra-deps primary-resolved)))]
-        {:version    version-data
+  (let [version-id (get-version-id db-spec group-id artifact-id version)]
+    (if (not version-id)
+      (throw (ex-info (format "Could not find version %s" v) {}))
+      (let [version-data (get-version db-spec version-id)
+            requested-sub-artifacts (into #{}
+                                          (map (fn [p]
+                                                 {:group-id (proj/group-id p)
+                                                  :artifact-id (proj/artifact-id p)})
+                                               (user-config/include-namespaces-from-deps
+                                                (:config version-data) (proj/clojars-id v))))
+            ;; we'll search for the intersection of dependencies and requested-sub-artifacts
+            sub-projects-with-versions (filter (fn [d]
+                                                 (requested-sub-artifacts (select-keys d [:group-id :artifact-id])))
+                                               dependency-version-entities)
+            sub-resolved-version-data (resolve-version-ids db-spec sub-projects-with-versions)
+            namespaces (set (get-namespaces db-spec (into [(assoc v :id version-id)] sub-resolved-version-data)))]
+        {:version version-data
          :namespaces namespaces
-         ;; NOTE maybe we should only load defs for a subset of namespaces
-         :defs       (if (seq namespaces)
-                       (set (get-vars db-spec namespaces))
-                       #{})
+         :defs (set (get-vars db-spec namespaces))
          :latest (latest-release-version db-spec v)
          :version-entity {:group-id group-id
                           :artifact-id artifact-id
@@ -320,19 +332,20 @@
 
   (get-version db-spec 55630)
 
-  (sql-resolve-version-ids db-spec {:version-entities [["rewrite-clj" "rewrite-clj" "1.1.47"]]})
-  ;; => [{:id 55630,
-  ;;      :group_id "rewrite-clj",
-  ;;      :artifact_id "rewrite-clj",
-  ;;      :name "1.1.47"}]
-
-  (resolve-version-ids db-spec [{:group-id "rewrite-clj" :artifact-id "rewrite-clj" :version "1.1.47"}])
-  ;; => ({:id 55630,
+  (def versions (resolve-version-ids db-spec [{:group-id "rewrite-clj" :artifact-id "rewrite-clj" :version "1.1.47"}
+                                              {:group-id "com.github.seancorfield" :artifact-id "next.jdbc" :version "1.3.1070"}]))
+  ;; => #'cljdoc.storage.sqlite-impl/versions
+  versions
+  ;; => ({:id 78191,
+  ;;      :group-id "com.github.seancorfield",
+  ;;      :artifact-id "next.jdbc",
+  ;;      :version "1.3.1070"}
+  ;;     {:id 55630,
   ;;      :group-id "rewrite-clj",
   ;;      :artifact-id "rewrite-clj",
   ;;      :version "1.1.47"})
 
-  (sql-get-vars db-spec {:ns-idents [[2838 "rewrite-clj.zip"]]})
+  (get-namespaces db-spec versions)
 
   (get-vars db-spec [{:name "rewrite-clj.zip" :version-entity {:id 2838}}])
 
@@ -344,4 +357,6 @@
 
   (store-artifact! db-spec (:group-id data) (:artifact-id data) [(:version data)])
 
-  (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data)))
+  (get-version-id db-spec (:group-id data) (:artifact-id data) (:version data))
+
+  :eoc)

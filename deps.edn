@@ -14,8 +14,6 @@
         org.xerial/sqlite-jdbc {:mvn/version "3.50.3.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.12.1"       ;; database migrations
                                  :exclusions [dev.weavejester/ragtime.jdbc]} ;; we only use next.jdbc
-        com.layerware/hugsql-core {:mvn/version "0.5.3"}     ;; SQL abstraction
-        com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.3"}
         com.taoensso/nippy {:mvn/version "3.6.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
@@ -61,7 +59,6 @@
         babashka/process {:mvn/version "0.6.23"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.1.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.312"}              ;; file system utilities
-        com.taoensso/tufte {:mvn/version "3.0.0"}            ;; profile/perf monitoring
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
         prone/prone {:mvn/version "2021-04-23"}              ;; exceptions->data for sentry
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
