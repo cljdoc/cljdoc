@@ -155,7 +155,6 @@
   (integrant.repl/halt)
   (integrant.repl/clear)
   (integrant.repl/reset)
-  (taoensso.tufte/add-basic-println-handler! {})
 
   integrant.repl.state/system
   integrant.repl.state/config
