@@ -1,2 +1,0 @@
-{:suppression-file "nvd-suppressions.xml"
- :output-dir "../../target/nvd"}

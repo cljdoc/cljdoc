@@ -1,0 +1,31 @@
+;; For vulnerability scan, decided to always scan with latest versions of
+;; primary deps.
+;;
+;; A first, isolated to subdir on recommendation of nvd-clojure.
+;; But after switching to clj-watson, saw benefit, not for security reasons,
+;; but for ci caching (should we ever scan from ci, we'll invalidate the cache only when
+;; nvd-scan related things change).
+{:tasks
+ {:requires ([clojure.edn :as edn])
+  :init (do (defn get-deps []
+              (reduce (fn [acc lib]
+                        (let [coord (-> (clojure {:out :string} "-X:deps"
+                                                 "find-versions"
+                                                 ":lib" lib
+                                                 ":n" 1)
+                                        :out
+                                        edn/read-string)]
+                          (assoc acc lib coord)))
+                      {}
+                      ['io.github.clj-holmes/clj-watson 'org.owasp/dependency-check-core])))
+  nvd-scan {:doc "run vulnerability scan"
+            :task (let [deps {:deps (get-deps)}]
+                    (println "using latest:" deps)
+                    (shell "clojure" "-Sdeps" (pr-str deps)
+                           "-M" "-m" "clj-watson.cli"
+                           "scan"
+                           "--deps-edn-path" "../../deps.edn"
+                           "--fail-on-result"
+                           "--aliases" "cli"
+                           "--suggest-fix"
+                           "--clj-watson-properties" "clj-watson.properties"))}}}
