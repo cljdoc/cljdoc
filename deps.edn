@@ -131,7 +131,7 @@
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :code-format
-           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.13.4"}}
+           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.14.0"}}
             :main-opts ["-m" "cljfmt.main"]}
 
            :outdated
