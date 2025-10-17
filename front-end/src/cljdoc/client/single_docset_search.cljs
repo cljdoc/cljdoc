@@ -100,7 +100,8 @@
                         (mapv #(assoc % :kind :doc) (:docs search-set))]
                        (reduce into [])
                        (map-indexed (fn [ndx item]
-                                      (assoc item :id ndx))))]
+                                      (assoc item :id ndx)))
+                       doall)]
         (js-await (.put db "searchsets"
                         {:storedAt (.toISOString (js/Date.))
                          :version SEARCHSET_VERSION
