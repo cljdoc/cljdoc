@@ -67,10 +67,8 @@
                         :ref results-view-node}
                        (-> (for [[idx result] (map-indexed vector results)]
                              #jsx [:div {:onMouseOver (fn []
-                                                        (println "onMouseOver")
                                                         (set-selected-ndx! idx))
                                          :onMouseDown (fn []
-                                                        (println "click!!!")
                                                         (set-selected-ndx! idx)
                                                         (onActivateItem (get results idx)))}
                                    (h rowView
