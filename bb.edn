@@ -4,7 +4,7 @@
                            :sha "cf44c15f30ea3867227fa61ceb823e5e942c707f"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
         etaoin/etaoin {:mvn/version "1.1.43"}
-        io.github.borkdude/unused-deps {:git/sha "27fabdad3e4095ae1cca58bd6b047fb9a36fbb76"}
+        io.github.borkdude/unused-deps {:git/sha "c6673b5549d02fa131d21b61695e283b18124b59"}
         org.clj-commons/pretty {:mvn/version "3.6.7"}}
  :pods {org.babashka/fswatcher {:version "0.0.7"}}
  :tasks
@@ -152,12 +152,7 @@
       (status/line :detail "Total unused deps with no explanation: %d" (count (filter (fn [r] (-> r :explanation nil?)) unused-deps))))}
   nvd-scan
   {:doc "Scan Clojure deps for vulnerabilities"
-   :task (let [cp (with-out-str (clojure "-Spath -M:cli"))]
-           ;; nvd-clojure docs have a strong opinion that nvd-scan should be run from it own dir
-           (clojure {:dir "./modules/nvd-scan"}
-                    "-J-Dclojure.main.report=stderr -M -m nvd.task.check"
-                    "./nvd-config.edn"
-                    cp))}
+   :task (shell {:dir "./modules/nvd-scan"} "bb nvd-scan")}
 
   deploy
   {:doc "ops: Deploy to Production (run by CircleCI)"

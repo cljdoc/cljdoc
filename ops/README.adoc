@@ -256,21 +256,21 @@ https://traefik.io[Traefik] generates SSL certificates automatically through Let
 Experts will uncover vulnerabilities in some of the technologies we use.
 It is inevitable.
 
-We use https://github.com/rm-hull/nvd-clojure[nvd-clojure] to scan cljdoc dependencies for known security issues in our cljdoc docker image.
-Run `nvd-check.sh` to launch a scan.
+We use https://github.com/clj-holmes/clj-watson[clj-watson] to scan cljdoc dependencies for known security issues in our dependencies.
 You must specify a NVD database token, get yours here: https://nvd.nist.gov/developers/request-an-api-key
 
 Example usage from cljdoc root:
 [source,shell]
 ----
-NVD_API_TOKEN=your-token-here bb nvd-scan
+CLJ_WATSON_NVD_API_KEY=your-token-here bb nvd-scan
 ----
 Replace `your-token-here` with your actual token.
 
-You'll find reports under `target/nvd/` off the cljdoc project root dir.
-The html report is probably the most useful.
+You can also optionally specify https://github.com/clj-holmes/clj-watson/blob/main/README.md#oss-index-configuration[OSSIndex credentials].
+
+Vulnerabilities and suggested fixes are written to the terminal.
 Be aware that the scan sometimes reports false positives.
-After some careful verification, you can quiet false positives via `nvd-suppresions.xml`.
+After some careful verification, you can quiet false positives via `suppresions.xml`.
 
 Other tools such as https://github.com/aquasecurity/trivy[trivy] can identify security holes.
 Trivy seems to be good at finding issues in docker images and configuration.

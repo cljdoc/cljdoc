@@ -48,7 +48,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.34.8"}
+        software.amazon.awssdk/s3 {:mvn/version "2.35.8"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.4.0.202509020913-r"} ;; git with jsch
@@ -76,8 +76,8 @@
 
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:nrepl
-           {:extra-deps {nrepl/nrepl {:mvn/version "1.4.0"}
-                         cider/cider-nrepl {:mvn/version "0.57.0"}
+           {:extra-deps {nrepl/nrepl {:mvn/version "1.5.0"}
+                         cider/cider-nrepl {:mvn/version "0.58.0"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}
                          ;; to support recompiling java code from repl
                          virgil/virgil {:mvn/version "0.5.0"}
@@ -131,7 +131,7 @@
             :main-opts ["-m"  "cljdoc.cli"]}
 
            :code-format
-           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.13.4"}}
+           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.14.0"}}
             :main-opts ["-m" "cljfmt.main"]}
 
            :outdated
