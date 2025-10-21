@@ -2,7 +2,7 @@
   "name": "cljdoc",
   "type": "module",
   "dependencies": {
-    "squint-cljs": "0.8.159",
+    "squint-cljs": "0.9.174",
     "elasticlunr": "0.9.5",
     "fuzzysort": "3.1.0",
     "idb": "8.0.3",
