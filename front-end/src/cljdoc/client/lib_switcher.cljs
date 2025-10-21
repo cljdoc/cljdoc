@@ -74,8 +74,9 @@
                                     (or (and is-macos? metaKey) (and (not is-macos?) ctrlKey)))
                                (do
                                  (.preventDefault e)
-                                 (set-show! true)
-                                 (set-results! recently-visited-docs))
+                                 (when (seq recently-visited-docs)
+                                   (set-show! true)
+                                   (set-results! recently-visited-docs)))
 
                                (= "Escape" key)
                                (do

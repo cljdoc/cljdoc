@@ -20,6 +20,7 @@
         [input-value set-input-value!] (useState (or initialValue ""))
         [refresh set-refresh!] (useState 0)] ;; to force refresh when we want
     (useEffect (fn setup []
+                 (.focus (.-current input-node))
                  (when initialValue
                    (resultsFetcher initialValue)))
                [])
