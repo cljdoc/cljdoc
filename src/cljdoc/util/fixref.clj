@@ -132,9 +132,9 @@
 
   * `fix-opts` map contains
     * `:scm-file-path` SCM repo home relative path of content
-    * `:target-path` local relative destination path of content, if provided, used to relativize link paths local path (used for offline bundles)
-    * `:uri-map` - map of relative scm paths to cljdoc doc slugs (or for offline bundles html files)
-    * `:scm` - scm-info from bundle used to link to correct SCM file revision"
+    * `:target-path` local relative destination path of content, if provided, used to relativize link paths local path (used for offline docsets)
+    * `:uri-map` - map of relative scm paths to cljdoc doc slugs (or for offline docset html files)
+    * `:scm` - scm-info from docset used to link to correct SCM file revision"
   [html-str {:keys [scm-file-path target-path scm uri-map] :as _fix-opts}]
   (let [doc (parse-html html-str)]
     (doseq [^Attributes scm-relative-link (->> (.select doc "a")

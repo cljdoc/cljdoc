@@ -92,7 +92,7 @@
   (s/keys :req-un [:cache/versions :cache/artifacts]))
 
 ;;
-;; Cache bundle (combination of the above cache specs)
+;; Docset (combination of the above cache specs)
 ;;
 
 (s/def ::cache-contents
@@ -101,7 +101,7 @@
 
 (s/def ::cache-id ::grimoire-entity)
 
-(s/def ::cache-bundle
+(s/def ::docset
   ;; Not using 'id' and 'contents' as keys here because
   ;; this map is intended as part of the API and explicitly
   ;; mentioning that this data is related to the cache may

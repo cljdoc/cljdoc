@@ -26,7 +26,7 @@
        (-> (merge (repositories/local-uris project version) args)
            (cset/rename-keys {:git :scm-url, :rev :scm-rev})))))))
 
-(defn offline-bundle [{:keys [project version output] :as _args}]
+(defn offline-docset [{:keys [project version output] :as _args}]
   (let [sys           (select-keys (system/system-config (config/config))
                                    [:cljdoc/storage :cljdoc/sqlite])
         sys           (ig/init sys)
@@ -35,10 +35,10 @@
         static-resources (built-assets/load-map)]
     (if (storage/exists? store artifact-info)
       (let [output (io/file output)]
-        (-> (storage/bundle-docs store artifact-info)
+        (-> (storage/load-docset store artifact-info)
             (offline/zip-stream static-resources)
             (io/copy output))
-        (println "Offline bundle created:" (.getCanonicalPath output)))
+        (println "Offline docset created:" (.getCanonicalPath output)))
       (do
         (log/fatalf "%s@%s could not be found in storage" project version)
         (System/exit 1)))))
@@ -74,12 +74,12 @@
                                                                " default: inferred from pom.xml project/scm/tag,"
                                                                "          or if present, git tag representing --version"] :type :string}]
                   :runs        build}
-                 {:command     "offline-bundle"
-                  :description ["Builds an offline documentation bundle for previously ingested project"]
+                 {:command     "offline-docset"
+                  :description ["Builds an offline documentation set for previously ingested project"]
                   :opts        [{:option "project" :short "p" :as "Project to export" :type :string :default :present}
                                 {:option "version" :short "v" :as "Version to export" :type :string :default :present}
                                 {:option "output" :short "o" :as "Path of output zipfile" :type :string :default :present}]
-                  :runs        offline-bundle}
+                  :runs        offline-docset}
                  {:command     "run"
                   :description "Run the cljdoc server (config in resources/config.edn)"
                   :opts        []

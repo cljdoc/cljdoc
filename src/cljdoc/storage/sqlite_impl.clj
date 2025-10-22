@@ -252,8 +252,8 @@
       (let [v-id (get-version-id db-spec group-id artifact-id version-name)]
         (sql-exists? db-spec ["select exists(select id from vars where version_id = ?)" v-id]))))
 
-(defn bundle-docs
-  "Reads and bundles the documentation for the specified artifact.
+(defn load-docset
+  "Reads docset for the specified artifact.
 
   When a libary includes submodules via `include-namespaces-from-deps` in its `cljdoc.edn`
   (for example, example reitit), the namespaces from those specified deps (if their docs

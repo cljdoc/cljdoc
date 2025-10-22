@@ -42,7 +42,7 @@ A sketch at how this could be addressed can be found in the Appendix of this ADR
   - [x] Extract date of first commit this file was added with
 - [x] Define columns & add table that links examples to a specific version
   - [x] Contributor(s), Date added, Example (md)
-- [ ] Integrate examples into cache bundles
+- [ ] Integrate examples into docsets
 - [ ] Integrate examples into UI
 
 

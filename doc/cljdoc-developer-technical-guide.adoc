@@ -379,7 +379,7 @@ It can also be convenient to generate offline docs from the command line:
 
 [source,shell]
 ----
-bb offline-bundle --project bidi --version 2.1.3 --output bidi-2.1.3.zip
+bb offline-docset --project bidi --version 2.1.3 --output bidi-2.1.3.zip
 ----
 
 === Honoring People who Contribute

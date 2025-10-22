@@ -42,7 +42,7 @@
     ["/d/:group-id/:artifact-id/:version" :get nop :route-name :artifact/version]
     ["/d/:group-id/:artifact-id/:version/doc/*article-slug" :get nop :route-name :artifact/doc]
     ["/d/:group-id/:artifact-id/:version/api/:namespace" :get nop :route-name :artifact/namespace]
-    ["/download/:group-id/:artifact-id/:version" :get nop :route-name :artifact/offline-bundle]})
+    ["/download/:group-id/:artifact-id/:version" :get nop :route-name :artifact/offline-docset]})
 
 (defn index-routes []
   #{["/versions" :get nop :route-name :cljdoc/index]

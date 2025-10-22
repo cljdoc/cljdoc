@@ -15,7 +15,7 @@
   (import-api [_ version-entity codox])
   (import-doc [_ version-entity {:keys [doc-tree scm scm-articles jar config]}])
   (exists? [_ entity])
-  (bundle-docs [_ version-entity])
+  (load-docset [_ version-entity])
   (list-versions [_ group-id])
   (all-distinct-docs [_]))
 
@@ -35,8 +35,8 @@
                             (:group-id version-entity)
                             (:artifact-id version-entity)
                             (:version version-entity)))
-  (bundle-docs [_ version-entity]
-    (sqlite/bundle-docs db-spec version-entity))
+  (load-docset [_ version-entity]
+    (sqlite/load-docset db-spec version-entity))
   (list-versions [_ group-id]
     (sqlite/get-documented-versions db-spec group-id))
   (all-distinct-docs [_]

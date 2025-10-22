@@ -226,7 +226,7 @@ http://localhost:8000/d/{example-project-coords}/{example-project-version}
 
 [NOTE]
 ====
-When testing locally, you may also want verify what your library docs look like as an offline bundle: +
+When testing locally, you may also want verify what your library docs look like as an offline docset: +
 http://localhost:8000/download/{example-project-coords}/{example-project-version}.
 ====
 
