@@ -307,7 +307,7 @@
   "Create an interceptor that will initiate documentation builds based
   on provided form params using `analysis-service` for analysis and tracking
   build progress/state via `build-tracker`."
-  [{:keys [build-tracker] :as deps}]
+  [{:keys [build-tracker] :as services}]
   (interceptor/interceptor
    {:name ::request-build
     :enter (fn request-build-handler [ctx]
@@ -317,7 +317,7 @@
                (if-let [running (build-log/running-build build-tracker group-id artifact-id version)]
                  (redirect-to-build-page ctx (:id running))
                  (let [build (api/kick-off-build!
-                              deps {:project project :version version})]
+                              services {:project project :version version})]
                    (redirect-to-build-page ctx (:build-id build))))))}))
 
 (def request-build-validate
@@ -602,7 +602,7 @@
   interesting for ClojureScript where Pededestal can't go.
 
   For more details see `cljdoc.server.routes`."
-  [{:keys [cljdoc-version opensearch-base-url build-tracker storage cache searcher] :as deps}
+  [{:keys [cljdoc-version opensearch-base-url build-tracker storage cache searcher] :as services}
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home %))})]
@@ -629,7 +629,7 @@
                        api-docsets]
 
          :ping          [(interceptor/interceptor {:name ::pong :enter #(pu/ok-html % "pong")})]
-         :request-build [(body/body-params) request-build-validate (request-build deps)]
+         :request-build [(body/body-params) request-build-validate (request-build services)]
 
          :cljdoc/index    (index-pages searcher storage route-name)
          :group/index     (index-pages searcher storage route-name)

@@ -47,7 +47,7 @@
   Optional for `coords` map to support testing:
   - `:jar` and `:pom` can supply non-default paths to local files.
   - `:scm-url` and `:scm-rev` will override `pom.xml` `<scm>` `<url>` and `<tag>`"
-  [{:keys [storage build-tracker] :as deps}
+  [{:keys [storage build-tracker] :as services}
    {:keys [project version jar pom scm-url scm-rev] :as coords}]
   (let [a-uris    (when-not (and jar pom)
                     (or (repositories/artifact-uris project version)
@@ -83,7 +83,7 @@
                    (let [languages (user-config/languages config project)
                          ana-args (if languages (assoc ana-args :languages languages)
                                       ana-args)]
-                     (analyze-and-import-api! deps ana-args)))
+                     (analyze-and-import-api! services ana-args)))
 
                  (catch Throwable e
                    (log/error e (format "Exception while processing %s %s (build %s)" project version build-id))

@@ -18,13 +18,13 @@
         sys        (select-keys (system/system-config (config/config))
                                 [:cljdoc/storage :cljdoc/build-tracker :cljdoc/analysis-service :cljdoc/sqlite])
         sys        (ig/init sys)
-        deps       {:storage (:cljdoc/storage sys)
+        services   {:storage (:cljdoc/storage sys)
                     :build-tracker (:cljdoc/build-tracker sys)
                     :analysis-service (:cljdoc/analysis-service sys)}]
     (deref
      (:future
       (api/kick-off-build!
-       deps
+       services
        (-> (merge (repositories/local-uris project version) opts)
            (cset/rename-keys {:git :scm-url, :rev :scm-rev})))))))
 
