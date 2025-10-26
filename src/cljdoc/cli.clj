@@ -271,5 +271,6 @@ Use <command> --help for help on command")
   (let [{:keys [exit out]} (main* cli-args {})]
     (when out
       (println out))
-    (when exit
-      (System/exit exit))))
+    (if exit
+      (System/exit exit)
+      (shutdown-agents))))
