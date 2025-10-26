@@ -192,8 +192,8 @@
       ;; use content-hashed name for source map to preserve link from generated index.js
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page docset {:docstring-format docstring-format
-                                                    :scm scm-info
-                                                    :uri-map uri-map})
+                                              :scm scm-info
+                                              :uri-map uri-map})
                           (page' {}))]]
 
       ;; Optional assets

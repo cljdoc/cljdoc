@@ -123,7 +123,7 @@ Use <command> --help for help on command")
     :coerce :string}
    :git
    {:desc "Git repository (local or remote)"
-    :default-desc "automatically discovered in pom" 
+    :default-desc "automatically discovered in pom"
     :alias :g
     :coerce :string}
    :rev
@@ -134,21 +134,21 @@ Use <command> --help for help on command")
 (def ingest-opt-order [:project :version :jar :pom :git :rev])
 
 (def offline-docset-spec
- {:project
-  {:desc "Project docset to export"
-   :alias :p
-   :require true}
-  :version
-  {:desc "Project version docset to export"
-   :alias :v
-   :require true}
-  :output
-  {:desc "Path of output zipfile"
-   :alias :o
-   :require true}})
+  {:project
+   {:desc "Project docset to export"
+    :alias :p
+    :require true}
+   :version
+   {:desc "Project version docset to export"
+    :alias :v
+    :require true}
+   :output
+   {:desc "Path of output zipfile"
+    :alias :o
+    :require true}})
 (def offline-docset-opt-order [:project :version :output])
 
-(def table 
+(def table
   [{:cmd "ingest"
     :fn build
     :spec ingest-spec
@@ -187,7 +187,7 @@ Use <command> --help for help on command")
 
       (seq args)
       {:cmd (:cmd cmd-def) :errors [{:msg (str "Command does not accept args, but found: " (str/join " " args))}]}
-      
+
       :else
       {:cmd (:cmd cmd-def)})))
 
@@ -213,7 +213,7 @@ Use <command> --help for help on command")
   (str (error-text "ERRORS:") "\n"
        (reduce (fn [acc e]
                  (str acc " - " e "\n"))
-               "" 
+               ""
                errors)
        "\n"
        usage-help
@@ -266,12 +266,10 @@ Use <command> --help for help on command")
              :exit 1}
             ((or dispatch-fn (:fn cmd-def)) cmd-opts-args)))))))
 
-
-
 (defn -main
   [& cli-args]
   (let [{:keys [exit out]} (main* cli-args {})]
-    (when out 
+    (when out
       (println out))
     (when exit
       (System/exit exit))))

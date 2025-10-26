@@ -43,8 +43,7 @@
                 ["offline-docset" "--help"]
                 ;; legacy old name
                 ["offline-bundle" "-h"]
-                ["offline-bundle" "--help"]
-                ]]
+                ["offline-bundle" "--help"]]]
     (t/is (match? {:exit m/absent
                    :out #"(?s)^Usage: offline-docset <options..>\n\nOptions:\n.*--project.*--output"}
                   (main-test args))
@@ -96,7 +95,7 @@
 ;; invalid args
 ;;
 (t/deftest cmd-missing-test
-  (t/is (match? {:exit 1 
+  (t/is (match? {:exit 1
                  :out (re-pattern (str "^.*ERRORS.*\n"
                                        " - must specify a command.*\n"
                                        "\nUsage: <command>.*\n\n"

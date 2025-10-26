@@ -146,7 +146,7 @@
    version-entities)
 
   (every? (comp valid?
-                 su/load-docset)
-           version-entities)
+                su/load-docset)
+          version-entities)
 
   :eoc)

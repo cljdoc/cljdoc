@@ -6,8 +6,8 @@
             [clojure.test :as t]))
 
 (def docset (-> "resources/test_data/docset.edn"
-                      slurp
-                      edn/read-string))
+                slurp
+                edn/read-string))
 
 (comment
   ;; run regen-results to regenerate expected results.
