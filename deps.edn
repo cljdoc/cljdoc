@@ -129,8 +129,8 @@
                                               :test-paths ["test"]}]}
            :cli
            {:extra-paths ["modules/cli/src"]
-            :extra-deps {cli-matic/cli-matic {:mvn/version "0.5.4"}}
-            :main-opts ["-m"  "cljdoc.cli"]}
+            :extra-deps {org.babashka/cli {:mvn/version "0.8.66"}}
+            :main-opts ["-m" "cljdoc.cli"]}
 
            :code-format
            {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.15.1"}}
