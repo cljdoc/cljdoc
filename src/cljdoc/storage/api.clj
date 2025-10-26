@@ -12,7 +12,7 @@
             [cljdoc.storage.sqlite-impl :as sqlite]))
 
 (defprotocol IStorage
-  (import-api [_ version-entity codox])
+  (import-api [_ version-entity api-analysis])
   (import-doc [_ version-entity {:keys [doc-tree scm scm-articles jar config]}])
   (exists? [_ entity])
   (load-docset [_ version-entity])
