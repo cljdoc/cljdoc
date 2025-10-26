@@ -2,7 +2,6 @@
   "Test command line parsing and validation."
   (:require
    [cljdoc.cli :as cli]
-   [clojure.string :as str]
    [clojure.test :as t]
    [matcher-combinators.matchers :as m]
    [matcher-combinators.test]))

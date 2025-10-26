@@ -69,7 +69,7 @@ Use <command> --help for help on command")
 (defn- opts->table
   "Customized bb cli opts->table for cljdoc"
   [{:keys [spec order]}]
-  (mapv (fn [[long-opt {:keys [default default-desc desc extra-desc coerce example-values ref require]}]]
+  (mapv (fn [[long-opt {:keys [default default-desc desc extra-desc ref require]}]]
           (let [option (kw-opt->cli-opt long-opt)
                 default-shown (or default-desc
                                   default)
@@ -92,7 +92,7 @@ Use <command> --help for help on command")
 (defn error-text [text]
   (str "\u001B[31m" text "\u001B[0m"))
 
-(defn opts-error-msg [{:keys [type cause msg option value] :as data}]
+(defn opts-error-msg [{:keys [cause msg option]}]
   ;; Override default: options in cmdline syntax, not as keywords
   (cond
     (= :require cause)
@@ -176,7 +176,7 @@ Use <command> --help for help on command")
      :opts opts}))
 
 (defn parse-cmd [cmd-table cli-args]
-  (let [{:keys [cmd args] :as boo} (parse-cmd-opts-args cli-args {})
+  (let [{:keys [cmd args]} (parse-cmd-opts-args cli-args {})
         cmd-def (cmd-def-from-cmd cmd-table cmd)]
     (cond
       (nil? cmd)
