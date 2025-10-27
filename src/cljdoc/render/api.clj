@@ -1,6 +1,6 @@
 (ns cljdoc.render.api
   "Functions related to rendering API documenation"
-  (:require [cljdoc.bundle :as bundle]
+  (:require [cljdoc.docset :as docset]
             [cljdoc.platforms :as platf]
             [cljdoc.render.code-fmt :as code-fmt]
             [cljdoc.render.rich-text :as rich-text]
@@ -63,7 +63,7 @@
        (markdown-docstring->html doc-str render-wiki-link opts)
        (plaintext-docstring->html doc-str :hidden)])))
 
-(defn valid-ref-pred-fn [{:keys [defs] :as _cache-bundle}]
+(defn valid-ref-pred-fn [{:keys [defs] :as _docset}]
   (fn [current-ns target-ns target-var]
     (let [target-ns (if target-ns (ns-tree/replant-ns current-ns target-ns) current-ns)]
       (if target-var
@@ -353,7 +353,7 @@
                     (filter #(string/starts-with? (platf/get-field % :name) (:namespace ns-entity))))
          :let [ns (platf/get-field mp-ns :name)
                ns-url-fn #(routes/url-for :artifact/namespace :path-params (assoc ns-entity :namespace %))
-               defs (bundle/defs-for-ns defs ns)]]
+               defs (docset/defs-for-ns defs ns)]]
      (namespace-overview ns-url-fn mp-ns defs valid-ref-pred opts))])
 
 (defn namespace-page [{:keys [ns-entity ns-data defs valid-ref-pred opts]}]

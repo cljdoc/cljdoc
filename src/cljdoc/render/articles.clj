@@ -28,11 +28,11 @@
 
 (defn doc-tree-view
   "Render a set of nested lists representing the doctree. "
-  ([version-entity doc-bundle current-page]
-   (doc-tree-view version-entity doc-bundle current-page 0))
-  ([version-entity doc-bundle current-page level]
-   (when (seq doc-bundle)
-     (->> doc-bundle
+  ([version-entity docs current-page]
+   (doc-tree-view version-entity docs current-page 0))
+  ([version-entity docs current-page level]
+   (when (seq docs)
+     (->> docs
           (map (fn [doc-page]
                  (let [slug-path (-> doc-page :attrs :slug-path)]
                    [:li

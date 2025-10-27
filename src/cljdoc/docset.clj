@@ -1,5 +1,5 @@
-(ns cljdoc.bundle
-  "Functions to operate on cache bundles"
+(ns cljdoc.docset
+  "Functions to operate on docsets"
   (:require [cljdoc.platforms :as platf]
             [cljdoc.spec]
             [cljdoc.util.fixref :as fixref]
@@ -7,14 +7,14 @@
             [clojure.string :as string]))
 
 (defn ns-entities
-  "Return entity-maps for all namespaces in the cache-bundle"
-  [cache-bundle]
-  (let [nss-from-defs (set (map :namespace (:defs cache-bundle)))
-        nss-with-doc  (set (map :name (filter :doc (:namespaces cache-bundle))))
+  "Return entity-maps for all namespaces in the docset"
+  [docset]
+  (let [nss-from-defs (set (map :namespace (:defs docset)))
+        nss-with-doc  (set (map :name (filter :doc (:namespaces docset))))
         has-defs?     (fn [{:keys [namespace]}]
                         (or (contains? nss-from-defs namespace)
                             (contains? nss-with-doc namespace)))]
-    (->> (:namespaces cache-bundle)
+    (->> (:namespaces docset)
          (map #(merge (:version-entity %) {:namespace (:name %)}))
          (filter has-defs?)
          (map #(cljdoc.spec/assert :cljdoc.spec/namespace-entity %))
@@ -24,29 +24,29 @@
   (string/lower-case (platf/get-field p :name)))
 
 (defn namespaces
-  [cache-bundle]
-  {:pre [(find cache-bundle :namespaces)]}
-  (->> (:namespaces cache-bundle)
+  [docset]
+  {:pre [(find docset :namespaces)]}
+  (->> (:namespaces docset)
        (group-by :name)
        (vals)
        (map platf/unify-namespaces)
        (sort-by platf-name)))
 
-(defn get-namespace [bundle ns]
-  (first (filter #(= ns (platf/get-field % :name)) (namespaces bundle))))
+(defn get-namespace [docset ns]
+  (first (filter #(= ns (platf/get-field % :name)) (namespaces docset))))
 
-(defn scm-info [bundle]
-  (-> bundle :version :scm))
+(defn scm-info [docset]
+  (-> docset :version :scm))
 
-(defn articles-scm-info [bundle]
-  (or (-> bundle :version :scm-articles)
-      (scm-info bundle)))
+(defn articles-scm-info [docset]
+  (or (-> docset :version :scm-articles)
+      (scm-info docset)))
 
-(defn scm-url [bundle]
-  (-> bundle scm-info :url))
+(defn scm-url [docset]
+  (-> docset scm-info :url))
 
-(defn all-defs [bundle]
-  (:defs bundle))
+(defn all-defs [docset]
+  (:defs docset))
 
 (defn defs-for-ns
   [some-defs ns]
@@ -68,9 +68,9 @@
     mp-var))
 
 (defn defs-for-ns-with-src-uri
-  [bundle ns]
-  (let [defs         (defs-for-ns (all-defs bundle) ns)
-        scm-info     (scm-info bundle)
+  [docset ns]
+  (let [defs         (defs-for-ns (all-defs docset) ns)
+        scm-info     (scm-info docset)
         scm-base     (scm/rev-formatted-base-url scm-info)
         line-anchor  (scm/line-anchor scm-info)
         file-mapping (when (:files scm-info)
@@ -80,14 +80,8 @@
     (map #(add-src-uri % scm-base line-anchor file-mapping) defs)))
 
 (defn more-recent-version
-  [{:keys [version-entity] :as cache-bundle}]
-  (when (and (:latest cache-bundle)
-             (not= (:version version-entity) (:latest cache-bundle)))
-    (assoc version-entity :version (:latest cache-bundle))))
+  [{:keys [version-entity] :as docset}]
+  (when (and (:latest docset)
+             (not= (:version version-entity) (:latest docset)))
+    (assoc version-entity :version (:latest docset))))
 
-(comment
-  (defn cb [id]
-    (cljdoc.storage.api/bundle-docs (cljdoc.storage.api/->GrimoireStorage (clojure.java.io/file "data" "grimoire")) id))
-
-  (->> (cb {:group-id "re-frame" :artifact-id "re-frame" :version "0.10.5"})
-       namespaces))

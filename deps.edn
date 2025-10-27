@@ -55,6 +55,7 @@
         org.babashka/http-client {:mvn/version "0.4.23"}     ;; jdk11+ http client
 
         ;; misc utils
+        org.babashka/cli {:mvn/version "0.8.66"}             ;; command line parsing
         babashka/fs {:mvn/version "0.5.27"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.23"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.1.0"}             ;; json
@@ -76,7 +77,8 @@
 
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:nrepl
-           {:extra-deps {nrepl/nrepl {:mvn/version "1.5.1"}
+           {:extra-paths ["dev"]
+            :extra-deps {nrepl/nrepl {:mvn/version "1.5.1"}
                          cider/cider-nrepl {:mvn/version "0.58.0"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}
                          ;; to support recompiling java code from repl
@@ -100,6 +102,7 @@
             :extra-deps {com.github.flow-storm/clojure #_:clj-kondo/ignore {:mvn/version "RELEASE"}
                          com.github.flow-storm/flow-storm-dbg #_:clj-kondo/ignore {:mvn/version "RELEASE"}}
             :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}
+
            :test
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
@@ -126,9 +129,7 @@
             :main-opts ["-m" "eastwood.lint" {:source-paths ["src"]
                                               :test-paths ["test"]}]}
            :cli
-           {:extra-paths ["modules/cli/src"]
-            :extra-deps {cli-matic/cli-matic {:mvn/version "0.5.4"}}
-            :main-opts ["-m"  "cljdoc.cli"]}
+           {:main-opts ["-m" "cljdoc.cli"]}
 
            :code-format
            {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.15.1"}}

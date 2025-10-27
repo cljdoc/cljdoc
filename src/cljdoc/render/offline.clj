@@ -1,13 +1,13 @@
 (ns cljdoc.render.offline
-  "Rendering code for offline bundles.
+  "Rendering code for offline docsets.
 
   While more reuse would be possible this is intentionally
   kept somewhat separately as DOM stability is more important
   for tools like Dash etc."
   (:require [babashka.fs :as fs]
             [cljdoc-shared.proj :as proj]
-            [cljdoc.bundle :as bundle]
             [cljdoc.doc-tree :as doctree]
+            [cljdoc.docset :as docset]
             [cljdoc.platforms :as platf]
             [cljdoc.render.api :as api]
             [cljdoc.render.assets :as assets]
@@ -114,19 +114,19 @@
                  (some-> doc-page :children seq article-toc)])))
        (into [:ol])))
 
-(defn- index-page [cache-bundle opts]
+(defn- index-page [docset opts]
   [:div
-   (when (-> cache-bundle :version :doc)
+   (when (-> docset :version :doc)
      [:div
       [:h1.mv0.pv3 {:id "articles"} "Articles"]
-      (article-toc (doctree/add-slug-path (-> cache-bundle :version :doc)))])
+      (article-toc (doctree/add-slug-path (-> docset :version :doc)))])
 
    [:h1.mv0.pv3 {:id "namespaces"} "Namespaces"]
-   (for [ns (bundle/namespaces cache-bundle)
-         :let [defs (bundle/defs-for-ns
-                      (bundle/all-defs cache-bundle)
+   (for [ns (docset/namespaces docset)
+         :let [defs (docset/defs-for-ns
+                      (docset/all-defs docset)
                       (platf/get-field ns :name))]]
-     (api/namespace-overview ns-url ns defs  (api/valid-ref-pred-fn cache-bundle) opts))])
+     (api/namespace-overview ns-url ns defs  (api/valid-ref-pred-fn docset) opts))])
 
 (defn- doc-page [doc-tuple opts]
   [:div
@@ -150,11 +150,11 @@
   "Return a list of [file-path content] pairs describing a zip archive.
 
   Content may be a java.io.File or hiccup.util.RawString"
-  [{:keys [version-entity] :as cache-bundle} static-resources]
-  (cljdoc-spec/assert :cljdoc.spec/cache-bundle cache-bundle)
-  (let [doc-tree     (doctree/add-slug-path (-> cache-bundle :version :doc))
-        scm-info     (bundle/scm-info cache-bundle)
-        articles-scm-info (bundle/articles-scm-info cache-bundle)
+  [{:keys [version-entity] :as docset} static-resources]
+  (cljdoc-spec/assert :cljdoc.spec/docset docset)
+  (let [doc-tree     (doctree/add-slug-path (-> docset :version :doc))
+        scm-info     (docset/scm-info docset)
+        articles-scm-info (docset/articles-scm-info docset)
         flat-doctree (-> doc-tree doctree/flatten*)
         uri-map (->> flat-doctree
                      (map (fn [d]
@@ -165,7 +165,7 @@
                                   "/sourcehut.svg" "asets/static/sourcehut.svg"}
         page' (fn [opts contents]
                 (page (assoc opts
-                             :scm-url (-> cache-bundle :version :scm :url)
+                             :scm-url (-> docset :version :scm :url)
                              :version-entity version-entity
                              :static-resources offline-static-resources)
                       contents))
@@ -180,7 +180,7 @@
         ;; naive for now, assume a feature's value is always simply `true`
         lib-page-features (->> doc-attrs (map :page-features) (apply merge))
         docstring-format (user-config/docstring-format
-                          (-> cache-bundle :version :config)
+                          (-> docset :version :config)
                           (proj/clojars-id version-entity))]
     (reduce
      into
@@ -191,9 +191,9 @@
       [["assets/static/sourcehut.svg" (io/resource (str "public/out" (get static-resources "/sourcehut.svg")))]]
       ;; use content-hashed name for source map to preserve link from generated index.js
       (assets/offline-assets :highlightjs)
-      [["index.html" (->> (index-page cache-bundle {:docstring-format docstring-format
-                                                    :scm scm-info
-                                                    :uri-map uri-map})
+      [["index.html" (->> (index-page docset {:docstring-format docstring-format
+                                              :scm scm-info
+                                              :uri-map uri-map})
                           (page' {}))]]
 
       ;; Optional assets
@@ -212,11 +212,11 @@
                       :page-features (:page-features doc)}))])
 
       ;; Namespace Pages
-      (for [ns-data (bundle/namespaces cache-bundle)
-            :let [defs (bundle/defs-for-ns-with-src-uri cache-bundle (platf/get-field ns-data :name))
+      (for [ns-data (docset/namespaces docset)
+            :let [defs (docset/defs-for-ns-with-src-uri docset (platf/get-field ns-data :name))
                   target-file (ns-url (platf/get-field ns-data :name))]]
         [target-file
-         (->> (ns-page ns-data defs (api/valid-ref-pred-fn cache-bundle)
+         (->> (ns-page ns-data defs (api/valid-ref-pred-fn docset)
                        {:docstring-format docstring-format
                         :scm scm-info
                         :uri-map uri-map
@@ -224,11 +224,11 @@
                         :target-path (.getParent (io/file target-file))})
               (page' {:namespace (platf/get-field ns-data :name)}))])])))
 
-(defn zip-stream [{:keys [version-entity] :as cache-bundle} static-resources]
+(defn zip-stream [{:keys [version-entity] :as docset} static-resources]
   (let [prefix (str (-> version-entity :artifact-id)
                     "-" (-> version-entity :version)
                     "/")]
-    (->> (docs-files cache-bundle static-resources)
+    (->> (docs-files docset static-resources)
          (map (fn [[k v]]
                 [(str prefix k)
                  (cond
@@ -244,7 +244,7 @@
 
   (i/inspect-tree --c)
 
-  (def --c (storage/bundle-docs (storage/->SQLiteStorage (cljdoc.config/db (cljdoc.config/config)))
+  (def --c (storage/load-docset (storage/->SQLiteStorage (cljdoc.config/db (cljdoc.config/config)))
                                 #_{:group-id "reagent" :artifact-id "reagent" :version "0.8.1"}
                                 {:group-id "re-frame" :artifact-id "re-frame" :version "0.10.5"}
                                 #_{:group-id "manifold" :artifact-id "manifold" :version "0.1.6"}))

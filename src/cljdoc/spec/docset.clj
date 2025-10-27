@@ -1,6 +1,6 @@
-(ns cljdoc.spec.cache-bundle
-  "Schema and related functions for the cache-bundle structure
-  generated via `cljdoc.storage.sqlite-impl/bundle-docs`."
+(ns cljdoc.spec.docset
+  "Schema and related functions for the docset structure
+  that is generated via `cljdoc.storage.sqlite-impl/load-docset`."
   (:require [malli.core :as malli]
             [malli.error]
             [malli.provider]))
@@ -98,20 +98,21 @@
      [:version-entity [:map-of keyword? string?]]]))
 
 (def valid?
-  "Given a cache-bundle structure, return true if valid or false if not."
+  "Given a docset structure, return true if valid or false if not."
   (malli/validator schema))
 
 (def explain
-  "Given a cache-bundle structure, return the explanation for the validation."
+  "Given a docset structure, return the explanation for the validation."
   (malli/explainer schema))
 
 (defn explain-humanized
-  "Given a cache-bundle structure, return the humanized explanation for the validation."
-  [cache-bundle]
-  (malli.error/humanize (explain cache-bundle)))
+  "Given a docset structure, return the humanized explanation for the validation."
+  [docset]
+  (malli.error/humanize (explain docset)))
 
 (comment
-  (require '[cljdoc.spec.util :as util]
+  (require '[cljdoc.spec.util :as su]
+           '[clojure.string :as str]
            '[malli.provider])
 
   (def version-entities
@@ -131,8 +132,21 @@
      "rum/rum/0.12.9"])
 
   ;; infer a schema to get you started
-  (malli.provider/provide (mapv util/load-cache-bundle version-entities))
+  (malli.provider/provide (mapv su/load-docset version-entities))
+
+  ;; TODO: This currently is not entirely showing as valid 
+  (mapv
+   (fn [v]
+     (let [docset (su/load-docset v)
+           ok? (valid? docset)]
+       {:ve v
+        :valid? ok?
+        :explain (explain-humanized docset)
+        :docset docset}))
+   version-entities)
 
   (every? (comp valid?
-                util/load-cache-bundle)
-          version-entities))
+                su/load-docset)
+          version-entities)
+
+  :eoc)

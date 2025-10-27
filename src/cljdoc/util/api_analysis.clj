@@ -1,4 +1,4 @@
-(ns cljdoc.util.codox)
+(ns cljdoc.util.api-analysis)
 
 (defn- index-by [k xs]
   (->> (for [[k vs] (group-by k xs)]
@@ -7,13 +7,12 @@
            [k (first vs)]))
        (into {})))
 
-(defn assert-no-duplicate-publics [namespaces]
+(defn- assert-no-duplicate-publics [namespaces]
   (doseq [ns namespaces]
     (index-by :name (:publics ns))))
 
 (defn sanitize-macros
-  ;; TODO delete & replace with just the assertion stuff from above
-  [{:strs [clj cljs] :as codox}]
+  [{:strs [clj cljs] :as api-analysis}]
   (assert-no-duplicate-publics clj)
   (assert-no-duplicate-publics cljs)
-  codox)
+  api-analysis)

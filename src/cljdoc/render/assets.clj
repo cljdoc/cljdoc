@@ -1,5 +1,5 @@
 (ns cljdoc.render.assets
-  "Fetch 3rd party render assets for both cljdoc site and for downloaded offline bundles.
+  "Fetch 3rd party render assets for both cljdoc site and for downloaded offline docsets.
 
    See resources/asset-deps.edn for 3rd party css and js assets."
   (:require [clojure.java.io :as io]

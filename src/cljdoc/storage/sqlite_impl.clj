@@ -252,8 +252,8 @@
       (let [v-id (get-version-id db-spec group-id artifact-id version-name)]
         (sql-exists? db-spec ["select exists(select id from vars where version_id = ?)" v-id]))))
 
-(defn bundle-docs
-  "Reads and bundles the documentation for the specified artifact.
+(defn load-docset
+  "Reads docset for the specified artifact.
 
   When a libary includes submodules via `include-namespaces-from-deps` in its `cljdoc.edn`
   (for example, example reitit), the namespaces from those specified deps (if their docs
@@ -292,18 +292,18 @@
 
 (defn import-api [db-spec
                   {:keys [group-id artifact-id version]}
-                  codox]
+                  api-analysis]
   (let [version-id (get-version-id db-spec group-id artifact-id version)]
     (log/info "version-id" version-id)
     (clear-vars-and-nss! db-spec version-id)
     (jdbc/with-transaction [tx db-spec]
-      (doseq [ns (for [[platf namespaces] codox
+      (doseq [ns (for [[platf namespaces] api-analysis
                        ns namespaces]
                    (-> (dissoc ns :publics)
                        (update :name name)
                        (assoc :platform platf)))]
         (write-ns! tx version-id ns))
-      (let [vars (for [[platf namespaces] codox
+      (let [vars (for [[platf namespaces] api-analysis
                        ns namespaces
                        var (:publics ns)]
                    (assoc var
@@ -350,10 +350,6 @@
   (get-vars db-spec [{:name "rewrite-clj.zip" :version-entity {:id 2838}}])
 
   (all-distinct-docs db-spec)
-
-  (import-api db-spec
-              (select-keys data [:group-id :artifact-id :version])
-              (:codox data))
 
   (store-artifact! db-spec (:group-id data) (:artifact-id data) [(:version data)])
 

@@ -1,6 +1,6 @@
 (ns cljdoc.render.sidebar
-  (:require [cljdoc.bundle :as bundle]
-            [cljdoc.doc-tree :as doctree]
+  (:require [cljdoc.doc-tree :as doctree]
+            [cljdoc.docset :as docset]
             [cljdoc.render.api :as api]
             [cljdoc.render.articles :as articles]
             [cljdoc.render.layout :as layout]
@@ -42,19 +42,19 @@
 
   If articles or namespaces are missing for a project there will be little messages pointing
   users to the relevant documentation or GitHub to open an issue."
-  [route-params {:keys [version-entity] :as cache-bundle} last-build]
-  (let [doc-tree (doctree/add-slug-path (-> cache-bundle :version :doc))
+  [route-params {:keys [version-entity] :as docset} last-build]
+  (let [doc-tree (doctree/add-slug-path (-> docset :version :doc))
         split-doc-tree ((juxt filter remove)
                         #(contains? #{"Readme" "Changelog"} (:title %))
                         doc-tree)
         readme-and-changelog (first split-doc-tree)
         doc-tree-with-rest (second split-doc-tree)
         no-articles? (not (seq doc-tree))
-        no-cljdoc-config? (not (some-> cache-bundle :version :config))
-        no-scm? (not (some-> cache-bundle :version :scm))
+        no-cljdoc-config? (not (some-> docset :version :config))
+        no-scm? (not (some-> docset :version :scm))
         articles-tip? (or no-articles? no-cljdoc-config? no-scm?)]
     [;; Upgrade notice
-     (when-let [newer-v (bundle/more-recent-version cache-bundle)]
+     (when-let [newer-v (docset/more-recent-version docset)]
        (current-release-notice newer-v))
 
      (when last-build
@@ -97,7 +97,7 @@
            [:div.mb3 (articles/doc-tree-view version-entity doc-tree-with-rest (:doc-slug-path route-params))])))]
 
      ;; Namespace listing
-     (let [ns-entities (bundle/ns-entities cache-bundle)]
+     (let [ns-entities (docset/ns-entities docset)]
        [:div.mb4
         (layout/sidebar-title "Namespaces")
         (if (seq ns-entities)

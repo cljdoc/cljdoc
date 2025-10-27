@@ -1,6 +1,6 @@
 (ns cljdoc.spec.searchset
   "Schema and related functions for the searchset structure
-  generated via `cljdoc.render.api-searchset/cache-bundle->searchset`."
+  generated via `cljdoc.render.api-searchset/docset->searchset`."
   (:require [malli.core :as malli]
             [malli.error]
             [malli.provider]))

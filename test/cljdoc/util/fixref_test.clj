@@ -101,7 +101,7 @@
                             (assoc fix-opts
                                    :scm-file-path "doc/path/my-doc.adoc"
                                    :uri-map {"doc/path/slug/conversion/slugtest.adoc" "slugged-doc"}))))))
-    (t/testing "can point to html files for offline bundles and support rewriting to different structure via target path"
+    (t/testing "can point to html files for offline docsets and support rewriting to different structure via target path"
       (t/are [?target-path ?expected-html]
              (t/is (= ?expected-html (fix-result
                                       (fixref/fix "<a href=\"mapped.adoc\">offline doc</a>"

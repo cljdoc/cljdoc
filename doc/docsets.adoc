@@ -18,7 +18,7 @@ version="2.1.3"
 
 It is also assumed that the https://github.com/clojars/clojars-web/wiki/Data#json-search-results[Clojars search API] is used to find existing project/version combinations.
 
-=== Check if an offline bundle is available
+=== Check if an offline docset is available
 
 [source,sh]
 ----

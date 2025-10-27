@@ -60,15 +60,15 @@
 
 (def render-interceptor
   "This interceptor will render the documentation page for the current route
-  based on the cache-bundle that has been injected into the context previously
+  based on the docset that has been injected into the context previously
   by the [[artifact-data-loader]] interceptor.
 
   If the request is for the root page (e.g. /d/group/artifact/0.1.0) this interceptor
-  will also lookup the first article that's part of the cache-bundle and return a 302
+  will also lookup the first article that's part of the docset and return a 302
   redirecting to that page."
   (interceptor/interceptor
    {:name  ::render
-    :enter (fn render-doc [{:keys [cache-bundle] :as ctx}]
+    :enter (fn render-doc [{:keys [docset] :as ctx}]
              (let [pp (get-in ctx [:request :path-params])
                    path-params
                    (cond-> pp
@@ -77,14 +77,14 @@
                      (update :namespace normalize/percent-decode))
                    page-type   (-> ctx :route :route-name)
                    first-article-slug (and (= page-type :artifact/version)
-                                           (-> cache-bundle :version :doc first :attrs :slug))]
+                                           (-> docset :version :doc first :attrs :slug))]
                (cond
                  (not (::pom-info ctx))
                  (assoc ctx :response {:status 404
                                        :headers {"Content-Type" "text/html"}
                                        :body (error/not-found-artifact (:static-resources ctx) pp)})
 
-                 (not cache-bundle)
+                 (not docset)
                  (let [resp {:status 404
                              :headers {"Content-Type" "text/html"}
                              :body (str (render-build-req/request-build-page path-params (:static-resources ctx)))}]
@@ -97,7 +97,7 @@
                    (assoc ctx :response {:status 302, :headers {"Location" location}}))
 
                  :else
-                 (pu/ok-html ctx (html/render page-type path-params {:cache-bundle cache-bundle
+                 (pu/ok-html ctx (html/render page-type path-params {:docset docset
                                                                      :pom (::pom-info ctx)
                                                                      :last-build (::last-build ctx)
                                                                      :static-resources (:static-resources ctx)})))))}))
@@ -169,14 +169,14 @@
      :enter (fn releases-loader-inner [ctx]
               (pu/ok ctx (versions-data searcher store route-name ctx)))})])
 
-(defn load-cache-bundle
+(defn load-docset
   "Given a `store` (see `:cljdoc/storage` in system.clj), `pom-info` (as returned from
   `load-pom`), and a `version-entity` (see `:cljdoc.spec/version-entity` in spec.cljc),
-  load a `cache-bundle` from storage."
+  load a `docset` from storage."
   [store pom-info version-entity]
   (let [params (assoc version-entity :dependency-version-entities (:dependencies pom-info))]
     (when (storage/exists? store params)
-      (storage/bundle-docs store params))))
+      (storage/load-docset store params))))
 
 (defn artifact-data-loader
   "Return an interceptor that loads all data from `store` that is
@@ -185,10 +185,10 @@
   (interceptor/interceptor
    {:name ::artifact-data-loader
     :enter (fn artifact-data-loader-inner [ctx]
-             (if-let [cache-bundle (load-cache-bundle store
-                                                      (::pom-info ctx)
-                                                      (get-in ctx [:request :path-params]))]
-               (assoc ctx :cache-bundle cache-bundle)
+             (if-let [docset (load-docset store
+                                          (::pom-info ctx)
+                                          (get-in ctx [:request :path-params]))]
+               (assoc ctx :docset docset)
                ctx))}))
 
 (defn last-build-loader
@@ -307,7 +307,7 @@
   "Create an interceptor that will initiate documentation builds based
   on provided form params using `analysis-service` for analysis and tracking
   build progress/state via `build-tracker`."
-  [{:keys [build-tracker] :as deps}]
+  [{:keys [build-tracker] :as services}]
   (interceptor/interceptor
    {:name ::request-build
     :enter (fn request-build-handler [ctx]
@@ -317,7 +317,7 @@
                (if-let [running (build-log/running-build build-tracker group-id artifact-id version)]
                  (redirect-to-build-page ctx (:id running))
                  (let [build (api/kick-off-build!
-                              deps {:project project :version version})]
+                              services {:project project :version version})]
                    (redirect-to-build-page ctx (:build-id build))))))}))
 
 (def request-build-validate
@@ -533,21 +533,21 @@
                                (string/replace "{{favicon.ico}}" (get (:static-resources ctx) "/favicon.ico")))}
                     (assoc ctx :response))))}))
 
-(def offline-bundle
+(def offline-docset
   "Creates an HTTP response with a zip file containing offline docs
   for the project that has been injected into the context by [[artifact-data-loader]]."
   (interceptor/interceptor
-   {:name ::offline-bundle
-    :enter (fn offline-bundle [{:keys [cache-bundle static-resources] :as ctx}]
-             (log/info "Bundling" (str (-> cache-bundle :version-entity :artifact-id) "-"
-                                       (-> cache-bundle :version-entity :version) ".zip"))
-             (->> (if cache-bundle
+   {:name ::offline-docset
+    :enter (fn offline-docset [{:keys [docset static-resources] :as ctx}]
+             (log/info "Bundling" (str (-> docset :version-entity :artifact-id) "-"
+                                       (-> docset :version-entity :version) ".zip"))
+             (->> (if docset
                     {:status 200
                      :headers {"Content-Type" "application/zip"
                                "Content-Disposition" (format "attachment; filename=\"%s\""
-                                                             (str (-> cache-bundle :version-entity :artifact-id) "-"
-                                                                  (-> cache-bundle :version-entity :version) ".zip"))}
-                     :body (offline/zip-stream cache-bundle static-resources)}
+                                                             (str (-> docset :version-entity :artifact-id) "-"
+                                                                  (-> docset :version-entity :version) ".zip"))}
+                     :body (offline/zip-stream docset static-resources)}
                     {:status 404
                      :headers {"Content-Type" "text/html"}
                      :body "Could not find data, please request a build first"})
@@ -557,11 +557,11 @@
   "Creates an API response with a JSON representation of a searchset."
   (interceptor/interceptor
    {:name ::api-searchset
-    :enter (fn api-searchset [{:keys [cache-bundle] :as ctx}]
-             (->> (if cache-bundle
+    :enter (fn api-searchset [{:keys [docset] :as ctx}]
+             (->> (if docset
                     {:status 200
                      :headers {"Content-Type" "application/json"}
-                     :body (json/generate-string (api-searchset/cache-bundle->searchset cache-bundle))}
+                     :body (json/generate-string (api-searchset/docset->searchset docset))}
                     {:status 404
                      :headers {"Content-Type" "application/json"}
                      :body (json/generate-string {:error "Could not find data, please request a build first"})})
@@ -580,14 +580,14 @@
                      :body (json/generate-string {:version cljdoc-version})}))}))
 
 (def api-docsets
-  "Creates an API response with a JSON representation of a cache bundle as a `docset`."
+  "Creates an API response with a JSON representation of a `docset`."
   (interceptor/interceptor
    {:name ::api/docsets
-    :enter (fn api-docsets [{:keys [cache-bundle] :as ctx}]
-             (->> (if cache-bundle
+    :enter (fn api-docsets [{:keys [docset] :as ctx}]
+             (->> (if docset
                     {:status 200
                      :headers {"Content-Type" "application/json"}
-                     :body (json/generate-string cache-bundle)}
+                     :body (json/generate-string docset)}
                     {:status 404
                      :headers {"Content-Type" "application/json"}
                      :body (json/generate-string {:error "Could not find data, please request a build first"})})
@@ -602,7 +602,7 @@
   interesting for ClojureScript where Pededestal can't go.
 
   For more details see `cljdoc.server.routes`."
-  [{:keys [cljdoc-version opensearch-base-url build-tracker storage cache searcher] :as deps}
+  [{:keys [cljdoc-version opensearch-base-url build-tracker storage cache searcher] :as services}
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home %))})]
@@ -629,7 +629,7 @@
                        api-docsets]
 
          :ping          [(interceptor/interceptor {:name ::pong :enter #(pu/ok-html % "pong")})]
-         :request-build [(body/body-params) request-build-validate (request-build deps)]
+         :request-build [(body/body-params) request-build-validate (request-build services)]
 
          :cljdoc/index    (index-pages searcher storage route-name)
          :group/index     (index-pages searcher storage route-name)
@@ -638,9 +638,9 @@
          :artifact/version   (view storage cache build-tracker route-name)
          :artifact/namespace (view storage cache build-tracker route-name)
          :artifact/doc       (view storage cache build-tracker route-name)
-         :artifact/offline-bundle [(pom-loader cache)
+         :artifact/offline-docset [(pom-loader cache)
                                    (artifact-data-loader storage)
-                                   offline-bundle]
+                                   offline-docset]
 
          :artifact/current-via-short-id [(jump-interceptor)]
          :artifact/current [(jump-interceptor)]

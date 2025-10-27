@@ -1,5 +1,5 @@
 (ns cljdoc.render.api-searchset
-  "Renders a cache bundle into the format needed by the API to feed client-side search."
+  "Renders a docset into the format needed by the API to feed client-side search."
   (:require [cljdoc.doc-tree :as doctree]
             [cljdoc.render.rich-text :as rt]
             [cljdoc.server.routes :as routes]
@@ -235,16 +235,16 @@
            doc-segments))))
 
 (defn- ->namespaces
-  "Renders cache-bundle `namespaces` into a format consumable by the API. This consists of:
+  "Renders docset `namespaces` into a format consumable by the API. This consists of:
 
-  1. Paring down the fields in the cache-bundle's `namespaces`.
+  1. Paring down the fields in the docset's `namespaces`.
   2. Adding a URL path to the produced map.
   3. Sorting for a deterministic ordering."
-  [cache-bundle-namespaces version-entity]
+  [docset-namespaces version-entity]
   (->> (into []
              (comp (map #(select-keys % [:platform :name :doc]))
                    (map #(assoc % :path (path-for-namespace version-entity (:name %)))))
-             cache-bundle-namespaces)
+             docset-namespaces)
        (sort-by (juxt :name :platform))
        vec))
 
@@ -266,26 +266,26 @@
                  x))
 
 (defn- ->defs
-  "Renders cache-bundle `defs` into a format consumable by the API. This consists of:
+  "Renders docset `defs` into a format consumable by the API. This consists of:
 
-  1. Paring down the fields in the cache-bundle's `defs`, including in the nested
+  1. Paring down the fields in the docset's `defs`, including in the nested
      `:members` map..
   2. Adding a URL path to the produced map.
   3. Converting any regexes in arglists to strings (to be JSON friendly).
   4. Sorting for a deterministic ordering"
-  [cache-bundle-defs version-entity]
+  [docset-defs version-entity]
   (->> (into []
              (comp
               (map #(select-keys % [:platform :type :namespace :name :arglists :doc :members]))
               (map #(update-if-exists % :arglists ->deregexify))
               (map #(update % :members ->searchset-members version-entity %))
               (map #(assoc % :path (path-for-def version-entity (:namespace %) (:name %)))))
-             cache-bundle-defs)
+             docset-defs)
        (sort-by (juxt :namespace :name :platform))
        vec))
 
 (defn- ->docs
-  "Renders cache-bundle `doc` tree down into finer-grained units of text and their links.
+  "Renders docset `doc` tree down into finer-grained units of text and their links.
   To accomplish this the markdown is:
 
   1. Rendered to HTML.
@@ -294,16 +294,16 @@
   3. [header text, header anchor, text] is then transformed into [title, path, doc] where
      title is the document title and the header title, path is the path portion of the
      URL to deep-link to that section of the document, and doc is the text without HTML."
-  [cache-bundle-docs version-entity]
+  [docset-docs version-entity]
   (vec (mapcat #(doc->docs % version-entity)
-               (-> cache-bundle-docs doctree/add-slug-path doctree/flatten*))))
+               (-> docset-docs doctree/add-slug-path doctree/flatten*))))
 
-(defn cache-bundle->searchset
+(defn docset->searchset
   [{namespaces :namespaces
     defs :defs
     {docs :doc} :version
     version-entity :version-entity
-    :as _cache-bundle}]
+    :as _docset}]
   {:namespaces (->namespaces namespaces version-entity)
    :defs (->defs defs version-entity)
    :docs (->docs docs version-entity)})
@@ -311,12 +311,12 @@
 (comment
   (require '[clojure.edn :as edn])
 
-  (def cb (-> "resources/test_data/cache_bundle.edn"
+  (def ds (-> "resources/test_data/docset.edn"
               slurp
               edn/read-string))
 
-  (-> cb :version :doc)
-  (def sr (cache-bundle->searchset cb))
+  (-> ds :version :doc)
+  (def sr (docset->searchset ds))
 
   ;; adoc play
   (-> "<body>hello
@@ -362,4 +362,4 @@
       .first
       (md-soup->doc-segments "My doc title"))
 
-  nil)
+  :eoc)

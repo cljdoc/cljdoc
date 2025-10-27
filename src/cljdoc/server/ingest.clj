@@ -6,7 +6,7 @@
             [cljdoc-shared.spec.analyzer :as analyzer-spec]
             [cljdoc.analysis.git :as ana-git]
             [cljdoc.storage.api :as storage]
-            [cljdoc.util.codox :as codox]
+            [cljdoc.util.api-analysis :as api-analysis]
             [cljdoc.util.scm :as scm]
             [clojure.string :as string]
             [clojure.tools.logging :as log]))
@@ -19,7 +19,7 @@
     (log/info "Verifying cljdoc analysis edn contents against spec")
     (analyzer-spec/assert-result-full cljdoc-analysis-edn)
     (log/infof "Importing API into database %s %s" project version)
-    (storage/import-api storage artifact (codox/sanitize-macros analysis))))
+    (storage/import-api storage artifact (api-analysis/sanitize-macros analysis))))
 
 (def ^:private scm-fallback "TODO: What and why?"
   {"yada/yada" "https://github.com/juxt/yada/"})
