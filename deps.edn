@@ -7,7 +7,7 @@
         integrant/integrant {:mvn/version "1.0.1"}           ;; configure systems/services that make up your app
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.8.0"}    ;; web site/service with jetty engine
+        io.pedestal/pedestal.jetty {:mvn/version "0.8.1"}    ;; web site/service with jetty engine
 
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.1070" } ;; jdbc abstraction
