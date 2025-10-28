@@ -59,35 +59,45 @@
          :artifact-info
          :description)))
 
+(defn- request-opts [{:keys [etag last-modified]}]
+  (cond-> {}
+    etag (assoc-in [:headers "If-None-Match"] etag)
+    last-modified (assoc-in [:headers "If-Modified-Since"] last-modified)))
+
 (defn- fetch-group
   "Fetch documents matching the query from Maven Central; requires pagination."
-  [ctx {:keys [etag artifacts] :as _cached-group} group-id]
+  [ctx cached-group group-id]
   (let [url (str maven-central-base-url (mvn-repo/group-path group-id))
-        group-response (fetch ctx url (when etag {:headers {"If-None-Match" etag}}))
+        group-response (fetch ctx url (request-opts cached-group))
         etag (get-in group-response [:headers "etag"])
-        artifact-ids (if (= 304 (:status group-response))
-                       (mapv :artifact-id artifacts)
-                       (parse-group-artifact-ids (:body group-response)))]
-    {:etag etag
-     :artifacts (->> artifact-ids
-                     (mapv
-                      (fn [artifact-id]
-                        (let [{:keys [etag] :as cached-artifact} (some #(when (= artifact-id (:artifact-id %)) %) artifacts)
-                              url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
-                              artifact-response (fetch ctx url (when etag {:headers {"If-None-Match" etag}}))]
-                          (if (= 304 (:status artifact-response))
-                            cached-artifact
-                            (let [etag (get-in artifact-response [:headers "etag"])
-                                  versions (parse-artifact-versions (:body artifact-response))
-                                  description (fetch-maven-description ctx group-id artifact-id (first versions))]
-                              (cond-> {:etag etag
-                                       :artifact-id artifact-id
-                                       :group-id group-id
-                                       :origin :maven-central
-                                       :versions versions}
-                                description (assoc :description description)))))))
-                     (sort-by :artifact-id)
-                     (into []))}))
+        last-modified (get-in group-response [:headers "last-modified"])]
+    (if (= 304 (:status group-response))
+      cached-group
+      (let [artifact-ids (parse-group-artifact-ids (:body group-response))]
+        {:etag etag
+         :last-modified last-modified
+         :artifacts (->> artifact-ids
+                         (mapv
+                          (fn [artifact-id]
+                            (let [cached-artifact (some #(when (= artifact-id (:artifact-id %)) %)
+                                                        (:artifacts cached-group))
+                                  url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
+                                  artifact-response (fetch ctx url (request-opts cached-artifact))]
+                              (if (= 304 (:status artifact-response))
+                                cached-artifact
+                                (let [etag (get-in artifact-response [:headers "etag"])
+                                      last-modified (get-in artifact-response [:headers "last-modified"])
+                                      versions (parse-artifact-versions (:body artifact-response))
+                                      description (fetch-maven-description ctx group-id artifact-id (first versions))]
+                                  (cond-> {:etag etag
+                                           :last-modified last-modified
+                                           :artifact-id artifact-id
+                                           :group-id group-id
+                                           :origin :maven-central
+                                           :versions versions}
+                                    description (assoc :description description)))))))
+                         (sort-by :artifact-id)
+                         (into []))}))))
 
 (defn- cache-dir []
   (fs/file "resources" "maven-central-cache"))
@@ -159,17 +169,22 @@
 
   - over our 4 groups we track 92 artifacts
     - worst case is
-      - 1 request per group
-      - 1 request per artifact for metdata
-      - 1 request per artifact for description
+      - 1 request per group to discover artifacts, if change:
+        - 1 request per artifact for metdata, if change:
+          - 1 request per artifact for description
       = 4 + 92 + 92 = 188 requests
-    - best case is that we don't need to fetch the description
-      = 96 requests
+    - best case is that we detected no changes in groups
+      = 4 requests
 
-  Because we our requests use `If-None-Match` and cached etags, they will usually return 304s.
-  Which is easier on maven central, but still a request.
+  Maven Central seems to:
+  - Update `last-modified` for dirs when any child has changed, for us this is the group request.
+    We'll have to adapt if this is not truly the case.
+  - Update `etag` for files, for us, this is the metadata xml request
 
-  This puts us under the threshold of 1000 requests in a span of 5 minutes.
+  Because it has changed in the past we always save both `etag` and `last-modified` in our cache.
+  We prefer `etag` if available and fallback to `last-modified`, if available.
+
+  This keeps us under the threshold of 1000 requests in a span of 5 minutes.
   But we are closer to this limit than I'd like.
   For this reason, I've removed retries. If we have any single failure, we fallback to the cache
   and try again in 1 hour.
@@ -216,12 +231,13 @@
   :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
 
 (comment
-  (def res (fetch (atom {:requests []}) "https://repo1.maven.org/maven2/org/clojure" {}))
+  (def res (fetch (atom {:requests []})
+                  "https://repo1.maven.org/maven2/io/github/clojure/tools.build/maven-metadata.xml" {}))
 
   (def groups-before (mapv get-cached-group maven-groups))
 
   (fetch-maven-description (atom {:requests []})
-                           "org.clojure" "clojure" "1.12.0")
+                           "org.clojure" "clojure" "1.12.3")
   ;; => "Clojure core environment and runtime library."
 
   (wipe-cache)
