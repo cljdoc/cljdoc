@@ -17,10 +17,14 @@
 
 ;; There are not many clojars libraries on maven central.
 ;; We'll manualy adjust this list for now:
-(def ^:private maven-groups ["org.clojure"
-                             "org.clojure.typed"
-                             "io.github.clojure"
-                             "com.turtlequeue"])
+(def ^:private maven-artifacts
+  [{:group-id "org.clojure"        :exclude ["typed"]}
+   {:group-id "org.clojure.typed"}
+   {:group-id "io.github.clojure"}
+   {:group-id "com.turtlequeue"}
+   {:group-id "com.cognitect"      :exclude ["aws"]}
+   {:group-id "com.cognitect.aws"  :include ["api"]}
+   {:group-id "com.xtdb"           :include ["xtdb-api"]}])
 
 (def ^:private maven-central-base-url "https://repo1.maven.org/maven2/")
 
@@ -33,7 +37,6 @@
        io/reader
        line-seq
        (keep #(second (re-find #"<a href=\"(.*)/\" title=.*</a>" %)))
-       (remove #(= "typed" %)) ;; typed is not an artifact, it is part of org.clojure.typed group
        (into [])))
 
 (defn- parse-artifact-versions [in-stream]
@@ -65,39 +68,40 @@
     last-modified (assoc-in [:headers "If-Modified-Since"] last-modified)))
 
 (defn- fetch-group
-  "Fetch documents matching the query from Maven Central; requires pagination."
-  [ctx cached-group group-id]
-  (let [url (str maven-central-base-url (mvn-repo/group-path group-id))
-        group-response (fetch ctx url (request-opts cached-group))
-        etag (get-in group-response [:headers "etag"])
-        last-modified (get-in group-response [:headers "last-modified"])]
+  "Fetch artifacts from Maven Central."
+  [ctx cached-group group-artifacts]
+  (let [group-id (:group-id group-artifacts)
+        url (str maven-central-base-url (mvn-repo/group-path group-id))
+        group-response (fetch ctx url (request-opts cached-group))]
     (if (= 304 (:status group-response))
       cached-group
-      (let [artifact-ids (parse-group-artifact-ids (:body group-response))]
-        {:etag etag
-         :last-modified last-modified
+      (let [cached-artifacts (:artifacts cached-group)
+            include-artifacts (:include group-artifacts)
+            exclude-artifacts (:exclude group-artifacts)
+            artifact-ids (cond->> (parse-group-artifact-ids (:body group-response))
+                           (seq include-artifacts) (filter #(some #{%} include-artifacts))
+                           (seq exclude-artifacts) (remove #(some #{%} exclude-artifacts)))]
+        {:etag (get-in group-response [:headers "etag"])
+         :last-modified (get-in group-response [:headers "last-modified"])
          :artifacts (->> artifact-ids
                          (mapv
-                          (fn [artifact-id]
-                            (let [cached-artifact (some #(when (= artifact-id (:artifact-id %)) %)
-                                                        (:artifacts cached-group))
-                                  url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
-                                  artifact-response (fetch ctx url (request-opts cached-artifact))]
-                              (if (= 304 (:status artifact-response))
-                                cached-artifact
-                                (let [etag (get-in artifact-response [:headers "etag"])
-                                      last-modified (get-in artifact-response [:headers "last-modified"])
-                                      versions (parse-artifact-versions (:body artifact-response))
-                                      description (fetch-maven-description ctx group-id artifact-id (first versions))]
-                                  (cond-> {:etag etag
-                                           :last-modified last-modified
-                                           :artifact-id artifact-id
-                                           :group-id group-id
-                                           :origin :maven-central
-                                           :versions versions}
-                                    description (assoc :description description)))))))
-                         (sort-by :artifact-id)
-                         (into []))}))))
+                           (fn [artifact-id]
+                             (let [cached-artifact (some #(when (= artifact-id (:artifact-id %)) %) cached-artifacts)
+                              url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
+                              artifact-response (fetch ctx url (request-opts cached-artifact))]
+                          (if (= 304 (:status artifact-response))
+                            cached-artifact
+                            (let [versions (parse-artifact-versions (:body artifact-response))
+                                  description (fetch-maven-description ctx group-id artifact-id (first versions))]
+                              (cond-> {:etag (get-in artifact-response [:headers "etag"])
+                                       :last-modified (get-in artifact-response [:headers "last-modified"])
+                                       :artifact-id artifact-id
+                                       :group-id group-id
+                                       :origin :maven-central
+                                       :versions versions}
+                                description (assoc :description description)))))))
+                     (sort-by :artifact-id)
+                     (into []))}))))
 
 (defn- cache-dir []
   (fs/file "resources" "maven-central-cache"))
@@ -120,20 +124,23 @@
       (pprint/write artifacts :stream out))))
 
 (defn- wipe-cache []
-  (fs/delete-tree (cache-dir)))
+  (let [dir (cache-dir)]
+    (log/info "Deleting cache" (str dir))
+    (fs/delete-tree dir)))
 
-(defn- refresh-cache-for [ctx group-id _opts]
-  (log/infof "Checking group-id %s" group-id)
-  (let [cached-group (get-cached-group group-id)
-        fetched-group (fetch-group ctx cached-group group-id)]
-    (if (= cached-group fetched-group)
-      (do
-        (log/infof "Cache was up to date for group-id %s" group-id)
-        cached-group)
-      (do
-        (log/infof "Refreshed stale cache for group-id %s" group-id)
-        (update-cached-group! group-id fetched-group)
-        fetched-group))))
+(defn- refresh-cache-for [ctx group-artifacts _opts]
+  (let [group-id (:group-id group-artifacts)]
+    (log/infof "Checking group-id %s" group-artifacts)
+    (let [cached-group (get-cached-group group-id)
+          fetched-group (fetch-group ctx cached-group group-artifacts)]
+      (if (= cached-group fetched-group)
+        (do
+          (log/infof "Cache was up to date for group-id %s" group-artifacts)
+          cached-group)
+        (do
+          (log/infof "Refreshed stale cache for group-id %s" group-artifacts)
+          (update-cached-group! group-id fetched-group)
+          fetched-group)))))
 
 (defn- caches->docs [caches]
   (->> caches
@@ -162,19 +169,19 @@
 
   At the time of this writing (Jul-2025):
   - we check once each hour
-  - we check 3 groups, so this means a minimum of 3 requests
+  - we check 7 groups, so this means a minimum of 7 requests
   - we employ artifact group level caching if the group changes check each artifact metadata in the group for changes
   - we only fetch the description for an artifact if the artifact metadata has changed
   - it is very rare that a group will have a new artifact, so typically there will be 3 requests per hour
 
-  - over our 4 groups we track 92 artifacts
+  - over our 7 groups we track 108 artifacts
     - worst case is
       - 1 request per group to discover artifacts, if change:
         - 1 request per artifact for metdata, if change:
           - 1 request per artifact for description
-      = 4 + 92 + 92 = 188 requests
+      = 7 + 108 + 108 = 223 requests
     - best case is that we detected no changes in groups
-      = 4 requests
+      = 7 requests
 
   Maven Central seems to:
   - Update `last-modified` for dirs when any child has changed, for us this is the group request.
@@ -206,26 +213,28 @@
    ;; for REPL support
    (when wipe-cache?
      (wipe-cache))
-   (let [groups-before (mapv get-cached-group maven-groups)]
+   (let [artifacts-before (->> maven-artifacts
+                               (mapv :group-id)
+                               (mapv get-cached-group))]
      (try
        (let [ctx (atom {:requests []})
              start-ts (System/currentTimeMillis)
-             groups-after (mapv #(refresh-cache-for ctx % opts) maven-groups)
+             artifacts-after (mapv #(refresh-cache-for ctx % opts) maven-artifacts)
              end-ts (System/currentTimeMillis)
              requests (:requests @ctx)]
          (log/infof "Downloaded %d artifacts from Maven Central in %.02fs via %d requests to maven repository"
-                    (->> groups-after
+                    (->> artifacts-after
                          (mapcat :artifacts)
                          count)
                     (/ (- end-ts start-ts) 1000.0)
                     (count requests))
-         (when (or force-fetch? (not @last-fetch-time) (not= groups-before groups-after))
+         (when (or force-fetch? (not @last-fetch-time) (not= artifacts-before artifacts-after))
            (reset! last-fetch-time (Instant/now))
-           (caches->docs groups-after)))
+           (caches->docs artifacts-after)))
        (catch Exception e
          (log/error e "Failed to download artifacts from Maven Central, returning cached artifacts")
          (when (or force-fetch? (not @last-fetch-time))
-           (caches->docs groups-before)))))))
+           (caches->docs artifacts-before)))))))
 
 (s/fdef load-maven-central-artifacts
   :ret (s/nilable (s/every ::cljdoc-spec/artifact)))
@@ -234,7 +243,10 @@
   (def res (fetch (atom {:requests []})
                   "https://repo1.maven.org/maven2/io/github/clojure/tools.build/maven-metadata.xml" {}))
 
-  (def groups-before (mapv get-cached-group maven-groups))
+  (def groups-before (->> maven-artifacts
+                          (mapv :group-id)
+                          (mapv get-cached-group)))
+  
 
   (fetch-maven-description (atom {:requests []})
                            "org.clojure" "clojure" "1.12.3")
@@ -247,14 +259,10 @@
   (def artifacts (load-maven-central-artifacts {:force-fetch? true}))
 
   (count artifacts)
-  ;; => 92
+  ;; => 108
 
   (def a2 (load-maven-central-artifacts {:force-fetch? true}))
 
   (def a (get-cached-group "org.clojure"))
-
-  (mapcat #(get-cached-group %) maven-groups)
-
-  (println "----")
 
   :eoc)
