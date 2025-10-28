@@ -290,7 +290,7 @@
       (let [expected-name (str test-artifact-id "-" test-project-version)]
         (t/is (match? {:status 200
                        :headers {"Content-Disposition" (format "attachment; filename=\"%s.zip\""
-                                                              expected-name)
+                                                               expected-name)
                                  "Content-Type" "application/zip"}
                        :zip-entries (m/embeds [(str expected-name "/assets/js/index.js")
                                                (str expected-name "/index.html")
@@ -538,8 +538,7 @@
   ;;      "Content-Security-Policy" "object-src 'none'",
   ;;      "Content-Type" "application/edn"},
   ;;     :body "{\"org.cljdoc\" {\"cljdoc-exerciser\" (\"1.0.123\")}}"}
-  
-  
+
   (-> (pdt/response-for *connector*
                         :get "/api/search-suggest?q=rewrite-clj"
                         :headers {"accept" "application/json"})
