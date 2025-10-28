@@ -7,7 +7,7 @@
         integrant/integrant {:mvn/version "1.0.1"}           ;; configure systems/services that make up your app
 
         ;; web server/services
-        io.pedestal/pedestal.jetty {:mvn/version "0.8.0"}    ;; web site/service with jetty engine
+        io.pedestal/pedestal.jetty {:mvn/version "0.8.1"}    ;; web site/service with jetty engine
 
         ;; relational database
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.1070" } ;; jdbc abstraction
@@ -48,7 +48,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.35.8"}
+        software.amazon.awssdk/s3 {:mvn/version "2.36.3"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.4.0.202509020913-r"} ;; git with jsch
@@ -114,14 +114,14 @@
            {:extra-deps {io.github.nextjournal/clerk {:mvn/version "0.18.1150"}}}
 
            :build
-           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.10"}
-                   clj-kondo/clj-kondo {:mvn/version "2025.09.22"}
+           {:deps {io.github.clojure/tools.build {:mvn/version "0.10.11"}
+                   clj-kondo/clj-kondo {:mvn/version "2025.10.23"}
                    babashka/fs {:mvn/version "0.5.27"}
                    babashka/process {:mvn/version "0.6.23"}}
             :ns-default build}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2025.09.22"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2025.10.23"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
@@ -132,7 +132,7 @@
            {:main-opts ["-m" "cljdoc.cli"]}
 
            :code-format
-           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.15.1"}}
+           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.15.3"}}
             :main-opts ["-m" "cljfmt.main"]}
 
            :outdated

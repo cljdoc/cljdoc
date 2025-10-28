@@ -6,12 +6,13 @@
    :origin :maven-central,
    :versions ["0.3.2" "0.3.1" "0.3.0"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "\"e75459172d553ec22c34d5eb7bdc8624\"",
+  {:etag "W/\"6baed23f4aa057401d740bcf6765a12e\"",
    :artifact-id "tools.build",
    :group-id "io.github.clojure",
    :origin :maven-central,
    :versions
-   ["0.10.10"
+   ["0.10.11"
+    "0.10.10"
     "0.10.9"
     "0.10.8"
     "0.10.7"
@@ -24,4 +25,5 @@
     "0.9.6"
     "0.9.5"
     "0.9.4"
-    "0.9.3"]}]}
+    "0.9.3"],
+   :description "Clojure builds as Clojure programs."}]}
