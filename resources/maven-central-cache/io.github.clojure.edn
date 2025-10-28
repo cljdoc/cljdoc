@@ -1,12 +1,15 @@
-{:etag "\"52ee0a595ba8a2acc050ef2faf028624\"",
+{:etag nil,
+ :last-modified "Tue, 28 Oct 2025 13:32:14 GMT",
  :artifacts
- [{:etag "\"747c1cafde9881bdbf557b41f8dd3f16\"",
+ [{:etag "W/\"747c1cafde9881bdbf557b41f8dd3f16\"",
+   :last-modified "Fri, 30 May 2025 20:43:39 GMT",
    :artifact-id "buildtest",
    :group-id "io.github.clojure",
    :origin :maven-central,
    :versions ["0.3.2" "0.3.1" "0.3.0"],
    :description "Dummy project for build and deployment testing"}
   {:etag "W/\"6baed23f4aa057401d740bcf6765a12e\"",
+   :last-modified "Tue, 28 Oct 2025 13:31:39 GMT",
    :artifact-id "tools.build",
    :group-id "io.github.clojure",
    :origin :maven-central,
