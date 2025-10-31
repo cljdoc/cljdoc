@@ -85,23 +85,23 @@
          :last-modified (get-in group-response [:headers "last-modified"])
          :artifacts (->> artifact-ids
                          (mapv
-                           (fn [artifact-id]
-                             (let [cached-artifact (some #(when (= artifact-id (:artifact-id %)) %) cached-artifacts)
-                              url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
-                              artifact-response (fetch ctx url (request-opts cached-artifact))]
-                          (if (= 304 (:status artifact-response))
-                            cached-artifact
-                            (let [versions (parse-artifact-versions (:body artifact-response))
-                                  description (fetch-maven-description ctx group-id artifact-id (first versions))]
-                              (cond-> {:etag (get-in artifact-response [:headers "etag"])
-                                       :last-modified (get-in artifact-response [:headers "last-modified"])
-                                       :artifact-id artifact-id
-                                       :group-id group-id
-                                       :origin :maven-central
-                                       :versions versions}
-                                description (assoc :description description)))))))
-                     (sort-by :artifact-id)
-                     (into []))}))))
+                          (fn [artifact-id]
+                            (let [cached-artifact (some #(when (= artifact-id (:artifact-id %)) %) cached-artifacts)
+                                  url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
+                                  artifact-response (fetch ctx url (request-opts cached-artifact))]
+                              (if (= 304 (:status artifact-response))
+                                cached-artifact
+                                (let [versions (parse-artifact-versions (:body artifact-response))
+                                      description (fetch-maven-description ctx group-id artifact-id (first versions))]
+                                  (cond-> {:etag (get-in artifact-response [:headers "etag"])
+                                           :last-modified (get-in artifact-response [:headers "last-modified"])
+                                           :artifact-id artifact-id
+                                           :group-id group-id
+                                           :origin :maven-central
+                                           :versions versions}
+                                    description (assoc :description description)))))))
+                         (sort-by :artifact-id)
+                         (into []))}))))
 
 (defn- cache-dir []
   (fs/file "resources" "maven-central-cache"))
@@ -246,7 +246,6 @@
   (def groups-before (->> maven-artifacts
                           (mapv :group-id)
                           (mapv get-cached-group)))
-  
 
   (fetch-maven-description (atom {:requests []})
                            "org.clojure" "clojure" "1.12.3")
