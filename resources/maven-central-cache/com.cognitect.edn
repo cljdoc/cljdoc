@@ -1,15 +1,15 @@
 {:etag nil,
- :last-modified "Tue, 28 Oct 2025 08:32:11 GMT",
+ :last-modified "Tue, 11 Nov 2025 08:36:12 GMT",
  :artifacts
  [{:etag "W/\"2a56c30bf97eb3d86f5ae4045fe53334\"",
-   :last-modified "Tue, 16 May 2017 19:00:09 GMT",
+   :last-modified "Wed, 04 Oct 2023 17:28:54 GMT",
    :artifact-id "anomalies",
    :group-id "com.cognitect",
    :origin :maven-central,
    :versions ["0.1.12" "0.1.10"],
    :description "Categoric partitioning of program failures."}
   {:etag "W/\"bae5e254ef4678aad72032513426a640\"",
-   :last-modified "Wed, 16 Aug 2023 15:06:57 GMT",
+   :last-modified "Wed, 04 Oct 2023 17:35:37 GMT",
    :artifact-id "caster",
    :group-id "com.cognitect",
    :origin :maven-central,
@@ -22,7 +22,7 @@
    :versions ["0.1.7" "0.1.6"],
    :description "Categoric partitioning of program failures."}
   {:etag "W/\"88d61a55088e09723f3a16a127e2fa50\"",
-   :last-modified "Tue, 10 Oct 2023 19:45:36 GMT",
+   :last-modified "Tue, 10 Oct 2023 20:11:17 GMT",
    :artifact-id "hmac-authn",
    :group-id "com.cognitect",
    :origin :maven-central,
@@ -93,7 +93,7 @@
     "0.1.15"],
    :description "HTTP client"}
   {:etag "W/\"e6ce5fd9a230960be1ea10242313b6a9\"",
-   :last-modified "Tue, 10 Oct 2023 19:45:37 GMT",
+   :last-modified "Tue, 10 Oct 2023 20:11:17 GMT",
    :artifact-id "s3-libs",
    :group-id "com.cognitect",
    :origin :maven-central,
@@ -107,14 +107,14 @@
    :versions ["0.1.5"],
    :description "REPL transcriptor"}
   {:etag "W/\"357ef4d28c81ad968c5418bd42deedf1\"",
-   :last-modified "Fri, 10 Oct 2014 18:35:31 GMT",
+   :last-modified "Wed, 04 Oct 2023 17:35:48 GMT",
    :artifact-id "transducers-java",
    :group-id "com.cognitect",
    :origin :maven-central,
    :versions ["0.4.67"],
    :description "Transducers for Java"}
   {:etag "W/\"e97e9ae66cfe845ba0bd34ad72fb7b6c\"",
-   :last-modified "Mon, 31 Aug 2015 20:48:26 GMT",
+   :last-modified "Wed, 04 Oct 2023 17:35:27 GMT",
    :artifact-id "transducers-js",
    :group-id "com.cognitect",
    :origin :maven-central,
@@ -154,7 +154,7 @@
    :description
    "Transit is a data format and a set of libraries for conveying values between applications written in different languages. This library provides support for marshalling Transit data to/from Clojure."}
   {:etag "W/\"18995a97206129a46e2d68ed5e29c3c9\"",
-   :last-modified "Wed, 22 Jun 2022 20:29:43 GMT",
+   :last-modified "Wed, 04 Oct 2023 17:35:47 GMT",
    :artifact-id "transit-cljs",
    :group-id "com.cognitect",
    :origin :maven-central,
@@ -202,7 +202,7 @@
     "0.8.137"],
    :description "transit-cljs bindings for ClojureScript"}
   {:etag "W/\"a164b9f6cf6c33ded65221ab3bc60504\"",
-   :last-modified "Fri, 31 Mar 2023 22:28:45 GMT",
+   :last-modified "Wed, 04 Oct 2023 17:35:42 GMT",
    :artifact-id "transit-java",
    :group-id "com.cognitect",
    :origin :maven-central,
@@ -234,7 +234,7 @@
    :description
    "Transit is a data format and a set of libraries for conveying values between applications written in different languages. This library provides support for marshalling Transit data to/from Java."}
   {:etag "W/\"8d65f35cc602a901c3414c454adb51a4\"",
-   :last-modified "Mon, 26 Apr 2021 19:00:19 GMT",
+   :last-modified "Wed, 04 Oct 2023 17:35:40 GMT",
    :artifact-id "transit-js",
    :group-id "com.cognitect",
    :origin :maven-central,
