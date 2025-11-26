@@ -140,4 +140,5 @@
                            org.slf4j/slf4j-simple {:mvn/version "2.0.17"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=io.pedestal/pedestal.jetty@0.8.0-rc-2" ;; see https://github.com/cljdoc/cljdoc/issues/1081
+                        "--exclude=org.xerial/sqlite-jdbc@3.51.0.0" ;; see https://github.com/cljdoc/cljdoc/issues/1125
                         "--ignore-locals"]}}}
