@@ -55,7 +55,7 @@
         org.babashka/http-client {:mvn/version "0.4.23"}     ;; jdk11+ http client
 
         ;; misc utils
-        org.babashka/cli {:mvn/version "0.8.66"}             ;; command line parsing
+        org.babashka/cli {:mvn/version "0.8.67"}             ;; command line parsing
         babashka/fs {:mvn/version "0.5.30"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.23"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.1.0"}             ;; json
