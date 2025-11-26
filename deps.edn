@@ -17,10 +17,10 @@
         com.taoensso/nippy {:mvn/version "3.6.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "10.3.1"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "10.3.1"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.3.1"}
-        org.apache.lucene/lucene-queries {:mvn/version "10.3.1"}
+        org.apache.lucene/lucene-core {:mvn/version "10.3.2"} ;; search engine
+        org.apache.lucene/lucene-analysis-common {:mvn/version "10.3.2"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.3.2"}
+        org.apache.lucene/lucene-queries {:mvn/version "10.3.2"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "3.0.1"} ;; render adoc to html
@@ -48,15 +48,15 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.38.4"}
+        software.amazon.awssdk/s3 {:mvn/version "2.39.4"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.4.0.202509020913-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.23"}     ;; jdk11+ http client
 
         ;; misc utils
-        org.babashka/cli {:mvn/version "0.8.66"}             ;; command line parsing
-        babashka/fs {:mvn/version "0.5.27"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        org.babashka/cli {:mvn/version "0.8.67"}             ;; command line parsing
+        babashka/fs {:mvn/version "0.5.30"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.23"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.1.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.312"}              ;; file system utilities
@@ -69,7 +69,7 @@
         org.apache.maven/maven-artifact {:mvn/version "3.9.11"} ;; compare maven versions
         zprint/zprint {:mvn/version "1.3.0"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.19.2"}
+        metosin/malli {:mvn/version "0.20.0"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
@@ -106,17 +106,17 @@
            :test
            {:extra-paths ["test"]
             :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
-                         org.clojure/test.check {:mvn/version "1.1.1"}
+                         org.clojure/test.check {:mvn/version "1.1.2"}
                          nubank/matcher-combinators {:mvn/version "3.9.2" :exclusions [midje/midje]}}
             :main-opts ["-m" "kaocha.runner"]}
 
            :clerk
-           {:extra-deps {io.github.nextjournal/clerk {:mvn/version "0.18.1150"}}}
+           {:extra-deps {io.github.nextjournal/clerk {:mvn/version "0.18.1158"}}}
 
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.11"}
                    clj-kondo/clj-kondo {:mvn/version "2025.10.23"}
-                   babashka/fs {:mvn/version "0.5.27"}
+                   babashka/fs {:mvn/version "0.5.30"}
                    babashka/process {:mvn/version "0.6.23"}}
             :ns-default build}
 
@@ -132,7 +132,7 @@
            {:main-opts ["-m" "cljdoc.cli"]}
 
            :code-format
-           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.15.3"}}
+           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.15.6"}}
             :main-opts ["-m" "cljfmt.main"]}
 
            :outdated
@@ -140,4 +140,5 @@
                            org.slf4j/slf4j-simple {:mvn/version "2.0.17"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=io.pedestal/pedestal.jetty@0.8.0-rc-2" ;; see https://github.com/cljdoc/cljdoc/issues/1081
+                        "--exclude=org.xerial/sqlite-jdbc@3.51.0.0" ;; see https://github.com/cljdoc/cljdoc/issues/1125
                         "--ignore-locals"]}}}
