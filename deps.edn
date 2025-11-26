@@ -69,7 +69,7 @@
         org.apache.maven/maven-artifact {:mvn/version "3.9.11"} ;; compare maven versions
         zprint/zprint {:mvn/version "1.3.0"}                 ;; format clojure source/edn
 
-        metosin/malli {:mvn/version "0.19.2"}
+        metosin/malli {:mvn/version "0.20.0"}
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
