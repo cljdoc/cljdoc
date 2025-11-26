@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Wed, 01 Oct 2025 20:44:12 GMT",
+ :last-modified "Tue, 25 Nov 2025 21:54:12 GMT",
  :artifacts
  [{:etag "W/\"6d7d85fd7891bf94c5158e695a4eef86\"",
    :last-modified "Tue, 07 May 2024 03:57:57 GMT",
@@ -244,13 +244,14 @@
    :origin :maven-central,
    :versions ["0.1.21" "0.1.16" "0.1.10"],
    :description "Clojure dependency installer"}
-  {:etag "W/\"9923ddb8e15c536dc40c5b5acd283b1c\"",
-   :last-modified "Fri, 16 May 2025 03:49:00 GMT",
+  {:etag "W/\"b1125602f71f43b51d6a6dbe7dfa0045\"",
+   :last-modified "Mon, 24 Nov 2025 17:27:16 GMT",
    :artifact-id "clojurescript",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.12.42"
+   ["1.12.116"
+    "1.12.42"
     "1.12.38"
     "1.12.35"
     "1.11.132"
@@ -1709,13 +1710,14 @@
     "0.1.108"
     "0.1.94"],
    :description "Specification of data and functions"}
-  {:etag "W/\"ca53340194a060f97bdd0e84bc75996c\"",
-   :last-modified "Wed, 01 Dec 2021 18:12:19 GMT",
+  {:etag "W/\"007cfe23a410505040ac300d80c22636\"",
+   :last-modified "Tue, 25 Nov 2025 21:53:23 GMT",
    :artifact-id "test.check",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.1.1"
+   ["1.1.2"
+    "1.1.1"
     "1.1.0"
     "1.0.0"
     "0.10.0"
