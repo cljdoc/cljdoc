@@ -1,4 +1,4 @@
-{:deps {org.clojure/clojure {:mvn/version "1.12.3"}
+{:deps {org.clojure/clojure {:mvn/version "1.12.4"}
 
         ;; configuration
         aero/aero {:mvn/version "1.1.6"}                     ;; rich configuration support with profiles
@@ -43,21 +43,21 @@
         {:mvn/version "20240325.1"}                          ;; sanitize html converted from user markdown
 
         ;; logging
-        ch.qos.logback/logback-classic {:mvn/version "1.5.21"}
+        ch.qos.logback/logback-classic {:mvn/version "1.5.22"}
         org.clojure/tools.logging {:mvn/version "1.3.0"}     ;; logging facade
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.39.4"}
+        software.amazon.awssdk/s3 {:mvn/version "2.40.7"}
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.4.0.202509020913-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.5.0.202512021534-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.23"}     ;; jdk11+ http client
 
         ;; misc utils
         org.babashka/cli {:mvn/version "0.8.67"}             ;; command line parsing
         babashka/fs {:mvn/version "0.5.30"}                  ;; file system utilities (a modern version of clj-commons/fs)
-        babashka/process {:mvn/version "0.6.23"}             ;; launch processes
+        babashka/process {:mvn/version "0.6.24"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.1.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.312"}              ;; file system utilities
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
@@ -99,7 +99,7 @@
            :flowstorm
            {;; for disabling the official compiler
             :classpath-overrides {org.clojure/clojure nil}
-            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.3-4"}
+            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.4"}
                          com.github.flow-storm/flow-storm-dbg {:mvn/version "4.5.9"}}
             :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}
 
@@ -117,7 +117,7 @@
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.11"}
                    clj-kondo/clj-kondo {:mvn/version "2025.10.23"}
                    babashka/fs {:mvn/version "0.5.30"}
-                   babashka/process {:mvn/version "0.6.23"}}
+                   babashka/process {:mvn/version "0.6.24"}}
             :ns-default build}
 
            :clj-kondo

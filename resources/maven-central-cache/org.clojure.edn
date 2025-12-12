@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Tue, 25 Nov 2025 21:54:12 GMT",
+ :last-modified "Wed, 10 Dec 2025 19:34:11 GMT",
  :artifacts
  [{:etag "W/\"6d7d85fd7891bf94c5158e695a4eef86\"",
    :last-modified "Tue, 07 May 2024 03:57:57 GMT",
@@ -37,13 +37,14 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"eaa409188e54c9ff934abdfd1314c464\"",
-   :last-modified "Thu, 25 Sep 2025 17:37:41 GMT",
+  {:etag "W/\"32444779f049382395bc554fef3b456b\"",
+   :last-modified "Wed, 10 Dec 2025 18:43:28 GMT",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.12.3"
+   ["1.12.4"
+    "1.12.3"
     "1.12.2"
     "1.12.1"
     "1.12.0"
@@ -244,13 +245,14 @@
    :origin :maven-central,
    :versions ["0.1.21" "0.1.16" "0.1.10"],
    :description "Clojure dependency installer"}
-  {:etag "W/\"b1125602f71f43b51d6a6dbe7dfa0045\"",
-   :last-modified "Mon, 24 Nov 2025 17:27:16 GMT",
+  {:etag "W/\"f9a05206e346e21bc1f2ec8b2de31a70\"",
+   :last-modified "Tue, 09 Dec 2025 00:27:15 GMT",
    :artifact-id "clojurescript",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.12.116"
+   ["1.12.134"
+    "1.12.116"
     "1.12.42"
     "1.12.38"
     "1.12.35"
@@ -1923,13 +1925,15 @@
     "0.2.1"
     "0.2.0"
     "0.1.0"]}
-  {:etag "W/\"4c82b3408fbca903b9f81fb255eaa4b9\"",
-   :last-modified "Thu, 25 Sep 2025 18:23:39 GMT",
+  {:etag "W/\"f569c902dc7b74e581c9d79ebb2c7509\"",
+   :last-modified "Wed, 10 Dec 2025 19:33:15 GMT",
    :artifact-id "tools.deps",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.26.1553"
+   ["0.27.1564"
+    "0.27.1560"
+    "0.26.1553"
     "0.26.1549"
     "0.25.1543"
     "0.25.1539"
@@ -1981,7 +1985,9 @@
     "0.16.1277"
     "0.16.1273"
     "0.16.1264"
-    "0.16.1260"]}
+    "0.16.1260"],
+   :description
+   "Clojure dependencies as data and classpath generation tools."}
   {:etag "W/\"90beb7b8951871a58bf6137b9f9f9468\"",
    :last-modified "Mon, 14 Nov 2022 23:35:21 GMT",
    :artifact-id "tools.deps.alpha",
@@ -2151,13 +2157,14 @@
     "0.1.35"
     "0.1.29"
     "0.1.14"]}
-  {:etag "W/\"db6ab74a58d6d06a23083e0e3c4ff65c\"",
-   :last-modified "Thu, 25 Sep 2025 18:17:38 GMT",
+  {:etag "W/\"1d65a10f33ed0afe3ee940a3ea3cf15c\"",
+   :last-modified "Wed, 10 Dec 2025 19:19:46 GMT",
    :artifact-id "tools.deps.cli",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.13.115"
+   ["0.14.121"
+    "0.13.115"
     "0.12.110"
     "0.12.105"
     "0.11.100"
@@ -2176,7 +2183,8 @@
     "0.9.26"
     "0.9.21"
     "0.9.17"
-    "0.9.10"]}
+    "0.9.10"],
+   :description "Dependency programs for use via the Clojure CLI."}
   {:etag "W/\"9ea953c989ed1550f2d170f94cd036ee\"",
    :last-modified "Mon, 22 Jul 2024 16:54:31 GMT",
    :artifact-id "tools.deps.graph",
