@@ -57,7 +57,7 @@
         ;; misc utils
         org.babashka/cli {:mvn/version "0.8.67"}             ;; command line parsing
         babashka/fs {:mvn/version "0.5.30"}                  ;; file system utilities (a modern version of clj-commons/fs)
-        babashka/process {:mvn/version "0.6.24"}             ;; launch processes
+        babashka/process {:mvn/version "0.6.25"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.1.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.312"}              ;; file system utilities
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
@@ -117,7 +117,7 @@
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.11"}
                    clj-kondo/clj-kondo {:mvn/version "2025.10.23"}
                    babashka/fs {:mvn/version "0.5.30"}
-                   babashka/process {:mvn/version "0.6.24"}}
+                   babashka/process {:mvn/version "0.6.25"}}
             :ns-default build}
 
            :clj-kondo
