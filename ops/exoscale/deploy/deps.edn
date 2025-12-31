@@ -4,7 +4,7 @@
         aero/aero {:mvn/version "1.1.6"}
         cheshire/cheshire {:mvn/version "6.1.0"}
         clj-commons/clj-yaml {:mvn/version "1.0.29"}
-        org.clojure/tools.logging {:mvn/version "1.3.0"}
+        org.clojure/tools.logging {:mvn/version "1.3.1"}
         spootnik/unilog {:mvn/version "0.7.32"}
         ;; drop in replacement for com.jcraft/jsch:
         ;; See: https://www.matez.de/index.php/2020/06/22/the-future-of-jsch-without-ssh-rsa/
