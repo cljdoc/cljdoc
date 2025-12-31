@@ -1,18 +1,20 @@
 {:etag nil,
- :last-modified "Wed, 10 Dec 2025 19:34:11 GMT",
+ :last-modified "Tue, 30 Dec 2025 23:40:11 GMT",
  :artifacts
- [{:etag "W/\"6d7d85fd7891bf94c5158e695a4eef86\"",
-   :last-modified "Tue, 07 May 2024 03:57:57 GMT",
+ [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
+   :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
    :artifact-id "algo.generic",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["1.0.1" "1.0.0" "0.1.3" "0.1.2" "0.1.1" "0.1.0"]}
-  {:etag "W/\"badc489cc696871f3aca949d85f267ca\"",
-   :last-modified "Mon, 19 Feb 2024 15:13:22 GMT",
+   :versions ["1.0.1" "1.0.0" "0.1.4" "0.1.3" "0.1.2" "0.1.1" "0.1.0"]}
+  {:etag "W/\"57c446172449fe8da190d099686631b9\"",
+   :last-modified "Tue, 30 Dec 2025 20:56:20 GMT",
    :artifact-id "algo.monads",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["0.2.0" "0.1.6" "0.1.5" "0.1.4" "0.1.0"]}
+   :versions ["0.2.1" "0.2.0" "0.1.6" "0.1.5" "0.1.4" "0.1.0"],
+   :description
+   "Macros for defining monads, and definition of the most common monads."}
   {:etag "W/\"840e70f111d126ddb15d3893f4709b22\"",
    :last-modified "Sat, 15 Jun 2024 14:47:00 GMT",
    :artifact-id "buildtest",
@@ -575,13 +577,14 @@
    :group-id "org.clojure",
    :origin :maven-central,
    :versions ["0.1.4" "0.1.3" "0.1.2" "0.1.1" "0.1.0"]}
-  {:etag "W/\"7705987aa8b979efece06f70a3271fbf\"",
-   :last-modified "Mon, 19 Feb 2024 15:36:37 GMT",
+  {:etag "W/\"6fbd64b37033057357462e0b3191fb75\"",
+   :last-modified "Tue, 30 Dec 2025 18:57:21 GMT",
    :artifact-id "core.logic",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.1.0"
+   ["1.1.1"
+    "1.1.0"
     "1.0.1"
     "1.0.0"
     "0.8.12"
@@ -624,13 +627,14 @@
     "0.6.2"
     "0.6.1"],
    :description "A logic/relational programming library for Clojure"}
-  {:etag "W/\"d5ed80c532dfaece442a80fc8f7d85b9\"",
-   :last-modified "Tue, 06 Feb 2024 15:19:20 GMT",
+  {:etag "W/\"b4aa9cd77220cd13396699f43ffdf20b\"",
+   :last-modified "Tue, 30 Dec 2025 19:09:46 GMT",
    :artifact-id "core.match",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.1.0"
+   ["1.1.1"
+    "1.1.0"
     "1.0.1"
     "1.0.0"
     "0.3.0"
@@ -692,13 +696,14 @@
     "0.5.1"
     "0.5.0"],
    :description "A memoization library for Clojure"}
-  {:etag "W/\"c145e8b35e91e48a73c4ac4ea40d4eaa\"",
-   :last-modified "Mon, 19 Feb 2024 15:59:07 GMT",
+  {:etag "W/\"9ac085b3aa07fd9106199b7a187d3cdc\"",
+   :last-modified "Tue, 30 Dec 2025 23:23:13 GMT",
    :artifact-id "core.rrb-vector",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.2.0"
+   ["0.2.1"
+    "0.2.0"
     "0.1.2"
     "0.1.1"
     "0.1.0"
@@ -1188,13 +1193,14 @@
    :versions ["0.8.0-alpha2" "0.8.0-alpha1" "0.7.2" "0.7.1" "0.7.0"],
    :description
    "An optional type system for Clojure — zero-dependency artifact for annotations only."}
-  {:etag "W/\"f597bc37df52788729f3a59d45c433d8\"",
-   :last-modified "Wed, 06 Nov 2024 17:55:38 GMT",
+  {:etag "W/\"26b224c207a177691205dfa7a7a72e62\"",
+   :last-modified "Tue, 30 Dec 2025 21:25:34 GMT",
    :artifact-id "core.unify",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.7.0"
+   ["0.7.1"
+    "0.7.0"
     "0.6.0"
     "0.5.7"
     "0.5.6"
@@ -1204,13 +1210,14 @@
     "0.5.2"
     "0.5.1"],
    :description "A unification library for Clojure"}
-  {:etag "W/\"3a954c6011b76df67b3d51df9fc94c18\"",
-   :last-modified "Mon, 19 Feb 2024 16:22:41 GMT",
+  {:etag "W/\"48ab4e2662faa9bf0c74c4a912b20f88\"",
+   :last-modified "Tue, 30 Dec 2025 23:39:12 GMT",
    :artifact-id "data.avl",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.2.0"
+   ["0.2.1"
+    "0.2.0"
     "0.1.0"
     "0.0.18"
     "0.0.17"
@@ -1224,27 +1231,36 @@
     "0.0.10"],
    :description
    "Persistent sorted maps and sets with log-time rank queries"}
-  {:etag "W/\"5d7b4ae00c735e4294de21db1c7eb331\"",
-   :last-modified "Mon, 19 Feb 2024 16:29:01 GMT",
+  {:etag "W/\"3822c87806a98037982e582a8d654bc9\"",
+   :last-modified "Tue, 30 Dec 2025 21:33:20 GMT",
    :artifact-id "data.codec",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["0.2.0" "0.1.1" "0.1.0"]}
-  {:etag "W/\"a95244cd20faea81a655a4d165483e40\"",
-   :last-modified "Mon, 19 Feb 2024 19:01:31 GMT",
+   :versions ["0.2.1" "0.2.0" "0.1.1" "0.1.0"],
+   :description "Native codec implementations."}
+  {:etag "W/\"5dc1bd40a3b322dcc1561be4fe570c52\"",
+   :last-modified "Tue, 30 Dec 2025 21:01:12 GMT",
    :artifact-id "data.csv",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.1.0" "1.0.1" "1.0.0" "0.1.4" "0.1.3" "0.1.2" "0.1.1" "0.1.0"],
+   ["1.1.1"
+    "1.1.0"
+    "1.0.1"
+    "1.0.0"
+    "0.1.4"
+    "0.1.3"
+    "0.1.2"
+    "0.1.1"
+    "0.1.0"],
    :description
    "A Clojure library for reading and writing comma separated value (csv) files"}
-  {:etag "W/\"9abd11a311206ac29369c0f8412cc5af\"",
-   :last-modified "Mon, 19 Feb 2024 19:24:15 GMT",
+  {:etag "W/\"f97bfdfb1571017fb4ca8d0e95598cb3\"",
+   :last-modified "Tue, 30 Dec 2025 22:25:13 GMT",
    :artifact-id "data.finger-tree",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["0.1.0" "0.0.3" "0.0.2" "0.0.1"],
+   :versions ["0.1.1" "0.1.0" "0.0.3" "0.0.2" "0.0.1"],
    :description "Persistent collections based on 2-3 finger trees."}
   {:etag "W/\"d37a13d60a570a240195297f1bcfb602\"",
    :last-modified "Mon, 19 Feb 2024 21:38:11 GMT",
@@ -1253,19 +1269,21 @@
    :origin :maven-central,
    :versions ["1.1.0" "1.0.0" "0.2.1" "0.2.0"],
    :description "Read/write Fressian from Clojure"}
-  {:etag "W/\"4bae384c0c3c01633aac94739ce7c707\"",
-   :last-modified "Mon, 19 Feb 2024 19:34:20 GMT",
+  {:etag "W/\"81fd2108efb3b483d8256c1cf19ee3b8\"",
+   :last-modified "Tue, 30 Dec 2025 22:09:22 GMT",
    :artifact-id "data.generators",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["1.1.0" "1.0.0" "0.1.2" "0.1.0"]}
-  {:etag "W/\"3bd0c26355dfcd3a972f8e929f233c51\"",
-   :last-modified "Mon, 19 Feb 2024 19:42:14 GMT",
+   :versions ["1.1.1" "1.1.0" "1.0.0" "0.1.2" "0.1.0"],
+   :description "Random data generators."}
+  {:etag "W/\"94054713ddb15e05c3ac6dd5b9b79ed4\"",
+   :last-modified "Tue, 30 Dec 2025 22:35:12 GMT",
    :artifact-id "data.int-map",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.3.0"
+   ["1.3.1"
+    "1.3.0"
     "1.2.1"
     "1.2.0"
     "1.1.0"
@@ -1313,13 +1331,14 @@
     "0.1.0"],
    :description
    "Generating/parsing JSON from/to Clojure data structures"}
-  {:etag "W/\"d7f1dd558f79eef26934d12928e72acd\"",
-   :last-modified "Mon, 19 Feb 2024 19:15:53 GMT",
+  {:etag "W/\"ef7e9c28244ba114679286984c0c7c3d\"",
+   :last-modified "Tue, 30 Dec 2025 21:27:13 GMT",
    :artifact-id "data.priority-map",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.2.0"
+   ["1.2.1"
+    "1.2.0"
     "1.1.0"
     "1.0.0"
     "0.0.10"
@@ -1331,14 +1350,16 @@
     "0.0.4"
     "0.0.3"
     "0.0.2"
-    "0.0.1"]}
-  {:etag "W/\"f5d0594749dcba56eb186b1060323c86\"",
-   :last-modified "Mon, 19 Feb 2024 20:12:18 GMT",
+    "0.0.1"],
+   :description "Clojure priority map data structure."}
+  {:etag "W/\"34e05c09c9044a6f2fbf2a6b56b5323e\"",
+   :last-modified "Tue, 30 Dec 2025 23:09:12 GMT",
    :artifact-id "data.xml",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.2.0-alpha9"
+   ["0.2.0-alpha10"
+    "0.2.0-alpha9"
     "0.2.0-alpha8"
     "0.2.0-alpha7"
     "0.2.0-alpha6"
@@ -1358,12 +1379,13 @@
     "0.0.3"],
    :description
    "Functions to parse XML into lazy sequences and lazy trees and emit these as text"}
-  {:etag "W/\"5d9ff8e2b2631834f7dac6260bc4e525\"",
-   :last-modified "Mon, 19 Feb 2024 20:37:02 GMT",
+  {:etag "W/\"f0ffa9cffd1e17395593c67443e000fa\"",
+   :last-modified "Tue, 30 Dec 2025 22:57:30 GMT",
    :artifact-id "data.zip",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["1.1.0" "1.0.0" "0.1.3" "0.1.2" "0.1.1" "0.1.0"]}
+   :versions ["1.1.1" "1.1.0" "1.0.0" "0.1.3" "0.1.2" "0.1.1" "0.1.0"],
+   :description "Utilities for clojure.zip."}
   {:etag "W/\"bf08d07a13a137f0729a0eaf1d164f65\"",
    :last-modified "Thu, 15 May 2025 20:45:23 GMT",
    :artifact-id "google-closure-library",
@@ -1432,13 +1454,14 @@
     "0.0-20140718-946a7d39"],
    :description
    "The Google Closure Library is a collection of JavaScript code designed for use with the Google Closure JavaScript Compiler. This non-official distribution was prepared by the ClojureScript team at http://clojure.org/ This package contains extensions to the Google Closure Library using third-party components, which may be distributed under licenses other than the Apache license. Licenses for individual library components may be found in source-code comments."}
-  {:etag "W/\"9b23252df80b6818d373f199bbeaa685\"",
-   :last-modified "Mon, 19 Feb 2024 19:42:13 GMT",
+  {:etag "W/\"d1ef15c9470251302270ba0457554d21\"",
+   :last-modified "Tue, 30 Dec 2025 22:13:52 GMT",
    :artifact-id "java.classpath",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.1.0"
+   ["1.1.1"
+    "1.1.0"
     "1.0.0"
     "0.3.0"
     "0.2.3"
@@ -1447,7 +1470,8 @@
     "0.2.0"
     "0.1.2"
     "0.1.1"
-    "0.1.0"]}
+    "0.1.0"],
+   :description "Examine the Java classpath from Clojure programs."}
   {:etag "W/\"6e1e283ebc2a257ed8c680fa179283ca\"",
    :last-modified "Thu, 23 Jan 2025 00:04:40 GMT",
    :artifact-id "java.data",
@@ -1547,13 +1571,14 @@
     "0.0.3"
     "0.0.2"
     "0.0.1"]}
-  {:etag "W/\"afc0bf18473eab65672b167e3fb83fab\"",
-   :last-modified "Mon, 19 Feb 2024 18:32:35 GMT",
+  {:etag "W/\"2653352004d986c8548039c69d56ceea\"",
+   :last-modified "Tue, 30 Dec 2025 19:23:26 GMT",
    :artifact-id "java.jmx",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.1.0"
+   ["1.1.1"
+    "1.1.0"
     "1.0.0"
     "0.3.4"
     "0.3.3"
@@ -1561,7 +1586,8 @@
     "0.3.1"
     "0.3.0"
     "0.2.0"
-    "0.1"]}
+    "0.1"],
+   :description "Produce and consume JMX beans from Clojure."}
   {:etag "W/\"3937a373732932e97cb6cd63e7ed6820\"",
    :last-modified "Sat, 14 Jan 2017 17:36:19 GMT",
    :artifact-id "jvm.tools.analyzer",
@@ -1610,12 +1636,14 @@
     "0.0.3"
     "0.0.2"
     "0.0.1"]}
-  {:etag "W/\"f32935556193022b1e2985ecf3e24482\"",
-   :last-modified "Mon, 19 Feb 2024 20:07:31 GMT",
+  {:etag "W/\"55aaebeca35a4d94416c8ad7d4efc9f6\"",
+   :last-modified "Tue, 30 Dec 2025 22:57:31 GMT",
    :artifact-id "math.numeric-tower",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["0.1.0" "0.0.5" "0.0.4" "0.0.3" "0.0.2" "0.0.1"]}
+   :versions ["0.1.1" "0.1.0" "0.0.5" "0.0.4" "0.0.3" "0.0.2" "0.0.1"],
+   :description
+   "Math functions that deal intelligently with the various types in Clojure's numeric tower."}
   {:etag "W/\"5a6cc32204f08a7148e6c8abc487c92c\"",
    :last-modified "Fri, 26 Nov 2010 15:11:38 GMT",
    :artifact-id "pom.baseline",
@@ -1634,13 +1662,14 @@
     "0.0.8"
     "0.0.5"
     "0.0.1"]}
-  {:etag "W/\"cd327beada79a0178906c869e5fd61d9\"",
-   :last-modified "Fri, 30 May 2025 19:13:35 GMT",
+  {:etag "W/\"80ab2dc2f6a55f0ee8ada83bb29cea58\"",
+   :last-modified "Tue, 30 Dec 2025 16:19:56 GMT",
    :artifact-id "pom.contrib",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.3.0"
+   ["1.4.0"
+    "1.3.0"
     "1.2.0"
     "1.1.0"
     "1.0.0"
@@ -1712,13 +1741,14 @@
     "0.1.108"
     "0.1.94"],
    :description "Specification of data and functions"}
-  {:etag "W/\"007cfe23a410505040ac300d80c22636\"",
-   :last-modified "Tue, 25 Nov 2025 21:53:23 GMT",
+  {:etag "W/\"5a1972595ef3779fae952999c3bd3adf\"",
+   :last-modified "Tue, 30 Dec 2025 19:25:14 GMT",
    :artifact-id "test.check",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.1.2"
+   ["1.1.3"
+    "1.1.2"
     "1.1.1"
     "1.1.0"
     "1.0.0"
@@ -1770,13 +1800,14 @@
     "0.1.2"
     "0.1.1"
     "0.1.0"]}
-  {:etag "W/\"3c9f9e8462cba794d9fb82439680775d\"",
-   :last-modified "Mon, 19 Feb 2024 21:08:59 GMT",
+  {:etag "W/\"98c591fe2ab44352741d8d1c3429ad18\"",
+   :last-modified "Tue, 30 Dec 2025 22:23:18 GMT",
    :artifact-id "tools.analyzer",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.2.0"
+   ["1.2.1"
+    "1.2.0"
     "1.1.1"
     "1.1.0"
     "1.0.0"
@@ -1895,13 +1926,14 @@
    :group-id "org.clojure",
    :origin :maven-central,
    :versions ["0.9.2" "0.9.1" "0.9.0" "0.8.4"]}
-  {:etag "W/\"7b2e6c14a1188350fa631f31a3b2a501\"",
-   :last-modified "Sun, 28 Sep 2025 16:25:37 GMT",
+  {:etag "W/\"ee80bebd0cc1fcb2c1733c5dd64c76b0\"",
+   :last-modified "Tue, 30 Dec 2025 20:58:00 GMT",
    :artifact-id "tools.cli",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.2.245"
+   ["1.3.250"
+    "1.2.245"
     "1.1.230"
     "1.0.219"
     "1.0.214"
@@ -1924,7 +1956,8 @@
     "0.2.2"
     "0.2.1"
     "0.2.0"
-    "0.1.0"]}
+    "0.1.0"],
+   :description "Command-line processing tools for Clojure."}
   {:etag "W/\"f569c902dc7b74e581c9d79ebb2c7509\"",
    :last-modified "Wed, 10 Dec 2025 19:33:15 GMT",
    :artifact-id "tools.deps",
@@ -2219,13 +2252,14 @@
     "0.1.0-alpha1"],
    :description
    "A JVM bytecode generator for ASTs compatible with tools.analyzer(.jvm)."}
-  {:etag "W/\"7465b21ce73ccce7dda2f1b3b221b022\"",
-   :last-modified "Thu, 05 Dec 2024 17:23:49 GMT",
+  {:etag "W/\"1dcd115aa9ac2eace14ea31de55c08f1\"",
+   :last-modified "Tue, 30 Dec 2025 21:58:54 GMT",
    :artifact-id "tools.gitlibs",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["2.6.206"
+   ["2.6.212"
+    "2.6.206"
     "2.5.197"
     "2.5.190"
     "2.5.186"
@@ -2255,14 +2289,17 @@
     "0.2.27"
     "0.2.23"
     "0.1.8"
-    "0.1.3"]}
-  {:etag "W/\"406f4967a91162ed62e0cc5687c78351\"",
-   :last-modified "Tue, 06 Feb 2024 17:12:07 GMT",
+    "0.1.3"],
+   :description
+   "API for retrieving, caching, and programatically accessing git libraries from Clojure."}
+  {:etag "W/\"fb6879d38719d0a6df8c26baf5377c33\"",
+   :last-modified "Tue, 30 Dec 2025 21:05:12 GMT",
    :artifact-id "tools.logging",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.3.0"
+   ["1.3.1"
+    "1.3.0"
     "1.2.4"
     "1.2.3"
     "1.2.2"
@@ -2285,13 +2322,16 @@
     "0.2.0"
     "0.1.2"
     "0.1.1"
-    "0.1.0"]}
-  {:etag "W/\"bd2bd3e51693d628b40687a438e4591e\"",
-   :last-modified "Fri, 30 Aug 2024 18:11:26 GMT",
+    "0.1.0"],
+   :description "Clojure logging API."}
+  {:etag "W/\"345039f97d0741410ed6c9660f09c6cf\"",
+   :last-modified "Tue, 30 Dec 2025 18:49:24 GMT",
    :artifact-id "tools.macro",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["0.2.1" "0.2.0" "0.1.5" "0.1.4" "0.1.2" "0.1.1" "0.1.0"]}
+   :versions
+   ["0.2.2" "0.2.1" "0.2.0" "0.1.5" "0.1.4" "0.1.2" "0.1.1" "0.1.0"],
+   :description "Utilities for Clojure macro writers."}
   {:etag "W/\"dc65a8ac7850e5f9b10dc68430df1380\"",
    :last-modified "Mon, 19 Feb 2024 20:39:42 GMT",
    :artifact-id "tools.namespace",
@@ -2456,13 +2496,14 @@
     "0.6.1"
     "0.6.0"],
    :description "A Clojure reader in Clojure"}
-  {:etag "W/\"dc572970afb858faea9b5702095ab803\"",
-   :last-modified "Mon, 19 Feb 2024 18:29:26 GMT",
+  {:etag "W/\"9ed754d25a56cb82879370b1e2bf76d8\"",
+   :last-modified "Tue, 30 Dec 2025 16:47:23 GMT",
    :artifact-id "tools.trace",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.8.0"
+   ["0.9.0"
+    "0.8.0"
     "0.7.11"
     "0.7.10"
     "0.7.9"
@@ -2471,4 +2512,6 @@
     "0.7.6"
     "0.7.5"
     "0.7.3"
-    "0.7.1"]}]}
+    "0.7.1"],
+   :description
+   "Tools for tracing Clojure functions and expressions."}]}
