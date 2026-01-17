@@ -170,7 +170,7 @@
 
 (defn- vars-row-fn [r]
   (assert (-> r :meta nippy/thaw :namespace)
-          (format "namespace missing from meta"))
+          "namespace missing from meta")
   (-> r :meta nippy/thaw (assoc :name (:name r))))
 
 (defn- get-vars

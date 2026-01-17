@@ -59,11 +59,11 @@
                     :index-reader-fn (search/make-index-reader-fn index)
                     :clojars-stats clojars-stats
                     :clojars-artifact-indexer (when enable-indexer?
-                                                (log/infof "Starting ArtifactIndexer for clojars")
+                                                (log/info "Starting ArtifactIndexer for clojars")
                                                 (tt/every! (.toSeconds TimeUnit/HOURS 1)
                                                            #(search/download-and-index! clojars-stats index {:origin :clojars})))
                     :maven-central-artifact-indexer (when enable-indexer?
-                                                      (log/infof "Starting ArtifactIndexer for maven-central")
+                                                      (log/info "Starting ArtifactIndexer for maven-central")
                                                       (tt/every! (.toSeconds TimeUnit/HOURS 1)
                                                                  #(search/download-and-index! clojars-stats index {:origin :maven-central})))})))
 
