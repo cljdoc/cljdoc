@@ -198,19 +198,20 @@
             ;; boost field
             (let [boost (:boost field-query)]
               (doseq [doc-ref (js/Object.keys field-search-results)]
-                (let [current-value (aget field-search-results doc-ref)]
-                  (aset field-search-results doc-ref
-                        (* current-value boost)))))
+                (let [current-value (get field-search-results doc-ref)]
+                  (assoc! field-search-results doc-ref
+                          (* current-value boost)))))
 
             ;; accumulate results
             (doseq [doc-ref (js/Object.keys field-search-results)]
-              (aset query-results doc-ref (+ (or (aget query-results doc-ref) 0)
-                                             (aget field-search-results doc-ref)))))))
+              #_{:clj-kondo/ignore [:unused-value]}
+              (assoc! query-results doc-ref (+ (or (get query-results doc-ref) 0)
+                                               (get field-search-results doc-ref)))))))
 
       (let [results []]
         (doseq [doc-ref (js/Object.keys query-results)]
           #_{:clj-kondo/ignore [:unused-value]}
-          (conj! results {:ref doc-ref :score (aget query-results doc-ref)}))
+          (conj! results {:ref doc-ref :score (get query-results doc-ref)}))
 
         (.sort results (fn [a b]
                          (- (:score b) (:score a))))
