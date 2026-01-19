@@ -37,7 +37,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0"}                 ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.21.2"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.22.1"}              ;; xml/html parser/rewriter
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20260102.1"}                          ;; sanitize html converted from user markdown
