@@ -86,11 +86,9 @@
   (let [generated-searchset (api-searchset/docset->searchset docset)]
     (t/testing "input docset is valid"
       (let [explanation (cbs/explain-humanized docset)]
-        (t/is (nil? explanation) {:explanation explanation
-                                  :data docset})))
+        (t/is (nil? explanation) (format "expected nil for %s" docset))))
     (t/testing "converts a docset into a searchset"
       (t/is (= searchset generated-searchset)))
     (t/testing "produces a valid searchset"
       (let [explanation (ss/explain-humanized generated-searchset)]
-        (t/is (nil? explanation) {:explanation explanation
-                                  :data generated-searchset})))))
+        (t/is (nil? explanation) (format "expected nil for %s" generated-searchset))))))

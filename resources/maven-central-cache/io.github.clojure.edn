@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Tue, 28 Oct 2025 13:32:14 GMT",
+ :last-modified "Mon, 05 Jan 2026 23:06:11 GMT",
  :artifacts
  [{:etag "W/\"747c1cafde9881bdbf557b41f8dd3f16\"",
    :last-modified "Fri, 30 May 2025 20:43:39 GMT",
@@ -8,13 +8,14 @@
    :origin :maven-central,
    :versions ["0.3.2" "0.3.1" "0.3.0"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"6baed23f4aa057401d740bcf6765a12e\"",
-   :last-modified "Tue, 28 Oct 2025 13:31:39 GMT",
+  {:etag "W/\"f12d62851d11f30e58a1f01f2777e2f2\"",
+   :last-modified "Mon, 05 Jan 2026 23:04:24 GMT",
    :artifact-id "tools.build",
    :group-id "io.github.clojure",
    :origin :maven-central,
    :versions
-   ["0.10.11"
+   ["0.10.12"
+    "0.10.11"
     "0.10.10"
     "0.10.9"
     "0.10.8"

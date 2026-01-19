@@ -673,9 +673,9 @@
   (create-connector opts))
 
 (defmethod ig/init-key :cljdoc/pedestal [_ connector]
-  (log/infof "Starting pedestal connector")
+  (log/info "Starting pedestal connector")
   (conn/start! connector))
 
 (defmethod ig/halt-key! :cljdoc/pedestal [_ connector]
-  (log/infof "Stopping pedestal connector")
+  (log/info "Stopping pedestal connector")
   (conn/stop! connector))
