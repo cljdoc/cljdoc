@@ -12,7 +12,7 @@
 :example-project-import-url: https://github.com/cljdoc/cljdoc-exerciser
 :example-project-coords: org.cljdoc/cljdoc-exerciser
 :example-project-maven-path: org/cljdoc/cljdoc-exerciser
-:example-project-version: 1.0.123
+:example-project-version: 1.0.128
 
 == Audience
 You are a cljdoc developer who wants to run cljdoc locally while making changes to cljdoc itself.
