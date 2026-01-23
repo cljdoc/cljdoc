@@ -11,7 +11,7 @@ packer {
 variable "exoscale_api_key" { type = string }
 variable "exoscale_api_secret" { type = string }
 variable "nomad_version" { default = "1.11.1" }
-variable "consul_version" { default = "1.20.1" }
+variable "consul_version" { default = "1.22.3" }
 
 source "exoscale" "debian-cljdoc" {
   api_key                  = var.exoscale_api_key
