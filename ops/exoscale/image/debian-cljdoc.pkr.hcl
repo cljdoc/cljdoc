@@ -16,7 +16,7 @@ variable "consul_version" { default = "1.20.1" }
 source "exoscale" "debian-cljdoc" {
   api_key                  = var.exoscale_api_key
   api_secret               = var.exoscale_api_secret
-  instance_template        = "Linux Debian 12 (Bookworm) 64-bit"
+  instance_template        = "Linux Debian 13 (Trixie) 64-bit"
   template_zones           = ["ch-gva-2"]
   template_name            = "debian-cljdoc-${formatdate("YYYYMMDD-HHmm", timestamp())}"
   template_username        = "debian"
