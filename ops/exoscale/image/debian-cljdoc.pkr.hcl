@@ -1,4 +1,5 @@
 packer {
+  required_version = ">= 1.14.3"
   required_plugins {
     exoscale = {
       version = ">= 0.5.2"
