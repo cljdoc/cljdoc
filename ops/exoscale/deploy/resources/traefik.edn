@@ -1,7 +1,12 @@
 ;; we convert this edn to yaml when we send it to traefik from deploy.clj
 {:global {:checkNewVersion false
           :sendAnonymousUsage false}
- :accessLog {:filePath "/data/access.log"}
+ :accessLog {:filePath "/data/access.log"
+             :format "json"
+             :fields {:defaultMode "keep"
+                      :headers {:defaultMode "drop"
+                                :names {:User-Agent "keep"
+                                        :Referer "keep"}}}}
  :log {:filePath "/data/traefik.log"}
  :entryPoints {:web {:address ":80"}
                :websecure {:address ":443"}
