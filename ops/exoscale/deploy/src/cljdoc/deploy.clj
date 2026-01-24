@@ -221,10 +221,10 @@
          (.disconnect session#)))))
 
 (defn- cli-deploy! [{:keys [nomad-ip] :as connect-opts}
-                    {:keys [docker-tag cljdoc-profile] :as deploy-opts}]
+                    {:keys [docker-tag cljdoc-profile cljdoc-config-override-map] :as deploy-opts}]
   (wait-until (format "docker tag %s exists" docker-tag) #(tag-exists? docker-tag)
               {:interval "2s" :timeout "3m"})
-  (log/infof "Deploying to Nomad server at %s:4646 using %s cljdoc-profile" nomad-ip cljdoc-profile)
+  (log/infof "Deploying to Nomad server at %s:4646 using %s cljdoc-profile with cljdoc config overrides %s" nomad-ip cljdoc-profile cljdoc-config-override-map)
   (with-nomad connect-opts
     (deploy! deploy-opts)))
 
@@ -239,10 +239,12 @@
                                 {:option "nomad-ip" :short "i" :as "IP of Nomad cluster to deploy to" :type :string}
                                 {:option "docker-tag" :short "t" :as "Tag of cljdoc/cljdoc image to deploy" :type :string :default :present}
                                 {:option "cljdoc-profile" :short "p" :as "Cljdoc profile" :type :string :default "prod"}
-                                {:option "secrets-filename" :short "s" :as "Secrets edn file" :type :string :default "resources/secrets.edn"}]
-                  :runs        (fn [opts] (cli-deploy!
-                                           (select-keys opts [:ssh-key :ssh-user :nomad-ip])
-                                           (select-keys opts [:docker-tag :cljdoc-profile :secrets-filename])))}]})
+                                {:option "secrets-filename" :short "s" :as "Secrets edn file" :type :string :default "resources/secrets.edn"}
+                                {:option "cljdoc-config-override-map" :as "Overrides for cljdoc config.edn (specify as map in string, used for staging)" :type :string :default "{}"}]
+                  :runs        (fn [opts]
+                                 (cli-deploy!
+                                  (select-keys opts [:ssh-key :ssh-user :nomad-ip])
+                                  (select-keys opts [:docker-tag :cljdoc-profile :secrets-filename :cljdoc-config-override-map])))}]})
 
 (defn -main
   [& args]
@@ -256,6 +258,11 @@
                     :cljdoc-profile "default"
                     :secrets-filename "../../../resources/secrets.edn"})
 
+  (jobspec {:docker-tag "foo"
+            :cljdoc-profile "prod"
+            :secrets-filename "../../../resources/secrets.edn"
+            :cljdoc-config-override-map "{:cljdoc/server {:enable-db-backup? false}}"})
+  
   (defmacro local-test [& body]
     `(with-nomad {:nomad-ip "10.0.1.20"
                   :ssh-key "/home/lee/.ssh/id_ed25519_cljdoc_local_vm_testing"

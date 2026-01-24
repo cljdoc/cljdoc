@@ -2,6 +2,7 @@
   (:refer-clojure :exclude [get-in])
   (:require [aero.core :as aero]
             [babashka.fs :as fs]
+            [clojure.edn :as edn]
             [clojure.java.io :as io]))
 
 (defmethod aero/reader 'slurp
@@ -25,13 +26,27 @@
     (throw (ex-info (format "No config found for path %s\nDid you configure your secrets.edn file?" ks)
                     {:ks ks, :profile (profile)}))))
 
-(defn config-file []
+(defn- config-file []
   (or (some-> (System/getenv "CLJDOC_CONFIG_EDN") fs/file)
       (io/resource "config.edn")))
 
-(defn config
-  ([] (aero/read-config (config-file) {:profile (profile)}))
-  ([profile] (aero/read-config (config-file) {:profile profile})))
+(defn- config-override-map
+  "Used for staging, when we sometimes want to tweak config."
+  []
+  (some-> (System/getenv "CLJDOC_CONFIG_OVERRIDE_MAP") edn/read-string))
+
+(defn- deep-merge
+  [& maps]
+  (if (every? map? maps)
+    (apply merge-with deep-merge maps)
+    (last maps)))
+
+(defn- read-config [f profile]
+  (aero/read-config f {:profile profile}))
+
+(defn config []
+  (deep-merge (aero/read-config (config-file) {:profile profile})
+              (config-override-map)))
 
 ;; Accessors
 
