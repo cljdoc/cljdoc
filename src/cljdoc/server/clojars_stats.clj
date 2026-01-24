@@ -140,7 +140,7 @@
   [k {:keys [db-spec retention-days] :as opts}]
   (when (> retention-days 1000)
     (throw (ex-info (format "retention-days is %d, but max for cljdoc's clojars stats is currently 1000" retention-days) {})))
-  (log/info "Starting" k)
+  (log/infof "Starting %s, with retention-days %d" k retention-days)
   (-> (->ClojarsStats db-spec)
       (assoc ::poll-job (tt/every! (.toSeconds TimeUnit/HOURS 1) (wrap-error #(update-stats! opts))))))
 
