@@ -58,6 +58,8 @@
                    "traefik.http.routers.cljdoc-https.tls=true"
                    "traefik.http.routers.cljdoc-https.tls.certresolver=letsencrypt"
                    "traefik.http.routers.cljdoc-https.rule=PathPrefix(`/`)"
+
+                   ;; tls domains config can be ommitted via deploy's --omit-tls-domains
                    "traefik.http.routers.cljdoc-https.tls.domains[0].main=cljdoc.org"
                    "traefik.http.routers.cljdoc-https.middlewares=compress-response"]}]
       :Templates [{:DestPath "secrets/secrets.edn"
