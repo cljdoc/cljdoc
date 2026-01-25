@@ -69,7 +69,7 @@
           (string/join ", " (butlast contributors))
           " & " (last contributors)]
          [:b.db "Can you improve this documentation?"])
-       (components/link-button {:href doc-scm-url}
+       (components/link-button {:href doc-scm-url :class "dib"}
                                (case (scm/provider doc-scm-url)
                                  :gitlab "Edit on GitLab"
                                  :sourcehut "Edit on sourcehut"
