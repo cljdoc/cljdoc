@@ -29,7 +29,7 @@ data "exoscale_template" "debian" {
 
 data "exoscale_template" "debian-03" {
   zone = var.exoscale_zone # see providers.tf
-  name = "debian-cljdoc-20260123-0925"
+  name = "debian-cljdoc-20260126-0727"
   visibility = "private"
 }
 
