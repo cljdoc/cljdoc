@@ -225,11 +225,17 @@ The tag names are determined based on Git commit count, branch and HEAD and imag
 
 [source,sh]
 ----
-./ops/nomad.sh username@ip
+./ops/nomad.clj username@ip
 ----
 Where `username` is your ssh login and `ip` is nomad's IP address.
+You can optionally specify an identify-file:
 
-The script launches an SSH process forwarding port 4646 and 8500.
+[source,sh]
+----
+./ops/nomad.clj -i ~/ssh/my-keyfile username@ip
+----
+
+The script launches an SSH process forwarding ports 4646 (nomad), 8500 (consul), 8080 (traefik), and 9010 (for access via jconsole or visualvm). 
 
 If you have Nomad installed locally, you can now run `nomad` comands like the following:
 
