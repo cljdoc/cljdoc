@@ -57,8 +57,10 @@
     (println (str "SSH: ssh " user-ip))
 
     (println "")
-    (println "Ctrl-C to quit")
+    (println "Ctrl-D to quit")
 
-    ;; prevent natural exit
-    @(promise)))
-
+    ;; if nomad is installed locally can use to hit it via port-forwarding 
+    (p/shell {:inherit true
+              :continue true
+              :extra-env {"PS1" "\nnomad> "}}
+             "bash --norc")))
