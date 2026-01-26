@@ -33,7 +33,8 @@
 (defn- config-override-map
   "Used for staging, when we sometimes want to tweak config."
   []
-  (some-> (System/getenv "CLJDOC_CONFIG_OVERRIDE_MAP") edn/read-string))
+  (or (some-> (System/getenv "CLJDOC_CONFIG_OVERRIDE_MAP") edn/read-string)
+      {}))
 
 (defn- deep-merge
   [& maps]
@@ -45,7 +46,7 @@
   (aero/read-config f {:profile profile}))
 
 (defn config []
-  (deep-merge (aero/read-config (config-file) {:profile profile})
+  (deep-merge (aero/read-config (config-file) {:profile (profile)})
               (config-override-map)))
 
 ;; Accessors
