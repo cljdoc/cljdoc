@@ -256,7 +256,7 @@
                                 {:option "secrets-filename" :short "s" :as "Secrets edn file" :type :string :default "resources/secrets.edn"}
                                 {:option "cljdoc-config-override-map" :as "Overrides for cljdoc config.edn (specify as map in string, used for staging)" :type :string :default "{}"}
                                 {:option "lets-encrypt-env" :as "staging or prod, override to :staging for testing" :type :string :default "prod"}
-                                {:option "omit-tls-domains" :as "set to true for staging when you need to connect by IP" :type :boolean :default false}]
+                                {:option "omit-tls-domains" :as "set to true for staging when you need to connect by IP" :type :flag :default false}]
                   :runs        (fn [opts]
                                  (cli-deploy!
                                   (select-keys opts [:ssh-key :ssh-user :nomad-ip])
