@@ -133,10 +133,17 @@ NOTE: The `cljdoc.org` domain should be configured to point to Exoscale.
 
 TIP: These commands require secrets to be configured as described in <<secrets>>.
 
+
 First, change to the appropriate dir:
 [source,sh]
 ----
 cd ops/exoscale/infrastructure
+----
+
+To validate config:
+[source,sh]
+----
+terraform validate
 ----
 
 To view the plan terraform would carry out:
@@ -172,6 +179,15 @@ To taint the compute instance for recreation on next `apply`:
 ----
 terraform taint module.main_server.exoscale_compute_instance.cljdoc_01
 ----
+
+After updating plugins or plugin versions (currently in `provider.tf`), run:
+
+[source,sh]
+----
+terraform init -upgrade
+----
+
+To upgrade and lock those changes to `.terraform.lock.hcl`
 
 == Creating a Cljdoc Docker Image
 The cljdoc docker image runs on the cljdoc host.
