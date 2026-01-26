@@ -36,6 +36,7 @@ resource "exoscale_compute_instance" "cljdoc" {
   elastic_ip_ids     = var.elastic_ip_id != null ? [var.elastic_ip_id] : []
   disk_size          = var.disk_size
   security_group_ids = var.security_group_ids
+  # TODO: ssh_key is deprecated and replaced by ssh_keys
   ssh_key            = var.ssh_key_id
   user_data          = <<EOF
 #cloud-config
