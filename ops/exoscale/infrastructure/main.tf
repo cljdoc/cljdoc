@@ -27,6 +27,12 @@ data "exoscale_template" "debian" {
   visibility = "private"
 }
 
+data "exoscale_template" "debian-03" {
+  zone = var.exoscale_zone # see providers.tf
+  name = "debian-cljdoc-20260123-0925"
+  visibility = "private"
+}
+
 module "dns" {
   source      = "./dns"
   for_each    = toset(["cljdoc.org"])
@@ -51,6 +57,22 @@ module "cljdoc_02" {
   ssh_key_id = exoscale_ssh_key.cljdoc_base_ssh_key.id
 }
 
+module "cljdoc_03" {
+  name = "cljdoc.org"
+  source = "./compute"
+  template_id = data.exoscale_template.debian-03.id
+  instance_type = "standard.large"
+  disk_size = 50
+  exoscale_zone = var.exoscale_zone
+  security_group_ids = [module.firewall.security_group_id]
+  base_authorized_key = var.base_authorized_key
+  additional_authorized_keys = var.additional_authorized_keys
+  # testing for now, do go live yet!
+  # elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
+  # elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
+  ssh_key_id = exoscale_ssh_key.cljdoc_base_ssh_key.id
+}
+
 # Outputs
 output "cljdoc_backups_bucket" {
   value = module.backups_bucket.bucket_name
@@ -68,6 +90,10 @@ output "cljdoc_backups_bucket_secret" {
 
 output "cljdoc_02_instance_ip" {
   value = module.cljdoc_02.instance_ip
+}
+
+output "cljdoc_03_instance_ip" {
+  value = module.cljdoc_03.instance_ip
 }
 
 output "cljdoc_static_ip" {
