@@ -28,20 +28,13 @@ variable "exoscale_zone" {
   default = "ch-gva-2"
 }
 
-# TODO: delete after migrating to ssh_keys
 variable "base_authorized_key" {
   description = "The base SSH public keys to be authorized"
   type        = string
 }
 
-# TODO: delete after migrating to ssh_keys
 variable "additional_authorized_keys" {
   description = "A list of additional SSH public keys to be authorized"
-  type        = list(string)
-}
-
-variable "authorized_keys" {
-  description = "SSH public keys to be authorized"
   type        = map(string)
 }
 
