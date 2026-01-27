@@ -60,8 +60,9 @@ module "cljdoc_02" {
   security_group_ids = [module.firewall.security_group_id]
   base_authorized_key = var.base_authorized_key
   additional_authorized_keys = var.additional_authorized_keys
-  elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
-  elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
+  # unhook from prod routing
+  # elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
+  # elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
   ssh_key_id = exoscale_ssh_key.cljdoc_base_ssh_key.id
 }
 
@@ -73,9 +74,8 @@ module "cljdoc_03" {
   disk_size = 50
   exoscale_zone = var.exoscale_zone
   security_group_ids = [module.firewall.security_group_id]
-  # testing for now, do go live yet!
-  # elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
-  # elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
+  elastic_ip_id = exoscale_elastic_ip.cljdoc_prod.id
+  elastic_ip_address = exoscale_elastic_ip.cljdoc_prod.ip_address
   ssh_key_ids = [for k in exoscale_ssh_key.cljdoc_ssh_keys : k.id]
 }
 
