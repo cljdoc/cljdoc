@@ -155,8 +155,8 @@
                                 (map-entry? form)
                                 (= :Tags (first form)))
                          (clojure.lang.MapEntry.
-                           (first form)
-                           (filterv #(not (str/includes? % "https.tls.domains[")) (second form)))
+                          (first form)
+                          (filterv #(not (str/includes? % "https.tls.domains[")) (second form)))
                          form))
                      spec))))
 
@@ -283,7 +283,7 @@
             :secrets-filename "../../../resources/secrets.edn"
             :cljdoc-config-override-map "{:cljdoc/server {:enable-db-backup? false}}"
             :omit-tls-domains false})
-  
+
   (defmacro local-test [& body]
     `(with-nomad {:nomad-ip "10.0.1.20"
                   :ssh-key "/home/lee/.ssh/id_ed25519_cljdoc_local_vm_testing"
