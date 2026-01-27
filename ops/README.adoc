@@ -44,8 +44,8 @@ The structure is:
 base_authorized_key = "<base pub key here>"
 
 additional_authorized_keys = {
-  descriptive-key1-here "<additional pub key 1 here>",
-  descriptive-key2-here "<additional pub key 2 here>"
+  descriptive-key1-here = "<additional pub key 1 here>",
+  descriptive-key2-here = "<additional pub key 2 here>"
 }
 ----
 
