@@ -43,10 +43,10 @@ The structure is:
 ----
 base_authorized_key = "<base pub key here>"
 
-additional_authorized_keys = [
-  "<additional pub key 1 here>",
-  "<additional pub key 2 here>"
-]
+additional_authorized_keys = {
+  descriptive-key1-here = "<additional pub key 1 here>",
+  descriptive-key2-here = "<additional pub key 2 here>"
+}
 ----
 
 Terraform might suggest that changes can be applied in place, but you'll need to `taint` the compute instance, and `apply` it for changes to be applied correctly.
@@ -114,8 +114,8 @@ And finally build on Exoscale
 packer build -var-file=secrets.pkrvars.hcl debian-cljdoc.pkr.hcl
 ----
 
-This will create a new `debian-cljdoc` image template on Exoscale.
-Exoscale will automatically pick the latest `debian-cljdoc` template.
+This will create a new image template named `debian-cljdoc-YYYYMMDD-HHmm` on Exoscale.
+You will need to explicitly reference this image by this name from terraform's `main.tf`.
 
 TIP: It's a good idea to occassionally log into the https://portal.exoscale.com[Exoscale Portal] and under Compute->Templates, delete old unused `debian-cljdoc` templates.
 
@@ -138,6 +138,12 @@ First, change to the appropriate dir:
 [source,sh]
 ----
 cd ops/exoscale/infrastructure
+----
+
+Terraform might request you run init, or if you change/add modules you might need to do it without being asked:
+[source,sh]
+----
+terraform init
 ----
 
 To validate config:
@@ -187,7 +193,7 @@ After updating plugins or plugin versions (currently in `provider.tf`), run:
 terraform init -upgrade
 ----
 
-To upgrade and lock those changes to `.terraform.lock.hcl`
+This upgrades and locks those changes to `.terraform.lock.hcl`
 
 == Creating a Cljdoc Docker Image
 The cljdoc docker image runs on the cljdoc host.
@@ -261,7 +267,7 @@ Our current backup retention strategy is:
 
 If cljdoc does not find a database on startup, it will automatically restore the most recent one from the `cljdoc-backups` bucket.
 
-== Host
+== Bound Host
 
 By default the cljdoc web server binds to `localhost`.
 This is a safe default for development work.
@@ -296,3 +302,55 @@ After some careful verification, you can quiet false positives via `suppresions.
 
 Other tools such as https://github.com/aquasecurity/trivy[trivy] can identify security holes.
 Trivy seems to be good at finding issues in docker images and configuration.
+
+== Upgrading the Exoscale Compute Instance
+Cljdoc has a great zero downtime story triggered by commits to master.
+This all happens within the the single Exoscale compute instance.
+
+Sometimes the compute instance will need to updated.
+This is not currently a zero downtime operation.
+
+Typically this involves:
+
+* Update packer config and deploy new template to Exoscale via the packer tool
+* Reference the new template from terraform config from a new (decoupled from Exoscale Elastic IP) compute instance deployed by terraform tool
+* Test the compute instance, ssh in, deploy from command line, etc.
+* After satisified, make the new instance live by attaching it to Exoscale's elastic ip, and decoupling the old instance from elastic ip (all via terraform)
+* Trigger a deploy to the new instance via a code commit to github master (can be a normal PR merge)
+* Test that cljdoc.org comes up and is working as expected.
+** It should grab the latest db backup from the Exoscale object store, which will be at most a day stale, any missing builds should be automaticaly scheduled.
+** SSL certs should be automatically regenerated from letsencrypt.
+* Delete the old compute instance by deleting it from the terraform config and applying via the change via the terraform tool
+* Delete the old template via the Exoscale web portal
+
+Example deploy cmd (run from `ops/exoscale/deploy` dir).
+Triple check the IP address matches your test compute instance.
+Grab a valid docker-tag from docker hub.
+
+[source,shell]
+----
+clojure -M -m cljdoc.deploy deploy \
+        --nomad-ip <staging-instance-ip-here> \
+        --docker-tag <docker-tag-here> \
+        -k ~/.ssh/id_ed25519_exo \
+        -u debian \
+        -s secrets.edn \
+        --omit-tls-domains true \
+        --lets-encrypt-env staging \
+        --cljdoc-config-override-map '{:cljdoc/server {:enable-db-backup? false}}'
+----
+
+The `--omit-tls-domains`, `--lets-encrypt-env`, and `--cljdoc-config-override-map` options are wholly to support testing. They are not used for prod deploys that happen automatically from CircleCI.
+
+Here's a couple of examples of upgrades, the commits should tell the story:
+
+* 2026-01-27
+** https://github.com/cljdoc/cljdoc/pull/1137 - prepatory changes
+** https://github.com/cljdoc/cljdoc/pull/1142 - test & deployment
+** https://github.com/cljdoc/cljdoc/pull/1144 - cleanup 
+* 2024-11-28
+** https://github.com/cljdoc/cljdoc/pull/940 
+
+Exoscale is generous with their hosting, so please be sure delete any unused resources.
+Always do so through config, never through the Exoscale web portal (except for templates).
+
