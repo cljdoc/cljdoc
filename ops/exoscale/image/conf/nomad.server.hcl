@@ -15,3 +15,7 @@ plugin "docker" {
     }
   }
 }
+
+telemetry {
+  publish_allocation_metrics = true
+}

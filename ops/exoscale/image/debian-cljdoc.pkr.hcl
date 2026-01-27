@@ -1,7 +1,8 @@
 packer {
+  required_version = ">= 1.14.3"
   required_plugins {
     exoscale = {
-      version = ">= 0.5.0"
+      version = ">= 0.5.2"
       source  = "github.com/exoscale/exoscale"
     }
   }
@@ -9,15 +10,15 @@ packer {
 
 variable "exoscale_api_key" { type = string }
 variable "exoscale_api_secret" { type = string }
-variable "nomad_version" { default = "1.9.3" }
-variable "consul_version" { default = "1.20.1" }
+variable "nomad_version" { default = "1.11.1" }
+variable "consul_version" { default = "1.22.3" }
 
 source "exoscale" "debian-cljdoc" {
   api_key                  = var.exoscale_api_key
   api_secret               = var.exoscale_api_secret
-  instance_template        = "Linux Debian 12 (Bookworm) 64-bit"
+  instance_template        = "Linux Debian 13 (Trixie) 64-bit"
   template_zones           = ["ch-gva-2"]
-  template_name            = "debian-cljdoc"
+  template_name            = "debian-cljdoc-${formatdate("YYYYMMDD-HHmm", timestamp())}"
   template_username        = "debian"
   ssh_username             = "debian"
 }

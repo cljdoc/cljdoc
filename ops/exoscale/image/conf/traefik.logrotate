@@ -1,6 +1,6 @@
 /data/traefik/access.log /data/traefik/traefik.log {
     daily
-    rotate 7
+    rotate 60 
     missingok
     notifempty
     dateext

@@ -16,7 +16,9 @@
             [clj-yaml.core :as yaml]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
+            [clojure.string :as str]
             [clojure.tools.logging :as log]
+            [clojure.walk :as walk]
             [unilog.config :as unilog])
   (:import (com.jcraft.jsch JSch)))
 
@@ -142,9 +144,21 @@
     (log/info "check for existence of docker tag" tag "returned" status)
     (= 200 status)))
 
-(defn- jobspec [opts]
-  (aero/read-config (io/resource "cljdoc.jobspec.edn")
-                    {::opts opts}))
+(defn- jobspec [{:keys [omit-tls-domains] :as opts}]
+  (let [spec (aero/read-config (io/resource "cljdoc.jobspec.edn")
+                               {::opts opts})]
+    (if-not omit-tls-domains
+      spec
+      ;; a bit awkward but aero is not designed for this kind of mod
+      (walk/postwalk (fn [form]
+                       (if (and omit-tls-domains
+                                (map-entry? form)
+                                (= :Tags (first form)))
+                         (clojure.lang.MapEntry.
+                          (first form)
+                          (filterv #(not (str/includes? % "https.tls.domains[")) (second form)))
+                         form))
+                     spec))))
 
 (defn- secrets-config [{:keys [secrets-filename]}]
   (with-out-str
@@ -152,11 +166,11 @@
      (aero/read-config
       (io/file secrets-filename)))))
 
-(defn- traefik-config [{:keys [cljdoc-profile]}]
+(defn- traefik-config [{:keys [lets-encrypt-env]}]
   (-> (io/resource "traefik.edn")
       (aero/read-config
        {::opts {:lets-encrypt-endpoint
-                (if (= "prod" cljdoc-profile)
+                (if (= "prod" lets-encrypt-env)
                   "https://acme-v02.api.letsencrypt.org/directory"
                   "https://acme-staging-v02.api.letsencrypt.org/directory")}})
       (yaml/generate-string :dumper-options {:indent 2
@@ -221,10 +235,10 @@
          (.disconnect session#)))))
 
 (defn- cli-deploy! [{:keys [nomad-ip] :as connect-opts}
-                    {:keys [docker-tag cljdoc-profile] :as deploy-opts}]
+                    {:keys [docker-tag cljdoc-profile cljdoc-config-override-map] :as deploy-opts}]
   (wait-until (format "docker tag %s exists" docker-tag) #(tag-exists? docker-tag)
               {:interval "2s" :timeout "3m"})
-  (log/infof "Deploying to Nomad server at %s:4646 using %s cljdoc-profile" nomad-ip cljdoc-profile)
+  (log/infof "Deploying to Nomad server at %s:4646 using %s cljdoc-profile with cljdoc config overrides %s" nomad-ip cljdoc-profile cljdoc-config-override-map)
   (with-nomad connect-opts
     (deploy! deploy-opts)))
 
@@ -239,10 +253,18 @@
                                 {:option "nomad-ip" :short "i" :as "IP of Nomad cluster to deploy to" :type :string}
                                 {:option "docker-tag" :short "t" :as "Tag of cljdoc/cljdoc image to deploy" :type :string :default :present}
                                 {:option "cljdoc-profile" :short "p" :as "Cljdoc profile" :type :string :default "prod"}
-                                {:option "secrets-filename" :short "s" :as "Secrets edn file" :type :string :default "resources/secrets.edn"}]
-                  :runs        (fn [opts] (cli-deploy!
-                                           (select-keys opts [:ssh-key :ssh-user :nomad-ip])
-                                           (select-keys opts [:docker-tag :cljdoc-profile :secrets-filename])))}]})
+                                {:option "secrets-filename" :short "s" :as "Secrets edn file" :type :string :default "resources/secrets.edn"}
+                                {:option "cljdoc-config-override-map" :as "Overrides for cljdoc config.edn (specify as map in string, used for staging)" :type :string :default "{}"}
+                                {:option "lets-encrypt-env" :as "staging or prod, override to :staging for testing" :type :string :default "prod"}
+                                {:option "omit-tls-domains" :as "set to true for staging when you need to connect by IP" :type :flag :default false}]
+                  :runs        (fn [opts]
+                                 (cli-deploy!
+                                  (select-keys opts [:ssh-key :ssh-user :nomad-ip])
+                                  (select-keys opts [:docker-tag
+                                                     :cljdoc-profile
+                                                     :secrets-filename
+                                                     :cljdoc-config-override-map
+                                                     :lets-encrypt-env])))}]})
 
 (defn -main
   [& args]
@@ -255,6 +277,12 @@
   (def deploy-opts {:docker-tag "0.0.2732-lread-explore-mem-usage-6f7fa85"
                     :cljdoc-profile "default"
                     :secrets-filename "../../../resources/secrets.edn"})
+
+  (jobspec {:docker-tag "foo"
+            :cljdoc-profile "prod"
+            :secrets-filename "../../../resources/secrets.edn"
+            :cljdoc-config-override-map "{:cljdoc/server {:enable-db-backup? false}}"
+            :omit-tls-domains false})
 
   (defmacro local-test [& body]
     `(with-nomad {:nomad-ip "10.0.1.20"

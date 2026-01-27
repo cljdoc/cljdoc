@@ -2,15 +2,15 @@ terraform {
   required_providers {
     exoscale = {
       source  = "exoscale/exoscale"
-      version = "0.62.1"
+      version = "0.67.2"
     }
     # Exoscale uses aws provider for its s3 compatible Object Store
     aws = {
       source  = "hashicorp/aws"
-      version = "5.78.0"
+      version = "6.28.0"
     }
   }
-  required_version = ">= 1.10.0"
+  required_version = ">= 1.14.3"
 }
 
 variable "exoscale_api_key" {
@@ -28,14 +28,21 @@ variable "exoscale_zone" {
   default = "ch-gva-2"
 }
 
+# TODO: delete after migrating to ssh_keys
 variable "base_authorized_key" {
   description = "The base SSH public keys to be authorized"
   type        = string
 }
 
+# TODO: delete after migrating to ssh_keys
 variable "additional_authorized_keys" {
   description = "A list of additional SSH public keys to be authorized"
   type        = list(string)
+}
+
+variable "authorized_keys" {
+  description = "SSH public keys to be authorized"
+  type        = map(string)
 }
 
 provider "exoscale" {

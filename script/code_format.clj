@@ -20,7 +20,7 @@ Options
       (status/line :head "%sing code format" cmd)
       (shell/command "clojure -M:code-format" cmd
                      "src" "test" "modules" "script"
-                     "ops/exoscale/deploy"
+                     "ops"
                      "resources/migrations"
                      "front-end/src"))))
 
