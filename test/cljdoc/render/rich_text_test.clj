@@ -2,8 +2,12 @@
   (:require [cljdoc.render.rich-text :as rich-text]
             [clojure.string :as str]
             [clojure.test :as t]
+            [hickory.core :as hickory]
             [matcher-combinators.matchers :as m]
-            [matcher-combinators.test]))
+            [matcher-combinators.test])
+  (:import (org.jsoup Jsoup)
+           (org.jsoup.select NodeTraversor NodeVisitor)
+           (org.jsoup.nodes TextNode)))
 
 (t/deftest markdown-wikilink
   (t/testing "renders as link when ref resolves"
@@ -34,12 +38,6 @@
       (into body-lines)
       (into ["</div>"])))
 
-(comment
-  (-> [1 2 3]
-      (into [5 6])
-      (into [7]))
-  ;; => [1 2 3 5 6 7]
-  )
 (t/deftest github-alert-test
   ;; we implemented support for github alerts
   ;; alerts are a syntactic superset of block quote, so should render as blockquote if not an alert
@@ -260,3 +258,122 @@ visualization library.
                                                                ":stem: with some options\n"
                                                                "\n"
                                                                "== My doc starts in earnest")]))))
+
+(defn- html->hiccup [html]
+  (let [doc (Jsoup/parse html)]
+    (-> (.outputSettings doc)
+        (.prettyPrint false))
+    ;; turf extra newlines, to avoid having to deal with them test expectations
+    (NodeTraversor/traverse
+      (reify NodeVisitor
+        (head [_ node _depth]
+          (when (and (instance? TextNode node)
+                     (re-matches #"\s*" (.getWholeText node)))
+            (println "AAAA" (pr-str (.getWholeText node)) )
+            (.remove node)))
+        (tail [_ _node _depth] nil))
+      doc)
+    (->> doc
+         .body
+         .toString
+         (hickory/parse-fragment)
+         (map hickory/as-hiccup))))
+
+(t/deftest emoji-unicode-test
+  (t/is (= ["fire :fire:"]
+           (html->hiccup (rich-text/render-text [:cljdoc/plaintext "fire :fire:"]))) "plaintext")
+  (t/is (= [[:div {:class "paragraph"}
+             [:p {} "fire 🔥"]]]
+           (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "fire :fire:"]))) "asciidoc")
+  (t/is (= [[:p {} "fire 🔥"]]
+           (html->hiccup (rich-text/render-text [:cljdoc/markdown "fire :fire:"]))) "markdown"))
+
+(t/deftest emoji-wrapped-unicode-test
+  ;; github wrapped some unicode on render, let's test that we render these ok
+  (t/is (= ["o2 :o2:"]
+           (html->hiccup (rich-text/render-text [:cljdoc/plaintext "o2 :o2:"]))) "plaintext")
+  (t/is (= [[:div {:class "paragraph"}
+             [:p {} "o2 🅾️"]]]
+           (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "o2 :o2:"]))) "asciidoc")
+  (t/is (= [[:p {} "o2 🅾️"]]
+           (html->hiccup (rich-text/render-text [:cljdoc/markdown "o2 :o2:"]))) "markdown"))
+
+(t/deftest emoji-img-test
+  ;; emojis that have no unicode are rendered as images
+  (t/is (= ["atom :atom:"]
+           (html->hiccup (rich-text/render-text [:cljdoc/plaintext "atom :atom:"]))) "plaintext")
+  (t/is (= [[:div
+             {:class "paragraph"}
+             [:p {} "atom "
+              [:img {:href "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
+                     :style "width:1rem;height:1rem;vertical-align:middle;"}]]]]
+           (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "atom :atom:"]))) "asciidoc")
+  (t/is (= [[:p {} "atom "
+             [:img {:href "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
+                    :style "width:1rem;height:1rem;vertical-align:middle;"}]]]
+           (html->hiccup (rich-text/render-text [:cljdoc/markdown "atom :atom:"]))) "markdown"))
+
+(t/deftest emoji-unrecognized-tag-test
+  (t/is (= ["nope :nope:"]
+           (html->hiccup (rich-text/render-text [:cljdoc/plaintext "nope :nope:"]))) "plaintext")
+  (t/is (= [[:div
+             {:class "paragraph"}
+             [:p {} "nope :nope:"]]]
+           (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "nope :nope:"]))) "asciidoc")
+  (t/is (= [[:p {} "nope :nope:"]]
+           (html->hiccup (rich-text/render-text [:cljdoc/markdown "nope :nope:"]))) "markdown"))
+
+(t/deftest emojis-should-not-be-xlated-in-literal-blocks-test
+    (t/is (match?
+            [[:h1 {} "🔥 Title"] 
+             [:div {:class "paragraph"}
+              [:p {} "Inline " [:code {} ":fire:"]]]
+             [:div {:class "listingblock"}
+              [:div {:class "content"}
+               [:pre {:class "highlight"}
+                [:code {} "source :fire:"]]]]
+             [:div {:class "literalblock"} 
+              [:div {:class "content"} 
+               [:pre {} "Literal :fire:"]]]
+             [:div {:class "literalblock"}
+              [:div {:class "content"}
+               [:pre {} "Another literal :fire:"]]]
+             [:div {:class "literalblock"}
+              [:div {:class "content"}
+               [:pre {} "Indented literal :fire:"]]]]
+           (html->hiccup (rich-text/render-text
+                          [:cljdoc/asciidoc (str "= :fire: Title\n"
+                                                 "\n"
+                                                 "Inline `:fire:`\n"
+                                                 "[source]\n"
+                                                 "----\n"
+                                                 "source :fire:\n"
+                                                 "----\n"
+                                                 "\n"
+                                                 "[literal]\n"
+                                                 "Literal :fire:\n"
+                                                 "\n"
+                                                 "....\n"
+                                                 "Another literal :fire:\n"
+                                                 "....\n"
+                                                 "\n"
+                                                 " Indented literal :fire:")])))
+          "asciidoc")
+    (t/is (match?
+            [[:h1 {} [:a {:href "#fire-title", :id "fire-title", :class "md-anchor"} "🔥 Title"]]
+             [:p {} "Inline " [:code {} ":fire:"]]
+             ;; TODO: hmmm.. default lang is clojure?
+             [:pre {} [:code {:class "language-clojure"} "source :fire:\n"]]
+             [:pre {} "pre :fire:\n"]]
+            (html->hiccup (rich-text/render-text
+                            [:cljdoc/markdown (str "# :fire: Title\n"
+                                                    "\n"
+                                                    "Inline `:fire:`\n"
+                                                    "```\n"
+                                                    "source :fire:\n"
+                                                    "```\n"
+                                                    "\n"
+                                                    "<pre>\n"
+                                                    "pre :fire:\n"
+                                                    "</pre>")])))
+          "markdown"))
