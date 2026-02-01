@@ -1,5 +1,6 @@
 (ns cljdoc.render.rich-text
-  (:require [cljdoc.render.sanitize :as sanitize]
+  (:require [cljdoc.render.emoji :as emoji]
+            [cljdoc.render.sanitize :as sanitize]
             [clojure.string :as str]
             [hiccup2.core :as hiccup])
   (:import (cljdoc.render FixupImgRefLinksExtension GitHubAlertExtension)
@@ -34,7 +35,8 @@
                                   .build))
                  .build)]
     (-> (.convert adoc-container file-content opts)
-        sanitize/clean)))
+        sanitize/clean
+        emoji/apply-emojis)))
 
 (def md-extensions
   [(FixupImgRefLinksExtension/create)
@@ -168,7 +170,8 @@
   ([^String input-str opts]
    (->> (.parse (md-parser opts) input-str)
         (.render (md-renderer opts))
-        sanitize/clean)))
+        sanitize/clean
+        emoji/apply-emojis)))
 
 (defn plaintext-to-html
   ([^String input-str]
