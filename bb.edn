@@ -122,7 +122,7 @@
    :depends [package]
    :task (shell {:dir "ops/docker"}
                 "bb image.clj" (fs/absolutize "target/build/cljdoc.zip") (version/version))}
-  update-github-emoji
+  update-github-emojis
   {:doc "Update the github emojis used in markdown"
    :task update-github-emojis/-main}
   outdated
