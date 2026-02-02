@@ -8,9 +8,11 @@
            (org.jsoup.select NodeTraversor NodeVisitor)
            (org.jsoup.nodes TextNode)))
 
+(set! *warn-on-reflection* true)
+
 (defn- html->hiccup
   "Nice to verify in hiccup rather than html"
-  [html]
+  [^String html]
   (let [doc (Jsoup/parse html)]
     (-> (.outputSettings doc)
         (.prettyPrint false))
@@ -19,7 +21,7 @@
      (reify NodeVisitor
        (head [_ node _depth]
          (when (and (instance? TextNode node)
-                    (re-matches #"\s*" (.getWholeText node)))
+                    (re-matches #"\s*" (.getWholeText ^TextNode node)))
            (.remove node)))
        (tail [_ _node _depth] nil))
      doc)

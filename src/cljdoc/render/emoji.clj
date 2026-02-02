@@ -46,6 +46,10 @@
                                               :style "width:1rem;height:1rem;vertical-align:middle;"}]))
                      full-match)))))
 
+(defn- replace-node [^Node node ^String html]
+  (.before node html)
+  (.remove node))
+
 (defn apply-emojis [html-str]
   (let [doc (parse-html html-str)]
     (NodeTraversor/traverse
@@ -58,8 +62,7 @@
                (let [original-content (.text text-node)
                      new-content (render-emoji-alias original-content)]
                  (when (not= original-content new-content)
-                   (.before node new-content)
-                   (.remove node)))))))
+                   (replace-node node new-content)))))))
 
        (tail [_ _node _depth] nil))
      doc)
