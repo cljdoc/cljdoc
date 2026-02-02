@@ -48,6 +48,27 @@ Cljdoc supports two markup formats:
 * *Plaintext* for `.txt` link:#articles[articles] and optionally link:#docstrings[docstrings]
 ** Plaintext support was added for older projects, we recommend using minimal Markdown for docstrings and either Markdown or Asciidoc for your articles.
 
+== Emojis
+Cljdoc will render emojis found in Markdown (`.md`) and AsciiDoc (`.adoc`) articles.
+
+You should see, for example, :space_invader: for `:space_invader:`.
+We use GitHub as our authority for the list of emojis and how they are rendered.
+
+Emojis are not rendered in literal blocks or docstrings.
+
+[TIP]
+====
+In AsciiDoc, a colon-prefixed word at the start of a line (e.g., `:space_invader:`) will be interpreted as a document attribute, not as an emoji.
+To treat it as an emoji, you can use AsciiDoc's inline passthrough:
+
+[source,adoc]
+----
++:space_invader:+ will render as :space_invader: 
+----
+
+Emojis that don't start at the beginning of a line can be used without passthrough.
+====
+
 [[badges]]
 == Cljdoc Badge
 [IMPORTANT]

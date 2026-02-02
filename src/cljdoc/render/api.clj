@@ -44,7 +44,8 @@
   [:div.lh-copy.markdown.cljdoc-markup
    (-> doc-str
        (rich-text/markdown-to-html
-        {:escape-html? true
+        {:no-emojis? true
+         :escape-html? true
          :render-wiki-link (comp render-wiki-link parse-wiki-link)})
        (fixref/fix opts)
        hiccup/raw)])

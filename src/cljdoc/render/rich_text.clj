@@ -1,5 +1,6 @@
 (ns cljdoc.render.rich-text
-  (:require [cljdoc.render.sanitize :as sanitize]
+  (:require [cljdoc.render.emoji :as emoji]
+            [cljdoc.render.sanitize :as sanitize]
             [clojure.string :as str]
             [hiccup2.core :as hiccup])
   (:import (cljdoc.render FixupImgRefLinksExtension GitHubAlertExtension)
@@ -34,7 +35,8 @@
                                   .build))
                  .build)]
     (-> (.convert adoc-container file-content opts)
-        sanitize/clean)))
+        sanitize/clean
+        emoji/apply-emojis)))
 
 (def md-extensions
   [(FixupImgRefLinksExtension/create)
@@ -165,10 +167,13 @@
   - `:escape-html?` if true HTML in input-str will be escaped"
   ([^String input-str]
    (markdown-to-html input-str {}))
-  ([^String input-str opts]
-   (->> (.parse (md-parser opts) input-str)
-        (.render (md-renderer opts))
-        sanitize/clean)))
+  ([^String input-str {:keys [no-emojis?] :as opts}]
+   (let [sanitized (->> (.parse (md-parser opts) input-str)
+                        (.render (md-renderer opts))
+                        sanitize/clean)]
+     (if no-emojis?
+       sanitized
+       (emoji/apply-emojis sanitized)))))
 
 (defn plaintext-to-html
   ([^String input-str]
