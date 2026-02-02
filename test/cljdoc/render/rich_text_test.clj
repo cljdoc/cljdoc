@@ -329,11 +329,11 @@ visualization library.
   (t/is (match? [[:div
                   {:class "paragraph"}
                   [:p {} "atom "
-                   [:img {:href "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
+                   [:img {:src "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
                           :style "width:1rem;height:1rem;vertical-align:middle;"}]]]]
                 (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "atom :atom:"]))) "asciidoc")
   (t/is (match? [[:p {} "atom "
-                  [:img {:href "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
+                  [:img {:src "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
                          :style "width:1rem;height:1rem;vertical-align:middle;"}]]]
                 (html->hiccup (rich-text/render-text [:cljdoc/markdown "atom :atom:"]))) "markdown"))
 
