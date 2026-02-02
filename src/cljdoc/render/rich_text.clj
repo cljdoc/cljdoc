@@ -167,11 +167,13 @@
   - `:escape-html?` if true HTML in input-str will be escaped"
   ([^String input-str]
    (markdown-to-html input-str {}))
-  ([^String input-str opts]
-   (->> (.parse (md-parser opts) input-str)
-        (.render (md-renderer opts))
-        sanitize/clean
-        emoji/apply-emojis)))
+  ([^String input-str {:keys [no-emojis?] :as opts}]
+   (let [sanitized (->> (.parse (md-parser opts) input-str)
+                        (.render (md-renderer opts))
+                        sanitize/clean)]
+     (if no-emojis?
+       sanitized
+       (emoji/apply-emojis sanitized)))))
 
 (defn plaintext-to-html
   ([^String input-str]
