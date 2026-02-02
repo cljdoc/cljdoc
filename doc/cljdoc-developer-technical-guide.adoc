@@ -382,6 +382,21 @@ It can also be convenient to generate offline docs from the command line:
 bb offline-docset --project bidi --version 2.1.3 --output bidi-2.1.3.zip
 ----
 
+=== GitHub Emojis
+
+Cljdoc renders GitHub emojis in md and adoc articles (but not docstrings).
+For example, `:space_invader:` is rendered as :space_invader:.
+
+The source of truth for the set of emojis and how they are rendered is GitHub.
+To update this source of truth, run:
+
+[source,shell]
+----
+bb update-github-emojis
+----
+
+Commit any changes to `resources/emojis.edn`.
+
 === Honoring People who Contribute
 
 We honor the many good folks who contribute to cljdoc in our link:/README.adoc[README] file.
