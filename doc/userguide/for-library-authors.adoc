@@ -51,7 +51,7 @@ Cljdoc supports two markup formats:
 == Emojis
 Cljdoc will render emojis found in Markdown (`.md`) and AsciiDoc (`.adoc`) articles.
 
-You should see, for example, :space_invader: for `:space_invader:`.
+You should see, for example, see :space_invader: for `:space_invader:`.
 We use GitHub as our authority for the list of emojis and how they are rendered.
 
 Emojis are not rendered in literal blocks or docstrings.
