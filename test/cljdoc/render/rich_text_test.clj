@@ -3,7 +3,6 @@
             [clojure.string :as str]
             [clojure.test :as t]
             [hickory.core :as hickory]
-            [matcher-combinators.matchers :as m]
             [matcher-combinators.test])
   (:import (org.jsoup Jsoup)
            (org.jsoup.select NodeTraversor NodeVisitor)
@@ -64,12 +63,6 @@
                  "[[]]"
                  {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))))
 
-(defn- expected-alert-html [alert-type body-lines]
-  (-> [(format "<div class=\"markdown-alert markdown-alert-%s\">" alert-type)
-       (format "<p class=\"markdown-alert-title\">%s</p>" alert-type)]
-      (into body-lines)
-      (into ["</div>"])))
-
 (defn- expected-alert-hiccup [alert-type body]
   [(apply
     conj
@@ -77,46 +70,6 @@
      {:class (str "markdown-alert markdown-alert-" alert-type)}
      [:p {:class "markdown-alert-title"} alert-type]]
     body)])
-
-(comment
-  (def alert-type "important")
-
-  (rich-text/markdown-to-html
-   (str/join "\n" [">"
-                   ">"
-                   ">"
-                   (format ">    [!%s]" (str/upper-case alert-type))
-                   "> para1line1"
-                   "> para1line2"
-                   ">"
-                   ">"
-                   ">"
-                   ">"
-                   ">"
-                   ">"
-                   "> para2line1"
-                   ">"
-                   ">"
-                   ">"
-                   ">"
-                   "> para3line1"
-                   "> para3line2"
-                   "> para3extra"
-                   ">"
-                   ">"]))
-  ;; => "<div class=\"markdown-alert markdown-alert-important\">\n<p class=\"markdown-alert-title\">important</p>\n<p>para1line1\npara1line2</p>\n<p>para2line1</p>\n<p>para3line1\npara3line2\npara3extra</p>\n</div>\n"
-
-  (html->hiccup
-   (rich-text/markdown-to-html
-    (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
-                    ">"
-                    "> para1line1"])))
-  ;; => ([:div
-  ;;      {:class "markdown-alert markdown-alert-important"}
-  ;;      [:p {:class "markdown-alert-title"} "important"]
-  ;;      [:p {} "para1line1"]])
-
-  :eoc)
 
 (t/deftest github-alert-test
   ;; we implemented support for github alerts
@@ -219,20 +172,6 @@
                                ">"
                                ">"]))))
             "empty > lines do not affect result"))))
-
-(comment
-
-  (html->hiccup
-   (rich-text/markdown-to-html
-                                        ; 12345
-    (str/join "\n" [">     [!TIP]"
-                    "> Not an alert"])))
-  ;; => ([:blockquote
-  ;;      {}
-  ;;      [:pre {} [:code {:class "language-clojure"} "[!TIP]\n"]]
-  ;;      [:p {} "Not an alert"]])
-
-  :eoc)
 
 (t/deftest not-an-alert-test
   (t/is (match?
