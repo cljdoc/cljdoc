@@ -437,32 +437,32 @@ visualization library.
                                                "I like :cookie:s+:coffee:,:pancakes:&:fishsticks:!\n\n")])))
         "asciidoc")
   (t/is (match?
-          [[:p {} "Emoji examples"]
-           [:p {}
-            "🔥"
-            [:img {:src "https://github.githubassets.com/images/icons/emoji/octocat.png?v8",
-                   :style "width:1rem;height:1rem;vertical-align:middle;"}]
-            "🧝‍♂️🅾️"]
-           [:p {} "🧠octocat🧝‍♂️airplane:"]
-           [:p {} "🧠octocat✈️"]
-           [:p {}
-            "🍞 "
-            [:img
-             {:src "https://github.githubassets.com/images/icons/emoji/bowtie.png?v8",
-              :style "width:1rem;height:1rem;vertical-align:middle;"}]
-            " 🐶 ♣️"]
-           [:p {}
-            "I like 🍪s+☕,🥞&amp;"
-            [:img
-             {:src "https://github.githubassets.com/images/icons/emoji/fishsticks.png?v8",
-              :style "width:1rem;height:1rem;vertical-align:middle;"}]
-            "!"]] 
-           (html->hiccup (rich-text/render-text
-                          [:cljdoc/markdown (str "Emoji examples\n\n"
+         [[:p {} "Emoji examples"]
+          [:p {}
+           "🔥"
+           [:img {:src "https://github.githubassets.com/images/icons/emoji/octocat.png?v8",
+                  :style "width:1rem;height:1rem;vertical-align:middle;"}]
+           "🧝‍♂️🅾️"]
+          [:p {} "🧠octocat🧝‍♂️airplane:"]
+          [:p {} "🧠octocat✈️"]
+          [:p {}
+           "🍞 "
+           [:img
+            {:src "https://github.githubassets.com/images/icons/emoji/bowtie.png?v8",
+             :style "width:1rem;height:1rem;vertical-align:middle;"}]
+           " 🐶 ♣️"]
+          [:p {}
+           "I like 🍪s+☕,🥞&amp;"
+           [:img
+            {:src "https://github.githubassets.com/images/icons/emoji/fishsticks.png?v8",
+             :style "width:1rem;height:1rem;vertical-align:middle;"}]
+           "!"]]
+         (html->hiccup (rich-text/render-text
+                        [:cljdoc/markdown (str "Emoji examples\n\n"
                                                ":fire::octocat::elf_man::o2:\n\n"
                                                ":brain:octocat:elf_man:airplane:\n\n"
                                                ":brain:octocat:airplane:\n\n"
                                                ":bread: :bowtie: :dog: :clubs:\n\n"
                                                "I like :cookie:s+:coffee:,:pancakes:&:fishsticks:!\n\n")])))
-          "markdown"))
+        "markdown"))
 
