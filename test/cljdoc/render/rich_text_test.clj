@@ -42,28 +42,29 @@
              {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))
   (t/testing "is not rendered as link"
     (t/testing "when |text is included"
-      (t/is (= [[:p {} "[[my.namespace.here/fn1|some text here]]"]]
-               (html->hiccup
-                (rich-text/markdown-to-html
-                 "[[my.namespace.here/fn1|some text here]]"
-                 {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))
+      (t/is (match?
+             [[:p {} "[[my.namespace.here/fn1|some text here]]"]]
+             (html->hiccup
+              (rich-text/markdown-to-html
+               "[[my.namespace.here/fn1|some text here]]"
+               {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))
     (t/testing "when wikilink rendering not enabled"
-      (t/is (= [[:p {} "[[" [:em {} "some random markdown"] "]]"]]
-               (html->hiccup
-                (rich-text/markdown-to-html "[[*some random markdown*]]"
-                                            {})))))
+      (t/is (match? [[:p {} "[[" [:em {} "some random markdown"] "]]"]]
+                    (html->hiccup
+                     (rich-text/markdown-to-html "[[*some random markdown*]]"
+                                                 {})))))
     (t/testing "when does not resolve"
-      (t/is (= [[:p {} "[[" [:em {} "some random markdown"] "]]"]]
-               (html->hiccup
-                (rich-text/markdown-to-html
-                 "[[*some random markdown*]]"
-                 {:render-wiki-link (constantly nil)})))))
+      (t/is (match? [[:p {} "[[" [:em {} "some random markdown"] "]]"]]
+                    (html->hiccup
+                     (rich-text/markdown-to-html
+                      "[[*some random markdown*]]"
+                      {:render-wiki-link (constantly nil)})))))
     (t/testing "when empty"
-      (t/is (= [[:p {} "[[]]"]]
-               (html->hiccup
-                (rich-text/markdown-to-html
-                 "[[]]"
-                 {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))))
+      (t/is (match? [[:p {} "[[]]"]]
+                    (html->hiccup
+                     (rich-text/markdown-to-html
+                      "[[]]"
+                      {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))))
 
 (defn- expected-alert-hiccup [alert-type body]
   [(apply
@@ -303,48 +304,48 @@ visualization library.
                                                                "== My doc starts in earnest")]))))
 
 (t/deftest emoji-unicode-test
-  (t/is (= ["fire :fire:"]
-           (html->hiccup (rich-text/render-text [:cljdoc/plaintext "fire :fire:"]))) "plaintext")
-  (t/is (= [[:div {:class "paragraph"}
-             [:p {} "fire 🔥"]]]
-           (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "fire :fire:"]))) "asciidoc")
-  (t/is (= [[:p {} "fire 🔥"]]
-           (html->hiccup (rich-text/render-text [:cljdoc/markdown "fire :fire:"]))) "markdown"))
+  (t/is (match? ["fire :fire:"]
+                (html->hiccup (rich-text/render-text [:cljdoc/plaintext "fire :fire:"]))) "plaintext")
+  (t/is (match? [[:div {:class "paragraph"}
+                  [:p {} "fire 🔥"]]]
+                (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "fire :fire:"]))) "asciidoc")
+  (t/is (match? [[:p {} "fire 🔥"]]
+                (html->hiccup (rich-text/render-text [:cljdoc/markdown "fire :fire:"]))) "markdown"))
 
 (t/deftest emoji-wrapped-unicode-test
   ;; github wrapped some unicode on render, let's test that we render these ok
-  (t/is (= ["o2 :o2:"]
-           (html->hiccup (rich-text/render-text [:cljdoc/plaintext "o2 :o2:"]))) "plaintext")
-  (t/is (= [[:div {:class "paragraph"}
-             [:p {} "o2 🅾️"]]]
-           (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "o2 :o2:"]))) "asciidoc")
-  (t/is (= [[:p {} "o2 🅾️"]]
-           (html->hiccup (rich-text/render-text [:cljdoc/markdown "o2 :o2:"]))) "markdown"))
+  (t/is (match? ["o2 :o2:"]
+                (html->hiccup (rich-text/render-text [:cljdoc/plaintext "o2 :o2:"]))) "plaintext")
+  (t/is (match? [[:div {:class "paragraph"}
+                  [:p {} "o2 🅾️"]]]
+                (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "o2 :o2:"]))) "asciidoc")
+  (t/is (match? [[:p {} "o2 🅾️"]]
+                (html->hiccup (rich-text/render-text [:cljdoc/markdown "o2 :o2:"]))) "markdown"))
 
 (t/deftest emoji-img-test
   ;; emojis that have no unicode are rendered as images
-  (t/is (= ["atom :atom:"]
-           (html->hiccup (rich-text/render-text [:cljdoc/plaintext "atom :atom:"]))) "plaintext")
-  (t/is (= [[:div
-             {:class "paragraph"}
-             [:p {} "atom "
-              [:img {:href "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
-                     :style "width:1rem;height:1rem;vertical-align:middle;"}]]]]
-           (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "atom :atom:"]))) "asciidoc")
-  (t/is (= [[:p {} "atom "
-             [:img {:href "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
-                    :style "width:1rem;height:1rem;vertical-align:middle;"}]]]
-           (html->hiccup (rich-text/render-text [:cljdoc/markdown "atom :atom:"]))) "markdown"))
+  (t/is (match? ["atom :atom:"]
+                (html->hiccup (rich-text/render-text [:cljdoc/plaintext "atom :atom:"]))) "plaintext")
+  (t/is (match? [[:div
+                  {:class "paragraph"}
+                  [:p {} "atom "
+                   [:img {:href "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
+                          :style "width:1rem;height:1rem;vertical-align:middle;"}]]]]
+                (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "atom :atom:"]))) "asciidoc")
+  (t/is (match? [[:p {} "atom "
+                  [:img {:href "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
+                         :style "width:1rem;height:1rem;vertical-align:middle;"}]]]
+                (html->hiccup (rich-text/render-text [:cljdoc/markdown "atom :atom:"]))) "markdown"))
 
 (t/deftest emoji-unrecognized-tag-test
-  (t/is (= ["nope :nope:"]
-           (html->hiccup (rich-text/render-text [:cljdoc/plaintext "nope :nope:"]))) "plaintext")
-  (t/is (= [[:div
-             {:class "paragraph"}
-             [:p {} "nope :nope:"]]]
-           (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "nope :nope:"]))) "asciidoc")
-  (t/is (= [[:p {} "nope :nope:"]]
-           (html->hiccup (rich-text/render-text [:cljdoc/markdown "nope :nope:"]))) "markdown"))
+  (t/is (match? ["nope :nope:"]
+                (html->hiccup (rich-text/render-text [:cljdoc/plaintext "nope :nope:"]))) "plaintext")
+  (t/is (match? [[:div
+                  {:class "paragraph"}
+                  [:p {} "nope :nope:"]]]
+                (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "nope :nope:"]))) "asciidoc")
+  (t/is (match? [[:p {} "nope :nope:"]]
+                (html->hiccup (rich-text/render-text [:cljdoc/markdown "nope :nope:"]))) "markdown"))
 
 (t/deftest emojis-should-not-be-xlated-in-literal-blocks-test
   (t/is (match?
