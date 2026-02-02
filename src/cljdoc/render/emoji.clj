@@ -42,7 +42,7 @@
                    (case type
                      :unicode unicode
                      :image
-                     (str (hiccup/html [:img {:href img-url
+                     (str (hiccup/html [:img {:src img-url
                                               :style "width:1rem;height:1rem;vertical-align:middle;"}]))
                      full-match)))))
 
@@ -58,7 +58,6 @@
          (when (instance? TextNode node)
            (let [text-node ^TextNode node]
              (when-not (has-skip-ancestor? text-node)
-
                (let [original-content (.text text-node)
                      new-content (render-emoji-alias original-content)]
                  (when (not= original-content new-content)
