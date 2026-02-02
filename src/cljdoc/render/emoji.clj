@@ -70,13 +70,11 @@
 (comment
   (apply-emojis "<div>:fire: :nope: :heart:</div>")
   ;; => "<div>🔥 :nope: ❤️</div>"
+
   (apply-emojis "<div>:o2: <code>:o2:</code></div>")
   ;; => "<div>🅾️ <code>:o2:</code></div>"
-  (apply-emojis ":fire: :octocat: :dog:")
-  ;; => "🔥 <img href=\"https://github.githubassets.com/images/icons/emoji/octocat.png?v8\" style=\"width:1rem;height:1rem;vertical-align:middle;\"> 🐶"
 
-  (str (hiccup/html [:img]))
+  (apply-emojis ":fire::octocat::dog:")
+  ;; => "🔥<img src=\"https://github.githubassets.com/images/icons/emoji/octocat.png?v8\" style=\"width:1rem;height:1rem;vertical-align:middle;\">🐶"
 
-  (Jsoup/parseBodyFragment "🔥")
-
-  (-> (Jsoup/parseBodyFragment "boo 🔥 <img href=\"foo\"/>") .body .childNodes))
+  :eoc)
