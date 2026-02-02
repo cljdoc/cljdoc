@@ -17,13 +17,13 @@
         (.prettyPrint false))
     ;; turf extra newlines, to avoid having to deal with them test expectations
     (NodeTraversor/traverse
-      (reify NodeVisitor
-        (head [_ node _depth]
-          (when (and (instance? TextNode node)
-                     (re-matches #"\s*" (.getWholeText node)))
-            (.remove node)))
-        (tail [_ _node _depth] nil))
-      doc)
+     (reify NodeVisitor
+       (head [_ node _depth]
+         (when (and (instance? TextNode node)
+                    (re-matches #"\s*" (.getWholeText node)))
+           (.remove node)))
+       (tail [_ _node _depth] nil))
+     doc)
     (->> doc
          .body
          .toString
@@ -54,15 +54,15 @@
     (t/testing "when does not resolve"
       (t/is (= [[:p {} "[[" [:em {} "some random markdown"] "]]"]]
                (html->hiccup
-                 (rich-text/markdown-to-html
-                   "[[*some random markdown*]]"
-                   {:render-wiki-link (constantly nil)})))))
+                (rich-text/markdown-to-html
+                 "[[*some random markdown*]]"
+                 {:render-wiki-link (constantly nil)})))))
     (t/testing "when empty"
       (t/is (= [[:p {} "[[]]"]]
                (html->hiccup
-                 (rich-text/markdown-to-html
-                   "[[]]"
-                   {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))))
+                (rich-text/markdown-to-html
+                 "[[]]"
+                 {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))))
 
 (defn- expected-alert-html [alert-type body-lines]
   (-> [(format "<div class=\"markdown-alert markdown-alert-%s\">" alert-type)
@@ -72,53 +72,51 @@
 
 (defn- expected-alert-hiccup [alert-type body]
   [(apply
-     conj
-     [:div
-      {:class (str "markdown-alert markdown-alert-" alert-type)}
-      [:p {:class "markdown-alert-title"} alert-type]]
-     body)])
+    conj
+    [:div
+     {:class (str "markdown-alert markdown-alert-" alert-type)}
+     [:p {:class "markdown-alert-title"} alert-type]]
+    body)])
 
 (comment
   (def alert-type "important")
 
-
   (rich-text/markdown-to-html
-              (str/join "\n" [">"
-                              ">"
-                              ">"
-                              (format ">    [!%s]" (str/upper-case alert-type))
-                              "> para1line1"
-                              "> para1line2"
-                              ">"
-                              ">"
-                              ">"
-                              ">"
-                              ">"
-                              ">"
-                              "> para2line1"
-                              ">"
-                              ">"
-                              ">"
-                              ">"
-                              "> para3line1"
-                              "> para3line2"
-                              "> para3extra"
-                              ">"
-                              ">"]))
+   (str/join "\n" [">"
+                   ">"
+                   ">"
+                   (format ">    [!%s]" (str/upper-case alert-type))
+                   "> para1line1"
+                   "> para1line2"
+                   ">"
+                   ">"
+                   ">"
+                   ">"
+                   ">"
+                   ">"
+                   "> para2line1"
+                   ">"
+                   ">"
+                   ">"
+                   ">"
+                   "> para3line1"
+                   "> para3line2"
+                   "> para3extra"
+                   ">"
+                   ">"]))
   ;; => "<div class=\"markdown-alert markdown-alert-important\">\n<p class=\"markdown-alert-title\">important</p>\n<p>para1line1\npara1line2</p>\n<p>para2line1</p>\n<p>para3line1\npara3line2\npara3extra</p>\n</div>\n"
 
-(html->hiccup
-              (rich-text/markdown-to-html
-               (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
-                               ">"
-                               "> para1line1"])))
-;; => ([:div
-;;      {:class "markdown-alert markdown-alert-important"}
-;;      [:p {:class "markdown-alert-title"} "important"]
-;;      [:p {} "para1line1"]])
-  
-  
-:eoc)
+  (html->hiccup
+   (rich-text/markdown-to-html
+    (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
+                    ">"
+                    "> para1line1"])))
+  ;; => ([:div
+  ;;      {:class "markdown-alert markdown-alert-important"}
+  ;;      [:p {:class "markdown-alert-title"} "important"]
+  ;;      [:p {} "para1line1"]])
+
+  :eoc)
 
 (t/deftest github-alert-test
   ;; we implemented support for github alerts
@@ -197,43 +195,42 @@
                                      [:p {} "para2line1"]
                                      [:p {} "para3line1\npara3line2\npara3extra"]])
              (html->hiccup
-               (rich-text/markdown-to-html
-                 (str/join "\n" [">"
-                                 ">"
-                                 ">"
-                                 (format ">    [!%s]" (str/upper-case alert-type))
-                                 "> para1line1"
-                                 "> para1line2"
-                                 ">"
-                                 ">"
-                                 ">"
-                                 ">"
-                                 ">"
-                                 ">"
-                                 "> para2line1"
-                                 ">"
-                                 ">"
-                                 ">"
-                                 ">"
-                                 "> para3line1"
-                                 "> para3line2"
-                                 "> para3extra"
-                                 ">"
-                                 ">"]))))
+              (rich-text/markdown-to-html
+               (str/join "\n" [">"
+                               ">"
+                               ">"
+                               (format ">    [!%s]" (str/upper-case alert-type))
+                               "> para1line1"
+                               "> para1line2"
+                               ">"
+                               ">"
+                               ">"
+                               ">"
+                               ">"
+                               ">"
+                               "> para2line1"
+                               ">"
+                               ">"
+                               ">"
+                               ">"
+                               "> para3line1"
+                               "> para3line2"
+                               "> para3extra"
+                               ">"
+                               ">"]))))
             "empty > lines do not affect result"))))
 
 (comment
 
-(html->hiccup
-          (rich-text/markdown-to-html
+  (html->hiccup
+   (rich-text/markdown-to-html
                                         ; 12345
-           (str/join "\n" [">     [!TIP]"
-                           "> Not an alert"])))
-;; => ([:blockquote
-;;      {}
-;;      [:pre {} [:code {:class "language-clojure"} "[!TIP]\n"]]
-;;      [:p {} "Not an alert"]])
-
+    (str/join "\n" [">     [!TIP]"
+                    "> Not an alert"])))
+  ;; => ([:blockquote
+  ;;      {}
+  ;;      [:pre {} [:code {:class "language-clojure"} "[!TIP]\n"]]
+  ;;      [:p {} "Not an alert"]])
 
   :eoc)
 
@@ -325,19 +322,19 @@ visualization library.
 ")))))
   (t/testing "a solo imgref is not broken by our fix"
     (t/is (match?
-            [[:p {} [:img {:src "foo.png" :alt "foo alt"}]]]
-            (html->hiccup
-              (rich-text/markdown-to-html "![foo alt][foo-img-url]\n\n[foo-img-url]: foo.png"))))))
+           [[:p {} [:img {:src "foo.png" :alt "foo alt"}]]]
+           (html->hiccup
+            (rich-text/markdown-to-html "![foo alt][foo-img-url]\n\n[foo-img-url]: foo.png"))))))
 
 (t/deftest md-html-escaping
   (t/is (match?
-          [[:p {} "&lt;h1&gt;Hello&lt;/h1&gt;"]]
-          (html->hiccup
-            (rich-text/markdown-to-html "<h1>Hello</h1>" {:escape-html? true}))))
+         [[:p {} "&lt;h1&gt;Hello&lt;/h1&gt;"]]
+         (html->hiccup
+          (rich-text/markdown-to-html "<h1>Hello</h1>" {:escape-html? true}))))
   (t/is (match?
-          [[:h1 {} "Hello"]]
-          (html->hiccup
-            (rich-text/markdown-to-html "<h1>Hello</h1>" {:escape-html? false})))))
+         [[:h1 {} "Hello"]]
+         (html->hiccup
+          (rich-text/markdown-to-html "<h1>Hello</h1>" {:escape-html? false})))))
 
 (t/deftest determines-doc-features
   (t/is (nil? (rich-text/determine-features [:cljdoc/markdown "== CommonMark has no optional features"])))
@@ -363,8 +360,6 @@ visualization library.
                                                                ":stem: with some options\n"
                                                                "\n"
                                                                "== My doc starts in earnest")]))))
-
-
 
 (t/deftest emoji-unicode-test
   (t/is (= ["fire :fire:"]
@@ -411,56 +406,56 @@ visualization library.
            (html->hiccup (rich-text/render-text [:cljdoc/markdown "nope :nope:"]))) "markdown"))
 
 (t/deftest emojis-should-not-be-xlated-in-literal-blocks-test
-    (t/is (match?
-            [[:h1 {} "🔥 Title"] 
-             [:div {:class "paragraph"}
-              [:p {} "Inline " [:code {} ":fire:"]]]
-             [:div {:class "listingblock"}
-              [:div {:class "content"}
-               [:pre {:class "highlight"}
-                [:code {} "source :fire:"]]]]
-             [:div {:class "literalblock"} 
-              [:div {:class "content"} 
-               [:pre {} "Literal :fire:"]]]
-             [:div {:class "literalblock"}
-              [:div {:class "content"}
-               [:pre {} "Another literal :fire:"]]]
-             [:div {:class "literalblock"}
-              [:div {:class "content"}
-               [:pre {} "Indented literal :fire:"]]]]
-           (html->hiccup (rich-text/render-text
-                          [:cljdoc/asciidoc (str "= :fire: Title\n"
-                                                 "\n"
-                                                 "Inline `:fire:`\n"
-                                                 "[source]\n"
-                                                 "----\n"
-                                                 "source :fire:\n"
-                                                 "----\n"
-                                                 "\n"
-                                                 "[literal]\n"
-                                                 "Literal :fire:\n"
-                                                 "\n"
-                                                 "....\n"
-                                                 "Another literal :fire:\n"
-                                                 "....\n"
-                                                 "\n"
-                                                 " Indented literal :fire:")])))
-          "asciidoc")
-    (t/is (match?
-            [[:h1 {} [:a {:href "#fire-title", :id "fire-title", :class "md-anchor"} "🔥 Title"]]
-             [:p {} "Inline " [:code {} ":fire:"]]
-             ;; TODO: hmmm.. default lang is clojure?
-             [:pre {} [:code {:class "language-clojure"} "source :fire:\n"]]
-             [:pre {} "pre :fire:\n"]]
-            (html->hiccup (rich-text/render-text
-                            [:cljdoc/markdown (str "# :fire: Title\n"
-                                                    "\n"
-                                                    "Inline `:fire:`\n"
-                                                    "```\n"
-                                                    "source :fire:\n"
-                                                    "```\n"
-                                                    "\n"
-                                                    "<pre>\n"
-                                                    "pre :fire:\n"
-                                                    "</pre>")])))
-          "markdown"))
+  (t/is (match?
+         [[:h1 {} "🔥 Title"]
+          [:div {:class "paragraph"}
+           [:p {} "Inline " [:code {} ":fire:"]]]
+          [:div {:class "listingblock"}
+           [:div {:class "content"}
+            [:pre {:class "highlight"}
+             [:code {} "source :fire:"]]]]
+          [:div {:class "literalblock"}
+           [:div {:class "content"}
+            [:pre {} "Literal :fire:"]]]
+          [:div {:class "literalblock"}
+           [:div {:class "content"}
+            [:pre {} "Another literal :fire:"]]]
+          [:div {:class "literalblock"}
+           [:div {:class "content"}
+            [:pre {} "Indented literal :fire:"]]]]
+         (html->hiccup (rich-text/render-text
+                        [:cljdoc/asciidoc (str "= :fire: Title\n"
+                                               "\n"
+                                               "Inline `:fire:`\n"
+                                               "[source]\n"
+                                               "----\n"
+                                               "source :fire:\n"
+                                               "----\n"
+                                               "\n"
+                                               "[literal]\n"
+                                               "Literal :fire:\n"
+                                               "\n"
+                                               "....\n"
+                                               "Another literal :fire:\n"
+                                               "....\n"
+                                               "\n"
+                                               " Indented literal :fire:")])))
+        "asciidoc")
+  (t/is (match?
+         [[:h1 {} [:a {:href "#fire-title", :id "fire-title", :class "md-anchor"} "🔥 Title"]]
+          [:p {} "Inline " [:code {} ":fire:"]]
+          ;; TODO: hmmm.. default lang is clojure?
+          [:pre {} [:code {:class "language-clojure"} "source :fire:\n"]]
+          [:pre {} "pre :fire:\n"]]
+         (html->hiccup (rich-text/render-text
+                        [:cljdoc/markdown (str "# :fire: Title\n"
+                                               "\n"
+                                               "Inline `:fire:`\n"
+                                               "```\n"
+                                               "source :fire:\n"
+                                               "```\n"
+                                               "\n"
+                                               "<pre>\n"
+                                               "pre :fire:\n"
+                                               "</pre>")])))
+        "markdown"))

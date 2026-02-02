@@ -22,7 +22,7 @@
 
 (def ^:private skip-tags
   ;; likely overkill in number of tags, but harmless
-  #{"pre" "code" "tt" "samp" "kbd" "var" 
+  #{"pre" "code" "tt" "samp" "kbd" "var"
     "script" "style" "math" "mrow" "mi" "mo" "msup" "msub"})
 
 ;;  could be smarter?
@@ -41,7 +41,7 @@
                  (let [{:keys [type img-url unicode]} (get emojis alias)]
                    (case type
                      :unicode unicode
-                     :image 
+                     :image
                      (str (hiccup/html [:img {:href img-url
                                               :style "width:1rem;height:1rem;vertical-align:middle;"}]))
                      full-match)))))
@@ -49,20 +49,20 @@
 (defn apply-emojis [html-str]
   (let [doc (parse-html html-str)]
     (NodeTraversor/traverse
-      (reify NodeVisitor
-        (head [_ node _depth]
-          (when (instance? TextNode node)
-            (let [text-node ^TextNode node]
-              (when-not (has-skip-ancestor? text-node)
-                
-                (let [original-content (.text text-node)
-                      new-content (render-emoji-alias original-content)]
-                  (when (not= original-content new-content)
-                    (.before node new-content)
-                    (.remove node)))))))
+     (reify NodeVisitor
+       (head [_ node _depth]
+         (when (instance? TextNode node)
+           (let [text-node ^TextNode node]
+             (when-not (has-skip-ancestor? text-node)
 
-        (tail [_ _node _depth] nil))
-      doc)
+               (let [original-content (.text text-node)
+                     new-content (render-emoji-alias original-content)]
+                 (when (not= original-content new-content)
+                   (.before node new-content)
+                   (.remove node)))))))
+
+       (tail [_ _node _depth] nil))
+     doc)
     (-> doc .body .html .toString)))
 
 (comment
@@ -76,7 +76,5 @@
   (str (hiccup/html [:img]))
 
   (Jsoup/parseBodyFragment "🔥")
-  
-  (-> (Jsoup/parseBodyFragment "boo 🔥 <img href=\"foo\"/>") .body .childNodes)
-  
-  )
+
+  (-> (Jsoup/parseBodyFragment "boo 🔥 <img href=\"foo\"/>") .body .childNodes))

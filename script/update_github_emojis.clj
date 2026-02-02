@@ -18,7 +18,6 @@
             [clojure.pprint :as pprint]
             [clojure.string :as str]))
 
-
 (defn- fetch-emojis []
   (->> (http/get "https://api.github.com/emojis")
        :body
@@ -55,7 +54,7 @@
                             (last (re-matches #".*>(.+?)</g-emoji>" rendering))
                             rendering)]
               (assoc acc emoji-tag unicode)))
-          (sorted-map) 
+          (sorted-map)
           (str/split-lines html)))
 
 (defn -main [& _args]
