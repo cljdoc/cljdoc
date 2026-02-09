@@ -12,10 +12,11 @@
   (:import [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]))
 
-(def args-usage "Valid args: [--watch|--help]
+(def args-usage "Valid args: [--watch|--test|--help]
 
 Options
  --watch        Rebuild client-side assets if they change
+ --test         Run tests via node
  --help         Show this help")
 
 (defn- cmd
@@ -57,17 +58,18 @@ Options
        (str (fs/file source-asset-dir "*.css"))
        (str (fs/file source-asset-dir "*.svg"))))
 
-(defn- transpile-to-js [{:keys [source-dir js-dir]}]
+(defn- transpile-to-js [{:keys [source-dir test-dir js-dir]}]
   (status/line :head "compile-js: compiling cljs with squint")
   (fs/delete-tree js-dir)
-  (cmd "npx" "squint" "compile"
-       "--extension" ".jsx"
-       "--paths" source-dir
-       "--output-dir" js-dir)
-  ;; TODO: fix
+  (apply cmd (cond-> ["npx" "squint" "compile"
+                      "--extension" ".jsx"
+                      "--paths" source-dir
+                      "--output-dir" js-dir]
+               test-dir (conj "--paths" test-dir)))
+  ;; TODO: a bit awkward?
   (fs/copy (fs/file source-dir "hljs-merge-plugin.js") (fs/file js-dir "cljdoc/client")))
 
-(defn- compile-js [{:keys [js-dir js-entry-point js-out-name target-dir]}]
+(defn- compile-js [{:keys [js-dir js-entry-point js-out-name js-out-ext target-dir platform]}]
   (status/line :head "compile-js: bundle js")
   (cmd "npx"
        "--yes"
@@ -76,12 +78,11 @@ Options
        "--jsx-import-source=preact"
        "--target=es2017"
        "--resolve-extensions=.jsx,.js"
+       (str "--platform=" platform)
        "--minify"
        "--sourcemap"
-       ;; elasticlunr did not expect to wrapped, expose it like so:
-       "--define:lunr=window.lunr"
        "--entry-names=[name].[hash]"
-       (str "--outdir=" target-dir)
+       (str "--outfile=" (fs/file target-dir (str js-out-name "." js-out-ext)))
        (str js-out-name "=" (fs/file js-dir js-entry-point))
        "--bundle"))
 
@@ -97,6 +98,7 @@ Options
 
 (defn- generate-resource-map [{:keys [manifest-out-dir] :as opts}]
   (status/line :head "compile-js: generate manifest")
+  (fs/create-dirs manifest-out-dir)
   (let [f (fs/file manifest-out-dir "manifest.edn")]
     (with-open [out (io/writer f)]
       (pprint/write (resource-map opts) :stream out))
@@ -127,8 +129,8 @@ Options
     (compile-all-no-exit opts)
     (status/line :detail "Watching for changes...")))
 
-(defn- setup-watch-compile [{:keys [source-dir source-asset-dir] :as opts}]
-  (let [watch-dirs [source-asset-dir source-dir]]
+(defn- setup-watch-compile [{:keys [source-dir source-asset-dir test-dir] :as opts}]
+  (let [watch-dirs [source-asset-dir source-dir test-dir]]
     (status/line :detail "Watching for changes in... %s" watch-dirs)
     (doseq [d watch-dirs]
       (fw/watch d
@@ -139,20 +141,35 @@ Options
 
 (defn -main [& args]
   (when-let [opts (main/doc-arg-opt args-usage args)]
-    (let [compile-opts {:target-dir "resources-compiled/public/out"
-                        :manifest-out-dir "resources-compiled" ;; no need for this to be public
-                        :source-asset-dir "resources/public"
-                        :source-asset-static-subdir "static"
-                        :js-dir "target/js-transpiled"
-                        :js-out-name "cljdoc"
-                        :source-dir "front-end/src"
-                        :js-entry-point "cljdoc/client/index.jsx"}]
-
+    (let [compile-opts (cond-> {:target-dir "resources-compiled/public/out"
+                                :manifest-out-dir "resources-compiled" ;; no need for this to be public
+                                :source-asset-dir "resources/public"
+                                :source-asset-static-subdir "static"
+                                :js-dir "target/js-transpiled"
+                                :js-out-name "cljdoc"
+                                :source-dir "front-end/src"
+                                :platform "browser"
+                                :js-out-ext "js"
+                                :js-entry-point "cljdoc/client/index.jsx"}
+                         (get opts "--test")
+                         (assoc
+                          :target-dir "target/js-test-out"
+                          :test-dir "front-end/test"
+                          :platform "node"
+                          :js-out-ext "cjs" ;; so that node can run resulting bundle
+                          :js-entry-point "cljdoc/client/test_runner.jsx"))]
+      (fs/create-dirs (:target-dir compile-opts))
       (if (get opts "--watch")
         (do
           (compile-all-no-exit compile-opts)
           (setup-watch-compile compile-opts))
-        (compile-all compile-opts)))))
+        (do (compile-all compile-opts)
+            (when (get opts "--test")
+              (status/line :head "compile-js: Running tests")
+              (let [bundled-js (-> (fs/glob (:target-dir compile-opts) "cljdoc.*.cjs")
+                                   first
+                                   str)]
+                (shell/command "node" bundled-js))))))))
 
 (main/when-invoked-as-script
  (apply -main *command-line-args*))
