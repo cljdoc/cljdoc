@@ -1,5 +1,5 @@
 (ns cljdoc.client.single-docset-search.logic-test
-  (:require ["assert" :as assert]
+  (:require #_{:clj-kondo/ignore [:unused-namespace]} ["assert" :as assert] ;; hack, needed for is
             [cljdoc.client.single-docset-search.logic :as logic])
   (:require-macros
    [cljdoc.client.test-macros :refer [deftest is]]))

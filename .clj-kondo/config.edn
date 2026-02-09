@@ -3,7 +3,8 @@
  :lint-as {taoensso.tufte/defnp clojure.core/defn
            clojure.core.cache/defcache clojure.core/defrecord
            clojure.test.check.clojure-test/defspec clojure.core/def
-           clojure.test.check.properties/for-all clojure.core/let}
+           clojure.test.check.properties/for-all clojure.core/let
+           cljdoc.client.test-macros/deftest clojure.test/deftest}
  :linters {:redundant-fn-wrapper {:level :warning}
            :redundant-str-call {:level :warning}
            :unsorted-required-namespaces {:level :warning}
