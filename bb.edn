@@ -72,6 +72,11 @@
    :depends [deps-js]
    :requires [compile-js]
    :task (compile-js/-main "--watch")}
+  test-js
+  {:doc "run front-end tests"
+   :depends [deps-js]
+   :requires [compile-js]
+   :task (compile-js/-main "--test")}
   compile-java
   {:doc "Compile java sources"
    :task (if (seq (fs/modified-since bs/class-dir (fs/glob "." "src/**.java")))
