@@ -3,7 +3,9 @@
             [cljdoc.spec.docset :as cbs]
             [cljdoc.spec.searchset :as ss]
             [clojure.edn :as edn]
-            [clojure.test :as t]))
+            [clojure.test :as t]
+            [matcher-combinators.matchers :as m]
+            [matcher-combinators.test]))
 
 (def docset (-> "resources/test_data/docset.edn"
                 slurp
@@ -88,7 +90,7 @@
       (let [explanation (cbs/explain-humanized docset)]
         (t/is (nil? explanation) (format "expected nil for %s" docset))))
     (t/testing "converts a docset into a searchset"
-      (t/is (= searchset generated-searchset)))
+      (t/is (match? (m/equals searchset) generated-searchset)))
     (t/testing "produces a valid searchset"
       (let [explanation (ss/explain-humanized generated-searchset)]
         (t/is (nil? explanation) (format "expected nil for %s" generated-searchset))))))

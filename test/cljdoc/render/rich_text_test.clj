@@ -39,7 +39,9 @@
            (html->hiccup
             (rich-text/markdown-to-html
              "[[my.namespace.here/fn1]]"
-             {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))
+             {:render-wiki-link (fn [wikilink-ref]
+                                  (when (= "my.namespace.here/fn1" wikilink-ref)
+                                    "/resolved/to/something"))})))))
   (t/testing "is not rendered as link"
     (t/testing "when |text is included"
       (t/is (match?
