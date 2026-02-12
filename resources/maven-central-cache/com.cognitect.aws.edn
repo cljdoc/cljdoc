@@ -1,13 +1,14 @@
 {:etag nil,
- :last-modified "Tue, 27 Jan 2026 08:34:13 GMT",
+ :last-modified "Tue, 10 Feb 2026 08:40:21 GMT",
  :artifacts
- [{:etag "W/\"9cb324fc4062317bb6a5f3ce97d20a26\"",
-   :last-modified "Tue, 02 Sep 2025 18:33:38 GMT",
+ [{:etag "W/\"7956cb5db5c3895cf8b9ca6a1fa21c9c\"",
+   :last-modified "Tue, 03 Feb 2026 19:49:18 GMT",
    :artifact-id "api",
    :group-id "com.cognitect.aws",
    :origin :maven-central,
    :versions
-   ["0.8.774"
+   ["0.8.800"
+    "0.8.774"
     "0.8.762"
     "0.8.741"
     "0.8.735"

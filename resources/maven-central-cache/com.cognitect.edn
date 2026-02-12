@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Tue, 27 Jan 2026 08:34:13 GMT",
+ :last-modified "Tue, 10 Feb 2026 08:40:20 GMT",
  :artifacts
  [{:etag "W/\"2a56c30bf97eb3d86f5ae4045fe53334\"",
    :last-modified "Wed, 04 Oct 2023 17:28:54 GMT",
@@ -120,13 +120,15 @@
    :origin :maven-central,
    :versions ["0.4.180" "0.4.174" "0.4.172" "0.4.169"],
    :description "Transducers for JavaScript"}
-  {:etag "W/\"9b682019016b35bfaf8e56507c6561ce\"",
-   :last-modified "Fri, 31 Mar 2023 22:59:43 GMT",
+  {:etag "W/\"2d43d26ec4f1c1392c921771c0a781a0\"",
+   :last-modified "Thu, 05 Feb 2026 23:08:07 GMT",
    :artifact-id "transit-clj",
    :group-id "com.cognitect",
    :origin :maven-central,
    :versions
-   ["1.0.333"
+   ["1.1.347"
+    "1.0.345"
+    "1.0.333"
     "1.0.329"
     "1.0.324"
     "0.8.319"
@@ -201,13 +203,16 @@
     "0.8.152"
     "0.8.137"],
    :description "transit-cljs bindings for ClojureScript"}
-  {:etag "W/\"a164b9f6cf6c33ded65221ab3bc60504\"",
-   :last-modified "Wed, 04 Oct 2023 17:35:42 GMT",
+  {:etag "W/\"4474f05ae2201ae28ed8e9ad50a87580\"",
+   :last-modified "Wed, 04 Feb 2026 21:31:23 GMT",
    :artifact-id "transit-java",
    :group-id "com.cognitect",
    :origin :maven-central,
    :versions
-   ["1.0.371"
+   ["1.1.389"
+    "1.1.387"
+    "1.1.386"
+    "1.0.371"
     "1.0.366"
     "1.0.362"
     "1.0.343"

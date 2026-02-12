@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Mon, 26 Jan 2026 19:34:12 GMT",
+ :last-modified "Wed, 11 Feb 2026 21:08:31 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -1973,13 +1973,14 @@
     "0.2.0"
     "0.1.0"],
    :description "Command-line processing tools for Clojure."}
-  {:etag "W/\"f55dd8386cbf00648997a854384c7fae\"",
-   :last-modified "Mon, 26 Jan 2026 19:33:29 GMT",
+  {:etag "W/\"3d493e1cb938d0327c55c8891c0cbe4b\"",
+   :last-modified "Tue, 10 Feb 2026 03:24:53 GMT",
    :artifact-id "tools.deps",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.28.1578"
+   ["0.29.1587"
+    "0.28.1578"
     "0.28.1574"
     "0.28.1569"
     "0.27.1564"
@@ -2208,13 +2209,14 @@
     "0.1.35"
     "0.1.29"
     "0.1.14"]}
-  {:etag "W/\"b5b56771d62aaf254888b1f8d0780190\"",
-   :last-modified "Mon, 26 Jan 2026 19:01:18 GMT",
+  {:etag "W/\"25f10477e9f418e2d30eac50a4a30ec8\"",
+   :last-modified "Wed, 11 Feb 2026 21:06:12 GMT",
    :artifact-id "tools.deps.cli",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.15.131"
+   ["0.15.135"
+    "0.15.131"
     "0.15.127"
     "0.14.121"
     "0.13.115"
@@ -2238,6 +2240,12 @@
     "0.9.17"
     "0.9.10"],
    :description "Dependency programs for use via the Clojure CLI."}
+  {:etag "W/\"14e94d818e6f4ae8e567ae973d973ed4\"",
+   :last-modified "Tue, 10 Feb 2026 03:07:18 GMT",
+   :artifact-id "tools.deps.edn",
+   :group-id "org.clojure",
+   :origin :maven-central,
+   :versions ["0.9.22" "0.9.13"]}
   {:etag "W/\"1de92384b09cc1b98fee1e61ee1cb94f\"",
    :last-modified "Fri, 02 Jan 2026 16:03:19 GMT",
    :artifact-id "tools.deps.graph",
