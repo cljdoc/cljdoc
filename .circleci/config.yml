@@ -126,9 +126,35 @@ jobs:
           command: bb eastwood
 
   #
+  # build: test-js
+  #
+  test-client-unit:
+    docker: *clojure_image
+
+    steps:
+      - checkout
+      - *restore_clojure_cache
+      - *bb_install
+      - *node_install
+
+      - run:
+          name: Report Tools Versions
+          command: |
+            node --version
+            java --version
+            clojure --version
+            bb --version
+
+      - *npm_deps_install
+
+      - run:
+          name: Run Tests
+          command: bb test-js
+  
+  #
   # build: test
   #
-  test-unit:
+  test-server-unit:
     docker: *clojure_image
 
     steps:
@@ -331,7 +357,10 @@ workflows:
       - back-end-eastwood:
           requires:
             - cache-deps
-      - test-unit:
+      - test-client-unit:
+          requires:
+            - cache-deps
+      - test-server-unit:
           requires:
             - cache-deps
       - test-server-integration:
@@ -345,7 +374,8 @@ workflows:
           requires:
             - checks
             - back-end-eastwood
-            - test-unit
+            - test-client-unit
+            - test-server-unit
             - test-server-integration
             - test-cli-integration
             - package

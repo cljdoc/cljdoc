@@ -3,7 +3,10 @@
             [cljdoc.spec.docset :as cbs]
             [cljdoc.spec.searchset :as ss]
             [clojure.edn :as edn]
-            [clojure.test :as t]))
+            [clojure.string :as str]
+            [clojure.test :as t]
+            [matcher-combinators.matchers :as m]
+            [matcher-combinators.test]))
 
 (def docset (-> "resources/test_data/docset.edn"
                 slurp
@@ -82,13 +85,45 @@
     (t/is (= "/d/rewrite-clj/rewrite-clj/1.0.767-alpha/api/rewrite-clj.node#coerce"
              (api-searchset/path-for-def version-entity "rewrite-clj.node" "coerce")))))
 
+(t/deftest docstring-text-test
+  (t/is (= "just the text" (api-searchset/docstring-text "just the text" {:docstring-format :cljdoc/plaintext})))
+  (t/is (= "just the text" (api-searchset/docstring-text "# just **the** `text`" {:docstring-format :cljdoc/markdown})))
+  (t/is (= (str "some code block "
+                "(ns foo.bar.baz) "
+                "(defn boop[bap] "
+                "(map #(inc %) bap))")
+           (str/replace
+            (api-searchset/docstring-text (str "## some code block\n"
+                                               "```clojure\n"
+                                               "(ns foo.bar.baz)\n"
+                                               "(defn boop[bap]\n"
+                                               "  (map #(inc %) bap))\n"
+                                               "```")
+                                          {:docstring-format :cljdoc/markdown})
+            #"\s+" " "))))
+
+(t/deftest doc-text-test
+  (t/is (match?
+         [{:name "doc title1",
+           :path "/d/foo/bar/1.2.3/doc/slug#",
+           :doc "before heading "}
+          {:name "doc title1 - heading 1",
+           :path "/d/foo/bar/1.2.3/doc/slug#heading-1",
+           :doc "content 1 "}]
+         (api-searchset/->docs [{:title "doc title1"
+                                 :attrs {:cljdoc.doc/source-file "foo.md"
+                                         :cljdoc/markdown "before heading\n# heading 1\ncontent 1"
+                                         :cljdoc.doc/type :cljdoc/markdown
+                                         :slug "slug"}}]
+                               {:group-id "foo" :artifact-id "bar" :version "1.2.3"}))))
+
 (t/deftest docset->searchset
   (let [generated-searchset (api-searchset/docset->searchset docset)]
     (t/testing "input docset is valid"
       (let [explanation (cbs/explain-humanized docset)]
         (t/is (nil? explanation) (format "expected nil for %s" docset))))
     (t/testing "converts a docset into a searchset"
-      (t/is (= searchset generated-searchset)))
+      (t/is (match? (m/equals searchset) generated-searchset)))
     (t/testing "produces a valid searchset"
       (let [explanation (ss/explain-humanized generated-searchset)]
         (t/is (nil? explanation) (format "expected nil for %s" generated-searchset))))))

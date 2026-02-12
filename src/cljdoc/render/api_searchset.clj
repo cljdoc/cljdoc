@@ -1,9 +1,11 @@
 (ns cljdoc.render.api-searchset
   "Renders a docset into the format needed by the API to feed client-side search."
-  (:require [cljdoc.doc-tree :as doctree]
+  (:require [cljdoc-shared.proj :as proj]
+            [cljdoc.doc-tree :as doctree]
             [cljdoc.render.rich-text :as rt]
             [cljdoc.server.routes :as routes]
             [cljdoc.spec]
+            [cljdoc.user-config :as user-config]
             [clojure.string :as str]
             [clojure.walk :as walk])
   (:import (org.jsoup Jsoup)
@@ -234,15 +236,33 @@
                :doc text})
            doc-segments))))
 
+(defn docstring-text [s {:keys [docstring-format]}]
+  ;; not private for testability
+  (if (= :cljdoc/plaintext docstring-format)
+    s
+    (let [html (rt/markdown-to-html s {:no-emojis? true
+                                       :escape-html? true
+                                       ;; effectively render wikilinks as their name for searchability
+                                       :render-wiki-link (fn [wikilink-ref] wikilink-ref)})
+          doc-elements (Jsoup/parse ^String html)
+          body-element (-> doc-elements (.getElementsByTag "body") .first)]
+      (.text body-element))))
+
+(defn- update-if-exists [m k f]
+  (if (contains? m k)
+    (update m k f)
+    m))
+
 (defn- ->namespaces
   "Renders docset `namespaces` into a format consumable by the API. This consists of:
 
   1. Paring down the fields in the docset's `namespaces`.
   2. Adding a URL path to the produced map.
   3. Sorting for a deterministic ordering."
-  [docset-namespaces version-entity]
+  [docset-namespaces version-entity api-opts]
   (->> (into []
              (comp (map #(select-keys % [:platform :name :doc]))
+                   (map #(update-if-exists % :doc (fn [s] (docstring-text s api-opts))))
                    (map #(assoc % :path (path-for-namespace version-entity (:name %)))))
              docset-namespaces)
        (sort-by (juxt :name :platform))
@@ -253,11 +273,6 @@
   (->> members
        (mapv #(select-keys % [:type :name :arglists :doc]))
        (mapv #(assoc % :path (path-for-def version-entity (:namespace parent) (:name %))))))
-
-(defn- update-if-exists [m k f]
-  (if (contains? m k)
-    (update m k f)
-    m))
 
 (defn- ->deregexify [x]
   (walk/postwalk #(if (instance? java.util.regex.Pattern %)
@@ -273,10 +288,11 @@
   2. Adding a URL path to the produced map.
   3. Converting any regexes in arglists to strings (to be JSON friendly).
   4. Sorting for a deterministic ordering"
-  [docset-defs version-entity]
+  [docset-defs version-entity api-opts]
   (->> (into []
              (comp
               (map #(select-keys % [:platform :type :namespace :name :arglists :doc :members]))
+              (map #(update-if-exists % :doc (fn [s] (docstring-text s api-opts))))
               (map #(update-if-exists % :arglists ->deregexify))
               (map #(update % :members ->searchset-members version-entity %))
               (map #(assoc % :path (path-for-def version-entity (:namespace %) (:name %)))))
@@ -284,7 +300,8 @@
        (sort-by (juxt :namespace :name :platform))
        vec))
 
-(defn- ->docs
+(defn ->docs
+  ;; public for testability
   "Renders docset `doc` tree down into finer-grained units of text and their links.
   To accomplish this the markdown is:
 
@@ -299,14 +316,14 @@
                (-> docset-docs doctree/add-slug-path doctree/flatten*))))
 
 (defn docset->searchset
-  [{namespaces :namespaces
-    defs :defs
-    {docs :doc} :version
-    version-entity :version-entity
-    :as _docset}]
-  {:namespaces (->namespaces namespaces version-entity)
-   :defs (->defs defs version-entity)
-   :docs (->docs docs version-entity)})
+  [docset]
+  (let [{:keys [namespaces version version-entity defs]} docset
+        {:keys [doc config]} version
+        docs doc
+        api-opts {:docstring-format (user-config/docstring-format config (proj/clojars-id version-entity))}]
+    {:namespaces (->namespaces namespaces version-entity api-opts)
+     :defs (->defs defs version-entity api-opts)
+     :docs (->docs docs version-entity)}))
 
 (comment
   (require '[clojure.edn :as edn])
@@ -361,5 +378,10 @@
       (.getElementsByTag "body")
       .first
       (md-soup->doc-segments "My doc title"))
+
+  (docstring-text "Hello `var` [[link]]" {:docstring-format :foo})
+  ;; => "Hello var link"
+  (docstring-text "Hello `var` [[link]]" {:docstring-format :cljdoc/plaintext})
+  ;; => "Hello `var` [[link]]"
 
   :eoc)

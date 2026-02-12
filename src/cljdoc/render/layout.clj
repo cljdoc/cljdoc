@@ -13,6 +13,7 @@
             [ring.util.codec :as ring-codec]))
 
 (defn highlight-js-customization []
+  ;; copyButtonPlugin and mergeHTMLPlugin exposed as global for use here by front-end index.cljs
   [:script
    (hiccup/raw
     "hljs.configure({ignoreUnescapedHTML: true});
