@@ -10,11 +10,11 @@
 (defn- is*
   ([expr] (is* expr nil))
   ([expr msg]
-   (if (and (seq? expr)
-            (= '= (first expr)))
+   (if (and (seq? expr) (= '= (first expr)))
      (let [[_ actual expected] expr]
        `(assert.deepStrictEqual ~expected ~actual ~msg))
-     expr)))
+     ;; assert errors for these will be awful, but this is a hack.
+     `(assert ~expr ~msg))))
 
 (defmacro is
   [& args]
