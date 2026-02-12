@@ -9,7 +9,7 @@
                                str
                                str/trim
                                str/lower-case
-                               (str/split #"\s+"))
+                               (str/split #"[\s\[\](){}]+"))
           long-all-punctuation-regex #"^[^a-z0-9]{7,}$"
           standalone-comment-regex #"^;+$"
           superfluous-punctutation-regex #"^[.,]+|[.,]+$"
@@ -31,9 +31,8 @@
               candidate-tokens))))
 
 (defn sub-tokenize [tokens]
-  ;; only split on embedded forward slashes for now
-  (let [split-char-regex #"/"
-        split-chars-regex #"/+"]
+  (let [split-char-regex #"[/:^._-]"
+        split-chars-regex #"[/:^._-]+"]
     (reduce (fn [acc token]
               (if-not (.test split-char-regex token)
                 acc
@@ -61,7 +60,6 @@
                         (.saveDocument index true)))]
     (doseq [item index-items]
       (.addDoc search-index item))
-
     search-index))
 
 (defn search [search-index query]
