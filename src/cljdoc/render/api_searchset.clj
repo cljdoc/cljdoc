@@ -300,7 +300,8 @@
        (sort-by (juxt :namespace :name :platform))
        vec))
 
-(defn- ->docs
+(defn ->docs
+  ;; public for testability
   "Renders docset `doc` tree down into finer-grained units of text and their links.
   To accomplish this the markdown is:
 

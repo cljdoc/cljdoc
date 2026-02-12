@@ -102,6 +102,21 @@
                                            {:docstring-format :cljdoc/markdown })
              #"\s+" " "))))
 
+(t/deftest doc-text-test
+  (t/is (match?
+         [{:name "doc title1",
+           :path "/d/foo/bar/1.2.3/doc/slug#",
+           :doc "before heading "}
+          {:name "doc title1 - heading 1",
+           :path "/d/foo/bar/1.2.3/doc/slug#heading-1",
+           :doc "content 1 "}]
+         (api-searchset/->docs [{:title "doc title1"
+                                 :attrs {:cljdoc.doc/source-file "foo.md"
+                                         :cljdoc/markdown "before heading\n# heading 1\ncontent 1"
+                                         :cljdoc.doc/type :cljdoc/markdown
+                                         :slug "slug"}}]
+                               {:group-id "foo" :artifact-id "bar" :version "1.2.3"}))))
+
 (t/deftest docset->searchset
   (let [generated-searchset (api-searchset/docset->searchset docset)]
     (t/testing "input docset is valid"
@@ -112,4 +127,3 @@
     (t/testing "produces a valid searchset"
       (let [explanation (ss/explain-humanized generated-searchset)]
         (t/is (nil? explanation) (format "expected nil for %s" generated-searchset))))))
-
