@@ -310,7 +310,7 @@ And if you make any changes to Java source, you'll need restart your REPL after 
 We make use of babashka tasks.
 Run `bb tasks` to see what is available.
 
-=== Run Tests
+=== Run Server Side Tests
 
 ```
 bb test
@@ -322,7 +322,18 @@ Also supports kaocha args, ex:
 bb test --focus cljdoc.util.fixref-test/fix-test
 ```
 
-=== Launching a REPL
+=== Run Client Side Tests
+
+```
+bb test-js
+```
+
+Our current approach is pretty hacky, but good enough for now.
+Add any new test namespaces to `cljdoc.client.test-runner` namespace.
+
+The test framework is very limited and implemented in `cljdoc.client.test-macros`.
+
+=== Launching a Server Side REPL
 
 As a developer, you'll typically want to first launch a REPL:
 
