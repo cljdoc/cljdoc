@@ -86,21 +86,21 @@
              (api-searchset/path-for-def version-entity "rewrite-clj.node" "coerce")))))
 
 (t/deftest docstring-text-test
-  (t/is (= "just the text" (api-searchset/docstring-text "just the text" {:docstring-format :cljdoc/plaintext })))
-  (t/is (= "just the text" (api-searchset/docstring-text "# just **the** `text`" {:docstring-format :cljdoc/markdown })))
+  (t/is (= "just the text" (api-searchset/docstring-text "just the text" {:docstring-format :cljdoc/plaintext})))
+  (t/is (= "just the text" (api-searchset/docstring-text "# just **the** `text`" {:docstring-format :cljdoc/markdown})))
   (t/is (= (str "some code block "
                 "(ns foo.bar.baz) "
                 "(defn boop[bap] "
                 "(map #(inc %) bap))")
-           (str/replace 
-             (api-searchset/docstring-text (str "## some code block\n"
-                                                "```clojure\n"
-                                                "(ns foo.bar.baz)\n"
-                                                "(defn boop[bap]\n"
-                                                "  (map #(inc %) bap))\n"
-                                                "```")
-                                           {:docstring-format :cljdoc/markdown })
-             #"\s+" " "))))
+           (str/replace
+            (api-searchset/docstring-text (str "## some code block\n"
+                                               "```clojure\n"
+                                               "(ns foo.bar.baz)\n"
+                                               "(defn boop[bap]\n"
+                                               "  (map #(inc %) bap))\n"
+                                               "```")
+                                          {:docstring-format :cljdoc/markdown})
+            #"\s+" " "))))
 
 (t/deftest doc-text-test
   (t/is (match?
