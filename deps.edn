@@ -43,7 +43,7 @@
         {:mvn/version "20260102.1"}                          ;; sanitize html converted from user markdown
 
         ;; logging
-        ch.qos.logback/logback-classic {:mvn/version "1.5.28"}
+        ch.qos.logback/logback-classic {:mvn/version "1.5.29"}
         org.clojure/tools.logging {:mvn/version "1.3.1"}     ;; logging facade
 
         ;; s3 for database backups at Exoscale Simple Object Store
