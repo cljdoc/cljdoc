@@ -3,6 +3,7 @@
             [cljdoc.spec.docset :as cbs]
             [cljdoc.spec.searchset :as ss]
             [clojure.edn :as edn]
+            [clojure.string :as str]
             [clojure.test :as t]
             [matcher-combinators.matchers :as m]
             [matcher-combinators.test]))
@@ -84,6 +85,23 @@
     (t/is (= "/d/rewrite-clj/rewrite-clj/1.0.767-alpha/api/rewrite-clj.node#coerce"
              (api-searchset/path-for-def version-entity "rewrite-clj.node" "coerce")))))
 
+(t/deftest docstring-text-test
+  (t/is (= "just the text" (api-searchset/docstring-text "just the text" {:docstring-format :cljdoc/plaintext })))
+  (t/is (= "just the text" (api-searchset/docstring-text "# just **the** `text`" {:docstring-format :cljdoc/markdown })))
+  (t/is (= (str "some code block "
+                "(ns foo.bar.baz) "
+                "(defn boop[bap] "
+                "(map #(inc %) bap))")
+           (str/replace 
+             (api-searchset/docstring-text (str "## some code block\n"
+                                                "```clojure\n"
+                                                "(ns foo.bar.baz)\n"
+                                                "(defn boop[bap]\n"
+                                                "  (map #(inc %) bap))\n"
+                                                "```")
+                                           {:docstring-format :cljdoc/markdown })
+             #"\s+" " "))))
+
 (t/deftest docset->searchset
   (let [generated-searchset (api-searchset/docset->searchset docset)]
     (t/testing "input docset is valid"
@@ -94,3 +112,4 @@
     (t/testing "produces a valid searchset"
       (let [explanation (ss/explain-humanized generated-searchset)]
         (t/is (nil? explanation) (format "expected nil for %s" generated-searchset))))))
+

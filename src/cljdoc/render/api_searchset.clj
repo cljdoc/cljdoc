@@ -236,7 +236,8 @@
                :doc text})
            doc-segments))))
 
-(defn- docstring-text [s {:keys [docstring-format]}]
+(defn docstring-text [s {:keys [docstring-format]}]
+  ;; not private for testability
   (if (= :cljdoc/plaintext docstring-format)
     s
     (let [html (rt/markdown-to-html s {:no-emojis? true
