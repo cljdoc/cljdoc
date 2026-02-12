@@ -154,6 +154,7 @@ Options
                          (get opts "--test")
                          (assoc
                           :target-dir "target/js-test-out"
+                          :js-dir "target/js-test-transpiled"
                           :test-dir "front-end/test"
                           :platform "node"
                           :js-out-ext "cjs" ;; so that node can run resulting bundle
