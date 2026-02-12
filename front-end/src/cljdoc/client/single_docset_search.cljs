@@ -8,7 +8,7 @@
             [cljdoc.client.single-docset-search.logic :as search-logic]
             [clojure.string :as str]))
 
-(def SEARCHSET_VERSION 6)
+(def SEARCHSET_VERSION 7)
 
 (defn- clamp [value min-value max-value]
   (min (max value min-value) max-value))
