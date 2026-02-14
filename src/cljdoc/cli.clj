@@ -15,23 +15,30 @@
 
 (defn build [{:keys [opts]}]
   (let [{:keys [project version]} opts
-        sys        (select-keys (system/system-config (config/config))
-                                [:cljdoc/storage :cljdoc/build-tracker :cljdoc/analysis-service :cljdoc/sqlite])
-        sys        (ig/init sys)
-        services   {:storage (:cljdoc/storage sys)
-                    :build-tracker (:cljdoc/build-tracker sys)
-                    :analysis-service (:cljdoc/analysis-service sys)}]
+        sys (select-keys (system/system-config (config/config))
+                         [:cljdoc/db-spec
+                          :cljdoc/db
+                          :cljdoc/storage
+                          :cljdoc/build-tracker
+                          :cljdoc/analysis-service])
+        sys (ig/init sys)
+        service-opts {:storage (:cljdoc/storage sys)
+                      :build-tracker (:cljdoc/build-tracker sys)
+                      :analysis-service (:cljdoc/analysis-service sys)
+                      :maven-repositories (config/get-in (config/config) [:maven-repositories])}]
     (deref
      (:future
       (api/kick-off-build!
-       services
+       service-opts
        (-> (merge (repositories/local-uris project version) opts)
            (cset/rename-keys {:git :scm-url, :rev :scm-rev})))))))
 
 (defn offline-docset [{:keys [opts]}]
   (let [{:keys [project version output]} opts
         sys           (select-keys (system/system-config (config/config))
-                                   [:cljdoc/storage :cljdoc/sqlite])
+                                   [:cljdoc/db-spec
+                                    :cljdoc/db
+                                    :cljdoc/storage])
         sys           (ig/init sys)
         store         (:cljdoc/storage sys)
         artifact-info (storage/version-entity project version)

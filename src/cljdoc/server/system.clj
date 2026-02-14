@@ -20,18 +20,21 @@
             [taoensso.nippy :as nippy]
             [tea-time.core :as tt]))
 
-(defn system-config [env-config]
-  (let [ana-service (cfg/analysis-service env-config)]
-    (doseq [ns (cfg/extension-namespaces env-config)]
-      (log/info "Loading extension namespace" ns)
-      (require ns))
+(defn system-config
+  "Return integrant system config inject `env-config` appropriately.
+  See cljdoc.config and resources/config.edn for config loading and values."
+  [env-config]
+  (let [ana-service (cfg/get-in env-config [:cljdoc/server :analysis-service])
+        enable-db-restore? (cfg/get-in env-config [:cljdoc/server :enable-db-restore?])
+        enable-db-backup? (cfg/get-in env-config [:cljdoc/server :enable-db-backup?])]
     (merge
      {:cljdoc/tea-time           {}
       :cljdoc/metrics-logger     (ig/ref :cljdoc/tea-time)
-      :cljdoc/db-spec            {:data-dir (cfg/data-dir)}
+      :cljdoc/db-spec            {:data-dir (cfg/get-in env-config [:cljdoc/server :dir])}
       :cljdoc/db                 (merge {:db-spec (ig/ref :cljdoc/db-spec)}
-                                        (cfg/db-restore env-config))
-      :cljdoc/cache-db-spec      {:data-dir (cfg/data-dir)}
+                                        (cond-> {:enable-db-restore? enable-db-restore?}
+                                          enable-db-restore? (merge (cfg/get-in env-config [:secrets :s3 :backups]))))
+      :cljdoc/cache-db-spec      {:data-dir (cfg/get-in env-config [:cljdoc/server :dir])}
       :cljdoc/cache              {:table "cache"
                                   :key-col "key"
                                   :value-col "value"
@@ -42,9 +45,9 @@
       :cljdoc/sqlite-optimizer   {:db-spec (ig/ref :cljdoc/db-spec)
                                   :cache-db-spec (ig/ref :cljdoc/cache-db-spec)
                                   :tea-time (ig/ref :cljdoc/tea-time)}
-      :cljdoc/search-index-dir   {:data-dir (cfg/data-dir)}
+      :cljdoc/search-index-dir   {:data-dir (cfg/get-in env-config [:cljdoc/server :dir])}
       :cljdoc/searcher           {:index-dir       (ig/ref :cljdoc/search-index-dir)
-                                  :enable-indexer? (cfg/enable-artifact-indexer? env-config)
+                                  :enable-indexer? (cfg/get-in env-config [:cljdoc/server :enable-artifact-indexer?])
                                   :tea-time        (ig/ref :cljdoc/tea-time)
                                   :clojars-stats   (ig/ref :cljdoc/clojars-stats)}
       :cljdoc/pedestal-connector {:port                (cfg/get-in env-config [:cljdoc/server :port])
@@ -55,29 +58,34 @@
                                   :storage             (ig/ref :cljdoc/storage)
                                   :cache               (ig/ref :cljdoc/cache)
                                   :searcher            (ig/ref :cljdoc/searcher)
-                                  :cljdoc-version      (cfg/version env-config)}
+                                  :cljdoc-version      (cfg/get-in env-config [:cljdoc/version])
+                                  :maven-repositories  (cfg/get-in env-config [:maven-repositories])}
       :cljdoc/pedestal           (ig/ref :cljdoc/pedestal-connector)
       :cljdoc/storage            {:db-spec (ig/ref :cljdoc/db-spec)}
       :cljdoc/db-backup          (merge {:db-spec (ig/ref :cljdoc/db-spec)
                                          :cache-db-spec (ig/ref :cljdoc/cache-db-spec)}
-                                        (cfg/db-backup env-config))
+                                        (cond-> {:enable-db-backup? enable-db-backup?}
+                                          enable-db-backup? (merge (cfg/get-in env-config [:secrets :s3 :backups]))))
       :cljdoc/build-tracker      {:db-spec (ig/ref :cljdoc/db-spec)}
       :cljdoc/analysis-service   {:service-type ana-service
                                   :opts (merge
-                                         {:repos (->> (cfg/maven-repositories)
+                                         {:repos (->> (cfg/get-in env-config [:maven-repositories])
                                                       (map (fn [{:keys [id url]}] [id {:url url}]))
                                                       (into {}))}
                                          (when (= ana-service :circle-ci)
-                                           (cfg/circle-ci env-config)))}
+                                           {:api-token       (cfg/get-in env-config [:secrets :circle-ci :api-token])
+                                            :builder-project (cfg/get-in env-config [:secrets :circle-ci :builder-project])}))}
       :cljdoc/clojars-stats      {:db-spec (ig/ref :cljdoc/db-spec)
                                   :retention-days (cfg/get-in env-config [:cljdoc/server :clojars-stats-retention-days])
                                   :tea-time (ig/ref :cljdoc/tea-time)}}
 
-     (when (cfg/enable-release-monitor? env-config)
+     (when (cfg/get-in env-config [:cljdoc/server :enable-release-monitor?])
        {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/db-spec)
+                                 :maven-repositories (cfg/get-in env-config [:maven-repositories])
                                  :build-tracker (ig/ref :cljdoc/build-tracker)
+                                 :server-port (cfg/get-in env-config [:cljdoc/server :port])
                                  :max-retries 10
-                                 :dry-run? (not (cfg/autobuild-clojars-releases? env-config))
+                                 :dry-run? (not (cfg/get-in env-config [:cljdoc/server :autobuild-clojars-releases?]))
                                  :searcher (ig/ref :cljdoc/searcher)
                                  :tea-time (ig/ref :cljdoc/tea-time)}}))))
 

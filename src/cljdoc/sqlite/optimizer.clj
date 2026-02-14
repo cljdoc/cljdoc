@@ -2,8 +2,8 @@
   (:require [clojure.tools.logging :as log]
             [integrant.core :as ig]
             [next.jdbc :as jdbc]
-            [tea-time.core :as tt] )
-  (:import (java.util.concurrent TimeUnit) ))
+            [tea-time.core :as tt])
+  (:import (java.util.concurrent TimeUnit)))
 
 (defn- optimize-db! [desc db-spec {:keys [flags]}]
   (let [start (System/currentTimeMillis)
@@ -29,6 +29,6 @@
              #(optimize-dbs! opts {})))
 
 (defmethod ig/halt-key! :cljdoc/sqlite-optimizer
-  [k job] 
+  [k job]
   (log/info "Stopping" k)
   (tt/cancel! job))

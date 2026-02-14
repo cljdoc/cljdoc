@@ -1,6 +1,5 @@
 (ns cljdoc.util.repositories
   (:require [cljdoc-shared.proj :as proj]
-            [cljdoc.config :as config]
             [cljdoc.http-client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string])
@@ -98,20 +97,22 @@
     {:pom (pom-uri repository project version version')
      :jar (jar-uri repository project version version')}))
 
-(defn find-artifact-repository
-  ([project]
-   (reduce #(when (exists? (:url %2) project)
-              (reduced (:url %2)))
-           []
-           (config/maven-repositories)))
-  ([project version]
-   (reduce #(when (exists? (:url %2) project version)
-              (reduced (:url %2)))
-           []
-           (config/maven-repositories))))
+(defn find-artifact-repository-by-project
+  [maven-repositories project]
+  (reduce #(when (exists? (:url %2) project)
+             (reduced (:url %2)))
+          []
+          maven-repositories))
 
-(defn artifact-uris [project version]
-  (when-let [repository (find-artifact-repository project version)]
+(defn find-artifact-repository
+  [maven-repositories project version]
+  (reduce #(when (exists? (:url %2) project version)
+             (reduced (:url %2)))
+          []
+          maven-repositories))
+
+(defn artifact-uris [maven-repositories project version]
+  (when-let [repository (find-artifact-repository maven-repositories project version)]
     (artifact-uris* repository project version)))
 
 (defn assert-first [[x & rest :as xs]]
@@ -123,8 +124,8 @@
 (defn latest-release-version
   "Return latest known release for `project`.
   When `project` not found return `nil`."
-  [project]
-  (when-let [repository (find-artifact-repository project)]
+  [maven-repositories project]
+  (when-let [repository (find-artifact-repository-by-project maven-repositories project)]
     (let [{:keys [body status]} (http/get (metadata-xml-uri repository project))]
       (when (= 200 status)
         (let [d (Jsoup/parse ^String body)]
@@ -143,10 +144,10 @@
 
 (defn get-pom-xml
   "Fetches contents of pom.xml for a particular artifact version."
-  [project version]
+  [maven-repositories project version]
   (if-let [local-pom (:pom (local-uris project version))]
     (slurp local-pom)
-    (some-> (artifact-uris project version) :pom http/get :body)))
+    (some-> (artifact-uris maven-repositories project version) :pom http/get :body)))
 
 (comment
   (config/maven-repositories)

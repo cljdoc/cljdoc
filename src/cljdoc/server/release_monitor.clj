@@ -9,7 +9,6 @@
   - existing hourly bulk update check is sufficient
   - manual invokation of doc building is still possible for the impatient"
   (:require [cljdoc-shared.proj :as proj]
-            [cljdoc.config :as config]
             [cljdoc.http-client :as http]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.search.api :as sc]
@@ -127,9 +126,9 @@
 ;;
 
 (defn- trigger-build
-  [{:keys [group-id artifact-id version] :as _release}]
+  [{:keys [group-id artifact-id version] :as _release} server-port]
   ;; I'm really not liking that this makes it all very tied to the HTTP server... - martin
-  (let [resp (http/post (str "http://localhost:" (get-in (config/config) [:cljdoc/server :port]) "/api/request-build2")
+  (let [resp (http/post (str "http://localhost:" server-port "/api/request-build2")
                         {:follow-redirects :never
                          :form-params {:project (str group-id "/" artifact-id)
                                        :version version}
@@ -182,8 +181,8 @@
     (build-log/failed! build-tracker build-id error)
     (update-build-id! db-spec id build-id)))
 
-(defn- resolve-clojars-artifact [{:keys [group-id artifact-id version] :as _release}]
-  (let [clojars-repo (->> (config/maven-repositories)
+(defn- resolve-clojars-artifact [maven-repositories {:keys [group-id artifact-id version] :as _release}]
+  (let [clojars-repo (->> maven-repositories
                           (filter #(= "clojars" (:id %)))
                           first
                           :url)]
@@ -194,15 +193,15 @@
       (catch Throwable ex
         {:exception ex :status -1}))))
 
-(defn- build-queuer-job-fn [{:keys [db-spec build-tracker dry-run? max-retries]}]
+(defn- build-queuer-job-fn [{:keys [db-spec maven-repositories build-tracker server-port dry-run? max-retries]}]
   (when-let [{:keys [id group-id artifact-id version retry-count] :as release-to-build} (oldest-not-built db-spec)]
     (if dry-run?
       (log/infof "Dry-run mode: not triggering build for %s/%s %s"
                  group-id artifact-id version)
-      (let [{:keys [exception status] :as _resolve-result} (resolve-clojars-artifact release-to-build)]
+      (let [{:keys [exception status] :as _resolve-result} (resolve-clojars-artifact maven-repositories release-to-build)]
         (case (long status)
           200 (do (log/infof "Triggering build for %s/%s %s" group-id artifact-id version)
-                  (update-build-id! db-spec id (trigger-build release-to-build)))
+                  (update-build-id! db-spec id (trigger-build release-to-build server-port)))
           404 (pre-check-failed! db-spec build-tracker release-to-build "listed-artifact-not-found")
           ;; else
           (let [msg (format "failed to resolve %s/%s %s, resolve status %d, retry count %d"
@@ -221,7 +220,7 @@
                                  (select-keys opts [:db-spec :searcher])))
    :build-queuer    (tt/every! (* 10 60) 10
                                #(build-queuer-job-fn
-                                 (select-keys opts [:db-spec :build-tracker :dry-run? :max-retries])))})
+                                 (select-keys opts [:db-spec :maven-repositories :build-tracker :server-port :dry-run? :max-retries])))})
 
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
   (log/info "Stopping ReleaseMonitor")
