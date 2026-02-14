@@ -8,10 +8,10 @@
             [cljdoc.server.metrics-logger]
             [cljdoc.server.pedestal]
             [cljdoc.server.release-monitor]
+            [cljdoc.sqlite.optimizer]
             [cljdoc.storage.api :as storage]
             [cljdoc.util.repositories :as repos]
             [cljdoc.util.sqlite-cache :as sqlite-cache]
-            [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [integrant.core :as ig]
@@ -20,34 +20,33 @@
             [taoensso.nippy :as nippy]
             [tea-time.core :as tt]))
 
-(defn index-dir [env-config]
-  (let [lucene-version (-> org.apache.lucene.util.Version/LATEST
-                           str
-                           (string/replace "." "_"))
-
-        dir-name (str "index-lucene-" lucene-version)]
-    (str (fs/file (cfg/data-dir env-config) dir-name))))
-
 (defn system-config [env-config]
   (let [ana-service (cfg/analysis-service env-config)]
     (doseq [ns (cfg/extension-namespaces env-config)]
       (log/info "Loading extension namespace" ns)
       (require ns))
     (merge
-     {:cljdoc/tea-time        {}
-      :cljdoc/metrics-logger (ig/ref :cljdoc/tea-time)
-      :cljdoc/sqlite          (merge {:db-spec (cfg/db env-config)
-                                      :dir     (cfg/data-dir env-config)}
-                                     (cfg/db-restore env-config))
-      :cljdoc/cache           (merge (cfg/cache env-config)
-                                     {:cache-dir      (cfg/data-dir env-config)
-                                      :key-prefix     "get-pom-xml"
-                                      :serialize-fn   nippy/freeze
-                                      :deserialize-fn nippy/thaw})
-      :cljdoc/searcher {:index-dir       (index-dir env-config)
-                        :enable-indexer? (cfg/enable-artifact-indexer? env-config)
-                        :tea-time        (ig/ref :cljdoc/tea-time)
-                        :clojars-stats   (ig/ref :cljdoc/clojars-stats)}
+     {:cljdoc/tea-time           {}
+      :cljdoc/metrics-logger     (ig/ref :cljdoc/tea-time)
+      :cljdoc/db-spec            {:data-dir (cfg/data-dir)}
+      :cljdoc/db                 (merge {:db-spec (ig/ref :cljdoc/db-spec)}
+                                        (cfg/db-restore env-config))
+      :cljdoc/cache-db-spec      {:data-dir (cfg/data-dir)}
+      :cljdoc/cache              {:table "cache"
+                                  :key-col "key"
+                                  :value-col "value"
+                                  :db-spec (ig/ref :cljdoc/cache-db-spec)
+                                  :key-prefix     "get-pom-xml"
+                                  :serialize-fn   nippy/freeze
+                                  :deserialize-fn nippy/thaw}
+      :cljdoc/sqlite-optimizer   {:db-spec (ig/ref :cljdoc/db-spec)
+                                  :cache-db-spec (ig/ref :cljdoc/cache-db-spec)
+                                  :tea-time (ig/ref :cljdoc/tea-time)}
+      :cljdoc/search-index-dir   {:data-dir (cfg/data-dir)}
+      :cljdoc/searcher           {:index-dir       (ig/ref :cljdoc/search-index-dir)
+                                  :enable-indexer? (cfg/enable-artifact-indexer? env-config)
+                                  :tea-time        (ig/ref :cljdoc/tea-time)
+                                  :clojars-stats   (ig/ref :cljdoc/clojars-stats)}
       :cljdoc/pedestal-connector {:port                (cfg/get-in env-config [:cljdoc/server :port])
                                   :host                (get-in env-config [:cljdoc/server :host])
                                   :opensearch-base-url (cfg/get-in env-config [:cljdoc/server :opensearch-base-url])
@@ -57,30 +56,49 @@
                                   :cache               (ig/ref :cljdoc/cache)
                                   :searcher            (ig/ref :cljdoc/searcher)
                                   :cljdoc-version      (cfg/version env-config)}
-      :cljdoc/pedestal (ig/ref :cljdoc/pedestal-connector)
-      :cljdoc/storage       {:db-spec (ig/ref :cljdoc/sqlite)}
-      :cljdoc/db-backup (merge {:db-spec (ig/ref :cljdoc/sqlite)
-                                :cache-db-spec (-> env-config cfg/cache :db-spec)}
-                               (cfg/db-backup env-config))
-      :cljdoc/build-tracker {:db-spec (ig/ref :cljdoc/sqlite)}
-      :cljdoc/analysis-service {:service-type ana-service
-                                :opts (merge
-                                       {:repos (->> (cfg/maven-repositories)
-                                                    (map (fn [{:keys [id url]}] [id {:url url}]))
-                                                    (into {}))}
-                                       (when (= ana-service :circle-ci)
-                                         (cfg/circle-ci env-config)))}
-      :cljdoc/clojars-stats   {:db-spec (ig/ref :cljdoc/sqlite)
-                               :retention-days (cfg/get-in env-config [:cljdoc/server :clojars-stats-retention-days])
-                               :tea-time (ig/ref :cljdoc/tea-time)}}
+      :cljdoc/pedestal           (ig/ref :cljdoc/pedestal-connector)
+      :cljdoc/storage            {:db-spec (ig/ref :cljdoc/db-spec)}
+      :cljdoc/db-backup          (merge {:db-spec (ig/ref :cljdoc/db-spec)
+                                         :cache-db-spec (ig/ref :cljdoc/cache-db-spec)}
+                                        (cfg/db-backup env-config))
+      :cljdoc/build-tracker      {:db-spec (ig/ref :cljdoc/db-spec)}
+      :cljdoc/analysis-service   {:service-type ana-service
+                                  :opts (merge
+                                         {:repos (->> (cfg/maven-repositories)
+                                                      (map (fn [{:keys [id url]}] [id {:url url}]))
+                                                      (into {}))}
+                                         (when (= ana-service :circle-ci)
+                                           (cfg/circle-ci env-config)))}
+      :cljdoc/clojars-stats      {:db-spec (ig/ref :cljdoc/db-spec)
+                                  :retention-days (cfg/get-in env-config [:cljdoc/server :clojars-stats-retention-days])
+                                  :tea-time (ig/ref :cljdoc/tea-time)}}
 
      (when (cfg/enable-release-monitor? env-config)
-       {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/sqlite)
+       {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/db-spec)
                                  :build-tracker (ig/ref :cljdoc/build-tracker)
                                  :max-retries 10
                                  :dry-run? (not (cfg/autobuild-clojars-releases? env-config))
                                  :searcher (ig/ref :cljdoc/searcher)
                                  :tea-time (ig/ref :cljdoc/tea-time)}}))))
+
+(defmethod ig/init-key :cljdoc/search-index-dir [_ {:keys [data-dir]}]
+  (let [lucene-version (-> org.apache.lucene.util.Version/LATEST
+                           str
+                           (string/replace "." "_"))
+        dir-name (str "index-lucene-" lucene-version)]
+    (str (fs/file data-dir dir-name))))
+
+(defmethod ig/init-key :cljdoc/db-spec [_ {:keys [data-dir]}]
+  {:dbtype "sqlite",
+   :host :none
+   :foreign_keys true
+   :cache_size 10000
+   :dbname (str (fs/file data-dir "cljdoc.db.sqlite"))
+   ;; These settings are permanent but it seems like
+   ;; this is the easiest way to set them. In a migration
+   ;; they fail because they return results.
+   :synchronous "NORMAL"
+   :journal_mode "WAL"})
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
   (log/info "Starting" k)
@@ -104,11 +122,10 @@
   (log/info "Starting" k)
   (build-log/->SQLBuildTracker db-spec))
 
-(defmethod ig/init-key :cljdoc/sqlite [_ {:keys [enable-db-restore? db-spec dir] :as opts}]
-  (.mkdirs (io/file dir))
+(defmethod ig/init-key :cljdoc/db [_ {:keys [enable-db-restore? db-spec] :as opts}]
+  (fs/create-dirs (fs/parent (:dbname db-spec)))
   (when enable-db-restore?
     (db-backup/restore-db! opts))
-
   (ragtime/migrate-all (ragtime-next-jdbc/sql-database db-spec)
                        {}
                        (ragtime-next-jdbc/load-resources "migrations")
@@ -116,8 +133,13 @@
                                     (log/infof "Migrating %s %s" direction migration))})
   db-spec)
 
-(defmethod ig/init-key :cljdoc/cache [_ {:keys [cache-dir] :as cache-opts}]
-  (.mkdirs (io/file cache-dir))
+(defmethod ig/init-key :cljdoc/cache-db-spec [_ {:keys [data-dir]}]
+  {:dbtype "sqlite"
+   :host :none
+   :dbname (str (fs/file data-dir "cache.db"))})
+
+(defmethod ig/init-key :cljdoc/cache [_ {:keys [db-spec] :as cache-opts}]
+  (fs/create-dirs (fs/parent (:dbname db-spec)))
   {:cljdoc.util.repositories/get-pom-xml (sqlite-cache/memo-sqlite repos/get-pom-xml cache-opts)})
 
 (defn -main []
