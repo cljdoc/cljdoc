@@ -207,9 +207,8 @@
   "Given a `fetch-pom-xml` function, one that takes a clojars-id and a version number as parameters, and a
   `version-entity` (see `:cljdoc.spec/version-entity` in spec.cljc), fetch the pom xml and get the description
   and dependencies."
-  [fetch-pom-xml maven-repositories version-entity]
-  (when-let [{:keys [artifact-info dependencies]} (some-> (fetch-pom-xml
-                                                           maven-repositories
+  [pom-fetcher version-entity]
+  (when-let [{:keys [artifact-info dependencies]} (some-> (pom-fetcher
                                                            (proj/clojars-id version-entity)
                                                            (:version version-entity))
                                                           pom/parse)]
@@ -217,13 +216,12 @@
      :dependencies dependencies}))
 
 (defn pom-loader
-  "Load a projects POM file, parse it and inject some information from it into the context."
-  [cache maven-repositories]
+  "Load (and caches) a projects POM file, parse it and inject some information from it into the context."
+  [cached-pom-fetcher]
   (interceptor/interceptor
    {:name ::pom-loader
     :enter (fn pom-loader-inner [ctx]
-             (if-let [pom (load-pom (:cljdoc.maven-repo/get-pom-xml cache)
-                                    maven-repositories
+             (if-let [pom (load-pom cached-pom-fetcher
                                     (get-in ctx [:request :path-params]))]
                (assoc ctx ::pom-info pom)
                ctx))}))
@@ -294,11 +292,11 @@
 (defn view
   "Combine various interceptors into an interceptor chain for
   rendering views for `route-name`."
-  [maven-repositories storage cache build-tracker route-name]
+  [maven-repositories storage cached-pom-fetcher build-tracker route-name]
   (->> [(resolve-version-interceptor maven-repositories)
         (last-build-loader build-tracker)
         (when (= :artifact/doc route-name) doc-slug-parser)
-        (pom-loader cache maven-repositories)
+        (pom-loader cached-pom-fetcher)
         (artifact-data-loader storage)
         (render-interceptor maven-repositories)]
        (keep identity)
@@ -609,7 +607,7 @@
   interesting for ClojureScript where Pededestal can't go.
 
   For more details see `cljdoc.server.routes`."
-  [{:keys [cljdoc-version opensearch-base-url build-tracker maven-repositories storage cache searcher] :as services}
+  [{:keys [cljdoc-version opensearch-base-url build-tracker maven-repositories storage cached-pom-fetcher searcher] :as services}
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home %))})]
@@ -625,13 +623,13 @@
          :api/search [(search-interceptor searcher)]
          :api/search-suggest [(search-suggest-interceptor searcher)]
 
-         :api/searchset [(pom-loader cache maven-repositories)
+         :api/searchset [(pom-loader cached-pom-fetcher)
                          (artifact-data-loader storage)
                          api-searchset]
 
          :api/server-info [(api-server-info cljdoc-version)]
 
-         :api/docsets [(pom-loader cache maven-repositories)
+         :api/docsets [(pom-loader cached-pom-fetcher)
                        (artifact-data-loader storage)
                        api-docsets]
 
@@ -644,10 +642,10 @@
          :group/index     (index-pages searcher storage route-name)
          :artifact/index  (index-pages searcher storage route-name)
 
-         :artifact/version   (view maven-repositories storage cache build-tracker route-name)
-         :artifact/namespace (view maven-repositories storage cache build-tracker route-name)
-         :artifact/doc       (view maven-repositories storage cache build-tracker route-name)
-         :artifact/offline-docset [(pom-loader cache maven-repositories)
+         :artifact/version   (view maven-repositories storage cached-pom-fetcher build-tracker route-name)
+         :artifact/namespace (view maven-repositories storage cached-pom-fetcher build-tracker route-name)
+         :artifact/doc       (view maven-repositories storage cached-pom-fetcher build-tracker route-name)
+         :artifact/offline-docset [(pom-loader cached-pom-fetcher)
                                    (artifact-data-loader storage)
                                    offline-docset]
 

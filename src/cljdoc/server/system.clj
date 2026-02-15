@@ -39,9 +39,11 @@
                                   :key-col "key"
                                   :value-col "value"
                                   :db-spec (ig/ref :cljdoc/cache-db-spec)
-                                  :key-prefix     "get-pom-xml"
                                   :serialize-fn   nippy/freeze
                                   :deserialize-fn nippy/thaw}
+      :cljdoc/cached-pom-fetcher {:cache (ig/ref :cljdoc/cache)
+                                  :key-prefix "get-pom-xml"
+                                  :maven-repositories (cfg/get-in env-config [:maven-repositories])}
       :cljdoc/sqlite-optimizer   {:db-spec (ig/ref :cljdoc/db-spec)
                                   :cache-db-spec (ig/ref :cljdoc/cache-db-spec)
                                   :tea-time (ig/ref :cljdoc/tea-time)}
@@ -56,7 +58,7 @@
                                   :build-tracker       (ig/ref :cljdoc/build-tracker)
                                   :analysis-service    (ig/ref :cljdoc/analysis-service)
                                   :storage             (ig/ref :cljdoc/storage)
-                                  :cache               (ig/ref :cljdoc/cache)
+                                  :cached-pom-fetcher  (ig/ref :cljdoc/cached-pom-fetcher)
                                   :searcher            (ig/ref :cljdoc/searcher)
                                   :cljdoc-version      (cfg/get-in env-config [:cljdoc/version])
                                   :maven-repositories  (cfg/get-in env-config [:maven-repositories])}
@@ -148,7 +150,12 @@
 
 (defmethod ig/init-key :cljdoc/cache [_ {:keys [db-spec] :as cache-opts}]
   (fs/create-dirs (fs/parent (:dbname db-spec)))
-  {:cljdoc.maven-repo/get-pom-xml (sqlite-cache/memo-sqlite maven-repo/get-pom-xml cache-opts)})
+  cache-opts)
+
+(defmethod ig/init-key :cljdoc/cached-pom-fetcher [_ {:keys [cache key-prefix maven-repositories]}]
+  (sqlite-cache/memo-sqlite
+   (maven-repo/pom-fetcher maven-repositories)
+   (assoc cache :key-prefix key-prefix)))
 
 (defn -main []
   (try

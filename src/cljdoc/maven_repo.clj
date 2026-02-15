@@ -142,12 +142,16 @@
     (when (.exists (io/file (:jar uris)))
       uris)))
 
-(defn get-pom-xml
+(defn- get-pom-xml
   "Fetches contents of pom.xml for a particular artifact version."
   [maven-repositories project version]
   (if-let [local-pom (:pom (local-uris project version))]
     (slurp local-pom)
     (some-> (artifact-uris maven-repositories project version) :pom http/get :body)))
+
+(defn pom-fetcher [maven-repositories]
+  (fn [project version]
+    (get-pom-xml maven-repositories project version)))
 
 (comment
   (config/maven-repositories)

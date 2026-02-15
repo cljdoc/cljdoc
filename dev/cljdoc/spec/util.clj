@@ -28,9 +28,8 @@
   "Load pom info for an analyzed docset."
   [version-entity]
   (let [version-entity (parse-version-entity version-entity)
-        cache (:cljdoc/cache state/system)
-        get-pom-xml (:cljdoc.maven-repo/get-pom-xml cache)]
-    (server.pedestal/load-pom get-pom-xml version-entity)))
+        pom-fetcher (:cljdoc/cached-pom-fetcher state/system)]
+    (server.pedestal/load-pom pom-fetcher version-entity)))
 
 (defn load-docset
   "Load the docset for the analyzed docset."
