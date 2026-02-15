@@ -66,7 +66,7 @@
   If the request is for the root page (e.g. /d/group/artifact/0.1.0) this interceptor
   will also lookup the first article that's part of the docset and return a 302
   redirecting to that page."
-  [maven-repositories]
+  [maven-repos]
   (interceptor/interceptor
    {:name  ::render
     :enter (fn render-doc [{:keys [docset] :as ctx}]
@@ -90,7 +90,7 @@
                              :headers {"Content-Type" "text/html"}
                              :body (str (render-build-req/request-build-page path-params
                                                                              (:static-resources ctx)
-                                                                             maven-repositories))}]
+                                                                             maven-repos))}]
                    (assoc ctx :response resp))
 
                  first-article-slug
@@ -253,7 +253,7 @@
   - If the provided version is `nil` set it to the last known release.
   - If the provided version is `CURRENT` redirect to either a version from the `referer` header
     or the last known version."
-  [maven-repositories]
+  [maven-repos]
   (interceptor/interceptor
    {:name ::resolve-version-interceptor
     :enter (fn resolve-version-interceptor [{:keys [route request] :as ctx}]
@@ -263,11 +263,11 @@
                    proj-search     (str group-id "/" artifact-id)
                    resolved-version (cond
                                       (nil? version)
-                                      (maven-repo/latest-release-version maven-repositories proj-search)
+                                      (maven-repo/latest-release-version maven-repos proj-search)
 
                                       (= "CURRENT" version)
                                       (or (matching-referer-version request group-id artifact-id)
-                                          (maven-repo/latest-release-version maven-repositories proj-search))
+                                          (maven-repo/latest-release-version maven-repos proj-search))
 
                                       :else version)
                    artifact-entity {:artifact-id artifact-id
@@ -292,13 +292,13 @@
 (defn view
   "Combine various interceptors into an interceptor chain for
   rendering views for `route-name`."
-  [maven-repositories storage cached-pom-fetcher build-tracker route-name]
-  (->> [(resolve-version-interceptor maven-repositories)
+  [maven-repos storage cached-pom-fetcher build-tracker route-name]
+  (->> [(resolve-version-interceptor maven-repos)
         (last-build-loader build-tracker)
         (when (= :artifact/doc route-name) doc-slug-parser)
         (pom-loader cached-pom-fetcher)
         (artifact-data-loader storage)
-        (render-interceptor maven-repositories)]
+        (render-interceptor maven-repos)]
        (keep identity)
        (vec)))
 
@@ -325,7 +325,7 @@
                    (redirect-to-build-page ctx (:build-id build))))))}))
 
 (defn request-build-validate
-  [maven-repositories]
+  [maven-repos]
   (interceptor/interceptor
    {:name ::request-build-validate
     :enter (fn request-build-validate [ctx]
@@ -336,7 +336,7 @@
                                        :headers {"Content-Type" "text/html"}
                                        :body "ERROR: Must specify project and version params"})
 
-                 (not (maven-repo/find-artifact-repository maven-repositories project version))
+                 (not (maven-repo/find-artifact-repository maven-repos project version))
                  (assoc ctx :response {:status 404
                                        :headers {"Content-Type" "text/html"}
                                        :body (format "ERROR: project %s version %s not found in maven repositories"
@@ -426,7 +426,7 @@
                  (return-badge ctx (str "Docs not built for " version) :library-version-not-found)
                  (return-badge ctx "Library not found" :library-not-found))))}))
 
-(defn jump-interceptor [maven-repositories]
+(defn jump-interceptor [maven-repos]
   (interceptor/interceptor
    {:name ::jump
     :enter (fn jump [ctx]
@@ -434,7 +434,7 @@
                    project (cond project project
                                  artifact-id (proj/clojars-id params)
                                  group-id group-id)
-                   release (maven-repo/latest-release-version maven-repositories project)]
+                   release (maven-repo/latest-release-version maven-repos project)]
                (->> (if release
                       {:status 302
                        :headers {"Location" (routes/url-for :artifact/version
@@ -607,7 +607,7 @@
   interesting for ClojureScript where Pededestal can't go.
 
   For more details see `cljdoc.server.routes`."
-  [{:keys [cljdoc-version opensearch-base-url build-tracker maven-repositories storage cached-pom-fetcher searcher] :as services}
+  [{:keys [cljdoc-version opensearch-base-url build-tracker maven-repos storage cached-pom-fetcher searcher] :as services}
    {:keys [route-name] :as route}]
   (->> (case route-name
          :home       [(interceptor/interceptor {:name ::home :enter #(pu/ok-html % (render-home/home %))})]
@@ -635,26 +635,26 @@
 
          :ping          [(interceptor/interceptor {:name ::pong :enter #(pu/ok-html % "pong")})]
          :request-build [(body/body-params)
-                         (request-build-validate maven-repositories)
+                         (request-build-validate maven-repos)
                          (request-build services)]
 
          :cljdoc/index    (index-pages searcher storage route-name)
          :group/index     (index-pages searcher storage route-name)
          :artifact/index  (index-pages searcher storage route-name)
 
-         :artifact/version   (view maven-repositories storage cached-pom-fetcher build-tracker route-name)
-         :artifact/namespace (view maven-repositories storage cached-pom-fetcher build-tracker route-name)
-         :artifact/doc       (view maven-repositories storage cached-pom-fetcher build-tracker route-name)
+         :artifact/version   (view maven-repos storage cached-pom-fetcher build-tracker route-name)
+         :artifact/namespace (view maven-repos storage cached-pom-fetcher build-tracker route-name)
+         :artifact/doc       (view maven-repos storage cached-pom-fetcher build-tracker route-name)
          :artifact/offline-docset [(pom-loader cached-pom-fetcher)
                                    (artifact-data-loader storage)
                                    offline-docset]
 
-         :artifact/current-via-short-id [(jump-interceptor maven-repositories)]
-         :artifact/current [(jump-interceptor maven-repositories)]
-         :jump-to-project    [(resolve-version-interceptor maven-repositories)
-                              (jump-interceptor maven-repositories)]
+         :artifact/current-via-short-id [(jump-interceptor maven-repos)]
+         :artifact/current [(jump-interceptor maven-repos)]
+         :jump-to-project    [(resolve-version-interceptor maven-repos)
+                              (jump-interceptor maven-repos)]
          :badge-for-project  [(badge-interceptor)
-                              (resolve-version-interceptor maven-repositories)
+                              (resolve-version-interceptor maven-repos)
                               (last-build-loader build-tracker)])
        (assoc route :interceptors)))
 

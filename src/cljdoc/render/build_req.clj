@@ -5,13 +5,13 @@
             [cljdoc.render.layout :as layout]
             [cljdoc.render.links :as links]))
 
-(defn request-build-page [route-params static-resources maven-repositories]
+(defn request-build-page [route-params static-resources maven-repos]
   (->> [:div
         (layout/top-bar-generic)
         [:div.pa4-ns.pa2
          [:h1 "Want to build some documentation?"]
          [:p "We currently don't have documentation built for " [:b (proj/clojars-id route-params)] " version " [:b (:version route-params)]]
-         (if (maven-repo/find-artifact-repository maven-repositories (proj/clojars-id route-params) (:version route-params))
+         (if (maven-repo/find-artifact-repository maven-repos (proj/clojars-id route-params) (:version route-params))
            [:form.pv3 {:action "/api/request-build2" :method "POST"}
             [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "project" :name "project" :value (str (:group-id route-params) "/" (:artifact-id route-params))}]
             [:input.pa2.mr2.br2.ba.outline-0.blue {:type "text" :id "version" :name "version" :value (:version route-params)}]

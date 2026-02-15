@@ -25,7 +25,7 @@
         service-opts {:storage (:cljdoc/storage sys)
                       :build-tracker (:cljdoc/build-tracker sys)
                       :analysis-service (:cljdoc/analysis-service sys)
-                      :maven-repositories (config/get-in (config/config) [:maven-repositories])}]
+                      :maven-repos (config/get-in (config/config) [:maven-repos])}]
     (deref
      (:future
       (api/kick-off-build!

@@ -98,21 +98,21 @@
      :jar (jar-uri repository project version version')}))
 
 (defn find-artifact-repository-by-project
-  [maven-repositories project]
+  [maven-repos project]
   (reduce #(when (exists? (:url %2) project)
              (reduced (:url %2)))
           []
-          maven-repositories))
+          maven-repos))
 
 (defn find-artifact-repository
-  [maven-repositories project version]
+  [maven-repos project version]
   (reduce #(when (exists? (:url %2) project version)
              (reduced (:url %2)))
           []
-          maven-repositories))
+          maven-repos))
 
-(defn artifact-uris [maven-repositories project version]
-  (when-let [repository (find-artifact-repository maven-repositories project version)]
+(defn artifact-uris [maven-repos project version]
+  (when-let [repository (find-artifact-repository maven-repos project version)]
     (artifact-uris* repository project version)))
 
 (defn assert-first [[x & rest :as xs]]
@@ -124,8 +124,8 @@
 (defn latest-release-version
   "Return latest known release for `project`.
   When `project` not found return `nil`."
-  [maven-repositories project]
-  (when-let [repository (find-artifact-repository-by-project maven-repositories project)]
+  [maven-repos project]
+  (when-let [repository (find-artifact-repository-by-project maven-repos project)]
     (let [{:keys [body status]} (http/get (metadata-xml-uri repository project))]
       (when (= 200 status)
         (let [d (Jsoup/parse ^String body)]
@@ -144,17 +144,17 @@
 
 (defn- get-pom-xml
   "Fetches contents of pom.xml for a particular artifact version."
-  [maven-repositories project version]
+  [maven-repos project version]
   (if-let [local-pom (:pom (local-uris project version))]
     (slurp local-pom)
-    (some-> (artifact-uris maven-repositories project version) :pom http/get :body)))
+    (some-> (artifact-uris maven-repos project version) :pom http/get :body)))
 
-(defn pom-fetcher [maven-repositories]
+(defn pom-fetcher [maven-repos]
   (fn [project version]
-    (get-pom-xml maven-repositories project version)))
+    (get-pom-xml maven-repos project version)))
 
 (comment
-  (config/maven-repositories)
+  (config/maven-repos)
   ;; => [{:id "clojars", :url "https://repo.clojars.org/"}
   ;;     {:id "central", :url "https://repo.maven.apache.org/maven2/"}]
 

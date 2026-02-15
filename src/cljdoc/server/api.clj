@@ -47,10 +47,10 @@
   Optional for `coords` map to support testing:
   - `:jar` and `:pom` can supply non-default paths to local files.
   - `:scm-url` and `:scm-rev` will override `pom.xml` `<scm>` `<url>` and `<tag>`"
-  [{:keys [storage build-tracker maven-repositories] :as services}
+  [{:keys [storage build-tracker maven-repos] :as services}
    {:keys [project version jar pom scm-url scm-rev] :as coords}]
   (let [a-uris    (when-not (and jar pom)
-                    (or (maven-repo/artifact-uris maven-repositories project version)
+                    (or (maven-repo/artifact-uris maven-repos project version)
                         (throw (ex-info (format "Requested version cannot be found in configured repositories: [%s %s]" project version)
                                         {:project project :version version}))))
         v-entity  (storage/version-entity project version)

@@ -181,8 +181,8 @@
     (build-log/failed! build-tracker build-id error)
     (update-build-id! db-spec id build-id)))
 
-(defn- resolve-clojars-artifact [maven-repositories {:keys [group-id artifact-id version] :as _release}]
-  (let [clojars-repo (->> maven-repositories
+(defn- resolve-clojars-artifact [maven-repos {:keys [group-id artifact-id version] :as _release}]
+  (let [clojars-repo (->> maven-repos
                           (filter #(= "clojars" (:id %)))
                           first
                           :url)]
@@ -193,12 +193,12 @@
       (catch Throwable ex
         {:exception ex :status -1}))))
 
-(defn- build-queuer-job-fn [{:keys [db-spec maven-repositories build-tracker server-port dry-run? max-retries]}]
+(defn- build-queuer-job-fn [{:keys [db-spec maven-repos build-tracker server-port dry-run? max-retries]}]
   (when-let [{:keys [id group-id artifact-id version retry-count] :as release-to-build} (oldest-not-built db-spec)]
     (if dry-run?
       (log/infof "Dry-run mode: not triggering build for %s/%s %s"
                  group-id artifact-id version)
-      (let [{:keys [exception status] :as _resolve-result} (resolve-clojars-artifact maven-repositories release-to-build)]
+      (let [{:keys [exception status] :as _resolve-result} (resolve-clojars-artifact maven-repos release-to-build)]
         (case (long status)
           200 (do (log/infof "Triggering build for %s/%s %s" group-id artifact-id version)
                   (update-build-id! db-spec id (trigger-build release-to-build server-port)))
@@ -220,7 +220,7 @@
                                  (select-keys opts [:db-spec :searcher])))
    :build-queuer    (tt/every! (* 10 60) 10
                                #(build-queuer-job-fn
-                                 (select-keys opts [:db-spec :maven-repositories :build-tracker :server-port :dry-run? :max-retries])))})
+                                 (select-keys opts [:db-spec :maven-repos :build-tracker :server-port :dry-run? :max-retries])))})
 
 (defmethod ig/halt-key! :cljdoc/release-monitor [_ release-monitor]
   (log/info "Stopping ReleaseMonitor")

@@ -58,7 +58,7 @@
 
   (aero/read-config (io/resource "config.edn") {:profile :default})
   ;; => {:secrets {},
-  ;;     :maven-repositories
+  ;;     :maven-repos
   ;;     [{:id "clojars", :url "https://repo.clojars.org/"}
   ;;      {:id "central", :url "https://repo.maven.apache.org/maven2/"}],
   ;;     :cljdoc/version "dev",

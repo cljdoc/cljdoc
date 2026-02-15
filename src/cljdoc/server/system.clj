@@ -43,7 +43,7 @@
                                   :deserialize-fn nippy/thaw}
       :cljdoc/cached-pom-fetcher {:cache (ig/ref :cljdoc/cache)
                                   :key-prefix "get-pom-xml"
-                                  :maven-repositories (cfg/get-in env-config [:maven-repositories])}
+                                  :maven-repos (cfg/get-in env-config [:maven-repos])}
       :cljdoc/sqlite-optimizer   {:db-spec (ig/ref :cljdoc/db-spec)
                                   :cache-db-spec (ig/ref :cljdoc/cache-db-spec)
                                   :tea-time (ig/ref :cljdoc/tea-time)}
@@ -61,7 +61,7 @@
                                   :cached-pom-fetcher  (ig/ref :cljdoc/cached-pom-fetcher)
                                   :searcher            (ig/ref :cljdoc/searcher)
                                   :cljdoc-version      (cfg/get-in env-config [:cljdoc/version])
-                                  :maven-repositories  (cfg/get-in env-config [:maven-repositories])}
+                                  :maven-repos  (cfg/get-in env-config [:maven-repos])}
       :cljdoc/pedestal           (ig/ref :cljdoc/pedestal-connector)
       :cljdoc/storage            {:db-spec (ig/ref :cljdoc/db-spec)}
       :cljdoc/db-backup          (merge {:db-spec (ig/ref :cljdoc/db-spec)
@@ -71,7 +71,7 @@
       :cljdoc/build-tracker      {:db-spec (ig/ref :cljdoc/db-spec)}
       :cljdoc/analysis-service   {:service-type ana-service
                                   :opts (merge
-                                         {:repos (->> (cfg/get-in env-config [:maven-repositories])
+                                         {:repos (->> (cfg/get-in env-config [:maven-repos])
                                                       (map (fn [{:keys [id url]}] [id {:url url}]))
                                                       (into {}))}
                                          (when (= ana-service :circle-ci)
@@ -83,7 +83,7 @@
 
      (when (cfg/get-in env-config [:cljdoc/server :enable-release-monitor?])
        {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/db-spec)
-                                 :maven-repositories (cfg/get-in env-config [:maven-repositories])
+                                 :maven-repos (cfg/get-in env-config [:maven-repos])
                                  :build-tracker (ig/ref :cljdoc/build-tracker)
                                  :server-port (cfg/get-in env-config [:cljdoc/server :port])
                                  :max-retries 10
@@ -152,9 +152,9 @@
   (fs/create-dirs (fs/parent (:dbname db-spec)))
   cache-opts)
 
-(defmethod ig/init-key :cljdoc/cached-pom-fetcher [_ {:keys [cache key-prefix maven-repositories]}]
+(defmethod ig/init-key :cljdoc/cached-pom-fetcher [_ {:keys [cache key-prefix maven-repos]}]
   (sqlite-cache/memo-sqlite
-   (maven-repo/pom-fetcher maven-repositories)
+   (maven-repo/pom-fetcher maven-repos)
    (assoc cache :key-prefix key-prefix)))
 
 (defn -main []

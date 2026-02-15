@@ -1,9 +1,9 @@
 {;; read secrets from file specified via CLJDOC_SECRETS
  ;; or from resources/secrets if CLJDOC secrets isn't set
  :secrets #include #or [#env CLJDOC_SECRETS "secrets.edn"]
- ;; NOTE: if you update maven-repositories, you should invalidate the pom cache
+ ;; NOTE: if you update maven-repos, you should invalidate the pom cache
  ;;       via a data migration
- :maven-repositories [{:id "clojars" :url "https://repo.clojars.org/"}
+ :maven-repos [{:id "clojars" :url "https://repo.clojars.org/"}
                       {:id "central" :url "https://repo.maven.apache.org/maven2/"}]
  :cljdoc/version #profile {:prod #slurp "CLJDOC_VERSION"
                            :default "dev"}
