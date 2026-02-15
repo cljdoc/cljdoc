@@ -26,28 +26,44 @@
   [env-config]
   (let [ana-service (cfg/get-in env-config [:cljdoc/server :analysis-service])
         enable-db-restore? (cfg/get-in env-config [:cljdoc/server :enable-db-restore?])
-        enable-db-backup? (cfg/get-in env-config [:cljdoc/server :enable-db-backup?])]
+        enable-db-backup? (cfg/get-in env-config [:cljdoc/server :enable-db-backup?])
+        data-dir (cfg/get-in env-config [:cljdoc/server :dir])]
     (merge
      {:cljdoc/tea-time           {}
       :cljdoc/metrics-logger     (ig/ref :cljdoc/tea-time)
-      :cljdoc/db-spec            {:data-dir (cfg/get-in env-config [:cljdoc/server :dir])}
-      :cljdoc/db                 (merge {:db-spec (ig/ref :cljdoc/db-spec)}
+      :cljdoc/db-spec            {:dbtype "sqlite"
+                                  :host :none
+                                  :foreign_keys true
+                                  :cache_size 10000
+                                  :dbname (str (fs/file data-dir "cljdoc.db.sqlite"))
+                                  ;; These settings are permanent but it seems like
+                                  ;; this is the easiest way to set them. In a migration
+                                  ;; they fail because they return results.
+                                  :synchronous "NORMAL"
+                                  :journal_mode "WAL"}
+      :cljdoc/cache-db-spec      {:dbtype "sqlite"
+                                  :host :none
+                                  :dbname (str (fs/file data-dir "cache.db"))}
+      :cljdoc/db-restore         (merge {:db-spec (ig/ref :cljdoc/db-spec)}
                                         (cond-> {:enable-db-restore? enable-db-restore?}
                                           enable-db-restore? (merge (cfg/get-in env-config [:secrets :s3 :backups]))))
-      :cljdoc/cache-db-spec      {:data-dir (cfg/get-in env-config [:cljdoc/server :dir])}
-      :cljdoc/cache              {:table "cache"
+      :cljdoc/db-init            {:db-restore (ig/ref :cljdoc/db-restore)
+                                  :db-spec (ig/ref :cljdoc/db-spec)}
+      :cljdoc/cache-db           {:db-restore (ig/ref :cljdoc/db-restore)
+                                  :table "cache"
                                   :key-col "key"
                                   :value-col "value"
                                   :db-spec (ig/ref :cljdoc/cache-db-spec)
                                   :serialize-fn   nippy/freeze
                                   :deserialize-fn nippy/thaw}
-      :cljdoc/cached-pom-fetcher {:cache (ig/ref :cljdoc/cache)
+      :cljdoc/cached-pom-fetcher {:cache (ig/ref :cljdoc/cache-db)
                                   :key-prefix "get-pom-xml"
                                   :maven-repos (cfg/get-in env-config [:maven-repos])}
-      :cljdoc/sqlite-optimizer   {:db-spec (ig/ref :cljdoc/db-spec)
+      :cljdoc/sqlite-optimizer   {:db-init (ig/ref :cljdoc/db-init)
+                                  :db-spec (ig/ref :cljdoc/db-spec)
                                   :cache-db-spec (ig/ref :cljdoc/cache-db-spec)
                                   :tea-time (ig/ref :cljdoc/tea-time)}
-      :cljdoc/search-index-dir   {:data-dir (cfg/get-in env-config [:cljdoc/server :dir])}
+      :cljdoc/search-index-dir   {:data-dir data-dir}
       :cljdoc/searcher           {:index-dir       (ig/ref :cljdoc/search-index-dir)
                                   :enable-indexer? (cfg/get-in env-config [:cljdoc/server :enable-artifact-indexer?])
                                   :tea-time        (ig/ref :cljdoc/tea-time)
@@ -63,12 +79,14 @@
                                   :cljdoc-version      (cfg/get-in env-config [:cljdoc/version])
                                   :maven-repos  (cfg/get-in env-config [:maven-repos])}
       :cljdoc/pedestal           (ig/ref :cljdoc/pedestal-connector)
-      :cljdoc/storage            {:db-spec (ig/ref :cljdoc/db-spec)}
+      :cljdoc/storage            {:db-init (ig/ref :cljdoc/db-init)
+                                  :db-spec (ig/ref :cljdoc/db-spec)}
       :cljdoc/db-backup          (merge {:db-spec (ig/ref :cljdoc/db-spec)
                                          :cache-db-spec (ig/ref :cljdoc/cache-db-spec)}
                                         (cond-> {:enable-db-backup? enable-db-backup?}
                                           enable-db-backup? (merge (cfg/get-in env-config [:secrets :s3 :backups]))))
-      :cljdoc/build-tracker      {:db-spec (ig/ref :cljdoc/db-spec)}
+      :cljdoc/build-tracker      {:db-init (ig/ref :cljdoc/db-init)
+                                  :db-spec (ig/ref :cljdoc/db-spec)}
       :cljdoc/analysis-service   {:service-type ana-service
                                   :opts (merge
                                          {:repos (->> (cfg/get-in env-config [:maven-repos])
@@ -82,7 +100,7 @@
                                   :tea-time (ig/ref :cljdoc/tea-time)}}
 
      (when (cfg/get-in env-config [:cljdoc/server :enable-release-monitor?])
-       {:cljdoc/release-monitor {:db-spec  (ig/ref :cljdoc/db-spec)
+       {:cljdoc/release-monitor {:db-spec (ig/ref :cljdoc/db-spec)
                                  :maven-repos (cfg/get-in env-config [:maven-repos])
                                  :build-tracker (ig/ref :cljdoc/build-tracker)
                                  :server-port (cfg/get-in env-config [:cljdoc/server :port])
@@ -91,24 +109,43 @@
                                  :searcher (ig/ref :cljdoc/searcher)
                                  :tea-time (ig/ref :cljdoc/tea-time)}}))))
 
+(defmethod ig/init-key :cljdoc/tea-time [k _]
+  (log/info "Starting" k)
+  (tt/start!))
+
+(defmethod ig/halt-key! :cljdoc/tea-time [k _]
+  (log/info "Stopping" k)
+  (tt/stop!))
+
+(defmethod ig/init-key :cljdoc/db-spec [_ v]
+  v)
+
+(defmethod ig/init-key :cljdoc/cache-db-spec [_ v]
+  v)
+
+(defmethod ig/init-key :cljdoc/db-init [_ {:keys [db-spec]}]
+  (ragtime/migrate-all (ragtime-next-jdbc/sql-database db-spec)
+                       {}
+                       (ragtime-next-jdbc/load-resources "migrations")
+                       {:reporter (fn [_store direction migration]
+                                    (log/infof "Migrating %s %s" direction migration))})
+  nil)
+
+(defmethod ig/init-key :cljdoc/cache-db [_ {:keys [db-spec] :as cache-opts}]
+  (fs/create-dirs (fs/parent (:dbname db-spec)))
+  cache-opts)
+
+(defmethod ig/init-key :cljdoc/cached-pom-fetcher [_ {:keys [cache key-prefix maven-repos]}]
+  (sqlite-cache/memo-sqlite
+   (maven-repo/pom-fetcher maven-repos)
+   (assoc cache :key-prefix key-prefix)))
+
 (defmethod ig/init-key :cljdoc/search-index-dir [_ {:keys [data-dir]}]
   (let [lucene-version (-> org.apache.lucene.util.Version/LATEST
                            str
                            (string/replace "." "_"))
         dir-name (str "index-lucene-" lucene-version)]
     (str (fs/file data-dir dir-name))))
-
-(defmethod ig/init-key :cljdoc/db-spec [_ {:keys [data-dir]}]
-  {:dbtype "sqlite",
-   :host :none
-   :foreign_keys true
-   :cache_size 10000
-   :dbname (str (fs/file data-dir "cljdoc.db.sqlite"))
-   ;; These settings are permanent but it seems like
-   ;; this is the easiest way to set them. In a migration
-   ;; they fail because they return results.
-   :synchronous "NORMAL"
-   :journal_mode "WAL"})
 
 (defmethod ig/init-key :cljdoc/analysis-service [k {:keys [service-type opts]}]
   (log/info "Starting" k)
@@ -120,42 +157,15 @@
   (log/info "Starting" k)
   (storage/->SQLiteStorage db-spec))
 
-(defmethod ig/init-key :cljdoc/tea-time [k _]
-  (log/info "Starting" k)
-  (tt/start!))
-
-(defmethod ig/halt-key! :cljdoc/tea-time [k _]
-  (log/info "Stopping" k)
-  (tt/stop!))
-
 (defmethod ig/init-key :cljdoc/build-tracker [k {:keys [db-spec]}]
   (log/info "Starting" k)
   (build-log/->SQLBuildTracker db-spec))
 
-(defmethod ig/init-key :cljdoc/db [_ {:keys [enable-db-restore? db-spec] :as opts}]
+(defmethod ig/init-key :cljdoc/db-restore [_ {:keys [enable-db-restore? db-spec] :as opts}]
   (fs/create-dirs (fs/parent (:dbname db-spec)))
   (when enable-db-restore?
     (db-backup/restore-db! opts))
-  (ragtime/migrate-all (ragtime-next-jdbc/sql-database db-spec)
-                       {}
-                       (ragtime-next-jdbc/load-resources "migrations")
-                       {:reporter (fn [_store direction migration]
-                                    (log/infof "Migrating %s %s" direction migration))})
-  db-spec)
-
-(defmethod ig/init-key :cljdoc/cache-db-spec [_ {:keys [data-dir]}]
-  {:dbtype "sqlite"
-   :host :none
-   :dbname (str (fs/file data-dir "cache.db"))})
-
-(defmethod ig/init-key :cljdoc/cache [_ {:keys [db-spec] :as cache-opts}]
-  (fs/create-dirs (fs/parent (:dbname db-spec)))
-  cache-opts)
-
-(defmethod ig/init-key :cljdoc/cached-pom-fetcher [_ {:keys [cache key-prefix maven-repos]}]
-  (sqlite-cache/memo-sqlite
-   (maven-repo/pom-fetcher maven-repos)
-   (assoc cache :key-prefix key-prefix)))
+  nil)
 
 (defn -main []
   (try
