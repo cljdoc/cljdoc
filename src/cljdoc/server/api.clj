@@ -1,11 +1,11 @@
 (ns cljdoc.server.api
   (:require [cljdoc-shared.analysis-edn :as analysis-edn]
             [cljdoc.analysis.service :as analysis-service]
+            [cljdoc.maven-repo :as maven-repo]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
             [cljdoc.user-config :as user-config]
-            [cljdoc.util.repositories :as repositories]
             [clojure.tools.logging :as log]))
 
 (defn- analyze-and-import-api!
@@ -50,7 +50,7 @@
   [{:keys [storage build-tracker maven-repositories] :as services}
    {:keys [project version jar pom scm-url scm-rev] :as coords}]
   (let [a-uris    (when-not (and jar pom)
-                    (or (repositories/artifact-uris maven-repositories project version)
+                    (or (maven-repo/artifact-uris maven-repositories project version)
                         (throw (ex-info (format "Requested version cannot be found in configured repositories: [%s %s]" project version)
                                         {:project project :version version}))))
         v-entity  (storage/version-entity project version)

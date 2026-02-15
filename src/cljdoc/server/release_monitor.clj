@@ -10,9 +10,9 @@
   - manual invokation of doc building is still possible for the impatient"
   (:require [cljdoc-shared.proj :as proj]
             [cljdoc.http-client :as http]
+            [cljdoc.maven-repo :as maven-repo]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.search.api :as sc]
-            [cljdoc.util.repositories :as repositories]
             [clojure.edn :as edn]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
@@ -187,9 +187,9 @@
                           first
                           :url)]
     (try
-      (repositories/resolve-artifact clojars-repo
-                                     (proj/clojars-id {:group-id group-id :artifact-id artifact-id})
-                                     version)
+      (maven-repo/resolve-artifact clojars-repo
+                                   (proj/clojars-id {:group-id group-id :artifact-id artifact-id})
+                                   version)
       (catch Throwable ex
         {:exception ex :status -1}))))
 

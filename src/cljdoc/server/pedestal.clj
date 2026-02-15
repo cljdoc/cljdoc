@@ -15,6 +15,7 @@
   (:require [cheshire.core :as json]
             [cljdoc-shared.pom :as pom]
             [cljdoc-shared.proj :as proj]
+            [cljdoc.maven-repo :as maven-repo]
             [cljdoc.render :as html]
             [cljdoc.render.api-searchset :as api-searchset]
             [cljdoc.render.badge :as render-badge]
@@ -35,7 +36,6 @@
             [cljdoc.server.sitemap :as sitemap]
             [cljdoc.storage.api :as storage]
             [cljdoc.util.datetime :as dt]
-            [cljdoc.util.repositories :as repos]
             [clojure.java.io :as io]
             [clojure.set :as cset]
             [clojure.string :as string]
@@ -222,7 +222,7 @@
   (interceptor/interceptor
    {:name ::pom-loader
     :enter (fn pom-loader-inner [ctx]
-             (if-let [pom (load-pom (:cljdoc.util.repositories/get-pom-xml cache)
+             (if-let [pom (load-pom (:cljdoc.maven-repo/get-pom-xml cache)
                                     maven-repositories
                                     (get-in ctx [:request :path-params]))]
                (assoc ctx ::pom-info pom)
@@ -265,11 +265,11 @@
                    proj-search     (str group-id "/" artifact-id)
                    resolved-version (cond
                                       (nil? version)
-                                      (repos/latest-release-version maven-repositories proj-search)
+                                      (maven-repo/latest-release-version maven-repositories proj-search)
 
                                       (= "CURRENT" version)
                                       (or (matching-referer-version request group-id artifact-id)
-                                          (repos/latest-release-version maven-repositories proj-search))
+                                          (maven-repo/latest-release-version maven-repositories proj-search))
 
                                       :else version)
                    artifact-entity {:artifact-id artifact-id
@@ -338,7 +338,7 @@
                                        :headers {"Content-Type" "text/html"}
                                        :body "ERROR: Must specify project and version params"})
 
-                 (not (repos/find-artifact-repository maven-repositories project version))
+                 (not (maven-repo/find-artifact-repository maven-repositories project version))
                  (assoc ctx :response {:status 404
                                        :headers {"Content-Type" "text/html"}
                                        :body (format "ERROR: project %s version %s not found in maven repositories"
@@ -436,7 +436,7 @@
                    project (cond project project
                                  artifact-id (proj/clojars-id params)
                                  group-id group-id)
-                   release (repos/latest-release-version maven-repositories project)]
+                   release (maven-repo/latest-release-version maven-repositories project)]
                (->> (if release
                       {:status 302
                        :headers {"Location" (routes/url-for :artifact/version

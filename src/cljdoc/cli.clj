@@ -1,12 +1,12 @@
 (ns cljdoc.cli
   (:require [babashka.cli :as cli]
             [cljdoc.config :as config]
+            [cljdoc.maven-repo :as maven-repo]
             [cljdoc.render.offline :as offline]
             [cljdoc.server.api :as api]
             [cljdoc.server.built-assets :as built-assets]
             [cljdoc.server.system :as system]
             [cljdoc.storage.api :as storage]
-            [cljdoc.util.repositories :as repositories]
             [clojure.java.io :as io]
             [clojure.set :as cset]
             [clojure.string :as str]
@@ -30,7 +30,7 @@
      (:future
       (api/kick-off-build!
        service-opts
-       (-> (merge (repositories/local-uris project version) opts)
+       (-> (merge (maven-repo/local-uris project version) opts)
            (cset/rename-keys {:git :scm-url, :rev :scm-rev})))))))
 
 (defn offline-docset [{:keys [opts]}]

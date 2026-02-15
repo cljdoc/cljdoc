@@ -179,11 +179,14 @@
                           :host     :none
                           :dbname   "data/cache.db"}})
 
-  (require '[cljdoc.util.repositories :as repo])
+  (require '[cljdoc.maven-repo :as repo])
+
+  (def maven-repos [{:id "clojars" :url "https://repo.clojars.org/"}
+                    {:id "central" :url "https://repo.maven.apache.org/maven2/"}])
 
   (defn silly-slow-finder [project version]
     (Thread/sleep 1500)
-    (repo/find-artifact-repository project version))
+    (repo/find-artifact-repository maven-repos project version))
 
   (time (silly-slow-finder 'bidi "2.1.3"))
   ;; "Elapsed time: 1658.114228 msecs"
@@ -193,35 +196,30 @@
                  db-artifact-repository))
 
   (time (memoized-finder 'bidi "2.1.3"))
+  ;; Elapsed time: 1614.12209 msecs
+  (time (memoized-finder 'bidi "2.1.3"))
+  ;; Elapsed time: 6.076869 msecs
 
   (time (memoized-finder 'neverfindme "2.1.3"))
+  ;; Elapsed time: 2000.517444 msecs
+  (time (memoized-finder 'neverfindme "2.1.3"))
+  ;; Elapsed time: 1705.612864 msecs
 
   (time (memoized-finder 'com.bhauman/spell-spec "0.1.0"))
+  ;; Elapsed time: 1681.596165 msecs
+  (time (memoized-finder 'com.bhauman/spell-spec "0.1.0"))
+  ;; Elapsed time: 4.855155 msecs
 
   (memo/memo-clear! memoized-finder '(com.bhauman/spell-spec "0.1.0"))
+
+  (time (memoized-finder 'com.bhauman/spell-spec "0.1.0"))
+  ;; Elapsed time: 1689.756833 msecs
+  (time (memoized-finder 'com.bhauman/spell-spec "0.1.0"))
+  ;; Elapsed time: 1.623411 msecs"
 
   (memo/memo-clear! memoized-finder)
 
   (time (memoized-finder 'com.bhauman/spell-spec "0.1.0"))
+  ;; Elapsed time: 1714.184984 msecs
 
-  (time (cljdoc.util.repositories/artifact-uris 'bidi "2.0.9-SNAPSHOT"))
-
-  (def db-artifact-uris
-    {:key-prefix         "artifact-uris"
-     :table              "cache2"
-     :key-col            "key"
-     :value-col          "val"
-     :serialize-fn       identity
-     :deserialize-fn     read-string
-     :db-spec            {:dbtype      "sqlite"
-                          :host        :none
-                          :dbname     "data/cache.db"}})
-
-  (def memoized-artifact-uris
-    (memo-sqlite cljdoc.util.repositories/artifact-uris
-                 db-artifact-uris))
-
-  (time (memoized-artifact-uris 'bidi "2.0.9-SNAPSHOT"))
-  (time (memoized-artifact-uris 'com.bhauman/spell-spec "0.1.0"))
-
-  nil)
+  :eoc)

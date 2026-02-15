@@ -4,8 +4,8 @@
    [babashka.fs :as fs]
    [cljdoc-shared.pom :as pom]
    [cljdoc.http-client :as http]
+   [cljdoc.maven-repo :as maven-repo]
    [cljdoc.spec :as cljdoc-spec]
-   [cljdoc.util.repositories :as mvn-repo]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :as pprint]
@@ -51,7 +51,7 @@
   "Fetch the description of a Maven Central artifact (if it has any)"
   [ctx group-id artifact-id version]
   (let [url (str maven-central-base-url
-                 (mvn-repo/group-path group-id)
+                 (maven-repo/group-path group-id)
                  "/" artifact-id
                  "/" version
                  "/" artifact-id "-" version ".pom")]
@@ -71,7 +71,7 @@
   "Fetch artifacts from Maven Central."
   [ctx cached-group group-artifacts]
   (let [group-id (:group-id group-artifacts)
-        url (str maven-central-base-url (mvn-repo/group-path group-id))
+        url (str maven-central-base-url (maven-repo/group-path group-id))
         group-response (fetch ctx url (request-opts cached-group))]
     (if (= 304 (:status group-response))
       cached-group
@@ -87,7 +87,7 @@
                          (mapv
                           (fn [artifact-id]
                             (let [cached-artifact (some #(when (= artifact-id (:artifact-id %)) %) cached-artifacts)
-                                  url (str maven-central-base-url (mvn-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
+                                  url (str maven-central-base-url (maven-repo/group-path group-id) "/" artifact-id "/maven-metadata.xml")
                                   artifact-response (fetch ctx url (request-opts cached-artifact))]
                               (if (= 304 (:status artifact-response))
                                 cached-artifact

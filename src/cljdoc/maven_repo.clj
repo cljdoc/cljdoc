@@ -1,4 +1,4 @@
-(ns cljdoc.util.repositories
+(ns cljdoc.maven-repo
   (:require [cljdoc-shared.proj :as proj]
             [cljdoc.http-client :as http]
             [clojure.java.io :as io]

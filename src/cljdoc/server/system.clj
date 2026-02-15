@@ -2,6 +2,7 @@
   (:require [babashka.fs :as fs]
             [cljdoc.analysis.service :as analysis-service]
             [cljdoc.config :as cfg]
+            [cljdoc.maven-repo :as maven-repo]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.clojars-stats]
             [cljdoc.server.db-backup :as db-backup]
@@ -10,7 +11,6 @@
             [cljdoc.server.release-monitor]
             [cljdoc.sqlite.optimizer]
             [cljdoc.storage.api :as storage]
-            [cljdoc.util.repositories :as repos]
             [cljdoc.util.sqlite-cache :as sqlite-cache]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
@@ -21,7 +21,7 @@
             [tea-time.core :as tt]))
 
 (defn system-config
-  "Return integrant system config inject `env-config` appropriately.
+  "Return integrant system config, injecting `env-config` appropriately.
   See cljdoc.config and resources/config.edn for config loading and values."
   [env-config]
   (let [ana-service (cfg/get-in env-config [:cljdoc/server :analysis-service])
@@ -148,7 +148,7 @@
 
 (defmethod ig/init-key :cljdoc/cache [_ {:keys [db-spec] :as cache-opts}]
   (fs/create-dirs (fs/parent (:dbname db-spec)))
-  {:cljdoc.util.repositories/get-pom-xml (sqlite-cache/memo-sqlite repos/get-pom-xml cache-opts)})
+  {:cljdoc.maven-repo/get-pom-xml (sqlite-cache/memo-sqlite maven-repo/get-pom-xml cache-opts)})
 
 (defn -main []
   (try
