@@ -17,7 +17,8 @@
   (let [{:keys [project version]} opts
         sys (select-keys (system/system-config (config/config))
                          [:cljdoc/db-spec
-                          :cljdoc/db
+                          :cljdoc/db-restore
+                          :cljdoc/db-init
                           :cljdoc/storage
                           :cljdoc/build-tracker
                           :cljdoc/analysis-service])
@@ -37,7 +38,8 @@
   (let [{:keys [project version output]} opts
         sys           (select-keys (system/system-config (config/config))
                                    [:cljdoc/db-spec
-                                    :cljdoc/db
+                                    :cljdoc/db-restore
+                                    :cljdoc/db-init
                                     :cljdoc/storage])
         sys           (ig/init sys)
         store         (:cljdoc/storage sys)
