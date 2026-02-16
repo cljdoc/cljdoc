@@ -48,7 +48,7 @@
 
 (defmethod ig/init-key :cljdoc/searcher [k {:keys [clojars-stats index-factory index-dir enable-indexer?]
                                             :or {enable-indexer? true}}]
-  (log/info "Starting" k)
+  (log/infof "Starting %s - index-dir %s" k index-dir)
   (let [index (if index-factory ;; to support unit testing
                 (index-factory)
                 (search/disk-index index-dir))]

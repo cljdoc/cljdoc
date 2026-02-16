@@ -60,10 +60,15 @@
   (st/instrument)
   (let [port (+ 8000 (rand-int 1000))
         opensearch-base-url (format "http://localhost:%d" port)
-        env-cfg {:cljdoc/server {:port port
+        env-cfg {:maven-repos [{:id "clojars" :url "https://repo.clojars.org/"}
+                               {:id "central" :url "https://repo.maven.apache.org/maven2/"}]
+                 :cljdoc/server {:port port
                                  :opensearch-base-url opensearch-base-url
                                  :analysis-service :local
                                  :autobuild-clojars-releases? false
+                                 :enable-artifact-indexer? true
+                                 :enable-release-monitor? true
+                                 :enable-sentry? false
                                  :enable-db-backup? false
                                  :enable-db-restore? false
                                  :clojars-stats-retention-days 5

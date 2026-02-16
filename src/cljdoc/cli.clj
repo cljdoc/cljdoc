@@ -1,12 +1,12 @@
 (ns cljdoc.cli
   (:require [babashka.cli :as cli]
             [cljdoc.config :as config]
+            [cljdoc.maven-repo :as maven-repo]
             [cljdoc.render.offline :as offline]
             [cljdoc.server.api :as api]
             [cljdoc.server.built-assets :as built-assets]
             [cljdoc.server.system :as system]
             [cljdoc.storage.api :as storage]
-            [cljdoc.util.repositories :as repositories]
             [clojure.java.io :as io]
             [clojure.set :as cset]
             [clojure.string :as str]
@@ -15,23 +15,32 @@
 
 (defn build [{:keys [opts]}]
   (let [{:keys [project version]} opts
-        sys        (select-keys (system/system-config (config/config))
-                                [:cljdoc/storage :cljdoc/build-tracker :cljdoc/analysis-service :cljdoc/sqlite])
-        sys        (ig/init sys)
-        services   {:storage (:cljdoc/storage sys)
-                    :build-tracker (:cljdoc/build-tracker sys)
-                    :analysis-service (:cljdoc/analysis-service sys)}]
+        sys (select-keys (system/system-config (config/config))
+                         [:cljdoc/db-spec
+                          :cljdoc/db-restore
+                          :cljdoc/db-init
+                          :cljdoc/storage
+                          :cljdoc/build-tracker
+                          :cljdoc/analysis-service])
+        sys (ig/init sys)
+        service-opts {:storage (:cljdoc/storage sys)
+                      :build-tracker (:cljdoc/build-tracker sys)
+                      :analysis-service (:cljdoc/analysis-service sys)
+                      :maven-repos (config/get-in (config/config) [:maven-repos])}]
     (deref
      (:future
       (api/kick-off-build!
-       services
-       (-> (merge (repositories/local-uris project version) opts)
+       service-opts
+       (-> (merge (maven-repo/local-uris project version) opts)
            (cset/rename-keys {:git :scm-url, :rev :scm-rev})))))))
 
 (defn offline-docset [{:keys [opts]}]
   (let [{:keys [project version output]} opts
         sys           (select-keys (system/system-config (config/config))
-                                   [:cljdoc/storage :cljdoc/sqlite])
+                                   [:cljdoc/db-spec
+                                    :cljdoc/db-restore
+                                    :cljdoc/db-init
+                                    :cljdoc/storage])
         sys           (ig/init sys)
         store         (:cljdoc/storage sys)
         artifact-info (storage/version-entity project version)

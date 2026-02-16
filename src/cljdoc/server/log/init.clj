@@ -120,7 +120,7 @@
     (.setLevel root-logger Level/INFO)
     (.addAppender root-logger (add-console-appender ctx encoder))
     (.addAppender root-logger (add-rolling-file-appender ctx log-file "-%d{yyyy-MM-dd}" encoder))
-    (if-not (cfg/sentry-dsn)
+    (if-not (cfg/get-in (cfg/config) [:cljdoc/server :enable-sentry?])
       (.add status-manager (WarnStatus. "Sentry DSN not configured, sentry appender not started, logged errors will not be sent to sentry.io. This is normal for local dev."
                                         ctx))
       (.addAppender root-logger (add-sentry-appender ctx sentry/config)))))

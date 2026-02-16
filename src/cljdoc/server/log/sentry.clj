@@ -31,16 +31,18 @@
 
 (def config
   "We initalize at load time rather than via integrant because we need logging to be up as early as possible"
-  {:sentry-dsn (cfg/sentry-dsn)
-   :sentry-project-id (extract-project-id (cfg/sentry-dsn))
-   :environment (if (= :prod (cfg/profile))
-                  "production"
-                  "dev")
-   :release (cfg/version)
-   :sentry-client {:name "cljdoc.clojure"
-                   :version "0.0.1"}
-   :server-name (.getHostName (InetAddress/getLocalHost)) ;; TODO: apparently this isn't terribly reliable?
-   :app-namespaces ["cljdoc"]})
+  (let [sentry-dsn (when (cfg/get-in (cfg/config) [:cljdoc/server :enable-sentry?])
+                     (cfg/get-in (cfg/config) [:secrets :sentry :dsn]))]
+    {:sentry-dsn sentry-dsn
+     :sentry-project-id (extract-project-id sentry-dsn)
+     :environment (if (= :prod (cfg/profile))
+                    "production"
+                    "dev")
+     :release (cfg/get-in (cfg/config) [:cljdoc/version])
+     :sentry-client {:name "cljdoc.clojure"
+                     :version "0.0.1"}
+     :server-name (.getHostName (InetAddress/getLocalHost)) ;; TODO: apparently this isn't terribly reliable?
+     :app-namespaces ["cljdoc"]}))
 
 (defn- file->source-context [file-path target-line-num {:keys [pre-context-lines post-context-lines]}]
   (when (>= target-line-num 1)

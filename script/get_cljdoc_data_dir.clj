@@ -3,7 +3,7 @@
          '[clojure.java.io :as io])
 
 (println (-> (config/config)
-             (config/data-dir)
+             (config/get-in [:cljdoc/server :dir])
              io/file
              .getCanonicalPath
              str))

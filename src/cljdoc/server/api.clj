@@ -1,11 +1,11 @@
 (ns cljdoc.server.api
   (:require [cljdoc-shared.analysis-edn :as analysis-edn]
             [cljdoc.analysis.service :as analysis-service]
+            [cljdoc.maven-repo :as maven-repo]
             [cljdoc.server.build-log :as build-log]
             [cljdoc.server.ingest :as ingest]
             [cljdoc.storage.api :as storage]
             [cljdoc.user-config :as user-config]
-            [cljdoc.util.repositories :as repositories]
             [clojure.tools.logging :as log]))
 
 (defn- analyze-and-import-api!
@@ -47,10 +47,10 @@
   Optional for `coords` map to support testing:
   - `:jar` and `:pom` can supply non-default paths to local files.
   - `:scm-url` and `:scm-rev` will override `pom.xml` `<scm>` `<url>` and `<tag>`"
-  [{:keys [storage build-tracker] :as services}
+  [{:keys [storage build-tracker maven-repos] :as services}
    {:keys [project version jar pom scm-url scm-rev] :as coords}]
   (let [a-uris    (when-not (and jar pom)
-                    (or (repositories/artifact-uris project version)
+                    (or (maven-repo/artifact-uris maven-repos project version)
                         (throw (ex-info (format "Requested version cannot be found in configured repositories: [%s %s]" project version)
                                         {:project project :version version}))))
         v-entity  (storage/version-entity project version)

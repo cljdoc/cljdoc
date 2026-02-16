@@ -28,9 +28,8 @@
   "Load pom info for an analyzed docset."
   [version-entity]
   (let [version-entity (parse-version-entity version-entity)
-        cache (:cljdoc/cache state/system)
-        get-pom-xml (:cljdoc.util.repositories/get-pom-xml cache)]
-    (server.pedestal/load-pom get-pom-xml version-entity)))
+        pom-fetcher (:cljdoc/cached-pom-fetcher state/system)]
+    (server.pedestal/load-pom pom-fetcher version-entity)))
 
 (defn load-docset
   "Load the docset for the analyzed docset."
@@ -69,7 +68,7 @@
      "rum/rum/0.12.9"])
 
   ;; TIP: startup system first via cljdoc.server.system, see its comment block
-  
+
   (load-pom (first version-entities))
 
   (let [docset (load-docset (first version-entities))]
@@ -90,13 +89,13 @@
      (assoc searchset :namespaces :bad-value)))
   ;; => Oct 22, 2025 5:07:19 P.M. uri:classloader:/gems/asciidoctor-2.0.23/lib/asciidoctor/convert.rb convert
   ;;    INFO: possible invalid reference: custom-themes
-  ;;    Oct 22, 2025 5:07:19 P.M.  
+  ;;    Oct 22, 2025 5:07:19 P.M.
   ;;    INFO: possible invalid reference: catch-a-missing-or-undefined-attribute
-  ;;    Oct 22, 2025 5:07:19 P.M.  
+  ;;    Oct 22, 2025 5:07:19 P.M.
   ;;    INFO: possible invalid reference: catch-a-missing-or-undefined-attribute
-  ;;    Oct 22, 2025 5:07:19 P.M.  
+  ;;    Oct 22, 2025 5:07:19 P.M.
   ;;    INFO: possible invalid reference: catch-a-missing-or-undefined-attribute
-  ;;    Oct 22, 2025 5:07:19 P.M.  
+  ;;    Oct 22, 2025 5:07:19 P.M.
   ;;    INFO: possible invalid reference: catch-a-missing-or-undefined-attribute
   ;;    {:version ["missing required key"],
   ;;     :namespaces ["invalid type"],
