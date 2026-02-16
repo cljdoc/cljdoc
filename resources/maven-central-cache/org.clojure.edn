@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Fri, 13 Feb 2026 05:24:12 GMT",
+ :last-modified "Sun, 15 Feb 2026 19:18:12 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -1813,13 +1813,14 @@
     "0.1.1"
     "0.1.0"],
    :description "Generative test runner for Clojure."}
-  {:etag "W/\"98c591fe2ab44352741d8d1c3429ad18\"",
-   :last-modified "Tue, 30 Dec 2025 22:23:18 GMT",
+  {:etag "W/\"0c05b67164d05bcfeba645f4f57e2b44\"",
+   :last-modified "Sun, 15 Feb 2026 19:17:14 GMT",
    :artifact-id "tools.analyzer",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.2.1"
+   ["1.2.2"
+    "1.2.1"
     "1.2.0"
     "1.1.1"
     "1.1.0"
