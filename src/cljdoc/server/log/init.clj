@@ -16,13 +16,14 @@
            [ch.qos.logback.core.encoder Encoder]
            [ch.qos.logback.core.rolling RollingFileAppender TimeBasedRollingPolicy]
            [ch.qos.logback.core.status  StatusListener StatusManager WarnStatus]
-           [cljdoc.server.log CustomFileStatusListener]))
+           [cljdoc.server.log CustomFileStatusListener]
+           [java.time LocalDate]))
 
 (set! *warn-on-reflection* true)
 
 (def log-file (str (fs/absolutize (or (System/getenv "CLJDOC_LOG_FILE") "log/cljdoc.log"))))
 (def ^:private log-dir (str (fs/parent log-file)))
-(def ^:private logger-file (str (fs/path log-dir "logger.log")))
+(def ^:private logger-file (str (fs/path log-dir (str "logger.started-" (.toString (LocalDate/now)) ".log"))))
 
 (fs/create-dirs log-dir)
 

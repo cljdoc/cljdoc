@@ -131,9 +131,10 @@ This means anytime you call `log/error` or `log/errorf`, you feel the event is i
 
 Cljdoc also sends tea-time `WARN` level events, because we also find these interesting.
 
-Logback logs on logging itself can be found in `log/logger.log`.
-This log includes `ERROR` events when we the cljdoc sentry appender fails to log to sentry.io.
-If you are on the ops team, it is a good idea to have an occassional peek at this file on production.
+Logback logs on logging itself can be found in `log/logger.started-<YYYY-MM-dd>.log`.
+There is no log rotation, but on cljdoc startup <YYYY-MM-dd> is replaced with the current date.
+These logs include `ERROR` events when we the cljdoc sentry appender fails to log to sentry.io.
+If you are on the ops team, it is a good idea to have an occassional peek a peek at these files on production.
 
 === Maven Central Artifacts Cache
 Most Clojure libraries are hosted on clojars, but a handful are hosted on Maven Central.
