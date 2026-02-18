@@ -63,7 +63,7 @@ To treat it as an emoji, you can use AsciiDoc's inline passthrough:
 
 [source,adoc]
 ----
-+:space_invader:+ will render as :space_invader: 
++:space_invader:+ will render as :space_invader:
 ----
 
 Emojis that don't start at the beginning of a line can be used without passthrough.
@@ -152,16 +152,25 @@ NOTE: Cljdoc will assume a found version tag is equivalent to `<tag>` even when 
 
 Here are some common ways folks set `<scm>` values:
 
-* By hand. You can edit a `pom.xml` manually when cutting a release, but this can be error-prone.
+* By hand. You can edit a `pom.xml` manually when cutting a release, but this is error-prone.
 * https://clojure.org/guides/tools_build[Clojure tools build] can be asked to populate the `<scm>` value.
 Cybermonday provides https://github.com/kiranshila/cybermonday/blob/17bb2c412171283440276a0a8e2cfd6f252aad91/build/build.clj#L27-L30[a good example of doing just that].
-* https://leiningen.org/[Leiningen] will automatically create the `<scm>` entry for you if you set the https://github.com/technomancy/leiningen/blob/bd3ecfcfb20ef7a79912879ff892e0f2317e8691/sample.project.clj#L490[`:scm` in your `project.clj`].
+* https://leiningen.org/[Leiningen] will automatically create the `<scm>` entry for you if you set the
+https://codeberg.org/leiningen/leiningen/src/commit/40227328d4a9c8945362d6d626d19c2449175df6/sample.project.clj#L509-L518[`:scm` in your `project.clj`].
 For example:
 +
 [source,clojure]
 ----
     :scm {:name "git" :url "https://github.com/your-github-org/your-project"}
 ----
++
+** If you don't specify `:scm`, leiningen will infer scm values from your project's `~/.git` dir.
+This is what https://github.com/juxt/bidi/blob/d94316235c4e59d7c44fca9fcc489b386f526bcc/project.clj#L1-L45[bidi] does.
+This depends on a valid `git remote` being configured.
+** An `:scm` `:tag` can be specified, but is not common practice.
+A missing `:scm` `:tag` will be auto-filled with the `HEAD` git commit `sha`.
+This is what https://github.com/juxt/bidi/blob/d94316235c4e59d7c44fca9fcc489b386f526bcc/project.clj#L1-L45[bidi] does by complete omission of `:scm`, and what many other projects do by omitting only `:tag`, like https://github.com/clj-commons/manifold/blob/402b5689defab0d7c5138fa591e859492481a247/project.clj#L6[manifold].
+** If your library is not in your git root dir, use `:scm` `:dir`, for an example, see https://github.com/weavejester/cljfmt/blob/12f67c57f038bd7803cbbfe6b011d5a510fd8cb4/cljfmt/project.clj#L4[cljfmt].
 * https://github.com/boot-clj/boot[Boot] also has support, pass the `:scm` option to the `pom` task, an https://github.com/martinklepsch/derivatives/blob/f9cc6be8eeaf21513641cb09d5a466e34ecdd565/build.boot#L18-L23[example].
 
 Whatever method you choose, take care to ensure that your jar's pom points back to the exact revision of its sources on git.
