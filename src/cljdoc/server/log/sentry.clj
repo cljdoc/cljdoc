@@ -12,7 +12,7 @@
             [lambdaisland.uri :as uri]
             [prone.stacks :as prone-stack])
   (:import [java.net InetAddress]
-           [java.time Instant]))
+           [java.time Instant Clock]))
 
 (set! *warn-on-reflection* true)
 
@@ -42,7 +42,8 @@
      :sentry-client {:name "cljdoc.clojure"
                      :version "0.0.1"}
      :server-name (.getHostName (InetAddress/getLocalHost)) ;; TODO: apparently this isn't terribly reliable?
-     :app-namespaces ["cljdoc"]}))
+     :app-namespaces ["cljdoc"]
+     :clock (atom (Clock/systemUTC))}))
 
 (defn- file->source-context [file-path target-line-num {:keys [pre-context-lines post-context-lines]}]
   (when (>= target-line-num 1)
@@ -190,22 +191,32 @@
    (build-event-envelope-item)
    (build-event-payload config log-event http-request)])
 
-(defn capture-log-event [{:keys [sentry-project-id] :as config} log-event]
-  (let [url (make-sentry-url sentry-project-id)
-        [header item payload] (build-envelope
+(defn build-sentry-payload [config log-event]
+  (let [[header item payload] (build-envelope
                                {:config config
                                 :log-event log-event
                                 :http-request *http-request*})
         payload-json (json/generate-string payload)
         payload-json-length (alength (.getBytes payload-json "UTF-8"))
         item (assoc item :length payload-json-length)
-        header (assoc header :sent_at (str (Instant/now)))
-        body (str (json/generate-string header) "\n"
-                  (json/generate-string item) "\n"
-                  payload-json)]
+        header (assoc header :sent_at (str (Instant/now @(:clock config))))]
+    (str (json/generate-string header) "\n"
+         (json/generate-string item) "\n"
+         payload-json)))
+
+(defn occlude-sensitive
+  "occlude sensitive sentry info from sentry payload, used on payload before, for example, logging"
+  [{:keys [sentry-dsn sentry-project-id]} sentry-payload]
+  (-> sentry-payload
+      (string/replace sentry-dsn "SENTRY_DSN_OCCLUDED")
+      ;; the project id is embedded in the dsn, but just in case it appears elsewhere
+      (string/replace (str sentry-project-id) "SENTRY_PROJECT_ID_OCCLUDED")))
+
+(defn capture-log-event [{:keys [sentry-project-id] :as _config} payload]
+  (let [url (make-sentry-url sentry-project-id)]
     ;; TODO: sentry will return 429 with a Retry-After header on rate-limiting
     ;; https://develop.sentry.dev/sdk/expected-features/rate-limiting/
-    (http/post url {:body body})))
+    (http/post url {:body payload})))
 
 (comment
   (str (Instant/now))

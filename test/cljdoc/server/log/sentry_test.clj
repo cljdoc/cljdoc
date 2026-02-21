@@ -1,10 +1,14 @@
 (ns cljdoc.server.log.sentry-test
   "Inspired by, and lifted from, raven-clj tests"
-  (:require [cljdoc.server.log.sentry :as sentry]
+  (:require [cheshire.core :as json]
+            [cljdoc.server.log.sentry :as sentry]
+            [cljdoc.test.clock :as clock]
+            [clojure.string :as str]
             [clojure.test :as t]
             [lambdaisland.uri :as uri]
             [matcher-combinators.matchers :as m]
-            [matcher-combinators.test]))
+            [matcher-combinators.test])
+  (:import [java.time Clock]))
 
 (defn- make-dsn
   [opts]
@@ -26,16 +30,16 @@
     (t/is (= expected-project-id (sentry/extract-project-id dsn)) (str desc ": " dsn))))
 
 (def test-config
-  "We initalize at load time rather than via integrant because we need logging to be up as early as possible"
   {:sentry-dsn "https://some-dsn-url"
-   :sentry-project-id 1
+   :sentry-project-id 123456789
    :environment "some-env"
    :release "some-guid"
    :sentry-client {:name "cljdoc.clojure"
                    :version "0.0.1"}
    :server-name "some-server"
    :timeout-ms 3000
-   :app-namespaces ["cljdoc"]})
+   :app-namespaces ["cljdoc"]
+   :clock (atom (Clock/systemUTC))})
 
 (def sample-source       "cljdoc/server/log/sentry/sample_source.clj")
 (def sample-source-small "cljdoc/server/log/sentry/sample_source_small.clj")
@@ -229,7 +233,54 @@
                                                                                            (ex-info "bad3" {:bad3 :data3}
                                                                                                     (ex-info "cause" {:cause :cause-data})))))}))))
 
+(t/deftest build-sentry-payload-test
+  (let [fake-now "2026-02-21T23:24:25.261234Z"
+        result (sentry/build-sentry-payload (assoc test-config :clock (clock/fake-clock fake-now))
+                                            (assoc test-event
+                                                   :log-exception (ex-info "something bad happened" {:some :data})))
+        [header item payload] (str/split-lines result)
+        ;; length can vary due to exception traces
+        expected-payload-length (alength (.getBytes payload "UTF-8"))]
+    (t/is (match? (m/equals
+                   {"dsn" "https://some-dsn-url"
+                    "sdk" {"name" "cljdoc.clojure"
+                           "version" "0.0.1"}
+                    "sent_at" fake-now})
+                  (json/decode header)) "header")
+    (t/is (match? (m/equals
+                   {"type" "event"
+                    "content_type" "application/json"
+                    "length" expected-payload-length})
+                  (json/decode item)) "item")
+    (t/is (match? {"sdk" {"name" "cljdoc.clojure" "version" "0.0.1"}
+                   "release" "some-guid"
+                   "event_id" uuid-pattern
+                   "level" "error"
+                   "logger" "some.logger"
+                   "environment" "some-env"
+                   "server_name" "some-server"
+                   "timestamp" "2025-07-01T11:12:13.123Z"
+                   "logentry" {"formatted" "Something bad happened"}
+                   "platform" "clojure"
+                   ;; skip exception testing, assume covered in tests above
+                   }
+                  (json/decode payload)) "payload")))
+
+(t/deftest occlude-sensitive-test
+  (let [payload (sentry/build-sentry-payload test-config
+                                             (assoc test-event
+                                                    :log-exception (ex-info "something bad happened" {:some :data})))
+        occluded (sentry/occlude-sensitive test-config payload)]
+    (t/is (not= payload occluded) "occluded payload is not the same as payload")
+    (t/is (not (str/includes? payload (str (:sentry-project-id test-config)))) "original payload does not include project id")
+    (t/is (str/includes? payload (:sentry-dsn test-config)) "original payload includes dsn")
+    (t/is (not (str/includes? occluded (str (:sentry-project-id test-config)))) "occluded payload does not include project id")
+    (t/is (not (str/includes? occluded (:sentry-dsn test-config))) "occluded payload does not include dsn")
+    (t/is (str/includes? occluded "SENTRY_DSN_OCCLUDED") "dsn is occluded")))
+
 (comment
+
+  (java.time.Instant/now)
 
   (make-dsn {:path "/1"})
   ;; => "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com/1"
@@ -237,8 +288,6 @@
   (make-dsn {:path "/sentry/1" :password nil :query "environment=test&servername=example"})
   ;; => "https://b70a31b3510c4cf793964a185cfe1fd0@example.com/sentry/1?environment=test&servername=example"
 
-  (sentry/build-envelope {:config test-config
-                          :log-event (assoc test-event
-                                            :log-exception (ex-info "something bad happened" {:some :data}))})
+  (println "foo")
 
   :eoc)

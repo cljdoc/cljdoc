@@ -47,23 +47,31 @@
     (append [^ILoggingEvent event]
       (when (:sentry-dsn config)
         (try
-          ;; TODO Probably more idiomatic to specify as a logback filter?...
+          ;; TODO Is it more idiomatic to specify as a logback filter?... do they apply to logger logs?
           (when (or (.isGreaterOrEqual (.getLevel event) Level/ERROR)
                     ;; tea-time logs errors at WARN, we consider them errors
                     (and (= "tea-time.core" (.getLoggerName event))
                          (.isGreaterOrEqual (.getLevel event) Level/WARN)))
-            (when-let [log-event (try
-                                   ;; unlikely to fail, but we'll cover it
-                                   (log-event->map event)
-                                   (catch Throwable t
-                                     (proxy-super addError
-                                                  (str "Unable to convert log event to map: " event "\n"
-                                                       "  instant:" (.getInstant event) "\n"
-                                                       "  throwable:" (.getThrowableProxy event)) t)))]
-              (sentry/capture-log-event config log-event)))
+            (let [log-event (log-event->map event)]
+              (when-let [sentry-payload (try
+                                          (sentry/build-sentry-payload config log-event)
+                                          (catch Throwable t
+                                            (throw (ex-info (str "Unable to create sentry payload from log-event: " log-event)
+                                                            t))))]
+                (try
+                  (sentry/capture-log-event config sentry-payload)
+                  (catch Throwable t
+                    (throw (ex-info (str "Unable to send event payload to sentry.io: "
+                                         (sentry/occlude-sensitive config sentry-payload))
+                                    {}
+                                    t)))))))
           (catch Throwable t
             (let [^UnsynchronizedAppenderBase this this]
-              (proxy-super addError (str "Unable to forward log-event to sentry.io:" log-event) t))))))))
+              (proxy-super addError
+                           (str "Failed to append event to sentry: " event "\n"
+                                "  event instant:" (.getInstant event) "\n"
+                                "  event throwable:" (.getThrowableProxy event))
+                           t))))))))
 
 (defn- add-status-manager
   "Tell logback to info/warn/errors from logging to a file."
