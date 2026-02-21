@@ -52,11 +52,18 @@
                     ;; tea-time logs errors at WARN, we consider them errors
                     (and (= "tea-time.core" (.getLoggerName event))
                          (.isGreaterOrEqual (.getLevel event) Level/WARN)))
-            (let [log-event (log-event->map event)]
+            (when-let [log-event (try
+                                   ;; unlikely to fail, but we'll cover it
+                                   (log-event->map event)
+                                   (catch Throwable t
+                                     (proxy-super addError
+                                                  (str "Unable to convert log event to map: " event "\n"
+                                                       "  instant:" (.getInstant event) "\n"
+                                                       "  throwable:" (.getThrowableProxy event)) t)))]
               (sentry/capture-log-event config log-event)))
           (catch Throwable t
             (let [^UnsynchronizedAppenderBase this this]
-              (proxy-super addError (str "Unable to forward log event event to sentry.io:" event) t))))))))
+              (proxy-super addError (str "Unable to forward log-event to sentry.io:" log-event) t))))))))
 
 (defn- add-status-manager
   "Tell logback to info/warn/errors from logging to a file."
