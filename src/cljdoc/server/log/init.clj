@@ -39,27 +39,27 @@
                     (when (instance? ThrowableProxy ex)
                       (.getThrowable ^ThrowableProxy ex)))})
 
-(defn- sentry-appender [config]
+(defn- sentry-appender [{:keys [sentry-dsn build-sentry-payload-fn submit-sentry-payload-fn] :as config}]
   (proxy [UnsynchronizedAppenderBase] []
     (start []
       (let [^UnsynchronizedAppenderBase this this]
         (proxy-super start)))
     (append [^ILoggingEvent event]
-      (when (:sentry-dsn config)
+      (when sentry-dsn
         (try
-          ;; TODO Is it more idiomatic to specify as a logback filter?... do they apply to logger logs?
           (when (or (.isGreaterOrEqual (.getLevel event) Level/ERROR)
                     ;; tea-time logs errors at WARN, we consider them errors
                     (and (= "tea-time.core" (.getLoggerName event))
                          (.isGreaterOrEqual (.getLevel event) Level/WARN)))
             (let [log-event (log-event->map event)]
               (when-let [sentry-payload (try
-                                          (sentry/build-sentry-payload config log-event)
+                                          (build-sentry-payload-fn config log-event)
                                           (catch Throwable t
                                             (throw (ex-info (str "Unable to create sentry payload from log-event: " log-event)
+                                                            {}
                                                             t))))]
                 (try
-                  (sentry/capture-log-event config sentry-payload)
+                  (submit-sentry-payload-fn config sentry-payload)
                   (catch Throwable t
                     (throw (ex-info (str "Unable to send event payload to sentry.io: "
                                          (sentry/occlude-sensitive config sentry-payload))
@@ -68,9 +68,9 @@
           (catch Throwable t
             (let [^UnsynchronizedAppenderBase this this]
               (proxy-super addError
-                           (str "Failed to append event to sentry: " event "\n"
-                                "  event instant:" (.getInstant event) "\n"
-                                "  event throwable:" (.getThrowableProxy event))
+                           (str "Failed to append event to sentry: '" event "'\n"
+                                "  event instant: " (.getInstant event) "\n"
+                                "  event throwable: " (or (.getThrowableProxy event) "nil"))
                            t))))))))
 
 (defn- add-status-manager
@@ -120,23 +120,33 @@
     (.start appender)
     appender))
 
-(defn- add-sentry-appender ^OutputStreamAppender [ctx sentry-config]
-  (let [^Appender appender (sentry-appender sentry-config)]
+(defn- add-sentry-appender ^OutputStreamAppender [ctx opts]
+  (let [^Appender appender (sentry-appender opts)]
     (.setContext appender ctx)
     (.setName appender "sentry")
     (.start appender)
     appender))
 
-(defn configure
-  "Invoked by cljdoc.sever.log.LogConfigurator (java)"
-  [^LoggerContext ctx]
+(defn configure*
+  ;; public for testing
+  [^LoggerContext ctx {:keys [logger-file enable-sentry?] :as opts}]
   (let [status-manager (add-status-manager ctx logger-file)
         encoder (add-pattern-encoder ctx "%p [%d] %t - %c %m%n")
         ^Logger root-logger (.getLogger ctx Logger/ROOT_LOGGER_NAME)]
     (.setLevel root-logger Level/INFO)
     (.addAppender root-logger (add-console-appender ctx encoder))
     (.addAppender root-logger (add-rolling-file-appender ctx log-file "-%d{yyyy-MM-dd}" encoder))
-    (if-not (cfg/get-in (cfg/config) [:cljdoc/server :enable-sentry?])
+    (if-not enable-sentry?
       (.add status-manager (WarnStatus. "Sentry DSN not configured, sentry appender not started, logged errors will not be sent to sentry.io. This is normal for local dev."
                                         ctx))
-      (.addAppender root-logger (add-sentry-appender ctx sentry/config)))))
+      (.addAppender root-logger (add-sentry-appender ctx opts)))))
+
+(defn configure
+  "Invoked by cljdoc.sever.log.LogConfigurator (java)"
+  [^LoggerContext ctx]
+  (configure* ctx
+              (assoc sentry/config
+                     :logger-file logger-file
+                     :enable-sentry? (cfg/get-in (cfg/config) [:cljdoc/server :enable-sentry?])
+                     :build-sentry-payload-fn sentry/build-sentry-payload
+                     :submit-sentry-payload-fn sentry/capture-log-event)))
