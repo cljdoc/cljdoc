@@ -9,9 +9,12 @@
             [matcher-combinators.test])
   (:import [ch.qos.logback.classic LoggerContext]
            [ch.qos.logback.classic.util LogbackMDCAdapter]
+           [ch.qos.logback.core.status Status]
            [java.time Clock]))
 
-(defn- logging-scenario [{:keys [logger-file] :as config}]
+(set! *warn-on-reflection* true)
+
+(defn- logging-scenario ^LoggerContext [{:keys [logger-file] :as config}]
   (fs/create-dirs (fs/parent logger-file))
   (fs/delete-if-exists logger-file)
   (let [ctx (LoggerContext.)]
@@ -21,13 +24,13 @@
     (.start ctx)
     ctx))
 
-(defn- status-list [ctx]
+(defn- status-list [^LoggerContext ctx]
   (->> ctx
        .getStatusManager
        .getCopyOfStatusList
        (into [])))
 
-(defn- status-list-clear [ctx]
+(defn- status-list-clear [^LoggerContext ctx]
   (->> ctx
        .getStatusManager
        .clear))
@@ -64,7 +67,7 @@
       (t/is (match? [#"Sentry DSN not configured"]
                     (->> (status-list ctx)
                          (remove #(str/starts-with? (str %) "INFO")) ;; ignore startup info msgs
-                         (map #(.getMessage %))))
+                         (map (fn [^Status s] (.getMessage s)))))
             "no logging errors")
       (finally
         (.stop ctx)))))
@@ -115,7 +118,7 @@
       (t/is (match? [{:message #"Failed to append event to sentry: .*error not ignored"
                       :throwable {:via [{:message #"Unable to create sentry payload from log-event: \{.*:log-message \"error not ignored\""}
                                         {:message "PAYLOAD BUILD PROBLEM"}]}}]
-                    (map (fn [s]
+                    (map (fn [^Status s]
                            {:message (.getMessage s)
                             :throwable (Throwable->map (.getThrowable s))})
                          (status-list ctx))) "no logging errors")
@@ -140,7 +143,7 @@
       (t/is (match? [{:message #"Failed to append event to sentry: .*error not ignored"
                       :throwable {:via [{:message #"Unable to send event payload to sentry.io: \{.*\"dsn\":\"SENTRY_DSN_OCCLUDED\""}
                                         {:message "PAYLOAD SUBMIT PROBLEM"}]}}]
-                    (map (fn [s]
+                    (map (fn [^Status s]
                            {:message (.getMessage s)
                             :throwable (Throwable->map (.getThrowable s))})
                          (status-list ctx))) "no logging errors")
@@ -172,7 +175,7 @@
                                         {:message "DUE TO SOME ERROR"}
                                         {:message "ROOT CAUSE"}]
                                   :cause "ROOT CAUSE"}}]
-                    (map (fn [s]
+                    (map (fn [^Status s]
                            {:message (.getMessage s)
                             :throwable (Throwable->map (.getThrowable s))})
                          (status-list ctx))) "no logging errors")
@@ -196,13 +199,10 @@
         logger-lines (->> (slurp logger-file)
                           str/split-lines)]
     (filter
-      #(re-find #"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} -\|-ERROR .*" %)
-      logger-lines))
+     #(re-find #"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} -\|-ERROR .*" %)
+     logger-lines))
 
   (re-find #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \|-ERROR"
            "2026-02-22 12:33:15.404 |-ERROR in cljdoc.server.log")
-
-
-
 
   :eoc)

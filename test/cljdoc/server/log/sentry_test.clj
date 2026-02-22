@@ -10,6 +10,8 @@
             [matcher-combinators.test])
   (:import [java.time Clock]))
 
+(set! *warn-on-reflection* true)
+
 (defn- make-dsn
   [opts]
   (str
@@ -238,7 +240,7 @@
         result (sentry/build-sentry-payload (assoc test-config :clock (clock/fake-clock fake-now))
                                             (assoc test-event
                                                    :log-exception (ex-info "something bad happened" {:some :data})))
-        [header item payload] (str/split-lines result)
+        [header item ^String payload] (str/split-lines result)
         ;; length can vary due to exception traces
         expected-payload-length (alength (.getBytes payload "UTF-8"))]
     (t/is (match? (m/equals
