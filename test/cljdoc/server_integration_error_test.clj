@@ -157,6 +157,7 @@
         (t/is (match? [] @*stylobate-stats*))))))
 
 (t/deftest real-broken-pipe-not-logged-test
+  ;; there is a chance that this test could be flaky, we shall see
   (let [logged (atom [])
         ;; choose a bigger file to allow for pipe breakage
         path (get (built-assets/load-map) "/cljdoc.js.map")]
