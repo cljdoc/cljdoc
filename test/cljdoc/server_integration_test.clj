@@ -1,4 +1,4 @@
-(ns ^:slow ^:integration cljdoc.server-integration-test
+(ns ^:slow ^:integration ^:server-integration cljdoc.server-integration-test
   (:require [babashka.fs :as fs]
             [cheshire.core :as json]
             [cljdoc.http-client :as http]

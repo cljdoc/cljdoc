@@ -150,7 +150,7 @@ jobs:
       - run:
           name: Run Tests
           command: bb test-js
-  
+
   #
   # build: test
   #
@@ -208,7 +208,7 @@ jobs:
 
       - run:
           name: Run Tests
-          command: bb test --focus cljdoc.server-integration-test
+          command: bb test --focus-meta server-integration
 
       - *save_npm_cache
 
@@ -236,7 +236,7 @@ jobs:
 
       - run:
           name: Run tests
-          command: bb test --focus cljdoc.cli-integration-test
+          command: bb test --focus-meta cli-integration
 
   #
   # build: package, output used by:

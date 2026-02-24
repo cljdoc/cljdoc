@@ -1,4 +1,4 @@
-(ns ^:slow ^:integration cljdoc.cli-integration-test
+(ns ^:slow ^:integration ^:cli-integration cljdoc.cli-integration-test
   (:require [babashka.fs :as fs]
             [babashka.process :as process]
             [clojure.test :as t]

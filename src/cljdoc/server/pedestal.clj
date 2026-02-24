@@ -43,6 +43,7 @@
             [integrant.core :as ig]
             [io.pedestal.connector :as conn]
             [io.pedestal.http.body-params :as body]
+            [io.pedestal.http.impl.servlet-interceptor :as psi] ;; need to override sylobate interceptor
             [io.pedestal.http.jetty :as jetty]
             [io.pedestal.http.response :as response]
             [io.pedestal.http.ring-middlewares :as middlewares]
@@ -50,8 +51,12 @@
             [io.pedestal.http.secure-headers :as http-secure-headers]
             [io.pedestal.interceptor :as interceptor]
             [lambdaisland.uri.normalize :as normalize])
-  (:import (java.net URLDecoder)
+  (:import (jakarta.servlet.http HttpServletResponse)
+           (java.io IOException)
+           (java.net URLDecoder)
            (java.util Date)))
+
+(set! *warn-on-reflection* true)
 
 ;; pedestal emits deprecation warnings for internal usages of itself.
 ;; This is noise to us. We use eastwood and clj-kondo to learn about
@@ -473,8 +478,8 @@
 
 (def error-interceptor
   (interceptor/interceptor
-   {:name ::interceptor
-    :error (fn sentry-intercept [ctx ex-info-inst]
+   {:name ::errror-interceptor
+    :error (fn error-intercept [ctx ex-info-inst]
              (binding [sentry/*http-request* (:request ctx)]
                (log/error ex-info-inst "Unexpected exception"))
              (assoc ctx :response {:status 500 :body "An exception occurred, sorry about that!"}))}))
@@ -658,22 +663,72 @@
                               (last-build-loader build-tracker)])
        (assoc route :interceptors)))
 
-(defn create-connector [opts]
-  (-> (conn/default-connector-map (:host opts) (:port opts))
-      (update :interceptors #(into [error-interceptor
-                                    static-resource-interceptor
-                                    redirect-trailing-slash-interceptor
-                                    (middlewares/not-modified)
-                                    cache-control-interceptor
-                                    not-found-interceptor
-                                    (middlewares/content-type {:mime-types {}})
-                                    http-route/query-params
-                                    ;; allow CDN delivered javascript
-                                    (http-secure-headers/secure-headers {:content-security-policy-settings {:object-src "'none'"}})
+(defn- broken-connection-msg
+  "Detect and return broken connection msg for `exception` else `nil`.
 
-                                    ;; cljdoc decouples routes from interceptors, specify routes here
-                                    (http-route/router (routes/routes (partial route-resolver opts) {}))] %))
-      (jetty/create-connector {:join? false})))
+  Broken connections are uninteresting to us:
+  - broken pipe - the server is writing to a pipe that no longer exists
+  - connection reset by peer - the client reset the connection"
+  [exception]
+  (loop [exception exception]
+    (or (and (instance? IOException exception)
+             (#{"connection reset by peer" "broken pipe"}
+              (some-> exception ex-message string/lower-case)))
+        (when-let [next (ex-cause exception)]
+          (recur next)))))
+
+(defn create-stylobate
+  "This is a replacement for the internal pedestal stylobate interceptor which we inject with-redef.
+  Here we log appropriately for cljdoc and, if possible, write an error response back to client.
+
+  `:stylobate-stats-fn` option is used for testing only."
+  [{:keys [stylobate-stats-fn]}]
+  (interceptor/interceptor
+   {:name :custom-stylobate
+    :leave (fn [ctx]
+             (#'psi/leave-stylobate ctx))
+    :error (fn [{:keys [^HttpServletResponse servlet-response request route] :as ctx} ex]
+             (let [broken-connection-msg (broken-connection-msg ex)
+                   req-info [:request-method (:request-method request)
+                             :request-path (:path-info request)
+                             :route-path (:path route)
+                             :broken-connection-msg broken-connection-msg]]
+               (when stylobate-stats-fn
+                 (stylobate-stats-fn req-info))
+               (when-not broken-connection-msg
+                 (log/error ex (str "unhandled pedestal exception for: " req-info)))
+               ;; maybe the exception occurred before a response committed?
+               ;; if so try to write an error response
+               (try
+                 (when-not (.isCommitted servlet-response)
+                   (.setStatus servlet-response 500)
+                   (.setContentType servlet-response "text/plain")
+                   (let [writer (java.io.PrintWriter. (.getOutputStream servlet-response))]
+                     (.print writer "An exception occurred, sorry about that!")
+                     (.flush writer)))
+                 (catch IOException ex
+                   (log/debug ex "Failed to write error response, client probably disconnected"))
+                 (catch Throwable t
+                   (log/error t "Unexpected error while writing sylobate error response")))
+               (#'psi/leave-stylobate ctx)))}))
+
+(defn create-connector [opts]
+  (with-redefs [psi/create-stylobate create-stylobate]
+    (-> (conn/default-connector-map (:host opts) (:port opts))
+        (update :interceptors #(into [error-interceptor
+                                      static-resource-interceptor
+                                      redirect-trailing-slash-interceptor
+                                      (middlewares/not-modified)
+                                      cache-control-interceptor
+                                      not-found-interceptor
+                                      (middlewares/content-type {:mime-types {}})
+                                      http-route/query-params
+                                      ;; allow CDN delivered javascript
+                                      (http-secure-headers/secure-headers {:content-security-policy-settings {:object-src "'none'"}})
+                                      ;; cljdoc decouples routes from interceptors, specify routes here
+                                      (http-route/router (routes/routes (partial route-resolver opts) {}))] %))
+        (jetty/create-connector {:join? false
+                                 :stylobate-stats-fn (:stylobate-stats-fn opts)}))))
 
 (defmethod ig/init-key :cljdoc/pedestal-connector [_ opts]
   (log/infof "Creating pedestal connector on %s:%s" (:host opts) (:port opts))
