@@ -12,28 +12,26 @@
             [matcher-combinators.matchers :as m]
             [matcher-combinators.test])
   (:import [java.io IOException OutputStreamWriter BufferedReader InputStreamReader]
-           [java.net ServerSocket Socket]))
+           [java.net Socket]
+           [org.eclipse.jetty.server Server ServerConnector]))
 
 (set! *warn-on-reflection* true)
 
 (defn- start-server! [opts]
-  (loop [attempt-countdown 10]
-    ;; jetty can pick a port when started with port 0, but pedestal does not expose the picked port
-    (let [port (with-open [socket (ServerSocket. 0)]
-                 (.getLocalPort socket))
-          {:keys [connector ex]} (try
-                                   (let [connector (pedestal/create-connector (assoc opts :port port))]
-                                     {:connector (conn/start! connector)})
-                                   (catch IOException ex
-                                     {:ex ex}))]
-      (if ex
-        (if (= attempt-countdown 1)
-          (throw ex)
-          (do
-            (println ">>> WARN: failed to get free port, retrying")
-            (Thread/sleep 10)
-            (recur (dec attempt-countdown))))
-        {:connector connector :port port}))))
+  ;; jetty can pick a port when started with port 0, but pedestal does not expose the picked port
+  (let [jetty-server (atom nil)
+        connector (conn/start!
+                   (pedestal/create-connector
+                    (assoc opts
+                           :port 0 ;; let jetty find a free port
+                           :container-options {:configurator
+                                               ;; connector does not expose jetty server, capture it here
+                                               ;; so we can learn port assignment later
+                                               (fn [^Server server] (reset! jetty-server server))})))]
+    {:connector connector :port (-> ^Server @jetty-server
+                                    .getConnectors
+                                    ^ServerConnector first
+                                    .getLocalPort)}))
 
 (defn- stop-server! [{:keys [connector]}]
   (conn/stop! connector))

@@ -58,7 +58,7 @@
   (reset! log-size-at-start (if (fs/exists? log-init/log-file) (fs/size log-init/log-file) 0))
   (reset! clojars/clojars-last-modified nil) ;; REPL friendly, forces re-download
   (st/instrument)
-  (let [port (+ 8000 (rand-int 1000))
+  (let [port 8000 ;; no server started by pedestal connector test, no need to worry about port conflicts
         opensearch-base-url (format "http://localhost:%d" port)
         env-cfg {:maven-repos [{:id "clojars" :url "https://repo.clojars.org/"}
                                {:id "central" :url "https://repo.maven.apache.org/maven2/"}]
