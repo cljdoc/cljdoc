@@ -281,15 +281,10 @@
     (t/is (str/includes? occluded "SENTRY_DSN_OCCLUDED") "dsn is occluded")))
 
 (comment
-
-  (java.time.Instant/now)
-
   (make-dsn {:path "/1"})
   ;; => "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com/1"
 
   (make-dsn {:path "/sentry/1" :password nil :query "environment=test&servername=example"})
   ;; => "https://b70a31b3510c4cf793964a185cfe1fd0@example.com/sentry/1?environment=test&servername=example"
-
-  (println "foo")
 
   :eoc)
