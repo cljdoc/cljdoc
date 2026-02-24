@@ -125,8 +125,6 @@ public class CustomFileStatusListener extends ContextAwareBase implements Status
         }
     }
 
-
-
     private void formatThrowable(StringBuilder sb, Throwable t) {
         String[] stringRep = ThrowableToStringArray.convert(t);
 
@@ -134,17 +132,5 @@ public class CustomFileStatusListener extends ContextAwareBase implements Status
            // Indent all lines by one tab for readability
            sb.append("\t").append(line).append(CoreConstants.LINE_SEPARATOR);
         }
-    //     for (String line : stringRep) {
-    //         if (line.startsWith(CoreConstants.CAUSED_BY)) {
-    //             // nothing
-    //         } else if (Character.isDigit(line.charAt(0))) {
-    //             // if line resembles "48 common frames omitted"
-    //             sb.append("\t... ");
-    //         } else {
-    //             // most of the time. just add a tab+"at"
-    //             sb.append("\tat ");
-    //         }
-    //         sb.append(line).append(CoreConstants.LINE_SEPARATOR);
-    //     }
      }
 }
