@@ -728,6 +728,9 @@
                                       ;; cljdoc decouples routes from interceptors, specify routes here
                                       (http-route/router (routes/routes (partial route-resolver opts) {}))] %))
         (jetty/create-connector {:join? false
+                                 ;; used for testing
+                                 :container-options (:container-options opts)
+                                 ;; used for testing
                                  :stylobate-stats-fn (:stylobate-stats-fn opts)}))))
 
 (defmethod ig/init-key :cljdoc/pedestal-connector [_ opts]
