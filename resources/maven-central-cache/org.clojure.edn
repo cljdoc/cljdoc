@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Tue, 24 Feb 2026 00:50:16 GMT",
+ :last-modified "Wed, 25 Feb 2026 19:30:12 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -540,13 +540,14 @@
     "0.1.215.5-8022b8-alpha"],
    :description
    "Facilities for async programming and communication in Clojure"}
-  {:etag "W/\"58f4330058df97a77bb2020fd94ccdf2\"",
-   :last-modified "Tue, 24 Feb 2026 00:49:33 GMT",
+  {:etag "W/\"d5c3f7baa643beab67ee0c3c10f3be26\"",
+   :last-modified "Wed, 25 Feb 2026 19:14:10 GMT",
    :artifact-id "core.cache",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.2.259"
+   ["1.2.263"
+    "1.2.259"
     "1.2.254"
     "1.2.249"
     "1.2.0"
@@ -674,13 +675,14 @@
     "0.2.0-alpha1"],
    :description
    "Optimized pattern matching and predicate dispatch for Clojure"}
-  {:etag "W/\"bf3970ecc3f96b5d0966ee5106faba50\"",
-   :last-modified "Sun, 22 Feb 2026 15:50:00 GMT",
+  {:etag "W/\"f9f18709848e0b5299a20f24091b1369\"",
+   :last-modified "Wed, 25 Feb 2026 19:29:29 GMT",
    :artifact-id "core.memoize",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.2.278"
+   ["1.2.281"
+    "1.2.278"
     "1.2.273"
     "1.1.266"
     "1.0.257"

@@ -17,10 +17,10 @@
         com.taoensso/nippy {:mvn/version "3.6.0"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
-        org.apache.lucene/lucene-core {:mvn/version "10.3.2"} ;; search engine
-        org.apache.lucene/lucene-analysis-common {:mvn/version "10.3.2"}
-        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.3.2"}
-        org.apache.lucene/lucene-queries {:mvn/version "10.3.2"}
+        org.apache.lucene/lucene-core {:mvn/version "10.4.0"} ;; search engine supports searching for libs
+        org.apache.lucene/lucene-analysis-common {:mvn/version "10.4.0"}
+        org.apache.lucene/lucene-analysis-icu {:mvn/version "10.4.0"}
+        org.apache.lucene/lucene-queries {:mvn/version "10.4.0"}
 
         ;; markdown
         org.asciidoctor/asciidoctorj {:mvn/version "3.0.1"} ;; render adoc to html
@@ -48,7 +48,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.42.0"}
+        software.amazon.awssdk/s3 {:mvn/version "2.42.3"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.5.0.202512021534-r"} ;; git with jsch
@@ -63,8 +63,8 @@
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
         prone/prone {:mvn/version "2021-04-23"}              ;; exceptions->data for sentry
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
-        org.clojure/core.cache {:mvn/version "1.2.259"}      ;; general caching library
-        org.clojure/core.memoize {:mvn/version "1.2.278"}    ;; function caching library
+        org.clojure/core.cache {:mvn/version "1.2.263"}      ;; general caching library
+        org.clojure/core.memoize {:mvn/version "1.2.281"}    ;; function caching library
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         org.apache.maven/maven-artifact {:mvn/version "3.9.12"} ;; compare maven versions
         zprint/zprint {:mvn/version "1.3.0"}                 ;; format clojure source/edn
@@ -78,7 +78,7 @@
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:nrepl
            {:extra-paths ["dev"]
-            :extra-deps {nrepl/nrepl {:mvn/version "1.5.2"}
+            :extra-deps {nrepl/nrepl {:mvn/version "1.6.0"}
                          cider/cider-nrepl {:mvn/version "0.58.0"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}
                          ;; to support recompiling java code from repl

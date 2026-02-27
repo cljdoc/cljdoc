@@ -455,7 +455,7 @@
              group-id
              (search->results index-reader-fn (term-query :group-id.exact group-id))
              :else
-             (search->results index-reader-fn (MatchAllDocsQuery.) 0))
+             (search->results index-reader-fn MatchAllDocsQuery/INSTANCE 0))
        :results
        (mapv (fn [artifact]
                (-> artifact
