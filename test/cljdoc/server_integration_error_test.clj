@@ -132,14 +132,15 @@
                       @*stylobate-stats*))))))
 
 (t/deftest socket-sanity-test
-  (let [logged (atom [])]
+  (let [logged (atom [])
+        path (get (built-assets/load-map) "/cljdoc.js.map")]
     (with-redefs [log/log* (fn [_logger level _throwable message]
                              (swap! logged conj [level message]))]
       (let [response-lines (with-open [socket (create-socket *host* *port*)
                                        writer (OutputStreamWriter. (.getOutputStream socket))
                                        reader (BufferedReader. (InputStreamReader. (.getInputStream socket)))]
                              ;; Send HTTP GET request and close without reading response
-                             (.write writer (str/join "\r\n" ["GET /cljdoc.2ZZPOFCD.js.map HTTP/1.1"
+                             (.write writer (str/join "\r\n" [(str "GET " path " HTTP/1.1")
                                                               (str "Host: " *host*)
                                                               "Connection: close"
                                                               ""
