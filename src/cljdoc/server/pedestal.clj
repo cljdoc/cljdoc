@@ -589,20 +589,6 @@
                      :headers {"Content-Type" "application/json"}
                      :body (json/generate-string {:version cljdoc-version})}))}))
 
-(def api-docsets
-  "Creates an API response with a JSON representation of a `docset`."
-  (interceptor/interceptor
-   {:name ::api/docsets
-    :enter (fn api-docsets [{:keys [docset] :as ctx}]
-             (->> (if docset
-                    {:status 200
-                     :headers {"Content-Type" "application/json"}
-                     :body (json/generate-string docset)}
-                    {:status 404
-                     :headers {"Content-Type" "application/json"}
-                     :body (json/generate-string {:error "Could not find data, please request a build first"})})
-                  (assoc ctx :response)))}))
-
 (defn route-resolver
   "Given a route name return a list of interceptors to handle requests
   to that route.
@@ -633,10 +619,6 @@
                          api-searchset]
 
          :api/server-info [(api-server-info cljdoc-version)]
-
-         :api/docsets [(pom-loader cached-pom-fetcher)
-                       (artifact-data-loader storage)
-                       api-docsets]
 
          :ping          [(interceptor/interceptor {:name ::pong :enter #(pu/ok-html % "pong")})]
          :request-build [(body/body-params)
