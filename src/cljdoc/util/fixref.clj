@@ -2,7 +2,8 @@
   "Utilities to rewrite, or support the rewrite of, references in markdown rendered to HTML.
   For example, external links are rewritten to include nofollow, links to ingested SCM
   articles are rewritten to their slugs, and scm relative references are rewritten to point to SCM."
-  (:require [cljdoc.server.routes :as routes]
+  (:require [babashka.fs :as fs]
+            [cljdoc.server.routes :as routes]
             [cljdoc.util.scm :as scm]
             [clojure.java.io :as io]
             [clojure.string :as string]
@@ -46,14 +47,13 @@
 (defn- normalize-path
   "Resolves relative `..` and `.` in path `s`"
   [s]
-  (str (.normalize (.toPath (io/file s)))))
+  (str (fs/normalize s)))
 
 (defn- path-relative-to
   "Returns `file-path` from `from-dir-path`.
   Both paths must be relative or absolute."
   [file-path from-dir-path]
-  (str (.relativize (.toPath (io/file from-dir-path))
-                    (.toPath (io/file file-path)))))
+  (str (fs/relativize from-dir-path file-path)))
 
 (defn- error-ref
   "When the scm-file-path is unknown, as is currently the case for docstrings, we cannot handle relative refs
