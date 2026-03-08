@@ -227,4 +227,6 @@
                     (.startsWith (.get % "src") "https://")))
        (map #(doto % (.put "src" (fix-image (.get % "src") fix-opts)))))
 
-  (.get (.attributes (first (.select doc "a"))) "href"))
+  (.get (.attributes (first (.select doc "a"))) "href")
+
+  :eoc)
