@@ -1,42 +1,18 @@
 (ns cljdoc.render.rich-text-test
   (:require [cljdoc.render.rich-text :as rich-text]
+            [cljdoc.test-util.html :as html]
             [clojure.string :as str]
             [clojure.test :as t]
-            [hickory.core :as hickory]
-            [matcher-combinators.test])
-  (:import (org.jsoup Jsoup)
-           (org.jsoup.select NodeTraversor NodeVisitor)
-           (org.jsoup.nodes TextNode)))
+            [matcher-combinators.test]))
 
 (set! *warn-on-reflection* true)
-
-(defn- html->hiccup
-  "Nice to verify in hiccup rather than html"
-  [^String html]
-  (let [doc (Jsoup/parse html)]
-    (-> (.outputSettings doc)
-        (.prettyPrint false))
-    ;; turf extra newlines, to avoid having to deal with them test expectations
-    (NodeTraversor/traverse
-     (reify NodeVisitor
-       (head [_ node _depth]
-         (when (and (instance? TextNode node)
-                    (re-matches #"\s*" (.getWholeText ^TextNode node)))
-           (.remove node)))
-       (tail [_ _node _depth] nil))
-     doc)
-    (->> doc
-         .body
-         .toString
-         (hickory/parse-fragment)
-         (map hickory/as-hiccup))))
 
 (t/deftest markdown-wikilink
   (t/testing "renders as link when ref resolves"
     (t/is (match?
            [[:p {} [:a {:href "/resolved/to/something" :data-source "wikilink"}
                     [:code {} "my.namespace.here/fn1"]]]]
-           (html->hiccup
+           (html/->hiccup
             (rich-text/markdown-to-html
              "[[my.namespace.here/fn1]]"
              {:render-wiki-link (fn [wikilink-ref]
@@ -46,24 +22,24 @@
     (t/testing "when |text is included"
       (t/is (match?
              [[:p {} "[[my.namespace.here/fn1|some text here]]"]]
-             (html->hiccup
+             (html/->hiccup
               (rich-text/markdown-to-html
                "[[my.namespace.here/fn1|some text here]]"
                {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))
     (t/testing "when wikilink rendering not enabled"
       (t/is (match? [[:p {} "[[" [:em {} "some random markdown"] "]]"]]
-                    (html->hiccup
+                    (html/->hiccup
                      (rich-text/markdown-to-html "[[*some random markdown*]]"
                                                  {})))))
     (t/testing "when does not resolve"
       (t/is (match? [[:p {} "[[" [:em {} "some random markdown"] "]]"]]
-                    (html->hiccup
+                    (html/->hiccup
                      (rich-text/markdown-to-html
                       "[[*some random markdown*]]"
                       {:render-wiki-link (constantly nil)})))))
     (t/testing "when empty"
       (t/is (match? [[:p {} "[[]]"]]
-                    (html->hiccup
+                    (html/->hiccup
                      (rich-text/markdown-to-html
                       "[[]]"
                       {:render-wiki-link (fn [wikilink-ref] (when (= "my.namespace.here/fn1" wikilink-ref) "/resolved/to/something"))})))))))
@@ -84,14 +60,14 @@
       (t/is (match?
              (expected-alert-hiccup alert-type
                                     [[:p {} (format "My %s text" alert-type)]])
-             (html->hiccup
+             (html/->hiccup
               (rich-text/markdown-to-html
                (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
                                (format "> My %s text" alert-type)]))))
             "single line in first paragraph")
       (t/is (match?
              (expected-alert-hiccup alert-type [[:p {} "para1line1\npara1line2"]])
-             (html->hiccup
+             (html/->hiccup
               (rich-text/markdown-to-html
                (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
                                "> para1line1"
@@ -99,7 +75,7 @@
             "multi line in first paragraph")
       (t/is (match?
              (expected-alert-hiccup alert-type [[:p {} "para1line1"]])
-             (html->hiccup
+             (html/->hiccup
               (rich-text/markdown-to-html
                (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
                                ">"
@@ -109,7 +85,7 @@
              (expected-alert-hiccup alert-type
                                     [[:p {} "para1line1\npara1line2"]])
 
-             (html->hiccup
+             (html/->hiccup
               (rich-text/markdown-to-html
                (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
                                ">"
@@ -120,7 +96,7 @@
              (expected-alert-hiccup alert-type
                                     [[:p {} "para1line1\npara1line2"]
                                      [:p {} "para2line1\npara2line2"]])
-             (html->hiccup
+             (html/->hiccup
               (rich-text/markdown-to-html
                (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
                                ">"
@@ -135,7 +111,7 @@
                                     [[:p {} "para1line1\npara1line2"]
                                      [:p {} "para2line1"]
                                      [:p {} "para3line1\npara3line2\npara3extra"]])
-             (html->hiccup
+             (html/->hiccup
               (rich-text/markdown-to-html
                (str/join "\n" [(format "> [!%s]" (str/upper-case alert-type))
                                "> para1line1"
@@ -152,7 +128,7 @@
                                     [[:p {} "para1line1\npara1line2"]
                                      [:p {} "para2line1"]
                                      [:p {} "para3line1\npara3line2\npara3extra"]])
-             (html->hiccup
+             (html/->hiccup
               (rich-text/markdown-to-html
                (str/join "\n" [">"
                                ">"
@@ -184,7 +160,7 @@
            ;; indented md code is code block...
            [:pre {} [:code {:class "language-clojure"} "[!TIP]\n"]]
            [:p {} "Not an alert"]]]
-         (html->hiccup
+         (html/->hiccup
           (rich-text/markdown-to-html
                                         ; 12345
            (str/join "\n" [">     [!TIP]"
@@ -198,7 +174,7 @@
            ;; inner is a blockquote
            [:blockquote {}
             [:p {} "[!NOTE]\nnot a nested alert"]]]]
-         (html->hiccup
+         (html/->hiccup
           (rich-text/markdown-to-html
                                         ; 12345
            (str/join "\n" ["> [!TIP]"
@@ -215,7 +191,7 @@
            [[:p {}
              [:a {:href "http://www.example.com/index.html"}
               [:img {:alt "alt text" :src "https://picsum.photos/200"}]]]]
-           (html->hiccup
+           (html/->hiccup
             (rich-text/markdown-to-html (str "[![alt text][img-url]][target-url]\n"
                                              "\n"
                                              "[target-url]: http://www.example.com/index.html\n"
@@ -239,7 +215,7 @@
               [:img {:alt "Clojars Project" :src "https://img.shields.io/clojars/v/org.mentat/mathbox.cljs.svg"}]]
              [:a {:href "https://discord.gg/hsRBqGEeQ4"}
               [:img {:alt "Discord Shield" :src "https://img.shields.io/discord/731131562002743336?style=flat&colorA=000000&colorB=000000&label=&logo=discord"}]]]]
-           (html->hiccup
+           (html/->hiccup
             (rich-text/markdown-to-html "# MathBox.cljs
 
 A [Reagent][reagent-url] interface to the [MathBox][mathbox-url] mathematical
@@ -267,17 +243,17 @@ visualization library.
   (t/testing "a solo imgref is not broken by our fix"
     (t/is (match?
            [[:p {} [:img {:src "foo.png" :alt "foo alt"}]]]
-           (html->hiccup
+           (html/->hiccup
             (rich-text/markdown-to-html "![foo alt][foo-img-url]\n\n[foo-img-url]: foo.png"))))))
 
 (t/deftest md-html-escaping
   (t/is (match?
          [[:p {} "&lt;h1&gt;Hello&lt;/h1&gt;"]]
-         (html->hiccup
+         (html/->hiccup
           (rich-text/markdown-to-html "<h1>Hello</h1>" {:escape-html? true}))))
   (t/is (match?
          [[:h1 {} "Hello"]]
-         (html->hiccup
+         (html/->hiccup
           (rich-text/markdown-to-html "<h1>Hello</h1>" {:escape-html? false})))))
 
 (t/deftest determines-doc-features
@@ -307,47 +283,47 @@ visualization library.
 
 (t/deftest emoji-unicode-test
   (t/is (match? ["fire :fire:"]
-                (html->hiccup (rich-text/render-text [:cljdoc/plaintext "fire :fire:"]))) "plaintext")
+                (html/->hiccup (rich-text/render-text [:cljdoc/plaintext "fire :fire:"]))) "plaintext")
   (t/is (match? [[:div {:class "paragraph"}
                   [:p {} "fire 🔥"]]]
-                (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "fire :fire:"]))) "asciidoc")
+                (html/->hiccup (rich-text/render-text [:cljdoc/asciidoc "fire :fire:"]))) "asciidoc")
   (t/is (match? [[:p {} "fire 🔥"]]
-                (html->hiccup (rich-text/render-text [:cljdoc/markdown "fire :fire:"]))) "markdown"))
+                (html/->hiccup (rich-text/render-text [:cljdoc/markdown "fire :fire:"]))) "markdown"))
 
 (t/deftest emoji-wrapped-unicode-test
   ;; github wrapped some unicode on render, let's test that we render these ok
   (t/is (match? ["o2 :o2:"]
-                (html->hiccup (rich-text/render-text [:cljdoc/plaintext "o2 :o2:"]))) "plaintext")
+                (html/->hiccup (rich-text/render-text [:cljdoc/plaintext "o2 :o2:"]))) "plaintext")
   (t/is (match? [[:div {:class "paragraph"}
                   [:p {} "o2 🅾️"]]]
-                (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "o2 :o2:"]))) "asciidoc")
+                (html/->hiccup (rich-text/render-text [:cljdoc/asciidoc "o2 :o2:"]))) "asciidoc")
   (t/is (match? [[:p {} "o2 🅾️"]]
-                (html->hiccup (rich-text/render-text [:cljdoc/markdown "o2 :o2:"]))) "markdown"))
+                (html/->hiccup (rich-text/render-text [:cljdoc/markdown "o2 :o2:"]))) "markdown"))
 
 (t/deftest emoji-img-test
   ;; emojis that have no unicode are rendered as images
   (t/is (match? ["atom :atom:"]
-                (html->hiccup (rich-text/render-text [:cljdoc/plaintext "atom :atom:"]))) "plaintext")
+                (html/->hiccup (rich-text/render-text [:cljdoc/plaintext "atom :atom:"]))) "plaintext")
   (t/is (match? [[:div
                   {:class "paragraph"}
                   [:p {} "atom "
                    [:img {:src "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
                           :style "width:1rem;height:1rem;vertical-align:middle;"}]]]]
-                (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "atom :atom:"]))) "asciidoc")
+                (html/->hiccup (rich-text/render-text [:cljdoc/asciidoc "atom :atom:"]))) "asciidoc")
   (t/is (match? [[:p {} "atom "
                   [:img {:src "https://github.githubassets.com/images/icons/emoji/atom.png?v8",
                          :style "width:1rem;height:1rem;vertical-align:middle;"}]]]
-                (html->hiccup (rich-text/render-text [:cljdoc/markdown "atom :atom:"]))) "markdown"))
+                (html/->hiccup (rich-text/render-text [:cljdoc/markdown "atom :atom:"]))) "markdown"))
 
 (t/deftest emoji-unrecognized-tag-test
   (t/is (match? ["nope :nope:"]
-                (html->hiccup (rich-text/render-text [:cljdoc/plaintext "nope :nope:"]))) "plaintext")
+                (html/->hiccup (rich-text/render-text [:cljdoc/plaintext "nope :nope:"]))) "plaintext")
   (t/is (match? [[:div
                   {:class "paragraph"}
                   [:p {} "nope :nope:"]]]
-                (html->hiccup (rich-text/render-text [:cljdoc/asciidoc "nope :nope:"]))) "asciidoc")
+                (html/->hiccup (rich-text/render-text [:cljdoc/asciidoc "nope :nope:"]))) "asciidoc")
   (t/is (match? [[:p {} "nope :nope:"]]
-                (html->hiccup (rich-text/render-text [:cljdoc/markdown "nope :nope:"]))) "markdown"))
+                (html/->hiccup (rich-text/render-text [:cljdoc/markdown "nope :nope:"]))) "markdown"))
 
 (t/deftest emojis-should-not-be-xlated-in-literal-blocks-test
   (t/is (match?
@@ -367,23 +343,23 @@ visualization library.
           [:div {:class "literalblock"}
            [:div {:class "content"}
             [:pre {} "Indented literal :fire:"]]]]
-         (html->hiccup (rich-text/render-text
-                        [:cljdoc/asciidoc (str "= :fire: Title\n"
-                                               "\n"
-                                               "Inline `:fire:`\n"
-                                               "[source]\n"
-                                               "----\n"
-                                               "source :fire:\n"
-                                               "----\n"
-                                               "\n"
-                                               "[literal]\n"
-                                               "Literal :fire:\n"
-                                               "\n"
-                                               "....\n"
-                                               "Another literal :fire:\n"
-                                               "....\n"
-                                               "\n"
-                                               " Indented literal :fire:")])))
+         (html/->hiccup (rich-text/render-text
+                         [:cljdoc/asciidoc (str "= :fire: Title\n"
+                                                "\n"
+                                                "Inline `:fire:`\n"
+                                                "[source]\n"
+                                                "----\n"
+                                                "source :fire:\n"
+                                                "----\n"
+                                                "\n"
+                                                "[literal]\n"
+                                                "Literal :fire:\n"
+                                                "\n"
+                                                "....\n"
+                                                "Another literal :fire:\n"
+                                                "....\n"
+                                                "\n"
+                                                " Indented literal :fire:")])))
         "asciidoc")
   (t/is (match?
          [[:h1 {} [:a {:href "#fire-title", :id "fire-title", :class "md-anchor"} "🔥 Title"]]
@@ -391,17 +367,17 @@ visualization library.
           ;; TODO: hmmm.. default lang is clojure?
           [:pre {} [:code {:class "language-clojure"} "source :fire:\n"]]
           [:pre {} "pre :fire:\n"]]
-         (html->hiccup (rich-text/render-text
-                        [:cljdoc/markdown (str "# :fire: Title\n"
-                                               "\n"
-                                               "Inline `:fire:`\n"
-                                               "```\n"
-                                               "source :fire:\n"
-                                               "```\n"
-                                               "\n"
-                                               "<pre>\n"
-                                               "pre :fire:\n"
-                                               "</pre>")])))
+         (html/->hiccup (rich-text/render-text
+                         [:cljdoc/markdown (str "# :fire: Title\n"
+                                                "\n"
+                                                "Inline `:fire:`\n"
+                                                "```\n"
+                                                "source :fire:\n"
+                                                "```\n"
+                                                "\n"
+                                                "<pre>\n"
+                                                "pre :fire:\n"
+                                                "</pre>")])))
         "markdown"))
 
 (t/deftest multi-emojis-test
@@ -429,14 +405,14 @@ visualization library.
              {:src "https://github.githubassets.com/images/icons/emoji/fishsticks.png?v8",
               :style "width:1rem;height:1rem;vertical-align:middle;"}]
             "!"]]]
-         (html->hiccup (rich-text/render-text
-                        [:cljdoc/asciidoc (str "Emoji examples\n\n"
-                                               ":fire::octocat::elf_man::o2:\n\n"
-                                               ":brain:octocat:elf_man:airplane:\n\n"
-                                               ":brain:octocat:airplane:\n\n"
-                                               ;; use + to passthrough to avoid being interpreted as custom doc attribute
-                                               "+:bread:+ :bowtie: :dog: :clubs:\n\n"
-                                               "I like :cookie:s+:coffee:,:pancakes:&:fishsticks:!\n\n")])))
+         (html/->hiccup (rich-text/render-text
+                         [:cljdoc/asciidoc (str "Emoji examples\n\n"
+                                                ":fire::octocat::elf_man::o2:\n\n"
+                                                ":brain:octocat:elf_man:airplane:\n\n"
+                                                ":brain:octocat:airplane:\n\n"
+                                                ;; use + to passthrough to avoid being interpreted as custom doc attribute
+                                                "+:bread:+ :bowtie: :dog: :clubs:\n\n"
+                                                "I like :cookie:s+:coffee:,:pancakes:&:fishsticks:!\n\n")])))
         "asciidoc")
   (t/is (match?
          [[:p {} "Emoji examples"]
@@ -459,12 +435,11 @@ visualization library.
             {:src "https://github.githubassets.com/images/icons/emoji/fishsticks.png?v8",
              :style "width:1rem;height:1rem;vertical-align:middle;"}]
            "!"]]
-         (html->hiccup (rich-text/render-text
-                        [:cljdoc/markdown (str "Emoji examples\n\n"
-                                               ":fire::octocat::elf_man::o2:\n\n"
-                                               ":brain:octocat:elf_man:airplane:\n\n"
-                                               ":brain:octocat:airplane:\n\n"
-                                               ":bread: :bowtie: :dog: :clubs:\n\n"
-                                               "I like :cookie:s+:coffee:,:pancakes:&:fishsticks:!\n\n")])))
+         (html/->hiccup (rich-text/render-text
+                         [:cljdoc/markdown (str "Emoji examples\n\n"
+                                                ":fire::octocat::elf_man::o2:\n\n"
+                                                ":brain:octocat:elf_man:airplane:\n\n"
+                                                ":brain:octocat:airplane:\n\n"
+                                                ":bread: :bowtie: :dog: :clubs:\n\n"
+                                                "I like :cookie:s+:coffee:,:pancakes:&:fishsticks:!\n\n")])))
         "markdown"))
-
