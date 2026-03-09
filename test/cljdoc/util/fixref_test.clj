@@ -244,3 +244,70 @@
           [:a {:href "https://notcljdoc.org/d/mygroupid/myartifactid/CURRENT"}
            "doesn't replace CURRENT if not a cljdoc url at all"]]
          fix-opts))))
+
+(t/deftest current-offline-replaced-with-local-url-test
+  (doseq [[target-path input expected]
+          [[""
+            [[:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/CURRENT/doc/sluga/slugb/slugc"} "doc"]]
+            [[:a {:href "doc/sluga-slugb-slugc.html"} "doc"]]]
+           ["doc"
+            [[:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/CURRENT/doc/sluga/slugb/slugc"} "doc"]]
+            [[:a {:href "sluga-slugb-slugc.html"} "doc"]]]
+           ["api"
+            [[:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/CURRENT/doc/sluga/slugb/slugc"} "doc"]]
+            [[:a {:href "../doc/sluga-slugb-slugc.html"} "doc"]]]
+           [""
+            [[:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/CURRENT/api/some.namespace.here"} "api"]]
+            [[:a {:href "api/some.namespace.here.html"} "api"]]]
+           ["doc"
+            [[:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/CURRENT/api/some.namespace.here"} "api"]]
+            [[:a {:href "../api/some.namespace.here.html"} "api"]]]
+           ["api"
+            [[:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/CURRENT/api/some.namespace.here"} "api"]]
+            [[:a {:href "some.namespace.here.html"} "api"]]]]]
+    (t/is
+     (match? (m/nested-equals expected)
+             (fix input (assoc fix-opts :target-path target-path))))))
+
+(t/deftest current-offline-not-replaced-test
+  (doseq [target-path ["" "doc" "api"]]
+    (let [input [[:a {:href "https://cljdoc.org/d/mygroupid/not-myartifactid/CURRENT"}
+                  "doesn't replace CURRENT if not my artifact-id"]
+                 [:a {:href "https://cljdoc.org/d/not-mygroupid/myartifactid/CURRENT"}
+                  "doesn't replace CURRENT if not my group-id"]
+                 [:a {:href "https://cljdoc.org/d/not-mygroupid/not-myartifactid/CURRENT"}
+                  "doesn't replace CURRENT if not my group-id/artifact-id"]
+                 [:a {:href "https://cljdoc.org/doopsie/mygroupid/myartifactid/CURRENT"}
+                  "doesn't replace CURRENT if not a cljdoc route"]]]
+      (t/is
+       (match?
+        (m/nested-equals input)
+        (fix input
+             (assoc fix-opts :target-path target-path)))))))
+
+(t/deftest current-offline-no-follow-test
+  (doseq [target-path ["" "doc" "api"]]
+    (t/is
+     (match?
+      (m/nested-equals
+       [[:a {:href "https://notcljdoc.org/d/mygroupid/myartifactid/CURRENT"
+             :rel "nofollow"}
+         "doesn't replace CURRENT if not a cljdoc url at all"]])
+      (fix [[:a {:href "https://notcljdoc.org/d/mygroupid/myartifactid/CURRENT"}
+             "doesn't replace CURRENT if not a cljdoc url at all"]]
+           (assoc fix-opts :target-path target-path))))))
+
+(t/deftest current-offline-replaced-with-remote-cljdoc-url-test
+  (doseq [target-path ["" "doc" "api"]]
+    (t/is
+     (match?
+      (m/nested-equals
+       [[:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/1.2.3"} "version"]
+        [:a {:href "https://cljdoc.org/download/mygroupid/myartifactid/1.2.3"} "offline docset"]
+        [:a {:href "https://cljdoc.org/api/searchset/mygroupid/myartifactid/1.2.3"} "searchset"]])
+      ;; valid cljdoc paths that match artifact and CURRENT but do not map to a local offline file,
+      ;; unlikely to be put in a doc, but might as well handle intelligently
+      (fix [[:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/CURRENT"} "version"]
+            [:a {:href "https://cljdoc.org/download/mygroupid/myartifactid/CURRENT"} "offline docset"]
+            [:a {:href "https://cljdoc.org/api/searchset/mygroupid/myartifactid/CURRENT"} "searchset"]]
+           (assoc fix-opts :target-path target-path))))))

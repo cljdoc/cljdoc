@@ -3,6 +3,7 @@
   For example, external links are rewritten to include nofollow, links to ingested SCM
   articles are rewritten to their slugs, and scm relative references are rewritten to point to SCM."
   (:require [babashka.fs :as fs]
+            [cljdoc.render.offline-url :as offline-url]
             [cljdoc.server.routes :as routes]
             [cljdoc.util.scm :as scm]
             [clojure.java.io :as io]
@@ -28,11 +29,6 @@
 
 (defn- root-relative-path? [s]
   (string/starts-with? s "/"))
-
-(defn- get-cljdoc-url-prefix [s]
-  (let [expected "https://cljdoc.org"]
-    (when (string/starts-with? s expected)
-      expected)))
 
 (defn- rebase-path
   "Rebase path `s1` to directory of relative path `s2`.
@@ -162,20 +158,36 @@
     (doseq [^Attributes absolute-link (->> (.select doc "a")
                                            (map (fn [^Element e] (.attributes e)))
                                            (filter (fn [^Attributes a] (absolute-uri? (.get a "href")))))]
-      (let [href (.get absolute-link "href")]
-        (if-let [cljdoc-prefix (get-cljdoc-url-prefix href)]
-          (let [rel-link (subs href (count cljdoc-prefix))
-                rel-link-uri (uri/parse rel-link)
-                rel-link-path (:path rel-link-uri)
-                {:keys [route-name path-params]} (routes/match-route rel-link-path)]
-            (if (and (= "CURRENT" (:version path-params))
-                     (= (:group-id version-entity) (:group-id path-params))
-                     (= (:artifact-id version-entity) (:artifact-id path-params)))
-              (let [fixed-rel-link-path (routes/url-for route-name :path-params (assoc path-params :version (:version version-entity)))
-                    ^String fixed-rel-link (uri/uri-str (assoc rel-link-uri :path fixed-rel-link-path))]
-                (.put absolute-link "href" fixed-rel-link))
-              (.put absolute-link "href" rel-link)))
-          (.put absolute-link "rel" "nofollow"))))
+      (let [href (.get absolute-link "href")
+            {:keys [host scheme ^String path] :as uri} (uri/parse href)]
+        (if-not (and (= "https" scheme) (= "cljdoc.org" host))
+          (.put absolute-link "rel" "nofollow")
+          (let [{:keys [route-name path-params]} (routes/match-route path)
+                current-match? (and (= "CURRENT" (:version path-params))
+                                    (= (:group-id version-entity) (:group-id path-params))
+                                    (= (:artifact-id version-entity) (:artifact-id path-params)))
+                new-uri (if-not current-match?
+                          (when-not target-path
+                            ;; convert to root relative path
+                            (select-keys uri [:path :query :fragment]))
+                          (let [versioned-path (routes/url-for route-name :path-params (assoc path-params :version (:version version-entity)))]
+                            (if target-path
+                              (if-let [offline-path (case route-name
+                                                      :artifact/doc (offline-url/article-url (string/split (:article-slug path-params) #"/"))
+                                                      :artifact/namespace (offline-url/ns-url (:namespace path-params))
+                                                      nil)]
+                                ;; convert to local offline file path
+                                (-> uri
+                                    (select-keys [:query :fragment])
+                                    (assoc :path (path-relative-to offline-path target-path)))
+                                ;; convert to full path with CURRENT replaced
+                                (assoc uri :path versioned-path))
+                              ;; convert to root relative path with CURRENT replaced
+                              (-> uri
+                                  (select-keys [:query :fragment])
+                                  (assoc :path versioned-path)))))]
+            (when new-uri
+              (.put absolute-link "href" ^String (uri/uri-str new-uri)))))))
 
     (.. doc body html toString)))
 
