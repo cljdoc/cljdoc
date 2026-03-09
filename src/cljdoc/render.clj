@@ -71,7 +71,8 @@
                         :contributors (-> doc-p :attrs :cljdoc.doc/contributors)
                         :doc-type (name doc-type)
                         :doc-html (fixref/fix (rich-text/render-text [doc-type contents])
-                                              {:scm-file-path (-> doc-p :attrs :cljdoc.doc/source-file)
+                                              {:version-entity version-entity
+                                               :scm-file-path (-> doc-p :attrs :cljdoc.doc/source-file)
                                                :scm (docset/articles-scm-info docset)
                                                :uri-map (fixref/uri-mapping version-entity (doctree/flatten* doc-tree))})
                         :version-entity version-entity
@@ -111,7 +112,8 @@
         top-bar-component (layout/top-bar {:version-entity version-entity
                                            :scm-url (docset/scm-url docset)
                                            :static-resources static-resources})
-        opts {:docstring-format (user-config/docstring-format
+        opts {:version-entity version-entity
+              :docstring-format (user-config/docstring-format
                                  (-> docset :version :config)
                                  (proj/clojars-id version-entity))
               :scm (docset/scm-info docset)

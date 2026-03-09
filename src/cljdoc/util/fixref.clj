@@ -2,11 +2,14 @@
   "Utilities to rewrite, or support the rewrite of, references in markdown rendered to HTML.
   For example, external links are rewritten to include nofollow, links to ingested SCM
   articles are rewritten to their slugs, and scm relative references are rewritten to point to SCM."
-  (:require [cljdoc.server.routes :as routes]
+  (:require [babashka.fs :as fs]
+            [cljdoc.render.offline-url :as offline-url]
+            [cljdoc.server.routes :as routes]
             [cljdoc.util.scm :as scm]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [lambdaisland.uri :as uri])
   (:import (org.jsoup Jsoup)
            (org.jsoup.nodes Attributes Document Element)))
 
@@ -27,11 +30,6 @@
 (defn- root-relative-path? [s]
   (string/starts-with? s "/"))
 
-(defn- get-cljdoc-url-prefix [s]
-  (let [expected "https://cljdoc.org"]
-    (when (string/starts-with? s expected)
-      expected)))
-
 (defn- rebase-path
   "Rebase path `s1` to directory of relative path `s2`.
   When path `s1` is absolute it is returned."
@@ -46,14 +44,13 @@
 (defn- normalize-path
   "Resolves relative `..` and `.` in path `s`"
   [s]
-  (str (.normalize (.toPath (io/file s)))))
+  (str (fs/normalize s)))
 
 (defn- path-relative-to
   "Returns `file-path` from `from-dir-path`.
   Both paths must be relative or absolute."
   [file-path from-dir-path]
-  (str (.relativize (.toPath (io/file from-dir-path))
-                    (.toPath (io/file file-path)))))
+  (str (fs/relativize from-dir-path file-path)))
 
 (defn- error-ref
   "When the scm-file-path is unknown, as is currently the case for docstrings, we cannot handle relative refs
@@ -134,8 +131,9 @@
     * `:scm-file-path` SCM repo home relative path of content
     * `:target-path` local relative destination path of content, if provided, used to relativize link paths local path (used for offline docsets)
     * `:uri-map` - map of relative scm paths to cljdoc doc slugs (or for offline docset html files)
-    * `:scm` - scm-info from docset used to link to correct SCM file revision"
-  [html-str {:keys [scm-file-path target-path scm uri-map] :as _fix-opts}]
+    * `:scm` - scm-info from docset used to link to correct SCM file revision
+    * `:version-entity` - artifact-id, group-id, version of rendering artifact"
+  [html-str {:keys [scm-file-path target-path scm uri-map version-entity] :as _fix-opts}]
   (let [doc (parse-html html-str)]
     (doseq [^Attributes scm-relative-link (->> (.select doc "a")
                                                (map (fn [^Element e] (.attributes e)))
@@ -160,10 +158,36 @@
     (doseq [^Attributes absolute-link (->> (.select doc "a")
                                            (map (fn [^Element e] (.attributes e)))
                                            (filter (fn [^Attributes a] (absolute-uri? (.get a "href")))))]
-      (let [href (.get absolute-link "href")]
-        (if-let [cljdoc-prefix (get-cljdoc-url-prefix href)]
-          (.put absolute-link "href" (subs href (count cljdoc-prefix)))
-          (.put absolute-link "rel" "nofollow"))))
+      (let [href (.get absolute-link "href")
+            {:keys [host scheme ^String path] :as uri} (uri/parse href)]
+        (if-not (and (= "https" scheme) (= "cljdoc.org" host))
+          (.put absolute-link "rel" "nofollow")
+          (let [{:keys [route-name path-params]} (routes/match-route path)
+                current-match? (and (= "CURRENT" (:version path-params))
+                                    (= (:group-id version-entity) (:group-id path-params))
+                                    (= (:artifact-id version-entity) (:artifact-id path-params)))
+                new-uri (if-not current-match?
+                          (when-not target-path
+                            ;; convert to root relative path
+                            (select-keys uri [:path :query :fragment]))
+                          (let [versioned-path (routes/url-for route-name :path-params (assoc path-params :version (:version version-entity)))]
+                            (if target-path
+                              (if-let [offline-path (case route-name
+                                                      :artifact/doc (offline-url/article-url (string/split (:article-slug path-params) #"/"))
+                                                      :artifact/namespace (offline-url/ns-url (:namespace path-params))
+                                                      nil)]
+                                ;; convert to local offline file path
+                                (-> uri
+                                    (select-keys [:query :fragment])
+                                    (assoc :path (path-relative-to offline-path target-path)))
+                                ;; convert to full path with CURRENT replaced
+                                (assoc uri :path versioned-path))
+                              ;; convert to root relative path with CURRENT replaced
+                              (-> uri
+                                  (select-keys [:query :fragment])
+                                  (assoc :path versioned-path)))))]
+            (when new-uri
+              (.put absolute-link "href" ^String (uri/uri-str new-uri)))))))
 
     (.. doc body html toString)))
 
@@ -228,5 +252,15 @@
        (map #(doto % (.put "src" (fix-image (.get % "src") fix-opts)))))
 
   (.get (.attributes (first (.select doc "a"))) "href")
+
+  (uri/parse "foo/bar/baz?morty=foo#binkus")
+  ;; => {:scheme nil,
+  ;;     :user nil,
+  ;;     :password nil,
+  ;;     :host nil,
+  ;;     :port nil,
+  ;;     :path "foo/bar/baz",
+  ;;     :query "morty=foo",
+  ;;     :fragment "binkus"}
 
   :eoc)

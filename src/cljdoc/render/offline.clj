@@ -12,31 +12,18 @@
             [cljdoc.render.api :as api]
             [cljdoc.render.assets :as assets]
             [cljdoc.render.layout :as layout]
+            [cljdoc.render.offline-url :as offline-url]
             [cljdoc.render.rich-text :as rich-text]
             [cljdoc.spec :as cljdoc-spec]
             [cljdoc.user-config :as user-config]
             [cljdoc.util.fixref :as fixref]
             [cljdoc.util.scm :as scm]
             [clojure.java.io :as io]
-            [clojure.string :as string]
             [hiccup.page]
             [hiccup2.core :as hiccup]
             [lambdaisland.uri :as uri]
             [me.raynes.fs.compression :as fs-compression])
   (:import (java.net URL)))
-
-(defn- ns-url
-  [ns]
-  {:pre [(string? ns)]}
-  (str "api/" ns ".html"))
-
-(defn- article-url
-  [slug-path]
-  {:pre [(string? (first slug-path))]}
-  ;; WARN this could lead to overwriting files but nesting
-  ;; directories complicates linking between files a lot and
-  ;; so taking a shortcut here.
-  (str "doc/" (string/join "-" slug-path) ".html"))
 
 (defn- top-bar [version-entity scm-url static-resources sub-page?]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
@@ -108,7 +95,7 @@
                 [:li.mv1
                  (if (-> doc-page :attrs :cljdoc.doc/source-file)
                    [:a.link.blue.hover-dark-blue.dib
-                    {:href  (article-url slug-path)}
+                    {:href  (offline-url/article-url slug-path)}
                     (:title doc-page)]
                    [:span (:title doc-page)])
                  (some-> doc-page :children seq article-toc)])))
@@ -126,7 +113,7 @@
          :let [defs (docset/defs-for-ns
                       (docset/all-defs docset)
                       (platf/get-field ns :name))]]
-     (api/namespace-overview ns-url ns defs  (api/valid-ref-pred-fn docset) opts))])
+     (api/namespace-overview offline-url/ns-url ns defs  (api/valid-ref-pred-fn docset) opts))])
 
 (defn- doc-page [doc-tuple opts]
   [:div
@@ -159,7 +146,7 @@
         uri-map (->> flat-doctree
                      (map (fn [d]
                             [(-> d :attrs :cljdoc.doc/source-file)
-                             (article-url (-> d :attrs :slug-path))]))
+                             (offline-url/article-url (-> d :attrs :slug-path))]))
                      (into {}))
         offline-static-resources {"/codeberg.svg" "assets/static/codeberg.svg"
                                   "/sourcehut.svg" "asets/static/sourcehut.svg"}
@@ -191,9 +178,11 @@
       [["assets/static/sourcehut.svg" (io/resource (str "public/out" (get static-resources "/sourcehut.svg")))]]
       ;; use content-hashed name for source map to preserve link from generated index.js
       (assets/offline-assets :highlightjs)
-      [["index.html" (->> (index-page docset {:docstring-format docstring-format
+      [["index.html" (->> (index-page docset {:version-entity version-entity
+                                              :docstring-format docstring-format
                                               :scm scm-info
-                                              :uri-map uri-map})
+                                              :uri-map uri-map
+                                              :target-path ""})
                           (page' {}))]]
 
       ;; Optional assets
@@ -202,10 +191,11 @@
 
       ;; Documentation Pages / Articles
       (for [doc doc-attrs
-            :let [target-file (article-url (:slug-path doc))]]
+            :let [target-file (offline-url/article-url (:slug-path doc))]]
         [target-file
          (->> (doc-page (:doc-tuple doc)
-                        {:scm articles-scm-info :uri-map uri-map
+                        {:version-entity version-entity
+                         :scm articles-scm-info :uri-map uri-map
                          :scm-file-path (:cljdoc.doc/source-file doc)
                          :target-path (.getParent (io/file target-file))})
               (page' {:article-title (:title doc)
@@ -214,10 +204,11 @@
       ;; Namespace Pages
       (for [ns-data (docset/namespaces docset)
             :let [defs (docset/defs-for-ns-with-src-uri docset (platf/get-field ns-data :name))
-                  target-file (ns-url (platf/get-field ns-data :name))]]
+                  target-file (offline-url/ns-url (platf/get-field ns-data :name))]]
         [target-file
          (->> (ns-page ns-data defs (api/valid-ref-pred-fn docset)
-                       {:docstring-format docstring-format
+                       {:version-entity version-entity
+                        :docstring-format docstring-format
                         :scm scm-info
                         :uri-map uri-map
                         ;; :scm-file-path - we don't currently have scm file for namespaces
@@ -271,5 +262,3 @@
   (slurp (URL. "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js"))
 
   (slurp (io/input-stream "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.12.0/build/highlight.min.js")))
-
-

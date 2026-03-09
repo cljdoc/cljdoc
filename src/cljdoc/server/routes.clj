@@ -126,6 +126,7 @@
   (route/try-routing-for (routes identity {}) path-info :get))
 
 (comment
+
   (url-for :artifact/index :path-params {:group-id "g" :artifact-id "a"})
   ;; => "/versions/g/a"
 
@@ -136,21 +137,51 @@
   ;; => Execution error (ExceptionInfo) at cljdoc.server.routes$url_for_routes$fn__62949/doInvoke (routes.clj:119).
   ;;    Missing path-params [:version]
 
-  (match-route "/d/foo/bar/CURRENT")
-  ;; => {:path "/d/:group-id/:artifact-id/:version",
+  (match-route "/d/foo/bar/CURRENT/api/foo.bar.baz")
+  ;; => {:path "/d/:group-id/:artifact-id/:version/api/:namespace",
   ;;     :method :get,
   ;;     :path-constraints
-  ;;     {:group-id "([^/]+)", :artifact-id "([^/]+)", :version "([^/]+)"},
-  ;;     :path-parts ["d" :group-id :artifact-id :version],
+  ;;     {:group-id "([^/]+)",
+  ;;      :artifact-id "([^/]+)",
+  ;;      :version "([^/]+)",
+  ;;      :namespace "([^/]+)"},
+  ;;     :path-parts ["d" :group-id :artifact-id :version "api" :namespace],
   ;;     :interceptors
   ;;     [{:name :cljdoc.server.routes/identity-interceptor,
   ;;       :enter #function[clojure.core/identity],
   ;;       :leave nil,
   ;;       :error nil}],
-  ;;     :route-name :artifact/version,
-  ;;     :path-params {:group-id "foo", :artifact-id "bar", :version "CURRENT"},
+  ;;     :route-name :artifact/namespace,
+  ;;     :path-params
+  ;;     {:group-id "foo",
+  ;;      :artifact-id "bar",
+  ;;      :version "CURRENT",
+  ;;      :namespace "foo.bar.baz"},
   ;;     :io.pedestal.http.route.internal/satisfies-constraints?
-  ;;     #function[io.pedestal.http.route.internal/add-satisfies-constraints?/fn--22131]}
+  ;;     #function[io.pedestal.http.route.internal/add-satisfies-constraints?/fn--35150]}
+
+  (match-route "/d/foo/bar/CURRENT/doc/foo/bar/baz")
+  ;; => {:path "/d/:group-id/:artifact-id/:version/doc/*article-slug",
+  ;;     :method :get,
+  ;;     :path-constraints
+  ;;     {:group-id "([^/]+)",
+  ;;      :artifact-id "([^/]+)",
+  ;;      :version "([^/]+)",
+  ;;      :article-slug "(.*)"},
+  ;;     :path-parts ["d" :group-id :artifact-id :version "doc" :article-slug],
+  ;;     :interceptors
+  ;;     [{:name :cljdoc.server.routes/identity-interceptor,
+  ;;       :enter #function[clojure.core/identity],
+  ;;       :leave nil,
+  ;;       :error nil}],
+  ;;     :route-name :artifact/doc,
+  ;;     :path-params
+  ;;     {:group-id "foo",
+  ;;      :artifact-id "bar",
+  ;;      :version "CURRENT",
+  ;;      :article-slug "foo/bar/baz"},
+  ;;     :io.pedestal.http.route.internal/satisfies-constraints?
+  ;;     #function[io.pedestal.http.route.internal/add-satisfies-constraints?/fn--35150]}
 
   (clojure.pprint/pprint
    (routes identity {}))
