@@ -16,9 +16,9 @@
                :scm {:commit "#SHA#"
                      :url "https://scm/user/project"}
                :uri-map {}
-               :version-info {:group-id "mygroupid"
-                              :artifact-id "myartifactid"
-                              :version "1.2.3"}})
+               :version-entity {:group-id "mygroupid"
+                                :artifact-id "myartifactid"
+                                :version "1.2.3"}})
 (defn- fix
   "Little helper that deals in hiccup rather than html"
   [hiccup opts]
@@ -203,3 +203,44 @@
           :scm {:commit "#SHA#"
                 :url "https://git.sr.ht/~user/project"}
           :uri-map {}}))))
+
+(t/deftest current-replaced-with-version-test
+  (t/is
+   (match?
+    (m/nested-equals
+     [[:a {:href "/d/mygroupid/myartifactid/1.2.3"}
+       "replace CURRENT for rendering lib"]
+      [:a {:href "/d/mygroupid/myartifactid/1.2.3/api/foo.bar.baz#boingo?q=foobar"}
+       "replace CURRENT when there are extra bits"]])
+    (fix [[:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/CURRENT"}
+           "replace CURRENT for rendering lib"]
+          [:a {:href "https://cljdoc.org/d/mygroupid/myartifactid/CURRENT/api/foo.bar.baz#boingo?q=foobar"}
+           "replace CURRENT when there are extra bits"]]
+         fix-opts))))
+
+(t/deftest current-not-replaced-with-version-test
+  (t/is
+   (match?
+    (m/nested-equals
+     [[:a {:href "/d/mygroupid/not-myartifactid/CURRENT"}
+       "doesn't replace CURRENT if not my artifact-id"]
+      [:a {:href "/d/not-mygroupid/myartifactid/CURRENT"}
+       "doesn't replace CURRENT if not my group-id"]
+      [:a {:href "/d/not-mygroupid/not-myartifactid/CURRENT"}
+       "doesn't replace CURRENT if not my group-id/artifact-id"]
+      [:a {:href "/doopsie/mygroupid/myartifactid/CURRENT"}
+       "doesn't replace CURRENT if not a cljdoc route"]
+      [:a {:href "https://notcljdoc.org/d/mygroupid/myartifactid/CURRENT"
+           :rel "nofollow"}
+       "doesn't replace CURRENT if not a cljdoc url at all"]])
+    (fix [[:a {:href "https://cljdoc.org/d/mygroupid/not-myartifactid/CURRENT"}
+           "doesn't replace CURRENT if not my artifact-id"]
+          [:a {:href "https://cljdoc.org/d/not-mygroupid/myartifactid/CURRENT"}
+           "doesn't replace CURRENT if not my group-id"]
+          [:a {:href "https://cljdoc.org/d/not-mygroupid/not-myartifactid/CURRENT"}
+           "doesn't replace CURRENT if not my group-id/artifact-id"]
+          [:a {:href "https://cljdoc.org/doopsie/mygroupid/myartifactid/CURRENT"}
+           "doesn't replace CURRENT if not a cljdoc route"]
+          [:a {:href "https://notcljdoc.org/d/mygroupid/myartifactid/CURRENT"}
+           "doesn't replace CURRENT if not a cljdoc url at all"]]
+         fix-opts))))

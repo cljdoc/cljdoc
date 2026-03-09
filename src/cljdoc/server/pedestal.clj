@@ -231,33 +231,13 @@
                (assoc ctx ::pom-info pom)
                ctx))}))
 
-(defn- uri-path
-  "Return path part of a URL, this is probably part of pedestal in
-  some way but I couldn't find it fast enough. TODO replace."
-  [uri]
-  (-> uri
-      (string/replace #"^https*://" "")
-      (string/replace #"^[^/]*" "")))
-
-(defn- matching-referer-version [request target-group-id target-artifact-id]
-  (when-let [{:keys [group-id artifact-id version]}
-             (some-> request
-                     (get-in [:headers "referer"])
-                     uri-path
-                     routes/match-route
-                     :path-params)]
-    (when (and version
-               (= target-group-id group-id)
-               (= target-artifact-id artifact-id))
-      version)))
-
 (defn resolve-version-interceptor
   "An interceptor that will look at `:path-params` and try to turn it into an artifact
   entity or redirect of the version is specified in a meta-fasion, i.e. `CURRENT`.
 
   - If the provided version is `nil` set it to the last known release.
-  - If the provided version is `CURRENT` redirect to either a version from the `referer` header
-    or the last known version."
+  - If the provided version is `CURRENT` redirect to the latest known version
+    (note that CURRENT is replaced at render time with currently rendering version by [[fixref/fix]])"
   [maven-repos]
   (interceptor/interceptor
    {:name ::resolve-version-interceptor
@@ -266,15 +246,10 @@
                    artifact-id     (or artifact-id (proj/artifact-id project))
                    group-id        (or group-id (proj/group-id project))
                    proj-search     (str group-id "/" artifact-id)
-                   resolved-version (cond
-                                      (nil? version)
+                   resolved-version (if (or (nil? version)
+                                            (= "CURRENT" version))
                                       (maven-repo/latest-release-version maven-repos proj-search)
-
-                                      (= "CURRENT" version)
-                                      (or (matching-referer-version request group-id artifact-id)
-                                          (maven-repo/latest-release-version maven-repos proj-search))
-
-                                      :else version)
+                                      version)
                    artifact-entity {:artifact-id artifact-id
                                     :group-id group-id
                                     :version resolved-version}]

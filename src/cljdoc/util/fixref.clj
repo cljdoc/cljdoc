@@ -7,7 +7,8 @@
             [cljdoc.util.scm :as scm]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [lambdaisland.uri :as uri])
   (:import (org.jsoup Jsoup)
            (org.jsoup.nodes Attributes Document Element)))
 
@@ -134,8 +135,9 @@
     * `:scm-file-path` SCM repo home relative path of content
     * `:target-path` local relative destination path of content, if provided, used to relativize link paths local path (used for offline docsets)
     * `:uri-map` - map of relative scm paths to cljdoc doc slugs (or for offline docset html files)
-    * `:scm` - scm-info from docset used to link to correct SCM file revision"
-  [html-str {:keys [scm-file-path target-path scm uri-map] :as _fix-opts}]
+    * `:scm` - scm-info from docset used to link to correct SCM file revision
+    * `:version-entity` - artifact-id, group-id, version of rendering artifact"
+  [html-str {:keys [scm-file-path target-path scm uri-map version-entity] :as _fix-opts}]
   (let [doc (parse-html html-str)]
     (doseq [^Attributes scm-relative-link (->> (.select doc "a")
                                                (map (fn [^Element e] (.attributes e)))
@@ -162,7 +164,17 @@
                                            (filter (fn [^Attributes a] (absolute-uri? (.get a "href")))))]
       (let [href (.get absolute-link "href")]
         (if-let [cljdoc-prefix (get-cljdoc-url-prefix href)]
-          (.put absolute-link "href" (subs href (count cljdoc-prefix)))
+          (let [rel-link (subs href (count cljdoc-prefix))
+                rel-link-uri (uri/parse rel-link)
+                rel-link-path (:path rel-link-uri)
+                {:keys [route-name path-params]} (routes/match-route rel-link-path)]
+            (if (and (= "CURRENT" (:version path-params))
+                     (= (:group-id version-entity) (:group-id path-params))
+                     (= (:artifact-id version-entity) (:artifact-id path-params)))
+              (let [fixed-rel-link-path (routes/url-for route-name :path-params (assoc path-params :version (:version version-entity)))
+                    ^String fixed-rel-link (uri/uri-str (assoc rel-link-uri :path fixed-rel-link-path))]
+                (.put absolute-link "href" fixed-rel-link))
+              (.put absolute-link "href" rel-link)))
           (.put absolute-link "rel" "nofollow"))))
 
     (.. doc body html toString)))
@@ -228,5 +240,15 @@
        (map #(doto % (.put "src" (fix-image (.get % "src") fix-opts)))))
 
   (.get (.attributes (first (.select doc "a"))) "href")
+
+  (uri/parse "foo/bar/baz?morty=foo#binkus")
+  ;; => {:scheme nil,
+  ;;     :user nil,
+  ;;     :password nil,
+  ;;     :host nil,
+  ;;     :port nil,
+  ;;     :path "foo/bar/baz",
+  ;;     :query "morty=foo",
+  ;;     :fragment "binkus"}
 
   :eoc)
