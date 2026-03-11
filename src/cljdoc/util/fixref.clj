@@ -159,7 +159,10 @@
                                            (map (fn [^Element e] (.attributes e)))
                                            (filter (fn [^Attributes a] (absolute-uri? (.get a "href")))))]
       (let [href (.get absolute-link "href")
-            {:keys [host scheme ^String path] :as uri} (uri/parse href)]
+            {:keys [host scheme ^String path] :as uri} (let [uri (uri/parse href)]
+                                                         (if (:path uri)
+                                                           uri
+                                                           (assoc uri :path "/")))]
         (if-not (and (= "https" scheme) (= "cljdoc.org" host))
           (.put absolute-link "rel" "nofollow")
           (let [{:keys [route-name path-params]} (routes/match-route path)

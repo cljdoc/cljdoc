@@ -80,8 +80,12 @@
   (t/is
    (match?
     (m/nested-equals
-     [[:a {:href "/some/path/here"} "absolute link to cljdoc"]])
-    (fix [[:a {:href "https://cljdoc.org/some/path/here"} "absolute link to cljdoc"]]
+     [[:a {:href "/some/path/here"} "absolute link to cljdoc"]
+      [:a {:href "/"} "root path"]
+      [:a {:href "/"} "no path"]])
+    (fix [[:a {:href "https://cljdoc.org/some/path/here"} "absolute link to cljdoc"]
+          [:a {:href "https://cljdoc.org/"} "root path"]
+          [:a {:href "https://cljdoc.org"} "no path"]]
          fix-opts))))
 
 (t/deftest unknown-scm-links-when-relative-point-to-normalized-scm-test
@@ -278,7 +282,10 @@
                  [:a {:href "https://cljdoc.org/d/not-mygroupid/not-myartifactid/CURRENT"}
                   "doesn't replace CURRENT if not my group-id/artifact-id"]
                  [:a {:href "https://cljdoc.org/doopsie/mygroupid/myartifactid/CURRENT"}
-                  "doesn't replace CURRENT if not a cljdoc route"]]]
+                  "doesn't replace CURRENT if not a cljdoc route"]
+                 [:a {:href "https://cljdoc.org/some/path"} "arbitrary path"]
+                 [:a {:href "https://cljdoc.org/"} "root path"]
+                 [:a {:href "https://cljdoc.org"} "no path"]]]
       (t/is
        (match?
         (m/nested-equals input)
