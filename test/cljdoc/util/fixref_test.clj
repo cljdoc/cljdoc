@@ -80,9 +80,9 @@
   (t/is
    (match?
     (m/nested-equals
-      [[:a {:href "/some/path/here"} "absolute link to cljdoc"]
-       [:a {:href "/"} "root path"]
-       [:a {:href "/"} "no path"]])
+     [[:a {:href "/some/path/here"} "absolute link to cljdoc"]
+      [:a {:href "/"} "root path"]
+      [:a {:href "/"} "no path"]])
     (fix [[:a {:href "https://cljdoc.org/some/path/here"} "absolute link to cljdoc"]
           [:a {:href "https://cljdoc.org/"} "root path"]
           [:a {:href "https://cljdoc.org"} "no path"]]
