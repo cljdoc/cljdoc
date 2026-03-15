@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Tue, 10 Mar 2026 16:02:12 GMT",
+ :last-modified "Wed, 11 Mar 2026 20:42:11 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -473,13 +473,14 @@
     "0.0-971"
     "0.0-927"],
    :description "ClojureScript compiler and core runtime library."}
-  {:etag "W/\"b10b3cd84b983d78574e7bae40b173b9\"",
-   :last-modified "Wed, 01 Oct 2025 20:43:36 GMT",
+  {:etag "W/\"be3d3caa45d08a6a889528ee7ae8fed6\"",
+   :last-modified "Wed, 11 Mar 2026 20:41:32 GMT",
    :artifact-id "core.async",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.9.829-alpha2"
+   ["1.9.847-alpha3"
+    "1.9.829-alpha2"
     "1.9.808-alpha1"
     "1.8.741"
     "1.8.735"
