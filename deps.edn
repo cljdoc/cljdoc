@@ -58,7 +58,7 @@
         org.babashka/cli {:mvn/version "0.8.67"}             ;; command line parsing
         babashka/fs {:mvn/version "0.5.32"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.25"}             ;; launch processes
-        cheshire/cheshire {:mvn/version "6.1.0"}             ;; json
+        cheshire/cheshire {:mvn/version "6.2.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.312"}              ;; file system utilities
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
         prone/prone {:mvn/version "2021-04-23"}              ;; exceptions->data for sentry
