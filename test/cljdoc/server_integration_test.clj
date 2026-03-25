@@ -47,7 +47,7 @@
 
 (defn- latest-version [clojars-lib]
   (-> (http/get (str "https://clojars.org/api/artifacts/" clojars-lib)
-                {:headers {:Accept "application/edn"}})
+                {:headers {:accept "application/edn"}})
       :body
       edn/read-string
       :latest_version))
