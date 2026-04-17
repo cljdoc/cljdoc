@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Thu, 19 Mar 2026 18:20:18 GMT",
+ :last-modified "Thu, 09 Apr 2026 15:42:13 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -39,13 +39,14 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"32444779f049382395bc554fef3b456b\"",
-   :last-modified "Wed, 10 Dec 2025 18:43:28 GMT",
+  {:etag "W/\"4b584e72f2e0d0bbb8f33522ba88b658\"",
+   :last-modified "Tue, 07 Apr 2026 20:39:34 GMT",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.12.4"
+   ["1.12.5-alpha1"
+    "1.12.4"
     "1.12.3"
     "1.12.2"
     "1.12.1"
@@ -473,13 +474,14 @@
     "0.0-971"
     "0.0-927"],
    :description "ClojureScript compiler and core runtime library."}
-  {:etag "W/\"f1da1e9834dbb2ac70eb8ebedb80b869\"",
-   :last-modified "Thu, 19 Mar 2026 18:19:30 GMT",
+  {:etag "W/\"dd70dfcfc86da86ab714c7e465c7b0c3\"",
+   :last-modified "Mon, 06 Apr 2026 20:21:18 GMT",
    :artifact-id "core.async",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.10.864-alpha1"
+   ["1.10.870-alpha2"
+    "1.10.864-alpha1"
     "1.9.865"
     "1.9.859-alpha4"
     "1.9.847-alpha3"
@@ -1366,13 +1368,14 @@
     "0.0.2"
     "0.0.1"],
    :description "Clojure priority map data structure."}
-  {:etag "W/\"34e05c09c9044a6f2fbf2a6b56b5323e\"",
-   :last-modified "Tue, 30 Dec 2025 23:09:12 GMT",
+  {:etag "W/\"18ba3af6fc5bfdb836c1c0a1cd5c9d27\"",
+   :last-modified "Thu, 09 Apr 2026 15:39:57 GMT",
    :artifact-id "data.xml",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.2.0-alpha10"
+   ["0.2.0-alpha11"
+    "0.2.0-alpha10"
     "0.2.0-alpha9"
     "0.2.0-alpha8"
     "0.2.0-alpha7"
