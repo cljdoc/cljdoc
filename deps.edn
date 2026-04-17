@@ -14,7 +14,7 @@
         org.xerial/sqlite-jdbc {:mvn/version "3.51.3.0"}     ;; jdbc driver needed to talk to our SQLite db
         dev.weavejester/ragtime {:mvn/version "0.12.1"       ;; database migrations
                                  :exclusions [dev.weavejester/ragtime.jdbc]} ;; we only use next.jdbc
-        com.taoensso/nippy {:mvn/version "3.6.0"}            ;; fast compact serializer that we use for blobs
+        com.taoensso/nippy {:mvn/version "3.6.2"}            ;; fast compact serializer that we use for blobs
 
         ;; full text search database
         org.apache.lucene/lucene-core {:mvn/version "10.4.0"} ;; search engine supports searching for libs
