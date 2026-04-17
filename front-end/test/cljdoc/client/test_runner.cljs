@@ -1,4 +1,5 @@
-(ns cljdoc.client.test-runner)
+(ns cljdoc.client.test-runner
+  (:require [cljdoc.client.single-docset-search.logic-test]
+            [cljs.test :as t]))
 
-;; poor man's test runner
-(require '[cljdoc.client.single-docset-search.logic-test])
+(t/run-tests 'cljdoc.client.single-docset-search.logic-test)
