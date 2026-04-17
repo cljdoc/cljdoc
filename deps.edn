@@ -79,7 +79,7 @@
  :aliases {:nrepl
            {:extra-paths ["dev"]
             :extra-deps {nrepl/nrepl {:mvn/version "1.6.0"}
-                         cider/cider-nrepl {:mvn/version "0.58.0"}
+                         cider/cider-nrepl {:mvn/version "0.59.0"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}
                          ;; to support recompiling java code from repl
                          virgil/virgil {:mvn/version "0.5.1"}
