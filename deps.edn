@@ -116,13 +116,13 @@
 
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.13"}
-                   clj-kondo/clj-kondo {:mvn/version "2026.01.19"}
+                   clj-kondo/clj-kondo {:mvn/version "2026.04.15"}
                    babashka/fs {:mvn/version "0.5.32"}
                    babashka/process {:mvn/version "0.6.25"}}
             :ns-default build}
 
            :clj-kondo
-           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.01.19"}}
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.04.15"}}
             :main-opts ["-m" "clj-kondo.main"]}
 
            :eastwood
