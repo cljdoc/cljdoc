@@ -1,11 +1,6 @@
 (ns cljdoc.client.single-docset-search.logic-test
-  "Pretty hacky test framework. Run via bb test-js."
-  (:require #_{:clj-kondo/ignore [:unused-namespace]} ["assert" :as assert] ;; hack, needed for is
-            [cljdoc.client.single-docset-search.logic :as logic])
-  (:require-macros
-   [cljdoc.client.test-macros :refer [deftest is]]))
-
-(println "=[cljdoc.client.single-docset-search.logic-test]=")
+  (:require [cljdoc.client.single-docset-search.logic :as logic]
+            [cljs.test :refer [deftest is]]))
 
 (deftest tokenize-test
   (is (= [] (logic/tokenize "")))
