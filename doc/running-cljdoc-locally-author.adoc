@@ -21,12 +21,32 @@ You are a library author who wants to see what your docs will look like on cljdo
 
 Cljdoc developers should instead read link:running-cljdoc-locally-dev.adoc[running cljdoc locally for cljdoc developers].
 
+== Prerequisites
+You'll need https://www.docker.com/products/docker-desktop/[Docker Desktop] or https://www.docker.com/get-started[plain old Docker].
+Docker Desktop does better at <<volume-mapping>>.
+
+== General Tips
+
+[#volume-mapping,reftext=§volume mapping]
+=== Volume Mappings
+If you are using Docker Desktop, mapped volume files user ownership is to the host user.
+You are all good.
+
+If you are using plain old Docker, check your user id and group id:
+[source,shell]
+----
+echo $(id -u):$(id -g)
+----
+The cljdoc docker container runs under user `cljdoc` that has a user id of `1000` nd group id of `1000`.
+If your output matches `1000:1000`, all will work seamlessly.
+
+Otherwise, you'll need to add `--user $(id -u):$(id -g)` to your docker launch command to align ownership of of mapped volumes to your host user.
+Note that this may produce warnings about unwritable internal docker container files.
+The cljddoc server should still function correctly.
+
 == Run cljdoc Server Locally via Docker
 
 We use of the very same https://github.com/cljdoc/cljdoc/blob/master/ops/docker/Dockerfile[cljdoc docker] https://hub.docker.com/r/cljdoc/cljdoc/tags[image] that runs in https://cljdoc.org/[production] and avoid any local cljdoc source setup.
-
-=== Prerequisites
-You'll need https://www.docker.com/get-started[docker].
 
 === Launch cljdoc Server
 
@@ -70,12 +90,14 @@ NOTE: We previously encouraged `/tmp/cljdoc` but current versions of docker need
 ----
 docker run --rm \
   --publish 8000:8000 \
-  --volume "$HOME/.m2:/root/.m2" \
+  --volume "$HOME/.m2:/home/cljdoc/.m2" \
   --volume ./.cljdoc-preview:/app/data \
   --platform linux/amd64 \
   {docker-image}
 ----
 +
+TIP: The `--volume "$HOME/.m2:/home/cljdoc/.m2"` mapping was updated in May of 2026 when we switched to running cljdoc from a non-root user (we used to map to `/root/.m2`).
+
 NOTE: Leave this terminal open. Open a separate terminal shell for any other work.
 
 == Import a Library's Docs
@@ -111,7 +133,7 @@ To import {example-project-name} {example-project-version}:
 [source,shell,subs="verbatim,attributes"]
 ----
 docker run --rm \
-  --volume "$HOME/.m2:/root/.m2" \
+  --volume "$HOME/.m2:/home/cljdoc/.m2" \
   --volume ./.cljdoc-preview:/app/data \
   --platform linux/amd64 \
   --entrypoint clojure \
@@ -122,7 +144,7 @@ docker run --rm \
 
 You can now <<browse>>.
 
-[[importing-unpublished-library]]
+[#importing-unpublished-library,reftext=§importing an unpublished library]
 === Importing an Unpublished Library
 
 If you are going to walk through the examples, you'll want to clone {example-project-link}.
@@ -185,7 +207,7 @@ From {example-project-name}'s root dir:
 ----
 docker run --rm \
   --volume $(pwd):/repo-to-import \
-  --volume "$HOME/.m2:/root/.m2" \
+  --volume "$HOME/.m2:/home/cljdoc/.m2" \
   --volume ./.cljdoc-preview:/app/data \
   --platform linux/amd64 \
   --entrypoint clojure \
@@ -207,7 +229,7 @@ From {example-project-name}'s root dir:
 [source,shell,subs="verbatim,attributes"]
 ----
 docker run --rm \
-  --volume "$HOME/.m2:/root/.m2" \
+  --volume "$HOME/.m2:/home/cljdoc/.m2" \
   --volume ./.cljdoc-preview:/app/data \
   --platform linux/amd64 \
   --entrypoint clojure \
@@ -218,7 +240,7 @@ docker run --rm \
     --rev $(git rev-parse HEAD)
 ----
 
-[[browse]]
+[#browse,reftext=§browse library docs]
 ==== Step 4) Browse Library Docs
 The final step is you browsing the imported library docs in your web browser.
 For example, after importing version {example-project-version} of {example-project-name} you'd browse the docs locally via: +
