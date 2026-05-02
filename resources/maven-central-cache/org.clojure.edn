@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Thu, 09 Apr 2026 15:42:13 GMT",
+ :last-modified "Mon, 20 Apr 2026 15:08:14 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -39,13 +39,14 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"4b584e72f2e0d0bbb8f33522ba88b658\"",
-   :last-modified "Tue, 07 Apr 2026 20:39:34 GMT",
+  {:etag "W/\"54855e02e0e1871eec006fdba78f0e80\"",
+   :last-modified "Mon, 20 Apr 2026 15:08:04 GMT",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.12.5-alpha1"
+   ["1.12.5-rc1"
+    "1.12.5-alpha1"
     "1.12.4"
     "1.12.3"
     "1.12.2"
