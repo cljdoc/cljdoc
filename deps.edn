@@ -37,7 +37,7 @@
 
         ;; html
         hiccup/hiccup {:mvn/version "2.0.0"}                 ;; html abstraction
-        org.jsoup/jsoup {:mvn/version "1.22.1"}              ;; xml/html parser/rewriter
+        org.jsoup/jsoup {:mvn/version "1.22.2"}              ;; xml/html parser/rewriter
         sitemap/sitemap {:mvn/version "0.4.0"}               ;; web sitemap generation
         com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer
         {:mvn/version "20260313.1"}                          ;; sanitize html converted from user markdown
@@ -48,7 +48,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.42.35"}
+        software.amazon.awssdk/s3 {:mvn/version "2.44.0"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.6.0.202603022253-r"} ;; git with jsch
@@ -56,7 +56,7 @@
 
         ;; misc utils
         org.babashka/cli {:mvn/version "0.8.67"}             ;; command line parsing
-        babashka/fs {:mvn/version "0.5.32"}                  ;; file system utilities (a modern version of clj-commons/fs)
+        babashka/fs {:mvn/version "0.5.33"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.25"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.2.0"}             ;; json
         clj-commons/fs {:mvn/version "1.6.312"}              ;; file system utilities
@@ -117,7 +117,7 @@
            :build
            {:deps {io.github.clojure/tools.build {:mvn/version "0.10.13"}
                    clj-kondo/clj-kondo {:mvn/version "2026.04.15"}
-                   babashka/fs {:mvn/version "0.5.32"}
+                   babashka/fs {:mvn/version "0.5.33"}
                    babashka/process {:mvn/version "0.6.25"}}
             :ns-default build}
 
