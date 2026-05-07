@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Mon, 20 Apr 2026 15:08:14 GMT",
+ :last-modified "Wed, 06 May 2026 18:34:14 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -249,13 +249,14 @@
    :origin :maven-central,
    :versions ["0.1.21" "0.1.16" "0.1.10"],
    :description "Clojure dependency installer"}
-  {:etag "W/\"f9a05206e346e21bc1f2ec8b2de31a70\"",
-   :last-modified "Tue, 09 Dec 2025 00:27:15 GMT",
+  {:etag "W/\"4f1afc62acebdfb3f96dc86870d768d9\"",
+   :last-modified "Wed, 06 May 2026 18:33:15 GMT",
    :artifact-id "clojurescript",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.12.134"
+   ["1.12.145"
+    "1.12.134"
     "1.12.116"
     "1.12.42"
     "1.12.38"
