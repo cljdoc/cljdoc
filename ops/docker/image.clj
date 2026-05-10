@@ -19,7 +19,7 @@
     ;; fs/unzip does not restore executable status, but InfoZip does so shell out.
     (t/shell "unzip" cljdoc-zip "-d" cljdoc-build)
     (fs/copy "Dockerfile" cljdoc-build)
-    (t/shell "docker build --no-cache -t" docker-tag cljdoc-build)
+    (t/shell "docker build --platform linux/amd64 --no-cache -t" docker-tag cljdoc-build)
     (t/shell "docker tag" docker-tag (str docker-image ":latest"))
     (fs/delete-tree cljdoc-build)))
 
