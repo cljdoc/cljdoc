@@ -21,11 +21,10 @@
             [clojure.java.io :as io]
             [hiccup.page]
             [hiccup2.core :as hiccup]
-            [lambdaisland.uri :as uri]
             [me.raynes.fs.compression :as fs-compression])
   (:import (java.net URL)))
 
-(defn- top-bar [version-entity scm-url static-resources sub-page?]
+(defn- top-bar [version-entity scm-url sub-page?]
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center
    [:a.dib.v-mid.link.dim.black.b.f6.mr3
     {:href (if sub-page? ".." "#")}
@@ -34,17 +33,13 @@
     (:version version-entity)]
    [:a.link.blue.ml3 {:href (if sub-page? "../index.html#namespaces" "#namespaces")} "Namespaces"]
    [:a.link.blue.ml3 {:href (if sub-page? "../index.html#articles" "#articles")} "Articles"]
-   [:div.tr
+   [:div.tr.flex.items-center.justify-end
     {:style {:flex-grow 1}}
     (when scm-url
-      [:a.link.dim.gray.f6.tr
+      [:a.link.dim.gray.f6.tr.flex.items-center
        {:href scm-url}
-       (let [icon-url (scm/icon-url scm-url static-resources)
-             icon-url (if (and sub-page? (uri/relative? icon-url))
-                        (-> (uri/join "../" icon-url) str)
-                        icon-url)]
-         (list [:img.v-mid.mr2.w1.h1 {:src icon-url}]
-               [:span.v-mid.dib (scm/coordinate scm-url)]))])]])
+       (list [:div.dib.w1.h1.mr2 (scm/icon-img scm-url)]
+             [:span.dib (scm/coordinate scm-url)])])]])
 
 (defn adjust-refs [sub-page? refs]
   (map #(cond->> % sub-page? (str "../"))
@@ -57,7 +52,7 @@
                (adjust-refs sub-page?)
                (apply hiccup.page/include-js)))))
 
-(defn- page [{:keys [version-entity namespace article-title scm-url page-features static-resources]} contents]
+(defn- page [{:keys [version-entity namespace article-title scm-url page-features]} contents]
   (let [sub-page? (or namespace article-title)]
     (hiccup/html {:mode :html}
                  (hiccup.page/doctype :html5)
@@ -73,7 +68,7 @@
                         (adjust-refs sub-page?)
                         (apply hiccup.page/include-css))]
                   [:div.sans-serif
-                   (top-bar version-entity scm-url static-resources sub-page?)
+                   (top-bar version-entity scm-url sub-page?)
                    [:div.absolute.bottom-0.left-0.right-0.overflow-scroll
                     {:style {:top "52px"}}
                     [:div.mw7.center.pa2.pb4
@@ -148,13 +143,10 @@
                             [(-> d :attrs :cljdoc.doc/source-file)
                              (offline-url/article-url (-> d :attrs :slug-path))]))
                      (into {}))
-        offline-static-resources {"/codeberg.svg" "assets/static/codeberg.svg"
-                                  "/sourcehut.svg" "asets/static/sourcehut.svg"}
         page' (fn [opts contents]
                 (page (assoc opts
                              :scm-url (-> docset :version :scm :url)
-                             :version-entity version-entity
-                             :static-resources offline-static-resources)
+                             :version-entity version-entity)
                       contents))
         doc-attrs (->> flat-doctree
                        (filter #(-> % :attrs :cljdoc.doc/source-file))
@@ -174,8 +166,6 @@
      [[["assets/tachyons.css" (io/resource (str "public/out" (get static-resources "/tachyons.css")))]]
       [["assets/cljdoc.css" (io/resource (str "public/out" (get static-resources "/cljdoc.css")))]]
       [["assets/js/index.js" (io/resource (str "public/out" (get static-resources "/cljdoc.js")))]]
-      [["assets/static/codeberg.svg" (io/resource (str "public/out" (get static-resources "/codeberg.svg")))]]
-      [["assets/static/sourcehut.svg" (io/resource (str "public/out" (get static-resources "/sourcehut.svg")))]]
       ;; use content-hashed name for source map to preserve link from generated index.js
       (assets/offline-assets :highlightjs)
       [["index.html" (->> (index-page docset {:version-entity version-entity

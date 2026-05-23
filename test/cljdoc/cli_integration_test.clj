@@ -37,8 +37,6 @@
                 "bidi-2.1.3/assets/highlightjs/languages/clojure.min.js"
                 "bidi-2.1.3/assets/highlightjs/languages/groovy.min.js"
                 "bidi-2.1.3/assets/js/index.js"
-                "bidi-2.1.3/assets/static/codeberg.svg"
-                "bidi-2.1.3/assets/static/sourcehut.svg"
                 "bidi-2.1.3/assets/tachyons.css"
                 "bidi-2.1.3/doc/bidi-patterns.html"
                 "bidi-2.1.3/doc/changelog.html"

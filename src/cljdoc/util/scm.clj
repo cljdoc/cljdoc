@@ -1,6 +1,7 @@
 (ns cljdoc.util.scm
   "Utilities to extract information from SCM urls (GitHub et al)"
-  (:require [clojure.java.io :as io]
+  (:require [cljdoc.render.icon :as icon]
+            [clojure.java.io :as io]
             [clojure.string :as string]
             [lambdaisland.uri :as uri]))
 
@@ -25,18 +26,17 @@
       (string/ends-with? host "bitbucket.org") :bitbucket
       (string/starts-with? host "gitea.") :gitea)))
 
-(defn icon-url
-  "Return url to icon for `scm-url`."
-  [scm-url static-resources]
+(defn icon-img
+  [scm-url]
   (let [provider (provider scm-url)]
     (case provider
-      :github "https://microicon-clone.vercel.app/github"
-      :gitlab "https://microicon-clone.vercel.app/gitlab"
-      :sourcehut  (get static-resources "/sourcehut.svg")
-      :codeberg (get static-resources "/codeberg.svg")
-      :bitbucket "https://microicon-clone.vercel.app/bitbucket"
-      :gitea "https://microicon-clone.vercel.app/gitea"
-      "https://microicon-clone.vercel.app/git")))
+      :github (icon/github)
+      :gitlab (icon/gitlab)
+      :sourcehut (icon/sourcehut)
+      :codeberg (icon/codeberg)
+      :bitbucket (icon/bitbucket)
+      :gitea (icon/gitea)
+      (icon/git))))
 
 (defn- url-scheme
   "Some providers share a url scheme, for example :gitlab uses the same scheme as :github, and :codeberg is hosted on :gitea."

@@ -1,5 +1,6 @@
 (ns cljdoc.render.home
-  (:require [cljdoc.render.layout :as layout]
+  (:require [cljdoc.render.icon :as icon]
+            [cljdoc.render.layout :as layout]
             [cljdoc.render.links :as links]
             [cljdoc.render.search :as search]))
 
@@ -103,7 +104,7 @@
           [:p.f2-ns.f3.fw3.lh-copy.near.black "Open Source, so the community can work together to improve or even fork cljdoc."]]
          [:div.dtc-l.v-mid.ph5-ns.ph4.pv5-l.lh-copy.mb4
           [:a.dt.link.black.center.o-80.glow {:href (links/github-url :home)}
-           [:img.dtc.v-mid.mr3 {:src "https://microicon-clone.vercel.app/github/38"}]
+           [:div.dib.w2.h2.mr2 (icon/github)]
            [:span.dtc.v-mid.f3 "cljdoc/cljdoc"]]]]
 
         (footer context)]
