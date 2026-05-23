@@ -4,6 +4,7 @@
   These pages are used when switching between versions or
   browsing all artifacts under a specific group-id."
   (:require [cljdoc-shared.proj :as proj]
+            [cljdoc.render.icon :as icon]
             [cljdoc.render.layout :as layout]
             [cljdoc.server.routes :as routes]
             [cljdoc.util.version :as version]))
@@ -61,7 +62,7 @@
      {:href (routes/url-for :artifact/version :path-params artifact-entity)}
      [:h3.ma0
       (format "%s/%s %s" (:group-id artifact-entity) (:artifact-id artifact-entity) (:version artifact-entity))
-      [:img.ml1 {:src "https://microicon-clone.vercel.app/chevron/right"}]]]
+      [:div.dib.h1.w1.ml1 (icon/chevron)]]]
     [:a.link.black.f6.ph3.pv2.bt.b--blue.db.o-60
      {:href (routes/url-for :artifact/index :path-params artifact-entity)}
      "more versions"]]])

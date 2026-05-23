@@ -222,15 +222,15 @@
 (defn top-bar-generic []
   [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center home-link])
 
-(defn top-bar [{:keys [version-entity scm-url static-resources]}]
-  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center.bg-white
-   [:a.dib.v-mid.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params version-entity)}
+(defn top-bar [{:keys [version-entity scm-url]}]
+  [:nav.pv2.ph3.pv3-ns.ph4-ns.bb.b--black-10.flex.items-center.bg-white.flex.items-center
+   [:a.dib.link.dim.black.b.f6.mr3 {:href (routes/url-for :artifact/version :path-params version-entity)}
     (proj/clojars-id version-entity)]
-   [:a.dib.v-mid.link.dim.gray.f6.mr3
+   [:a.dib.link.dim.gray.f6.mr3
     {:href (routes/url-for :artifact/index :path-params version-entity)}
     (:version version-entity)]
    home-link
-   [:div.tr
+   [:div.tr.flex.items-center.justify-end
     {:style {:flex-grow 1}}
     [:form.dn.dib-ns.mr3 {:action "/api/request-build2" :method "POST"}
      [:input.pa2.mr2.br2.ba.outline-0.blue {:type "hidden" :name "project" :value (str (:group-id version-entity) "/" (:artifact-id version-entity))}]
@@ -238,9 +238,9 @@
      [:input.f7.white.hover-near-white.outline-0.bn.bg-white {:type "submit" :value "rebuild"}]]
     (cond
       (and scm-url (scm/http-uri scm-url))
-      [:a.link.dim.gray.f6.tr
+      [:a.link.dim.gray.f6.tr.flex.items-center
        {:href (scm/http-uri scm-url)}
-       [:img.v-mid.w1.h1.mr2-ns {:src (scm/icon-url scm-url static-resources)}]
+       [:div.dib.w1.h1.mr2 (scm/icon-img scm-url)]
        [:span.v-mid.dib-ns.dn (scm/coordinate (scm/http-uri scm-url))]]
 
       (and scm-url (scm/fs-uri scm-url))

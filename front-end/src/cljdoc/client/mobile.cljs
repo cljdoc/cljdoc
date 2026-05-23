@@ -5,6 +5,24 @@
             [cljdoc.client.dom :as dom]
             [cljdoc.client.page :as page]))
 
+(defn list-icon []
+  #jsx [:svg {:xmlns "http://www.w3.org/2000/svg"
+              :class "w1 h1 mr2"
+              :viewBox "0 0 24 24"
+              :fill "currentColor"}
+        [:circle {:cx "5" :cy "6" :r "1.5"}]
+        [:circle {:cx "5" :cy "12" :r "1.5"}]
+        [:circle {:cx "5" :cy "18" :r "1.5"}]
+        [:rect {:x "9" :y "5" :width "12" :height "2" :rx "1"}]
+        [:rect {:x "9" :y "11" :width "12" :height "2" :rx "1"}]
+        [:rect {:x "9" :y "17" :width "12" :height "2" :rx "1"}]])
+
+(defn left-chevron-icon []
+  #jsx [:svg {:xmlns "http://www.w3.org/2000/svg"
+              :class "w1 h1 mr2"
+              :viewBox "0 0 32 32"}
+        [:path {:d "M20 1 L24 5 L14 16 L24 27 L20 31 L6 16 z"}]])
+
 (defn MobileNav []
   (let [[scroll-pos-main set-scroll-pos-main] (useState nil)
         [scroll-pos-nav set-scroll-pos-nav] (useState nil)
@@ -33,14 +51,10 @@
                            (set-show-nav true)
                            (set-scroll-pos-main scroll-pos)))))]
     #jsx [:<>
-          [:div {:class "bg-light-gray"}
-           [:button {:class "outline-0 bw0 bg-transparent w-100 tl pa2"
+          [:div {:class "bg-light-gray "}
+           [:button {:class "outline-0 bw0 bg-transparent w-100 tl pa2 flex items-center"
                      :onClick toggle-nav}
-            [:img {:class "dib mr2 v-mid"
-                   :src (str "https://microicon-clone.vercel.app/"
-                             (if show-nav "chevronLeft" "list")
-                             "/32")
-                   :height 32}]
+            (if show-nav (left-chevron-icon) (list-icon))
             [:span {:class "dib"}
              (if show-nav
                "Back to Content"

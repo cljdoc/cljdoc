@@ -3,6 +3,7 @@
   (:require [cljdoc.docset :as docset]
             [cljdoc.platforms :as platf]
             [cljdoc.render.code-fmt :as code-fmt]
+            [cljdoc.render.icon :as icon]
             [cljdoc.render.rich-text :as rich-text]
             [cljdoc.server.routes :as routes]
             [cljdoc.spec]
@@ -329,7 +330,7 @@
       [:h2
        {:data-cljdoc-type "namespace"}
        ns-name
-       [:img.ml2 {:src "https://microicon-clone.vercel.app/chevron/12/357edd"}]]]
+       [:div.dib.w1.h1.blue (icon/chevron)]]]
      (render-ns-docs mp-ns
                      (render-wiki-link-fn ns-name valid-ref-pred ns-url-fn)
                      opts)
