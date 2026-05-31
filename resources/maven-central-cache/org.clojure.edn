@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Thu, 21 May 2026 15:06:15 GMT",
+ :last-modified "Thu, 28 May 2026 17:06:14 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -1993,13 +1993,16 @@
     "0.2.0"
     "0.1.0"],
    :description "Command-line processing tools for Clojure."}
-  {:etag "W/\"37bd4bbf214d9a200374daec60c9db81\"",
-   :last-modified "Wed, 13 May 2026 21:53:15 GMT",
+  {:etag "W/\"4de17c90875ddce3db875e9fe389a172\"",
+   :last-modified "Thu, 28 May 2026 16:05:25 GMT",
    :artifact-id "tools.deps",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.30.1611"
+   ["0.31.1629"
+    "0.31.1624-alpha2"
+    "0.31.1619-alpha1"
+    "0.30.1611"
     "0.30.1607"
     "0.29.1598"
     "0.29.1593"
@@ -2233,13 +2236,14 @@
     "0.1.35"
     "0.1.29"
     "0.1.14"]}
-  {:etag "W/\"2e3cdfac3c956b9d9876b185e2b6f01c\"",
-   :last-modified "Thu, 14 May 2026 03:21:48 GMT",
+  {:etag "W/\"2afc7e1f0a59da1d0199700616964052\"",
+   :last-modified "Thu, 28 May 2026 17:03:59 GMT",
    :artifact-id "tools.deps.cli",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.30.153"
+   ["0.31.158"
+    "0.30.153"
     "0.30.149"
     "0.29.1598"
     "0.15.143"
@@ -2296,6 +2300,13 @@
     "0.2.23"
     "0.1.14"],
    :description "Dependency graphs for Clojure deps.edn projects."}
+  {:etag "W/\"e90053b0bbbf5b36fbcacc75314cbd86\"",
+   :last-modified "Wed, 27 May 2026 18:27:16 GMT",
+   :artifact-id "tools.deps.maven-s3-transporter",
+   :group-id "org.clojure",
+   :origin :maven-central,
+   :versions ["0.1.3"],
+   :description "Maven transporter impl for s3 repositories."}
   {:etag "W/\"2aeef11fdb8c64b2e7fb08b04d14c0f9\"",
    :last-modified "Sat, 09 Aug 2014 20:41:49 GMT",
    :artifact-id "tools.emitter.jvm",
@@ -2311,13 +2322,14 @@
     "0.1.0-alpha1"],
    :description
    "A JVM bytecode generator for ASTs compatible with tools.analyzer(.jvm)."}
-  {:etag "W/\"1dcd115aa9ac2eace14ea31de55c08f1\"",
-   :last-modified "Tue, 30 Dec 2025 21:58:54 GMT",
+  {:etag "W/\"ca041760ca73d23252569bf8a7f9ed8d\"",
+   :last-modified "Sun, 24 May 2026 21:07:31 GMT",
    :artifact-id "tools.gitlibs",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["2.6.212"
+   ["2.6.217"
+    "2.6.212"
     "2.6.206"
     "2.5.197"
     "2.5.190"
