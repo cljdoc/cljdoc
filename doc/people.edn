@@ -22,7 +22,7 @@
    :contributions [:code :doc :issue]}
   {:github-id "IamDrowsy"
    :contributions [:code :issue]}
-  {:github-id "angusiguess"
+  {:github-id "x-goose-x" ;; formerly angusiguess
    :contributions [:code :doc]}
   {:github-id "greg-kargin"
    :contributions [:code]}
@@ -135,7 +135,7 @@
    :contributions [:issue]}
   {:github-id "RickMoynihan"
    :contributions [:issue]}
-  {:github-id "FieryCod"
+  {:github-id "kwojcik-blockether" ;; formerly FieryCod
    :contributions [:issue]}
   {:github-id "cloojure"
    :contributions [:issue]}
@@ -144,7 +144,7 @@
   {:github-id "clyfe"
    :contributions [:issue]}
   {:github-id "sritchie"
-   :contributions [:issue :code]}
+   :contributions [:issue]}
   {:github-id "metasoarous"
    :contributions [:issue]}
   {:github-id "BrunoBonacci"
@@ -185,7 +185,7 @@
    :contributions [:issue]}
   {:github-id "thheller"
    :contributions [:issue]}
-  {:github-id "zcaudate"
+  {:github-id "hoebat" ;; formerly zcaudate?
    :contributions [:issue]}
   {:github-id "rubygeek"
    :contributions [:issue]}
@@ -297,4 +297,14 @@
    :contributions [:issue]}
   {:github-id "exoscale"
    :contributions [:infra :sponsor]
-   :exclude-from-reconcile "indirect contributor"}]}
+   :exclude-from-reconcile "indirect contributor"}
+  {:github-id "jramosg"
+   :contributions [:issue :code]}
+  {:github-id "coconutpalm"
+   :contributions [:issue]}
+  {:github-id "dmo-t"
+   :contributions [:issue]}
+  {:github-id "lsolbach"
+   :contributions [:issue]}
+  {:github-id "tesujimath"
+   :contributions [:issue]}]}

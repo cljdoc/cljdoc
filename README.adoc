@@ -1,6 +1,6 @@
 :notitle:
 // num-contributors is updated automatically by doc-readme-update bb task
-:num-contributors: 147
+:num-contributors: 152
 
 image:resources/public/cljdoc-logo-square.png[cljdoc,100,100]
 
@@ -71,7 +71,7 @@ image:samihda.png[samihda,width=273,link="https://github.com/samihda"]
 image:saskali.png[saskali,width=273,link="https://github.com/saskali"]
 image:jorinvo.png[jorinvo,width=273,link="https://github.com/jorinvo"]
 image:IamDrowsy.png[IamDrowsy,width=273,link="https://github.com/IamDrowsy"]
-image:angusiguess.png[angusiguess,width=273,link="https://github.com/angusiguess"]
+image:x-goose-x.png[x-goose-x,width=273,link="https://github.com/x-goose-x"]
 image:greg-kargin.png[greg-kargin,width=273,link="https://github.com/greg-kargin"]
 image:rakyi.png[rakyi,width=273,link="https://github.com/rakyi"]
 image:nikolap.png[nikolap,width=273,link="https://github.com/nikolap"]
@@ -126,7 +126,7 @@ image:rollacaster.png[rollacaster,width=273,link="https://github.com/rollacaster
 image:vemv.png[vemv,width=273,link="https://github.com/vemv"]
 image:piotr-yuxuan.png[piotr-yuxuan,width=273,link="https://github.com/piotr-yuxuan"]
 image:RickMoynihan.png[RickMoynihan,width=273,link="https://github.com/RickMoynihan"]
-image:FieryCod.png[FieryCod,width=273,link="https://github.com/FieryCod"]
+image:kwojcik-blockether.png[kwojcik-blockether,width=273,link="https://github.com/kwojcik-blockether"]
 image:cloojure.png[cloojure,width=273,link="https://github.com/cloojure"]
 image:IGJoshua.png[IGJoshua,width=273,link="https://github.com/IGJoshua"]
 image:clyfe.png[clyfe,width=273,link="https://github.com/clyfe"]
@@ -151,7 +151,7 @@ image:ghost.png[ghost,width=273,link="https://github.com/ghost"]
 image:smahood.png[smahood,width=273,link="https://github.com/smahood"]
 image:witek.png[witek,width=273,link="https://github.com/witek"]
 image:thheller.png[thheller,width=273,link="https://github.com/thheller"]
-image:zcaudate.png[zcaudate,width=273,link="https://github.com/zcaudate"]
+image:hoebat.png[hoebat,width=273,link="https://github.com/hoebat"]
 image:rubygeek.png[rubygeek,width=273,link="https://github.com/rubygeek"]
 image:Biserkov.png[Biserkov,width=273,link="https://github.com/Biserkov"]
 image:bhb.png[bhb,width=273,link="https://github.com/bhb"]
@@ -207,6 +207,11 @@ image:teodorlu.png[teodorlu,width=273,link="https://github.com/teodorlu"]
 image:tylernisonoff.png[tylernisonoff,width=273,link="https://github.com/tylernisonoff"]
 image:xsc.png[xsc,width=273,link="https://github.com/xsc"]
 image:exoscale.png[exoscale,width=273,link="https://github.com/exoscale"]
+image:jramosg.png[jramosg,width=273,link="https://github.com/jramosg"]
+image:coconutpalm.png[coconutpalm,width=273,link="https://github.com/coconutpalm"]
+image:dmo-t.png[dmo-t,width=273,link="https://github.com/dmo-t"]
+image:lsolbach.png[lsolbach,width=273,link="https://github.com/lsolbach"]
+image:tesujimath.png[tesujimath,width=273,link="https://github.com/tesujimath"]
 --
 // AUTO-GENERATED:CONTRIBUTORS-END
 Did we leave someone out? That certainly was not our intention, please do let us know!
