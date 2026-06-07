@@ -48,14 +48,14 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.46.4"}
+        software.amazon.awssdk/s3 {:mvn/version "2.46.5"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.6.0.202603022253-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.23"}     ;; jdk11+ http client
 
         ;; misc utils
-        org.babashka/cli {:mvn/version "0.9.68"}             ;; command line parsing
+        org.babashka/cli {:mvn/version "0.10.69"}             ;; command line parsing
         babashka/fs {:mvn/version "0.5.33"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.25"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.2.0"}             ;; json

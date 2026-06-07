@@ -115,11 +115,14 @@
                 [:span.text c-text]])))]
          [:p.name (str "@" github-id)]]]]))))
 
-(defn- move-path [source target]
+(defn- move-path
+  "Allow for source and target on different file systems"
+  [source target]
   (when (fs/exists? target)
     (fs/delete-tree target))
-  (fs/create-dirs (fs/parent target))
-  (fs/move source target {:replace-existing true :atomic-move true}))
+  (fs/create-dirs target)
+  (doseq [source-file (fs/list-dir source)]
+    (fs/move source-file (fs/path target (fs/file-name source-file)))))
 
 (defn- generate-image! [driver target-dir github-id contributions opts]
   (let [html-file (fs/file target-dir (str github-id ".html"))]
