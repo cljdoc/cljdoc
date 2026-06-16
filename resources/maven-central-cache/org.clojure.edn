@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Thu, 04 Jun 2026 17:02:16 GMT",
+ :last-modified "Tue, 09 Jun 2026 17:58:15 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -2274,12 +2274,12 @@
     "0.9.17"
     "0.9.10"],
    :description "Dependency programs for use via the Clojure CLI."}
-  {:etag "W/\"5d574097c270e75352f09edb35279313\"",
-   :last-modified "Tue, 12 May 2026 18:51:15 GMT",
+  {:etag "W/\"4d342dccf5f8e987d0d83ca2e3fb0f9a\"",
+   :last-modified "Tue, 09 Jun 2026 17:58:09 GMT",
    :artifact-id "tools.deps.edn",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["0.9.27" "0.9.22" "0.9.13"]}
+   :versions ["0.9.38" "0.9.33" "0.9.27" "0.9.22" "0.9.13"]}
   {:etag "W/\"1de92384b09cc1b98fee1e61ee1cb94f\"",
    :last-modified "Fri, 02 Jan 2026 16:03:19 GMT",
    :artifact-id "tools.deps.graph",
