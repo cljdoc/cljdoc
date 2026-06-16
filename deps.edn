@@ -48,14 +48,14 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.46.5"}
+        software.amazon.awssdk/s3 {:mvn/version "2.46.11"}
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.6.0.202603022253-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.7.0.202606012155-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.23"}     ;; jdk11+ http client
 
         ;; misc utils
-        org.babashka/cli {:mvn/version "0.10.69"}             ;; command line parsing
+        org.babashka/cli {:mvn/version "0.11.72"}             ;; command line parsing
         babashka/fs {:mvn/version "0.5.33"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.25"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.2.0"}             ;; json
@@ -99,8 +99,8 @@
            :flowstorm
            {;; for disabling the official compiler
             :classpath-overrides {org.clojure/clojure nil}
-            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.5"}
-                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.5.9"}}
+            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.5-1"}
+                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.6.0"}}
             :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}
 
            :test
