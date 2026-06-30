@@ -13,8 +13,6 @@
             [cljdoc.client.single-docset-search :as single-docset-search]
             [cljdoc.client.versions-form :as versions-form]))
 
-(warn-on-lazy-reusage!)
-
 (lib-switcher/init)
 (lib-search/init)
 (versions-form/init)
