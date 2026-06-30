@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Tue, 09 Jun 2026 17:58:15 GMT",
+ :last-modified "Mon, 29 Jun 2026 21:36:11 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -732,13 +732,14 @@
     "0.0.10"
     "0.0.9"],
    :description "RRB-Trees for Clojure(Script) -- see Bagwell & Rompf"}
-  {:etag "W/\"8f2622a74cbd6647a57af45d304d9192\"",
-   :last-modified "Mon, 05 Jan 2026 23:47:12 GMT",
+  {:etag "W/\"61a6a141c24a056118721174db9a6f76\"",
+   :last-modified "Mon, 29 Jun 2026 21:35:15 GMT",
    :artifact-id "core.specs.alpha",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.5.81"
+   ["0.6.87-alpha1"
+    "0.5.81"
     "0.4.74"
     "0.3.70"
     "0.2.62"
