@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Tue, 30 Jun 2026 09:40:14 GMT",
+ :last-modified "Wed, 01 Jul 2026 18:34:17 GMT",
  :artifacts
  [{:etag "W/\"2a56c30bf97eb3d86f5ae4045fe53334\"",
    :last-modified "Wed, 04 Oct 2023 17:28:54 GMT",
@@ -40,13 +40,14 @@
     "0.1.181"
     "0.1.177"],
    :description "Client API"}
-  {:etag "W/\"60cefd8ca32badbf9922d3c38a3b96ec\"",
-   :last-modified "Tue, 30 Jan 2024 20:19:48 GMT",
+  {:etag "W/\"e09a3be70a4d636eaf48387233a5f129\"",
+   :last-modified "Wed, 01 Jul 2026 18:33:19 GMT",
    :artifact-id "http-client",
    :group-id "com.cognitect",
    :origin :maven-central,
    :versions
-   ["1.0.127"
+   ["1.0.148"
+    "1.0.127"
     "1.0.126"
     "1.0.125"
     "1.0.123"
