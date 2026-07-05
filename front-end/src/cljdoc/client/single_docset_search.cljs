@@ -55,7 +55,7 @@
                        (reduce into [])
                        (map-indexed (fn [ndx item]
                                       (assoc item :id ndx)))
-                       doall)]
+                       vec)]
         (js-await (.put db "searchsets"
                         {:storedAt (.toISOString (js/Date.))
                          :version SEARCHSET_VERSION
@@ -283,7 +283,7 @@
                                                 :onClick (fn [e]
                                                            (.preventDefault e)
                                                            (on-result-navigation (-> result :doc :path)))}))
-                           doall)]])]]])))
+                           vec)]])]]])))
 
 (defn ^:async init []
   (let [single-docset-search-node (dom/query "[data-id='cljdoc-js--single-docset-search']")
