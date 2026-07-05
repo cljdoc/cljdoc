@@ -1,12 +1,12 @@
 {:etag nil,
- :last-modified "Thu, 28 May 2026 20:40:16 GMT",
+ :last-modified "Thu, 02 Jul 2026 15:38:16 GMT",
  :artifacts
- [{:etag "W/\"747c1cafde9881bdbf557b41f8dd3f16\"",
-   :last-modified "Fri, 30 May 2025 20:43:39 GMT",
+ [{:etag "W/\"6a3a9cf5395dff88faf1496ad32f5ad0\"",
+   :last-modified "Thu, 02 Jul 2026 15:37:58 GMT",
    :artifact-id "buildtest",
    :group-id "io.github.clojure",
    :origin :maven-central,
-   :versions ["0.3.2" "0.3.1" "0.3.0"],
+   :versions ["0.3.6" "0.3.5" "0.3.4" "0.3.3" "0.3.2" "0.3.1" "0.3.0"],
    :description "Dummy project for build and deployment testing"}
   {:etag "W/\"e0e22c5f1bdf6ea1817070a20533515f\"",
    :last-modified "Thu, 28 May 2026 20:35:38 GMT",

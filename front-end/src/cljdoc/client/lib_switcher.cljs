@@ -26,12 +26,12 @@
       (when project
         (let [prev-opened (->> (load-prev-opened)
                                (remove #(is-same-project project %))
-                               doall)
+                               vec)
               dated-project (assoc project :last_viewed (.toUTCString (js/Date.)))
               _ (.push prev-opened dated-project)
               prev-opened (->> prev-opened
                                (take max-track-count)
-                               doall)]
+                               vec)]
           (.setItem js/localStorage "previously_opened" (.stringify js/JSON prev-opened)))))))
 
 (defn- RowView [{:keys [result isSelected selectResult]}]
@@ -55,7 +55,7 @@
                                           group-id
                                           (str group-id "/" artifact-id)))))
            reverse
-           doall))
+           vec))
 
 (defn- Switcher []
   (let [recently-visited-docs (load-recently-visited-docs)

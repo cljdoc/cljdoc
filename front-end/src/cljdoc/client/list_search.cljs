@@ -75,4 +75,4 @@
                                    (h rowView
                                       {:result result
                                        :isSelected (= selected-ndx idx)})])
-                           doall)]]]))]]))
+                           vec)]]]))]]))

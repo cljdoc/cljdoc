@@ -2,11 +2,11 @@
   "name": "cljdoc",
   "type": "module",
   "dependencies": {
-    "squint-cljs": "0.14.197",
+    "squint-cljs": "0.14.202",
     "elasticlunr": "0.9.5",
     "fuzzysort": "3.1.0",
     "idb": "8.0.3",
-    "preact": "10.29.3"
+    "preact": "10.29.4"
   },
   "devDependencies": {
     "esbuild": "0.28.1"

@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Mon, 29 Jun 2026 21:36:11 GMT",
+ :last-modified "Thu, 02 Jul 2026 22:08:13 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -39,13 +39,15 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"8bb07f3999db9197133fa26777be25b2\"",
-   :last-modified "Tue, 12 May 2026 18:13:18 GMT",
+  {:etag "W/\"4bbfcd89c1c9100db40545989be5c759\"",
+   :last-modified "Thu, 02 Jul 2026 22:07:24 GMT",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.12.5"
+   ["1.13.0-alpha2"
+    "1.13.0-alpha1"
+    "1.12.5"
     "1.12.5-rc1"
     "1.12.5-alpha1"
     "1.12.4"
@@ -1691,13 +1693,16 @@
     "0.0.8"
     "0.0.5"
     "0.0.1"]}
-  {:etag "W/\"80ab2dc2f6a55f0ee8ada83bb29cea58\"",
-   :last-modified "Tue, 30 Dec 2025 16:19:56 GMT",
+  {:etag "W/\"b56b021213007f9ea7041e028389ff6a\"",
+   :last-modified "Thu, 02 Jul 2026 15:13:22 GMT",
    :artifact-id "pom.contrib",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.4.0"
+   ["1.4.3"
+    "1.4.2"
+    "1.4.1"
+    "1.4.0"
     "1.3.0"
     "1.2.0"
     "1.1.0"
@@ -2275,12 +2280,12 @@
     "0.9.17"
     "0.9.10"],
    :description "Dependency programs for use via the Clojure CLI."}
-  {:etag "W/\"4d342dccf5f8e987d0d83ca2e3fb0f9a\"",
-   :last-modified "Tue, 09 Jun 2026 17:58:09 GMT",
+  {:etag "W/\"cc2282c2c5f68c27e379b546a04594c0\"",
+   :last-modified "Thu, 02 Jul 2026 16:47:19 GMT",
    :artifact-id "tools.deps.edn",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["0.9.38" "0.9.33" "0.9.27" "0.9.22" "0.9.13"]}
+   :versions ["0.9.42" "0.9.38" "0.9.33" "0.9.27" "0.9.22" "0.9.13"]}
   {:etag "W/\"1de92384b09cc1b98fee1e61ee1cb94f\"",
    :last-modified "Fri, 02 Jan 2026 16:03:19 GMT",
    :artifact-id "tools.deps.graph",
