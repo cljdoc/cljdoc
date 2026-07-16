@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Thu, 02 Jul 2026 22:08:13 GMT",
+ :last-modified "Thu, 16 Jul 2026 14:42:13 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -39,13 +39,15 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"4bbfcd89c1c9100db40545989be5c759\"",
-   :last-modified "Thu, 02 Jul 2026 22:07:24 GMT",
+  {:etag "W/\"07660a2e9ac24e91e5c62c0e84e6f8d6\"",
+   :last-modified "Tue, 14 Jul 2026 16:10:09 GMT",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.13.0-alpha2"
+   ["1.13.0-alpha4"
+    "1.13.0-alpha3"
+    "1.13.0-alpha2"
     "1.13.0-alpha1"
     "1.12.5"
     "1.12.5-rc1"
@@ -734,13 +736,18 @@
     "0.0.10"
     "0.0.9"],
    :description "RRB-Trees for Clojure(Script) -- see Bagwell & Rompf"}
-  {:etag "W/\"61a6a141c24a056118721174db9a6f76\"",
-   :last-modified "Mon, 29 Jun 2026 21:35:15 GMT",
+  {:etag "W/\"24189992715d7e83530de05482051a00\"",
+   :last-modified "Fri, 10 Jul 2026 20:45:18 GMT",
    :artifact-id "core.specs.alpha",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.6.87-alpha1"
+   ["0.6.113-alpha6"
+    "0.6.108-alpha5"
+    "0.6.103-alpha4"
+    "0.6.97-alpha3"
+    "0.6.92-alpha2"
+    "0.6.87-alpha1"
     "0.5.81"
     "0.4.74"
     "0.3.70"
@@ -2280,6 +2287,12 @@
     "0.9.17"
     "0.9.10"],
    :description "Dependency programs for use via the Clojure CLI."}
+  {:etag "W/\"6f2c11fc15ea8f10e5993917c4571fac\"",
+   :last-modified "Thu, 16 Jul 2026 14:39:56 GMT",
+   :artifact-id "tools.deps.config",
+   :group-id "org.clojure",
+   :origin :maven-central,
+   :versions ["0.1.3"]}
   {:etag "W/\"cc2282c2c5f68c27e379b546a04594c0\"",
    :last-modified "Thu, 02 Jul 2026 16:47:19 GMT",
    :artifact-id "tools.deps.edn",
