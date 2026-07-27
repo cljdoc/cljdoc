@@ -1,0 +1,11 @@
+{:etag nil,
+ :last-modified "Wed, 17 Jun 2026 09:52:20 GMT",
+ :artifacts
+ [{:etag "W/\"d3822e95297aa55e4ee5448aff777367\"",
+   :last-modified "Wed, 17 Jun 2026 09:51:13 GMT",
+   :artifact-id "triplox",
+   :group-id "xyz.triplox",
+   :origin :maven-central,
+   :versions ["0.1.0-alpha.5" "0.1.0-alpha.3"],
+   :description
+   "A Datomic-like triplestore in Rust on top of SlateDB"}]}

@@ -281,7 +281,8 @@
    (let [log-reason (format "%s download and index" origin)]
      (index! clojars-stats index
              (into (case origin
-                     :clojars (clojars/load-clojars-artifacts {:force-fetch? force-fetch?})
+                     :clojars (->> (clojars/load-clojars-artifacts {:force-fetch? force-fetch?})
+                                   (remove maven-central/maven-central-artifact?))
                      :maven-central (maven-central/load-maven-central-artifacts {:force-fetch? force-fetch?})))
              log-reason))
    (log/infof "Finished downloading & indexing artifacts for %s." origin)))
