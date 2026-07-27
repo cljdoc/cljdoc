@@ -24,7 +24,8 @@
    {:group-id "com.turtlequeue"}
    {:group-id "com.cognitect"      :exclude ["aws"]}
    {:group-id "com.cognitect.aws"  :include ["api"]}
-   {:group-id "com.xtdb"           :include ["xtdb-api"]}])
+   {:group-id "com.xtdb"           :include ["xtdb-api"]}
+   {:group-id "xyz.triplox"        :include ["triplox"]}])
 
 (def ^:private maven-central-base-url "https://repo1.maven.org/maven2/")
 
@@ -146,6 +147,17 @@
   (->> caches
        (mapcat :artifacts)
        (mapv #(dissoc % :etag))))
+
+(defn maven-central-artifact?
+  "Returns truthy if cljdoc is handling the artifact on Maven Central"
+  [{:keys [group-id artifact-id]}]
+  (when-let [{:keys [include exclude]} (some
+                                        #(when (= group-id (:group-id %)) %)
+                                        maven-artifacts)]
+    (cond
+      include (boolean (some  #{artifact-id} include))
+      exclude (not (some #{artifact-id} exclude))
+      :else true)))
 
 (defn load-maven-central-artifacts
   "Load artifacts from Maven Central - if there are any new ones (or `force?` `true` when testing).

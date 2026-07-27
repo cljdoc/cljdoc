@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Thu, 16 Jul 2026 14:42:13 GMT",
+ :last-modified "Fri, 24 Jul 2026 19:46:12 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -39,13 +39,14 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"07660a2e9ac24e91e5c62c0e84e6f8d6\"",
-   :last-modified "Tue, 14 Jul 2026 16:10:09 GMT",
+  {:etag "W/\"d588f80172f6461c262f41da34827feb\"",
+   :last-modified "Tue, 21 Jul 2026 19:11:18 GMT",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.13.0-alpha4"
+   ["1.13.0-alpha5"
+    "1.13.0-alpha4"
     "1.13.0-alpha3"
     "1.13.0-alpha2"
     "1.13.0-alpha1"
@@ -736,13 +737,15 @@
     "0.0.10"
     "0.0.9"],
    :description "RRB-Trees for Clojure(Script) -- see Bagwell & Rompf"}
-  {:etag "W/\"24189992715d7e83530de05482051a00\"",
-   :last-modified "Fri, 10 Jul 2026 20:45:18 GMT",
+  {:etag "W/\"8a40f1ab8b53927fc4f97db15dea07db\"",
+   :last-modified "Fri, 24 Jul 2026 18:10:14 GMT",
    :artifact-id "core.specs.alpha",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.6.113-alpha6"
+   ["0.6.122-alpha8"
+    "0.6.118-alpha7"
+    "0.6.113-alpha6"
     "0.6.108-alpha5"
     "0.6.103-alpha4"
     "0.6.97-alpha3"
@@ -2007,13 +2010,14 @@
     "0.2.0"
     "0.1.0"],
    :description "Command-line processing tools for Clojure."}
-  {:etag "W/\"4de17c90875ddce3db875e9fe389a172\"",
-   :last-modified "Thu, 28 May 2026 16:05:25 GMT",
+  {:etag "W/\"542e4e2eb55c05ac3c6b48b541783894\"",
+   :last-modified "Fri, 24 Jul 2026 19:45:16 GMT",
    :artifact-id "tools.deps",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.31.1629"
+   ["0.31.1638"
+    "0.31.1629"
     "0.31.1624-alpha2"
     "0.31.1619-alpha1"
     "0.30.1611"
@@ -2078,7 +2082,8 @@
     "0.16.1277"
     "0.16.1273"
     "0.16.1264"
-    "0.16.1260"],
+    "0.16.1260"
+    "0.1.4"],
    :description
    "Clojure dependencies as data and classpath generation tools."}
   {:etag "W/\"90beb7b8951871a58bf6137b9f9f9468\"",
@@ -2293,6 +2298,12 @@
    :group-id "org.clojure",
    :origin :maven-central,
    :versions ["0.1.3"]}
+  {:etag "W/\"563a490bd224025ce8fd66d0b939d0b5\"",
+   :last-modified "Thu, 16 Jul 2026 18:09:27 GMT",
+   :artifact-id "tools.deps.config.edit",
+   :group-id "org.clojure",
+   :origin :maven-central,
+   :versions ["0.1.2"]}
   {:etag "W/\"cc2282c2c5f68c27e379b546a04594c0\"",
    :last-modified "Thu, 02 Jul 2026 16:47:19 GMT",
    :artifact-id "tools.deps.edn",
@@ -2320,12 +2331,12 @@
     "0.2.23"
     "0.1.14"],
    :description "Dependency graphs for Clojure deps.edn projects."}
-  {:etag "W/\"e90053b0bbbf5b36fbcacc75314cbd86\"",
-   :last-modified "Wed, 27 May 2026 18:27:16 GMT",
+  {:etag "W/\"66b487c506a98128af9c33dc7212fe50\"",
+   :last-modified "Fri, 24 Jul 2026 19:31:20 GMT",
    :artifact-id "tools.deps.maven-s3-transporter",
    :group-id "org.clojure",
    :origin :maven-central,
-   :versions ["0.1.3"],
+   :versions ["0.1.4" "0.1.3"],
    :description "Maven transporter impl for s3 repositories."}
   {:etag "W/\"2aeef11fdb8c64b2e7fb08b04d14c0f9\"",
    :last-modified "Sat, 09 Aug 2014 20:41:49 GMT",
