@@ -52,7 +52,7 @@
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.7.0.202606012155-r"} ;; git with jsch
-        org.babashka/http-client {:mvn/version "0.4.23"}     ;; jdk11+ http client
+        org.babashka/http-client {:mvn/version "0.4.24"}     ;; jdk11+ http client
 
         ;; misc utils
         org.babashka/cli {:mvn/version "0.12.86"}             ;; command line parsing
