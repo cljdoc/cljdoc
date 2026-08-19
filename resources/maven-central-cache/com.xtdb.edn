@@ -1,13 +1,14 @@
 {:etag nil,
- :last-modified "Tue, 21 Jul 2026 16:06:13 GMT",
+ :last-modified "Thu, 06 Aug 2026 17:26:12 GMT",
  :artifacts
- [{:etag "W/\"8d5e5515c665d6cc58692ea27c9792f4\"",
-   :last-modified "Tue, 21 Jul 2026 16:05:22 GMT",
+ [{:etag "W/\"f97fd34e2fcc70fd2e511cfd6e423de6\"",
+   :last-modified "Thu, 06 Aug 2026 17:25:20 GMT",
    :artifact-id "xtdb-api",
    :group-id "com.xtdb",
    :origin :maven-central,
    :versions
-   ["2.2.0-rc0"
+   ["2.2.0-rc1"
+    "2.2.0-rc0"
     "2.2.0-beta1"
     "2.1.0"
     "2.1.0-rc0"
