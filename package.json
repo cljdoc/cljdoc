@@ -9,6 +9,6 @@
     "preact": "10.29.7"
   },
   "devDependencies": {
-    "esbuild": "0.28.1"
+    "esbuild": "0.28.2"
   }
 }
