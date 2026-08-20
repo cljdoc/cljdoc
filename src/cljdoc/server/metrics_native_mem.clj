@@ -152,6 +152,7 @@
 
   (println (get-native-memory-metrics-text))
 
+  ;; handy for finding differences for new JDK versions.
   (spit (str "fiddle/native-mem-stats-"
              (System/getProperty "java.version")
              ".txt")
