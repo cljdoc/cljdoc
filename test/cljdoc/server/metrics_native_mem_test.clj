@@ -140,8 +140,12 @@
            {:object-monitors
             {:reserved {:kb 21001},
              :committed {:kb 21002},
-             :malloc {:kb 21003, :cnt 21004 :peak {:kb 21005, :cnt 21006}}}}])
-         ;; grabbed from real output, with numeric vals changed for testing
+             :malloc {:kb 21003, :cnt 21004 :peak {:kb 21005, :cnt 21006}}}}
+           {:jni
+            {:committed {:kb 22002},
+             :malloc {:at-peak true, :cnt 22004, :kb 22003},
+             :reserved {:kb 22001}}}])
+         ;; grabbed from real output, with numeric vals changed for testing,
          (mnm/parse-output-text "
 
 Native Memory Tracking:
@@ -238,6 +242,9 @@ Total: reserved=1001KB, committed=1002KB
 
 -           Object Monitors (reserved=21001KB, committed=21002KB)
                             (malloc=21003KB tag=Object Monitors #21004) (peak=21005KB #21006)
+
+-                       JNI (reserved=22001KB, committed=22002KB)
+                            (malloc=22003KB tag=JNI #22004) (at peak)
 "))))
 
 (t/deftest hypothetical-parse-test
