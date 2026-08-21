@@ -48,7 +48,7 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.53.3"}
+        software.amazon.awssdk/s3 {:mvn/version "2.54.1"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.7.1.202607240634-r"} ;; git with jsch
@@ -73,7 +73,7 @@
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
-                              :git/sha "adbab7d7471509bb49c0c24cf33ffa161f7fa1e0"}}
+                              :git/sha "3290310afd9aa1cf25d2c747b9482517ca6c8f2c"}}
 
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:nrepl
