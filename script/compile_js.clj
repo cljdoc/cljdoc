@@ -84,7 +84,8 @@ Options
        "--entry-names=[name].[hash]"
        (str "--outfile=" (fs/file target-dir (str js-out-name "." js-out-ext)))
        (str js-out-name "=" (fs/file js-dir js-entry-point))
-       "--bundle"))
+       "--bundle"
+       "--analyze=verbose"))
 
 (defn- resource-map
   "Map of non-hashed to hashed resource."

@@ -4,7 +4,6 @@
   "dependencies": {
     "squint-cljs": "0.14.208",
     "elasticlunr": "0.9.5",
-    "fuzzysort": "4.0.2",
     "idb": "8.0.3",
     "preact": "10.29.8"
   },

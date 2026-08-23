@@ -1,7 +1,6 @@
 (ns cljdoc.client.lib-switcher
   "Support for the quick lib switcher brought up by ctrl/meta k"
-  (:require ["fuzzysort$default" :as fuzzysort]
-            ["preact" :refer [h render]]
+  (:require ["preact" :refer [h render]]
             ["preact/hooks" :refer [useEffect useRef useState]]
             [cljdoc.client.dom :as dom]
             [cljdoc.client.library :as lib]
@@ -83,11 +82,16 @@
                                  (set-show! false)
                                  (set-results! []))))
         update-results (fn [search-str]
-                         (if (= "" search-str)
-                           (reset-state)
-                           (let [fuzzy-sort-options {:key :project-id}
-                                 results (.go fuzzysort search-str recently-visited-docs fuzzy-sort-options)]
-                             (set-results! (mapv #(.-obj %) results)))))]
+                         ;; simple substring search, all specified strings must be present in project id
+                         ;; no need for ranking on such a small set of items
+                         (let [search-tokens (-> search-str str/lower-case (str/split #" +"))]
+                           (if (seq search-tokens)
+                             (set-results! (filterv (fn [{:keys [project-id]}]
+                                                      (let [project-id (str/lower-case project-id)]
+                                                        (every? #(str/includes? project-id %)
+                                                                search-tokens)))
+                                                    recently-visited-docs))
+                             (reset-state))))]
     (useEffect (fn []
                  (.addEventListener js/document "keydown" on-global-key-down))
                [])
