@@ -51,7 +51,7 @@
         software.amazon.awssdk/s3 {:mvn/version "2.54.1"}
 
         ;; reaching out to other services
-        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version "7.7.1.202607240634-r"} ;; git with jsch
+        org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version  "7.8.0.202609011348-r"} ;; git with jsch
         org.babashka/http-client {:mvn/version "0.4.24"}     ;; jdk11+ http client
 
         ;; misc utils
