@@ -1,6 +1,6 @@
 (ns cljdoc.client.single-docset-search.logic-test
   (:require [cljdoc.client.single-docset-search.logic :as logic]
-            [cljs.test :refer [deftest is]]))
+            [clojure.test :refer [deftest is]]))
 
 (deftest tokenize-test
   (is (= [] (logic/tokenize "")))

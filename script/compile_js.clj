@@ -1,15 +1,18 @@
 #!/usr/bin/env bb
 
 (ns compile-js
-  (:require [babashka.fs :as fs]
+  (:require [babashka.esbuild :as esbuild]
+            [babashka.fs :as fs]
             [clojure.java.io :as io]
             [clojure.pprint :as pprint]
             [clojure.string :as str]
             [helper.main :as main]
             [helper.shell :as shell]
             [lread.status-line :as status]
-            [pod.babashka.fswatcher :as fw])
-  (:import [java.time LocalDateTime]
+            [pod.babashka.fswatcher :as fw]
+            [squint.compiler :as squint])
+  (:import [java.security MessageDigest]
+           [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]))
 
 (def args-usage "Valid args: [--watch|--test|--help]
@@ -19,83 +22,130 @@ Options
  --test         Run tests via node
  --help         Show this help")
 
-(defn- cmd
-  "Override default behaviour to support continueing on failure while in watch mode"
-  [cmd & args]
-  (apply shell/command
-         {:error-fn (fn throw-on-error [{{:keys [exit cmd]} :proc}]
-                      (throw (ex-info (format "shell exited with %d for: %s"
-                                              exit (with-out-str (pprint/pprint cmd))) {})))}
-         cmd args))
+(defn- short-sha-bytes [b]
+  (let [digest (MessageDigest/getInstance "SHA-256")
+        sha (.digest digest b)]
+    (apply str (map #(format "%02x" %) (take 4 sha)))))
+
+(defn- short-sha-string [s]
+  (short-sha-bytes (into-array Byte/TYPE (.getBytes s "UTF-8"))))
 
 (defn- compile-copy
   "We could use a simple copy but maybe better to use esbuild for consistent console output"
   [{:keys [source-asset-dir source-asset-static-subdir target-dir]}]
   (status/line :head "compile-js: straight copy")
-  (cmd "npx"
-       "--yes"
-       "esbuild"
-       "--minify"
-       "--sourcemap"
-       "--loader:.txt=copy"
-       (str "--outdir=" target-dir)
-       (str (fs/file source-asset-dir source-asset-static-subdir "*.*"))))
+  (doseq [in-file (-> (fs/glob (fs/file source-asset-dir source-asset-static-subdir) "*.*") sort)
+          :let [out-file (fs/file target-dir (fs/file-name in-file))]]
+    (status/line :detail "copying %s\n to %s" in-file out-file)
+    (fs/copy in-file out-file {:replace-existing true})))
 
-(defn- compile-with-hash [{:keys [source-asset-dir target-dir]}]
-  (status/line :head "compile-js: with hash")
-  (cmd "npx"
-       "--yes"
-       "esbuild"
-       "--loader:.svg=copy"
-       "--loader:.png=copy"
-       "--loader:.ico=copy"
-       "--entry-names=[name].[hash]"
-       "--minify"
-       "--sourcemap"
-       (str "--outdir=" target-dir)
-       (str (fs/file source-asset-dir "*.ico"))
-       (str (fs/file source-asset-dir "*.png"))
-       (str (fs/file source-asset-dir "*.css"))
-       (str (fs/file source-asset-dir "*.svg"))))
+(defn- compile-copy-with-hash
+  [{:keys [source-asset-dir target-dir]}]
+  (status/line :head "compile-js: copy with cache-busting")
+  (doseq [in-file (-> (fs/glob source-asset-dir "*.{ico,png,svg}") sort)]
+    (status/line :detail "cache-bust copying %s" in-file)
+    (let [in-bytes (fs/read-all-bytes (fs/file in-file))
+          hash (short-sha-bytes in-bytes)
+          fname-ext (fs/file-name in-file)
+          [fname ext] (fs/split-ext fname-ext)
+          out-file (fs/file target-dir (str fname "." hash "." ext))]
+      (status/line :detail " to %s" out-file)
+      (fs/write-bytes out-file in-bytes))))
 
-(defn- transpile-to-js [{:keys [source-dir test-dir js-dir]}]
-  (status/line :head "compile-js: compiling cljs with squint")
+(defn- compile-transform-assets [{:keys [source-asset-dir target-dir]}]
+  (status/line :head "compile-js: transform assets")
+  (doseq [in-file (-> (fs/glob source-asset-dir "*.css") sort)]
+    (status/line :detail "cache-bust transforming: %s" in-file)
+    (let [fname-ext (fs/file-name in-file)
+          [fname ext] (fs/split-ext fname-ext)
+          in-content (slurp (fs/file in-file))
+          {:keys [code map]} (esbuild/transform
+                              in-content
+                              {:loader :css
+                               :minify true
+                               :sourcemap :external})
+          hash (short-sha-string code)
+          code-file (fs/file target-dir (str fname "." hash "." ext))
+          map-file (str code-file ".map")]
+
+      (status/line :detail " to %s" code-file)
+      (spit code-file code)
+      (status/line :detail " to %s" map-file)
+      (spit map-file map))))
+
+(defn file->ns
+  "app/util.cljs under src-dir becomes app.util."
+  [src-dir file]
+  (-> (str (fs/relativize src-dir file))
+      (str/replace #"\.cljs$" "")
+      (str/replace fs/file-separator ".")
+      (str/replace "_" "-")))
+
+(defn- compile-cljs-to-js [from-dir to-dir]
+  (doseq [in-file (-> (fs/glob from-dir  "**.cljs") sort)
+          :let [out-file (fs/path to-dir (str (file->ns from-dir in-file) ".jsx"))]]
+    (status/line :detail "compiling %s\n to %s" in-file out-file)
+    (spit (fs/file out-file)
+          (squint/compile-string (slurp (fs/file in-file))
+                                 {:resolve-ns (fn [ns] (str "./" ns ".jsx"))}))))
+
+(defn- compile-cljs [{:keys [source-dir test-dir js-dir]}]
   (fs/delete-tree js-dir)
-  (apply cmd (cond-> ["npx" "squint" "compile"
-                      "--extension" ".jsx"
-                      "--paths" source-dir
-                      "--output-dir" js-dir]
-               test-dir (conj "--paths" test-dir)))
-  ;; TODO: a bit awkward?
-  (fs/copy (fs/file source-dir "hljs-merge-plugin.js") (fs/file js-dir "cljdoc/client")))
+  (fs/create-dirs js-dir)
+  (status/line :head "compile-js: compiling cljs source code with squint")
+  (compile-cljs-to-js source-dir js-dir)
+  (when test-dir
+    (status/line :head "compile-js: compiling cljs test code with squint")
+    (compile-cljs-to-js test-dir js-dir)))
 
-(defn- compile-js [{:keys [js-dir js-entry-point js-out-name js-out-ext target-dir platform]}]
+(defn- compile-copy-js [{:keys [source-dir js-dir]}]
+  (status/line :head "compile-js: straight copy")
+  (doseq [in-file (-> (fs/glob source-dir "*.js") sort)
+          :let [out-file (fs/file js-dir (fs/file-name in-file))]]
+    (status/line :detail "copying %s\n to %s" in-file out-file)
+    (fs/copy in-file out-file {:replace-existing true})))
+
+(defn- compile-bundle [{:keys [js-dir js-entry-point js-out-name js-out-ext target-dir platform]}]
   (status/line :head "compile-js: bundle js")
-  (cmd "npx"
-       "--yes"
-       "esbuild"
-       "--jsx=automatic"
-       "--jsx-import-source=preact"
-       "--target=es2017"
-       "--resolve-extensions=.jsx,.js"
-       (str "--platform=" platform)
-       "--minify"
-       "--sourcemap"
-       "--entry-names=[name].[hash]"
-       (str "--outfile=" (fs/file target-dir (str js-out-name "." js-out-ext)))
-       (str js-out-name "=" (fs/file js-dir js-entry-point))
-       "--bundle"
-       "--analyze=verbose"))
+  (let [bundle (esbuild/build {:entry-points [(str (fs/file js-dir js-entry-point))]
+                               :bundle true
+                               :jsx :automatic
+                               :alias {"react" "preact/compat"
+                                       "react-dom" "preact/compat"
+                                       "react/jsx-runtime" "preact/jsx-runtime"}
+                               :target :es2017
+                               :minify true
+                               :platform platform
+                               :sourcemap :linked
+                               ;; :outdir required when specifying :sourcemap
+                               :outdir target-dir})
+        {:keys [sourcemap code]} (reduce (fn [acc {:keys [path contents]}]
+                                           (if (str/ends-with? path ".map")
+                                             (assoc acc :sourcemap contents)
+                                             (assoc acc :code contents)))
+                                         {}
+                                         (:outputs bundle))
+        hash (short-sha-string code)
+        code-file (fs/file target-dir (str js-out-name "." hash "." js-out-ext))
+        map-file (str code-file ".map")
+        ;; esbuild does not expect us to do our own hashing, fixup referenced map file
+        code (str/replace-first code
+                                "//# sourceMappingURL=cljdoc.client.index.js.map"
+                                (str "//# sourceMappingURL=" (fs/file-name map-file)))]
+    (status/line :detail " to %s" code-file)
+    (spit code-file code)
+    (status/line :detail " to %s" map-file)
+    (spit map-file sourcemap)))
 
 (defn- resource-map
   "Map of non-hashed to hashed resource."
   [{:keys [target-dir]}]
   (reduce (fn [acc n]
             (let [f (fs/file-name n)
-                  non-hashed-f (str/replace-first f #"\.[A-Z0-9]{8}\." ".")]
+                  non-hashed-f (str/replace-first f #"\.[a-f0-9]{8}\." ".")]
               (assoc acc (str "/" non-hashed-f) (str "/" f))))
-          {}
-          (fs/list-dir target-dir)))
+          (sorted-map)
+          (sort (fs/list-dir target-dir))))
 
 (defn- generate-resource-map [{:keys [manifest-out-dir] :as opts}]
   (status/line :head "compile-js: generate manifest")
@@ -109,9 +159,11 @@ Options
   (fs/delete-tree target-dir)
   (fs/create-dirs target-dir)
   (compile-copy opts)
-  (compile-with-hash opts)
-  (transpile-to-js opts)
-  (compile-js opts)
+  (compile-copy-with-hash opts)
+  (compile-transform-assets opts)
+  (compile-cljs opts)
+  (compile-copy-js opts)
+  (compile-bundle opts)
   (generate-resource-map opts)
   (status/line :detail "Completed at %s"
                (.format (LocalDateTime/now) (DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss"))))
@@ -131,7 +183,7 @@ Options
     (status/line :detail "Watching for changes...")))
 
 (defn- setup-watch-compile [{:keys [source-dir source-asset-dir test-dir] :as opts}]
-  (let [watch-dirs [source-asset-dir source-dir test-dir]]
+  (let [watch-dirs (into [] (remove nil? [source-asset-dir source-dir test-dir]))]
     (status/line :detail "Watching for changes in... %s" watch-dirs)
     (doseq [d watch-dirs]
       (fw/watch d
@@ -146,20 +198,20 @@ Options
                                 :manifest-out-dir "resources-compiled" ;; no need for this to be public
                                 :source-asset-dir "resources/public"
                                 :source-asset-static-subdir "static"
-                                :js-dir "target/js-transpiled"
+                                :js-dir "target/js-compiled"
                                 :js-out-name "cljdoc"
                                 :source-dir "front-end/src"
-                                :platform "browser"
+                                :platform :browser
                                 :js-out-ext "js"
-                                :js-entry-point "cljdoc/client/index.jsx"}
+                                :js-entry-point "cljdoc.client.index.jsx"}
                          (get opts "--test")
                          (assoc
                           :target-dir "target/js-test-out"
-                          :js-dir "target/js-test-transpiled"
+                          :js-dir "target/js-test-compiled"
                           :test-dir "front-end/test"
-                          :platform "node"
+                          :platform :node
                           :js-out-ext "cjs" ;; so that node can run resulting bundle
-                          :js-entry-point "cljdoc/client/test_runner.jsx"))]
+                          :js-entry-point "cljdoc.client.test-runner.jsx"))]
       (fs/create-dirs (:target-dir compile-opts))
       (if (get opts "--watch")
         (do

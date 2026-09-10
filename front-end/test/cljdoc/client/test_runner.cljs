@@ -1,6 +1,6 @@
 (ns cljdoc.client.test-runner
   (:require [cljdoc.client.single-docset-search.logic-test]
-            [cljs.test :as t]))
+            [clojure.test :as t]))
 
 (defmethod t/report [:cljs.test/default :begin-test-var] [m]
   (let [test-name (-> m :var meta :name)]

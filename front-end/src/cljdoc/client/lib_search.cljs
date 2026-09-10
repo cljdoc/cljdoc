@@ -10,7 +10,7 @@
             [clojure.string :as str]))
 
 (defn- clean-search-str [s]
-  (str/replace s #"[{}[]\"]" ""))
+  (str/replace s #"[{}\[\]\"]" ""))
 
 (defn- load-results [q call-back]
   (let [url (str "/api/search?q=" q)]
