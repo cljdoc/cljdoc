@@ -105,14 +105,23 @@ Options
     (status/line :detail "copying %s\n to %s" in-file out-file)
     (fs/copy in-file out-file {:replace-existing true})))
 
+(def squint-js
+  "root dir of the squint checkout, core.js is under <root>/src/squint "
+  (str (-> (fs/path (io/resource "squint/core.js"))
+           fs/parent
+           fs/parent
+           fs/parent)))
+
 (defn- compile-bundle [{:keys [js-dir js-entry-point js-out-name js-out-ext target-dir platform]}]
   (status/line :head "compile-js: bundle js")
+  (println "squint-js" squint-js)
   (let [bundle (esbuild/build {:entry-points [(str (fs/file js-dir js-entry-point))]
                                :bundle true
                                :jsx :automatic
                                :alias {"react" "preact/compat"
                                        "react-dom" "preact/compat"
-                                       "react/jsx-runtime" "preact/jsx-runtime"}
+                                       "react/jsx-runtime" "preact/jsx-runtime"
+                                       "squint-cljs" squint-js}
                                :target :es2017
                                :minify true
                                :platform platform
