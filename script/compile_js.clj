@@ -125,6 +125,7 @@ Options
                                :target :es2017
                                :minify true
                                :platform platform
+                               :metafile true
                                :sourcemap :linked
                                ;; :outdir required when specifying :sourcemap
                                :outdir target-dir})
@@ -140,11 +141,13 @@ Options
         ;; esbuild does not expect us to do our own hashing, fixup referenced map file
         code (str/replace-first code
                                 "//# sourceMappingURL=cljdoc.client.index.js.map"
-                                (str "//# sourceMappingURL=" (fs/file-name map-file)))]
+                                (str "//# sourceMappingURL=" (fs/file-name map-file)))
+        report (-> bundle :metafile (esbuild/analyze-metafile {:verbose true}) :report)]
     (status/line :detail " to %s" code-file)
     (spit code-file code)
     (status/line :detail " to %s" map-file)
-    (spit map-file sourcemap)))
+    (spit map-file sourcemap)
+    (status/line :detail "build report:\n%s" report)))
 
 (defn- resource-map
   "Map of non-hashed to hashed resource."

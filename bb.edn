@@ -6,7 +6,7 @@
         etaoin/etaoin {:mvn/version "1.1.43"}
         io.github.borkdude/unused-deps {:git/sha "c6673b5549d02fa131d21b61695e283b18124b59"}
         org.clj-commons/pretty {:mvn/version "3.9.0"}
-        io.github.babashka/babashka.esbuild {:git/sha "c25eeb3d86ad739428e600375a96ad4024b379b9"}
+        io.github.babashka/esbuild {:mvn/version "0.1.1"}
         ;; reference as a git dep so that esbuild can easily find squint assets
         io.github.squint-cljs/squint {:git/tag "v0.14.208" :git/sha "e83befd"}}
  :pods {org.babashka/fswatcher {:version "0.0.7"}}
