@@ -89,9 +89,11 @@ Options
           (squint/compile-string (slurp (fs/file in-file))
                                  {:resolve-ns (fn [ns] (str "./" ns ".jsx"))}))))
 
+(defn- recreate-dir [dir]
+  (fs/delete-tree dir)
+  (fs/create-dirs dir))
+
 (defn- compile-cljs [{:keys [source-dir test-dir js-dir]}]
-  (fs/delete-tree js-dir)
-  (fs/create-dirs js-dir)
   (status/line :head "compile-js: compiling cljs source code with squint")
   (compile-cljs-to-js source-dir js-dir)
   (when test-dir
@@ -104,6 +106,11 @@ Options
           :let [out-file (fs/file js-dir (fs/file-name in-file))]]
     (status/line :detail "copying %s\n to %s" in-file out-file)
     (fs/copy in-file out-file {:replace-existing true})))
+
+(defn- compile-js [{:keys [js-dir] :as opts}]
+  (recreate-dir js-dir)
+  (compile-cljs opts)
+  (compile-copy-js opts))
 
 (def squint-js
   "root dir of the squint checkout, core.js is under <root>/src/squint "
@@ -168,13 +175,11 @@ Options
     (status/line :detail "Wrote: %s" f)))
 
 (defn- compile-all [{:keys [target-dir] :as opts}]
-  (fs/delete-tree target-dir)
-  (fs/create-dirs target-dir)
+  (recreate-dir target-dir)
   (compile-copy opts)
   (compile-copy-with-hash opts)
   (compile-transform-assets opts)
-  (compile-cljs opts)
-  (compile-copy-js opts)
+  (compile-js opts)
   (compile-bundle opts)
   (generate-resource-map opts)
   (status/line :detail "Completed at %s"
