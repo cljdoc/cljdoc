@@ -21,7 +21,7 @@
 (defn parse-docs-uri
   "Return coords from `uri`"
   [uri]
-  (let [[_ lead group-id artifact-id version] (str/split uri #"\/")]
+  (let [[_ lead group-id artifact-id version] (str/split uri #"/")]
     (when (= "d" lead)
       {:group-id group-id
        :artifact-id artifact-id
