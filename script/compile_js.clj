@@ -63,13 +63,14 @@ Options
                               in-content
                               {:loader :css
                                :minify true
+                               :sourcefile fname-ext
                                :sourcemap :external})
           hash (short-sha-string code)
           code-file (fs/file target-dir (str fname "." hash "." ext))
           map-file (str code-file ".map")]
-
       (status/line :detail " to %s" code-file)
-      (spit code-file code)
+      (spit code-file
+            (str code "\n/*# sourceMappingURL=" (fs/file-name map-file) " */\n"))
       (status/line :detail " to %s" map-file)
       (spit map-file map))))
 
