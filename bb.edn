@@ -68,9 +68,7 @@
   outdated             {:exec-fn outdated/task :doc "report on outdated Clojure and JavaScript dependencies"
                         :depends [deps-js]}
   doc-update-readme    {:exec-fn doc-update-readme/task     :doc "honour our contributors in README" }
-  check-contributors
-  {:doc "who'd we miss?"
-   :task check-contributors/-main}
+  check-contributors   {:exec-fn check-contributors/task    :doc "who'd we miss?"}
   unused-deps
   {:doc "find unused dependencies"
    :requires ([clj-commons.format.table :as table])

@@ -1,5 +1,3 @@
-#!/usr/bin/env bb
-
 (ns check-contributors
   (:require
    [babashka.http-client :as http]
@@ -7,7 +5,6 @@
    [clojure.edn :as edn]
    [clojure.set :as cset]
    [clojure.string :as string]
-   [helper.main :as main]
    [lread.status-line :as status]))
 
 (defn next-url [response]
@@ -122,8 +119,5 @@
 
       (status/line :detail "\nMake any necessary updates to %s" our-records))))
 
-(defn -main [& _args]
+(defn task [_opts]
   (reconcile))
-
-(main/when-invoked-as-script
- (apply -main *command-line-args*))
