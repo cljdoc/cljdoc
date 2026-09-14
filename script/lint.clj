@@ -1,8 +1,5 @@
-#!/usr/bin/env bb
-
 (ns lint
   (:require [babashka.fs :as fs]
-            [helper.main :as main]
             [helper.shell :as shell]
             [lread.status-line :as status]))
 
@@ -38,15 +35,10 @@
       (= 3 exit) (status/die exit "clj-kondo found one or more lint warnings")
       (> exit 0) (status/die exit "clj-kondo returned unexpected exit code"))))
 
-(def args-usage "Valid args: [options]
-
-Options:
-  --rebuild   Force rebuild of clj-kondo lint cache.
-  --help      Show this help.")
-
-(defn -main [& args]
-  (when-let [opts (main/doc-arg-opt args-usage args)]
-    (lint {:rebuild-cache (get opts "--rebuild")})))
-
-(main/when-invoked-as-script
- (apply -main *command-line-args*))
+(defn task
+  {:org.babashka/cli {:spec {:rebuild
+                             {:alias :r
+                              :coerce :boolean
+                              :desc "Force a rebuild of clj-kondo cache"}}}}
+  [{:keys [rebuild]}]
+  (lint {:rebuild-cache rebuild}))

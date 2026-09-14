@@ -20,6 +20,8 @@
              [build-shared :as bs]
              [lread.status-line :as status]
              [version])
+  :init (defn clj [args]
+           (apply clojure args *command-line-args*))
   :enter (let [{:keys [name task-decoration] :as f} (current-task)]
            (when-not (= :none task-decoration)
              (status/line :head "TASK %s" name)))
@@ -29,36 +31,26 @@
   :cli helper.cli/base-opts
 
   ;; commands
-  clean          {:exec-fn clean/task         :doc "delete all build work"}
-  download-deps  {:exec-fn download-deps/task :doc "download clojure deps"}
-  dev            {:exec-fn dev-repl/task      :doc "fire up a REPL for dev"
+  clean          {:exec-fn clean/task                 :doc "Delete all build work"}
+  download-deps  {:exec-fn download-deps/task         :doc "Download clojure deps"}
+  dev            {:exec-fn dev-repl/task              :doc "Fire up a REPL for dev"
                   :depends [compile-js compile-java]}
-  deps-js        {:exec-fn deps-js/task       :doc "bring down js deps"}
-  compile-js     {:exec-fn compile-js/task    :doc "compile front end sources"
+  deps-js        {:exec-fn deps-js/task               :doc "Bring down js deps"}
+  compile-js     {:exec-fn compile-js/task            :doc "Compile front end sources"
                   :depends [deps-js]}
-  test-js        {:exec-fn compile-js/task    :doc "run front-end tests"
+  test-js        {:exec-fn compile-js/task            :doc "Run front-end tests"
                   :exec-args {:test true}
                   :depends [deps-js]}
-  compile-java   {:exec-fn compile-java/task  :doc "compile java sources"}
-  server
-  {:doc "Launch cljdoc server"
-   :depends [compile-js compile-java]
-   :task (apply clojure "-M:cli run" *command-line-args*)}
-  ingest
-  {:doc "Ingest docs locally for testing"
-   :depends [compile-js compile-java]
-   :task (apply clojure "-M:cli ingest" *command-line-args*)}
-  offline-docset
-  {:doc "Create offline docset for built lib"
-   :depends [compile-js compile-java]
-   :task (apply clojure "-M:cli offline-docset" *command-line-args*)}
-  test
-  {:doc "Run tests"
-   :depends [compile-js compile-java]
-   :task (apply clojure "-M:test" *command-line-args*)}
-  lint
-  {:doc "[--rebuild] lint source code using clj-kondo"
-   :task lint/-main}
+  compile-java   {:exec-fn compile-java/task          :doc "Compile java sources"}
+  server         {:task (clj "-M:cli run")            :doc "Launch cljdoc server"
+                  :depends [compile-js compile-java]}
+  ingest         {:task (clj "-M:cli ingest")         :doc "Ingest docs locally for testing"
+                  :depends [compile-js compile-java]}
+  offline-docset {:task (clj "-M:cli offline-docset") :doc "Create offline docset for built lib"
+                  :depends [compile-js compile-java]}
+  test           {:task (clj "-M:test")               :doc "Run tests"
+                  :depends [compile-js compile-java]}
+  lint           {:exec-fn lint/task                  :doc "lint source code using clj-kondo"}
   eastwood
   {:doc "lint source code using eastwood"
    :depends [compile-java]
