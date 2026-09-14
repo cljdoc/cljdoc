@@ -31,51 +31,43 @@
   :cli helper.cli/base-opts
 
   ;; commands
-  clean           {:exec-fn clean/task                 :doc "Delete all build work"}
-  download-deps   {:exec-fn download-deps/task         :doc "Download clojure deps"}
-  dev             {:exec-fn dev-repl/task              :doc "Fire up a REPL for dev"
-                   :depends [compile-js compile-java]}
-  deps-js         {:exec-fn deps-js/task               :doc "Bring down js deps"}
-  compile-js      {:exec-fn compile-js/task            :doc "Compile front end sources"
-                   :depends [deps-js]}
-  test-js         {:exec-fn compile-js/task            :doc "Run front-end tests"
-                   :exec-args {:test true}
-                   :depends [deps-js]}
-  compile-java    {:exec-fn compile-java/task          :doc "Compile java sources"}
-  server          {:task (clj "-M:cli run")            :doc "Launch cljdoc server"
-                   :depends [compile-js compile-java]}
-  ingest          {:task (clj "-M:cli ingest")         :doc "Ingest docs locally for testing"
-                   :depends [compile-js compile-java]}
-  offline-docset  {:task (clj "-M:cli offline-docset") :doc "Create offline docset for built lib"
-                  :depends [compile-js compile-java]}
-  test            {:task (clj "-M:test")               :doc "Run tests"
-                   :depends [compile-js compile-java]}
-  lint            {:exec-fn lint/task                  :doc "lint source code using clj-kondo"}
-  eastwood        {:task (clj "-M:test:eastwood")      :doc "lint source code using eastwood"
-                   :depends [compile-java]}
-  code-format     {:cmd {"check" {:exec-fn code-format/check}
-                         "fix"   {:exec-fn code-format/fix}}
-                   :exec-fn code-format/check
-                   :doc "check or fix whitespace formatting"}
-  current-version {:task version/-main               :doc "print current version"
-                   :task-decoration :none}
-  package         {:exec-fn package/task             :doc "Zip up cljdoc for docker"}
-  
-  docker-image
-  {:doc "Create docker image"
-   :depends [package]
-   :task (shell {:dir "ops/docker"}
-                "bb image.clj" (fs/absolutize "target/build/cljdoc.zip") (version/version))}
-  update-github-emojis
-  {:doc "Update the github emojis used in markdown"
-   :task update-github-emojis/-main}
-  outdated
-  {:doc "report on outdated Clojure and JavaScript dependencies"
-   :depends [deps-js]
-   :task outdated/-main}
-  doc-update-readme
-  {:doc "honour our contributors in README"
-   :task doc-update-readme/-main}
+  clean                {:exec-fn clean/task                 :doc "Delete all build work"}
+  download-deps        {:exec-fn download-deps/task         :doc "Download clojure deps"}
+  dev                  {:exec-fn dev-repl/task              :doc "Fire up a REPL for dev"
+                        :depends [compile-js compile-java]}
+  deps-js              {:exec-fn deps-js/task               :doc "Bring down js deps"}
+  compile-js           {:exec-fn compile-js/task            :doc "Compile front end sources"
+                        :depends [deps-js]}
+  test-js              {:exec-fn compile-js/task            :doc "Run front-end tests"
+                        :exec-args {:test true}
+                        :depends [deps-js]}
+  compile-java         {:exec-fn compile-java/task          :doc "Compile java sources"}
+  server               {:task (clj "-M:cli run")            :doc "Launch cljdoc server"
+                        :depends [compile-js compile-java]}
+  ingest               {:task (clj "-M:cli ingest")         :doc "Ingest docs locally for testing"
+                        :depends [compile-js compile-java]}
+  offline-docset       {:task (clj "-M:cli offline-docset") :doc "Create offline docset for built lib"
+                        :depends [compile-js compile-java]}
+  test                 {:task (clj "-M:test")               :doc "Run tests"
+                        :depends [compile-js compile-java]}
+  lint                 {:exec-fn lint/task                  :doc "lint source code using clj-kondo"}
+  eastwood             {:task (clj "-M:test:eastwood")      :doc "lint source code using eastwood"
+                        :depends [compile-java]}
+  code-format          {:cmd {"check" {:exec-fn code-format/check}
+                              "fix"   {:exec-fn code-format/fix}}
+                        :exec-fn code-format/check
+                        :doc "check or fix whitespace formatting"}
+  current-version      {:task version/-main                 :doc "print current version"
+                        :task-decoration :none}
+  package              {:exec-fn package/task               :doc "Zip up cljdoc for docker"}
+  docker-image         {:doc "Create docker image"
+                        :depends [package]
+                        :task (shell {:dir "ops/docker"}
+                               "bb image.clj" (fs/absolutize "target/build/cljdoc.zip") (version/version))}
+  update-github-emojis {:exec-fn update-github-emojis/task  :doc "Update the github emojis used in cljdoc article markdown"}
+  outdated             {:exec-fn outdated/task :doc "report on outdated Clojure and JavaScript dependencies"
+                        :depends [deps-js]}
+  doc-update-readme    {:exec-fn doc-update-readme/task     :doc "honour our contributors in README" }
   check-contributors
   {:doc "who'd we miss?"
    :task check-contributors/-main}
