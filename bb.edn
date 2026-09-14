@@ -1,4 +1,4 @@
-{:min-bb-version "1.3.184"
+{:min-bb-version "1.13.222"
  :paths ["." "script"]
  :deps {lread/status-line {:git/url "https://github.com/lread/status-line.git"
                            :sha "eace48e2e0fcc65a3986d696fb0b910fa5790a1c"}
@@ -24,7 +24,8 @@
              (status/line :head "TASK %s" name)))
   :leave (let [{:keys [name task-decoration] :as f} (current-task)]
            (when-not (= :none task-decoration)
-             (status/line :detail "\nTASK %s done." name)))
+            (status/line :detail "\nTASK %s done." name)))
+  :cli helper.cli/base-opts
 
   ;; commands
   clean
@@ -43,8 +44,7 @@
                   "test-data/server"
                   "test-data/cli"]))}
   download-deps
-  {:doc "download clojure deps"
-   :task (clojure "-T:build download-deps")}
+  {:exec-fn download-deps/task :doc "download clojure deps"}
   dev
   {:doc "fire up a REPL for dev"
    :depends [compile-js compile-java]
