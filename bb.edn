@@ -69,24 +69,7 @@
                         :depends [deps-js]}
   doc-update-readme    {:exec-fn doc-update-readme/task     :doc "honour our contributors in README" }
   check-contributors   {:exec-fn check-contributors/task    :doc "who'd we miss?"}
-  unused-deps
-  {:doc "find unused dependencies"
-   :requires ([clj-commons.format.table :as table])
-   :task (let [;; manually update explanations as needed
-               explanations {'org.asciidoctor/asciidoctorj "actual API is in dep org.asciidoctor/asciidoctorj-api which we do not explicity depend on"
-                             'dev.weavejester/ragtime "ragtime API is in its dependencies"}
-               unused-deps (->> (exec 'borkdude.unused-deps/unused-deps)
-                                :unused-deps
-                                sort
-                                (mapv (fn [d] (-> {:dep (str d)}
-                                                  (assoc :explanation (get explanations (first d)))))))]
-           (status/line :detail "Dependencies that do not seem to be referenced by code")
-           (status/line :detail "NOTE: Update explanation in bb.edn as you see fit")
-           (status/line :detail "")
-      (table/print-table [{:key :dep         :title-align :left :title "Dependency"  :align :left}
-                          {:key :explanation :title-align :left :title "Explanation" :align :left}]
-                         unused-deps)
-      (status/line :detail "Total unused deps with no explanation: %d" (count (filter (fn [r] (-> r :explanation nil?)) unused-deps))))}
+  unused-deps          {:exec-fn unused-deps/task           :doc "find unused dependencies"}
   nvd-scan
   {:doc "Scan Clojure deps for vulnerabilities"
    :task (shell {:dir "./modules/nvd-scan"} "bb nvd-scan")}
