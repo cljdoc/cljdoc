@@ -2,6 +2,7 @@
  :paths ["." "script"]
  :deps {lread/status-line {:git/url "https://github.com/lread/status-line.git"
                            :sha "eace48e2e0fcc65a3986d696fb0b910fa5790a1c"}
+        dev.weavejester/cljfmt {:mvn/version "0.16.5"}
         dev.nubank/docopt {:mvn/version "0.6.1-fix7"}
         etaoin/etaoin {:mvn/version "1.1.43"}
         io.github.borkdude/unused-deps {:git/sha "c6673b5549d02fa131d21b61695e283b18124b59"}
@@ -110,8 +111,10 @@
    :depends [compile-java]
    :task (clojure "-M:test:eastwood")}
   code-format
-  {:doc "(check|fix) check whitespace formatting"
-   :task code-format/-main}
+  {:cmd {"check" {:exec-fn code-format/check}
+         "fix"   {:exec-fn code-format/fix}}
+   :exec-fn code-format/check
+   :doc "check or fix whitespace formatting"}
   current-version
   {:doc "print current version"
    :task-decoration :none ;; some users might want us raw output

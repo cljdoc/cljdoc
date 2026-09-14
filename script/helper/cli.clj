@@ -9,4 +9,4 @@
   (System/exit 1))
 
 (def base-opts {:restrict true :restrict-args true
-                :error-fn colorful-error} )
+                :error-fn colorful-error})

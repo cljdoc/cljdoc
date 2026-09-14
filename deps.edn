@@ -132,10 +132,6 @@
            :cli
            {:main-opts ["-m" "cljdoc.cli"]}
 
-           :code-format
-           {:extra-deps {dev.weavejester/cljfmt {:mvn/version "0.16.5"}}
-            :main-opts ["-m" "cljfmt.main"]}
-
            :outdated
            {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1276"}
                            org.slf4j/slf4j-simple {:mvn/version "2.0.19"}} ;; to rid ourselves of logger warnings
