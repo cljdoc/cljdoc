@@ -31,49 +31,36 @@
   :cli helper.cli/base-opts
 
   ;; commands
-  clean          {:exec-fn clean/task                 :doc "Delete all build work"}
-  download-deps  {:exec-fn download-deps/task         :doc "Download clojure deps"}
-  dev            {:exec-fn dev-repl/task              :doc "Fire up a REPL for dev"
+  clean           {:exec-fn clean/task                 :doc "Delete all build work"}
+  download-deps   {:exec-fn download-deps/task         :doc "Download clojure deps"}
+  dev             {:exec-fn dev-repl/task              :doc "Fire up a REPL for dev"
+                   :depends [compile-js compile-java]}
+  deps-js         {:exec-fn deps-js/task               :doc "Bring down js deps"}
+  compile-js      {:exec-fn compile-js/task            :doc "Compile front end sources"
+                   :depends [deps-js]}
+  test-js         {:exec-fn compile-js/task            :doc "Run front-end tests"
+                   :exec-args {:test true}
+                   :depends [deps-js]}
+  compile-java    {:exec-fn compile-java/task          :doc "Compile java sources"}
+  server          {:task (clj "-M:cli run")            :doc "Launch cljdoc server"
+                   :depends [compile-js compile-java]}
+  ingest          {:task (clj "-M:cli ingest")         :doc "Ingest docs locally for testing"
+                   :depends [compile-js compile-java]}
+  offline-docset  {:task (clj "-M:cli offline-docset") :doc "Create offline docset for built lib"
                   :depends [compile-js compile-java]}
-  deps-js        {:exec-fn deps-js/task               :doc "Bring down js deps"}
-  compile-js     {:exec-fn compile-js/task            :doc "Compile front end sources"
-                  :depends [deps-js]}
-  test-js        {:exec-fn compile-js/task            :doc "Run front-end tests"
-                  :exec-args {:test true}
-                  :depends [deps-js]}
-  compile-java   {:exec-fn compile-java/task          :doc "Compile java sources"}
-  server         {:task (clj "-M:cli run")            :doc "Launch cljdoc server"
-                  :depends [compile-js compile-java]}
-  ingest         {:task (clj "-M:cli ingest")         :doc "Ingest docs locally for testing"
-                  :depends [compile-js compile-java]}
-  offline-docset {:task (clj "-M:cli offline-docset") :doc "Create offline docset for built lib"
-                  :depends [compile-js compile-java]}
-  test           {:task (clj "-M:test")               :doc "Run tests"
-                  :depends [compile-js compile-java]}
-  lint           {:exec-fn lint/task                  :doc "lint source code using clj-kondo"}
-  eastwood
-  {:doc "lint source code using eastwood"
-   :depends [compile-java]
-   :task (clojure "-M:test:eastwood")}
-  code-format
-  {:cmd {"check" {:exec-fn code-format/check}
-         "fix"   {:exec-fn code-format/fix}}
-   :exec-fn code-format/check
-   :doc "check or fix whitespace formatting"}
-  current-version
-  {:doc "print current version"
-   :task-decoration :none ;; some users might want us raw output
-   :task version/-main}
-  package
-  {:doc "Zip up cljdoc for docker"
-   :requires [package]
-   ;; this check supports current CI job pipeline which relies on not having to recreate cljdoc.zip
-   :task (if (fs/exists? "target/cljdoc.zip")
-           (println "Skipped: target/cljdoc.zip exists")
-           (do
-             (run 'compile-js)
-             (run 'compile-java)
-             (apply package/-main *command-line-args*)))}
+  test            {:task (clj "-M:test")               :doc "Run tests"
+                   :depends [compile-js compile-java]}
+  lint            {:exec-fn lint/task                  :doc "lint source code using clj-kondo"}
+  eastwood        {:task (clj "-M:test:eastwood")      :doc "lint source code using eastwood"
+                   :depends [compile-java]}
+  code-format     {:cmd {"check" {:exec-fn code-format/check}
+                         "fix"   {:exec-fn code-format/fix}}
+                   :exec-fn code-format/check
+                   :doc "check or fix whitespace formatting"}
+  current-version {:task version/-main               :doc "print current version"
+                   :task-decoration :none}
+  package         {:exec-fn package/task             :doc "Zip up cljdoc for docker"}
+  
   docker-image
   {:doc "Create docker image"
    :depends [package]
