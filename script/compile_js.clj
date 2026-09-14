@@ -1,12 +1,9 @@
-#!/usr/bin/env bb
-
 (ns compile-js
   (:require [babashka.esbuild :as esbuild]
             [babashka.fs :as fs]
             [clojure.java.io :as io]
             [clojure.pprint :as pprint]
             [clojure.string :as str]
-            [helper.main :as main]
             [helper.shell :as shell]
             [lread.status-line :as status]
             [pod.babashka.fswatcher :as fw]
@@ -14,13 +11,6 @@
   (:import [java.security MessageDigest]
            [java.time LocalDateTime]
            [java.time.format DateTimeFormatter]))
-
-(def args-usage "Valid args: [--watch|--test|--help]
-
-Options
- --watch        Rebuild client-side assets if they change
- --test         Run tests via node
- --help         Show this help")
 
 (defn- short-sha-bytes [b]
   (let [digest (MessageDigest/getInstance "SHA-256")
@@ -210,38 +200,50 @@ Options
                 {:recursive true}))
     (deref (promise))))
 
-(defn -main [& args]
-  (when-let [opts (main/doc-arg-opt args-usage args)]
-    (let [compile-opts (cond-> {:target-dir "resources-compiled/public/out"
-                                :manifest-out-dir "resources-compiled" ;; no need for this to be public
-                                :source-asset-dir "resources/public"
-                                :source-asset-static-subdir "static"
-                                :js-dir "target/js-compiled"
-                                :js-out-name "cljdoc"
-                                :source-dir "front-end/src"
-                                :platform :browser
-                                :js-out-ext "js"
-                                :js-entry-point "cljdoc.client.index.jsx"}
-                         (get opts "--test")
-                         (assoc
-                          :target-dir "target/js-test-out"
-                          :js-dir "target/js-test-compiled"
-                          :test-dir "front-end/test"
-                          :platform :node
-                          :js-out-ext "cjs" ;; so that node can run resulting bundle
-                          :js-entry-point "cljdoc.client.test-runner.jsx"))]
-      (fs/create-dirs (:target-dir compile-opts))
-      (if (get opts "--watch")
-        (do
-          (compile-all-no-exit compile-opts)
-          (setup-watch-compile compile-opts))
-        (do (compile-all compile-opts)
-            (when (get opts "--test")
-              (status/line :head "compile-js: Running tests")
-              (let [bundled-js (-> (fs/glob (:target-dir compile-opts) "cljdoc.*.cjs")
-                                   first
-                                   str)]
-                (shell/command "node" bundled-js))))))))
-
-(main/when-invoked-as-script
- (apply -main *command-line-args*))
+(defn task
+  {:org.babashka/cli {:spec {:force {:alias :f
+                                     :coerce :boolean
+                                     :desc "Force a rebuild"}
+                             :watch {:alias :w
+                                     :coerce :boolean
+                                     :desc "Rebuild client-side assets if they change"}
+                             :test {:alias :t
+                                    :coerce :boolean
+                                    :desc "Run tests via node"}}}}
+  [{:keys [watch test force]}]
+  (let [target-dir "resources-compiled/public/out"]
+    (if (and (not (or force watch test))
+             (not (seq (fs/modified-since target-dir ["resources/public" "front-end"
+                                                      "script/compile_js.clj"]))))
+      (println "Skipped: JS assets already compiled to" target-dir)
+      (let [compile-opts (cond-> {:target-dir target-dir
+                                  :manifest-out-dir "resources-compiled" ;; no need for this to be public
+                                  :source-asset-dir "resources/public"
+                                  :source-asset-static-subdir "static"
+                                  :js-dir "target/js-compiled"
+                                  :js-out-name "cljdoc"
+                                  :source-dir "front-end/src"
+                                  :platform :browser
+                                  :js-out-ext "js"
+                                  :js-entry-point "cljdoc.client.index.jsx"}
+                           test
+                           (assoc
+                            :target-dir "target/js-test-out"
+                            :js-dir "target/js-test-compiled"
+                            :test-dir "front-end/test"
+                            :platform :node
+                            :js-out-ext "cjs" ;; so that node can run resulting bundle
+                            :js-entry-point "cljdoc.client.test-runner.jsx"))]
+        (fs/create-dirs (:target-dir compile-opts))
+        (if watch
+          (do
+            (compile-all-no-exit compile-opts)
+            (setup-watch-compile compile-opts))
+          (do (compile-all compile-opts)
+              (when test
+                (status/line :head "compile-js: Running tests")
+                (let [bundled-js (-> (fs/glob (:target-dir compile-opts) "cljdoc.*.cjs")
+                                     first
+                                     str)]
+                  (println "bundle" bundled-js)
+                  (shell/command "node" bundled-js)))))))))

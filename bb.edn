@@ -33,30 +33,13 @@
   download-deps  {:exec-fn download-deps/task :doc "download clojure deps"}
   dev            {:exec-fn dev-repl/task      :doc "fire up a REPL for dev"
                   :depends [compile-js compile-java]}
-  deps-js
-  {:doc "bring down js deps"
-   :task (if (seq (fs/modified-since "node_modules" ["package-lock.json"]))
-           (shell "npm ci")
-           (println "Skipped npm ci: package-lock.json older than node_modules"))}
-  compile-js
-  {:doc "compile front end sources"
-   :depends [deps-js]
-   :requires [compile-js]
-   :task (let [out-dir "resources-compiled/public/out"]
-           (if (seq (fs/modified-since out-dir ["resources/public" "front-end"
-                                                "script/compile_js.clj"]))
-             (compile-js/-main)
-             (println "Skipped: JS assets already compiled to" out-dir)))}
-  compile-js-watch
-  {:doc "compile front end sources and auto-recompile on changes"
-   :depends [deps-js]
-   :requires [compile-js]
-   :task (compile-js/-main "--watch")}
-  test-js
-  {:doc "run front-end tests"
-   :depends [deps-js]
-   :requires [compile-js]
-   :task (compile-js/-main "--test")}
+  deps-js        {:exec-fn deps-js/task       :doc "bring down js deps"}
+  compile-js     {:exec-fn compile-js/task    :doc "compile front end sources"
+                  :depends [deps-js]}
+  test-js        {:exec-fn compile-js/task    :doc "run front-end tests"
+                  :exec-args {:test true}
+                  :depends [deps-js]}
+  
   compile-java
   {:doc "Compile java sources"
    :task (if (seq (fs/modified-since bs/class-dir (fs/glob "." "src/**.java")))
