@@ -29,23 +29,8 @@
   :cli helper.cli/base-opts
 
   ;; commands
-  clean
-  {:doc "delete all build work"
-   :task (do
-           (println "Deleting (d=deleted -=did not exist)")
-           (run! (fn [d]
-                   (println (format "[%s] %s"
-                                    (if (fs/exists? d) "d" "-")
-                                    d))
-                   (fs/delete-tree d))
-                 ["target"
-                  "resources-compiled"
-                  ".cpcache"
-                  "modules/deploy/.cpcache"
-                  "test-data/server"
-                  "test-data/cli"]))}
-  download-deps
-  {:exec-fn download-deps/task :doc "download clojure deps"}
+  clean          {:exec-fn clean/task         :doc "delete all build work"}
+  download-deps  {:exec-fn download-deps/task :doc "download clojure deps"}
   dev
   {:doc "fire up a REPL for dev"
    :depends [compile-js compile-java]
