@@ -50,14 +50,14 @@
                         :depends [compile-js compile-java]}
   test                 {:task (clj "-M:test")               :doc "Run tests"
                         :depends [compile-js compile-java]}
-  lint                 {:exec-fn lint/task                  :doc "lint source code using clj-kondo"}
-  eastwood             {:task (clj "-M:test:eastwood")      :doc "lint source code using eastwood"
+  lint                 {:exec-fn lint/task                  :doc "Lint source code using clj-kondo"}
+  eastwood             {:task (clj "-M:test:eastwood")      :doc "Lint source code using eastwood"
                         :depends [compile-java]}
   code-format          {:cmd {"check" {:exec-fn code-format/check}
                               "fix"   {:exec-fn code-format/fix}}
                         :exec-fn code-format/check
                         :doc "check or fix whitespace formatting"}
-  current-version      {:task version/-main                 :doc "print current version"
+  current-version      {:task version/-main                 :doc "Print current version"
                         :task-decoration :none}
   package              {:exec-fn package/task               :doc "Zip up cljdoc for docker"}
   docker-image         {:doc "Create docker image"
@@ -67,13 +67,10 @@
   update-github-emojis {:exec-fn update-github-emojis/task  :doc "Update the github emojis used in cljdoc article markdown"}
   outdated             {:exec-fn outdated/task :doc "report on outdated Clojure and JavaScript dependencies"
                         :depends [deps-js]}
-  doc-update-readme    {:exec-fn doc-update-readme/task     :doc "honour our contributors in README" }
-  check-contributors   {:exec-fn check-contributors/task    :doc "who'd we miss?"}
-  unused-deps          {:exec-fn unused-deps/task           :doc "find unused dependencies"}
-  nvd-scan
-  {:doc "Scan Clojure deps for vulnerabilities"
-   :task (shell {:dir "./modules/nvd-scan"} "bb nvd-scan")}
-
+  doc-update-readme    {:exec-fn doc-update-readme/task     :doc "Honour our contributors in README" }
+  check-contributors   {:exec-fn check-contributors/task    :doc "Who'd we miss?"}
+  unused-deps          {:exec-fn unused-deps/task           :doc "Find unused dependencies"}
+  nvd-scan             {:exec-fn nvd-scan/task              :doc "Scan Clojure deps for vulnerabilities"}
   deploy
   {:doc "ops: Deploy to Production (run by CircleCI)"
    :task (let [cljdoc-version (-> (shell {:out :string} "bb current-version") :out str/trim)]
