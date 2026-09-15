@@ -365,7 +365,7 @@ Or do so automatically on client-side source changes via:
 
 [source,shell]
 ----
-bb compile-js-watch
+bb compile-js --watch
 ----
 
 Cljdoc will pick up any built client assets when you refresh the browser page.

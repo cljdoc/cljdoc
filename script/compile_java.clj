@@ -1,6 +1,6 @@
 (ns compile-java
   (:require [babashka.fs :as fs]
-            [babashka.tasks :as task]
+            [babashka.tasks :as tasks]
             [build-shared :as bs]
             [lread.status-line :as status]))
 
@@ -11,5 +11,5 @@
   [{:keys [force]}]
   (status/line :head "Compiling Java sources")
   (if (or force (seq (fs/modified-since bs/class-dir (fs/glob "." "src/**.java"))))
-    (task/clojure "-T:build" "compile-java")
+    (tasks/clojure "-T:build" "compile-java")
     (println "Java sources already compiled to" bs/class-dir)))

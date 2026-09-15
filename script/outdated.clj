@@ -1,9 +1,9 @@
 (ns outdated
   (:require [babashka.fs :as fs]
-            [babashka.tasks :as tasks]
             [clj-commons.format.table :as table]
             [clojure.edn :as edn]
             [clojure.string :as string]
+            [deps-js]
             [helper.shell :as shell]
             [lread.status-line :as status]))
 
@@ -56,7 +56,7 @@
       (status/line :detail "All CDN JavaScript deps seem up to date."))))
 
 (defn task [_opts]
-  (tasks/run 'deps-js)
+  (deps-js/task {})
   (check-clojure)
   (check-npm-js)
   (check-cdn-js))

@@ -1,7 +1,8 @@
 (ns dev-repl
   (:require [babashka.process :as process]
-            [babashka.tasks :as tasks]
             [clojure.string :as str]
+            [compile-java]
+            [compile-js]
             [lread.status-line :as status]))
 
 ;; Entry points
@@ -26,8 +27,8 @@
                                     :desc "Port, 0 for auto-select"}}}}
 
   [{:keys [flowstorm clerk host bind port]}]
-  (tasks/run 'compile-js)
-  (tasks/run 'compile-java)
+  (compile-js/task {})
+  (compile-java/task {})
   (status/line :head "Launching Clojure nREPL")
   (let [aliases (cond-> ["cli" "test" "nrepl"]
                   flowstorm (conj "flowstorm")

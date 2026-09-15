@@ -1,10 +1,10 @@
 (ns compile-js
   (:require [babashka.esbuild :as esbuild]
             [babashka.fs :as fs]
-            [babashka.tasks :as tasks]
             [clojure.java.io :as io]
             [clojure.pprint :as pprint]
             [clojure.string :as str]
+            [deps-js]
             [helper.shell :as shell]
             [lread.status-line :as status]
             [pod.babashka.fswatcher :as fw]
@@ -211,7 +211,7 @@
                                     :coerce :boolean
                                     :desc "Run tests via node"}}}}
   [{:keys [watch test force]}]
-  (tasks/run 'deps-js)
+  (deps-js/task {})
   (status/line :head "Compiling front end sources")
   (let [target-dir "resources-compiled/public/out"]
     (if (and (not (or force watch test))

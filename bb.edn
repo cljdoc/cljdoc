@@ -28,9 +28,7 @@
   ;; commands
   ;; Note: We don't use `:depends` for dependent tasks
   ;;       bb cli tasks always inherit options from their :depends, which we are not
-  ;;       interested in.
-  ;;       And we don't use `:run` because it seems to pass along command-line-args
-  ;;       and we validate those and they won't be correct for dependent tasks.
+  ;;       interested in, we instead simply invoke dependent task code directly.
   clean                {:exec-fn clean/task                   :doc "Delete all build work"}
   download-deps        {:exec-fn download-deps/task           :doc "Download clojure deps"}
   dev                  {:exec-fn dev-repl/task                :doc "Fire up a REPL for dev"}
