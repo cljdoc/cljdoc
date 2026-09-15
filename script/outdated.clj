@@ -1,11 +1,9 @@
-#!/usr/bin/env bb
-
 (ns outdated
   (:require [babashka.fs :as fs]
             [clj-commons.format.table :as table]
             [clojure.edn :as edn]
             [clojure.string :as string]
-            [helper.main :as main]
+            [deps-js]
             [helper.shell :as shell]
             [lread.status-line :as status]))
 
@@ -57,10 +55,8 @@
            (table/print-table [:file :npm-name :current :latest :note]))
       (status/line :detail "All CDN JavaScript deps seem up to date."))))
 
-(defn -main []
+(defn task [_opts]
+  (deps-js/task {})
   (check-clojure)
   (check-npm-js)
   (check-cdn-js))
-
-(main/when-invoked-as-script
- (apply -main *command-line-args*))

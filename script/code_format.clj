@@ -1,28 +1,22 @@
-#!/usr/bin/env bb
-
 (ns code-format
-  (:require [helper.main :as main]
-            [helper.shell :as shell]
+  (:require [cljfmt.tool :as cljfmt]
             [lread.status-line :as status]))
 
-(def args-usage "Valid args: [check|fix|--help]
+(def paths ["src" "test" "modules" "script"
+            "ops"
+            "resources/migrations"
+            "front-end/src"])
 
-Commands:
- check - reports on code formatting violations (default)
- fix   - fixes code formatting violations
+;; tasks
 
-Options
- --help        Show this help")
+(defn check
+  {:org.babashka/cli {:doc "reports on code formatting violations (default)"}}
+  [_opts]
+  (status/line :head "Checking code format")
+  (cljfmt/check {:paths paths}))
 
-(defn -main [& args]
-  (when-let [opts (main/doc-arg-opt args-usage args)]
-    (let [cmd (or (some (fn [[k v]] (when v k)) opts) "check")]
-      (status/line :head "%sing code format" cmd)
-      (shell/command "clojure -M:code-format" cmd
-                     "src" "test" "modules" "script"
-                     "ops"
-                     "resources/migrations"
-                     "front-end/src"))))
-
-(main/when-invoked-as-script
- (apply -main *command-line-args*))
+(defn fix
+  {:org.babashka/cli {:doc "fixes code formatting violations"}}
+  [_opts]
+  (status/line :head "Fixing code format")
+  (cljfmt/fix {:paths paths}))

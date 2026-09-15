@@ -1,5 +1,3 @@
-#!/usr/bin/env bb
-
 (ns doc-update-readme
   "Script to update README.adoc to credit people who have contributed
   Run manually as needed."
@@ -192,7 +190,7 @@
         (status/die 1 "Found duplicate github-id entries: %s" (into [] dupes))))
     people))
 
-(defn -main [& _args]
+(defn task [_opts]
   (let [readme-filename "README.adoc"
         image-opts {:image-width 273
                     :images-dir "./doc/generated/people"}

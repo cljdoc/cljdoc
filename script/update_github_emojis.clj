@@ -58,7 +58,8 @@
           (sorted-map)
           (str/split-lines html)))
 
-(defn -main [& _args]
+(defn task [_opts]
+  (status/line :head "Updating github emojis resource")
   (let [emojis (fetch-emojis)
         rendered (-> emojis render-emojis parse-rendered-emojis)
         joined (reduce (fn [acc [k v]]
@@ -74,4 +75,3 @@
         (spit emoji-edn-file new-emojis)
         (status/line :detail "%s updated. Please review then commit." emoji-edn-file))
       (status/line :detail "%s unchanged" emoji-edn-file))))
-
