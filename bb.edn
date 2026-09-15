@@ -21,37 +21,40 @@
              [version])
   :init (defn clj [args]
            (apply clojure args *command-line-args*))
-  :enter (let [{:keys [name task-decoration] :as f} (current-task)]
-           (when-not (= :none task-decoration)
-             (status/line :head "TASK %s" name)))
-  :leave (let [{:keys [name task-decoration] :as f} (current-task)]
-           (when-not (= :none task-decoration)
-            (status/line :detail "\nTASK %s done." name)))
-  :cli helper.cli/base-opts
+ :cli helper.cli/base-opts
 
   ;; commands
-  ;; Note: we only use :depends for non bb cli (:exec-fn) tasks.
+  ;; Note: we don't use `:depends` for dependent tasks
   ;;       bb cli tasks always inherit options from their :depends, which we are not
-  ;;       interested in. For :exec-fn tasks, we invoke dependencies inline.
-  clean                {:exec-fn clean/task                 :doc "Delete all build work"}
-  download-deps        {:exec-fn download-deps/task         :doc "Download clojure deps"}
-  dev                  {:exec-fn dev-repl/task              :doc "Fire up a REPL for dev"}
-  deps-js              {:exec-fn deps-js/task               :doc "Bring down js deps"}
-  compile-js           {:exec-fn compile-js/task            :doc "Compile front end sources"}
-  test-js              {:exec-fn compile-js/task            :doc "Run front-end tests"
+  ;;       interested in. We instead `run` dependent tasks.
+  clean                {:exec-fn clean/task                   :doc "Delete all build work"}
+  download-deps        {:exec-fn download-deps/task           :doc "Download clojure deps"}
+  dev                  {:exec-fn dev-repl/task                :doc "Fire up a REPL for dev"}
+  deps-js              {:exec-fn deps-js/task                 :doc "Bring down js deps"}
+  compile-js           {:exec-fn compile-js/task              :doc "Compile front end sources"}
+  test-js              {:exec-fn compile-js/task              :doc "Run front-end tests"
                         :exec-args {:test true}}
-  compile-java         {:exec-fn compile-java/task          :doc "Compile java sources"}
-  server               {:task (clj "-M:cli run")            :doc "Launch cljdoc server"
-                        :depends [compile-js compile-java]}
-  ingest               {:task (clj "-M:cli ingest")         :doc "Ingest docs locally for testing"
-                        :depends [compile-js compile-java]}
-  offline-docset       {:task (clj "-M:cli offline-docset") :doc "Create offline docset for built lib"
-                        :depends [compile-js compile-java]}
-  test                 {:task (clj "-M:test")               :doc "Run tests"
-                        :depends [compile-js compile-java]}
-  lint                 {:exec-fn lint/task                  :doc "Lint source code using clj-kondo"}
-  eastwood             {:task (clj "-M:test:eastwood")      :doc "Lint source code using eastwood"
-                        :depends [compile-java]}
+  compile-java         {:exec-fn compile-java/task            :doc "Compile java sources"}
+  server               {:task (do
+                               (run 'compile-js)
+                               (run 'compile-java)
+                               (clj "-M:cli run"))            :doc "Launch cljdoc server"}
+  ingest               {:task (do
+                               (run 'compile-js)
+                               (run 'compile-java)
+                               (clj "-M:cli ingest"))         :doc "Ingest docs locally for testing"}
+  offline-docset       {:task (do
+                               (run 'compile-js)
+                               (run 'compile-java)
+                               (clj "-M:cli offline-docset")) :doc "Create offline docset for built lib"}
+  test                 {:task (do
+                               (run 'compile-js)
+                               (run 'compile-java)
+                               (clj "-M:test"))               :doc "Run tests"}
+  lint                 {:exec-fn lint/task                    :doc "Lint source code using clj-kondo"}
+  eastwood             {:task (do
+                               (run 'compile-java)
+                               (clj "-M:test:eastwood"))      :doc "Lint source code using eastwood"}
   code-format          {:cmd {"check" {:exec-fn code-format/check}
                               "fix"   {:exec-fn code-format/fix}}
                         :exec-fn code-format/check
@@ -60,9 +63,10 @@
                         :task-decoration :none}
   package              {:exec-fn package/task               :doc "Zip up cljdoc for docker"}
   docker-image         {:doc "Create docker image"
-                        :depends [package]
-                        :task (shell {:dir "ops/docker"}
-                               "bb image.clj" (fs/absolutize "target/build/cljdoc.zip") (version/version))}
+                        :task (do
+                               (run' package)
+                               (shell {:dir "ops/docker"}
+                                "bb image.clj" (fs/absolutize "target/build/cljdoc.zip") (version/version)))}
   update-github-emojis {:exec-fn update-github-emojis/task  :doc "Update the github emojis used in cljdoc article markdown"}
   outdated             {:exec-fn outdated/task :doc "report on outdated Clojure and JavaScript dependencies"}
   doc-update-readme    {:exec-fn doc-update-readme/task     :doc "Honour our contributors in README" }
