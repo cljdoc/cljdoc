@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Fri, 11 Sep 2026 20:36:45 GMT",
+ :last-modified "Tue, 08 Sep 2026 16:59:49 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -558,14 +558,13 @@
     "0.1.215.5-8022b8-alpha"],
    :description
    "Facilities for async programming and communication in Clojure"}
-  {:etag "W/\"bd0822fc408f39960f4ef655d29a61e8\"",
-   :last-modified "Fri, 11 Sep 2026 17:37:48 GMT",
+  {:etag "W/\"d5c3f7baa643beab67ee0c3c10f3be26\"",
+   :last-modified "Wed, 25 Feb 2026 19:14:10 GMT",
    :artifact-id "core.cache",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.2.999-alpha1"
-    "1.2.263"
+   ["1.2.263"
     "1.2.259"
     "1.2.254"
     "1.2.249"
