@@ -1,9 +1,6 @@
-#!/usr/bin/env bb
-
 (ns version
   (:require [babashka.tasks :as t]
-            [clojure.string :as str]
-            [helper.main :as main]))
+            [clojure.string :as str]))
 
 (defn version []
   (let [base-version "0.0"
@@ -14,8 +11,5 @@
       (format "%s.%s-%s" base-version commit-count commit-sha)
       (format "%s.%s-%s-%s" base-version commit-count branch commit-sha))))
 
-(defn -main [& _args]
+(defn task [_opts]
   (println (version)))
-
-(main/when-invoked-as-script
- (apply -main *command-line-args*))

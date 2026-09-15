@@ -57,7 +57,7 @@
                               "fix"   {:exec-fn code-format/fix}}
                         :exec-fn code-format/check
                         :doc "check or fix whitespace formatting"}
-  current-version      {:task version/-main                 :doc "Print current version"
+  current-version      {:exec-fn version/task               :doc "Print current version"
                         :task-decoration :none}
   package              {:exec-fn package/task               :doc "Zip up cljdoc for docker"}
   docker-image         {:doc "Create docker image"
