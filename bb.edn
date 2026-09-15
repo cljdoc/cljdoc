@@ -30,16 +30,16 @@
   :cli helper.cli/base-opts
 
   ;; commands
+  ;; Note: we only use :depends for non bb cli (:exec-fn) tasks.
+  ;;       bb cli tasks always inherit options from their :depends, which we are not
+  ;;       interested in. For :exec-fn tasks, we invoke dependencies inline.
   clean                {:exec-fn clean/task                 :doc "Delete all build work"}
   download-deps        {:exec-fn download-deps/task         :doc "Download clojure deps"}
-  dev                  {:exec-fn dev-repl/task              :doc "Fire up a REPL for dev"
-                        :depends [compile-js compile-java]}
+  dev                  {:exec-fn dev-repl/task              :doc "Fire up a REPL for dev"}
   deps-js              {:exec-fn deps-js/task               :doc "Bring down js deps"}
-  compile-js           {:exec-fn compile-js/task            :doc "Compile front end sources"
-                        :depends [deps-js]}
+  compile-js           {:exec-fn compile-js/task            :doc "Compile front end sources"}
   test-js              {:exec-fn compile-js/task            :doc "Run front-end tests"
-                        :exec-args {:test true}
-                        :depends [deps-js]}
+                        :exec-args {:test true}}
   compile-java         {:exec-fn compile-java/task          :doc "Compile java sources"}
   server               {:task (clj "-M:cli run")            :doc "Launch cljdoc server"
                         :depends [compile-js compile-java]}
@@ -64,8 +64,7 @@
                         :task (shell {:dir "ops/docker"}
                                "bb image.clj" (fs/absolutize "target/build/cljdoc.zip") (version/version))}
   update-github-emojis {:exec-fn update-github-emojis/task  :doc "Update the github emojis used in cljdoc article markdown"}
-  outdated             {:exec-fn outdated/task :doc "report on outdated Clojure and JavaScript dependencies"
-                        :depends [deps-js]}
+  outdated             {:exec-fn outdated/task :doc "report on outdated Clojure and JavaScript dependencies"}
   doc-update-readme    {:exec-fn doc-update-readme/task     :doc "Honour our contributors in README" }
   check-contributors   {:exec-fn check-contributors/task    :doc "Who'd we miss?"}
   unused-deps          {:exec-fn unused-deps/task           :doc "Find unused dependencies"}

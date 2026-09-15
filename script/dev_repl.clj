@@ -1,15 +1,14 @@
 (ns dev-repl
   (:require [babashka.process :as process]
+            [babashka.tasks :as tasks]
             [clojure.string :as str]
             [lread.status-line :as status]))
 
 ;; Entry points
 (defn task
-  {:org.babashka/cli {:spec {:flowstorm {:alias :f
-                                         :coerce :boolean
+  {:org.babashka/cli {:spec {:flowstorm {:coerce :boolean
                                          :desc "Enable flowstorm"}
-                             :clerk {:alias :c
-                                     :coerce :boolean
+                             :clerk {:coerce :boolean
                                      :desc "Enable clerk"}
                              ;; cider nrepl pass through opts
                              :host {:ref "<ADDR>"
@@ -27,6 +26,8 @@
                                     :desc "Port, 0 for auto-select"}}}}
 
   [{:keys [flowstorm clerk host bind port]}]
+  (tasks/run 'compile-js)
+  (tasks/run 'compile-java)
   (let [aliases (cond-> ["cli" "test" "nrepl"]
                   flowstorm (conj "flowstorm")
                   clerk (conj "clerk"))]
