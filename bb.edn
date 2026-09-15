@@ -18,57 +18,67 @@
              [clojure.string :as str]
              [build-shared :as bs]
              [lread.status-line :as status]
-             [version])
+             [version]
+             [compile-js]
+             [compile-java]
+             [package])
   :init (defn clj [args]
-           (apply clojure args *command-line-args*))
- :cli helper.cli/base-opts
+         (apply clojure args *command-line-args*))
+  :cli helper.cli/base-opts
 
   ;; commands
-  ;; Note: we don't use `:depends` for dependent tasks
+  ;; Note: We don't use `:depends` for dependent tasks
   ;;       bb cli tasks always inherit options from their :depends, which we are not
-  ;;       interested in. We instead `run` dependent tasks.
+  ;;       interested in.
+  ;;       And we don't use `:run` because it seems to pass along command-line-args
+  ;;       and we validate those and they won't be correct for dependent tasks.
   clean                {:exec-fn clean/task                   :doc "Delete all build work"}
   download-deps        {:exec-fn download-deps/task           :doc "Download clojure deps"}
   dev                  {:exec-fn dev-repl/task                :doc "Fire up a REPL for dev"}
-  deps-js              {:exec-fn deps-js/task                 :doc "Bring down js deps"}
+  deps-js              {:exec-fn deps-js/task                 :doc "Bring down JS deps"}
   compile-js           {:exec-fn compile-js/task              :doc "Compile front end sources"}
   test-js              {:exec-fn compile-js/task              :doc "Run front-end tests"
                         :exec-args {:test true}}
   compile-java         {:exec-fn compile-java/task            :doc "Compile java sources"}
   server               {:task (do
-                               (run 'compile-js)
-                               (run 'compile-java)
+                               (compile-js/task {})
+                               (compile-java/task {})
+                               (status/line :head "Launching server")
                                (clj "-M:cli run"))            :doc "Launch cljdoc server"}
   ingest               {:task (do
-                               (run 'compile-js)
-                               (run 'compile-java)
+                               (compile-js/task {})
+                               (compile-java/task {})
+                               (status/line :head "Ingesting docs")
                                (clj "-M:cli ingest"))         :doc "Ingest docs locally for testing"}
   offline-docset       {:task (do
-                               (run 'compile-js)
-                               (run 'compile-java)
+                               (compile-js/task {})
+                               (compile-java/task {})
+                               (status/line :head "Offline docset")
                                (clj "-M:cli offline-docset")) :doc "Create offline docset for built lib"}
   test                 {:task (do
-                               (run 'compile-js)
-                               (run 'compile-java)
+                               (compile-js/task {})
+                               (compile-java/task {})
+                               (status/line :head "Running tests")
                                (clj "-M:test"))               :doc "Run tests"}
   lint                 {:exec-fn lint/task                    :doc "Lint source code using clj-kondo"}
   eastwood             {:task (do
-                               (run 'compile-java)
+                               (compile-java/task {})
+                               (status/line :head "Running eastwood")
                                (clj "-M:test:eastwood"))      :doc "Lint source code using eastwood"}
   code-format          {:cmd {"check" {:exec-fn code-format/check}
                               "fix"   {:exec-fn code-format/fix}}
                         :exec-fn code-format/check
                         :doc "check or fix whitespace formatting"}
-  current-version      {:exec-fn version/task               :doc "Print current version"
-                        :task-decoration :none}
+  current-version      {:exec-fn version/task               :doc "Print current version"}
   package              {:exec-fn package/task               :doc "Zip up cljdoc for docker"}
   docker-image         {:doc "Create docker image"
                         :task (do
-                               (run' package)
+                               (package/task {})
+                               (status/line :head "Creating docker image")
                                (shell {:dir "ops/docker"}
                                 "bb image.clj" (fs/absolutize "target/build/cljdoc.zip") (version/version)))}
   update-github-emojis {:exec-fn update-github-emojis/task  :doc "Update the github emojis used in cljdoc article markdown"}
-  outdated             {:exec-fn outdated/task :doc "report on outdated Clojure and JavaScript dependencies"}
+  outdated             {:exec-fn outdated/task              :doc "report on outdated Clojure and JavaScript dependencies"}
   doc-update-readme    {:exec-fn doc-update-readme/task     :doc "Honour our contributors in README" }
   check-contributors   {:exec-fn check-contributors/task    :doc "Who'd we miss?"}
   unused-deps          {:exec-fn unused-deps/task           :doc "Find unused dependencies"}
@@ -76,7 +86,7 @@
   deploy
   {:doc "ops: Deploy to Production (run by CircleCI)"
    :task (let [cljdoc-version (-> (shell {:out :string} "bb current-version") :out str/trim)]
-           (status/line :detail "Deploying cljdoc version %s" cljdoc-version)
+           (status/line :head "Deploying cljdoc version %s" cljdoc-version)
            (apply shell {:dir "ops/exoscale/deploy"}
                   "clojure -M -m cljdoc.deploy deploy -t" cljdoc-version
                   *command-line-args*))}}}

@@ -2,9 +2,11 @@
   (:require
    [babashka.fs :as fs]
    [clojure.edn :as edn]
-   [clojure.tools.build.api :as b]))
+   [clojure.tools.build.api :as b]
+   [lread.status-line :as status]))
 
 (defn task [_opts]
+  (status/line :head "Downloading deps")
   (doseq [deps-edn ["deps.edn" "ops/exoscale/deploy/deps.edn"]]
     (let [aliases (->> deps-edn
                        slurp

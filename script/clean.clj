@@ -3,6 +3,7 @@
             [lread.status-line :as status]))
 
 (defn task [_opts]
+  (status/line :head "Cleaning build work")
   (status/line :detail "Deleting (d=deleted -=did not exist)")
   (run! (fn [d]
           (status/line :detail "[%s] %s"

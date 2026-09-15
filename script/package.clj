@@ -12,6 +12,7 @@
                                      :coerce :boolean
                                      :desc "Force package ceation"}}}}
   [{:keys [force]}]
+  (status/line :head "Packaging")
   ;; TODO: do we need the project-root stuff?
   ;; it was in bash script because package script was called from other dirs
   (let [project-root (-> (t/shell {:out :string} "git rev-parse --show-toplevel") :out str/trim)

@@ -59,6 +59,7 @@
           (str/split-lines html)))
 
 (defn task [_opts]
+  (status/line :head "Updating github emojis resouce")
   (let [emojis (fetch-emojis)
         rendered (-> emojis render-emojis parse-rendered-emojis)
         joined (reduce (fn [acc [k v]]

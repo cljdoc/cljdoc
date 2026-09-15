@@ -4,6 +4,7 @@
             [lread.status-line :as status]))
 
 (defn task [_opts]
+  (status/line :head "Checking for unused deps")
   (let [;; manually update explanations as needed
         explanations {'org.asciidoctor/asciidoctorj "actual API is in dep org.asciidoctor/asciidoctorj-api which we do not explicity depend on"
                       'dev.weavejester/ragtime "ragtime API is in its dependencies"}

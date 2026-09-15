@@ -28,10 +28,10 @@
   [{:keys [flowstorm clerk host bind port]}]
   (tasks/run 'compile-js)
   (tasks/run 'compile-java)
+  (status/line :head "Launching Clojure nREPL")
   (let [aliases (cond-> ["cli" "test" "nrepl"]
                   flowstorm (conj "flowstorm")
                   clerk (conj "clerk"))]
-    (status/line :head "Launching Clojure nREPL")
     (when flowstorm
       (status/line :detail "Flowstorm support is enabled"))
     (when clerk

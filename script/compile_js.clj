@@ -113,7 +113,6 @@
 
 (defn- compile-bundle [{:keys [js-dir js-entry-point js-out-name js-out-ext target-dir platform]}]
   (status/line :head "compile-js: bundle js")
-  (println "squint-js" squint-js)
   (let [bundle (esbuild/build {:entry-points [(str (fs/file js-dir js-entry-point))]
                                :bundle true
                                :jsx :automatic
@@ -213,11 +212,12 @@
                                     :desc "Run tests via node"}}}}
   [{:keys [watch test force]}]
   (tasks/run 'deps-js)
+  (status/line :head "Compiling front end sources")
   (let [target-dir "resources-compiled/public/out"]
     (if (and (not (or force watch test))
              (not (seq (fs/modified-since target-dir ["resources/public" "front-end"
                                                       "script/compile_js.clj"]))))
-      (println "Skipped: JS assets already compiled to" target-dir)
+      (status/line :detail "Skipped: JS assets already compiled to %s" target-dir)
       (let [compile-opts (cond-> {:target-dir target-dir
                                   :manifest-out-dir "resources-compiled" ;; no need for this to be public
                                   :source-asset-dir "resources/public"
@@ -247,5 +247,4 @@
                 (let [bundled-js (-> (fs/glob (:target-dir compile-opts) "cljdoc.*.cjs")
                                      first
                                      str)]
-                  (println "bundle" bundled-js)
                   (shell/command "node" bundled-js)))))))))

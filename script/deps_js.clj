@@ -4,6 +4,7 @@
             [lread.status-line :as status]))
 
 (defn task [_opts]
+  (status/line :head "Downloading JS deps")
   (cond
     (not (fs/exists? "package-lock.json"))
     (do
