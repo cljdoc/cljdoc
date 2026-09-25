@@ -48,14 +48,14 @@
 
         ;; s3 for database backups at Exoscale Simple Object Store
         ;; started with aws-api but it loads entire objects on the heap, and we don't have enough heap for that!
-        software.amazon.awssdk/s3 {:mvn/version "2.54.14"}
+        software.amazon.awssdk/s3 {:mvn/version "2.55.5"}
 
         ;; reaching out to other services
         org.eclipse.jgit/org.eclipse.jgit.ssh.jsch {:mvn/version  "7.8.0.202609011348-r"} ;; git with jsch
-        org.babashka/http-client {:mvn/version "0.4.24"}     ;; jdk11+ http client
+        org.babashka/http-client {:mvn/version "0.4.25"}     ;; jdk11+ http client
 
         ;; misc utils
-        org.babashka/cli {:mvn/version "0.12.89"}            ;; command line parsing
+        org.babashka/cli {:mvn/version "0.12.91"}            ;; command line parsing
         babashka/fs {:mvn/version "0.5.34"}                  ;; file system utilities (a modern version of clj-commons/fs)
         babashka/process {:mvn/version "0.6.25"}             ;; launch processes
         cheshire/cheshire {:mvn/version "6.2.0"}             ;; json
@@ -63,7 +63,7 @@
         lambdaisland/uri {:mvn/version "1.19.155"}           ;; URI/URLs
         prone/prone {:mvn/version "2021-04-23"}              ;; exceptions->data for sentry
         org.clj-commons/digest {:mvn/version "1.4.100"}      ;; digest algs (md5, sha1, etc)
-        org.clojure/core.cache {:mvn/version "1.2.263"}      ;; general caching library
+        org.clojure/core.cache {:mvn/version "1.2.999"}      ;; general caching library
         org.clojure/core.memoize {:mvn/version "1.2.281"}    ;; function caching library
         tea-time/tea-time {:mvn/version "1.0.1"}             ;; task scheduler
         org.apache.maven/maven-artifact {:mvn/version "3.9.16"} ;; compare maven versions
@@ -134,7 +134,7 @@
 
            :outdated
            {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1276"}
-                           org.slf4j/slf4j-simple {:mvn/version "2.0.19"}} ;; to rid ourselves of logger warnings
+                           org.slf4j/slf4j-simple {:mvn/version "2.0.20"}} ;; to rid ourselves of logger warnings
             :main-opts ["-m" "antq.core"
                         "--exclude=io.pedestal/pedestal.jetty@0.8.0-rc-2" ;; see https://github.com/cljdoc/cljdoc/issues/1081
                         "--exclude=org.xerial/sqlite-jdbc@3.51.0.0" ;; see https://github.com/cljdoc/cljdoc/issues/1125

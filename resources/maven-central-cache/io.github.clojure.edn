@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Thu, 02 Jul 2026 15:38:16 GMT",
+ :last-modified "Thu, 24 Sep 2026 19:40:14 GMT",
  :artifacts
  [{:etag "W/\"6a3a9cf5395dff88faf1496ad32f5ad0\"",
    :last-modified "Thu, 02 Jul 2026 15:37:58 GMT",
@@ -8,6 +8,14 @@
    :origin :maven-central,
    :versions ["0.3.6" "0.3.5" "0.3.4" "0.3.3" "0.3.2" "0.3.1" "0.3.0"],
    :description "Dummy project for build and deployment testing"}
+  {:etag "W/\"bb87e21783aa25dad4d4b30ac6ed08cd\"",
+   :last-modified "Thu, 24 Sep 2026 18:43:57 GMT",
+   :artifact-id "java.doc",
+   :group-id "io.github.clojure",
+   :origin :maven-central,
+   :versions ["0.1.5"],
+   :description
+   "A Clojure library for accessing Javadocs in your REPL."}
   {:etag "W/\"e0e22c5f1bdf6ea1817070a20533515f\"",
    :last-modified "Thu, 28 May 2026 20:35:38 GMT",
    :artifact-id "tools.build",

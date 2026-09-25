@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Tue, 08 Sep 2026 16:59:49 GMT",
+ :last-modified "Wed, 23 Sep 2026 14:15:10 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -39,13 +39,14 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"89577da726c16554d7a3fd75998509c1\"",
-   :last-modified "Wed, 02 Sep 2026 18:25:58 GMT",
+  {:etag "W/\"25a3b40f4cc275e908abd464dc38c666\"",
+   :last-modified "Tue, 15 Sep 2026 16:33:26 GMT",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.13.0-alpha6"
+   ["1.13.0-alpha7"
+    "1.13.0-alpha6"
     "1.13.0-alpha5"
     "1.13.0-alpha4"
     "1.13.0-alpha3"
@@ -558,13 +559,15 @@
     "0.1.215.5-8022b8-alpha"],
    :description
    "Facilities for async programming and communication in Clojure"}
-  {:etag "W/\"d5c3f7baa643beab67ee0c3c10f3be26\"",
-   :last-modified "Wed, 25 Feb 2026 19:14:10 GMT",
+  {:etag "W/\"824a0eaa3eedc1e3a897c4f29dbf3f65\"",
+   :last-modified "Tue, 15 Sep 2026 17:50:25 GMT",
    :artifact-id "core.cache",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.2.263"
+   ["1.2.999"
+    "1.2.999-alpha1"
+    "1.2.263"
     "1.2.259"
     "1.2.254"
     "1.2.249"
@@ -2619,13 +2622,14 @@
     "0.6.1"
     "0.6.0"],
    :description "A Clojure reader in Clojure"}
-  {:etag "W/\"9ed754d25a56cb82879370b1e2bf76d8\"",
-   :last-modified "Tue, 30 Dec 2025 16:47:23 GMT",
+  {:etag "W/\"ebcc2488661ecfb14db93bf23cb222b1\"",
+   :last-modified "Wed, 23 Sep 2026 14:08:11 GMT",
    :artifact-id "tools.trace",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.9.0"
+   ["0.9.1"
+    "0.9.0"
     "0.8.0"
     "0.7.11"
     "0.7.10"
