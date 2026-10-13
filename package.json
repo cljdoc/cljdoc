@@ -3,7 +3,7 @@
   "type": "module",
   "dependencies": {
     "elasticlunr": "0.9.5",
-    "idb": "8.0.3",
-    "preact": "10.29.8"
+    "idb": "8.0.4",
+    "preact": "11.0.1"
   }
 }

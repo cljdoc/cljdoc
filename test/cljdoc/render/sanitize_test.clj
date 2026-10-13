@@ -28,7 +28,7 @@
                        :tag "img"
                        :attributes [["src" "mailto:john.smith@example.com"]]}]
             :cleaned ""}
-           (sanitize/clean* "<img src=\"mailto:john.smith@example.com\"")))
+           (sanitize/clean* "<img src=\"mailto:john.smith@example.com\"/>")))
   (t/is (= {:changes []
             :cleaned "<q cite=\"https://boo.com\">hey</q>"}
            (sanitize/clean* "<q cite='https://boo.com'>hey</q>"))))
