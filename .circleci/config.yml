@@ -55,7 +55,7 @@ aliases:
 
   - &node_install
     node/install:
-      node-version: '22.18.0'
+      node-version: '22.23.4'
 
 orbs:
   node: circleci/node@7.2.1
