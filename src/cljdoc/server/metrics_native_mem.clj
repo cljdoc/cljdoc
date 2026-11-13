@@ -9,7 +9,7 @@
   The output format syntax is not documented nor versioned making parsing potentially brittle.
 
   JDK source that emits the output:
-  https://github.com/openjdk/jdk/blob/jdk-23%2B37/src/hotspot/share/nmt/memReporter.cpp "
+  https://github.com/openjdk/jdk/blob/jdk-27%2B35/src/hotspot/share/nmt/memReporter.cpp"
   (:require [clojure.string :as str])
   (:import (java.lang.management ManagementFactory)
            (javax.management ObjectName)))
