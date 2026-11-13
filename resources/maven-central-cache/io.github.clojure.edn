@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Sun, 11 Oct 2026 18:55:42 GMT",
+ :last-modified "Mon, 26 Oct 2026 16:16:49 GMT",
  :artifacts
  [{:etag "W/\"897d1a2011d6e7b26c096419a594e39b\"",
    :last-modified "Sun, 11 Oct 2026 18:47:49 GMT",
@@ -9,26 +9,26 @@
    :versions
    ["0.3.7" "0.3.6" "0.3.5" "0.3.4" "0.3.3" "0.3.2" "0.3.1" "0.3.0"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"d8de7e0419087a84361b1c2b4f55b80c\"",
-   :last-modified "Tue, 06 Oct 2026 15:52:52 GMT",
+  {:etag "W/\"18987ed84ef14df113a83bb448f3bc58\"",
+   :last-modified "Mon, 26 Oct 2026 16:13:07 GMT",
    :artifact-id "clojure-cli.repl",
    :group-id "io.github.clojure",
    :origin :maven-central,
-   :versions ["0.1.1" "0.1.0"],
+   :versions ["0.2.3" "0.2.2" "0.2.1" "0.2.0" "0.1.1" "0.1.0"],
    :description "Terminal REPL for the Clojure CLI."}
-  {:etag "W/\"6869c3444b66e1c0e2363706eac8b80b\"",
-   :last-modified "Tue, 06 Oct 2026 15:52:53 GMT",
+  {:etag "W/\"b5f66b5adc400d855198a6018ba0a99f\"",
+   :last-modified "Mon, 26 Oct 2026 16:13:05 GMT",
    :artifact-id "clojure-cli.repl-client",
    :group-id "io.github.clojure",
    :origin :maven-central,
-   :versions ["0.1.1" "0.1.0"],
+   :versions ["0.2.3" "0.2.2" "0.2.1" "0.2.0" "0.1.1" "0.1.0"],
    :description "Terminal client for clojure-cli.repl."}
-  {:etag "W/\"35d9b3a951c9e7d84ab13522fc6d6411\"",
-   :last-modified "Tue, 06 Oct 2026 15:52:53 GMT",
+  {:etag "W/\"86066290a741041dd9858ece768dcee7\"",
+   :last-modified "Mon, 26 Oct 2026 16:13:06 GMT",
    :artifact-id "clojure-cli.repl-server",
    :group-id "io.github.clojure",
    :origin :maven-central,
-   :versions ["0.1.1" "0.1.0"],
+   :versions ["0.2.3" "0.2.2" "0.2.1" "0.2.0" "0.1.1" "0.1.0"],
    :description "nREPL server for clojure-cli.repl."}
   {:etag "W/\"bb87e21783aa25dad4d4b30ac6ed08cd\"",
    :last-modified "Thu, 24 Sep 2026 18:43:57 GMT",

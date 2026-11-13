@@ -1,5 +1,5 @@
 {:etag nil,
- :last-modified "Sun, 11 Oct 2026 19:55:22 GMT",
+ :last-modified "Tue, 27 Oct 2026 20:26:02 GMT",
  :artifacts
  [{:etag "W/\"c12d7ad3d6f9561cd9547d9cb2d7e88e\"",
    :last-modified "Tue, 30 Dec 2025 18:45:22 GMT",
@@ -39,13 +39,15 @@
     "0.1.9"
     "0.1.8"],
    :description "Dummy project for build and deployment testing"}
-  {:etag "W/\"c0790f6a757f5986b017c0c8a5243343\"",
-   :last-modified "Sun, 11 Oct 2026 19:47:50 GMT",
+  {:etag "W/\"1998cea7d8aa2e0302078005c7957074\"",
+   :last-modified "Tue, 27 Oct 2026 20:18:21 GMT",
    :artifact-id "clojure",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.13.0-alpha9"
+   ["1.13.0-alpha11"
+    "1.13.0-alpha10"
+    "1.13.0-alpha9"
     "1.13.0-alpha8"
     "1.13.0-alpha7"
     "1.13.0-alpha6"
@@ -745,13 +747,15 @@
     "0.0.10"
     "0.0.9"],
    :description "RRB-Trees for Clojure(Script) -- see Bagwell & Rompf"}
-  {:etag "W/\"3e6e2954252a8831f983889436ad0c3f\"",
-   :last-modified "Tue, 08 Sep 2026 16:52:52 GMT",
+  {:etag "W/\"603884ac958772a5e1bd562bbe4d07ab\"",
+   :last-modified "Tue, 20 Oct 2026 19:04:15 GMT",
    :artifact-id "core.specs.alpha",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.6.133-alpha10"
+   ["0.6.148-alpha12"
+    "0.6.143-alpha11"
+    "0.6.133-alpha10"
     "0.6.127-alpha9"
     "0.6.122-alpha8"
     "0.6.118-alpha7"
@@ -1254,13 +1258,14 @@
     "0.5.2"
     "0.5.1"],
    :description "A unification library for Clojure"}
-  {:etag "W/\"48ab4e2662faa9bf0c74c4a912b20f88\"",
-   :last-modified "Tue, 30 Dec 2025 23:39:12 GMT",
+  {:etag "W/\"5dac8649e9d3c0dcba677173c7349072\"",
+   :last-modified "Thu, 15 Oct 2026 15:43:32 GMT",
    :artifact-id "data.avl",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["0.2.1"
+   ["0.2.2"
+    "0.2.1"
     "0.2.0"
     "0.1.0"
     "0.0.18"
@@ -1713,13 +1718,15 @@
     "0.0.8"
     "0.0.5"
     "0.0.1"]}
-  {:etag "W/\"b56b021213007f9ea7041e028389ff6a\"",
-   :last-modified "Thu, 02 Jul 2026 15:13:22 GMT",
+  {:etag "W/\"6ccb3fd45c4a2238d6079c26387fe53b\"",
+   :last-modified "Mon, 19 Oct 2026 18:23:09 GMT",
    :artifact-id "pom.contrib",
    :group-id "org.clojure",
    :origin :maven-central,
    :versions
-   ["1.4.3"
+   ["1.4.5"
+    "1.4.4"
+    "1.4.3"
     "1.4.2"
     "1.4.1"
     "1.4.0"
