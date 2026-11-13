@@ -73,14 +73,14 @@
 
         ;; cljoc and cljdoc-analyzer should reference same version of cljdoc-shared
         cljdoc/cljdoc-shared {:git/url "https://github.com/cljdoc/cljdoc-shared.git"
-                              :git/sha "3290310afd9aa1cf25d2c747b9482517ca6c8f2c"}}
+                              :git/sha "3d3ed7b596703bbb937dbefdc96e14756606877e"}}
 
  :paths ["src" "resources" "resources-compiled" "target/classes"]
  :aliases {:nrepl
            {:extra-paths ["dev"]
             :extra-deps {nrepl/nrepl {:mvn/version "1.8.0"}
                          cider/cider-nrepl {:mvn/version "0.64.1"}
-                         refactor-nrepl/refactor-nrepl {:mvn/version "3.15.0"}
+                         refactor-nrepl/refactor-nrepl {:mvn/version "3.16.0"}
                          ;; to support recompiling java code from repl
                          virgil/virgil {:mvn/version "0.5.1"}
                          ;; for ns reload support
@@ -130,13 +130,4 @@
             :main-opts ["-m" "eastwood.lint" {:source-paths ["src"]
                                               :test-paths ["test"]}]}
            :cli
-           {:main-opts ["-m" "cljdoc.cli"]}
-
-           :outdated
-           {:replace-deps {com.github.liquidz/antq {:mvn/version "2.11.1276"}
-                           org.slf4j/slf4j-simple {:mvn/version "2.0.20"}} ;; to rid ourselves of logger warnings
-            :main-opts ["-m" "antq.core"
-                        "--exclude=io.pedestal/pedestal.jetty@0.8.0-rc-2" ;; see https://github.com/cljdoc/cljdoc/issues/1081
-                        "--exclude=org.xerial/sqlite-jdbc@3.51.0.0" ;; see https://github.com/cljdoc/cljdoc/issues/1125
-                        "--exclude=org.xerial/sqlite-jdbc@3.51.1.0" ;; see https://github.com/cljdoc/cljdoc/issues/1125
-                        "--ignore-locals"]}}}
+           {:main-opts ["-m" "cljdoc.cli"]}}}
