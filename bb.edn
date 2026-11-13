@@ -8,7 +8,7 @@
         org.clj-commons/pretty {:mvn/version "3.10.0"}
         org.babashka/esbuild {:mvn/version "0.1.1"}
         ;; reference as a git dep so that esbuild can easily find squint assets
-        io.github.squint-cljs/squint {:git/tag "v0.15.212" :git/sha "422837d"}}
+        io.github.squint-cljs/squint {:git/tag "v0.16.213" :git/sha "6874028"}}
  :pods {org.babashka/fswatcher {:version "0.0.7"}}
  :tasks
  {;; setup
