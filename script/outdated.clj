@@ -1,5 +1,6 @@
 (ns outdated
-  (:require [babashka.fs :as fs]
+  (:require [antq.core :as antq]
+            [babashka.fs :as fs]
             [clj-commons.format.table :as table]
             [clojure.edn :as edn]
             [clojure.string :as string]
@@ -8,9 +9,8 @@
             [lread.status-line :as status]))
 
 (defn check-clojure []
-  (status/line :head "Checking Clojure deps")
-  ;; antq will return 1 when there are outdated deps, so don't fail on non-zero exit
-  (shell/command {:continue true} "clojure -M:outdated" "--directory=.:ops/exoscale/deploy:modules/nvd-scan"))
+  (status/line :head "Checking Clojure & CircleCI deps")
+  (antq/-main "--directory=.:ops/exoscale/deploy:modules/nvd-scan"))
 
 (defn check-npm-js []
   (when (not (fs/exists? "node_modules"))
