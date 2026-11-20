@@ -10,7 +10,8 @@
 
 (defn check-clojure []
   (status/line :head "Checking Clojure & CircleCI deps")
-  (antq/-main "--directory=.:ops/exoscale/deploy:modules/nvd-scan"))
+  (with-redefs [antq/system-exit (fn [_])]
+    (antq/-main "--directory=.:ops/exoscale/deploy:modules/nvd-scan")))
 
 (defn check-npm-js []
   (when (not (fs/exists? "node_modules"))
